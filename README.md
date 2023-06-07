@@ -3,10 +3,10 @@
 Blue is a platform that leverages large language models (LLM) for variety of tasks that involve access to external structured data, knowledge, tools and task- and domain-specific models. The objective is to explore a design space where the LLM plays a key role but is not the 'be-all and end-all', where everything is baked into LLMs. Instead, we believe tasks can be broken down into pieces, either through recipes in a designed manner or in a decentralized but learned manner. Tasks can utilize specific models and tools, for example query structured data, extract insights, and communicate those insights to the user in natural language. As such we aimed to design a blueprint architecture that facilitates the orchestration of data and tasks, with the appopriate level of separation of concerns.
 
 ## streams
-A central concept in Blue is a `stream`. A stream is essentially a sequence of data (or control instructions) that can be dynamically monitored and consumed. For example, a temperature sensor can spit out current temperature every minute to a stream. In our context, a user might be typing in text, asking a question can be a stream, where each token or word are transmitted as they are typed. An LLM generating text can be another stream, output as they are being generated.
+A central concept in Blue is a `stream`. A stream is essentially a sequence of data (or control instructions) that can be dynamically monitored, consumed. For example, a temperature sensor can spit out current temperature every minute to a stream. In our context, a user typing in text in a chat, asking a question can be a stream, where each token or word are transmitted as they are being typed. An LLM generating text can be another stream, and generated tokens can be output as they are being generated.
 
 ## agents
-Another key concept in the architecture is an agent. An agent basically listens to a stream, if it decides to act on it, can process the data and output into another stream. Another agent might be listening to the output of the first agent and do something on top or choose to listen to the user stream. 
+Another key concept in the blueprint architecture is an agent. An agent basically monitors to a stream, if it decides to act on it, can process the data and output into another stream. There might be yet another agent monitoring the output of the first agent and do something on top or choose to listen to the user stream. 
 
 TODO: Add more as we make progress
 
