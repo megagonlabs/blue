@@ -20,6 +20,7 @@ $ docker compose up
 ## v0 example
 To try out demo of v0, run the following commands:
 ```
+$ cd services
 $ python useragent.py --interactive
 Starting agent USER
 INFO:root:Starting producer USER
