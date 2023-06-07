@@ -28,7 +28,7 @@ INFO:root:Streaming into USER:2e05c92d-23be-47f4-bb81-7ebbbdd0315b message {'tag
 INFO:root:Streamed into USER:2e05c92d-23be-47f4-bb81-7ebbbdd0315b message {'tag': 'BOS'}
 INFO:root:Started producer USER
 Started agent USER
-Enter Text: Hello, this is a really not message. Kidding not really.
+Enter Text: Hello, this is a really long message. Kidding not really.
 
 $ python myagent.py --input_stream USER:2e05c92d-23be-47f4-bb81-7ebbbdd0315b
 Starting agent AGENT
@@ -53,7 +53,7 @@ INFO:root:[Thread 0]: listening... 1686093740524-0
 INFO:root:[Thread 0]: listening... 1686093740526-0
 INFO:root:[Thread 0]: listening... 1686093740528-0
 INFO:root:[Thread 0]: listening... 1686093740531-0
-['Hello,', 'this', 'is', 'a', 'really', 'not', 'message.', 'Kidding', 'not', 'really.']
+['Hello,', 'this', 'is', 'a', 'really', 'long', 'message.', 'Kidding', 'not', 'really.']
 INFO:root:Streaming into AGENT:8b3deaea-1108-4378-a92e-0bc2a1dc7972 message {'tag': 'DATA', 'value': 10, 'type': 'int'}
 INFO:root:Streamed into AGENT:8b3deaea-1108-4378-a92e-0bc2a1dc7972 message {'tag': 'DATA', 'value': 10, 'type': 'int'}
 INFO:root:Streaming into AGENT:8b3deaea-1108-4378-a92e-0bc2a1dc7972 message {'tag': 'EOS'}
