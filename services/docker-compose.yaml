@@ -1,0 +1,13 @@
+---
+version: '3.8'
+
+services:
+  counter:
+    image: blue-service-counter:latest
+    ports:
+      - "8001:8001"
+    networks:
+      - default
+    restart: always
+
+
