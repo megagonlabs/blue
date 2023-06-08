@@ -20,8 +20,8 @@ $ docker compose up
 ## v0 example
 To try out demo of v0, run the following commands:
 ```
-$ cd services
-$ python useragent.py --interactive
+$ cd agents
+$ python sample_user_agent.py --interactive
 Starting agent USER
 INFO:root:Starting producer USER
 INFO:root:Streaming into USER:2e05c92d-23be-47f4-bb81-7ebbbdd0315b message {'tag': 'BOS'}
@@ -29,8 +29,10 @@ INFO:root:Streamed into USER:2e05c92d-23be-47f4-bb81-7ebbbdd0315b message {'tag'
 INFO:root:Started producer USER
 Started agent USER
 Enter Text: Hello, this is a really long message. Kidding not really.
-
-$ python myagent.py --input_stream USER:2e05c92d-23be-47f4-bb81-7ebbbdd0315b
+```
+Then copy the stream of the USER agent (i.e. USER:2e05c92d-23be-47f4-bb81-7ebbbdd0315b)  so that another agent listens to the user input text:
+```
+$ python simple_counter_agent.py --input_stream USER:2e05c92d-23be-47f4-bb81-7ebbbdd0315b
 Starting agent AGENT
 INFO:root:Starting producer AGENT
 INFO:root:Streaming into AGENT:8b3deaea-1108-4378-a92e-0bc2a1dc7972 message {'tag': 'BOS'}
@@ -65,4 +67,23 @@ Started agent AGENT
 
 ```
 In the above example, the user enters some text and another agents listens to the user stream and computes the length of the user stream and outputs that into another stream. You can see the demo stream contents using RedisInsight.
+
+A more sophisticated example would be where an agent talks to a service over websockets. To run an example like that you first need to bring up a web service and then run the agent that talks to the service. Let's first build the service as a docker image:
+
+```
+$ cd services/counter
+$ ./docker_build_service.sh
+```
+
+Then run the service:
+```
+$ cd services
+$ docker compose up
+```
+
+And lastly run the agent:
+```
+$ cd agents
+$ python websocket_counter_agent.py --input_stream USER:2e05c92d-23be-47f4-bb81-7ebbbdd0315b
+```
 
