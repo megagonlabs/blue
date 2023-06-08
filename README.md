@@ -71,13 +71,13 @@ In the above example, the user enters some text and another agents listens to th
 A more sophisticated example would be where an agent talks to a service over websockets. To run an example like that you first need to bring up a web service and then run the agent that talks to the service. Let's first build the service as a docker image:
 
 ```
-$ cd services/counter
+$ cd agents/services/counter
 $ ./docker_build_service.sh
 ```
 
 Then run the service:
 ```
-$ cd services
+$ cd agents/services
 $ docker compose up
 ```
 
