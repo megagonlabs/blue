@@ -10,6 +10,10 @@ Another key concept in the blueprint architecture is an agent. An agent basicall
 
 TODO: Add more as we make progress
 
+## requirements
+Blue requires docker engine to build and run the infrastruture and agents. To develop on your local machine you would need to install docker enginer from 
+https://docs.docker.com/engine/install/
+
 ## infrastructure
 To run the infrastructure necessary, follow the instructions below:
 ```
