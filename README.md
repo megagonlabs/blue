@@ -78,7 +78,7 @@ $ ./docker_build_service.sh
 
 Then run the service:
 ```
-$ cd agents/services
+$ cd agents/websocker_counter
 $ docker compose up
 ```
 
