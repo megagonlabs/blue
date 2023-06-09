@@ -2,8 +2,8 @@
 version: '3.8'
 
 services:
-  counter:
-    image: blue-service-counter:latest
+  counter-service:
+    image: blue-service-websocket_counter
     ports:
       - "8001:8001"
     networks:

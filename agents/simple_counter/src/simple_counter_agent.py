@@ -2,6 +2,10 @@
 import os
 import sys
 
+###### Add lib path
+sys.path.append('./lib/')
+sys.path.append('./lib/shared/')
+
 ###### 
 import time
 import argparse
@@ -18,11 +22,6 @@ import json
 import itertools
 from tqdm import tqdm
 
-###### Communication
-import asyncio
-from websockets.sync.client import connect
-
-
 ###### Blue
 from agent import Agent
 
@@ -30,17 +29,9 @@ from agent import Agent
 logging.getLogger().setLevel(logging.INFO)
 
 #######################
-class MyAgent(Agent):
+class CounterAgent(Agent):
     def __init__(self, name, stream, processor=None, properties={}):
         super().__init__(name, stream, processor=processor, properties=properties)
-
-def call_service(data):
-    with connect("ws://localhost:8001") as websocket:
-        logging.info("Sending to service: {data}".format(data=data))
-        websocket.send(data)
-        message = websocket.recv()
-        logging.info("Received from service: {message}".format(message=message))
-        return int(message)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -51,18 +42,18 @@ if __name__ == "__main__":
 
     stream_data = []
 
-
     # sample func to process data
     def processor(id, event, data):
         if event == 'EOS':
             # print all data received from stream
             print(stream_data)
 
-            # call service to compute
-            m = call_service(" ".join(stream_data))
-           
+            # compute stream data
+            l = len(stream_data)
+            time.sleep(4)
+            
             # output to stream
-            return m
+            return l
            
         elif event == 'DATA':
             # store data value
@@ -70,8 +61,7 @@ if __name__ == "__main__":
         
         return None
 
-    call_service("sample")
-    a = MyAgent(args.name, args.input_stream, processor=processor)
+    a = CounterAgent(args.name, args.input_stream, processor=processor)
     a.start()
 
 

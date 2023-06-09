@@ -2,6 +2,10 @@
 import os
 import sys
 
+###### Add lib path
+sys.path.append('./lib/')
+sys.path.append('./lib/shared/')
+
 ###### 
 import time
 import argparse
@@ -32,6 +36,7 @@ class UserAgent(Agent):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--name', type=str, default='USER')
+    parser.add_argument('--text', type=str, default='sample')
     parser.add_argument('--interactive', type=bool, default=False, action=argparse.BooleanOptionalAction, help="input text interactively (default False)")
 
     args = parser.parse_args()

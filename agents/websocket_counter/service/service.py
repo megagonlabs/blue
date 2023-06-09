@@ -1,14 +1,29 @@
-import asyncio
+###### OS / Systems
+import os
+import sys
 
+###### 
+import time
+import argparse
+import logging
+import time
+import uuid
+import random
+
+##### Communication 
+import asyncio
 import websockets
+
+# set log level
+logging.getLogger().setLevel(logging.INFO)
 
 async def handler(websocket):
     while True:
         try:
             message = await websocket.recv()
-            print(message)
+            logging.info(message)
             l = len(message)
-            print(l)
+            logging.info(l)
             await websocket.send(str(l))
         except websockets.ConnectionClosedOK:
             break
@@ -18,4 +33,6 @@ async def main():
         await asyncio.Future()  # run forever
 
 if __name__ == "__main__":
+    logging.info('starting....')
     asyncio.run(main())
+

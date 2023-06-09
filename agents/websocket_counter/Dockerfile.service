@@ -1,16 +1,14 @@
 FROM python:3.9
 
-MAINTAINER Eser Kandogan "eser@megagon.ai"
-
 # Set workdir
-WORKDIR .
+WORKDIR /app
 
 # Build requirements first
-ADD requirements.txt requirements.txt
+ADD service/requirements.txt /app/requirements.txt
 RUN pip install -r requirements.txt
 
 # Copy service files
-ADD /src .
+ADD /service /app/
 
 ENTRYPOINT [ "python" ]
 
