@@ -20,8 +20,8 @@ $ docker compose up
 ## v0 example
 To try out demo of v0, run the following commands:
 ```
-$ cd agents
-$ python sample_user_agent.py --interactive
+$ cd agents/simple_user
+$ python src/simple_user_agent.py --interactive
 Starting agent USER
 INFO:root:Starting producer USER
 INFO:root:Streaming into USER:2e05c92d-23be-47f4-bb81-7ebbbdd0315b message {'tag': 'BOS'}
@@ -32,7 +32,8 @@ Enter Text: Hello, this is a really long message. Kidding not really.
 ```
 Then copy the stream of the USER agent (i.e. USER:2e05c92d-23be-47f4-bb81-7ebbbdd0315b)  so that another agent listens to the user input text:
 ```
-$ python simple_counter_agent.py --input_stream USER:2e05c92d-23be-47f4-bb81-7ebbbdd0315b
+$ cd agents/simple_counter
+$ python src/simple_counter_agent.py --input_stream USER:2e05c92d-23be-47f4-bb81-7ebbbdd0315b
 Starting agent AGENT
 INFO:root:Starting producer AGENT
 INFO:root:Streaming into AGENT:8b3deaea-1108-4378-a92e-0bc2a1dc7972 message {'tag': 'BOS'}
@@ -71,7 +72,7 @@ In the above example, the user enters some text and another agents listens to th
 A more sophisticated example would be where an agent talks to a service over websockets. To run an example like that you first need to bring up a web service and then run the agent that talks to the service. Let's first build the service as a docker image:
 
 ```
-$ cd agents/services/counter
+$ cd agents/websocket_counter
 $ ./docker_build_service.sh
 ```
 
@@ -83,7 +84,7 @@ $ docker compose up
 
 And lastly run the agent:
 ```
-$ cd agents
-$ python websocket_counter_agent.py --input_stream USER:2e05c92d-23be-47f4-bb81-7ebbbdd0315b
+$ cd agents/websocket_counter
+$ python src/websocket_counter_agent.py --input_stream USER:2e05c92d-23be-47f4-bb81-7ebbbdd0315b
 ```
 
