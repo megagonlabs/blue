@@ -65,3 +65,8 @@ $ docker run -e text="this is a different text" --network="host" blue-agent-simp
 $ docker run -e session=SESSION:493e2083-61a0-4c90-accf-3d372f5b8aac --network="host" blue-agent-simple_counter
 $ docker run -e session=SESSION:493e2083-61a0-4c90-accf-3d372f5b8aac --network="host" blue-agent-websocket_counter
 ```
+
+## development
+
+TODO:
+
