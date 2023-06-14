@@ -59,7 +59,7 @@ $ python src/websocket_counter_agent.py --session SESSION:493e2083-61a0-4c90-acc
 
 As a matter of fact, not just the services for the agents, the agents themselves can also be run in a dockerized manner. To do so, run the `docker_build_agent.sh` in the respective agents folders. This should be docker images such as `blue-agent-websocket_counter`, which you can list using `docker image ls`, for example.
 
-To run dockerized version of the agents you would need to run `docker run` commands with the image names and parameters. For example, the agents in v0 examples can be as below:
+To run dockerized version of the agents you would need to run `docker run` commands with the image names and parameters. For example, the agents in v0.1 examples can be as below:
 ```
 $ docker run -e text="this is a different text" --network="host" blue-agent-simple_user
 $ docker run -e session=SESSION:493e2083-61a0-4c90-accf-3d372f5b8aac --network="host" blue-agent-simple_counter
