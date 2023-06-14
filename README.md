@@ -21,57 +21,22 @@ $ cd platform
 $ docker compose up
 ```
 
-## v0 example
-To try out demo of v0, run the following commands:
+## v0.1 example
+To try out demo of v0.1, run the following commands:
 ```
 $ cd agents/simple_user
 $ python src/simple_user_agent.py --interactive
-Starting agent USER
-INFO:root:Starting producer USER
-INFO:root:Streaming into USER:2e05c92d-23be-47f4-bb81-7ebbbdd0315b message {'tag': 'BOS'}
-INFO:root:Streamed into USER:2e05c92d-23be-47f4-bb81-7ebbbdd0315b message {'tag': 'BOS'}
-INFO:root:Started producer USER
-Started agent USER
+[...]
+INFO:root:Started consumer USER for stream SESSION:493e2083-61a0-4c90-accf-3d372f5b8aac
 Enter Text: Hello, this is a really long message. Kidding not really.
 ```
-Then copy the stream of the USER agent (i.e. USER:2e05c92d-23be-47f4-bb81-7ebbbdd0315b)  so that another agent listens to the user input text:
+Then copy the session the USER agent created (i.e. SESSION:493e2083-61a0-4c90-accf-3d372f5b8aac)  so that another agent can participate in the same session:
 ```
 $ cd agents/simple_counter
-$ python src/simple_counter_agent.py --input_stream USER:2e05c92d-23be-47f4-bb81-7ebbbdd0315b
-Starting agent AGENT
-INFO:root:Starting producer AGENT
-INFO:root:Streaming into AGENT:8b3deaea-1108-4378-a92e-0bc2a1dc7972 message {'tag': 'BOS'}
-INFO:root:Streamed into AGENT:8b3deaea-1108-4378-a92e-0bc2a1dc7972 message {'tag': 'BOS'}
-INFO:root:Started producer AGENT
-INFO:root:Starting consumer AGENT
-INFO:root:Creating group AGENT:3083f9cd-d223-4038-b98e-c0963fea4ddf...
-INFO:root:Group info for stream USER:2e05c92d-23be-47f4-bb81-7ebbbdd0315b
-INFO:root:USER:2e05c92d-23be-47f4-bb81-7ebbbdd0315b -> group name: AGENT:3083f9cd-d223-4038-b98e-c0963fea4ddf with 0 consumers and 0-0 as last read id
-INFO:root:[Thread 0]: starting
-INFO:root:[Thread 0]: listening... 1686093702009-0
-INFO:root:[Thread 0]: listening... 1686093740505-0
-INFO:root:[Thread 0]: listening... 1686093740508-0
-INFO:root:[Thread 0]: listening... 1686093740511-0
-INFO:root:[Thread 0]: listening... 1686093740513-0
-INFO:root:[Thread 0]: listening... 1686093740516-0
-INFO:root:[Thread 0]: listening... 1686093740519-0
-INFO:root:[Thread 0]: listening... 1686093740521-0
-INFO:root:[Thread 0]: listening... 1686093740524-0
-INFO:root:[Thread 0]: listening... 1686093740526-0
-INFO:root:[Thread 0]: listening... 1686093740528-0
-INFO:root:[Thread 0]: listening... 1686093740531-0
-['Hello,', 'this', 'is', 'a', 'really', 'long', 'message.', 'Kidding', 'not', 'really.']
-INFO:root:Streaming into AGENT:8b3deaea-1108-4378-a92e-0bc2a1dc7972 message {'tag': 'DATA', 'value': 10, 'type': 'int'}
-INFO:root:Streamed into AGENT:8b3deaea-1108-4378-a92e-0bc2a1dc7972 message {'tag': 'DATA', 'value': 10, 'type': 'int'}
-INFO:root:Streaming into AGENT:8b3deaea-1108-4378-a92e-0bc2a1dc7972 message {'tag': 'EOS'}
-INFO:root:Streamed into AGENT:8b3deaea-1108-4378-a92e-0bc2a1dc7972 message {'tag': 'EOS'}
-INFO:root:Stopping consumer AGENT
-INFO:root:[Thread 0]: finishing
-INFO:root:Started consumer AGENT
-Started agent AGENT
-
+$ python src/simple_counter_agent.py --session SESSION:493e2083-61a0-4c90-accf-3d372f5b8aac
+[...]
 ```
-In the above example, the user enters some text and another agents listens to the user stream and computes the length of the user stream and outputs that into another stream. You can see the demo stream contents using RedisInsight.
+In the above example, the user enters some text and another agents listens to the sesssion the user agent works in, when the user agent creates a stream and enter text, the counter agent above picks up the stream and computes the length of the user stream and outputs that into another stream in the session.. You can see the demo stream contents using RedisInsight.
 
 A more sophisticated example would be where an agent talks to a service over websockets. To run an example like that you first need to bring up a web service and then run the agent that talks to the service. Let's first build the service as a docker image:
 
@@ -89,7 +54,7 @@ $ docker compose up
 And lastly run the agent:
 ```
 $ cd agents/websocket_counter
-$ python src/websocket_counter_agent.py --input_stream USER:2e05c92d-23be-47f4-bb81-7ebbbdd0315b
+$ python src/websocket_counter_agent.py --session SESSION:493e2083-61a0-4c90-accf-3d372f5b8aac
 ```
 
 As a matter of fact, not just the services for the agents, the agents themselves can also be run in a dockerized manner. To do so, run the `docker_build_agent.sh` in the respective agents folders. This should be docker images such as `blue-agent-websocket_counter`, which you can list using `docker image ls`, for example.
@@ -97,6 +62,6 @@ As a matter of fact, not just the services for the agents, the agents themselves
 To run dockerized version of the agents you would need to run `docker run` commands with the image names and parameters. For example, the agents in v0 examples can be as below:
 ```
 $ docker run -e text="this is a different text" --network="host" blue-agent-simple_user
-$ docker run -e input_stream=USER:2e05c92d-23be-47f4-bb81-7ebbbdd0315b --network="host" blue-agent-simple_counter
-$ docker run -e input_stream=USER:2e05c92d-23be-47f4-bb81-7ebbbdd0315b --network="host" blue-agent-websocket_counter
+$ docker run -e session=SESSION:493e2083-61a0-4c90-accf-3d372f5b8aac --network="host" blue-agent-simple_counter
+$ docker run -e session=SESSION:493e2083-61a0-4c90-accf-3d372f5b8aac --network="host" blue-agent-websocket_counter
 ```
