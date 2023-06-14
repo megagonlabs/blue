@@ -14,6 +14,6 @@ ADD /lib /app/lib/
 ADD /src /app/
 
 # Environment variables
-ENV input_stream default
+ENV session
 
-CMD ["sh", "-c", "python websocket_counter_agent.py --input_stream ${input_stream}"]
+CMD ["sh", "-c", "python websocket_counter_agent.py --session ${session}"]
