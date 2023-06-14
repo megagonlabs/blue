@@ -55,6 +55,7 @@ class BluePrint():
         logging.info("Stopping architecture {name}".format(name=self.name))
         
 
+
   
 
 #######################
@@ -65,6 +66,7 @@ if __name__ == "__main__":
    args = parser.parse_args()
 
    bp = BluePrint(args.name)
+   bp.add_agent()
    bp.start()
   
 

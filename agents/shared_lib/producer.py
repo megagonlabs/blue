@@ -34,10 +34,9 @@ class Producer():
         self.name = name
 
         if sid is None:
-            sid = uuid.uuid4()
-        self.sid = sid 
-
-        self.stream = self.name + ":" + str(self.sid)
+            self.stream = self.name + ":" + str(uuid.uuid4())
+        else:
+            self.stream = str(sid)
 
         self.properties = properties
 
@@ -57,8 +56,7 @@ class Producer():
 
     ####### open connection, create group, start threads
     def start(self):
-        print("XXXXX")
-        logging.info("Starting producer {p}".format(p=self.name))
+        # logging.info("Starting producer {p}".format(p=self.name))
         self._start_connection()
 
         self._start_stream()
@@ -76,9 +74,8 @@ class Producer():
         s = self.stream
         r = self.connection
 
-         # add BOS (begin of stream)
-        message = self._prepare_message(tag="BOS")
-        self._write_message_to_stream(message)
+        # add BOS (begin of stream)
+        self.write(tag="BOS")
        
         self._print_stream_info()
 
@@ -90,35 +87,49 @@ class Producer():
         return self.stream
 
     # stream 
-    def write(self, data, type="text", eos=True, split=" "):
-        if type == "text":
-            if split is None:
-                tokens = [data]
-            else:
-                tokens = data.split(split)
+    def write(self, data=None, type="str", tag="DATA", eos=True, split=" "):
+        # print("producer write {tag} {data} {type}".format(tag=tag,data=data,type=type))
 
-                for token in tokens:
-                    message = self._prepare_message(value=token, type="text")
-                    self._write_message_to_stream(message)
-                
-                
-        elif type == "int":
-            message = self._prepare_message(value=data, type="int")
-            self._write_message_to_stream(message)
+        if tag == "DATA":
+            # force str conversion
+            if type is None:
+                type = "str"
+                data = str(data)
 
-        if eos:
-            message = self._prepare_message(tag="EOS")
+            if type == "str":
+                if split is None:
+                    tokens = [data]
+                else:
+                    tokens = data.split(split)
+
+                    for token in tokens:
+                        message = self._prepare_message(value=token, tag=tag, type="str")
+                        self._write_message_to_stream(message)
+                    
+                    
+            elif type == "int":
+                message = self._prepare_message(value=data, tag=tag, type="int")
+                self._write_message_to_stream(message)
+
+            if eos:
+                message = self._prepare_message(tag="EOS")
+                self._write_message_to_stream(message)
+        else:
+            message = self._prepare_message(value=data, tag=tag)
             self._write_message_to_stream(message)
 
              
-    def _prepare_message(self, tag="DATA", value=None, type="text"):
+    def _prepare_message(self, tag=None, value=None, type=None):
         if tag == "DATA":
             return {"tag": tag, "value": value, "type": type}
         else:
-            return {"tag": tag}
+            if value is None:
+                return {"tag": tag}
+            else:
+                return {"tag": tag, "value": value}
 
     def _write_message_to_stream(self, message):
-        logging.info("Streaming into {s} message {m}".format(s=self.stream, m=str(message)))
+        # logging.info("Streaming into {s} message {m}".format(s=self.stream, m=str(message)))
         self.connection.xadd(self.stream, message)
         logging.info("Streamed into {s} message {m}".format(s=self.stream, m=str(message)))
 
@@ -133,7 +144,7 @@ if __name__ == "__main__":
     p = Producer(args.name)
     p.start()
 
-    p.stream(args.text, type="text")
+    p.stream(args.text, type="str")
 
 
 

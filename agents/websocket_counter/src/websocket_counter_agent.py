@@ -29,14 +29,15 @@ from websockets.sync.client import connect
 
 ###### Blue
 from agent import Agent
+from session import Session
 
 # set log level
 logging.getLogger().setLevel(logging.INFO)
 
 #######################
 class CounterAgent(Agent):
-    def __init__(self, name, stream, processor=None, properties={}):
-        super().__init__(name, stream, processor=processor, properties=properties)
+    def __init__(self, session=None, input_stream=None, processor=None, properties={}):
+        super().__init__("COUNTER", session=session, input_stream=input_stream, processor=processor, properties=properties)
 
 def call_service(data):
     with connect("ws://localhost:8001") as websocket:
@@ -48,19 +49,22 @@ def call_service(data):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--name', type=str, default='AGENT')
-    parser.add_argument('--input_stream', type=str, default='input')
+    parser.add_argument('--session', type=str)
+    parser.add_argument('--input_stream', type=str)
  
     args = parser.parse_args()
+
+
+    session = None
+    a = None
+
 
     stream_data = []
 
 
+
     # sample func to process data
     def processor(id, event, data):
-        print(id)
-        print(event)
-        print(data)
         if event == 'EOS':
             # print all data received from stream
             print(stream_data)
@@ -77,8 +81,18 @@ if __name__ == "__main__":
         
         return None
 
-    a = CounterAgent(args.name, args.input_stream, processor=processor)
-    a.start()
+    if args.session:
+        # join an existing session
+        session = Session(args.session)
+        a = CounterAgent(session=session, processor=processor)
+    elif args.input_stream:
+        # no session, work on a single input stream
+        a = CounterAgent(input_stream=args.input_stream, processor=processor)
+    else:
+        # create a new session
+        a = CounterAgent(processor=processor)
+        a.start_session()
 
 
-
+    # wait for session
+    session.wait()

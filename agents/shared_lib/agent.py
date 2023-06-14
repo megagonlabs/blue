@@ -1,4 +1,5 @@
 ###### OS / Systems
+from curses import noecho
 import os
 import sys
 
@@ -18,25 +19,37 @@ import json
 import itertools
 from tqdm import tqdm
 
+
+###### Threads
+import threading
+import concurrent.futures
+
 ###### Blue
 from producer import Producer
 from consumer import Consumer
+from session import Session
+from worker import Worker
 
 class Agent():
-    def __init__(self, name, input_stream, processor=None, properties={}):
+    def __init__(self, name, session=None, input_stream=None, processor=None, properties={}):
 
         self.name = name
-        self.input_stream = input_stream
-
+        
         self.processor = processor
 
         self.properties = properties
 
-        self.producer = None
+        self.input_stream = input_stream
+        
+        self.set_session(session)
+
         self.consumer = None
+
+        self.workers = []
 
         self._initialize()
 
+        self._start()
 
     ###### initialization
     def _initialize(self):
@@ -44,74 +57,103 @@ class Agent():
 
 
     def _initialize_properties(self):
-        if 'num_threads' not in self.properties:
-            self.properties['num_threads'] = 1
+        pass
 
-        if 'host' not in self.properties:
-            self.properties['host'] = 'localhost'
+    ###### worker
+    def create_worker(self, input_stream):
+        worker = Worker(self.name, input_stream, processor=self.processor, session=self.session)
+        return worker
 
-        if 'port' not in self.properties:
-            self.properties['port'] = 6379
-
-    def listener(self, id, data):
-        tag = None
-        value = None
-        if 'tag' in data:
-            tag = data['tag']
-        if 'value' in data:
-            value = data['value']
-
-        result = None
-
-        if self.processor is not None:
-            result = self.processor(id, tag, value)
-
-        # if data, write to streap
-        if result is not None:
-            self.write(result, eos=(tag=='EOS'))
+    ###### sesion
+    def start_session(self):
+        # create a new session
+        session = Session()
         
-        if tag == 'EOS':
-            # done, stop listening to input stream
-            self.consumer.stop()
+        # set agent's session, start listening...
+        self.set_session(session)
+
+        # start consuming session stream
+        self._start_session_consumer()
+        return session
 
 
+    def set_session(self, session):
+        self.session = session
 
-    def write(self, data, type=None, eos=True, split=" "):
-        self._start_producer()
+        if self.session:
+           self.session.add_agent(self)
 
-        # do basic type setting, if none given
-        if type == None:
-            if isinstance(data, int):
-                type = 'int'
-            elif isinstance(data, float):
-                type = 'float'
-            elif isinstance(data, str):
-                type = 'str'
-            else:
-                data = str(data)
-                type = 'str'
 
-        self.producer.write(data, type=type, eos=eos, split=split)
+    def session_listener(self, id, data):   
+        # listen to session stream
+       
+        # if session tag is USER
+        tag = data['tag']
+        
+        if tag == 'ADDS':
+            input_stream = data['value']
 
-    def start(self):
-        print('Starting agent {name}'.format(name=self.name))
-        # start consumer and producers
-        self._start_producer()
-        self._start_consumer()
+            agent = input_stream.split(":")[0]
+            
+            # TODO: Agents need to define what to listen to
+            # for now, just listen to anything that isn't coming self
+            if agent != self.name:
+            # if agent == 'USER':
+                logging.info("Spawning worker for agent {name}...".format(name=self.name))
+                session_stream = self.session.get_stream()
+
+                # create and start worker
+                worker = self.create_worker(input_stream)
+                self.workers.append(worker)
+                
+                logging.info("Spawned worker for agent {name}...".format(name=self.name))
+
+    def interact(self, data):
+        if self.session is None:
+            self.start_session()
+
+        # create worker to emit data for session
+        worker = self.create_worker(None)
+
+        # write data, automatically notify session on BOS
+        worker.write(data)
+
+    def _start(self):
+        # print('Starting agent {name}'.format(name=self.name))
+
+        # if agent is associated with a session
+        if self.session:
+            self._start_session_consumer()
+        # else if agent is dedicated to an input stream 
+        elif self.input_stream:
+            # create and start worker
+            worker = self.create_worker(self.input_stream)
+            self.workers.append(worker)
+
         print('Started agent {name}'.format(name=self.name))
 
-    def _start_consumer(self):
-         # start a consumer to listen to stream
-        if self.input_stream:
-            self.consumer = Consumer(self.name, self.input_stream, listener=lambda id, data : self.listener(id,data))
-            self.consumer.start()
 
-    def _start_producer(self):
-        # start, if not started
-        if self.producer == None:
-            producer = Producer(self.name)
-            producer.start()
-            self.producer = producer
+
+    def _start_session_consumer(self):
+        # start a consumer to listen to session stream
+        if self.session:
+            session_stream = self.session.get_stream()
+
+            if session_stream:
+                self.consumer = Consumer(self.name, session_stream, listener=lambda id, data : self.session_listener(id,data))
+                self.consumer.start()
+
+
+    def stop(self):
+        # send stop to each worker
+        for w in self.workers:
+            w.stop()
+
+    def wait(self):
+        # send wait to each worker
+        for w in self.workers:
+            w.wait()
+
 
 
 #######################
@@ -123,31 +165,22 @@ if __name__ == "__main__":
    
     args = parser.parse_args()
 
-    stream_data = []
-
-    # sample func to process data
-    def processor(id, event, data):
-        if event == 'EOS':
-            # print all data received from stream
-            print(stream_data)
-
-            # compute stream data
-            l = len(stream_data)
-            time.sleep(4)
-            
-            # output to stream
-            return l
-           
-        elif event == 'DATA':
-            # store data value
-            stream_data.append(data)
-        
+    # sample func to process data from 
+    # return a value other than None
+    # to create a stream 
+    def processor(id, event, value):
+        print(id)
+        print(event)
+        print(value)
+       
         return None
 
+    # create an agent and then create a session, and add agents
+    a = Agent(args.name, processor=processor, session=None)
+    s = a.start_session()
 
-    # create an agent
-    print(processor)
-    a = Agent(args.name, args.input_stream, processor=processor)
-    a.start()
+    # optionally you can create an agent in a session directly
+    b = Agent(args.name, processor=processor, session=s)
+
   
    

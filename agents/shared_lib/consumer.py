@@ -28,6 +28,7 @@ import concurrent.futures
 # set log level
 logging.getLogger().setLevel(logging.INFO)
 
+
 class Consumer():
     def __init__(self, name, stream, gid=None, listener=None, properties={}):
 
@@ -45,6 +46,8 @@ class Consumer():
 
         self.listener = listener
         self.properties = properties
+
+        self.threads = []
 
         self._initialize()
 
@@ -65,7 +68,7 @@ class Consumer():
 
     ####### open connection, create group, start threads
     def start(self):
-        logging.info("Starting consumer {c}".format(c=self.name))
+        # logging.info("Starting consumer {c} for stream {s}".format(c=self.name,s=self.stream))
         self.stop_signal = False
 
         self._start_connection()
@@ -73,11 +76,16 @@ class Consumer():
         self._start_group()
 
         self._start_threads()
-        logging.info("Started consumer {c}".format(c=self.name))
+
+        logging.info("Started consumer {c} for stream {s}".format(c=self.name,s=self.stream))
 
     def stop(self):
-        logging.info("Stopping consumer {c}".format(c=self.name))
+        logging.info("Stopping consumer {c} for stream {s}".format(c=self.name,s=self.stream))
         self.stop_signal = True
+
+    def wait(self):
+        for t in self.threads:
+            t.join()
 
     def _start_connection(self):
         host = self.properties['host']
@@ -92,12 +100,12 @@ class Consumer():
         r = self.connection
        
         try:
-            logging.info("Creating group {g}...".format(g=g))
+            # logging.info("Creating group {g}...".format(g=g))
             r.xgroup_create(name=s, groupname=g, id=0)
         except:
             logging.info("Group {g} exists...".format(g=g))
 
-        self._print_group_info()
+        # self._print_group_info()
 
     def _print_group_info(self):
         s = self.stream
@@ -124,11 +132,13 @@ class Consumer():
 
         logging.info("[Thread {c}]: starting".format(c=c))
         while(True):
+            
             if self.stop_signal:
                 break
             
             # check any pending, if so claim
             m = r.xautoclaim(count=1, name=s, groupname=g, consumername=str(c), min_idle_time=10000, justid=False)
+    
             if len(m) > 0:
                 d = m 
                 id = d[0]
@@ -157,7 +167,7 @@ class Consumer():
                 id = d[0]
                 data = d[1]
 
-                logging.info("[Thread {c}]: listening... {id}".format(c=c, id=id))
+                logging.info("[Thread {c}]: listening... {id} {data}".format(c=c, id=id, data=data))
                 
                 # listen
                 l(id, data)
@@ -170,14 +180,18 @@ class Consumer():
                 # ack 
                 r.xack(s, g, id)
 
-        logging.info("[Thread {c}]: finishing".format(c=c))
+        logging.info("[Thread {c}]: finished".format(c=c))
 
+    
     def _start_threads(self):
         # start threads
         num_threads = self.properties['num_threads']
-        with concurrent.futures.ThreadPoolExecutor(max_workers=num_threads) as executor:
-            executor.map(lambda c: self._consume_stream(c), range(num_threads))
-
+        
+        for i in range(num_threads):
+            t = threading.Thread(target=lambda : self._consume_stream(self.name + "-" + str(i)), daemon=True)
+            t.start()
+            self.threads.append(t)
+            
 
     def _delete_stream(self):
         s = self.stream
@@ -186,6 +200,8 @@ class Consumer():
         l = r.xread(streams={s:0})
         for _, m in l:
             [ r.xdel( s, i[0] ) for i in m ]
+
+
 
 
 #######################
