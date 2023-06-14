@@ -68,5 +68,53 @@ $ docker run -e session=SESSION:493e2083-61a0-4c90-accf-3d372f5b8aac --network="
 
 ## development
 
-TODO:
+Let's dive into a bit of development of the agents. The `agents/shared_lib` contains an Agent class that can be used as a base class for developing new agents. You do not necessarily need to extend the base class to create a new class for an agent as you can use the Agent class directly, and use the APIs to process data from other agents. Let's go through an example that basically uses base class:
+
+```
+# create a user agent
+    user_agent = Agent("USER")
+    session = user_agent.start_session()
+
+    # sample func to process data for counter
+    stream_data = []
+
+    def processor(id, event, value):
+        if event == 'EOS':
+            # print all data received from stream
+            print(stream_data)
+
+            # compute stream data
+            l = len(stream_data)
+            time.sleep(4)
+            
+            # output to stream
+            return l
+           
+        elif event == 'DATA':
+            # store data value
+            stream_data.append(value)
+    
+        return None
+
+    # create a counter agent in the same session
+    counter_agent = Agent("COUNTER", session=session, processor=processor)
+
+    # user initiates an interaction
+    user_agent.interact("this is a simple interaction")
+
+    # wait for session
+    session.wait()
+```
+
+In the above example, a `USER` agent is created and `create_session` function on the Agent is called to create a Session object. That session object is passed to another Agent, called `COUNTER`, along with a `processor` function to process data in the `COUNTER` agent. 
+
+The signature of the `processor` function is `id`, `event`, and `value`. `id` is the data id assigned (by Redis) stream. `event` is the type of data in the stream, for example `BOS` for beginning of stream, `EOS` for end of stream, `DATA` for a data in stream. Essentially above `processor` function adds new data to `stream_data` when it receives new data (e.g. on `DATA` event) and returns count when all data is received (e.g. on `EOS` event). The base class `Agent` automatically creates a new stream in the session and adds the returned value from the stream so that other agents might start listening to new streams and data in the session.
+
+That is it!
+
+Not quite. One question is who is listening to who. At the moment all agents listen to all streams produced by agents, except themselves. This and many more orchestration of work related design and implementation will come in the next few weeks.
+
+That is it, for now. :) 
+
+
 
