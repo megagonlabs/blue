@@ -161,3 +161,6 @@ $ cd agents/openai
 $ docker compose up 
 ```
 
+Finally, to setup openai authentication, edit `openai.env` and replace `<openai_api_key>` with your API Keys. 
+
+
