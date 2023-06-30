@@ -1,0 +1,15 @@
+---
+version: '3.8'
+
+services:
+  openai-service:
+    image: blue-service-openai
+    ports:
+      - "8001:8001"
+    networks:
+      - default
+    env_file:
+    - openai.env
+    restart: always
+
+

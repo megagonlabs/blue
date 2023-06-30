@@ -16,6 +16,7 @@ import re
 import csv
 import json
 
+
 import itertools
 from tqdm import tqdm
 
@@ -35,9 +36,13 @@ class Agent():
 
         self.name = name
         
-        self.processor = processor
-
         self.properties = properties
+
+        self._initialize()
+
+        # override, if necessary
+        if processor is not None:
+            self.processor = lambda *args: processor(*args, properties=self.properties)
 
         self.input_stream = input_stream
         
@@ -46,8 +51,6 @@ class Agent():
         self.consumer = None
 
         self.workers = []
-
-        self._initialize()
 
         self._start()
 

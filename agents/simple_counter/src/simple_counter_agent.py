@@ -34,6 +34,27 @@ class CounterAgent(Agent):
     def __init__(self, session=None, input_stream=None, processor=None, properties={}):
         super().__init__("COUNTER", session=session, input_stream=input_stream, processor=processor, properties=properties)
 
+        #TODO: needs to move to session store for agent
+        self.stream_data = []
+
+    def processor(self, id, event, value):
+        if event == 'EOS':
+            # print all data received from stream
+            print(self.stream_data)
+
+            # compute stream data
+            l = len(self.stream_data)
+            time.sleep(4)
+            
+            # output to stream
+            return l
+        
+        elif event == 'DATA':
+            # store data value
+            self.stream_data.append(value)
+    
+        return None
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--session', type=str)
@@ -41,42 +62,19 @@ if __name__ == "__main__":
  
     args = parser.parse_args()
 
-
     session = None
     a = None
-
-
-    stream_data = []
-
-
-    def processor(id, event, value):
-        if event == 'EOS':
-            # print all data received from stream
-            print(stream_data)
-
-            # compute stream data
-            l = len(stream_data)
-            time.sleep(4)
-            
-            # output to stream
-            return l
-           
-        elif event == 'DATA':
-            # store data value
-            stream_data.append(value)
-    
-        return None
 
     if args.session:
         # join an existing session
         session = Session(args.session)
-        a = CounterAgent(session=session, processor=processor)
+        a = CounterAgent(session=session)
     elif args.input_stream:
         # no session, work on a single input stream
-        a = CounterAgent(input_stream=args.input_stream, processor=processor)
+        a = CounterAgent(input_stream=args.input_stream)
     else:
         # create a new session
-        a = CounterAgent(processor=processor)
+        a = CounterAgent()
         a.start_session()
 
     # wait for session
