@@ -20,6 +20,8 @@ import json
 import itertools
 from tqdm import tqdm
 
+###### Backend, Databases
+import redis
 
 ###### Threads
 import threading
@@ -42,7 +44,9 @@ class Agent():
 
         # override, if necessary
         if processor is not None:
-            self.processor = lambda *args: processor(*args, properties=self.properties)
+            self.processor = lambda *args, **kwargs: processor(*args, **kwargs, properties=self.properties)
+        else:
+            self.processor = lambda *args, **kwargs: self.default_processor(*args, **kwargs, properties=self.properties)
 
         self.input_stream = input_stream
         
@@ -60,12 +64,30 @@ class Agent():
 
 
     def _initialize_properties(self):
-        pass
+        if 'host' not in self.properties:
+            self.properties['host'] = 'localhost'
+
+        if 'port' not in self.properties:
+            self.properties['port'] = 6379
+
+    ###### database, data
+    def _start_connection(self):
+        host = self.properties['host']
+        port = self.properties['port']
+
+        self.connection = redis.Redis(host=host, port=port, decode_responses=True)
 
     ###### worker
     def create_worker(self, input_stream):
         worker = Worker(self.name, input_stream, processor=self.processor, session=self.session)
         return worker
+
+    ###### default processor, override
+    def default_processor(self, id, event, value, properties=None, worker=None):
+        print('default processor: override')
+        print(event)
+        print(id)
+        print(value)
 
     ###### sesion
     def start_session(self):
@@ -85,6 +107,7 @@ class Agent():
 
         if self.session:
            self.session.add_agent(self)
+
 
 
     def session_listener(self, id, data):   
@@ -111,6 +134,7 @@ class Agent():
                 
                 logging.info("Spawned worker for agent {name}...".format(name=self.name))
 
+
     def interact(self, data):
         if self.session is None:
             self.start_session()
@@ -122,6 +146,8 @@ class Agent():
         worker.write(data)
 
     def _start(self):
+        self._start_connection()
+        
         # print('Starting agent {name}'.format(name=self.name))
 
         # if agent is associated with a session

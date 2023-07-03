@@ -41,6 +41,8 @@ class OpenAIAgent(Agent):
         super().__init__("OPENAI", session=session, input_stream=input_stream, processor=processor, properties=properties)
 
     def _initialize_properties(self):
+        super()._initialize_properties()
+
         if 'api' not in self.properties:
             self.properties['api'] = 'Completion'
         if 'model' not in self.properties:
@@ -60,13 +62,13 @@ class OpenAIAgent(Agent):
         if 'max_tokens' not in self.properties:
             self.properties['max_tokens'] = 50
 
-    def processor(self, id, event, data):
+    def default_processor(self, id, event, data, properties=None, worker=None):
         properties = self.properties 
         print(properties)
+        print(worker)
 
         if event == 'EOS':
             # print all data received from stream
-            print(stream_data)
 
             #### call service to compute
            
@@ -86,6 +88,8 @@ class OpenAIAgent(Agent):
             message[properties['input_field']] = input_object
 
             # remove non-openai params
+            del message['host']
+            del message['port']
             del message['input_json']
             del message['input_context']
             del message['input_context_field']

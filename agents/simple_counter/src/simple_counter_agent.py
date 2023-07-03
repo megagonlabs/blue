@@ -34,24 +34,29 @@ class CounterAgent(Agent):
     def __init__(self, session=None, input_stream=None, processor=None, properties={}):
         super().__init__("COUNTER", session=session, input_stream=input_stream, processor=processor, properties=properties)
 
-        #TODO: needs to move to session store for agent
-        self.stream_data = []
 
-    def processor(self, id, event, value):
+    def default_processor(self, id, event, value, properties=None, worker=None):
         if event == 'EOS':
-            # print all data received from stream
-            print(self.stream_data)
-
             # compute stream data
-            l = len(self.stream_data)
+            l = 0
+            if worker:
+                l = worker.get_data_len('stream')
             time.sleep(4)
             
             # output to stream
+            l = l[0]
             return l
-        
+        elif event == 'BOS':
+            # init stream to empty array
+            if worker:
+                worker.set_data('stream',[])
+            pass
         elif event == 'DATA':
             # store data value
-            self.stream_data.append(value)
+            logging.info(value)
+            
+            if worker:
+                worker.append_data('stream', value)
     
         return None
 

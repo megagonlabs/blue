@@ -30,7 +30,10 @@ class Worker():
         self.session = session
 
         self.input_stream = input_stream
+
         self.processor = processor
+        if processor is not None:
+            self.processor = lambda *args, **kwargs,: processor(*args, **kwargs, worker=self)
 
         self.properties = properties
 
@@ -111,6 +114,10 @@ class Worker():
     def _start_consumer(self):
          # start a consumer to listen to stream
         if self.input_stream:
+            # create data namespace to share data on stream 
+            if self.session:
+                self.session._init_stream_agent_data_namespace(self.input_stream, self.name)
+
             self.consumer = Consumer(self.name, self.input_stream, listener=lambda id, data : self.listener(id,data))
             self.consumer.start()
 
@@ -127,6 +134,70 @@ class Worker():
                 output_stream = self.producer.get_stream()
                 # notify session
                 self.session.notify(output_stream)
+
+    ###### DATA RELATED 
+    ## session data
+    def set_session_data(self, key, value):
+        if self.session:
+            self.session.set_data(key, value)
+
+    def append_session_data(self, key, value):
+        if self.session:
+            self.session.append_data(key, value)
+
+    def get_session_data(self, key):
+        if self.session:
+            return self.session.get_data(key)
+        
+        return None
+
+    def get_session_data_len(self, key):
+        if self.session:
+            return self.session.get_data_len(key)
+        
+        return None
+
+    ## session stream data
+    def set_stream_data(self, key, value):
+        if self.session:
+            self.session.set_stream_data(self.input_stream, key, value)
+
+    def append_stream_data(self, key, value):
+        if self.session:
+            self.session.append_stream_data(self.input_stream, key, value)
+
+    def get_stream_data(self, key):
+        if self.session:
+            return self.session.get_stream_data(self.input_stream, key)
+        
+        return None
+
+    def get_stream_data_len(self, key):
+        if self.session:
+            return self.session.get_stream_data_len(self.input_stream, key)
+        
+        return None
+
+    ## worker data
+    def set_data(self, key, value):
+        if self.session:
+            self.session.set_stream_agent_data(self.input_stream, self.name, key, value)
+
+    def append_data(self, key, value):
+        if self.session:
+            self.session.append_stream_agent_data(self.input_stream, self.name, key, value)
+
+    def get_data(self, key):
+        if self.session:
+            return self.session.get_stream_agent_data(self.input_stream, self.name, key)
+
+        return None
+
+    def get_data_len(self, key):
+        if self.session:
+            return self.session.get_stream_agent_data_len(self.input_stream, self.name, key)
+
+        return None
 
     def stop(self):
         # send stop signal to consumer
