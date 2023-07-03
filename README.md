@@ -1,14 +1,21 @@
 # blue
 
-Blue is a platform that leverages large language models (LLM) for variety of tasks that involve access to external structured data, knowledge, tools and task- and domain-specific models. The objective is to explore a design space where the LLM plays a key role but is not the 'be-all and end-all', where everything is baked into LLMs. Instead, we believe tasks can be broken down into pieces, either through recipes in a designed manner or in a decentralized but learned manner. Tasks can utilize specific models and tools, for example query structured data, extract insights, and communicate those insights to the user in natural language. As such we aimed to design a blueprint architecture that facilitates the orchestration of data and tasks, with the appopriate level of separation of concerns.
+Blue is a platform that leverages large language models (LLM) for variety of tasks that involve access to external structured data, knowledge, tools and task- and domain-specific models. The objective is to explore a design space where the LLM plays a key role but is not the 'be-all and end-all', where everything is baked into LLMs. Instead, we believe tasks can be broken down into pieces, either through "recipes" in a prescriptive manner or in a decentralized but learned manner. Tasks can utilize specific models and tools, for example query structured data, extract insights, and communicate those insights to the user in natural language. As such we aim to design a blueprint architecture that facilitates the orchestration of data and tasks, with the appopriate level of separation of concerns.
 
 ## streams
-A central concept in Blue is a `stream`. A stream is essentially a sequence of data (or control instructions) that can be dynamically monitored, consumed. For example, a temperature sensor can spit out current temperature every minute to a stream. In our context, a user typing in text in a chat, asking a question can be a stream, where each token or word are transmitted as they are being typed. An LLM generating text can be another stream, and generated tokens can be output as they are being generated.
+The central "data" concept in Blue is a `stream`. A stream is essentially a continuous sequence of data (or control instructions) that can be dynamically produced, monitored, and consumed. For example, a temperature sensor can spit out the current temperature every minute to a stream. In our context, a user typing in text in a chat, for example, asking a question can be a stream, where each token or word are transmitted as they are typed. An LLM generating text can be another stream, and generated tokens can be output as they are being generated. 
 
 ## agents
-Another key concept in the blueprint architecture is an agent. An agent basically monitors to a stream, if it decides to act on it, can process the data and output into another stream. There might be yet another agent monitoring the output of the first agent and do something on top or choose to listen to the user stream. 
+The central "compute" concept in the blueprint architecture is an agent. An agent basically spawns a worker to monitor to a stream, if it decides to act on it, can process the data and produce output in another stream. There might be yet another agent monitoring the output of the first agent and do something on top or choose to listen to the user stream. 
 
-TODO: Add more as we make progress
+### worker
+A worker is a thread of an agent that is basically dedicated to a specific input stream and outputs to a specific output stream.
+
+## session
+The central "context" concept in Blue is a `session`. A session is initiated by an agent, usually a user agent input into a stream, and continiously expanded by other agents responding to the initial stream and other streams in the session. Agents are added to a session to orchestrate a response to the initial user input. Once added an agent can listen to any `stream` in the session and decide to follow-up and process data in the stream to produce more streams in the session.
+
+## data
+Agents (i.e. agent workers) can store and share data among each other. Data is stored and retrieved in three levels of context: (a) session (b) stream (c) workers. A worker can put data into the session store which can be seen and retrieved by any agent and worker in the session. A worker can further limit the scope of the context to a stream, where data can be seen only by agents which are working on a specific stream. Finally, a worker can put private data where it can only be seen by the worker itself.
 
 ## requirements
 Blue requires docker engine to build and run the infrastruture and agents. To develop on your local machine you would need to install docker enginer from 
@@ -142,6 +149,24 @@ That is it!
 Not quite. One question is who is listening to who. At the moment all agents listen to all streams produced by agents, except themselves. This and many more orchestration of work related design and implementation will come in the next few weeks.
 
 That is it, for now. :) 
+
+### data 
+The above example works if there is only one worker and that worker is solely responsible from start to end (i.e. it doesn't fail). The reason is that in the above example `stream_data` is a shared variable among all workers of the agent, even when they worker on a different stream. To resolve this issue, you need to create distributed memory (uses Redis JSON) that a worker can write its private data that is only specific to a stream. 
+
+As discussed above there are three levels of data context. Below are API functions for reading and writing in these respective context. To allow this you will need to pass worker as a keyword parameter to the processor function, i.e. 
+```
+def processor(id, event, value, worker=None):
+```
+
+and use the following worker functions to write data.
+
+For private worker/stream you can call the following functions on the keyword parameter `worker`, `set_data(key, value)`, `append_data(key, value)`, `get_data(key)`, and `get_data_len(key)`. For example, worker.set_data('a', 3), and worker.get_data('a'). The value can be any JSON value. 
+
+To share data among workers processing data from the same stream, you can use `set_stream_data(key, value)`, `append_stream_data(key, value)`, `get_stream_data(key)`, and `get_stream_data_len(key)`.
+
+To share data among all agent works in the session, you can use `set_session_data(key, value)`, `append_session_data(key, value)`, `get_session_data(key)`, and `get_session_data_len(key)`.
+
+
 
 ## agents on blue
 
