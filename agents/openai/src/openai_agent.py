@@ -49,7 +49,7 @@ chatGPT_properties = {
     "input_field":"messages"
 }
 
-## --properties '{"openai_api":"Completion","openai_model":"text-davinci-003","output_path":"$.choices[0].text","input_field":"prompt","input_format":"### Postgres SQL tables, with their properties:\n#\n{schema}\n#\n### {input}\nSELECT","openai_max_tokens":100,"openai_temperature":0,"openai_max_tokens":150,"openai_top_p":1.0,"openai_frequency_penalty":0.0,"openai_presence_penalty":0.0,"openai_stop":["#", ";"],"schema":""}'
+## --properties '{"openai_api":"Completion","openai_model":"text-davinci-003","output_path":"$.choices[0].text","input_field":"prompt","input_format":"### Postgres SQL tables, with their properties:\n#\n{schema}\n#\n### {input}\nSELECT","openai_max_tokens":100,"openai_temperature":0,"openai_max_tokens":150,"openai_top_p":1.0,"openai_frequency_penalty":0.0,"openai_presence_penalty":0.0,"openai_stop":["#", ";"],"schema":"","output_format":"SELECT {output}"}'
 nl2SQLGPT_properties = {
     "openai_api":"Completion",
     "openai_model":"text-davinci-003",
@@ -98,14 +98,17 @@ class OpenAIAgent(Agent):
         if 'openai_max_tokens' not in self.properties:
             self.properties['openai_max_tokens'] = 50
 
-    def default_processor(self, id, event, data, properties=None, worker=None):
+    def default_processor(self, id, event, value, properties=None, worker=None):
         properties = self.properties 
         print(properties)
         print(worker)
 
         if event == 'EOS':
-            # print all data received from stream
-
+            # get all data received from stream
+            stream_data = ""
+            if worker:
+                stream_data = worker.get_data('stream')
+                stream_data = stream_data[0] 
             #### call service to compute
            
             message = {}
@@ -143,9 +146,17 @@ class OpenAIAgent(Agent):
                 output_data = properties['output_format'].format(**properties, output=output_data)
             return output_data
            
+        elif event == 'BOS':
+            # init stream to empty array
+            if worker:
+                worker.set_data('stream',[])
+            pass
         elif event == 'DATA':
             # store data value
-            stream_data.append(data)
+            logging.info(value)
+            
+            if worker:
+                worker.append_data('stream', value)
         
         return None
 
@@ -176,8 +187,6 @@ if __name__ == "__main__":
 
     session = None
     a = None
-
-    stream_data = []
 
     # set properties
     properties = {}

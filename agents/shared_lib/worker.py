@@ -195,7 +195,7 @@ class Worker():
 
     def get_data_len(self, key):
         if self.session:
-            return self.session.get_stream_agent_data_len(self.input_stream, self.name, key)
+            return self.session.get_stream_agent_data(self.input_stream, self.name, key)
 
         return None
 

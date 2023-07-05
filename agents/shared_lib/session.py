@@ -96,7 +96,7 @@ class Session():
     def set_data(self, key, value):
         self.connection.json().set(self._get_data_namespace(), '$.common.' + key, value)
 
-    def get_data(self, key, value):
+    def get_data(self, key):
         return self.connection.json().get(self._get_data_namespace(), Path('$.common.' + key))
 
     def append_data(self, key, value):
@@ -118,7 +118,7 @@ class Session():
     def set_stream_data(self, stream, key, value):
         self.connection.json().set(self._get_data_namespace(), '$.stream.' + self._get_stream_data_namespace(stream) + '.common.' + key, value)
 
-    def get_stream_data(self, stream, key, value):
+    def get_stream_data(self, stream, key):
         return self.connection.json().get(self._get_data_namespace(), Path('$.stream.' + self._get_stream_data_namespace(stream) + '.common.' + key))
 
     def append_stream_data(self, stream, key, value):
@@ -138,7 +138,7 @@ class Session():
     def set_stream_agent_data(self, stream, agent, key, value):
         self.connection.json().set(self._get_data_namespace(), '$.stream.' + self._get_stream_data_namespace(stream) + '.agent.' + self._get_stream_agent_data_namespace(agent) + '.' + key, value)
 
-    def get_stream_agent_data(self, stream, agent, key, value):
+    def get_stream_agent_data(self, stream, agent, key):
         return self.connection.json().get(self._get_data_namespace(), Path('$.stream.' + self._get_stream_data_namespace(stream) + '.agent.' + self._get_stream_agent_data_namespace(agent) + '.' + key))
 
     def append_stream_agent_data(self, stream, agent, key, value):
