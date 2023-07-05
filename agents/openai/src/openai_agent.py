@@ -35,7 +35,43 @@ from session import Session
 # set log level
 logging.getLogger().setLevel(logging.INFO)
 
+
 #######################
+ ##### sample properties for different openai models
+## --properties '{"openai_api":"ChatCompletion","openai_model":"gpt-4","output_path":"$.choices[0].message.content","input_json":"[{\"role\":\"user\"}]","input_context":"$[0]","input_context_field":"content","input_field":"messages"}'
+chatGPT_properties = {
+    "openai_api":"ChatCompletion",
+    "openai_model":"gpt-4",
+    "output_path":"$.choices[0].message.content",
+    "input_json":"[{\"role\":\"user\"}]",
+    "input_context":"$[0]",
+    "input_context_field":"content",
+    "input_field":"messages"
+}
+
+## --properties '{"openai_api":"Completion","openai_model":"text-davinci-003","output_path":"$.choices[0].text","input_field":"prompt","input_format":"### Postgres SQL tables, with their properties:\n#\n{schema}\n#\n### {input}\nSELECT","openai_max_tokens":100,"openai_temperature":0,"openai_max_tokens":150,"openai_top_p":1.0,"openai_frequency_penalty":0.0,"openai_presence_penalty":0.0,"openai_stop":["#", ";"],"schema":""}'
+nl2SQLGPT_properties = {
+    "openai_api":"Completion",
+    "openai_model":"text-davinci-003",
+    "output_path":"$.choices[0].text",
+    "input_field":"prompt",
+    "input_format": """
+### Postgres SQL tables, with their properties:
+#
+{schema}
+#
+### A query to {input}
+SELECT""",
+    "output_format": "SELECT {output}",
+    "openai_max_tokens": 100, 
+    "openai_temperature": 0,
+    "openai_max_tokens": 150,
+    "openai_top_p": 1.0,
+    "openai_frequency_penalty": 0.0,
+    "openai_presence_penalty": 0.0,
+    "openai_stop": ["#", ";"]
+}
+
 class OpenAIAgent(Agent):
     def __init__(self, session=None, input_stream=None, processor=None, properties={}):
         super().__init__("OPENAI", session=session, input_stream=input_stream, processor=processor, properties=properties)
@@ -43,10 +79,10 @@ class OpenAIAgent(Agent):
     def _initialize_properties(self):
         super()._initialize_properties()
 
-        if 'api' not in self.properties:
-            self.properties['api'] = 'Completion'
-        if 'model' not in self.properties:
-            self.properties['model'] = "text-davinci-003"
+        if 'openai_api' not in self.properties:
+            self.properties['openai_api'] = 'Completion'
+        if 'openai_model' not in self.properties and 'engine' not in self.properties:
+            self.properties['openai_model'] = "text-davinci-003"
         if 'input_json' not in self.properties:
             self.properties['input_json'] = None 
         if 'input_context' not in self.properties:
@@ -57,10 +93,10 @@ class OpenAIAgent(Agent):
             self.properties['input_field'] = 'prompt'
         if 'output_path' not in self.properties:
             self.properties['output_path'] = '$.choices[0].text'
-        if 'stream' not in self.properties:
-            self.properties['stream'] = False
-        if 'max_tokens' not in self.properties:
-            self.properties['max_tokens'] = 50
+        if 'openai_stream' not in self.properties:
+            self.properties['openai_stream'] = False
+        if 'openai_max_tokens' not in self.properties:
+            self.properties['openai_max_tokens'] = 50
 
     def default_processor(self, id, event, data, properties=None, worker=None):
         properties = self.properties 
@@ -73,39 +109,39 @@ class OpenAIAgent(Agent):
             #### call service to compute
            
             message = {}
-            # set all message attributes from properties
+            # set all message attributes from properties,
+            # only with 'openai_' prefix
             for p in properties:
-                message[p] = properties[p]
+                if p.find('openai_') == 0:
+                    message[p[len('openai_'):]] = properties[p]
 
             # set input text to message
             input_data = " ".join(stream_data)
             input_object = input_data
-            if properties['input_json']:
+
+            if 'input_format' in properties and properties['input_format'] is not None:
+                input_object = properties['input_format'].format(**properties, input=input_data)
+
+            if 'input_json' in properties and properties['input_json'] is not None:
                 input_object = json.loads(properties['input_json'])
                 # set input text in object
                 json_utils.json_query_set(input_object,properties['input_context_field'], input_data, context=properties['input_context'])
 
             message[properties['input_field']] = input_object
 
-            # remove non-openai params
-            del message['host']
-            del message['port']
-            del message['input_json']
-            del message['input_context']
-            del message['input_context_field']
-            del message['input_field']
-            del message['output_path']
 
             # serialize message, call service
             m = json.dumps(message)
-            r = call_service(m)
+            r = self.call_service(m)
 
             response = json.loads(r)
 
-            output = json_utils.json_query(response, properties['output_path'], single=True)
+            output_data = json_utils.json_query(response, properties['output_path'], single=True)
            
             # output to stream
-            return output
+            if 'output_format' in properties and properties['output_format'] is not None:
+                output_data = properties['output_format'].format(**properties, output=output_data)
+            return output_data
            
         elif event == 'DATA':
             # store data value
@@ -114,13 +150,21 @@ class OpenAIAgent(Agent):
         return None
 
         
-def call_service(data):
-    with connect("ws://localhost:8001") as websocket:
-        logging.info("Sending to service: {data}".format(data=data))
-        websocket.send(data)
-        message = websocket.recv()
-        logging.info("Received from service: {message}".format(message=message))
-        return message
+    def call_service(self, data):
+        with connect("ws://localhost:8001") as websocket:
+            logging.info("Sending to service: {data}".format(data=data))
+            websocket.send(data)
+            message = websocket.recv()
+            logging.info("Received from service: {message}".format(message=message))
+            return message
+
+class ChatGPTAgent(OpenAIAgent):
+    def __init__(self, session=None, input_stream=None, processor=None):
+        super().__init__("OPENAI", session=session, input_stream=input_stream, processor=processor, properties=chatGPT_properties)
+
+class NL2SQLAgent(OpenAIAgent):
+    def __init__(self, session=None, input_stream=None, processor=None):
+        super().__init__("OPENAI", session=session, input_stream=input_stream, processor=processor, properties=nl2SQLGPT_properties)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -142,7 +186,6 @@ if __name__ == "__main__":
         # decode json
         properties = json.loads(p)
     
-
     if args.session:
         # join an existing session
         session = Session(args.session)
@@ -154,7 +197,6 @@ if __name__ == "__main__":
         # create a new session
         a = OpenAIAgent(properties=properties)
         a.start_session()
-
 
     # wait for session
     session.wait()
