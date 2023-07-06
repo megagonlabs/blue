@@ -33,4 +33,15 @@ services:
       <<: *blue-common-env
     restart: always
 
-
+  postgres:
+    image: postgres
+    ports:
+      - "5432:5432"
+    networks:
+      - default
+    volumes:
+      - ${BLUE_INSTALL_DIR:-.}postgres-data:/var/lib/postgresql/data
+    environment:
+      <<: *blue-common-env
+      POSTGRES_PASSWORD: example
+    restart: always

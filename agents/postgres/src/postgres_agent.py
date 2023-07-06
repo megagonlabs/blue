@@ -32,57 +32,26 @@ from websockets.sync.client import connect
 from agent import Agent
 from session import Session
 
+###### Agent Specific
+import sqlvalidator
+
+
 # set log level
 logging.getLogger().setLevel(logging.INFO)
 
-
-#######################
- ##### sample properties for different openai models
-## --properties '{"openai_api":"ChatCompletion","openai_model":"gpt-4","output_path":"$.choices[0].message.content","input_json":"[{\"role\":\"user\"}]","input_context":"$[0]","input_context_field":"content","input_field":"messages"}'
-chatGPT_properties = {
-    "openai_api":"ChatCompletion",
-    "openai_model":"gpt-4",
-    "output_path":"$.choices[0].message.content",
-    "input_json":"[{\"role\":\"user\"}]",
-    "input_context":"$[0]",
-    "input_context_field":"content",
-    "input_field":"messages"
-}
-
-## --properties '{"openai_api":"Completion","openai_model":"text-davinci-003","output_path":"$.choices[0].text","input_field":"prompt","input_format":"### Postgres SQL tables, with their properties:\n#\n{schema}\n#\n### {input}\nSELECT","openai_max_tokens":100,"openai_temperature":0,"openai_max_tokens":150,"openai_top_p":1.0,"openai_frequency_penalty":0.0,"openai_presence_penalty":0.0,"openai_stop":["#", ";"],"schema":"","output_format":"SELECT {output}"}'
-nl2SQLGPT_properties = {
-    "openai_api":"Completion",
-    "openai_model":"text-davinci-003",
-    "output_path":"$.choices[0].text",
-    "input_field":"prompt",
-    "input_format": """
-### Postgres SQL tables, with their properties:
-#
-{schema}
-#
-### A query to {input}
-SELECT""",
-    "output_format": "SELECT {output}",
-    "openai_max_tokens": 100, 
-    "openai_temperature": 0,
-    "openai_max_tokens": 150,
-    "openai_top_p": 1.0,
-    "openai_frequency_penalty": 0.0,
-    "openai_presence_penalty": 0.0,
-    "openai_stop": ["#", ";"]
-}
-
-class OpenAIAgent(Agent):
+class PostgresAgent(Agent):
     def __init__(self, session=None, input_stream=None, processor=None, properties={}):
-        super().__init__("OPENAI", session=session, input_stream=input_stream, processor=processor, properties=properties)
+        super().__init__("POSTGRES", session=session, input_stream=input_stream, processor=processor, properties=properties)
 
     def _initialize_properties(self):
         super()._initialize_properties()
 
-        if 'openai_api' not in self.properties:
-            self.properties['openai_api'] = 'Completion'
-        if 'openai_model' not in self.properties and 'engine' not in self.properties:
-            self.properties['openai_model'] = "text-davinci-003"
+        if 'postgres_host' not in self.properties:
+            self.properties['postgres_host'] = 'localhost'
+        if 'postgres_port' not in self.properties:
+            self.properties['postgres_port'] = 5432
+        if 'postgres_database' not in self.properties:
+            self.properties['postgres_database'] = 'default'
         if 'input_json' not in self.properties:
             self.properties['input_json'] = None 
         if 'input_context' not in self.properties:
@@ -90,14 +59,12 @@ class OpenAIAgent(Agent):
         if 'input_context_field' not in self.properties:
             self.properties['input_context_field'] = None 
         if 'input_field' not in self.properties:
-            self.properties['input_field'] = 'prompt'
+            self.properties['input_field'] = 'query'
+        if 'input_format' not in self.properties:
+            self.properties['input_format'] = 'select row_to_json(row) from ({input}) row;'
         if 'output_path' not in self.properties:
-            self.properties['output_path'] = '$.choices[0].text'
-        if 'openai_stream' not in self.properties:
-            self.properties['openai_stream'] = False
-        if 'openai_max_tokens' not in self.properties:
-            self.properties['openai_max_tokens'] = 50
-
+            self.properties['output_path'] = '$.results'
+   
     def default_processor(self, id, event, value, properties=None, worker=None):
         properties = self.properties 
 
@@ -107,17 +74,32 @@ class OpenAIAgent(Agent):
             if worker:
                 stream_data = worker.get_data('stream')
                 stream_data = stream_data[0] 
+
+           
             #### call service to compute
            
             message = {}
             # set all message attributes from properties,
-            # only with 'openai_' prefix
+            # only with 'postgres_' prefix
             for p in properties:
-                if p.find('openai_') == 0:
-                    message[p[len('openai_'):]] = properties[p]
+                if p.find('postgres_') == 0:
+                    message[p[len('postgres_'):]] = properties[p]
 
             # set input text to message
             input_data = " ".join(stream_data)
+
+            #### validate input
+            isValid = False
+
+            try:
+                sql_query = sqlvalidator.parse(input_data)
+                isValid = sql_query.is_valid()
+            except:
+                logging.info('Error validating SQL query :{query}'.format(query=input_data))
+                
+            if not isValid:
+                return 
+
             input_object = input_data
 
             if 'input_format' in properties and properties['input_format'] is not None:
@@ -167,13 +149,6 @@ class OpenAIAgent(Agent):
             logging.info("Received from service: {message}".format(message=message))
             return message
 
-class ChatGPTAgent(OpenAIAgent):
-    def __init__(self, session=None, input_stream=None, processor=None):
-        super().__init__("OPENAI", session=session, input_stream=input_stream, processor=processor, properties=chatGPT_properties)
-
-class NL2SQLAgent(OpenAIAgent):
-    def __init__(self, session=None, input_stream=None, processor=None):
-        super().__init__("OPENAI", session=session, input_stream=input_stream, processor=processor, properties=nl2SQLGPT_properties)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -189,6 +164,8 @@ if __name__ == "__main__":
     # set properties
     properties = {}
     p = args.properties
+
+
     if p:
         # decode json
         properties = json.loads(p)
@@ -196,13 +173,13 @@ if __name__ == "__main__":
     if args.session:
         # join an existing session
         session = Session(args.session)
-        a = OpenAIAgent(session=session, properties=properties)
+        a = PostgresAgent(session=session, properties=properties)
     elif args.input_stream:
         # no session, work on a single input stream
-        a = OpenAIAgent(input_stream=args.input_stream, properties=properties)
+        a = PostgresAgent(input_stream=args.input_stream, properties=properties)
     else:
         # create a new session
-        a = OpenAIAgent(properties=properties)
+        a = PostgresAgent(properties=properties)
         a.start_session()
 
     # wait for session

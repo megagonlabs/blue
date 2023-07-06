@@ -1,0 +1,15 @@
+---
+version: '3.8'
+
+services:
+  postgres-service:
+    image: blue-service-postgres
+    ports:
+      - "8001:8001"
+    networks:
+      - default
+    env_file:
+    - postgres.env
+    restart: always
+
+
