@@ -43,7 +43,6 @@ class CounterAgent(Agent):
     def default_processor(self, id, event, value, properties=None, worker=None):
         if event == 'EOS':
             # print all data received from stream
-            logging.info(self.stream_data)
 
             # compute stream data
             l = 0
