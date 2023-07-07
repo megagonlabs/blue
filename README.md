@@ -172,6 +172,23 @@ To share data among all agent works in the session, you can use `set_session_dat
 
 Beyond the basic proof of concept agents below we document agents we develop that are a bit more useful for a variety of tasks. 
 
+### api
+APIAgent is a generic Agent that is designed to be a base class for a variety of agents that essentially talk to an API. To support this it has a number of properties designed to construct a message to the API from input and other properties and parse response from the API to build the right output. Below are the properties to support this:
+
+`input_json`: Initializes input if JSON is the input format. When set to None, input is just text. Otherwise JSON is constructed from the value of this property and input is plugged in to the right place in the input json using below properties. 
+
+`input_context`: Defines where in the input json input is plugged in using JSONPath.
+
+`input_context_field`: Defines the input field name where input is plugged in.
+
+`input_field`: Defines the input field of the API call. Input is set as the value of this property, as constructued from above process for constructing input. 
+
+`input_format`: Defines the format of the input using a template. When set to None it is assumed that input is passed on without an additionally formatting. Otherwise, `input_format` is expected to be of the following format: `.....{var1}....{input}....{var2}...` where `var1` and `var2` is substituted from the corresponding properties of the agent, and `input` is coming from the input stream. 
+
+`output_path`: Define where in the API response to find the output using JSONPath. For example, `$.result` would point to the `result` property in the response JSON.
+
+`output_format`: Defines the format of the output (in a similar fashion as in `input_format` using a template. When set to None it is assumed that output is returned without an additionally formatting. Otherwise, `output_format` is expected to be of the following format: `.....{var1}....{output}....{var2}...` where `var1` and `var2` is substituted from the corresponding properties of the agent, and `output` is coming from the response, extracted through `output_path`. 
+
 ### openai
 OpenAI has a number of models available through APIs. OpenAI agent is basically a wrapper around models offered. The agent has a webservice component that works with the APIs. To create an OpenAI agent:
 ```
