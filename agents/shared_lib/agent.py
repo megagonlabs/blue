@@ -37,10 +37,8 @@ class Agent():
     def __init__(self, name, session=None, input_stream=None, processor=None, properties={}):
 
         self.name = name
-        
-        self.properties = properties
 
-        self._initialize()
+        self._initialize(properties=properties)
 
         # override, if necessary
         if processor is not None:
@@ -59,16 +57,23 @@ class Agent():
         self._start()
 
     ###### initialization
-    def _initialize(self):
+    def _initialize(self, properties=None):
         self._initialize_properties()
+        self._update_properties(properties=properties)
 
 
     def _initialize_properties(self):
-        if 'host' not in self.properties:
-            self.properties['host'] = 'localhost'
+        self.properties = {}
+        self.properties['host'] = 'localhost'
+        self.properties['port'] = 6379
 
-        if 'port' not in self.properties:
-            self.properties['port'] = 6379
+    def _update_properties(self, properties=None):
+        if properties is None:
+            return
+
+        # override
+        for p in properties:
+            self.properties[p] = properties[p]
 
     ###### database, data
     def _start_connection(self):
