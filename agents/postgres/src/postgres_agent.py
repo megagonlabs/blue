@@ -57,7 +57,7 @@ class PostgresAgent(APIAgent):
         self.properties['input_context'] = None 
         self.properties['input_context_field'] = None 
         self.properties['input_field'] = 'query'
-        self.properties['input_format'] = 'select row_to_json(row) from ({input}) row;'
+        self.properties['input_template'] = 'select row_to_json(row) from ({input}) row;'
         self.properties['output_path'] = '$.results'
    
     def validate_input(self, input_data):

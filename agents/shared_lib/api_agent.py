@@ -87,8 +87,8 @@ class APIAgent(Agent):
         # set input text to message
         input_object = input_data
 
-        if 'input_format' in properties and properties['input_format'] is not None:
-            input_object = properties['input_format'].format(**properties, input=input_data)
+        if 'input_template' in properties and properties['input_template'] is not None:
+            input_object = properties['input_template'].format(**properties, input=input_data)
 
         if 'input_json' in properties and properties['input_json'] is not None:
             input_object = json.loads(properties['input_json'])
@@ -106,9 +106,9 @@ class APIAgent(Agent):
 
         output_data = json_utils.json_query(response, properties['output_path'], single=True)
            
-        # apply output format
-        if 'output_format' in properties and properties['output_format'] is not None:
-            output_data = properties['output_format'].format(**properties, output=output_data)
+        # apply output template
+        if 'output_template' in properties and properties['output_template'] is not None:
+            output_data = properties['output_template'].format(**properties, output=output_data)
         return output_data
 
     def validate_input(self, input_data):

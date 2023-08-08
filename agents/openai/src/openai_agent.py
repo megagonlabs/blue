@@ -50,20 +50,20 @@ chatGPT_properties = {
     "input_field":"messages"
 }
 
-## --properties '{"openai.api":"Completion","openai.model":"text-davinci-003","output_path":"$.choices[0].text","input_field":"prompt","input_format":"### Postgres SQL tables, with their properties:\n#\n{schema}\n#\n### {input}\nSELECT","openai.max_tokens":100,"openai.temperature":0,"openai.max_tokens":150,"openai.top_p":1.0,"openai.frequency_penalty":0.0,"openai.presence_penalty":0.0,"openai.stop":["#", ";"],"schema":"","output_format":"SELECT {output}"}'
+## --properties '{"openai.api":"Completion","openai.model":"text-davinci-003","output_path":"$.choices[0].text","input_field":"prompt","input_template":"### Postgres SQL tables, with their properties:\n#\n{schema}\n#\n### {input}\nSELECT","openai.max_tokens":100,"openai.temperature":0,"openai.max_tokens":150,"openai.top_p":1.0,"openai.frequency_penalty":0.0,"openai.presence_penalty":0.0,"openai.stop":["#", ";"],"schema":"","output_template":"SELECT {output}"}'
 nl2SQLGPT_properties = {
     "openai.api":"Completion",
     "openai.model":"text-davinci-003",
     "output_path":"$.choices[0].text",
     "input_field":"prompt",
-    "input_format": """
+    "input_template": """
 ### Postgres SQL tables, with their properties:
 #
 {schema}
 #
 ### A query to {input}
 SELECT""",
-    "output_format": "SELECT {output}",
+    "output_template": "SELECT {output}",
     "openai.max_tokens": 100, 
     "openai.temperature": 0,
     "openai.max_tokens": 150,
