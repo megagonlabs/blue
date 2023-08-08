@@ -34,6 +34,8 @@ class Consumer():
 
         self.name = name
         self.stream = stream
+
+        self._initialize(properties=properties)
         
         if gid is None:
             gid = uuid.uuid4()
@@ -45,26 +47,29 @@ class Consumer():
             listener = lambda id, data: print("{id}:{data}".format(id=id, data=data))
 
         self.listener = listener
-        self.properties = properties
 
         self.threads = []
 
-        self._initialize()
+        
 
     ###### initialization
-    def _initialize(self):
+    def _initialize(self, properties=None):
         self._initialize_properties()
+        self._update_properties(properties=properties)
 
     def _initialize_properties(self):
-        if 'num_threads' not in self.properties:
-            self.properties['num_threads'] = 1
+        self.properties = {}
+        self.properties['num_threads'] = 1
+        self.properties['host'] = 'localhost'
+        self.properties['port'] = 6379
 
-        if 'host' not in self.properties:
-            self.properties['host'] = 'localhost'
+    def _update_properties(self, properties=None):
+        if properties is None:
+            return
 
-        if 'port' not in self.properties:
-            self.properties['port'] = 6379
-
+        # override
+        for p in properties:
+            self.properties[p] = properties[p]
 
     ####### open connection, create group, start threads
     def start(self):

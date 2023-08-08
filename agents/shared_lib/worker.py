@@ -29,6 +29,8 @@ class Worker():
         self.name = name
         self.session = session
 
+        self._initialize(properties=properties)
+
         self.input_stream = input_stream
 
         self.processor = processor
@@ -40,24 +42,28 @@ class Worker():
         self.producer = None
         self.consumer = None
 
-        self._initialize()
+
         self._start()
 
 
     ###### initialization
-    def _initialize(self):
+    def _initialize(self, properties=None):
         self._initialize_properties()
-
+        self._update_properties(properties=properties)
 
     def _initialize_properties(self):
-        if 'num_threads' not in self.properties:
-            self.properties['num_threads'] = 1
+        self.properties = {}
+        self.properties['num_threads'] = 1
+        self.properties['host'] = 'localhost'
+        self.properties['port'] = 6379
 
-        if 'host' not in self.properties:
-            self.properties['host'] = 'localhost'
+    def _update_properties(self, properties=None):
+        if properties is None:
+            return
 
-        if 'port' not in self.properties:
-            self.properties['port'] = 6379
+        # override
+        for p in properties:
+            self.properties[p] = properties[p]   
 
     def listener(self, id, data):
         tag = None
@@ -118,13 +124,13 @@ class Worker():
             if self.session:
                 self.session._init_stream_agent_data_namespace(self.input_stream, self.name)
 
-            self.consumer = Consumer(self.name, self.input_stream, listener=lambda id, data : self.listener(id,data))
+            self.consumer = Consumer(self.name, self.input_stream, listener=lambda id, data : self.listener(id,data), properties=self.properties)
             self.consumer.start()
 
     def _start_producer(self):
         # start, if not started
         if self.producer == None:
-            producer = Producer(self.name)
+            producer = Producer(self.name, properties=self.properties)
             producer.start()
             self.producer = producer
 
@@ -195,7 +201,7 @@ class Worker():
 
     def get_data_len(self, key):
         if self.session:
-            return self.session.get_stream_agent_data(self.input_stream, self.name, key)
+            return self.session.get_stream_agent_data_len(self.input_stream, self.name, key)
 
         return None
 

@@ -33,26 +33,32 @@ class Producer():
 
         self.name = name
 
+        self._initialize(properties=properties)
+
         if sid is None:
             self.stream = self.name + ":" + str(uuid.uuid4())
         else:
             self.stream = str(sid)
 
-        self.properties = properties
-
         self._initialize()
 
     ###### initialization
-    def _initialize(self):
+    def _initialize(self, properties=None):
         self._initialize_properties()
+        self._update_properties(properties=properties)
 
     def _initialize_properties(self):
-        if 'host' not in self.properties:
-            self.properties['host'] = 'localhost'
+        self.properties = {}
+        self.properties['host'] = 'localhost'
+        self.properties['port'] = 6379
 
-        if 'port' not in self.properties:
-            self.properties['port'] = 6379
+    def _update_properties(self, properties=None):
+        if properties is None:
+            return
 
+        # override
+        for p in properties:
+            self.properties[p] = properties[p]
 
     ####### open connection, create group, start threads
     def start(self):

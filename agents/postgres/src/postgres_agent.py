@@ -48,9 +48,11 @@ class PostgresAgent(APIAgent):
         super()._initialize_properties()
 
         # default properties
-        self.properties['postgres_host'] = 'localhost'
-        self.properties['postgres_port'] = 5432
-        self.properties['postgres_database'] = 'default'
+        self.properties['postgres.service'] = "ws://localhost:8004"
+
+        self.properties['postgres.host'] = 'localhost'
+        self.properties['postgres.port'] = 5432
+        self.properties['postgres.database'] = 'default'
         self.properties['input_json'] = None 
         self.properties['input_context'] = None 
         self.properties['input_context_field'] = None 

@@ -23,9 +23,6 @@ from tqdm import tqdm
 ###### Backend, Databases
 import redis
 
-###### Threads
-import threading
-import concurrent.futures
 
 ###### Blue
 from producer import Producer
@@ -84,7 +81,7 @@ class Agent():
 
     ###### worker
     def create_worker(self, input_stream):
-        worker = Worker(self.name, input_stream, processor=self.processor, session=self.session)
+        worker = Worker(self.name, input_stream, processor=self.processor, session=self.session, properties=self.properties)
         return worker
 
     ###### default processor, override
@@ -174,7 +171,7 @@ class Agent():
             session_stream = self.session.get_stream()
 
             if session_stream:
-                self.consumer = Consumer(self.name, session_stream, listener=lambda id, data : self.session_listener(id,data))
+                self.consumer = Consumer(self.name, session_stream, listener=lambda id, data : self.session_listener(id,data), properties=self.properties)
                 self.consumer.start()
 
 
@@ -195,9 +192,17 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--name', type=str, default='processor')
     parser.add_argument('--input_stream', type=str, default='input')
-    parser.add_argument('--threads', type=int, default=1)
+    parser.add_argument('--properties', type=str)
    
     args = parser.parse_args()
+
+    # set properties
+    properties = {}
+    p = args.properties
+    if p:
+        # decode json
+        properties = json.loads(p)
+    
 
     # sample func to process data from 
     # return a value other than None
@@ -209,12 +214,13 @@ if __name__ == "__main__":
        
         return None
 
+
     # create an agent and then create a session, and add agents
-    a = Agent(args.name, processor=processor, session=None)
+    a = Agent(args.name, processor=processor, session=None, properties=properties)
     s = a.start_session()
 
     # optionally you can create an agent in a session directly
-    b = Agent(args.name, processor=processor, session=s)
+    b = Agent(args.name, processor=processor, session=s, properties=properties)
 
   
    

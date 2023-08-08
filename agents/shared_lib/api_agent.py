@@ -42,6 +42,8 @@ class APIAgent(Agent):
     def _initialize_properties(self):
         super()._initialize_properties()
 
+        self.properties['api.service'] = "ws://localhost:8001"
+    
         self.properties['input_json'] = None
         self.properties['input_context'] = None 
         self.properties['input_context_field'] = None 
@@ -49,7 +51,7 @@ class APIAgent(Agent):
         self.properties['output_path'] = 'output'
 
     def get_prefix(self):
-        return self.name.lower() + '_'
+        return self.name.lower() + '.'
 
 
     def get_properties(self, properties=None):
@@ -58,6 +60,7 @@ class APIAgent(Agent):
         # copy agent properties
         for p in self.properties:
             merged_properties[p] = self.properties[p]
+
         # override
         if properties is not None:
             for p in properties:
@@ -75,7 +78,11 @@ class APIAgent(Agent):
         # and only those with api prefix 
         for p in properties:
             if p.find(self.get_prefix()) == 0:
-                message[p[len(self.get_prefix()):]] = properties[p]
+                # do not pass forward service property
+                property = p[len(self.get_prefix()):]
+                if property == 'service':
+                    continue
+                message[property] = properties[p]
 
         # set input text to message
         input_object = input_data
@@ -151,9 +158,15 @@ class APIAgent(Agent):
         
         return None
 
+    def get_service_address(self):
+        service_address = self.properties['api.service']
+        if self.get_prefix() + "service" in self.properties:
+            service_address = self.properties[self.get_prefix() + "service"]
+
+        return service_address
         
     def call_service(self, data):
-        with connect("ws://localhost:8001") as websocket:
+        with connect(self.get_service_address()) as websocket:
             logging.info("Sending to service: {data}".format(data=data))
             websocket.send(data)
             message = websocket.recv()

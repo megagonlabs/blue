@@ -64,22 +64,30 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--session', type=str)
     parser.add_argument('--input_stream', type=str)
+    parser.add_argument('--properties', type=str)
  
     args = parser.parse_args()
 
     session = None
     a = None
 
+    # set properties
+    properties = {}
+    p = args.properties
+    if p:
+        # decode json
+        properties = json.loads(p)
+
     if args.session:
         # join an existing session
         session = Session(args.session)
-        a = CounterAgent(session=session)
+        a = CounterAgent(session=session, properties=properties)
     elif args.input_stream:
         # no session, work on a single input stream
-        a = CounterAgent(input_stream=args.input_stream)
+        a = CounterAgent(input_stream=args.input_stream, properties=properties)
     else:
         # create a new session
-        a = CounterAgent()
+        a = CounterAgent(properties=properties)
         a.start_session()
 
     # wait for session
