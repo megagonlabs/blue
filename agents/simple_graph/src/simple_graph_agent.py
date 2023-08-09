@@ -48,13 +48,13 @@ class GraphAgent(Agent):
             if worker:
                 stream_data = worker.get_data('stream')
                 stream_data = stream_data[0]
-                #l = worker.get_data_len('stream') # TODO 
-                l = get_embeddings (stream_data)
+                l = get_embeddings (stream_data[0])
             time.sleep(4)
             
             # output to stream
-            #l = l[0]
-            return l
+            return_object = json.dumps({"top_recommended_jobs": l})
+            print ("~~~~", return_object)
+            return return_object
         elif event == 'BOS':
             # init stream to empty array
             if worker:
