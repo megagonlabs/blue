@@ -44,15 +44,16 @@ class GraphAgent(Agent):
     def default_processor(self, id, event, value, properties=None, worker=None):
         if event == 'EOS':
             # compute stream data
-            l = 0
+            l = None
             if worker:
                 stream_data = worker.get_data('stream')
                 stream_data = stream_data[0]
-                l = get_embeddings (stream_data[0])
+                stream_data = " ".join(stream_data)
+                l = get_embeddings (stream_data)
             time.sleep(4)
             
             # output to stream
-            return_object = json.dumps({"top_recommended_jobs": l})
+            return_object = json.dumps({"top_recommended_jobs": l })
             print ("~~~~", return_object)
             return return_object
         elif event == 'BOS':

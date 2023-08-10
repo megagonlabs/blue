@@ -32,7 +32,11 @@ def get_embeddings (job_title):
 
     top_10 = best[0,-10:][::-1]
     print ("Recommendations for job: ", job_title)
+
+    top_10_names = []
     for i in top_10: 
-        print (all_jobs_list [i])
+        top_10_names.append(all_jobs_list [i])
+    
+    return top_10_names
 
 #get_embeddings ("Tax Associate")
