@@ -127,10 +127,14 @@ class Worker():
             self.consumer = Consumer(self.name, self.input_stream, listener=lambda id, data : self.listener(id,data), properties=self.properties)
             self.consumer.start()
 
+    
     def _start_producer(self):
         # start, if not started
         if self.producer == None:
-            producer = Producer(self.name, properties=self.properties)
+            suffix = None
+            if self.input_stream:
+                suffix = self.input_stream.split('-')[-1]
+            producer = Producer(self.name, suffix=suffix, properties=self.properties)
             producer.start()
             self.producer = producer
 

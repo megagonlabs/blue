@@ -61,8 +61,17 @@ class Agent():
 
     def _initialize_properties(self):
         self.properties = {}
+
+        # db connectivity
         self.properties['host'] = 'localhost'
         self.properties['port'] = 6379
+
+        # include/exclude
+        listeners = {}
+        self.properties['agents'] = listeners
+        listeners['includes'] = ['.*']
+        listeners['excludes'] = [self.name]
+
 
     def _update_properties(self, properties=None):
         if properties is None:
@@ -125,17 +134,48 @@ class Agent():
             
             # TODO: Agents need to define what to listen to
             # for now, just listen to anything that isn't coming self
-            if agent != self.name:
-            # if agent == 'USER':
-                logging.info("Spawning worker for agent {name}...".format(name=self.name))
-                session_stream = self.session.get_stream()
 
-                # create and start worker
-                worker = self.create_worker(input_stream)
-                self.workers.append(worker)
-                
-                logging.info("Spawned worker for agent {name}...".format(name=self.name))
+            if not self._verify_listen_to_agent(agent):
+                logging.info("Not listening to {agent}...".format(agent=agent))
+                return 
 
+            # if agent != self.name:
+            # # if agent == 'USER':
+            logging.info("Spawning worker for agent {name}...".format(name=self.name))
+            session_stream = self.session.get_stream()
+
+            # create and start worker
+            worker = self.create_worker(input_stream)
+            self.workers.append(worker)
+            
+            logging.info("Spawned worker for agent {name}...".format(name=self.name))
+
+
+    def _verify_listen_to_agent(self, agent):
+        c = False
+
+        logging.info("Verifying listen to agent: {agent}".format(agent=agent))
+        # should be in include listd
+        includes = self.properties['agents']['includes']
+        for i in includes:
+            p = re.compile(i)
+            if p.match(agent):
+                c = True
+                logging.info("Matched include rule: {rule}".format(rule=i))
+                break
+        
+        if not c:
+            return False 
+            
+        # and not in the exlude list
+        excludes = self.properties['agents']['excludes']
+        for x in excludes:
+            p = re.compile(x)
+            if p.match(agent):
+                logging.info("Matched exclude rule: {rule}".format(rule=x))
+                return False
+
+        return True
 
     def interact(self, data):
         if self.session is None:

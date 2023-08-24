@@ -29,16 +29,19 @@ import concurrent.futures
 logging.getLogger().setLevel(logging.INFO)
 
 class Producer():
-    def __init__(self, name, sid=None, properties={}):
+    def __init__(self, name, suffix=None, sid=None, properties={}):
 
         self.name = name
 
         self._initialize(properties=properties)
 
         if sid is None:
-            self.stream = self.name + ":" + str(uuid.uuid4())
+            self.stream = self.name + ":" + str(hex(uuid.uuid4().fields[0]))[2:]
         else:
             self.stream = str(sid)
+
+        if suffix:
+            self.stream += "-" + str(suffix)
 
         self._initialize()
 

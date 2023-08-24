@@ -34,7 +34,7 @@ class Session():
 
         # set a unique id per session
         if name is None:
-            self.name = "SESSION" + ":" + str(uuid.uuid4())
+            self.name = "SESSION" + ":" + str(hex(uuid.uuid4().fields[0]))[2:]
         else:
             self.name = name
 

@@ -38,7 +38,7 @@ class Consumer():
         self._initialize(properties=properties)
         
         if gid is None:
-            gid = uuid.uuid4()
+            gid = hex(uuid.uuid4().fields[0])[2:]
         self.gid = gid 
 
         self.group = self.name + ":" + str(self.gid)
