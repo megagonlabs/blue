@@ -47,6 +47,7 @@ class Agent():
         
         self.set_session(session)
 
+        self.aggregate_producer_id = None
         self.consumer = None
 
         self.workers = []
@@ -66,7 +67,11 @@ class Agent():
         self.properties['host'] = 'localhost'
         self.properties['port'] = 6379
 
-        # include/exclude
+        # aggregator (have a single producer for all workers)
+        self.properties['aggregator'] = False
+        self.properties['aggregator.eos'] = 'FIRST'
+
+        # include/exclude list of rules to listen to agents
         listeners = {}
         self.properties['agents'] = listeners
         listeners['includes'] = ['.*']
@@ -89,16 +94,26 @@ class Agent():
         self.connection = redis.Redis(host=host, port=port, decode_responses=True)
 
     ###### worker
-    def create_worker(self, input_stream):
-        worker = Worker(self.name, input_stream, processor=self.processor, session=self.session, properties=self.properties)
+    def create_worker(self, input_stream, id=None):
+        if self.properties['aggregator']:
+            # generate unique id for aggregate producer
+            if self.aggregate_producer_id is None:
+                self.aggregate_producer_id = self.name + ":" + str(hex(uuid.uuid4().fields[0]))[2:]
+            # if id not set use aggregate_producer
+            if id is None:
+                id = self.aggregate_producer_id
+        
+        worker = Worker(self.name, input_stream, agent=self, id=id, processor=self.processor, session=self.session, properties=self.properties)
+      
         return worker
 
     ###### default processor, override
-    def default_processor(self, id, event, value, properties=None, worker=None):
-        print('default processor: override')
-        print(event)
-        print(id)
-        print(value)
+    def default_processor(self, stream, id, event, value, properties=None, worker=None):
+        logging.info('default processor: override')
+        logging.info(stream)
+        logging.info(event)
+        logging.info(id)
+        logging.info(value)
 
     ###### sesion
     def start_session(self):
@@ -131,16 +146,12 @@ class Agent():
             input_stream = data['value']
 
             agent = input_stream.split(":")[0]
-            
-            # TODO: Agents need to define what to listen to
-            # for now, just listen to anything that isn't coming self
 
+            # agent define what to listen to using include/exclude expressions
             if not self._verify_listen_to_agent(agent):
                 logging.info("Not listening to {agent}...".format(agent=agent))
                 return 
 
-            # if agent != self.name:
-            # # if agent == 'USER':
             logging.info("Spawning worker for agent {name}...".format(name=self.name))
             session_stream = self.session.get_stream()
 
@@ -190,7 +201,7 @@ class Agent():
     def _start(self):
         self._start_connection()
         
-        # print('Starting agent {name}'.format(name=self.name))
+        # logging.info('Starting agent {name}'.format(name=self.name))
 
         # if agent is associated with a session
         if self.session:
@@ -201,8 +212,7 @@ class Agent():
             worker = self.create_worker(self.input_stream)
             self.workers.append(worker)
 
-        print('Started agent {name}'.format(name=self.name))
-
+        logging.info('Started agent {name}'.format(name=self.name))
 
 
     def _start_session_consumer(self):
@@ -247,10 +257,11 @@ if __name__ == "__main__":
     # sample func to process data from 
     # return a value other than None
     # to create a stream 
-    def processor(id, event, value):
-        print(id)
-        print(event)
-        print(value)
+    def processor(stream, id, event, value):
+        logging.into(stream)
+        logging.info(id)
+        logging.info(event)
+        logging.info(value)
        
         return None
 

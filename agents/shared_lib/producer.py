@@ -96,41 +96,46 @@ class Producer():
         return self.stream
 
     # stream 
-    def write(self, data=None, type="str", tag="DATA", eos=True, split=" "):
-        # print("producer write {tag} {data} {type}".format(tag=tag,data=data,type=type))
+    def write(self, data=None, dtype="str", tag="DATA", eos=True, split=" "):
+        # print("producer write {tag} {data} {dtype}".format(tag=tag,data=data,dtype=dtype))
 
-        if tag == "DATA":
+        if tag == "DATA" or tag == "INSTRUCTION":
             # force str conversion
-            if type is None:
-                type = "str"
+            if dtype is None:
+                dtype = "str"
                 data = str(data)
 
-            if type == "str":
+            if dtype == "str":
                 if split is None:
                     tokens = [data]
                 else:
                     tokens = data.split(split)
 
                     for token in tokens:
-                        message = self._prepare_message(value=token, tag=tag, type="str")
+                        message = self._prepare_message(value=token, tag=tag, dtype="str")
                         self._write_message_to_stream(message)
                     
                     
-            elif type == "int":
-                message = self._prepare_message(value=data, tag=tag, type="int")
+            elif dtype == "int":
+                message = self._prepare_message(value=data, tag=tag, dtype="int")
+                self._write_message_to_stream(message)
+
+            elif dtype == "json":
+                message = self._prepare_message(value=json.dumps(data), tag=tag, dtype="json")
                 self._write_message_to_stream(message)
 
             if eos:
                 message = self._prepare_message(tag="EOS")
                 self._write_message_to_stream(message)
+
         else:
             message = self._prepare_message(value=data, tag=tag)
             self._write_message_to_stream(message)
 
              
-    def _prepare_message(self, tag=None, value=None, type=None):
-        if tag == "DATA":
-            return {"tag": tag, "value": value, "type": type}
+    def _prepare_message(self, tag=None, value=None, dtype=None):
+        if tag == "DATA" or tag == "INSTRUCTION":
+            return {"tag": tag, "value": value, "type": dtype}
         else:
             if value is None:
                 return {"tag": tag}
@@ -153,7 +158,7 @@ if __name__ == "__main__":
     p = Producer(args.name)
     p.start()
 
-    p.stream(args.text, type="str")
+    p.write(args.text, dtype="str")
 
 
 

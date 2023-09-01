@@ -35,7 +35,7 @@ class CounterAgent(Agent):
         super().__init__("COUNTER", session=session, input_stream=input_stream, processor=processor, properties=properties)
 
 
-    def default_processor(self, id, event, value, properties=None, worker=None):
+    def default_processor(self, stream, id, event, value, properties=None, worker=None):
         if event == 'EOS':
             # compute stream data
             l = 0

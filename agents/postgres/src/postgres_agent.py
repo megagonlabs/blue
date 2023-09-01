@@ -44,8 +44,8 @@ class PostgresAgent(APIAgent):
     def __init__(self, session=None, input_stream=None, processor=None, properties={}):
         super().__init__("POSTGRES", session=session, input_stream=input_stream, processor=processor, properties=properties)
 
-    def _initialize_properties(self):
-        super()._initialize_properties()
+    def _initialize_properties(self, properties=None):
+        super()._initialize_properties(properties=properties)
 
         # default properties
         self.properties['postgres.service'] = "ws://localhost:8004"

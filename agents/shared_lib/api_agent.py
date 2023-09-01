@@ -39,8 +39,8 @@ class APIAgent(Agent):
     def __init__(self, name, session=None, input_stream=None, processor=None, properties={}):
         super().__init__(name, session=session, input_stream=input_stream, processor=processor, properties=properties)
 
-    def _initialize_properties(self):
-        super()._initialize_properties()
+    def _initialize_properties(self, properties=None):
+        super()._initialize_properties(properties=properties)
 
         self.properties['api.service'] = "ws://localhost:8001"
     
@@ -114,7 +114,7 @@ class APIAgent(Agent):
     def validate_input(self, input_data):
         return True 
 
-    def default_processor(self, id, event, value, properties=None, worker=None):
+    def default_processor(self, stream, id, event, value, properties=None, worker=None):
         
         if event == 'EOS':
             # get all data received from stream

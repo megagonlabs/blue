@@ -153,7 +153,7 @@ class Consumer():
                 if id == "0-0":
                     pass
                 else:
-                    logging.info("[Thread {c}]: reclaiming... {id}".format(c=c, id=id))
+                    logging.info("[Thread {c}]: reclaiming... {s} {id}".format(c=c, s=s, id=id))
 
                     # listen
                     l(id, data)
@@ -172,7 +172,7 @@ class Consumer():
                 id = d[0]
                 data = d[1]
 
-                logging.info("[Thread {c}]: listening... {id} {data}".format(c=c, id=id, data=data))
+                logging.info("[Thread {c}]: listening... {s} {id} {data}".format(c=c, s=s, id=id, data=data))
                 
                 # listen
                 l(id, data)

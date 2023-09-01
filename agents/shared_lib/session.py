@@ -74,13 +74,15 @@ class Session():
         # start producer on first write
         self._start_producer()
 
-        # create data namespace to share data on stream 
-        self._init_stream_data_namespace(worker_stream)
+        # create data namespace to share data on stream, success = True, if not existing
+        success = self._init_stream_data_namespace(worker_stream)
+        logging.info("inited stream data namespace {} {}".format(worker_stream, success))
 
-        # add to stream to notify others
-        data = worker_stream
-        tag = "ADDS"
-        self.producer.write(data=data, tag=tag, eos=False)
+        # add to stream to notify others, unless it exists
+        if success:
+            data = worker_stream
+            tag = "ADDS"
+            self.producer.write(data=data, tag=tag, eos=False)
 
 
     
@@ -110,7 +112,7 @@ class Session():
     ## session stream data
     def _init_stream_data_namespace(self, stream):
         # create namespaces for stream-specific data
-        self.connection.json().set(self._get_data_namespace(), '$.stream.' + self._get_stream_data_namespace(stream), {'common':{},'agent':{}}, nx=True)
+        return self.connection.json().set(self._get_data_namespace(), '$.stream.' + self._get_stream_data_namespace(stream), {'common':{},'agent':{}}, nx=True)
 
     def _get_stream_data_namespace(self, stream):
         return stream + ':DATA'
@@ -130,7 +132,7 @@ class Session():
     ## session stream worker data
     def _init_stream_agent_data_namespace(self, stream, agent):
         # create namespaces for stream-specific data
-        self.connection.json().set(self._get_data_namespace(), '$.stream.' + self._get_stream_data_namespace(stream) + '.agent.' + self._get_stream_agent_data_namespace(agent), {}, nx=True)
+        return self.connection.json().set(self._get_data_namespace(), '$.stream.' + self._get_stream_data_namespace(stream) + '.agent.' + self._get_stream_agent_data_namespace(agent), {}, nx=True)
 
     def _get_stream_agent_data_namespace(self, agent):
         return agent + ':DATA'
