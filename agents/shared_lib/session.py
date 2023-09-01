@@ -68,6 +68,7 @@ class Session():
 
     ###### AGENTS, NOTIFICATION
     def add_agent(self, agent):
+        self._init_agent_data_namespace(agent)
         self.agents.append(agent)
 
     def notify(self, worker_stream):
@@ -90,7 +91,7 @@ class Session():
     ## session data
     def _init_data_namespace(self):
         # create namespaces for any session common data, and stream-specific data
-        self.connection.json().set(self._get_data_namespace(), '$', {'common':{},'stream':{}}, nx=True)
+        self.connection.json().set(self._get_data_namespace(), '$', {'common':{},'stream':{},'agent':{}}, nx=True)
 
     def _get_data_namespace(self):
         return self.name+':DATA'
@@ -108,7 +109,27 @@ class Session():
         return self.connection.json().arrlen(self._get_data_namespace(), '$.common.' + key)
 
 
+    ## session agent data (among agent workers)
+    def _init_agent_data_namespace(self, agent):
+        # create namespaces for stream-specific data
+        return self.connection.json().set(self._get_data_namespace(), '$.agent.' + self._get_agent_data_namespace(agent), {}, nx=True)
 
+    def _get_agent_data_namespace(self, agent):
+        return agent.name + ':DATA'
+        
+    def set_agent_data(self, agent, key, value):
+        self.connection.json().set(self._get_data_namespace(), '$.agent.' + self._get_agent_data_namespace(agent) + '.' + key, value)
+
+    def get_agent_data(self, agent, key):
+        return self.connection.json().get(self._get_data_namespace(), Path('$.agent.' + self._get_agent_data_namespace(agent) + '.' + key))
+
+    def append_agent_data(self, agent, key, value):
+        self.connection.json().arrappend(self._get_data_namespace(), '$.agent.' + self._get_agent_data_namespace(agent) + '.' + key, value)
+
+    def get_agent_data_len(self, agent, key):
+        return self.connection.json().arrlen(self._get_data_namespace(), Path('$.agent.' + self._get_agent_data_namespace(agent) + '.' + key))
+
+   
     ## session stream data
     def _init_stream_data_namespace(self, stream):
         # create namespaces for stream-specific data
@@ -128,6 +149,9 @@ class Session():
 
     def get_stream_data_len(self, stream, key):
         return self.connection.json().arrlen(self._get_data_namespace(), Path('$.stream.' + self._get_stream_data_namespace(stream) + '.common.' + key))
+
+    
+
 
     ## session stream worker data
     def _init_stream_agent_data_namespace(self, stream, agent):

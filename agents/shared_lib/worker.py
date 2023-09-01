@@ -259,6 +259,27 @@ class Worker():
 
         return None
 
+    ## agent data
+    def set_agent_data(self, key, value):
+        if self.session:
+            self.session.set_agent_data(self.agent, key, value)
+
+    def append_agent_data(self, key, value):
+        if self.session:
+            self.session.append_agent_data(self.agent, key, value)
+
+    def get_agent_data(self, key):
+        if self.session:
+            return self.session.get_agent_data(self.agent, key)
+        return None
+
+    def get_agent_data_len(self, key):
+        if self.session:
+            return self.session.get_agent_data_len(self.agent, key)
+        return None
+
+
+
     def stop(self):
         # send stop signal to consumer(s)
         for consumer in self.consumers.values():
