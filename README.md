@@ -3,7 +3,7 @@
 Blue is a platform that leverages large language models (LLM) for variety of tasks that involve access to external structured data, knowledge, tools and task- and domain-specific models. The objective is to explore a design space where the LLM plays a key role but is not the 'be-all and end-all', where everything is baked into LLMs. Instead, we believe tasks can be broken down into pieces, either through "recipes" in a prescriptive manner or in a decentralized but learned manner. Tasks can utilize specific models and tools, for example query structured data, extract insights, and communicate those insights to the user in natural language. As such we aim to design a blueprint architecture that facilitates the orchestration of data and tasks, with the appopriate level of separation of concerns.
 
 ## streams
-The central "data" concept in Blue is a `stream`. A stream is essentially a continuous sequence of data (or control instructions) that can be dynamically produced, monitored, and consumed. For example, a temperature sensor can spit out the current temperature every minute to a stream. In our context, a user typing in text in a chat, for example, asking a question can be a stream, where each token or word are transmitted as they are typed. An LLM generating text can be another stream, and generated tokens can be output as they are being generated. 
+The central "data" concept in Blue is a `stream`. A stream is essentially a continuous sequence of data (or instructions) that can be dynamically produced, monitored, and consumed. For example, a temperature sensor can spit out the current temperature every minute to a stream. In our context, a user typing in text in a chat, for example, asking a question can be a stream, where each token or word are transmitted as they are typed. An LLM generating text can be another stream, and generated tokens can be output as they are being generated. 
 
 ## agents
 The central "compute" concept in the blueprint architecture is an agent. An agent basically spawns a worker to monitor to a stream, if it decides to act on it, can process the data and produce output in another stream. There might be yet another agent monitoring the output of the first agent and do something on top or choose to listen to the user stream. 
@@ -14,8 +14,8 @@ A worker is a thread of an agent that is basically dedicated to a specific input
 ## session
 The central "context" concept in Blue is a `session`. A session is initiated by an agent, usually a user agent input into a stream, and continiously expanded by other agents responding to the initial stream and other streams in the session. Agents are added to a session to orchestrate a response to the initial user input. Once added an agent can listen to any `stream` in the session and decide to follow-up and process data in the stream to produce more streams in the session.
 
-## data
-Agents (i.e. agent workers) can store and share data among each other. Data is stored and retrieved in three levels of context: (a) session (b) stream (c) workers. A worker can put data into the session store which can be seen and retrieved by any agent and worker in the session. A worker can further limit the scope of the context to a stream, where data can be seen only by agents which are working on a specific stream. Finally, a worker can put private data where it can only be seen by the worker itself.
+## memory
+Agents (i.e. agent workers) can store and share data among each other. Data is stored and retrieved in three levels of context: (a) session (b) stream (c) workers. A worker can put data into the session store which can be seen and retrieved by any agent and worker in the session. A worker can further limit the scope of the dat to a stream, where data can be seen only by agents which are working on a specific stream. Finally, a worker can put private data where it can only be seen by the worker itself.
 
 ## requirements
 Blue requires docker engine to build and run the infrastruture and agents. To develop on your local machine you would need to install docker enginer from 
@@ -85,7 +85,7 @@ Let's dive into a bit of development of the agents. The `agents/shared_lib` cont
     # sample func to process data for counter
     stream_data = []
 
-    def processor(id, event, value):
+    def processor(stream, id, event, value):
         if event == 'EOS':
             # print all data received from stream
             print(stream_data)
@@ -115,7 +115,7 @@ Let's dive into a bit of development of the agents. The `agents/shared_lib` cont
 
 In the above example, a `USER` agent is created and `create_session` function on the Agent is called to create a Session object. That session object is passed to another Agent, called `COUNTER`, along with a `processor` function to process data in the `COUNTER` agent. 
 
-The signature of the `processor` function is `id`, `event`, and `value`. `id` is the data id assigned (by Redis) stream. `event` is the type of data in the stream, for example `BOS` for beginning of stream, `EOS` for end of stream, `DATA` for a data in stream. Essentially above `processor` function adds new data to `stream_data` when it receives new data (e.g. on `DATA` event) and returns count when all data is received (e.g. on `EOS` event). The base class `Agent` automatically creates a new stream in the session and adds the returned value from the stream so that other agents might start listening to new streams and data in the session.
+The signature of the `processor` function is `stream`, `id`, `event`, and `value`. `stream` is the input stream to process, `id` is the data id assigned (by Redis) stream. `event` is the type of data in the stream, for example `BOS` for beginning of stream, `EOS` for end of stream, `DATA` for a data in stream. Essentially above `processor` function adds new data to `stream_data` when it receives new data (e.g. on `DATA` event) and returns count when all data is received (e.g. on `EOS` event). The base class `Agent` automatically creates a new stream in the session and adds the returned value from the stream so that other agents might start listening to new streams and data in the session.
 
 In the end, upon running the above code the streams in the session will be:
 
@@ -146,16 +146,16 @@ Third stream refers to the output from the `COUNTER` stream, essentially the cou
 
 That is it!
 
-Not quite. One question is who is listening to who. At the moment all agents listen to all streams produced by agents, except themselves. This and many more orchestration of work related design and implementation will come in the next few weeks.
-
+Not quite. One question is who is listening to who. To decide which agents to listen to agents have a `agents` property and `includes` and `excludes` list.  These are ordered list of regular expressions that are evaluated on agent names (e.g. USER). To decide if an agents should be listened to first the `includes` list is processed. If none of the regular expressions is matched, the stream from that agent is not listened to. If any of the regular expressions is a match, a further check is made in the `excludes` list. If none of the `excludes` regular expressions is matched the agent is listened to. If not the agent is not listened to. Default `includes` list is ['.*'], i.e. all agents are listened to, and the default `excludes` list is [self.name], i.e. if it is self it is not listened to.
+    
 That is it, for now. :) 
 
-### data 
+### memory 
 The above example works if there is only one worker and that worker is solely responsible from start to end (i.e. it doesn't fail). The reason is that in the above example `stream_data` is a shared variable among all workers of the agent, even when they worker on a different stream. To resolve this issue, you need to create distributed memory (uses Redis JSON) that a worker can write its private data that is only specific to a stream. 
 
 As discussed above there are three levels of data context. Below are API functions for reading and writing in these respective context. To allow this you will need to pass worker as a keyword parameter to the processor function, i.e. 
 ```
-def processor(id, event, value, worker=None):
+def processor(stream, id, event, value, worker=None):
 ```
 
 and use the following worker functions to write data.
