@@ -2,14 +2,14 @@
 version: '3.8'
 
 services:
-  postgres-service:
-    image: blue-service-postgres
+  neo4j-service:
+    image: blue-service-neo4j
     ports:
-      - "8004:8001"
+      - "8005:8001"
     networks:
       - default
     env_file:
-      - postgres.env
+      - neo4j.env
     restart: always
 
 
