@@ -73,7 +73,13 @@ SELECT""",
     "openai.stop": ["#", ";"]
 }
 
-## --properties '{"openai.api":"ChatCompletion","openai.model":"gpt-4","output_path":"$.choices[0].message.content","input_json":"[{\"role\":\"user\"}]","input_context":"$[0]","input_context_field":"content","input_field":"messages","input_template":"sing an ontology with concepts such as {concepts}, extract Concepts, Entities, Relations, and Properties from the below text and list them in a good format. For entities also indicate which concept they belong:\n {input}",  "openai.temperature":1,"openai.max_tokens":256,"openai.top_p":1,"openai.frequency_penalty":0,"openai.presence_penalty":0,"schema":"(PERSON) --[HAS]-> (RESUME)\n(PERSON {name, age})\n(JOB {from,to,company,title,description})\n(JOB)--[REQUIRES]->(SKILL)\n(RESUME)--[CONTAINS]->(JOB)","explanation":"PERSON, RESUME are Concepts, HAS is a Relation between PERSON and RESUME,  name, age are properties of PERSON and  date, content are properties of RESUME,","example":"(PERSON {name: "Michael Gibbons"})--[HAS]-> (RESUME)"}'
+Given below schema that describe an ontology to describe concepts:
+
+where  
+extract triples from the below sentence in the above format using only above ontology concepts, relations, and properties:
+
+
+## --properties --properties '{"openai.api":"ChatCompletion","openai.model":"gpt-4","output_path":"$.choices[0].message.content","input_json":"[{\"role\":\"user\"}]","input_context":"$[0]","input_context_field":"content","input_field":"messages","input_template":"Given below schema that describe an ontology:\n{schema}\nwhere  {explanation}\n extract one triple from the below sentence in the above format in a list using only above ontology concepts, entities, relations, and properties:\n{input}",  "openai.temperature":1,"openai.max_tokens":256,"openai.top_p":1,"openai.frequency_penalty":0,"openai.presence_penalty":0,"schema":"(PERSON {name,age,id})\n(JOB {from,to,company,title,description})\n(RESUME {date,content,id})\nand relations:\n(PERSON) --[HAS]-> (RESUME)\n(RESUME)--[CONTAINS]->(JOB)\n","explanation":"PERSON, JOB, and RESUME are Concepts,\nHAS is a Relation between PERSON and RESUME,  CONTAINS is a Relation between RESUME and JOB,\nname, age are properties of PERSON and  date, content are properties of RESUME, \n(PERSON {name: \"Michael Gibbons\"})--[HAS]-> (RESUME),\n(RESUME) --[CONTAINS]->(JOB {title:  \"software engineer\"}) are example triples \n","example":"(PERSON {name: \"Michael Gibbons\"})--[HAS]-> (RESUME)"}'
 conceptGPT_properties = {
     "openai.api":"ChatCompletion",
     "openai.model":"gpt-4",
@@ -85,8 +91,8 @@ conceptGPT_properties = {
      "input_template": """
 Given below schema that describe an ontology:
 {schema}
-where  {explanation} extract triples from the sentence in quotes like in the example below:
-{example}
+where  {explanation} 
+extract triples from the below sentence in the above format using only above ontology concepts, relations, and properties:
 {input}
 """,
   "openai.temperature":1,
