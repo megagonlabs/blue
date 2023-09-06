@@ -108,7 +108,6 @@ class Worker():
         if tag == 'EOS':
             # done, stop listening to input stream
             consumer = self.consumers[stream]
-            print(consumer)
             consumer.stop()
 
 
@@ -298,8 +297,13 @@ if __name__ == "__main__":
     parser.add_argument('--name', type=str, default='processor')
     parser.add_argument('--input_stream', type=str, default='input')
     parser.add_argument('--threads', type=int, default=1)
-   
+    parser.add_argument('--loglevel', default="INFO", type=str)
+ 
     args = parser.parse_args()
+   
+    # set logging
+    logging.getLogger().setLevel(args.loglevel.upper())
+
 
     stream_data = []
 

@@ -307,8 +307,13 @@ if __name__ == "__main__":
     parser.add_argument('--session', type=str)
     parser.add_argument('--input_stream', type=str)
     parser.add_argument('--properties', type=str)
+    parser.add_argument('--loglevel', default="INFO", type=str)
  
     args = parser.parse_args()
+   
+    # set logging
+    logging.getLogger().setLevel(args.loglevel.upper())
+
 
     session = None
     a = None

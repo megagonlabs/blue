@@ -44,8 +44,8 @@ class PostgresAgent(APIAgent):
     def __init__(self, session=None, input_stream=None, processor=None, properties={}):
         super().__init__("POSTGRES", session=session, input_stream=input_stream, processor=processor, properties=properties)
 
-    def _initialize_properties(self, properties=None):
-        super()._initialize_properties(properties=properties)
+    def _initialize_properties(self):
+        super()._initialize_properties()
 
         # default properties
         self.properties['postgres.service'] = "ws://localhost:8004"
@@ -76,8 +76,13 @@ if __name__ == "__main__":
     parser.add_argument('--session', type=str)
     parser.add_argument('--input_stream', type=str)
     parser.add_argument('--properties', type=str)
+    parser.add_argument('--loglevel', default="INFO", type=str)
  
     args = parser.parse_args()
+   
+    # set logging
+    logging.getLogger().setLevel(args.loglevel.upper())
+
 
     session = None
     a = None

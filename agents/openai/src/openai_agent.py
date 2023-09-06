@@ -73,6 +73,29 @@ SELECT""",
     "openai.stop": ["#", ";"]
 }
 
+## --properties '{"openai.api":"ChatCompletion","openai.model":"gpt-4","output_path":"$.choices[0].message.content","input_json":"[{\"role\":\"user\"}]","input_context":"$[0]","input_context_field":"content","input_field":"messages","input_template":"sing an ontology with concepts such as {concepts}, extract Concepts, Entities, Relations, and Properties from the below text and list them in a good format. For entities also indicate which concept they belong:\n {input}",  "openai.temperature":1,"openai.max_tokens":256,"openai.top_p":1,"openai.frequency_penalty":0,"openai.presence_penalty":0,"schema":"(PERSON) --[HAS]-> (RESUME)\n(PERSON {name, age})\n(JOB {from,to,company,title,description})\n(JOB)--[REQUIRES]->(SKILL)\n(RESUME)--[CONTAINS]->(JOB)","explanation":"PERSON, RESUME are Concepts, HAS is a Relation between PERSON and RESUME,  name, age are properties of PERSON and  date, content are properties of RESUME,","example":"(PERSON {name: "Michael Gibbons"})--[HAS]-> (RESUME)"}'
+conceptGPT_properties = {
+    "openai.api":"ChatCompletion",
+    "openai.model":"gpt-4",
+    "output_path":"$.choices[0].message.content",
+    "input_json":"[{\"role\":\"user\"}]",
+    "input_context":"$[0]",
+    "input_context_field":"content",
+    "input_field":"messages",
+     "input_template": """
+Given below schema that describe an ontology:
+{schema}
+where  {explanation} extract triples from the sentence in quotes like in the example below:
+{example}
+{input}
+""",
+  "openai.temperature":1,
+  "openai.max_tokens":256,
+  "openai.top_p":1,
+  "openai.frequency_penalty":0,
+  "openai.presence_penalty":0
+}
+
 class OpenAIAgent(APIAgent):
     def __init__(self, name="OPENAI", session=None, input_stream=None, processor=None, properties={}):
         super().__init__(name, session=session, input_stream=input_stream, processor=processor, properties=properties)
@@ -101,13 +124,22 @@ class NL2SQLAgent(OpenAIAgent):
     def __init__(self, session=None, input_stream=None, processor=None):
         super().__init__(name="NL2SQL", session=session, input_stream=input_stream, processor=processor, properties=nl2SQLGPT_properties)
 
+class ConceptGPTAgent(OpenAIAgent):
+    def __init__(self, session=None, input_stream=None, processor=None):
+        super().__init__(name="CONCEPTGPT", session=session, input_stream=input_stream, processor=processor, properties=conceptGPT_properties)
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--session', type=str)
     parser.add_argument('--input_stream', type=str)
     parser.add_argument('--properties', type=str)
+    parser.add_argument('--loglevel', default="INFO", type=str)
  
     args = parser.parse_args()
+   
+    # set logging
+    logging.getLogger().setLevel(args.loglevel.upper())
+
 
     session = None
     a = None

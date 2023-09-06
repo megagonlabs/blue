@@ -39,8 +39,13 @@ if __name__ == "__main__":
     parser.add_argument('--session', type=str)
     parser.add_argument('--text', type=str, default='sample')
     parser.add_argument('--interactive', type=bool, default=False, action=argparse.BooleanOptionalAction, help="input text interactively (default False)")
-
+    parser.add_argument('--loglevel', default="INFO", type=str)
+ 
     args = parser.parse_args()
+   
+    # set logging
+    logging.getLogger().setLevel(args.loglevel.upper())
+
 
     session = None
     a = None

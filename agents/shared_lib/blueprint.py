@@ -73,8 +73,13 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--name', type=str)
     parser.add_argument('--properties', type=str)
-   
+    parser.add_argument('--loglevel', default="INFO", type=str)
+ 
     args = parser.parse_args()
+   
+    # set logging
+    logging.getLogger().setLevel(args.loglevel.upper())
+
 
     # set properties
     properties = {}

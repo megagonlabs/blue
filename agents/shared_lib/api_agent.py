@@ -39,8 +39,8 @@ class APIAgent(Agent):
     def __init__(self, name, session=None, input_stream=None, processor=None, properties={}):
         super().__init__(name, session=session, input_stream=input_stream, processor=processor, properties=properties)
 
-    def _initialize_properties(self, properties=None):
-        super()._initialize_properties(properties=properties)
+    def _initialize_properties(self):
+        super()._initialize_properties()
 
         self.properties['api.service'] = "ws://localhost:8001"
     
@@ -84,11 +84,12 @@ class APIAgent(Agent):
                     continue
                 message[property] = properties[p]
 
+       
+        if 'input_template' in properties and properties['input_template'] is not None:
+            input_data = properties['input_template'].format(**properties, input=input_data)
+
         # set input text to message
         input_object = input_data
-
-        if 'input_template' in properties and properties['input_template'] is not None:
-            input_object = properties['input_template'].format(**properties, input=input_data)
 
         if 'input_json' in properties and properties['input_json'] is not None:
             input_object = json.loads(properties['input_json'])
@@ -96,7 +97,6 @@ class APIAgent(Agent):
             json_utils.json_query_set(input_object,properties['input_context_field'], input_data, context=properties['input_context'])
 
         message[properties['input_field']] = input_object
-
         return message
 
     def create_output(self, response, properties=None):
@@ -178,8 +178,13 @@ if __name__ == "__main__":
     parser.add_argument('--session', type=str)
     parser.add_argument('--input_stream', type=str)
     parser.add_argument('--properties', type=str)
+    parser.add_argument('--loglevel', default="INFO", type=str)
  
     args = parser.parse_args()
+   
+    # set logging
+    logging.getLogger().setLevel(args.loglevel.upper())
+
 
     session = None
     a = None

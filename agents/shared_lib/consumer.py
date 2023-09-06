@@ -215,8 +215,13 @@ if __name__ == "__main__":
    parser.add_argument('--name', type=str, default='consumer')
    parser.add_argument('--stream', type=str, default='stream')
    parser.add_argument('--threads', type=int, default=1)
-   
+   parser.add_argument('--loglevel', default="INFO", type=str)
+ 
    args = parser.parse_args()
+   
+   # set logging
+   logging.getLogger().setLevel(args.loglevel.upper())
+
 
    # create a listener
    def listener(id, data):
