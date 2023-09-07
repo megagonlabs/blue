@@ -129,7 +129,15 @@ class Producer():
                 self._write_message_to_stream(message)
 
         else:
-            message = self._prepare_message(value=data, tag=tag)
+            if dtype is None:
+                dtype = "str"
+                data = str(data)
+                message = self._prepare_message(value=data, tag=tag, dtype=dtype)
+            elif dtype == "str":
+                message = self._prepare_message(value=data, tag=tag, dtype=dtype)
+            elif dtype == "json":
+                message = self._prepare_message(value=json.dumps(data), tag=tag, dtype="json")
+            
             self._write_message_to_stream(message)
 
              
@@ -140,7 +148,7 @@ class Producer():
             if value is None:
                 return {"tag": tag}
             else:
-                return {"tag": tag, "value": value}
+                return {"tag": tag, "value": value, "type": dtype}
 
     def _write_message_to_stream(self, message):
         # logging.info("Streaming into {s} message {m}".format(s=self.stream, m=str(message)))

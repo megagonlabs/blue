@@ -71,7 +71,7 @@ class Session():
         self._init_agent_data_namespace(agent)
         self.agents.append(agent)
 
-    def notify(self, worker_stream):
+    def notify(self, worker_stream, tags):
         # start producer on first write
         self._start_producer()
 
@@ -81,9 +81,11 @@ class Session():
 
         # add to stream to notify others, unless it exists
         if success:
-            data = worker_stream
-            tag = "ADDS"
-            self.producer.write(data=data, tag=tag, eos=False)
+            data = {}
+            data['stream'] = worker_stream
+            data['tags'] = tags
+            tag = "ADD"
+            self.producer.write(data=data, dtype="json", tag=tag, eos=False)
 
 
     

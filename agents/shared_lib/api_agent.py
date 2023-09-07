@@ -114,7 +114,7 @@ class APIAgent(Agent):
     def validate_input(self, input_data):
         return True 
 
-    def default_processor(self, stream, id, event, value, properties=None, worker=None):
+    def default_processor(self, stream, id, event, value, tags=None, properties=None, worker=None):
         
         if event == 'EOS':
             # get all data received from stream

@@ -71,11 +71,15 @@ class Agent():
         self.properties['aggregator'] = False
         self.properties['aggregator.eos'] = 'FIRST'
 
-        # include/exclude list of rules to listen to agents
+        ### include/exclude list of rules to listen to agents/tags
         listeners = {}
-        self.properties['agents'] = listeners
+        self.properties['listens'] = listeners
         listeners['includes'] = ['.*']
         listeners['excludes'] = [self.name]
+
+        ### default tags to tag output streams
+        tags = []
+        self.properties['tags'] = tags
 
 
     def _update_properties(self, properties=None):
@@ -94,7 +98,7 @@ class Agent():
         self.connection = redis.Redis(host=host, port=port, decode_responses=True)
 
     ###### worker
-    def create_worker(self, input_stream, id=None):
+    def create_worker(self, input_stream, tags=None, id=None):
         if self.properties['aggregator']:
             # generate unique id for aggregate producer
             if self.aggregate_producer_id is None:
@@ -103,17 +107,20 @@ class Agent():
             if id is None:
                 id = self.aggregate_producer_id
         
-        worker = Worker(self.name, input_stream, agent=self, id=id, processor=self.processor, session=self.session, properties=self.properties)
+        worker = Worker(self.name, input_stream, agent=self, id=id, processor=lambda *args, **kwargs: self.processor(*args, **kwargs, tags=tags), session=self.session, properties=self.properties)
       
         return worker
 
     ###### default processor, override
-    def default_processor(self, stream, id, event, value, properties=None, worker=None):
+    def default_processor(self, stream, id, event, value, tags=None, properties=None, worker=None):
         logging.info('default processor: override')
         logging.info(stream)
         logging.info(event)
         logging.info(id)
         logging.info(value)
+        logging.info(tags)
+        logging.info(properties)
+        logging.info(worker)
 
     ###### sesion
     def start_session(self):
@@ -136,57 +143,59 @@ class Agent():
 
 
 
-    def session_listener(self, id, data):   
+    def session_listener(self, id, record):   
         # listen to session stream
        
         # if session tag is USER
-        tag = data['tag']
-        
-        if tag == 'ADDS':
-            input_stream = data['value']
-
-            agent = input_stream.split(":")[0]
+        tag = record['tag']
+       
+        if tag == 'ADD':
+            data = json.loads(record['value'])
+            input_stream = data['stream']
+            tags = data['tags']
 
             # agent define what to listen to using include/exclude expressions
-            if not self._verify_listen_to_agent(agent):
-                logging.info("Not listening to {agent}...".format(agent=agent))
+            matches = self._match_listen_to_tags(tags)
+            if len(matches) == 0:
+                logging.info("Not listening to {stream} with {tags}...".format(stream=input_stream, tags=tags))
                 return 
 
-            logging.info("Spawning worker for agent {name}...".format(name=self.name))
+            logging.info("Spawning worker for stream {stream} with matching tags {matches}...".format(stream=input_stream, matches=matches))
             session_stream = self.session.get_stream()
 
             # create and start worker
-            worker = self.create_worker(input_stream)
+            # TODO; pass tag to worker, with parameters
+            worker = self.create_worker(input_stream, tags=matches)
             self.workers.append(worker)
             
-            logging.info("Spawned worker for agent {name}...".format(name=self.name))
+            logging.info("Spawned worker for stream {stream}...".format(stream=input_stream))
 
+    def _match_listen_to_tags(self, tags):
+        matches = []
+        # process includes for each tag
+        for tag in tags:
 
-    def _verify_listen_to_agent(self, agent):
-        c = False
-
-        logging.info("Verifying listen to agent: {agent}".format(agent=agent))
-        # should be in include listd
-        includes = self.properties['agents']['includes']
-        for i in includes:
-            p = re.compile(i)
-            if p.match(agent):
-                c = True
-                logging.info("Matched include rule: {rule}".format(rule=i))
-                break
+            includes = self.properties['listens']['includes']
+            for i in includes:
+                p = re.compile(i)
+                if p.match(tag):
+                    matches.append(tag)
         
-        if not c:
-            return False 
-            
-        # and not in the exlude list
-        excludes = self.properties['agents']['excludes']
-        for x in excludes:
-            p = re.compile(x)
-            if p.match(agent):
-                logging.info("Matched exclude rule: {rule}".format(rule=x))
-                return False
 
-        return True
+        if len(matches) == 0:
+            return matches
+
+        # process excludes for each tag
+        for tag in tags:
+
+            excludes = self.properties['listens']['excludes']
+            for x in excludes:
+                p = re.compile(x)
+                if p.match(tag):
+                    logging.info("Matched exclude rule: {rule}".format(rule=x))
+                    return []
+       
+        return matches
 
     def interact(self, data):
         if self.session is None:

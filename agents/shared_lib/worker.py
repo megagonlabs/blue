@@ -174,7 +174,13 @@ class Worker():
                 # get output stream info
                 output_stream = self.producer.get_stream()
                 # notify session
-                self.session.notify(output_stream)
+                tags = set()
+                tags.add(self.name)
+                if 'tags' in self.properties:
+                    tags = tags.union(set(self.properties['tags']))
+                tags = list(tags)
+                print(tags)
+                self.session.notify(output_stream, tags)
 
     ###### DATA RELATED 
     ## session data

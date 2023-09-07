@@ -41,7 +41,7 @@ class GraphAgent(Agent):
         super().__init__("GRAPH", session=session, input_stream=input_stream, processor=processor, properties=properties)
 
 
-    def default_processor(self, sream, id, event, value, properties=None, worker=None):
+    def default_processor(self, sream, id, event, value, tags=None, properties=None, worker=None):
         if event == 'EOS':
             # compute stream data
             l = None

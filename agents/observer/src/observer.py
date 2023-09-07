@@ -35,13 +35,13 @@ class ObserverAgent(Agent):
         super().__init__("OBSERVER", session=session, input_stream=input_stream, processor=processor, properties=properties)
 
 
-    def default_processor(self, stream, id, event, value, properties=None, worker=None):
+    def default_processor(self, stream, id, event, value, tags=None, properties=None, worker=None):
         if event == 'EOS':
             # compute stream data
             l = 0
             if worker:
                 data = worker.get_data(stream)[0]
-                print("{}: {}".format(stream, str(" ".join(data))))
+                print("{} [{}]: {}".format(stream, ",".join(tags), str(" ".join(data))))
     
         elif event == 'BOS':
             # init stream to empty array
@@ -62,7 +62,7 @@ if __name__ == "__main__":
     parser.add_argument('--session', type=str)
     parser.add_argument('--input_stream', type=str)
     parser.add_argument('--properties', type=str)
-    parser.add_argument('--loglevel', default="INFO", type=str)
+    parser.add_argument('--loglevel', default="ERROR", type=str)
  
     args = parser.parse_args()
 

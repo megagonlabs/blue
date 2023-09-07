@@ -133,8 +133,9 @@ class PlannerAgent(Agent):
 
     # node status progression
     # PLANNED, TRIGGERED, STARTED, FINISHED
-    def default_processor(self, stream, id, event, value, properties=None, worker=None):
+    def default_processor(self, stream, id, event, value, tags=None, properties=None, worker=None):
 
+        # TODO: Instructions should use TAGs not agent_name
         agent_name = stream.split(':')[0]
 
         plan = self.plan
