@@ -257,3 +257,11 @@ $ cd agents/observer
 # python src/observer_agent.py  --session <SESSION>
 ```
 
+## Changes
+Below is a list of recent changes:
+* [9/7/2023]: agent can tag streams
+* [9/6/2023]: observer agent
+* [9/6/2023]: neo4j agent
+* [9/6/2023]: --loglevel parameter
+* [9/1/2023]: agent level memory
+* [9/1/2023]: include/exclude lists
