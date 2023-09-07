@@ -254,11 +254,19 @@ The neo4j database itself is part of the blue platform, and it runs when you bri
 Observer Agent essentially consumes every stream in a session and outputs the contents into a readable format that can be used for demo and debugging purposes. To bring up an Observer agent, all you need is to pass the session to observe. For example:
 ```
 $ cd agents/observer
-# python src/observer_agent.py  --session <SESSION>
+# python src/observer.py  --session <SESSION>
+```
+
+### recorder 
+Recorder Agent essentially consumes every JSON stream in a session to find matches and writes them to session memory for every agents consumtion. `records` property is an array of records which consists of `variable`, `query`, and `single`, where the recorder agent executes JSONPATH query in `query` and assigns it to `variable` in the session. When a variable assignment is made it is announced in the recorder's stream.
+```
+$ cd agents/recorder
+# python src/recorder.py --properties '{"records":[{"variale":<name>,"query":<jsonpath_query>},...]}' --session <SESSION>
 ```
 
 ## Changes
 Below is a list of recent changes:
+* [9/7/2023]: recorder stream
 * [9/7/2023]: agent can tag streams
 * [9/6/2023]: observer agent
 * [9/6/2023]: neo4j agent
