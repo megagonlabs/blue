@@ -2,7 +2,7 @@
 version: '3.8'
 
 services:
-  neo4j-service:
+  websocket-service:
     image: blue-service-neo4j
     ports:
       - "8005:8001"

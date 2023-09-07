@@ -2,7 +2,7 @@
 version: '3.8'
 
 services:
-  openai-service:
+  websocket-service:
     image: blue-service-openai
     ports:
       - "8003:8001"

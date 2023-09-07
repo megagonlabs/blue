@@ -2,7 +2,7 @@
 version: '3.8'
 
 services:
-  postgres-service:
+  websocket-service:
     image: blue-service-postgres
     ports:
       - "8004:8001"
