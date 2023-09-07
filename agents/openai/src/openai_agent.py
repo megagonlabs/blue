@@ -73,8 +73,8 @@ SELECT""",
     "openai.stop": ["#", ";"]
 }
 
-## --properties --properties '{"openai.api":"ChatCompletion","openai.model":"gpt-4","output_path":"$.choices[0].message.content","input_json":"[{\"role\":\"user\"}]","input_context":"$[0]","input_context_field":"content","input_field":"messages","input_template":"Given below schema that describe an ontology:\n{schema}\nwhere  {explanation}\n extract one triple from the below sentence in the above format in a list using only above ontology concepts, entities, relations, and properties:\n{input}",  "openai.temperature":0,"openai.max_tokens":256,"openai.top_p":1,"openai.frequency_penalty":0,"openai.presence_penalty":0,"schema":"(PERSON {name,age,id})\n(JOB {from,to,company,title,description})\n(RESUME {date,content,id})\nand relations:\n(PERSON) --[HAS]-> (RESUME)\n(RESUME)--[CONTAINS]->(JOB)\n","explanation":"PERSON, JOB, and RESUME are Concepts,\nHAS is a Relation between PERSON and RESUME,  CONTAINS is a Relation between RESUME and JOB,\nname, age are properties of PERSON and  date, content are properties of RESUME, \n(PERSON {name: \"Michael Gibbons\"})--[HAS]-> (RESUME),\n(RESUME) --[CONTAINS]->(JOB {title:  \"software engineer\"}) are example triples \n","example":"(PERSON {name: \"Michael Gibbons\"})--[HAS]-> (RESUME)"}'
-conceptGPT_properties = {
+## --properties '{"openai.api":"ChatCompletion","openai.model":"gpt-4","output_path":"$.choices[0].message.content","listens":{"includes":["USER"]},"tags": ["TRIPLE"], "input_json":"[{\"role\":\"user\"}]","input_context":"$[0]","input_context_field":"content","input_field":"messages","input_template":"Given below schema that describe an ontology:\n{schema}\nwhere  {explanation}\n extract one triple from the below sentence in the above format using only above ontology concepts, entities, relations, and properties:\n{input}",  "openai.temperature":0,"openai.max_tokens":256,"openai.top_p":1,"openai.frequency_penalty":0,"openai.presence_penalty":0,"schema":"(PERSON {name,age,id})\n(JOB {from,to,company,title,description})\n(RESUME {date,content,id})\nand relations:\n(PERSON) --[HAS]-> (RESUME)\n(RESUME)--[CONTAINS]->(JOB)\n","explanation":"PERSON, JOB, and RESUME are Concepts,\nHAS is a Relation between PERSON and RESUME,  CONTAINS is a Relation between RESUME and JOB,\nname, age are properties of PERSON and  date, content are properties of RESUME, \n(PERSON {name: \"Michael Gibbons\"})--[HAS]-> (RESUME),\n(RESUME) --[CONTAINS]->(JOB {title:  \"software engineer\"}) are example triples \n"}'
+tripleExtractorGPT_properties = {
     "openai.api":"ChatCompletion",
     "openai.model":"gpt-4",
     "output_path":"$.choices[0].message.content",
@@ -87,6 +87,26 @@ Given below schema that describe an ontology:
 {schema}
 where  {explanation} 
 extract one triple from the below sentence in the above format using above ontology concepts, entities, relations, and properties:
+{input}
+""",
+  "openai.temperature":0,
+  "openai.max_tokens":256,
+  "openai.top_p":1,
+  "openai.frequency_penalty":0,
+  "openai.presence_penalty":0
+}
+
+## --properties '{"openai.api":"ChatCompletion","openai.model":"gpt-4","output_path":"$.choices[0].message.content","listens":{"includes":["TRIPLE"],"excludes":["OPENAI"]},"tags": ["CYPHER"], "input_json":"[{\"role\":\"user\"}]","input_context":"$[0]","input_context_field":"content","input_field":"messages","input_template":"Convert below triple into a CYPHER query: {input}",  "openai.temperature":0,"openai.max_tokens":256,"openai.top_p":1,"openai.frequency_penalty":0,"openai.presence_penalty":0}'
+triple2CYPHERGPT_properties = {
+    "openai.api":"ChatCompletion",
+    "openai.model":"gpt-4",
+    "output_path":"$.choices[0].message.content",
+    "input_json":"[{\"role\":\"user\"}]",
+    "input_context":"$[0]",
+    "input_context_field":"content",
+    "input_field":"messages",
+     "input_template": """
+Convert below triple into a CYPHER query:
 {input}
 """,
   "openai.temperature":0,
@@ -124,9 +144,9 @@ class NL2SQLAgent(OpenAIAgent):
     def __init__(self, session=None, input_stream=None, processor=None):
         super().__init__(name="NL2SQL", session=session, input_stream=input_stream, processor=processor, properties=nl2SQLGPT_properties)
 
-class ConceptGPTAgent(OpenAIAgent):
+class TripleExtractorGPTAgent(OpenAIAgent):
     def __init__(self, session=None, input_stream=None, processor=None):
-        super().__init__(name="CONCEPTGPT", session=session, input_stream=input_stream, processor=processor, properties=conceptGPT_properties)
+        super().__init__(name="CONCEPTGPT", session=session, input_stream=input_stream, processor=processor, properties=tripleExtractorGPT_properties)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

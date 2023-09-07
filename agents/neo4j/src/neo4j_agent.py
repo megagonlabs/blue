@@ -56,6 +56,16 @@ class NEO4JAgent(APIAgent):
         self.properties['input_context_field'] = None 
         self.properties['input_field'] = 'query'
         self.properties['output_path'] = '$.results'
+
+        listeners = {}
+        self.properties['listens'] = listeners
+        listeners['includes'] = ['CYPHER']
+        listeners['excludes'] = [self.name]
+
+        ### default tags to tag output streams
+        tags = []
+        self.properties['tags'] = ['JSON']
+
    
     def validate_input(self, input_data):
         # TODO
