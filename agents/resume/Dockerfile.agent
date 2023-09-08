@@ -1,0 +1,20 @@
+FROM python:3.9
+
+# Set workdir
+WORKDIR /app
+
+# Build requirements first
+ADD src/requirements.txt /app/requirements.txt
+RUN pip install -r requirements.txt
+
+# Copy libs 
+ADD /lib /app/lib/
+
+# Copy service files
+ADD /src /app/
+
+# Environment variables
+ENV text default
+ENV session=
+
+CMD ["sh", "-c", "python simple_user_agent.py --text \"${text}\" --session ${session}"]
