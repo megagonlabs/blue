@@ -266,7 +266,7 @@ $ cd agents/recorder
 
 ## Changes
 Below is a list of recent changes:
-* [9/7/2023]: recorder stream
+* [9/7/2023]: recorder agent
 * [9/7/2023]: agent can tag streams
 * [9/6/2023]: observer agent
 * [9/6/2023]: neo4j agent
