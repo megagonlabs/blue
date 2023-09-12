@@ -84,8 +84,8 @@ class Session():
             data = {}
             data['stream'] = worker_stream
             data['tags'] = tags
-            tag = "ADD"
-            self.producer.write(data=data, dtype="json", tag=tag, eos=False)
+            label = "ADD"
+            self.producer.write(data=data, dtype="json", label=label, eos=False)
 
 
     
@@ -208,7 +208,7 @@ class Session():
             a.stop()
 
         # put EOS to stream
-        self.producer.write(tag="EOS")
+        self.producer.write(label="EOS")
 
     def wait(self):
         for a in self.agents:
@@ -241,8 +241,8 @@ if __name__ == "__main__":
     # sample func to process data for counter
     stream_data = []
 
-    def processor(id, event, value):
-        if event == 'EOS':
+    def processor(id, label, data, dtype=None):
+        if label == 'EOS':
             # print all data received from stream
             print(stream_data)
 
@@ -253,9 +253,9 @@ if __name__ == "__main__":
             # output to stream
             return l
            
-        elif event == 'DATA':
+        elif label == 'DATA':
             # store data value
-            stream_data.append(value)
+            stream_data.append(data)
     
         return None
 

@@ -44,7 +44,7 @@ class Consumer():
         self.group = self.name + ":" + str(self.gid)
 
         if listener is None:
-            listener = lambda id, data: print("{id}:{data}".format(id=id, data=data))
+            listener = lambda id, message: print("{id}:{message}".format(id=id, message=message))
 
         self.listener = listener
 
@@ -73,6 +73,7 @@ class Consumer():
 
     ####### open connection, create group, start threads
     def start(self):
+
         # logging.info("Starting consumer {c} for stream {s}".format(c=self.name,s=self.stream))
         self.stop_signal = False
 
@@ -147,7 +148,7 @@ class Consumer():
             if len(m) > 0:
                 d = m 
                 id = d[0]
-                data = d[1]
+                message = d[1]
 
                 # check special token (no data to claim)
                 if id == "0-0":
@@ -156,7 +157,7 @@ class Consumer():
                     logging.info("[Thread {c}]: reclaiming... {s} {id}".format(c=c, s=s, id=id))
 
                     # listen
-                    l(id, data)
+                    l(id, message)
 
                     # ack
                     r.xack(s, g, id)
@@ -170,12 +171,12 @@ class Consumer():
                 s = e[0]
                 d = e[1][0]
                 id = d[0]
-                data = d[1]
+                message = d[1]
 
-                logging.info("[Thread {c}]: listening... {s} {id} {data}".format(c=c, s=s, id=id, data=data))
+                logging.info("[Thread {c}]: listening... stream:{s} id:{id} message:{message}".format(c=c, s=s, id=id, message=message))
                 
                 # listen
-                l(id, data)
+                l(id, message)
 
                 # occasionally throw exception (for testing failed threads)
                 # if random.random() > 0.5:
@@ -224,8 +225,8 @@ if __name__ == "__main__":
 
 
    # create a listener
-   def listener(id, data):
-       print("hello {data}".format(data=data))
+   def listener(id, message):
+       print("hello {message}".format(message=message))
 
    c = Consumer(args.name, args.stream, listener=listener)
    c.start()

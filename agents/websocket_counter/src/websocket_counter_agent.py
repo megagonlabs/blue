@@ -45,8 +45,8 @@ class CounterAgent(Agent):
 
         self.properties['counter.service'] = "ws://localhost:8002"
 
-    def default_processor(self, stream, id, event, value, tags=None, properties=None, worker=None):
-        if event == 'EOS':
+    def default_processor(self, stream, id, label, data, dtype=None, tags=None, properties=None, worker=None):
+        if label == 'EOS':
             # get all data received from stream
             stream_data = ""
             if worker:
@@ -72,17 +72,17 @@ class CounterAgent(Agent):
             logging.info(output_data)
             return output_data
 
-        elif event == 'BOS':
+        elif label == 'BOS':
             # init stream to empty array
             if worker:
                 worker.set_data('stream',[])
             pass
-        elif event == 'DATA':
+        elif label == 'DATA':
             # store data value
             logging.info(value)
             
             if worker:
-                worker.append_data('stream',value)
+                worker.append_data('stream',data)
     
         return None
 

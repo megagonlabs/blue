@@ -69,71 +69,76 @@ class Worker():
         for p in properties:
             self.properties[p] = properties[p]   
 
-    def listener(self, id, data, stream):
-        tag = None
-        value = None
-        if 'tag' in data:
-            tag = data['tag']
-        if 'value' in data:
-            value = data['value']
+    def listener(self, id, message, stream):
+        label = None
+        data = None
+        dtype = None
+
+        if 'label' in message:
+            label = message['label']
+        if 'data' in message:
+            data = message['data']
+        if 'dtype' in message:
+            dtype = message['dtype']
 
         result = None
 
-        if self.processor is not None:
-            result = self.processor(stream, id, tag, value)
+        if dtype == 'json':
+            data = json.loads(data)
 
-        # if data, write to stream
+        if self.processor is not None:
+            result = self.processor(stream, id, label, data, dtype=dtype)
+
+        # if result, write to stream
         if result is not None:
-            result_data = result
+            result_label = None
+            result_data = None
             result_dtype = None
-            result_tag = 'DATA'
+            
+            # processor can return multiple values, and the order is mapped to the following:
+            # DATA
+            # DATA, DTYPE
+            # LABEL, DATA, DTYPE
+            # where
+            # LABEL is BOS, EOS, DATA, INSTRUCTION, ...
+            # DTYPE is int, float, str, json, ...
+
             if type(result) == tuple:
                 if len(result) == 2:
+                    result_label = 'DATA'
+                    result_data = result[0] 
                     result_dtype = result[1]
-                    result_data = result[0]
                 elif len(result) == 3:
-                    result_tag = result[2]
-                    result_dtype = result[1]
-                    result_data = result[0]
+                    result_label = result[0]
+                    result_data = result[1]
+                    result_dtype = result[2]
+            else:
+                result_label = 'DATA'
+                result_data = result 
+                result_dtype = None
+            
 
 
             if self.properties['aggregator.eos'] == 'FIRST':
-                self.write(result_data, dtype=result_dtype, tag=result_tag, eos=(tag=='EOS'))
+                self.write(result_data, dtype=result_dtype, label=result_label, eos=(label=='EOS'))
             elif self.properties['aggregator.eos'] == 'NEVER':
-                self.write(result_data, dtype=result_dtype, tag=result_tag, eos=False)
+                self.write(result_data, dtype=result_dtype, label=result_label, eos=False)
             else:
                 # TODO Implement 'ALL' option
-                self.write(result_data, dtype=result_dtype, tag=result_tag, eos=False)
+                self.write(result_data, dtype=result_dtype, label=result_label, eos=False)
         
-        if tag == 'EOS':
+        if label == 'EOS':
             # done, stop listening to input stream
             consumer = self.consumers[stream]
             consumer.stop()
 
 
 
-    def write(self, data, dtype=None, tag='DATA', eos=True, split=" "):
+    def write(self, data, dtype=None, label='DATA', eos=True, split=" "):
         # start producer on first write
         self._start_producer()
 
-        # do basic type setting, if none given
-        # print("type {type}".format(type=type))
-        if dtype == None:
-            if isinstance(data, int):
-                dtype = 'int'
-            elif isinstance(data, float):
-                dtype = 'float'
-            elif isinstance(data, str):
-                dtype = 'str'
-            else:
-                data = str(data)
-                dtype = 'str'
-        
-
-        # print("type {type}".format(type=type))
-        # print("data {data}".format(data=data))
-
-        self.producer.write(data=data, dtype=dtype,  tag=tag, eos=eos, split=split)
+        self.producer.write(data=data, dtype=dtype,  label=label, eos=eos, split=split)
 
     def _start(self):
         # logging.info('Starting agent worker {name}'.format(name=self.name))
@@ -173,13 +178,14 @@ class Worker():
             if self.session:
                 # get output stream info
                 output_stream = self.producer.get_stream()
+
                 # notify session
                 tags = set()
                 tags.add(self.name)
                 if 'tags' in self.properties:
                     tags = tags.union(set(self.properties['tags']))
                 tags = list(tags)
-                print(tags)
+    
                 self.session.notify(output_stream, tags)
 
     ###### DATA RELATED 
@@ -314,9 +320,9 @@ if __name__ == "__main__":
     stream_data = []
 
     # sample func to process data
-    def processor(id, event, value):
+    def processor(id, label, data, dtype=None):
        
-        if event == 'EOS':
+        if label == 'EOS':
             # print all data received from stream
             print(stream_data)
 
@@ -327,9 +333,9 @@ if __name__ == "__main__":
             # output to stream
             return l
            
-        elif event == 'DATA':
+        elif label == 'DATA':
             # store data value
-            stream_data.append(value)
+            stream_data.append(data)
         
         return None
 

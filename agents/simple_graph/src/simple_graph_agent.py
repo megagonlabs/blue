@@ -51,15 +51,16 @@ class GraphAgent(Agent):
         listeners['excludes'] = [self.name]
 
 
-    def default_processor(self, stream, id, event, value, tags=None, properties=None, worker=None):
+    def default_processor(self, stream, id, label, data, dtype=None, tags=None, properties=None, worker=None):
 
-        if event == 'EOS':
-            pass 
-        elif event == 'BOS':
+        if label == 'EOS':
+            return 'EOS', None, None
+        elif label == 'BOS':
             pass
-        elif event == 'DATA':
+        elif label == 'DATA':
+            pass
             # check if title is recorded
-            variables = json.loads(value)
+            variables = json.loads(data)
             variables = set(variables) 
 
             if 'title' in variables:
@@ -77,7 +78,7 @@ class GraphAgent(Agent):
 
                     # output to stream
                     json_data = json.dumps({"top_recommended_titles": recommendations})
-                    return json_data, "json", "DATA"
+                    return json_data, "json"
         
         return None
 
