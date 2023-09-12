@@ -16,4 +16,4 @@ ADD /src /app/
 # Environment variables
 ENV session=
 
-CMD ["sh", "-c", "python simple_counter_agent.py --session ${session}"]
+CMD ["sh", "-c", "python rationalizer_agent.py --session ${session}"]
