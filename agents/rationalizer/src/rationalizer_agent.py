@@ -25,13 +25,14 @@ from tqdm import tqdm
 
 ###### Blue
 from agent import Agent
+from api_agent import APIAgent
 from session import Session
 
 # set log level
 logging.getLogger().setLevel(logging.INFO)
 
 #######################
-class RationalizerAgent(Agent):
+class RationalizerAgent(APIAgent):
     def __init__(self, session=None, input_stream=None, processor=None, properties={}):
         super().__init__("RATIONALIZER", session=session, input_stream=input_stream, processor=processor, properties=properties)
 
@@ -39,6 +40,32 @@ class RationalizerAgent(Agent):
         super()._initialize_properties()
 
         # default properties
+        self.properties['openai.service'] = "ws://localhost:8003"
+
+        self.properties['openai.api'] = 'ChatCompletion'
+        self.properties['openai.model'] = "gpt-3.5-turbo"
+        self.properties['input_json'] = None 
+        self.properties['input_context'] = None 
+        self.properties['input_context_field'] = None 
+        self.properties['input_field'] = 'prompt'
+        self.properties['output_path'] = '$.choices[0].text'
+        self.properties['openai.stream'] = False
+        self.properties['openai.max_tokens'] = 50
+        self.properties['openai.temperature'] = 0
+        self.properties["output_path"] = "$.choices[0].message.content"
+        self.properties["input_json"] = "[{\"role\":\"user\"}]"
+        self.properties["input_context"] = "$[0]"
+        self.properties["input_context_field"] = "content"
+        self.properties["input_field"] = "messages"
+        self.properties["input_template"] = '''Let's assume a recommender system which recommends a ranked list of job positions that a candidate may pursue as their next job based on the candidate's current skill set and years of experience with each skill. The ranked list is provided in the order of most relevant to least relevant job. 
+
+                Consider a candidate with the current job position:\n{title}
+
+                Following is the recommended ranked list of next job positions: \n{title_recommendation}
+
+                Now provide rationale for why "Software Development Engineer-2" has been recommended as the next position the candidate should pursue. Also, provide rationale for why the other recommended job positions are lower in the ranked list.
+                '''
+        
         listeners = {}
         self.properties['listens'] = listeners
         listeners['includes'] = ['RECORDER']
@@ -47,18 +74,7 @@ class RationalizerAgent(Agent):
         # rationalizer config
         self.properties['requires'] = ['title', 'title_recommendation']
 
-
-
-    def default_processor(self, stream, id, label, data, dtype=None, tags=None, properties=None, worker=None):
-        
-        # openai_api_key = os.environ['OPENAI_API_KEY']
-        # openai_organization = os.environ['OPENAI_ORGANIZATION']
-        # openai.api_key = openai_api_key
-        # openai.organization = openai_organization 
-        model_config = {
-            'model': 'gpt-3.5-turbo',
-            'temperature': 0
-        }
+    def default_processor(self, stream, id, label, data, dtype=None, tags=None, properties=None, worker=None):    
         if label == 'EOS':
             pass
                 
@@ -79,27 +95,26 @@ class RationalizerAgent(Agent):
                         break
 
             if required_recorded:
-                data = {}
                 if worker:
                     for require in requires:
                         logging.info('checking {}'.format(require))
-                        data[require] = worker.get_session_data(require)
+                        properties[require] = worker.get_session_data(require)
+
                     
-                prompt = '''
-                Let's assume a recommender system which recommends a ranked list of job positions that a candidate may pursue as their next job based on the candidate's current skill set and years of experience with each skill. The ranked list is provided in the order of most relevant to least relevant job. 
+                    #### call service to compute
 
-                Consider a candidate with the current job position:\n{title}
+                    message = self.create_message("", properties=properties)
 
-                Following is the recommended ranked list of next job positions: \n{title_recommendation}
+                    # serialize message, call service
+                    m = json.dumps(message)
+                    r = self.call_service(m)
 
-                Now provide rationale for why "Software Development Engineer-2" has been recommended as the next position the candidate should pursue. Also, provide rationale for why the other recommended job positions are lower in the ranked list.
-                '''.format(**data)
-                logging.info(prompt)
-                # response = openai.ChatCompletion.create(messages = [{
-                #                                             "role": "user", "content": prompt
-                #                                         }], **model_config)
-                return "1"
-                # return response["choices"][0]["message"]["content"]
+                    response = json.loads(r)
+
+                    # create output from response
+                    output_data = self.create_output(response)
+                    logging.info(output_data)
+                    return output_data
     
         return None
 
