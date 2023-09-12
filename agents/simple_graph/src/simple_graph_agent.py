@@ -41,33 +41,45 @@ class GraphAgent(Agent):
         super().__init__("GRAPH", session=session, input_stream=input_stream, processor=processor, properties=properties)
 
 
-    def default_processor(self, sream, id, event, value, tags=None, properties=None, worker=None):
-        if event == 'EOS':
-            # compute stream data
-            l = None
-            if worker:
-                stream_data = worker.get_data('stream')
-                stream_data = stream_data[0]
-                stream_data = " ".join(stream_data)
-                l = get_embeddings (stream_data)
-            time.sleep(4)
-            
-            # output to stream
-            return_object = json.dumps({"top_recommended_jobs": l })
-            print ("~~~~", return_object)
-            return return_object
-        elif event == 'BOS':
-            # init stream to empty array
-            if worker:
-                worker.set_data('stream',[])
+    def _initialize_properties(self):
+        super()._initialize_properties()
+
+        # default properties
+        listeners = {}
+        self.properties['listens'] = listeners
+        listeners['includes'] = ['RECORDER']
+        listeners['excludes'] = [self.name]
+
+
+    def default_processor(self, stream, id, label, data, dtype=None, tags=None, properties=None, worker=None):
+
+        if label == 'EOS':
+            return 'EOS', None, None
+        elif label == 'BOS':
             pass
-        elif event == 'DATA':
-            # store data value
-            logging.info(value)
-            
-            if worker:
-                worker.append_data('stream', value)
-    
+        elif label == 'DATA':
+            pass
+            # check if title is recorded
+            variables = json.loads(data)
+            variables = set(variables) 
+
+            if 'title' in variables:
+                if worker:
+                    title = worker.get_session_data('title')[0]
+
+                    recommendations = get_embeddings(title)
+
+                    logging.info("recommended titles: {recommendations}".format(recommendations=recommendations))
+                
+                    # set top recommendation to stream
+                    if len(recommendations) > 0:
+                        top_recommendation = recommendations 
+                        worker.set_session_data("title_recommendation", recommendations[0])
+
+                    # output to stream
+                    json_data = json.dumps({"top_recommended_titles": recommendations})
+                    return json_data, "json"
+        
         return None
 
 if __name__ == "__main__":

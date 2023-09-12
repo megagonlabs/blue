@@ -114,9 +114,9 @@ class APIAgent(Agent):
     def validate_input(self, input_data):
         return True 
 
-    def default_processor(self, stream, id, event, value, tags=None, properties=None, worker=None):
+    def default_processor(self, stream, id, label, data, dtype=None, tags=None, properties=None, worker=None):
         
-        if event == 'EOS':
+        if label == 'EOS':
             # get all data received from stream
             stream_data = ""
             if worker:
@@ -144,17 +144,17 @@ class APIAgent(Agent):
             logging.info(output_data)
             return output_data
             
-        elif event == 'BOS':
+        elif label == 'BOS':
             # init stream to empty array
             if worker:
                 worker.set_data('stream',[])
             pass
-        elif event == 'DATA':
+        elif label == 'DATA':
             # store data value
-            logging.info(value)
+            logging.info(data)
             
             if worker:
-                worker.append_data('stream', value)
+                worker.append_data('stream', data)
         
         return None
 

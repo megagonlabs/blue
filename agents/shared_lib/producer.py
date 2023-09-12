@@ -84,7 +84,7 @@ class Producer():
         r = self.connection
 
         # add BOS (begin of stream)
-        self.write(tag="BOS")
+        self.write(label="BOS")
        
         self._print_stream_info()
 
@@ -96,59 +96,60 @@ class Producer():
         return self.stream
 
     # stream 
-    def write(self, data=None, dtype="str", tag="DATA", eos=True, split=" "):
-        # print("producer write {tag} {data} {dtype}".format(tag=tag,data=data,dtype=dtype))
+    def write(self, data=None, dtype="str", label="DATA", eos=False, split=None):
+        # print("producer write {label} {data} {dtype}".format(label=label,data=data,dtype=dtype))
 
-        if tag == "DATA" or tag == "INSTRUCTION":
-            # force str conversion
-            if dtype is None:
-                dtype = "str"
+        # do basic type casting, if none given
+        # print("type {type}".format(type=type))
+        if dtype == None:
+            if isinstance(data, int):
+                dtype = 'int'
+            elif isinstance(data, float):
+                dtype = 'float'
+            elif isinstance(data, str):
+                dtype = 'str'
+            elif isinstance(data, dict):
+                dtype = 'json'
+            else:
+                # convert everything else to string
                 data = str(data)
+                dtype = 'str'
+
+        if dtype == 'json':
+            data = json.dumps(data)
+
+        if label == "DATA":
 
             if dtype == "str":
                 if split is None:
-                    tokens = [data]
-                else:
-                    tokens = data.split(split)
+                    split = " "
 
-                    for token in tokens:
-                        message = self._prepare_message(value=token, tag=tag, dtype="str")
-                        self._write_message_to_stream(message)
-                    
-                    
-            elif dtype == "int":
-                message = self._prepare_message(value=data, tag=tag, dtype="int")
+            if split is None:
+                tokens = [data]
+            else:
+                tokens = data.split(split)
+
+            for token in tokens:
+                message = self._prepare_message(data=token, label=label, dtype=dtype)
                 self._write_message_to_stream(message)
-
-            elif dtype == "json":
-                message = self._prepare_message(value=json.dumps(data), tag=tag, dtype="json")
-                self._write_message_to_stream(message)
-
+                
             if eos:
-                message = self._prepare_message(tag="EOS")
+                message = self._prepare_message(label="EOS")
                 self._write_message_to_stream(message)
 
+        elif label == "INSTRUCTION":
+            message = self._prepare_message(data=data, label=label, dtype=dtype)
+            self._write_message_to_stream(message)
         else:
-            if dtype is None:
-                dtype = "str"
-                data = str(data)
-                message = self._prepare_message(value=data, tag=tag, dtype=dtype)
-            elif dtype == "str":
-                message = self._prepare_message(value=data, tag=tag, dtype=dtype)
-            elif dtype == "json":
-                message = self._prepare_message(value=json.dumps(data), tag=tag, dtype="json")
-            
+            message = self._prepare_message(data=data, label=label, dtype=dtype)
             self._write_message_to_stream(message)
 
              
-    def _prepare_message(self, tag=None, value=None, dtype=None):
-        if tag == "DATA" or tag == "INSTRUCTION":
-            return {"tag": tag, "value": value, "type": dtype}
+    def _prepare_message(self, label=None, data=None, dtype=None):
+        if data is None:
+            return {"label": label}
         else:
-            if value is None:
-                return {"tag": tag}
-            else:
-                return {"tag": tag, "value": value, "type": dtype}
+            return {"label": label, "data": data, "type": dtype}
 
     def _write_message_to_stream(self, message):
         # logging.info("Streaming into {s} message {m}".format(s=self.stream, m=str(message)))

@@ -133,7 +133,7 @@ class PlannerAgent(Agent):
 
     # node status progression
     # PLANNED, TRIGGERED, STARTED, FINISHED
-    def default_processor(self, stream, id, event, value, tags=None, properties=None, worker=None):
+    def default_processor(self, stream, id, label, data, dtype=None, tags=None, properties=None, worker=None):
 
         # TODO: Instructions should use TAGs not agent_name
         agent_name = stream.split(':')[0]
@@ -145,7 +145,7 @@ class PlannerAgent(Agent):
         id2node = plan['id2node']
         logging.info("stream {} {}".format(stream, str(id2node)))
 
-        if event == 'EOS':
+        if label == 'EOS':
             if stream in id2node:
                 node = id2node[stream]
                 node['status'] = 'FINISHED'
@@ -184,13 +184,13 @@ class PlannerAgent(Agent):
 
                         ### put instruction into plan stream
                         logging.info(plan)
-                        return instruction, 'json', 'INSTRUCTION'
+                        return 'INSTRUCTION', instruction, 'json'
             else:
                 # doesn't belong to plan
                 pass
             
 
-        elif event == 'BOS':
+        elif label == 'BOS':
             # if a start node instantiate a plan
             logging.info("checking agent in start {name}{start}".format(name=agent_name,start=str(start)))
             if agent_name in start:
@@ -206,7 +206,7 @@ class PlannerAgent(Agent):
             else:
                 pass
 
-        elif event == 'DATA':
+        elif label == 'DATA':
             # nothing to do here, other than setting status
             if stream in id2node:
                 node = id2node[stream]
@@ -219,22 +219,22 @@ class AgentA(Agent):
         super().__init__("A", session=session, input_stream=input_stream, processor=processor, properties=properties)
 
    
-    def default_processor(self, stream, id, event, value, properties=None, worker=None):
-        if event == 'INSTRUCTION':
-            logging.info(event)
+    def default_processor(self, stream, id, label, data, dtype=None, properties=None, worker=None):
+        if label == 'INSTRUCTION':
+            logging.info(label)
             logging.info(id)
-            logging.info(value)
+            logging.info(data)
             logging.info(properties)
             logging.info(worker)
             logging.info(worker.agent)
-            instruction = json.loads(value)
+            instruction = json.loads(data)
             instruction_agent = instruction['agent']
             assigned_id = instruction['id']
             input_stream = instruction['stream']
             if instruction_agent == self.name:
                 worker.agent.create_worker(input_stream, id=assigned_id)
                 return 
-        elif event == 'EOS':
+        elif label == 'EOS':
             # compute stream data
             l = 0
             if worker:
@@ -244,17 +244,17 @@ class AgentA(Agent):
             # output to stream
             l = l[0]
             return l
-        elif event == 'BOS':
+        elif label == 'BOS':
             # init stream to empty array
             if worker:
                 worker.set_data('stream',[])
             pass
-        elif event == 'DATA':
+        elif label == 'DATA':
             # store data value
-            logging.info(value)
+            logging.info(data)
             
             if worker:
-                worker.append_data('stream', value)
+                worker.append_data('stream', data)
     
         return None
 
@@ -264,22 +264,22 @@ class AgentB(Agent):
         super().__init__("B", session=session, input_stream=input_stream, processor=processor, properties=properties)
 
    
-    def default_processor(self, stream, id, event, value, properties=None, worker=None):
-        if event == 'INSTRUCTION':
-            logging.info(event)
+    def default_processor(self, stream, id, label, data, dtype=None, properties=None, worker=None):
+        if label == 'INSTRUCTION':
+            logging.info(label)
             logging.info(id)
-            logging.info(value)
+            logging.info(data)
             logging.info(properties)
             logging.info(worker)
             logging.info(worker.agent)
-            instruction = json.loads(value)
+            instruction = json.loads(data)
             instruction_agent = instruction['agent']
             assigned_id = instruction['id']
             input_stream = instruction['stream']
             if instruction_agent == self.name:
                 worker.agent.create_worker(input_stream, id=assigned_id)
                 return 
-        elif event == 'EOS':
+        elif label == 'EOS':
             # compute stream data
             l = 0
             if worker:
@@ -289,17 +289,17 @@ class AgentB(Agent):
             # output to stream
             l = l[0]
             return l
-        elif event == 'BOS':
+        elif label == 'BOS':
             # init stream to empty array
             if worker:
                 worker.set_data('stream',[])
             pass
-        elif event == 'DATA':
+        elif label == 'DATA':
             # store data value
-            logging.info(value)
+            logging.info(data)
             
             if worker:
-                worker.append_data('stream', value)
+                worker.append_data('stream', data)
     
         return None
 
@@ -344,7 +344,7 @@ if __name__ == "__main__":
         # only listen to planner
         agent_properties = {}
         listeners = {}
-        agent_properties['agents'] = listeners
+        agent_properties['listens'] = listeners
         listeners['includes'] = ['.*PLANNER.*']
         listeners['excludes'] = []
 

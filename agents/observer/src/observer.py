@@ -35,20 +35,20 @@ class ObserverAgent(Agent):
         super().__init__("OBSERVER", session=session, input_stream=input_stream, processor=processor, properties=properties)
 
 
-    def default_processor(self, stream, id, event, value, tags=None, properties=None, worker=None):
-        if event == 'EOS':
+    def default_processor(self, stream, id, label, value, dtype=None, tags=None, properties=None, worker=None):
+        if label == 'EOS':
             # compute stream data
             l = 0
             if worker:
                 data = worker.get_data(stream)[0]
                 print("{} [{}]: {}".format(stream, ",".join(tags), str(" ".join(data))))
     
-        elif event == 'BOS':
+        elif label == 'BOS':
             # init stream to empty array
             if worker:
                 worker.set_data(stream,[])
             pass
-        elif event == 'DATA':
+        elif label == 'DATA':
             # store data value
             logging.info(value)
             

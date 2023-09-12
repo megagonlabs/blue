@@ -52,26 +52,26 @@ class RecorderAgent(Agent):
         records.append({"variable":"all","query":"$","single":True})
 
 
-    def default_processor(self, stream, id, event, value, tags=None, properties=None, worker=None):
-        if event == 'EOS':
+    def default_processor(self, stream, id, label, data, dtype=None, tags=None, properties=None, worker=None):
+        if label == 'EOS':
             # compute stream data
             l = 0
             if worker:
-                data = worker.get_data(stream)[0]
+                all_data = worker.get_data(stream)[0]
 
                 json_data = None
 
                 if not json_data:
                     try:
-                        json_data = json.loads(" ".join(data))
-                        logging.info('Procecssing data {data}'.format(data=str(" ".join(data))))
+                        json_data = json.loads(" ".join(all_data))
+                        logging.info('Procecssing data {data}'.format(data=str(" ".join(all_data))))
                     except:
                         pass 
 
                 if not json_data:
                     try:
-                        json_data = ast.literal_eval(" ".join(data))
-                        logging.info('Procecssing data {data}'.format(data=str(" ".join(data))))
+                        json_data = ast.literal_eval(" ".join(all_data))
+                        logging.info('Procecssing data {data}'.format(data=str(" ".join(all_data))))
                     except:
                         pass 
 
@@ -93,23 +93,23 @@ class RecorderAgent(Agent):
 
                             variables.append(variable)
                         
-                        return variables, 'json', 'DATA'
+                        return 'DATA', variables, 'json'
                 else:
-                    logging.info('Unable to process data {data}'.format(data=str(" ".join(data))))
+                    logging.info('Unable to process data {all_data}'.format(data=str(" ".join(all_data))))
 
                 
     
-        elif event == 'BOS':
+        elif label == 'BOS':
             # init stream to empty array
             if worker:
                 worker.set_data(stream,[])
             pass
-        elif event == 'DATA':
+        elif label == 'DATA':
             # store data value
-            logging.info(value)
+            logging.info(data)
             
             if worker:
-                worker.append_data(stream, value)
+                worker.append_data(stream, data)
     
         return None
 

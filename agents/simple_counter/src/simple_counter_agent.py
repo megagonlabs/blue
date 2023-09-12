@@ -35,8 +35,8 @@ class CounterAgent(Agent):
         super().__init__("COUNTER", session=session, input_stream=input_stream, processor=processor, properties=properties)
 
 
-    def default_processor(self, stream, id, event, value, tags=None, properties=None, worker=None):
-        if event == 'EOS':
+    def default_processor(self, stream, id, label, data, dtype=None, tags=None, properties=None, worker=None):
+        if label == 'EOS':
             # compute stream data
             l = 0
             if worker:
@@ -46,17 +46,17 @@ class CounterAgent(Agent):
             # output to stream
             l = l[0]
             return l
-        elif event == 'BOS':
+        elif label == 'BOS':
             # init stream to empty array
             if worker:
                 worker.set_data('stream',[])
             pass
-        elif event == 'DATA':
+        elif label == 'DATA':
             # store data value
-            logging.info(value)
+            logging.info(data)
             
             if worker:
-                worker.append_data('stream', value)
+                worker.append_data('stream', data)
     
         return None
 

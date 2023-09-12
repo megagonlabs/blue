@@ -112,13 +112,13 @@ class Agent():
         return worker
 
     ###### default processor, override
-    def default_processor(self, stream, id, event, value, tags=None, properties=None, worker=None):
+    def default_processor(self, stream, id, label, data, dtype=None, tags=None, properties=None, worker=None):
         logging.info('default processor: override')
         logging.info(stream)
-        logging.info(event)
-        logging.info(id)
-        logging.info(value)
         logging.info(tags)
+        logging.info(id)
+        logging.info(label)
+        logging.info(data)
         logging.info(properties)
         logging.info(worker)
 
@@ -143,14 +143,14 @@ class Agent():
 
 
 
-    def session_listener(self, id, record):   
+    def session_listener(self, id, message):   
         # listen to session stream
        
-        # if session tag is USER
-        tag = record['tag']
+        label = message['label']
        
-        if tag == 'ADD':
-            data = json.loads(record['value'])
+        if label == 'ADD':
+            data = json.loads(message['data'])
+
             input_stream = data['stream']
             tags = data['tags']
 
@@ -230,7 +230,7 @@ class Agent():
             session_stream = self.session.get_stream()
 
             if session_stream:
-                self.consumer = Consumer(self.name, session_stream, listener=lambda id, data : self.session_listener(id,data), properties=self.properties)
+                self.consumer = Consumer(self.name, session_stream, listener=lambda id, message : self.session_listener(id, message), properties=self.properties)
                 self.consumer.start()
 
 
@@ -271,11 +271,11 @@ if __name__ == "__main__":
     # sample func to process data from 
     # return a value other than None
     # to create a stream 
-    def processor(stream, id, event, value):
+    def processor(stream, id, label, data, dtype=None):
         logging.into(stream)
         logging.info(id)
-        logging.info(event)
-        logging.info(value)
+        logging.info(label)
+        logging.info(data)
        
         return None
 
