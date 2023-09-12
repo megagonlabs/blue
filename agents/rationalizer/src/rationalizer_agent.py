@@ -34,7 +34,7 @@ logging.getLogger().setLevel(logging.INFO)
 #######################
 class RationalizerAgent(APIAgent):
     def __init__(self, session=None, input_stream=None, processor=None, properties={}):
-        super().__init__("RATIONALIZER", session=session, input_stream=input_stream, processor=processor, properties=properties)
+        super().__init__("OPENAI", session=session, input_stream=input_stream, processor=processor, properties=properties)
 
     def _initialize_properties(self):
         super()._initialize_properties()
@@ -63,7 +63,7 @@ class RationalizerAgent(APIAgent):
 
                 Following is the recommended ranked list of next job positions: \n{title_recommendation}
 
-                Now provide rationale for why "Software Development Engineer-2" has been recommended as the next position the candidate should pursue. Also, provide rationale for why the other recommended job positions are lower in the ranked list.
+                Now provide rationale for why "{title_recommendation}" has been recommended as the next position the candidate should pursue. Also, provide rationale for why the other recommended job positions are lower in the ranked list.
                 '''
         
         listeners = {}
@@ -98,7 +98,7 @@ class RationalizerAgent(APIAgent):
                 if worker:
                     for require in requires:
                         logging.info('checking {}'.format(require))
-                        properties[require] = worker.get_session_data(require)
+                        properties[require] = worker.get_session_data(require)[0]
 
                     
                     #### call service to compute
