@@ -70,7 +70,7 @@ class KnowledgGroundingAgent(Agent):
 
             if required_recorded:
                 if worker:
-                    graph = Graph("http://18.216.233.236:7474", auth=("neo4j", "444@Castro"))
+                    graph = Graph("http://18.216.233.236:7474", auth=(os.environ["NEO4J_USER"], os.environ["NEO4J_PWD"]))
                     person = "Eser Kandogan"
                     next_title = "Software Engineer - 2"
 
