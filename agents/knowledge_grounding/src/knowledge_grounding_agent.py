@@ -47,7 +47,7 @@ class KnowledgGroundingAgent(Agent):
         listeners['excludes'] = [self.name]
 
         # rationalizer config
-        self.properties['requires'] = ['title', 'title_recommendation']
+        self.properties['requires'] = ['name', 'title_recommendation',]
 
     def default_processor(self, stream, id, label, data, dtype=None, tags=None, properties=None, worker=None):    
         if label == 'EOS':
@@ -96,7 +96,7 @@ class KnowledgGroundingAgent(Agent):
                     ret = {}
                     ret["resume_skills"] = json.dumps(list(s1.T.to_dict().values()))
                     ret["job_skills"] = json.dumps(list(s2.T.to_dict().values()))
-                    return ret
+                    return ret, type(ret)
     
         return None
 
