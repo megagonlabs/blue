@@ -1,6 +1,7 @@
 ###### OS / Systems
 import os
 import sys
+import json
 
 ###### Add lib path
 sys.path.append('./lib/')
@@ -87,16 +88,14 @@ class KnowledgGroundingAgent(Agent):
                         LIMIT 2
                     '''.format(next_title)
 
-                    s1 = graph.run(name_query) #.to_ndarray(dtype='str')
-                    s2 = graph.run(title_query) #.to_ndarray(dtype='str')
+                    s1 = graph.run(name_query) 
+                    s2 = graph.run(title_query)
                     s1.columns = ['skill', 'duration']
                     s2.columns = ['skill', 'avg_duration']
     
-                    # s1 = s1.to_json(orient='records', lines=True)
                     ret = {}
-                    ret["resume_skills"] = list(s1.T.to_dict().values())
-                    ret["job_skills"] = list(s2.T.to_dict().values())
-                    ret = json.loads(json.dumps(ret))
+                    ret["resume_skills"] = json.dumps(list(s1.T.to_dict().values()))
+                    ret["job_skills"] = json.dumps(list(s2.T.to_dict().values()))
                     return ret
     
         return None
