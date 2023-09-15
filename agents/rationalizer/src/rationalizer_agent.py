@@ -59,9 +59,10 @@ class RationalizerAgent(APIAgent):
         self.properties["input_field"] = "messages"
         self.properties["input_template"] = '''Let's assume a recommender system which recommends a ranked list of job positions that a candidate may pursue as their next job based on the candidate's current skill set and years of experience with each skill. The ranked list is provided in the order of most relevant to least relevant job. 
 
-                Consider a candidate with the current job position:\n{title}
+                Consider a candidate with the current job position:\n{title} \nand current skills: {resume_skills}
 
                 Following is the recommended ranked list of next job positions: \n{title_recommendation}
+                \nThis job requires the following skills: {job_skills}
 
                 Now provide rationale for why "{title_recommendation}" has been recommended as the next position the candidate should pursue. Also, provide rationale for why the other recommended job positions are lower in the ranked list.
                 '''
