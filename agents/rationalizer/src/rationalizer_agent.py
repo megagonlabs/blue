@@ -72,7 +72,7 @@ class RationalizerAgent(APIAgent):
         listeners['excludes'] = [self.name]
 
         # rationalizer config
-        self.properties['requires'] = ['title', 'title_recommendation']
+        self.properties['requires'] = ['title', 'title_recommendation', 'resume_skills', 'job_skills']
 
     def default_processor(self, stream, id, label, data, dtype=None, tags=None, properties=None, worker=None):    
         if label == 'EOS':

@@ -71,9 +71,8 @@ class KnowledgGroundingAgent(Agent):
             if required_recorded:
                 if worker:
                     graph = Graph("http://18.216.233.236:7474", auth=(os.environ["NEO4J_USER"], os.environ["NEO4J_PWD"]))
-                    person = "Eser Kandogan"
-                    next_title = "Software Engineer - 2"
-
+                    person = worker.get_session_data("name")[0]
+                    next_title = worker.get_session_data("title_recommendation")[0]
                     name_query = '''
                         MATCH (p:PERSON{{name: '{}'}})-[h1:HAS]->(b)-[h2:HAS]->(c)
                         RETURN c.label, h2.duration
@@ -90,8 +89,15 @@ class KnowledgGroundingAgent(Agent):
 
                     s1 = graph.run(name_query) #.to_ndarray(dtype='str')
                     s2 = graph.run(title_query) #.to_ndarray(dtype='str')
-                    print(s1, s2)
-                    return "1"
+                    s1.columns = ['skill', 'duration']
+                    s2.columns = ['skill', 'avg_duration']
+    
+                    # s1 = s1.to_json(orient='records', lines=True)
+                    ret = {}
+                    ret["resume_skills"] = list(s1.T.to_dict().values())
+                    ret["job_skills"] = list(s2.T.to_dict().values())
+                    ret = json.loads(json.dumps(ret))
+                    return ret
     
         return None
 
