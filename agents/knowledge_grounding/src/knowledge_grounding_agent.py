@@ -29,6 +29,7 @@ from agent import Agent
 from session import Session
 
 from py2neo import Graph
+import pandas
 
 # set log level
 logging.getLogger().setLevel(logging.INFO)
@@ -46,12 +47,16 @@ class KnowledgGroundingAgent(Agent):
         listeners['includes'] = ['RECORDER']
         listeners['excludes'] = [self.name]
 
+        ### default tags to tag output streams
+        tags = []
+        self.properties['tags'] = ['JSON']
+
         # rationalizer config
-        self.properties['requires'] = ['name', 'title_recommendation',]
+        self.properties['requires'] = ['name', 'top_title_recommendation',]
 
     def default_processor(self, stream, id, label, data, dtype=None, tags=None, properties=None, worker=None):    
         if label == 'EOS':
-            pass
+            return 'EOS', None, None
                 
         elif label == 'BOS':
             pass
@@ -73,17 +78,17 @@ class KnowledgGroundingAgent(Agent):
                 if worker:
                     graph = Graph("http://18.216.233.236:7474", auth=(os.environ["NEO4J_USER"], os.environ["NEO4J_PWD"]))
                     person = worker.get_session_data("name")[0]
-                    next_title = worker.get_session_data("title_recommendation")[0]
+                    next_title = worker.get_session_data("top_title_recommendation")[0]
                     name_query = '''
                         MATCH (p:PERSON{{name: '{}'}})-[h1:HAS]->(b)-[h2:HAS]->(c)
-                        RETURN c.label, h2.duration
+                        RETURN c.label AS skill, h2.duration AS duration
                         ORDER BY h2.duration DESC
                         LIMIT 2
                     '''.format(person)
 
                     title_query = '''
                         MATCH (j:TITLE{{label: '{}'}})-[r:REQUIRES]->(b)
-                        RETURN b.label, r.avg_duration
+                        RETURN b.label AS skill, r.avg_duration AS avg_duration
                         ORDER BY r.avg_duration DESC
                         LIMIT 2
                     '''.format(next_title)
@@ -94,9 +99,11 @@ class KnowledgGroundingAgent(Agent):
                     s2.columns = ['skill', 'avg_duration']
     
                     ret = {}
-                    ret["resume_skills"] = json.dumps(list(s1.T.to_dict().values()))
-                    ret["job_skills"] = json.dumps(list(s2.T.to_dict().values()))
-                    return ret, type(ret)
+                    resume_skills = json.loads(s1.to_data_frame().to_json(orient='records'))
+                    top_title_skills = json.loads(s2.to_data_frame().to_json(orient='records'))
+                    ret["resume_skills"] = resume_skills
+                    ret["top_title_skills"] = top_title_skills
+                    return json.dumps(ret)
     
         return None
 

@@ -50,6 +50,10 @@ class GraphAgent(Agent):
         listeners['includes'] = ['RECORDER']
         listeners['excludes'] = [self.name]
 
+        ### default tags to tag output streams
+        tags = []
+        self.properties['tags'] = ['JSON']
+
 
     def default_processor(self, stream, id, label, data, dtype=None, tags=None, properties=None, worker=None):
 
@@ -71,14 +75,8 @@ class GraphAgent(Agent):
 
                     logging.info("recommended titles: {recommendations}".format(recommendations=recommendations))
                 
-                    # set top recommendation to stream
-                    if len(recommendations) > 0:
-                        top_recommendation = recommendations 
-                        worker.set_session_data("title_recommendation", recommendations[0])
-
                     # output to stream
-                    json_data = json.dumps({"top_recommended_titles": recommendations})
-                    return json_data, "json"
+                    return { "title_recommendations": recommendations }
         
         return None
 

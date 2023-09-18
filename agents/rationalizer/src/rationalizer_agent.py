@@ -61,10 +61,10 @@ class RationalizerAgent(APIAgent):
 
                 Consider a candidate with the current job position:\n{title} \nand current skills with years of experience: {resume_skills}
 
-                Following is the recommended ranked list of next job positions: \n{title_recommendation}
-                \nThis job requires the following skills with a corresponding average years of experience: {job_skills}
+                Following is the recommended ranked list of next job positions: \n{top_title_recommendation}
+                \nThis job requires the following skills with a corresponding average years of experience: {top_title_skills}
 
-                Now provide rationale for why "{title_recommendation}" has been recommended as the next position the candidate should pursue. Also, provide rationale for why the other recommended job positions are lower in the ranked list.
+                Now provide rationale for why "{top_title_recommendation}" has been recommended as the next position the candidate should pursue. Also, provide rationale for why the other recommended job positions are lower in the ranked list.
                 '''
         
         listeners = {}
@@ -73,11 +73,11 @@ class RationalizerAgent(APIAgent):
         listeners['excludes'] = [self.name]
 
         # rationalizer config
-        self.properties['requires'] = ['title', 'title_recommendation', 'resume_skills', 'job_skills']
+        self.properties['requires'] = ['title', 'top_title_recommendation', 'resume_skills', 'top_title_skills']
 
     def default_processor(self, stream, id, label, data, dtype=None, tags=None, properties=None, worker=None):    
         if label == 'EOS':
-            pass
+            return 'EOS', None, None
                 
         elif label == 'BOS':
             pass

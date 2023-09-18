@@ -88,14 +88,20 @@ class RecorderAgent(Agent):
 
                             # evaluate path on json_data
                             logging.info('Executing query {query}'.format(query=query))
-                            result = json_utils.json_query(json_data, query, single=single)
-                            worker.set_session_data(variable, result)
+                            result = None
+                            try:
+                                result = json_utils.json_query(json_data, query, single=single)
+                            except:
+                                pass 
 
-                            variables.append(variable)
+                            if result:
+                                worker.set_session_data(variable, result)
+                                variables.append(variable)
                         
-                        return 'DATA', variables, 'json'
+                        if len(variables) > 0:
+                            return 'DATA', variables, 'json'
                 else:
-                    logging.info('Unable to process data {all_data}'.format(data=str(" ".join(all_data))))
+                    logging.info('Unable to process data {data}'.format(data=str(" ".join(all_data))))
 
                 
     
