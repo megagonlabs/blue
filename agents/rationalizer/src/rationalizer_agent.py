@@ -50,7 +50,7 @@ class RationalizerAgent(APIAgent):
         self.properties['input_field'] = 'prompt'
         self.properties['output_path'] = '$.choices[0].text'
         self.properties['openai.stream'] = False
-        self.properties['openai.max_tokens'] = 50
+        self.properties['openai.max_tokens'] = 2000
         self.properties['openai.temperature'] = 0
         self.properties["output_path"] = "$.choices[0].message.content"
         self.properties["input_json"] = "[{\"role\":\"user\"}]"
