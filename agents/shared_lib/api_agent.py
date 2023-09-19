@@ -142,6 +142,7 @@ class APIAgent(Agent):
             # create output from response
             output_data = self.create_output(response)
             logging.info(output_data)
+            logging.info(type(output_data))
             return output_data
             
         elif label == 'BOS':

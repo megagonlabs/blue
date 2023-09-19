@@ -108,12 +108,13 @@ class Producer():
                 dtype = 'float'
             elif isinstance(data, str):
                 dtype = 'str'
-            elif isinstance(data, dict):
+            elif isinstance(data, dict) or isinstance(data, list):
                 dtype = 'json'
             else:
                 # convert everything else to string
                 data = str(data)
                 dtype = 'str'
+
 
         if dtype == 'json':
             data = json.dumps(data)
@@ -121,6 +122,7 @@ class Producer():
         if label == "DATA":
 
             if dtype == "str":
+                # TODO: Overrride?
                 if split is None:
                     split = " "
 

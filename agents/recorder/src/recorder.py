@@ -54,68 +54,51 @@ class RecorderAgent(Agent):
 
     def default_processor(self, stream, id, label, data, dtype=None, tags=None, properties=None, worker=None):
         if label == 'EOS':
-            # compute stream data
-            l = 0
             if worker:
-                all_data = worker.get_data(stream)[0]
-
-                json_data = None
-
-                if not json_data:
-                    try:
-                        json_data = json.loads(" ".join(all_data))
-                        logging.info('Procecssing data {data}'.format(data=str(" ".join(all_data))))
-                    except:
-                        pass 
-
-                if not json_data:
-                    try:
-                        json_data = ast.literal_eval(" ".join(all_data))
-                        logging.info('Procecssing data {data}'.format(data=str(" ".join(all_data))))
-                    except:
-                        pass 
-
-                if json_data:
-                    if 'records' in self.properties:
-                        records = self.properties['records']
-                        variables = []
-                        for record in records:
-                            variable = record['variable']
-                            query = record['query']
-                            single = False
-                            if 'single' in record:
-                                single = record['single']
-
-                            # evaluate path on json_data
-                            logging.info('Executing query {query}'.format(query=query))
-                            result = None
-                            try:
-                                result = json_utils.json_query(json_data, query, single=single)
-                            except:
-                                pass 
-
-                            if result:
-                                worker.set_session_data(variable, result)
-                                variables.append(variable)
-                        
-                        if len(variables) > 0:
-                            return 'DATA', variables, 'json'
-                else:
-                    logging.info('Unable to process data {data}'.format(data=str(" ".join(all_data))))
-
-                
-    
+                processed = worker.get_data('processed')
+                if processed:
+                    return 'EOS', None, None
+            return None
         elif label == 'BOS':
-            # init stream to empty array
-            if worker:
-                worker.set_data(stream,[])
             pass
         elif label == 'DATA':
             # store data value
             logging.info(data)
+            logging.info(type(data))
+            logging.info(dtype)
             
-            if worker:
-                worker.append_data(stream, data)
+            # TODO: Record from other data types
+            if dtype == 'json':
+            
+                if 'records' in self.properties:
+                    records = self.properties['records']
+                    variables = []
+                    for record in records:
+                        variable = record['variable']
+                        query = record['query']
+                        single = False
+                        if 'single' in record:
+                            single = record['single']
+
+                        # evaluate path on json_data
+                        logging.info('Executing query {query}'.format(query=query))
+                        result = None
+                        try:
+                            result = json_utils.json_query(data, query, single=single)
+                        except:
+                            pass 
+
+                        if result:
+                            worker.set_session_data(variable, result)
+                            variables.append(variable)
+                    
+                    if len(variables) > 0:
+                        # set processed to true 
+                        worker.set_data('processed', True)
+
+                        # output to stream
+                        return 'DATA', variables, 'json'
+
     
         return None
 

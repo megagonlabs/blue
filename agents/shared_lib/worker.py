@@ -78,8 +78,8 @@ class Worker():
             label = message['label']
         if 'data' in message:
             data = message['data']
-        if 'dtype' in message:
-            dtype = message['dtype']
+        if 'type' in message:
+            dtype = message['type']
 
         result = None
 
@@ -134,7 +134,7 @@ class Worker():
 
 
 
-    def write(self, data, dtype=None, label='DATA', eos=True, split=" "):
+    def write(self, data, dtype=None, label='DATA', eos=True, split=None):
         # start producer on first write
         self._start_producer()
 

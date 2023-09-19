@@ -56,7 +56,11 @@ class KnowledgGroundingAgent(Agent):
 
     def default_processor(self, stream, id, label, data, dtype=None, tags=None, properties=None, worker=None):    
         if label == 'EOS':
-            return 'EOS', None, None
+            if worker:
+                processed = worker.get_agent_data('processed')
+                if processed:
+                    return 'EOS', None, None
+            return None
                 
         elif label == 'BOS':
             pass
@@ -76,6 +80,10 @@ class KnowledgGroundingAgent(Agent):
 
             if required_recorded:
                 if worker:
+                    processed = worker.get_agent_data('processed')
+                    if processed:
+                        return None
+
                     graph = Graph("http://18.216.233.236:7474", auth=(os.environ["NEO4J_USER"], os.environ["NEO4J_PWD"]))
                     person = worker.get_session_data("name")[0]
                     next_title = worker.get_session_data("top_title_recommendation")[0]
@@ -103,7 +111,12 @@ class KnowledgGroundingAgent(Agent):
                     top_title_skills = json.loads(s2.to_data_frame().to_json(orient='records'))
                     ret["resume_skills"] = resume_skills
                     ret["top_title_skills"] = top_title_skills
-                    return json.dumps(ret)
+
+                     # set processed to true
+                    worker.set_agent_data('processed', True)
+
+                    # output to stream
+                    return ret
     
         return None
 

@@ -58,13 +58,16 @@ class GraphAgent(Agent):
     def default_processor(self, stream, id, label, data, dtype=None, tags=None, properties=None, worker=None):
 
         if label == 'EOS':
-            return 'EOS', None, None
+            if worker:
+                processed = worker.get_data('processed')
+                if processed:
+                    return 'EOS', None, None
+            return None
         elif label == 'BOS':
             pass
         elif label == 'DATA':
-            pass
             # check if title is recorded
-            variables = json.loads(data)
+            variables = data
             variables = set(variables) 
 
             if 'title' in variables:
@@ -75,6 +78,9 @@ class GraphAgent(Agent):
 
                     logging.info("recommended titles: {recommendations}".format(recommendations=recommendations))
                 
+                    # 
+                    worker.set_data('processed', True)
+                    
                     # output to stream
                     return { "title_recommendations": recommendations }
         

@@ -77,7 +77,11 @@ class RationalizerAgent(APIAgent):
 
     def default_processor(self, stream, id, label, data, dtype=None, tags=None, properties=None, worker=None):    
         if label == 'EOS':
-            return 'EOS', None, None
+            if worker:
+                processed = worker.get_agent_data('processed')
+                if processed:
+                    return 'EOS', None, None
+            return None
                 
         elif label == 'BOS':
             pass
@@ -97,6 +101,10 @@ class RationalizerAgent(APIAgent):
 
             if required_recorded:
                 if worker:
+                    processed = worker.get_agent_data('processed')
+                    if processed:
+                        return None
+
                     for require in requires:
                         logging.info('checking {}'.format(require))
                         properties[require] = worker.get_session_data(require)[0]
@@ -115,6 +123,11 @@ class RationalizerAgent(APIAgent):
                     # create output from response
                     output_data = self.create_output(response)
                     logging.info(output_data)
+
+                     # set processed to true
+                    worker.set_agent_data('processed', True)
+
+                    # output to stream
                     return output_data
     
         return None

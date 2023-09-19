@@ -53,7 +53,7 @@ class ObserverAgent(Agent):
             logging.info(value)
             
             if worker:
-                worker.append_data(stream, value)
+                worker.append_data(stream, str(value))
     
         return None
 
