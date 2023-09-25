@@ -1,0 +1,20 @@
+FROM python:3.9
+
+# Set workdir
+WORKDIR /app
+
+# Build requirements first
+ADD src/requirements.txt /app/requirements.txt
+RUN pip install -r requirements.txt
+
+# Copy libs 
+ADD /lib /app/lib/
+
+# Copy service files
+ADD /src /app/
+
+# Environment variables
+ENV session=
+ENV properties=
+
+CMD ["sh", "-c", "python openai_agent.py --properties \"${properties}\" --session ${session}"]

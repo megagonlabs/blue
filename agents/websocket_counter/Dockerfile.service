@@ -1,0 +1,15 @@
+FROM python:3.9
+
+# Set workdir
+WORKDIR /app
+
+# Build requirements first
+ADD service/requirements.txt /app/requirements.txt
+RUN pip install -r requirements.txt
+
+# Copy service files
+ADD /service /app/
+
+ENTRYPOINT [ "python" ]
+
+CMD [ "service.py" ]

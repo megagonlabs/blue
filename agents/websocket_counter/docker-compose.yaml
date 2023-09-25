@@ -1,0 +1,13 @@
+---
+version: '3.8'
+
+services:
+  websocket-service:
+    image: blue-service-websocket_counter
+    ports:
+      - "8002:8001"
+    networks:
+      - default
+    restart: always
+
+

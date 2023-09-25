@@ -1,0 +1,26 @@
+
+                    Let's assume a recommender system which recommends a ranked list of job positions that a candidate may pursue as their next job based on the candidate's current skill set and years of experience with each skill. The ranked list is provided in the order of most relevant to least relevant job. 
+
+                    Consider a candidate with the current job position:
+Software Development Engineer. The candidate's current skill set and corresponding years of experience are as follows: Python (3 years of experience), Postgres (2 years of experience), React (1 year of experience).
+
+                    Following is the recommended ranked list of next job positions: 
+
+                Software Development Engineer-2, Python, 2, Bash scripting, 2, React, 2 ; Software Development Engineer-3, Python, 5, Bash scripting, 4, Postgres, 4 ; Technical Lead, Python, 7, Postgres, 8, Project Management, 5 ; Site Reliability Engineer, Javascript, 3, Agile Testing, 2, Cloud computing, 1 
+                
+
+                    Now provide rationale for why "Software Development Engineer-2" has been recommended as the next position the candidate should pursue. Also, provide rationale for why the other recommended job positions are lower in the ranked list.
+                    
+The "Software Development Engineer-2" position has been recommended as the next position for the candidate to pursue because it aligns closely with the candidate's current skill set and years of experience. 
+
+The candidate has 3 years of experience with Python, which is a required skill for the "Software Development Engineer-2" position. Additionally, the candidate has 1 year of experience with React, which is also a required skill for the position. This indicates that the candidate has a solid foundation in the necessary programming languages for the role.
+
+On the other hand, the other recommended job positions are lower in the ranked list because they either require skills that the candidate does not possess or have higher experience requirements that the candidate does not meet.
+
+For example, the "Software Development Engineer-3" position requires 5 years of experience with Python, which exceeds the candidate's current 3 years of experience. Similarly, the position also requires 4 years of experience with Postgres, while the candidate only has 2 years of experience with it.
+
+The "Technical Lead" position requires 7 years of experience with Python and 8 years of experience with Postgres, which are significantly higher than the candidate's current experience levels. Additionally, the position also requires experience in Project Management, which the candidate does not possess.
+
+Lastly, the "Site Reliability Engineer" position requires skills in Javascript, Agile Testing, and Cloud computing, none of which are present in the candidate's current skill set.
+
+Overall, the recommendation of "Software Development Engineer-2" as the next position for the candidate is based on the closest match between the candidate's current skill set and the requirements of the position. The other recommended positions are lower in the ranked list due to either lacking the necessary skills or not meeting the experience requirements.

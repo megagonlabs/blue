@@ -33,4 +33,28 @@ services:
       <<: *blue-common-env
     restart: always
 
+  postgres:
+    image: postgres
+    ports:
+      - "5432:5432"
+    networks:
+      - default
+    volumes:
+      - ${BLUE_INSTALL_DIR:-.}postgres-data:/var/lib/postgresql/data
+    environment:
+      <<: *blue-common-env
+      POSTGRES_PASSWORD: example
+    restart: always
 
+  neo4j:
+    image: neo4j
+    ports:
+      - "7687:7687"
+      - "7474:7474"
+    networks:
+      - default
+    volumes:
+      - ${BLUE_INSTALL_DIR:-.}neo4j-data:/data
+    environment:
+      <<: *blue-common-env
+    restart: always
