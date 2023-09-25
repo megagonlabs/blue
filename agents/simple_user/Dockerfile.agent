@@ -15,6 +15,5 @@ ADD /src /app/
 
 # Environment variables
 ENV text default
-ENV session=
 
-CMD ["sh", "-c", "python simple_user_agent.py --text \"${text}\" --session ${session}"]
+CMD ["sh", "-c", "python simple_user_agent.py --text \"${text}\""]

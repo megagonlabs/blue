@@ -46,6 +46,10 @@ class RecorderAgent(Agent):
         listeners['includes'] = ['JSON']
         listeners['excludes'] = [self.name]
 
+        # recorder is an aggregator agent
+        self.properties['aggregator'] = True 
+        self.properties['aggregator.eos'] = 'NEVER'
+
         # recorder config
         records = []
         self.properties['records'] = records
@@ -63,9 +67,6 @@ class RecorderAgent(Agent):
             pass
         elif label == 'DATA':
             # store data value
-            logging.info(data)
-            logging.info(type(data))
-            logging.info(dtype)
             
             # TODO: Record from other data types
             if dtype == 'json':

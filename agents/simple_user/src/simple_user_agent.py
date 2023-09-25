@@ -58,7 +58,7 @@ if __name__ == "__main__":
     else:
         # create a new session
         a = UserAgent()
-        a.start_session()
+        session = a.start_session()
 
 
     # write to user stream

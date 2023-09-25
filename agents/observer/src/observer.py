@@ -41,7 +41,7 @@ class ObserverAgent(Agent):
             l = 0
             if worker:
                 data = worker.get_data(stream)[0]
-                print("{} [{}]: {}".format(stream, ",".join(tags), str(" ".join(data))))
+                logging.error("{} [{}]: {}".format(stream, ",".join(tags), str(" ".join(data))))
     
         elif label == 'BOS':
             # init stream to empty array
@@ -50,7 +50,6 @@ class ObserverAgent(Agent):
             pass
         elif label == 'DATA':
             # store data value
-            logging.info(value)
             
             if worker:
                 worker.append_data(stream, str(value))

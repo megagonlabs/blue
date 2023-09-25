@@ -15,5 +15,6 @@ ADD /src /app/
 
 # Environment variables
 ENV session=
+ENV properties=
 
-CMD ["sh", "-c", "python recorder.py --session ${session}"]
+CMD ["sh", "-c", "python recorder.py  --properties \"${properties}\"  --session ${session}"]
