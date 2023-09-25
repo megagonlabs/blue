@@ -29,3 +29,33 @@ To observe the outputs from each agent run observer agent using the session is f
 ```
 $ ./observer.sh <SESSION>
 ```
+
+### openai.sh
+Next, run a few agents to detect explicit information need (e.g. resume of Kushan) and convert it into a query (CYPHER):
+```
+$ ./openai.sh <SESSION>
+```
+
+### neo4j.sh
+Then, run agent to execute CYPHER queries and fetch the results:
+```
+$ ./neo4j.sh <SESSION>
+```
+
+### recorder.sh
+To scan JSON output from a number of agents and record in session memory:
+```
+$ ./recorder.sh <SESSION>
+```
+
+### recommender.sh
+Given a title in memory run a recommeder for next title:
+```
+$ ./recommender.sh <SESSION>
+```
+
+### kgr.sh
+Given a title recommendation, ground the information gap to rationalize the result, pull in additional information, and summarize/rationalize the result:
+```
+$ ./kgr.sh <SESSION>
+```
