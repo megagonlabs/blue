@@ -59,10 +59,10 @@ class RecorderAgent(Agent):
     def default_processor(self, stream, id, label, data, dtype=None, tags=None, properties=None, worker=None):
         if label == 'EOS':
             ## TODO: Verify and remove
-            if worker:
-                processed = worker.get_data('processed')
-                if processed:
-                    return 'EOS', None, None
+            # if worker:
+            #     processed = worker.get_data('processed')
+            #     if processed:
+            #         return 'EOS', None, None
             return None
         elif label == 'BOS':
             pass
@@ -97,7 +97,7 @@ class RecorderAgent(Agent):
                     if len(variables) > 0:
                         ## TODO: Verify and remove
                         # set processed to true 
-                        worker.set_data('processed', True)
+                        # worker.set_data('processed', True)
 
                         # output to stream
                         return 'DATA', variables, 'json'

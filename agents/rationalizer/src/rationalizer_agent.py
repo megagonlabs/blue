@@ -128,7 +128,7 @@ class RationalizerAgent(APIAgent):
                     worker.set_agent_data('processed', True)
 
                     # output to stream
-                    return output_data
+                    return "DATA", output_data, "json", True
     
         return None
 

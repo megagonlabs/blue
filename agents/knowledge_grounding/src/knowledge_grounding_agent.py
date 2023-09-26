@@ -116,7 +116,7 @@ class KnowledgGroundingAgent(Agent):
                     worker.set_agent_data('processed', True)
 
                     # output to stream
-                    return ret
+                    return "DATA", ret, "json", True
     
         return None
 

@@ -82,7 +82,7 @@ class GraphAgent(Agent):
                     worker.set_data('processed', True)
                     
                     # output to stream
-                    return { "title_recommendations": recommendations }
+                    return "DATA", { "title_recommendations": recommendations }, "json", True
         
         return None
 
