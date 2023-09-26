@@ -40,7 +40,7 @@ class ObserverAgent(Agent):
             # compute stream data
             l = 0
             if worker:
-                data = worker.get_data(stream)[0]
+                data = worker.get_data(stream)
                 logging.error("{} [{}]: {}".format(stream, ",".join(tags), str(" ".join(data))))
     
         elif label == 'BOS':

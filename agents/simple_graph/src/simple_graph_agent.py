@@ -72,13 +72,13 @@ class GraphAgent(Agent):
 
             if 'title' in variables:
                 if worker:
-                    title = worker.get_session_data('title')[0]
+                    title = worker.get_session_data('title')
 
                     recommendations = get_embeddings(title)
 
                     logging.info("recommended titles: {recommendations}".format(recommendations=recommendations))
                 
-                    # 
+                    # set processed to true
                     worker.set_data('processed', True)
                     
                     # output to stream

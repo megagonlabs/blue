@@ -51,7 +51,6 @@ class CounterAgent(Agent):
             stream_data = ""
             if worker:
                 stream_data = worker.get_data('stream')
-                stream_data = stream_data[0] 
 
             #### call service to compute
 
