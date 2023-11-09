@@ -12,6 +12,13 @@ Overall the demo illustrates:
 
 ## Running the Demo
 
+### Build Platform
+
+```
+$ cd platform
+$ docker compose up -d
+```
+
 ### flush.sh
 To flush the contents of the Redis backend run:
 ```
@@ -21,7 +28,7 @@ $ ./flush.sh
 ### user.sh
 Invoke user agent to input text:
 ```
-$ /user.sh 'Using the information from the resume of Kushan Mitra recommend a title for him'
+$ ./user.sh 'Using the information from the resume of Kushan Mitra recommend a title for him'
 ```
 
 ### observer.sh
