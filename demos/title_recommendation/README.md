@@ -61,6 +61,9 @@ $ ./openai.sh <SESSION_ID>
 ```
 
 ### neo4j.sh
+
+Set environment variables `NEO4J_USER` and `NEO4J_PWD`
+
 Then, run agent to execute CYPHER queries and fetch the results:
 ```
 $ ./neo4j.sh <SESSION_ID>
