@@ -107,7 +107,7 @@ class RationalizerAgent(APIAgent):
 
                     for require in requires:
                         logging.info('checking {}'.format(require))
-                        properties[require] = worker.get_session_data(require)[0]
+                        properties[require] = worker.get_session_data(require)
 
                     
                     #### call service to compute
@@ -128,7 +128,7 @@ class RationalizerAgent(APIAgent):
                     worker.set_agent_data('processed', True)
 
                     # output to stream
-                    return output_data
+                    return "DATA", output_data, "json", True
     
         return None
 

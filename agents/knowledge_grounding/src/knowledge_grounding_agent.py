@@ -85,8 +85,8 @@ class KnowledgGroundingAgent(Agent):
                         return None
 
                     graph = Graph("http://18.216.233.236:7474", auth=(os.environ["NEO4J_USER"], os.environ["NEO4J_PWD"]))
-                    person = worker.get_session_data("name")[0]
-                    next_title = worker.get_session_data("top_title_recommendation")[0]
+                    person = worker.get_session_data("name")
+                    next_title = worker.get_session_data("top_title_recommendation")
                     name_query = '''
                         MATCH (p:PERSON{{name: '{}'}})-[h1:HAS]->(b)-[h2:HAS]->(c)
                         RETURN c.label AS skill, h2.duration AS duration
@@ -116,7 +116,7 @@ class KnowledgGroundingAgent(Agent):
                     worker.set_agent_data('processed', True)
 
                     # output to stream
-                    return ret
+                    return "DATA", ret, "json", True
     
         return None
 

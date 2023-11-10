@@ -97,7 +97,7 @@ class Producer():
 
     # stream 
     def write(self, data=None, dtype="str", label="DATA", eos=False, split=None):
-        # print("producer write {label} {data} {dtype}".format(label=label,data=data,dtype=dtype))
+        # logging.info("producer write {label} {data} {dtype} {eos}".format(label=label,data=data,dtype=dtype,eos=eos))
 
         # do basic type casting, if none given
         # print("type {type}".format(type=type))
@@ -135,6 +135,7 @@ class Producer():
                 message = self._prepare_message(data=token, label=label, dtype=dtype)
                 self._write_message_to_stream(message)
                 
+            # logging.info(eos)
             if eos:
                 message = self._prepare_message(label="EOS")
                 self._write_message_to_stream(message)

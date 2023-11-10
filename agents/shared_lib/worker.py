@@ -89,19 +89,23 @@ class Worker():
         if self.processor is not None:
             result = self.processor(stream, id, label, data, dtype=dtype)
 
+        # logging.info(result)
         # if result, write to stream
         if result is not None:
             result_label = None
             result_data = None
             result_dtype = None
+            result_eos = None
             
             # processor can return multiple values, and the order is mapped to the following:
             # DATA
             # DATA, DTYPE
             # LABEL, DATA, DTYPE
+            # LABEL, DATA, DTYPE, EOS
             # where
             # LABEL is BOS, EOS, DATA, INSTRUCTION, ...
             # DTYPE is int, float, str, json, ...
+            # EOS is True, False
 
             if type(result) == tuple:
                 if len(result) == 2:
@@ -112,20 +116,28 @@ class Worker():
                     result_label = result[0]
                     result_data = result[1]
                     result_dtype = result[2]
+                elif len(result) == 4:
+                    result_label = result[0]
+                    result_data = result[1]
+                    result_dtype = result[2]
+                    result_eos = result[3]
             else:
                 result_label = 'DATA'
                 result_data = result 
                 result_dtype = None
+                result_eos = False
             
 
-
-            if self.properties['aggregator.eos'] == 'FIRST':
-                self.write(result_data, dtype=result_dtype, label=result_label, eos=(label=='EOS'))
-            elif self.properties['aggregator.eos'] == 'NEVER':
-                self.write(result_data, dtype=result_dtype, label=result_label, eos=False)
+            if self.properties['aggregator']: 
+                if self.properties['aggregator.eos'] == 'FIRST':
+                    self.write(result_data, dtype=result_dtype, label=result_label, eos=(label=='EOS'))
+                elif self.properties['aggregator.eos'] == 'NEVER':
+                    self.write(result_data, dtype=result_dtype, label=result_label, eos=False)
+                else:
+                    self.write(result_data, dtype=result_dtype, label=result_label, eos=False)
             else:
                 # TODO Implement 'ALL' option
-                self.write(result_data, dtype=result_dtype, label=result_label, eos=False)
+                self.write(result_data, dtype=result_dtype, label=result_label, eos=result_eos)
         
         if label == 'EOS':
             # done, stop listening to input stream

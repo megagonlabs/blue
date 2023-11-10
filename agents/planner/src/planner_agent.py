@@ -242,7 +242,6 @@ class AgentA(Agent):
             time.sleep(4)
             
             # output to stream
-            l = l[0]
             return l
         elif label == 'BOS':
             # init stream to empty array
@@ -287,7 +286,6 @@ class AgentB(Agent):
             time.sleep(4)
             
             # output to stream
-            l = l[0]
             return l
         elif label == 'BOS':
             # init stream to empty array

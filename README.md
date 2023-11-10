@@ -1,5 +1,6 @@
 # blue
 
+
 Blue is a platform that leverages large language models (LLM) for variety of tasks that involve access to external structured data, knowledge, tools and task- and domain-specific models. The objective is to explore a design space where the LLM plays a key role but is not the 'be-all and end-all', where everything is baked into LLMs. Instead, we believe tasks can be broken down into pieces, either through "recipes" in a prescriptive manner or in a decentralized but learned manner. Tasks can utilize specific models and tools, for example query structured data, extract insights, and communicate those insights to the user in natural language. As such we aim to design a blueprint architecture that facilitates the orchestration of data and tasks, with the appopriate level of separation of concerns.
 
 ## streams

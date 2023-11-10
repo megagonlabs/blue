@@ -121,7 +121,6 @@ class APIAgent(Agent):
             stream_data = ""
             if worker:
                 stream_data = worker.get_data('stream')
-                stream_data = stream_data[0] 
 
             #### call service to compute
 
@@ -141,9 +140,17 @@ class APIAgent(Agent):
 
             # create output from response
             output_data = self.create_output(response)
-            logging.info(output_data)
-            logging.info(type(output_data))
-            return output_data
+         
+            output_dtype = None
+
+            if type(output_data) == int:
+                output_dtype = 'int'
+            elif type(output_data) == str:
+                output_dtype = 'str'
+            elif type(output_data) == dict:
+                output_dtype = 'json'
+
+            return "DATA", output_data, output_dtype, True
             
         elif label == 'BOS':
             # init stream to empty array

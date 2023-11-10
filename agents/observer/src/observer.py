@@ -39,9 +39,14 @@ class ObserverAgent(Agent):
         if label == 'EOS':
             # compute stream data
             l = 0
-            if worker:
-                data = worker.get_data(stream)[0]
-                logging.error("{} [{}]: {}".format(stream, ",".join(tags), str(" ".join(data))))
+            if dtype == 'json':
+                pass
+            else:
+                if worker:
+                    data = worker.get_data(stream)
+                    str_data = str(" ".join(data))
+                    if len(str_data.strip()) > 0:
+                        logging.error("{} [{}]: {}".format(stream, ",".join(tags), str_data))
     
         elif label == 'BOS':
             # init stream to empty array
@@ -50,9 +55,12 @@ class ObserverAgent(Agent):
             pass
         elif label == 'DATA':
             # store data value
-            
-            if worker:
-                worker.append_data(stream, str(value))
+            # logging.error(value)
+            if dtype == 'json':
+                logging.error("{} [{}]: {}".format(stream, ",".join(tags), value))
+            else: 
+                if worker:
+                    worker.append_data(stream, str(value))
     
         return None
 
