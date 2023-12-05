@@ -16,4 +16,4 @@ ADD /src /app/
 # Environment variables
 ENV session=
 
-CMD ["sh", "-c", "python observer.py --session ${session}"]
+CMD ["sh", "-c", "python observer.py --session ${session} "]

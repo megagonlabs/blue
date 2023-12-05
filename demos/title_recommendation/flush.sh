@@ -1,1 +1,1 @@
-docker exec -it platform-redis-1 redis-cli FLUSHALL
+docker exec -it platform_redis_1 redis-cli FLUSHALL
