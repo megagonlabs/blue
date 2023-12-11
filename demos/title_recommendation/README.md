@@ -16,7 +16,7 @@ Overall the demo illustrates:
 
 ```
 $ cd platform
-$ docker compose up -d
+$ ./start.sh
 ```
 
 ### Set BLUE_INSTALL_DIR
@@ -62,7 +62,7 @@ $ ./openai.sh <SESSION_ID>
 
 ### neo4j.sh
 
-Set environment variables `NEO4J_USER` and `NEO4J_PWD`
+Set environment variables `NEO4J_USER`, `NEO4J_PWD` and `NEO4J_HOST`.
 
 Then, run agent to execute CYPHER queries and fetch the results:
 ```
@@ -85,4 +85,12 @@ $ ./recommender.sh <SESSION_ID>
 Given a title recommendation, ground the information gap to rationalize the result, pull in additional information, and summarize/rationalize the result:
 ```
 $ ./kgr.sh <SESSION_ID>
+```
+
+### Cleanup
+Once the demo is done you can stop all agents using `stop_agents.sh` and all agent services using `stop_agent_services.sh`.
+To stop platform:
+```
+$ cd platform
+$ ./stop.sh
 ```

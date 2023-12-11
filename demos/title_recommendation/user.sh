@@ -1,3 +1,4 @@
+docker rm blue_agent_simple_user
 docker run -e text="$1" --network="host" --name blue_agent_simple_user -d blue-agent-simple_user
 
 SESSION_ID=""

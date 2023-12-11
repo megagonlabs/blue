@@ -1,3 +1,5 @@
+docker rm blue_agent_openai_tripleextractor
+docker rm blue_agent_openai_cyphertranslator
 # OpenAI websocket backend
 docker compose -f $BLUE_INSTALL_DIR/agents/openai/docker-compose.yaml -p blue_service_openai up -d
 # Triple Extractor Agent

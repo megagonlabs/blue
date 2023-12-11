@@ -1,8 +1,8 @@
 #/bin/bash
 echo 'Building...'
 
-# copy from shared lib
-mkdir -p lib/shared & cp -r ../shared_lib/* lib/shared/
+# copy from agent lib
+mkdir -p lib/agent & cp -r ../lib/* lib/agent/
 
 # build docker
 docker build -t blue-agent-rationalizer:latest -f Dockerfile.agent .

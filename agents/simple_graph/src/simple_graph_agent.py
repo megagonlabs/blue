@@ -10,7 +10,7 @@ import sys
 
 ###### Add lib path
 sys.path.append('./lib/')
-sys.path.append('./lib/shared/')
+sys.path.append('./lib/agent/')
 
 ###### 
 import time
