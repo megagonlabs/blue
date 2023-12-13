@@ -374,22 +374,22 @@ class AgentRegistry():
 #######################
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--name', type=str, default='default', description='name of the agent registry')
-    parser.add_argument('--properties', type=str, description='properties in json format')
-    parser.add_argument('--loglevel', default="INFO", type=str, description='log level')
-    parser.add_argument('--add', type=str, default=None, description='json array of agents to be add to the registry  (e.g. [{"name": "TitleRecommender", "description": "Recommends next title given a title", "image": "blue-agent-simple_graph:latest"}]')
-    parser.add_argument('--remove', type=str, default=None, description='json array of agents names to be removed')
-    parser.add_argument('--search', type=str, default=None, description='search registry with keywords')
-    parser.add_argument('--list', type=bool, default=False, action=argparse.BooleanOptionalAction, description='list agents in the registry')
-    parser.add_argument('--approximate', type=bool, default=False, action=argparse.BooleanOptionalAction, description='use approximate (embeddings) search')
-    parser.add_argument('--hybrid', type=bool, default=False, action=argparse.BooleanOptionalAction, description='use hybrid (keyword and approximate) search')
+    parser.add_argument('--name', type=str, default='default', help='name of the agent registry')
+    parser.add_argument('--properties', type=str, help='properties in json format')
+    parser.add_argument('--loglevel', default="INFO", type=str, help='log level')
+    parser.add_argument('--add', type=str, default=None, help='json array of agents to be add to the registry')
+    parser.add_argument('--remove', type=str, default=None, help='json array of agents names to be removed')
+    parser.add_argument('--search', type=str, default=None, help='search registry with keywords')
+    parser.add_argument('--list', type=bool, default=False, action=argparse.BooleanOptionalAction, help='list agents in the registry')
+    parser.add_argument('--approximate', type=bool, default=False, action=argparse.BooleanOptionalAction, help='use approximate (embeddings) search')
+    parser.add_argument('--hybrid', type=bool, default=False, action=argparse.BooleanOptionalAction, help='use hybrid (keyword and approximate) search')
  
     args = parser.parse_args()
    
     # set logging
     logging.getLogger().setLevel(args.loglevel.upper())
 
-
+    print(args)
     # set properties
     properties = {}
     p = args.properties
