@@ -1,0 +1,43 @@
+{
+    "name": "auth",
+    "version": "0.1.0",
+    "private": true,
+    "scripts": {
+        "dev": "NODE_ENV=development next dev",
+        "build": "next build",
+        "lint": "next lint",
+        "watch": "npm-watch",
+        "serve": "serve ./out"
+    },
+    "watch": {
+        "build": {
+            "patterns": [
+                "pages",
+                "components"
+            ],
+            "extensions": [
+                "js",
+                "css"
+            ]
+        }
+    },
+    "dependencies": {
+        "@blueprintjs/core": "^5.7.1",
+        "firebase": "^10.7.1",
+        "lodash": "^4.17.21",
+        "next": "^14.0.3",
+        "normalize.css": "^8.0.1",
+        "react": "^18.2.0",
+        "react-dom": "^18.2.0",
+        "@fortawesome/fontawesome-svg-core": "^6.1.1",
+        "@fortawesome/free-brands-svg-icons": "^6.1.1",
+        "@fortawesome/pro-duotone-svg-icons": "^6.2.0",
+        "@fortawesome/react-fontawesome": "^0.2.0"
+    },
+    "devDependencies": {
+        "eslint": "^8.55.0",
+        "eslint-config-next": "^14.0.3",
+        "npm-watch": "^0.11.0",
+        "serve": "^14.2.1"
+    }
+}
