@@ -13,7 +13,9 @@
         "build": {
             "patterns": [
                 "pages",
-                "components"
+                "components",
+                "styles",
+                "public"
             ],
             "extensions": [
                 "js",
@@ -23,16 +25,18 @@
     },
     "dependencies": {
         "@blueprintjs/core": "^5.7.1",
+        "@fortawesome/fontawesome-svg-core": "^6.1.1",
+        "@fortawesome/free-brands-svg-icons": "^6.1.1",
+        "@fortawesome/pro-duotone-svg-icons": "^6.2.0",
+        "@fortawesome/react-fontawesome": "^0.2.0",
+        "axios": "^1.6.2",
         "firebase": "^10.7.1",
+        "javascript-time-ago": "^2.5.9",
         "lodash": "^4.17.21",
         "next": "^14.0.3",
         "normalize.css": "^8.0.1",
         "react": "^18.2.0",
-        "react-dom": "^18.2.0",
-        "@fortawesome/fontawesome-svg-core": "^6.1.1",
-        "@fortawesome/free-brands-svg-icons": "^6.1.1",
-        "@fortawesome/pro-duotone-svg-icons": "^6.2.0",
-        "@fortawesome/react-fontawesome": "^0.2.0"
+        "react-dom": "^18.2.0"
     },
     "devDependencies": {
         "eslint": "^8.55.0",

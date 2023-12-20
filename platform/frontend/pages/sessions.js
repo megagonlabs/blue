@@ -2,11 +2,11 @@ import { actionToaster, createToast } from "@/components/toaster";
 import { Intent } from "@blueprintjs/core";
 import _ from "lodash";
 import { useEffect } from "react";
-export default function Broadcastings() {
+export default function Sessions() {
     useEffect(() => {
         try {
             // Creating an instance of the WebSocket
-            const socket = new WebSocket("ws://localhost:5000/broadcastings");
+            const socket = new WebSocket("ws://localhost:5000/sessions");
             // Adding an event listener to when the connection is opened
             socket.onopen = (ws, event) =>
                 actionToaster.show(
@@ -34,14 +34,8 @@ export default function Broadcastings() {
                         // that the other user left
                         actionToaster.show(
                             createToast({
-                                intent: Intent.WARNING,
-                                message: `Client ${data["id"]} disconnected`,
-                            })
-                        );
-                        actionToaster.show(
-                            createToast({
                                 intent: Intent.PRIMARY,
-                                message: JSON.stringify(data),
+                                message: `Client ${data["id"]} disconnected`,
                             })
                         );
                     } else {

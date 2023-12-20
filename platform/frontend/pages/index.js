@@ -10,9 +10,8 @@ import {
     Tag,
 } from "@blueprintjs/core";
 import { faNetworkWired } from "@fortawesome/pro-duotone-svg-icons";
-import { useState } from "react";
 export default function Index() {
-    const [server, setServer] = useState("");
+    return <div></div>;
     return (
         <Dialog isCloseButtonShown={false} isOpen>
             <DialogBody>
