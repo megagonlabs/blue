@@ -298,6 +298,11 @@ class AgentRegistry():
         logging.info('using search query: ' + q)
         results = self.connection.ft(index_name).search(query, query_params).docs
 
+        # field', 'id', 'name', 'payload', 'score', 'type
+        if approximate or hybrid:
+            results = [ {"name": result['name'], "type": result['type'], "id": result['id'], "field": result['field'], "score": result['score']} for result in results]
+        else:
+            results = [ {"name": result['name'], "type": result['type'], "id": result['id'], "field": result['field']} for result in results]
         return results
 
     ###### embeddings
@@ -536,7 +541,8 @@ if __name__ == "__main__":
 
         # search the registry
         results = registry.search_agents(keywords, type=args.type, approximate=args.approximate, hybrid=args.hybrid, page=args.page, page_size=args.page_size)
-        logging.info(results)
+    
+        logging.info(json.dumps(results, indent=4))
 
    
    
