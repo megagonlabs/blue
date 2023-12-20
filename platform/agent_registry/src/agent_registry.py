@@ -66,8 +66,8 @@ class AgentRegistry():
         self.properties['host'] = 'localhost'
         self.properties['port'] = 6379
 
-        # index properties
         self.properties['vector_dimensions'] = 4
+
 
         # embeddings model
         self.properties['embeddings_model'] = 'paraphrase-MiniLM-L6-v2'
@@ -113,19 +113,27 @@ class AgentRegistry():
 
         index_name = self.name
         doc_prefix = 'doc:'
+
         vector_dimensions = self.properties['vector_dimensions']
 
         try:
             # check if index exists
             logging.info(self.connection.ft(index_name).info())
-            logging.info('Search index ' + self.name + ' already exists.')
+            logging.info('Search index ' + index_name + ' already exists.')
         except:
             logging.info('Creating search index...' + index_name)
             # schema
             schema = (
+                # agent name
                 TextField("name", weight=2.0),
-                TextField("description"),
-                VectorField("description_vector",                  
+                # description, input, output 
+                TextField("type"), 
+                # name of the field
+                TextField("field"),
+                # value of the field (text)
+                TextField("value"),
+                # embedding of the field value
+                VectorField("vector",                  
                     "FLAT", {                          
                         "TYPE": "FLOAT32",             
                         "DIM": vector_dimensions,      
@@ -144,15 +152,15 @@ class AgentRegistry():
             logging.info(self.connection.ft(index_name).info())
 
     def build_index(self):
-        index_name = self.name
-        doc_prefix = 'doc:'
+
+        index_name = self.name 
 
         agent_records = self.list_agents()
 
         # instantiate a redis pipeline
         pipe = self.connection.pipeline()
-        for k in agent_records:
-            agent_record = agent_records[k]
+        for name in agent_records:
+            agent_record = agent_records[name]
             self._set_index_agent_record(agent_record, pipe=pipe)
 
         res = pipe.execute()
@@ -163,87 +171,131 @@ class AgentRegistry():
     def _set_index_agent_record(self, agent_record, pipe=None):
 
         name = agent_record['name']
-        description = agent_record['description']
-        description_vector = self._compute_embedding_vector(description)
 
+        # index description
+        self._create_index_doc(name, 'description', 'description', agent_record['description'], pipe=pipe)
+
+        # index input parameters
+        inputs = agent_record['inputs']
+        for param in inputs:
+            self._create_index_doc(name, 'input', param, inputs[param], pipe=pipe)
+        # index output parameters
+        outputs = agent_record['outputs']
+        for param in outputs:
+            self._create_index_doc(name, 'input', param, outputs[param], pipe=pipe)
+
+           
+    def _create_index_doc(self, name, type, field, value, pipe=None):
+
+        index_name = self.name 
+        doc_prefix = 'doc:' 
+ 
+        vector = self._compute_embedding_vector(value)
 
         doc = {
             'name': name,
-            'description': description,
-            'description_vector': description_vector
+            'type': type,
+            'field': field,
+            'value': value,
+            'vector': vector
         }
 
         # define key
-        key = f"doc:{name}"
+        doc_key = doc_prefix + ':' + name + ":" + type + ':' + field
         if pipe:
-            pipe.hset(key, mapping=doc)
+            pipe.hset(doc_key, mapping=doc)
         else:
             pipe = self.connection.pipeline()
-            pipe.hset(key, mapping=doc)
+            pipe.hset(doc_key, mapping=doc)
             res = pipe.execute()
-
 
     def _delete_index_agent_record(self, name, pipe=None):
         
+        agent_record = self.get_agent(name)
+
+         # delete description
+        self._delete_index_doc(name, 'description', 'description', pipe=pipe)
+
+        # delete input parameters
+        inputs = agent_record['inputs']
+        for param in inputs:
+            self._delete_index_doc(name, 'input', param, pipe=pipe)
+        # delete output parameters
+        outputs = agent_record['outputs']
+        for param in outputs:
+            self._delete_index_doc(name, 'input', param, pipe=pipe)
+
+
+    def _delete_index_doc(self, name, type, field, pipe=None):
+        index_name = self.name 
+        doc_prefix = 'doc:' 
+
         # define key
-        key = f"doc:{name}"
+        doc_key = doc_prefix + ':' + name + ":" + type + ':' + field
         if pipe:
-            pipe.hdel(key, 1)
+            pipe.hdel(doc_key, 1)
         else:
             pipe = self.connection.pipeline()
-            pipe.hdel(key, 1)
+            pipe.hdel(doc_key, 1)
             res = pipe.execute()
 
 
-    def search_agents(self, keywords, approximate=False, hybrid=False):
+    def search_agents(self, keywords, type=None, approximate=False, hybrid=False, page=0, page_size=5):
         
         index_name = self.name
         doc_prefix = 'doc:'
 
-        logging.info('searching: ' + keywords + ', ' + 'approximate=' + str(approximate) + ', ' + 'hybrid=' + str(hybrid))
+        q = None
         
         if hybrid:
+            if type:
+                q = "( (@type: " + type + ") $kw ) => [KNN " + str((page+1) * page_size) + " @vector $v as score]"
+            else:
+                q = "( $kw ) => [KNN " + str((page+1) * page_size) + " @vector $v as score]"
+            
             query = (
-                Query("( $kw ) => [KNN 2 @description_vector $v as score]")
+                Query(q)
                 .sort_by("score")
-                .return_fields("id", "name", "score")
-                .paging(0, 2)
+                .return_fields("id", "name", "type", "field", "score")
+                .paging(page, page_size)
                 .dialect(2)
             )
 
-            query_params = {
-                "kw": keywords,
-                "v": self._compute_embedding_vector(keywords)
-            }
-
         else:
             if approximate:
+                if type:
+                    q = "( (@type: " + type + ") ) => [KNN " + str((page+1) * page_size) + " @vector $v as score]"
+                else:
+                    q = "( * ) => [KNN " + str((page+1) * page_size) + " @vector $v as score]"
                 query = (
-                    Query(" * => [KNN 2 @description_vector $v as score]")
+                    Query(q)
                     .sort_by("score")
-                    .return_fields("id", "name", "score")
-                    .paging(0, 2)
+                    .return_fields("id", "name", "type", "field", "score")
+                    .paging(page, page_size)
                     .dialect(2)
                 )
-
-                query_params = {
-                    "kw": keywords,
-                    "v": self._compute_embedding_vector(keywords)
-                }
 
             else:
+                if type:
+                    q = "( (@type: " + type + ") $kw )"
+                else:
+                    q = "( $kw )"
                 query = (
                     Query("$kw")
-                    .return_fields("id", "name")
-                    .paging(0, 2)
+                    .return_fields("id", "name", "type", "field")
+                    .paging(page, page_size)
                     .dialect(2)
                 )
 
-                query_params = {
-                    "kw": keywords,
-                    "v": self._compute_embedding_vector(keywords)
-                }
+        
 
+        query_params = {
+            "kw": keywords,
+            "v": self._compute_embedding_vector(keywords)
+        }
+
+        logging.info('searching: ' + keywords + ', ' + 'approximate=' + str(approximate) + ', ' + 'hybrid=' + str(hybrid))
+        logging.info('using search query: ' + q)
         results = self.connection.ft(index_name).search(query, query_params).docs
 
         return results
@@ -269,11 +321,15 @@ class AgentRegistry():
         return embedding.astype(np.float32).tobytes()
     
     ###### registry functions
-    def register_agent(self, name, description="", properties={}, image=None, rebuild=False):
+    def register_agent(self, name, description="", inputs={}, outputs={}, properties={}, image=None, rebuild=False):
         agent_record = {}
         agent_record['name'] = name
         agent_record['description'] = description
+        agent_record['inputs'] = inputs
+        agent_record['outputs'] = outputs
+
         agent_record['properties'] = properties
+        
         agent_record['image'] = image
 
         # create agent record on the registry name space
@@ -292,6 +348,14 @@ class AgentRegistry():
         if 'description' in agent_record:
             description = agent_record['description']
 
+        inputs = {}
+        if 'inputs' in agent_record:
+            inputs = agent_record['inputs']
+
+        outputs = {}
+        if 'outputs' in agent_record:
+            outputs = agent_record['outputs']
+
         properties = {}
         if 'properties' in agent_record:
             properties = agent_record['properties']
@@ -300,7 +364,7 @@ class AgentRegistry():
         if 'image' in agent_record:
             image = agent_record['image']
 
-        self.register_agent(name, description=description, properties=properties, image=image)
+        self.register_agent(name, description=description, inputs=inputs, outputs=outputs, properties=properties, image=image)
 
 
     def get_agent(self, name):
@@ -324,6 +388,31 @@ class AgentRegistry():
 
     def set_agent_description(self, name, description, rebuild=False):
         self.set_agent_data(name, 'description', description, rebuild=rebuild)
+
+
+    def get_agent_inputs(self, name):
+        return self.get_agent_data(name, 'inputs')
+
+    def get_agent_input(self, name, parameter):
+        return self.get_agent_data(name, 'inputs' + '.' + parameter)
+
+    def set_agent_inputs(self, name, inputs, rebuild=False):
+        self.set_agent_data(name, 'inputs', inputs, rebuild=rebuild)
+
+    def set_agent_input(self, name, parameter, description, rebuild=False):
+        self.set_agent_data(name, 'inputs' + '.' + parameter, description, rebuild=rebuild)
+
+    def get_agent_outputs(self, name):
+        return self.get_agent_data(name, 'outputs')
+
+    def get_agent_output(self, name, parameter):
+        return self.get_agent_data(name, 'outputs' + '.' + parameter)
+
+    def set_agent_outputs(self, name, outputs, rebuild=False):
+        self.set_agent_data(name, 'outputs', outputs, rebuild=rebuild)
+
+    def set_agent_output(self, name, parameter, description, rebuild=False):
+        self.set_agent_data(name, 'outputs' + '.' + parameter, description, rebuild=rebuild)
 
 
     def get_agent_properties(self, name):
@@ -380,6 +469,9 @@ if __name__ == "__main__":
     parser.add_argument('--add', type=str, default=None, help='json array of agents to be add to the registry')
     parser.add_argument('--remove', type=str, default=None, help='json array of agents names to be removed')
     parser.add_argument('--search', type=str, default=None, help='search registry with keywords')
+    parser.add_argument('--type', type=str, default=None, help='search registry limited to agent metadata type [description, input, output]')
+    parser.add_argument('--page', type=int, default=0, help='search result page, default 0')
+    parser.add_argument('--page_size', type=int, default=5, help='search result page size, default 5')
     parser.add_argument('--list', type=bool, default=False, action=argparse.BooleanOptionalAction, help='list agents in the registry')
     parser.add_argument('--approximate', type=bool, default=False, action=argparse.BooleanOptionalAction, help='use approximate (embeddings) search')
     parser.add_argument('--hybrid', type=bool, default=False, action=argparse.BooleanOptionalAction, help='use hybrid (keyword and approximate) search')
@@ -443,7 +535,7 @@ if __name__ == "__main__":
         keywords = args.search
 
         # search the registry
-        results = registry.search_agents(keywords, approximate=args.approximate, hybrid=args.hybrid)
+        results = registry.search_agents(keywords, type=args.type, approximate=args.approximate, hybrid=args.hybrid, page=args.page, page_size=args.page_size)
         logging.info(results)
 
    
