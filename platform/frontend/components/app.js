@@ -13,8 +13,10 @@ import {
 } from "@fortawesome/pro-duotone-svg-icons";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/router";
 import { faIcon } from "./icon";
 export default function App({ children }) {
+    const router = useRouter();
     return (
         <div>
             <Navbar>
