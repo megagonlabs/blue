@@ -3,7 +3,6 @@ from pathlib import Path
 
 from ConnectionManager import ConnectionManager
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
-from websockets.exceptions import ConnectionClosedOK
 
 _VERSION_PATH = Path(__file__).parent / "version"
 version = Path(_VERSION_PATH).read_text().strip()
@@ -32,8 +31,6 @@ async def websocket_endpoint(websocket: WebSocket):
         await connection_manager.broadcast(
             json.dumps({"type": "disconnected", "id": id})
         )
-    except ConnectionClosedOK as error:
-        print("ConnectionClosedOK", error)
 
 
 # start the server

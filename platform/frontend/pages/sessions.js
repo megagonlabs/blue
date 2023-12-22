@@ -56,7 +56,7 @@ export default function Sessions() {
                 actionToaster.show(
                     createToast({
                         intent: Intent.DANGER,
-                        message: `Failed to connect to websocket`,
+                        message: `Failed to connect to websocketc (onerror)`,
                     })
                 );
             socket.close = (event) =>

@@ -1,8 +1,9 @@
 import {
+    Alignment,
+    Button,
+    ButtonGroup,
     Card,
     H3,
-    Menu,
-    MenuItem,
     Navbar,
     NavbarHeading,
 } from "@blueprintjs/core";
@@ -32,29 +33,33 @@ export default function App({ children }) {
             <Card
                 style={{
                     height: "calc(100vh - 50px)",
-                    width: 210,
+                    width: 150.55,
                     padding: 15,
                     borderRadius: 0,
                 }}
             >
-                <Menu large style={{ padding: 0 }}>
+                <ButtonGroup alignText={Alignment.LEFT} vertical minimal large>
                     <Link href="/sessions">
-                        <MenuItem
+                        <Button
                             text="Sessions"
                             icon={faIcon({ icon: faSignalStream })}
                         />
                     </Link>
-                    <MenuItem
-                        disabled
-                        text="Data"
-                        icon={faIcon({ icon: faDatabase })}
-                    />
-                    <MenuItem
-                        disabled
-                        text="Agents"
-                        icon={faIcon({ icon: faCircleA })}
-                    />
-                </Menu>
+                    <Link href="/data">
+                        <Button
+                            disabled
+                            text="Data"
+                            icon={faIcon({ icon: faDatabase })}
+                        />
+                    </Link>
+                    <Link href="/agents">
+                        <Button
+                            disabled
+                            text="Agents"
+                            icon={faIcon({ icon: faCircleA })}
+                        />
+                    </Link>
+                </ButtonGroup>
             </Card>
             <div>{children}</div>
         </div>

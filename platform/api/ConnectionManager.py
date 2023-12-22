@@ -14,7 +14,6 @@ class ConnectionManager:
         await websocket.accept()
         id = str(uuid.uuid4())
         self.active_connections[id] = websocket
-
         await self.send_message_to(websocket, json.dumps({"type": "connect", "id": id}))
 
     def disconnect(self, websocket: WebSocket):
