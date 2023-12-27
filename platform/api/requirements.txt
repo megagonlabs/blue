@@ -1,3 +1,4 @@
 fastapi==0.105.0
 uuid==1.30
 uvicorn[standard]
+websocket-client=1.7.0

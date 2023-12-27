@@ -20,7 +20,7 @@ const Blue = ({ Component, pageProps }) => {
             <AppProvider>
                 <Head>
                     <title>Blue</title>
-                    <link rel="icon" href="/images/favicon.ico" />
+                    <link rel="icon" href="/favicon.ico" />
                 </Head>
                 <App>
                     <Component {...pageProps} />
@@ -29,6 +29,4 @@ const Blue = ({ Component, pageProps }) => {
         );
     return null;
 };
-export default dynamic(() => Promise.resolve(Blue), {
-    ssr: false,
-});
+export default dynamic(() => Promise.resolve(Blue), { ssr: false });

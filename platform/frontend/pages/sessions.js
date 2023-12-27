@@ -1,3 +1,4 @@
+import SessionList from "@/components/sessions/SessionList";
 import { actionToaster, createToast } from "@/components/toaster";
 import { Intent } from "@blueprintjs/core";
 import _ from "lodash";
@@ -38,6 +39,8 @@ export default function Sessions() {
                                 message: `Client ${data["id"]} disconnected`,
                             })
                         );
+                    } else if (_.isEqual(data["type"], "message")) {
+                        console.log(data);
                     } else {
                         // if it is a regular message add it to the array of messages.
                         actionToaster.show(
@@ -75,5 +78,11 @@ export default function Sessions() {
             );
         }
     }, []);
-    return <div></div>;
+    return (
+        <>
+            <div style={{ height: "100%", width: 301.1 }}>
+                <SessionList />
+            </div>
+        </>
+    );
 }

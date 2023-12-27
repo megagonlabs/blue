@@ -36,7 +36,9 @@
         "next": "^14.0.3",
         "normalize.css": "^8.0.1",
         "react": "^18.2.0",
-        "react-dom": "^18.2.0"
+        "react-dom": "^18.2.0",
+        "react-virtualized-auto-sizer": "^1.0.20",
+        "react-window": "^1.8.10"
     },
     "devDependencies": {
         "eslint": "^8.55.0",

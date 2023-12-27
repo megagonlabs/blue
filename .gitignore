@@ -6,6 +6,9 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+.neo4j-data/
+.postgres-data/
+
 # C extensions
 *.so
 

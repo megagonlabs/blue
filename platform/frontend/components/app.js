@@ -19,10 +19,15 @@ import { faIcon } from "./icon";
 export default function App({ children }) {
     const router = useRouter();
     return (
-        <div>
+        <>
             <Navbar>
                 <Navbar.Group align="left">
-                    <Image width={25} height={25} src="/images/logo.png" />
+                    <Image
+                        width={25}
+                        height={25}
+                        src="/images/logo.png"
+                        alt="Megagon Labs logo"
+                    />
                     <Link href="/">
                         <NavbarHeading>
                             <H3 style={{ margin: 0, marginLeft: 10 }}>Blue</H3>
@@ -32,6 +37,9 @@ export default function App({ children }) {
             </Navbar>
             <Card
                 style={{
+                    position: "absolute",
+                    top: 50,
+                    left: 0,
                     height: "calc(100vh - 50px)",
                     width: 150.55,
                     padding: 15,
@@ -54,14 +62,15 @@ export default function App({ children }) {
                     </Link>
                     <Link href="/agents">
                         <Button
-                            disabled
                             text="Agents"
                             icon={faIcon({ icon: faCircleA })}
                         />
                     </Link>
                 </ButtonGroup>
             </Card>
-            <div>{children}</div>
-        </div>
+            <div style={{ marginLeft: 150.55, height: "calc(100vh - 50px)" }}>
+                {children}
+            </div>
+        </>
     );
 }
