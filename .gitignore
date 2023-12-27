@@ -1,4 +1,5 @@
 agents/*/lib
+platform/*/lib
 .DS_Store
 .vsode/
 # Byte-compiled / optimized / DLL files

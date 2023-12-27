@@ -42,7 +42,7 @@ from agent import Agent
 from registry import Registry
 
 
-class AgentRegistry(Registry):
+class DataRegistry(Registry):
     def __init__(self, name, properties={}):
 
         self.name = name
@@ -58,81 +58,83 @@ class AgentRegistry(Registry):
         super()._initialize_properties()
 
         # registry type
-        self.properties['type'] = "agent"
+        self.properties['type'] = "data"
 
-    ######### agent
-    def get_agent(self, agent):
-        return super().get_record(agent, '/')
+    ######### source
+    def get_source(self, source):
+        return super().get_record(source, '/')
 
-    def get_agent_description(self, agent):
-        return super().get_record_description(agent, '/')
+    def get_source_description(self, source):
+        return super().get_record_description(source, '/')
 
-    def set_agent_description(self, agent, description, rebuild=False):
-        super().set_record_description(agent, '/', description, rebuild=rebuild)
+    def set_source_description(self, source, description, rebuild=False):
+        super().set_record_description(source, '/', description, rebuild=rebuild)
 
-    # agent properties
-    def get_agent_properties(self, agent):
-        return super().get_record_properties(agent, '/')
+    # source properties
+    def get_source_properties(self, source):
+        return super().get_record_properties(source, '/')
 
-    def get_agent_property(self, agent, key):
-        return super().get_record_property(agent, '/', key)
+    def get_source_property(self, source, key):
+        return super().get_record_property(source, '/', key)
 
-    def set_agent_property(self, agent, key, value, rebuild=False):
-        super().set_record_property(agent, '/', key, value, rebuild=rebuild)
+    def set_source_property(self, source, key, value, rebuild=False):
+        super().set_record_property(source, '/', key, value, rebuild=rebuild)
 
-    # agent image (part of properties)
-    def get_agent_image(self, agent):
-        return self.get_agent_property(agent, 'image')
+    # source connection (part of properties)
+    def get_source_connection(self, source):
+        return self.get_source_property(source, 'connection')
 
-    def set_agent_image(self, agent, image, rebuild=False):
-        self.set_agent_property(agent, 'image', image, rebuild=rebuild)
-
-
-    ######### agent input and output parameters
-    def get_agent_inputs(self, agent):
-        super().get_record_contents(agent, '/', type='input')
-
-    def get_agent_input(self, agent, parameter):
-        return super().get_record_content(agent, '/', parameter, type='input')
+    def set_source_connection(self, source, connection, rebuild=False):
+        self.set_source_property(source, 'connection', connection, rebuild=rebuild)
 
 
-    def set_agent_input(self, agent, parameter, description, properties={}, rebuild=False):
-        super().register_record(self, parameter, 'input', '/'+agent, description=description, properties=properties, rebuild=rebuild)
+    ######### source/database
+    def get_source_databases(self, source):
+        super().get_record_contents(source, '/', type='database')
 
-    def del_agent_input(self, agent, parameter, rebuild=False):
-        record = self.get_agent_input(agent, parameter)
+    def get_source_database(self, source, database):
+        return super().get_record_content(source, '/', database, type='database')
+
+
+    def set_source_database(self, source, database, description, properties={}, rebuild=False):
+        super().register_record(self, database, 'database', '/'+source, description=description, properties=properties, rebuild=rebuild)
+
+    def del_source_database(self, source, database, rebuild=False):
+        record = self.get_source_database(source, database)
         super().deregister(self, record, rebuild=rebuild)
 
-    def get_agent_outputs(self, agent):
-        super().get_record_contents(agent, '/', type='output')
 
-    def get_agent_output(self, agent, parameter):
-        return super().get_record_content(agent, '/', parameter, type='output')
+   ######### source/database/collection
+    def get_source_database_collections(self, source, database):
+        super().get_record_contents(database, '/'+source, type='collection')
+
+    def get_source_database_collection(self, source, database, collection):
+        return super().get_record_content(database, '/'+source, collection, type='collection')
 
 
-    def set_agent_output(self, agent, parameter, description, rebuild=False):
-        super().register_record(self, parameter, 'output', '/'+agent, description=description, properties=properties, rebuild=rebuild)
+    def set_source_database_collection(self, source, database, collection, description, properties={}, rebuild=False):
+        super().register_record(self, collection, 'collection', '/'+source+'/'+database, description=description, properties=properties, rebuild=rebuild)
 
-    def del_agent_output(self, agent, parameter, rebuild=False):
-        record = self.get_agent_output(agent, parameter)
+    def del_source_database_collecion(self, source, database, collection, rebuild=False):
+        record = self.get_source_database_collection(source, database, collection)
         super().deregister(self, record, rebuild=rebuild)
 
- 
+
 #######################
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--name', type=str, default='default', help='name of the agent registry')
+    parser.add_argument('--name', type=str, default='default', help='name of the data registry')
     parser.add_argument('--properties', type=str, help='properties in json format')
     parser.add_argument('--loglevel', default="INFO", type=str, help='log level')
-    parser.add_argument('--add', type=str, default=None, help='json array of agents to be add to the registry')
-    parser.add_argument('--update', type=str, default=None, help='json array of agents to be updated in the registry')
-    parser.add_argument('--remove', type=str, default=None, help='json array of agents names to be removed')
+    parser.add_argument('--add', type=str, default=None, help='json array of data elements to be add to the registry')
+    parser.add_argument('--update', type=str, default=None, help='json array of data elements to be updated in the registry')
+    parser.add_argument('--remove', type=str, default=None, help='json array of data elements names to be removed')
     parser.add_argument('--search', type=str, default=None, help='search registry with keywords')
-    parser.add_argument('--type', type=str, default=None, help='search registry limited to agent metadata type [agent, input, output]')
+    parser.add_argument('--type', type=str, default=None, help='search registry limited to agent metadata type [source, database, collection]')
     parser.add_argument('--scope', type=str, default=None, help='limit to scope')
     parser.add_argument('--page', type=int, default=0, help='search result page, default 0')
     parser.add_argument('--page_size', type=int, default=5, help='search result page size, default 5')
-    parser.add_argument('--list', type=bool, default=False, action=argparse.BooleanOptionalAction, help='list agents in the registry')
+    parser.add_argument('--list', type=bool, default=False, action=argparse.BooleanOptionalAction, help='list data elements in the registry')
     parser.add_argument('--approximate', type=bool, default=False, action=argparse.BooleanOptionalAction, help='use approximate (embeddings) search')
     parser.add_argument('--hybrid', type=bool, default=False, action=argparse.BooleanOptionalAction, help='use hybrid (keyword and approximate) search')
  
@@ -150,7 +152,7 @@ if __name__ == "__main__":
         properties = json.loads(p)
 
     # create a registry
-    registry = AgentRegistry(args.name, properties=properties)
+    registry = DataRegistry(args.name, properties=properties)
 
     #### LIST
     if args.list:
