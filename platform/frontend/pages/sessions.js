@@ -1,8 +1,10 @@
 import { AppContext } from "@/components/app-context";
+import { faIcon } from "@/components/icon";
 import SessionList from "@/components/sessions/SessionList";
 import SessionMessages from "@/components/sessions/SessionMessages";
 import { AppToaster } from "@/components/toaster";
-import { Intent } from "@blueprintjs/core";
+import { Card, Intent, NonIdealState } from "@blueprintjs/core";
+import { faInboxIn, faMessages } from "@fortawesome/pro-duotone-svg-icons";
 import _ from "lodash";
 import { useContext, useEffect } from "react";
 export default function Sessions() {
@@ -67,6 +69,7 @@ export default function Sessions() {
             });
         }
     }, []);
+    const SESSION_LISTL_PANEL_WIDTH = 451.65;
     return (
         <>
             <div
@@ -75,19 +78,37 @@ export default function Sessions() {
                     top: 0,
                     left: 0,
                     height: "100%",
-                    width: 301.1,
+                    width: SESSION_LISTL_PANEL_WIDTH,
                 }}
             >
-                <SessionList />
+                {_.isEmpty(appState.session.sessionIds) ? (
+                    <Card
+                        style={{ padding: 0, height: "100%", borderRadius: 0 }}
+                    >
+                        <NonIdealState
+                            icon={faIcon({ icon: faInboxIn, size: 48 })}
+                            title="Sessions"
+                        />
+                    </Card>
+                ) : (
+                    <SessionList />
+                )}
             </div>
             <div
                 style={{
                     height: "100%",
-                    marginLeft: 301.1,
-                    width: "calc(100vw - 451.55px)",
+                    marginLeft: SESSION_LISTL_PANEL_WIDTH,
+                    width: `calc(100vw - ${SESSION_LISTL_PANEL_WIDTH}px)`,
                 }}
             >
-                {_.isNull(sessionIdFocus) ? null : <SessionMessages />}
+                {_.isNull(sessionIdFocus) ? (
+                    <NonIdealState
+                        icon={faIcon({ icon: faMessages, size: 48 })}
+                        title="Messages"
+                    />
+                ) : (
+                    <SessionMessages />
+                )}
             </div>
         </>
     );

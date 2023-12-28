@@ -27,7 +27,7 @@ export default function SessionMessages() {
             <div style={{ ...style, padding: "15px 15px 0px" }}>
                 <Callout
                     style={{
-                        maxWidth: 602,
+                        maxWidth: 602.2,
                         whiteSpace: "pre-wrap",
                         width: "fit-content",
                     }}

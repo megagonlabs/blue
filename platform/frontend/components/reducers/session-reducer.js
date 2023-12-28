@@ -15,7 +15,7 @@ export default function sessionReducer(
                 sessions: {
                     ...state.sessions,
                     [payload.session_id]: [
-                        ..._.get(state, ["session", payload.session_id], []),
+                        ..._.get(state, `sessions.${payload.session_id}`, []),
                         payload.content,
                     ],
                 },
