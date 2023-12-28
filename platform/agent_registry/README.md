@@ -47,10 +47,12 @@ Agent registry has a number of properties that can be configured when a registry
 --name: type=str, default='default', help='name of the agent registry'
 --properties', type=str, help='properties in json format'
 --loglevel', default="INFO", type=str, help='log level'
---add', type=str, default=None, help='json array of agents to be add to the registry  (e.g. [{'name': 'TitleRecommender', 'description': 'Recommends next title given a title', 'image': 'blue-agent-simple_graph:latest'}]'
+--add', type=str, default=None, help='json array of agents to be add to the registry'
+--update', type=str, default=None, help='json array of agents to be updated in the registry'
 --remove', type=str, default=None, help='json array of agents names to be removed'
 --search', type=str, default=None, help='search registry with keywords'
---type', type=str, default=None, help='search registry limited to agent metadata type [description, input, output]'
+--type', type=str, default=None, help='search registry limited to agent metadata type [agent, input, output]'
+--scope', type=str, default=None, help='limit to scope'
 --page', type=int, default=0, help='search result page, default 0'
 --page_size', type=int, default=5, help='search result page size, default 5'
 --list', type=bool, default=False, help='list agents in the registry'
@@ -64,9 +66,9 @@ $ python src/agent_registry.py --add "`cat data/sample_agents.json`"
 ```
 
 #### search agents
-Approximate agent search using only agent descriptions:
+Approximate agent search using only agent metadata:
 ```
-$ python src/agent_registry.py --search "`cat data/query2.txt`" --approximate --type description
+$ python src/agent_registry.py --search "`cat data/query2.txt`" --approximate --type agent
 ```
 
 Approximate agent input parameter search using only input parameters:

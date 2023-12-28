@@ -1,7 +1,7 @@
 #/bin/bash
 echo 'Building...'
 
-# copy from shared lib
+# copy from agent lib
 mkdir -p lib/agent & cp -r ../lib/* lib/agent/
 
 # build docker
