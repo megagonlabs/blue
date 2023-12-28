@@ -98,7 +98,9 @@ export default function Sessions() {
                 style={{
                     height: "100%",
                     marginLeft: SESSION_LISTL_PANEL_WIDTH,
-                    width: `calc(100vw - ${SESSION_LISTL_PANEL_WIDTH}px)`,
+                    width: `calc(100vw - ${
+                        SESSION_LISTL_PANEL_WIDTH + 150.55
+                    }px)`,
                 }}
             >
                 {_.isNull(sessionIdFocus) ? (
