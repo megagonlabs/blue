@@ -84,7 +84,7 @@ export default function Sessions() {
                 style={{
                     height: "100%",
                     marginLeft: 301.1,
-                    width: "calc(100vw - 451.55pX)",
+                    width: "calc(100vw - 451.55px)",
                 }}
             >
                 {_.isNull(sessionIdFocus) ? null : <SessionMessages />}
