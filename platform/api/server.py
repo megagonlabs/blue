@@ -3,17 +3,18 @@ from pathlib import Path
 
 from ConnectionManager import ConnectionManager
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from routers import agents
 
 _VERSION_PATH = Path(__file__).parent / "version"
 version = Path(_VERSION_PATH).read_text().strip()
 print("blue-platform-api: " + version)
 
 app = FastAPI()
-
+app.include_router(agents.router, prefix="/agents")
 connection_manager = ConnectionManager()
 
 
-@app.websocket("/sessions")
+@app.websocket("/sessions/ws")
 async def websocket_endpoint(websocket: WebSocket):
     # Accept the connection from the client
     await connection_manager.connect(websocket)

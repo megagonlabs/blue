@@ -44,6 +44,7 @@ export default function App({ children }) {
                     width: 150.55,
                     padding: 15,
                     borderRadius: 0,
+                    zIndex: 1,
                 }}
             >
                 <ButtonGroup alignText={Alignment.LEFT} vertical minimal large>
@@ -68,7 +69,13 @@ export default function App({ children }) {
                     </Link>
                 </ButtonGroup>
             </Card>
-            <div style={{ marginLeft: 150.55, height: "calc(100vh - 50px)" }}>
+            <div
+                style={{
+                    marginLeft: 150.55,
+                    height: "calc(100vh - 50px)",
+                    position: "relative",
+                }}
+            >
                 {children}
             </div>
         </>

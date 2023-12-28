@@ -29,7 +29,7 @@
         "@fortawesome/free-brands-svg-icons": "^6.1.1",
         "@fortawesome/pro-duotone-svg-icons": "^6.2.0",
         "@fortawesome/react-fontawesome": "^0.2.0",
-        "axios": "^1.6.2",
+        "axios": "^1.6.3",
         "firebase": "^10.7.1",
         "javascript-time-ago": "^2.5.9",
         "lodash": "^4.17.21",

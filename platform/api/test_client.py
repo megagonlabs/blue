@@ -3,7 +3,7 @@ import uuid
 
 from websocket import create_connection
 
-ws = create_connection("ws://localhost:5000/sessions")
+ws = create_connection("ws://localhost:5000/sessions/ws")
 result = ws.recv()
 client_id = json.loads(result)["id"]
 try:
@@ -13,7 +13,7 @@ try:
             json.dumps(
                 {
                     "type": "message",
-                    "session": f"session-{uuid.uuid4()}",
+                    "session_id": str(uuid.uuid4()),
                     "content": message,
                 }
             )
