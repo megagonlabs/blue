@@ -10,7 +10,7 @@ version = Path(_VERSION_PATH).read_text().strip()
 print("blue-platform-api: " + version)
 
 app = FastAPI()
-app.include_router(agents.router, prefix="/agents")
+app.include_router(agents.router)
 connection_manager = ConnectionManager()
 
 
