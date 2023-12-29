@@ -44,12 +44,8 @@ from registry import Registry
 
 class AgentRegistry(Registry):
     def __init__(self, name, properties={}):
-
-        self.name = name
-
-        self._initialize(properties=properties)
-
-        self._start()
+        super().__init__(name, properties=properties)
+       
 
     ###### initialization
 
