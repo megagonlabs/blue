@@ -44,12 +44,8 @@ from registry import Registry
 
 class DataRegistry(Registry):
     def __init__(self, name, properties={}):
-
-        self.name = name
-
-        self._initialize(properties=properties)
-
-        self._start()
+        super().__init__(name, properties=properties)
+        
 
     ###### initialization
 
@@ -130,7 +126,7 @@ if __name__ == "__main__":
     parser.add_argument('--update', type=str, default=None, help='json array of data elements to be updated in the registry')
     parser.add_argument('--remove', type=str, default=None, help='json array of data elements names to be removed')
     parser.add_argument('--search', type=str, default=None, help='search registry with keywords')
-    parser.add_argument('--type', type=str, default=None, help='search registry limited to agent metadata type [source, database, collection]')
+    parser.add_argument('--type', type=str, default=None, help='search registry limited to data metadata type [source, database, collection]')
     parser.add_argument('--scope', type=str, default=None, help='limit to scope')
     parser.add_argument('--page', type=int, default=0, help='search result page, default 0')
     parser.add_argument('--page_size', type=int, default=5, help='search result page size, default 5')
