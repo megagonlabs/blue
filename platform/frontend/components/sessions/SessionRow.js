@@ -8,11 +8,16 @@ export default function SessionRow({ index, style }) {
     return (
         <Card
             interactive
-            style={{ ...style, borderRadius: 0, padding: 15 }}
+            style={{ ...style, borderRadius: 0, padding: "20px 15px" }}
             onClick={() => appActions.session.setSessionIdFocus(sessionId)}
         >
             <div style={{ width: "100%" }}>
-                <H5 className={Classes.TEXT_OVERFLOW_ELLIPSIS}>{sessionId}</H5>
+                <H5
+                    style={{ marginBottom: 5 }}
+                    className={Classes.TEXT_OVERFLOW_ELLIPSIS}
+                >
+                    {sessionId}
+                </H5>
                 <div
                     className={`${Classes.TEXT_OVERFLOW_ELLIPSIS} ${Classes.TEXT_MUTED}`}
                 >

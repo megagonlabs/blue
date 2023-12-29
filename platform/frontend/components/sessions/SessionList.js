@@ -31,7 +31,7 @@ export default function SessionList() {
                     height={height}
                     width={width}
                     itemCount={appState.session.sessionIds.length}
-                    itemSize={77}
+                    itemSize={87}
                 >
                     {Row}
                 </FixedSizeList>

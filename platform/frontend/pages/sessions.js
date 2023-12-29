@@ -86,7 +86,7 @@ export default function Sessions() {
                         style={{ padding: 0, height: "100%", borderRadius: 0 }}
                     >
                         <NonIdealState
-                            icon={faIcon({ icon: faInboxIn, size: 48 })}
+                            icon={faIcon({ icon: faInboxIn, size: 50 })}
                             title="Sessions"
                         />
                     </Card>
@@ -105,7 +105,7 @@ export default function Sessions() {
             >
                 {_.isNull(sessionIdFocus) ? (
                     <NonIdealState
-                        icon={faIcon({ icon: faMessages, size: 48 })}
+                        icon={faIcon({ icon: faMessages, size: 50 })}
                         title="Messages"
                     />
                 ) : (

@@ -247,7 +247,7 @@ def words(count):
 
 
 session_ids = [str(uuid.uuid4()) for _ in range(11)]
-for _ in range(11 * 3):
+for _ in range(11 * 5):
     sentence_string = sentence()
     words_string = words(random.randint(4, 11))
     ws.send(
