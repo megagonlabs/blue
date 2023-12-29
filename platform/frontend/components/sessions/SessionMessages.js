@@ -4,7 +4,7 @@ import AutoSizer from "react-virtualized-auto-sizer";
 import { VariableSizeList } from "react-window";
 import { AppContext } from "../app-context";
 export default function SessionMessages() {
-    const listRef = useRef({});
+    const variableSizeListRef = useRef({});
     const rowHeights = useRef({});
     const { appState } = useContext(AppContext);
     const sessionIdFocus = appState.session.sessionIdFocus;
@@ -12,8 +12,8 @@ export default function SessionMessages() {
     function getRowHeight(index) {
         return rowHeights.current[index] + 15 || 51;
     }
-    function setRowHeight(index, size) {
-        listRef.current.resetAfterIndex(0);
+    function setRowHeight(index, size, shouldForceUpdate = true) {
+        variableSizeListRef.current.resetAfterIndex(0, shouldForceUpdate);
         rowHeights.current = { ...rowHeights.current, [index]: size };
     }
     function Row({ index, style }) {
@@ -23,6 +23,22 @@ export default function SessionMessages() {
                 setRowHeight(index, rowRef.current.clientHeight + 30);
             }
         }, [rowRef]);
+        useEffect(() => {
+            const handleResize = () => {
+                // do magic for resize
+                if (rowRef.current) {
+                    setRowHeight(
+                        index,
+                        rowRef.current.clientHeight + 30,
+                        false
+                    );
+                }
+            };
+            window.addEventListener("resize", handleResize);
+            return () => {
+                window.removeEventListener("resize", handleResize);
+            };
+        }, []);
         return (
             <div style={{ ...style, padding: "15px 15px 0px" }}>
                 <Callout
@@ -54,7 +70,7 @@ export default function SessionMessages() {
                         height={height - 51}
                         itemCount={messages.length}
                         itemSize={getRowHeight}
-                        ref={listRef}
+                        ref={variableSizeListRef}
                         width={width}
                     >
                         {Row}
