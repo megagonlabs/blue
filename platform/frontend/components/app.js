@@ -4,8 +4,10 @@ import {
     ButtonGroup,
     Card,
     H3,
+    Intent,
     Navbar,
     NavbarHeading,
+    Tag,
 } from "@blueprintjs/core";
 import {
     faCircleA,
@@ -18,6 +20,11 @@ import { useRouter } from "next/router";
 import { faIcon } from "./icon";
 export default function App({ children }) {
     const router = useRouter();
+    const MENU_ITEMS = [
+        { href: "/sessions", text: "Sessions", icon: faSignalStream },
+        { href: "/data", text: "Data", icon: faDatabase, disabled: true },
+        { href: "/agents", text: "Agents", icon: faCircleA },
+    ];
     return (
         <>
             <Navbar>
@@ -29,8 +36,11 @@ export default function App({ children }) {
                         alt="Megagon Labs logo"
                     />
                     <Link href="/">
-                        <NavbarHeading>
-                            <H3 style={{ margin: 0, marginLeft: 10 }}>Blue</H3>
+                        <NavbarHeading style={{ display: "flex" }}>
+                            <H3 style={{ margin: "0px 10px 0px" }}>Blue</H3>
+                            <Tag minimal intent={Intent.WARNING}>
+                                Demo
+                            </Tag>
                         </NavbarHeading>
                     </Link>
                 </Navbar.Group>
@@ -48,25 +58,25 @@ export default function App({ children }) {
                 }}
             >
                 <ButtonGroup alignText={Alignment.LEFT} vertical minimal large>
-                    <Link href="/sessions">
-                        <Button
-                            text="Sessions"
-                            icon={faIcon({ icon: faSignalStream })}
-                        />
-                    </Link>
-                    <Link href="/data">
-                        <Button
-                            disabled
-                            text="Data"
-                            icon={faIcon({ icon: faDatabase })}
-                        />
-                    </Link>
-                    <Link href="/agents">
-                        <Button
-                            text="Agents"
-                            icon={faIcon({ icon: faCircleA })}
-                        />
-                    </Link>
+                    {MENU_ITEMS.map(
+                        ({ href, icon, text, disabled = false }, index) => {
+                            const active = _.isEqual(router.pathname, href);
+                            return (
+                                <Link
+                                    href={href}
+                                    key={`app-card-button_group-link-${index}`}
+                                >
+                                    <Button
+                                        disabled={disabled}
+                                        intent={active ? Intent.PRIMARY : null}
+                                        active={active}
+                                        text={text}
+                                        icon={faIcon({ icon: icon })}
+                                    />
+                                </Link>
+                            );
+                        }
+                    )}
                 </ButtonGroup>
             </Card>
             <div
