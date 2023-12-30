@@ -4,13 +4,16 @@ import AutoSizer from "react-virtualized-auto-sizer";
 import { VariableSizeList } from "react-window";
 import { AppContext } from "../app-context";
 export default function SessionMessages() {
-    const variableSizeListRef = useRef({});
+    const variableSizeListRef = useRef();
     const rowHeights = useRef({});
     const { appState } = useContext(AppContext);
     const sessionIdFocus = appState.session.sessionIdFocus;
     const messages = appState.session.sessions[sessionIdFocus];
     function getRowHeight(index) {
-        return rowHeights.current[index] + 15 || 51;
+        return (
+            rowHeights.current[index] + 15 + (_.isEqual(index, 0) ? 15 : 0) ||
+            51
+        );
     }
     function setRowHeight(index, size, shouldForceUpdate = true) {
         variableSizeListRef.current.resetAfterIndex(0, shouldForceUpdate);
@@ -40,7 +43,12 @@ export default function SessionMessages() {
             };
         }, []);
         return (
-            <div style={{ ...style, padding: "15px 15px 0px" }}>
+            <div
+                style={{
+                    ...style,
+                    padding: `${_.isEqual(index, 0) ? 15 : 0}px 15px 15px`,
+                }}
+            >
                 <Callout
                     style={{
                         maxWidth: 602.2,
@@ -53,6 +61,16 @@ export default function SessionMessages() {
             </div>
         );
     }
+    useEffect(() => {
+        setTimeout(() => {
+            if (variableSizeListRef.current) {
+                variableSizeListRef.current.scrollToItem(
+                    messages.length,
+                    "end"
+                );
+            }
+        }, 0);
+    }, [variableSizeListRef, sessionIdFocus]);
     return (
         <>
             <Card style={{ padding: 15, borderRadius: 0 }}>
@@ -66,7 +84,6 @@ export default function SessionMessages() {
             <AutoSizer>
                 {({ width, height }) => (
                     <VariableSizeList
-                        style={{ paddingBottom: 15 }}
                         height={height - 51}
                         itemCount={messages.length}
                         itemSize={getRowHeight}

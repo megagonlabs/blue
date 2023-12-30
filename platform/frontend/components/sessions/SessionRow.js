@@ -1,17 +1,31 @@
-import { Card, Classes, H5 } from "@blueprintjs/core";
+import { Card, Classes, Colors, H5 } from "@blueprintjs/core";
+import { faCircleDot } from "@fortawesome/pro-duotone-svg-icons";
 import _ from "lodash";
 import { useContext } from "react";
 import { AppContext } from "../app-context";
+import { faIcon } from "../icon";
 export default function SessionRow({ index, style }) {
     const { appState, appActions } = useContext(AppContext);
     const sessionId = appState.session.sessionIds[index];
+    const unreadSessionIds = appState.session.unreadSessionIds;
     return (
         <Card
             interactive
             style={{ ...style, borderRadius: 0, padding: "20px 15px" }}
             onClick={() => appActions.session.setSessionIdFocus(sessionId)}
         >
-            <div style={{ width: "100%" }}>
+            <div style={{ width: 31 }}>
+                {unreadSessionIds.has(sessionId)
+                    ? faIcon({
+                          icon: faCircleDot,
+                          style: {
+                              color: Colors.BLUE5,
+                              opacity: 0.5,
+                          },
+                      })
+                    : null}
+            </div>
+            <div style={{ width: "calc(100% - 31px)" }}>
                 <H5
                     style={{ marginBottom: 5 }}
                     className={Classes.TEXT_OVERFLOW_ELLIPSIS}

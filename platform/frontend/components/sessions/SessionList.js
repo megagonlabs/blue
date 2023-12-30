@@ -11,7 +11,7 @@ export default function SessionList() {
     const fixedSizeListRef = useRef();
     useEffect(() => {
         setTimeout(() => {
-            if (_.isNil(fixedSizeListRef)) return;
+            if (_.isNil(fixedSizeListRef.current)) return;
             try {
                 const element = document.querySelectorAll(
                     "div.session-list > div"
