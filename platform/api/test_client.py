@@ -259,3 +259,4 @@ for _ in range(11 * 11):
             }
         )
     )
+ws.close()

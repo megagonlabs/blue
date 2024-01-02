@@ -10,9 +10,13 @@ export default function sessionReducer(
     { type, payload }
 ) {
     let unreadSessionIds = state.unreadSessionIds;
+    let sessionIds = state.sessionIds;
     switch (type) {
         case "session/sessions/message/add":
             unreadSessionIds.add(payload.session_id);
+            if (!_.includes(state.sessionIds, payload.session_id)) {
+                sessionIds.push(payload.session_id);
+            }
             return {
                 ...state,
                 sessions: {
@@ -22,12 +26,7 @@ export default function sessionReducer(
                         payload.content,
                     ],
                 },
-                sessionIds: [
-                    payload.session_id,
-                    ...state.sessionIds.filter(
-                        (id) => !_.isEqual(id, payload.session_id)
-                    ),
-                ],
+                sessionIds: sessionIds,
                 unreadSessionIds: unreadSessionIds,
             };
         case "session/sessionIdFocus/set":
