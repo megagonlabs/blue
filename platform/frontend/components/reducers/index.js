@@ -1,4 +1,5 @@
 import agentReducer from "./agent-reducer";
+import dataReducer from "./data-reducer";
 import appReducer from "./app-reducer";
 import sessionReducer from "./session-reducer";
 export default function rootReducer(state = {}, action) {
@@ -6,5 +7,6 @@ export default function rootReducer(state = {}, action) {
         app: appReducer(state.app, action),
         session: sessionReducer(state.session, action),
         agents: agentReducer(state.agents, action),
+        data: dataReducer(state.data, action),
     };
 }

@@ -2,13 +2,13 @@
 import { AppContext } from "@/components/app-context";
 import { H4, InputGroup, Button, ButtonGroup, H1 } from "@blueprintjs/core";
 import { faIcon } from "@/components/icon";
-import AgentList from "@/components/agents/AgentList";
+import DataSourceList from "@/components/data/DataSourceList";
 import { AppToaster } from "@/components/toaster";
 import { Card, Intent, NonIdealState } from "@blueprintjs/core";
 import { faInboxIn, faMessages } from "@fortawesome/pro-duotone-svg-icons";
 import _ from "lodash";
 import { useContext, useEffect } from "react";
-export default function Agents() {
+export default function Data() {
     const { appState, appActions } = useContext(AppContext);
     const sessionIdFocus = appState.session.sessionIdFocus;
     useEffect(() => {
@@ -31,9 +31,10 @@ export default function Agents() {
                         marginRight: 10,
                     }}
                 >
-                    Agents Registry (default)
+                    Data Registry (default)
             </H4>
-            <AgentList />
+            
+            <DataSourceList />
             </div>
         </>
     );
