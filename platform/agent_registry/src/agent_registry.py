@@ -5,7 +5,6 @@ import sys
 
 ###### Add lib path
 sys.path.append('./lib/')
-sys.path.append('./lib/agent/')
 sys.path.append('./lib/platform/')
 
 
@@ -38,7 +37,6 @@ import numpy as np
 from sentence_transformers import SentenceTransformer
 
 ###### Blue
-from agent import Agent
 from registry import Registry
 
 

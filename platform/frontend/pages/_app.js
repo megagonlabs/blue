@@ -13,6 +13,7 @@ import "normalize.css/normalize.css";
 import "../styles/custom.css";
 TimeAgo.addLocale(en);
 axios.defaults.withCredentials = true;
+axios.defaults.baseURL = process.env.NEXT_PUBLIC_API_SERVER;
 FocusStyleManager.onlyShowFocusOnTabs();
 const Blue = ({ Component, pageProps }) => {
     if (_.isEqual(typeof window, "object"))

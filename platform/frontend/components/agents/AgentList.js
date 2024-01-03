@@ -19,24 +19,158 @@ import {
     DARK_THEME_CLASS,
     DEBOUNCE_INTERVAL,
 } from "../constant";
+import axios from "axios";
 import _ from "lodash";
-
+import { actionToaster, createToast } from "../toaster";
 import { Tooltip } from "@blueprintjs/core";
 import Link from "next/link";
 import { Icon, IconSize } from "@blueprintjs/core";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
-export default function AgentList() {
+export default function AgentList({ setIsSearchOptionOpen }) {
     const cardListClassName = `${Classes.CARD} ${Classes.CARD_LIST} ${Classes.CARD_LIST_BORDERED}`;
     const { appState } = useContext(AppContext);
     const [isLoading, setIsLoading] = useState(true);
-    const [agents, setAgents] = useState([{"name":"TitleRecommender","type":"agent","scope":"\\\/","description":"Recommends next title given a title","properties":{"image":"blue-agent-simple_graph:latest"}},{"name":"Neo4J","type":"agent","scope":"\\\/","description":"Execute graph database queries","properties":{"image":"blue-agent-neo4j:latest"}},{"name":"OpenAITripleExtractor","type":"agent","scope":"\\\/","description":"Given a text extract entities and relations in the form of source and target entities and relationship between them using OpenAI","properties":{"image":"blue-agent-openai:latest"}},{"name":"OpenAINeo4JQuery","type":"agent","scope":"\\\/","description":"Given triples with source and target entities and relationships, transform triples to neo4j querys that can be executed","properties":{"image":"blue-agent-openai:latest"}},{"name":"Recorder","type":"agent","scope":"\\\/","description":"Scan JSON documents and find matched entities","properties":{"image":"blue-agent-recorder:latest"}},{"name":"Rationalizer","type":"agent","scope":"\\\/","description":"Given one or more text documents rationalize a relation between said documents","properties":{"image":"blue-agent-rationalizer:latest"}},{"name":"KnowledgeGrounding","type":"agent","scope":"\\\/","description":"Given a text identify missing knowledge to explain","properties":{"image":"blue-agent-knowledge_grounding:latest"}},{"name":"JobRecommender","type":"agent","scope":"\\\/","description":"Given a resume, recommend a job","properties":{"image":"blue-agent-job_recommender:latest"}},{"name":"CareerRecommender","type":"agent","scope":"\\\/","description":"Given a resume, give career advice","properties":{"image":"blue-agent-career_recommender:latest"}},{"name":"JobSearch","type":"agent","scope":"\\\/","description":"Search job descriptions database given keywords","properties":{"image":"blue-agent-job_search:latest"}},{"name":"JobCandidateMatch","type":"agent","scope":"\\\/","description":"Given a resume and job description, predict match","properties":{"image":"blue-agent-match:latest"}},{"name":"Explainer","type":"agent","scope":"\\\/","description":"Given a resume and a job description explain match","properties":{"image":"blue-agent-explainer:latest"}},{"name":"CandidateSearch","type":"agent","scope":"\\\/","description":"Search candidate resume database given keywords","properties":{"image":"blue-agent-candidate_search:latest"}}]);
     const fixedSizeListRef = useRef();
-    
+
+    const [agents, setAgents] = useState([]);
+    const [deleteId, setDeleteId] = useState(null);
+    const [editId, setEditId] = useState(null);
+    const [entityName, setEntityName] = useState("");
+    const [isDeleting, setIsDeleting] = useState(false);
+    const [isFormDialogOpen, setIsFormDialogOpen] = useState(false);
+
     useEffect(() => {
-        
     }, [fixedSizeListRef]);
+
+    const deleteAgent = () => {
+        setIsDeleting(true);
+        axios
+            .delete("/agents/agent", {
+                params: {
+                    agentID: deleteId,
+                },
+            })
+            .then((response) => {
+                setIsDeleting(false);
+                setDeleteId(null);
+                const resultId = _.get(response, "data.id", null);
+                if (!_.isNil(resultId)) {
+                    setAgents(
+                        agents.filter(
+                            (agent) => !_.isEqual(resultId, agent.id)
+                        )
+                    );
+                }
+            })
+            .catch((error) => {
+                setIsDeleting(false);
+                actionToaster.show(
+                    createToast({
+                        className: themeClass,
+                        intent: Intent.DANGER,
+                        message: (
+                            <div className="bp4-text-large">
+                                {error.name}:
+                                <br />
+                                {_.get(
+                                    error,
+                                    "response.data.message",
+                                    error.message
+                                )}
+                            </div>
+                        ),
+                    })
+                );
+            });
+    };
+    useEffect(() => {
+        setIsFormDialogOpen(!_.isNil(editId));
+    }, [editId]);
+    const setAgent = (agent) => {
+        var nextAgents = [...agents];
+        for (var i = 0; i < nextAgents.length; i++) {
+            const agentId = _.get(agent, "id", null);
+            if (_.isEqual(agentId, nextAgents[i].id)) {
+                nextAgents[i] = agent;
+            }
+        }
+        setAgents(nextAgents);
+    };
+    const fetchEntities = () => {
+        setIsLoading(true);
+        axios
+            .get("/agents", {
+            })
+            .then((response) => {
+                // sort
+                response.data.list.sort((a, b) => (a.name > b.name) ? 1 : -1)
+                setAgents(response.data.list);
+                setIsLoading(false);
+            })
+            .catch((error) => {
+                actionToaster.show(
+                    createToast({
+                        intent: Intent.DANGER,
+                        message: (
+                            <div className="bp4-text-large">
+                                {error.name}:
+                                <br />
+                                {_.get(
+                                    error,
+                                    "response.data.message",
+                                    error.message
+                                )}
+                            </div>
+                        ),
+                    })
+                );
+            });
+    };
+    useEffect(() => {
+        fetchEntities();
+    }, []);
+    if (_.isEmpty(agents)) {
+        if (isLoading)
+            return (
+                <div
+                    className="bp4-skeleton"
+                    style={{
+                        height: 124,
+                        margin: "20px 20px 0px 20px",
+                    }}
+                />
+            );
+        const color = _.isEqual(themeClass, DARK_THEME_CLASS)
+            ? "#abb3bf"
+            : "#5f6b7c";
+        return (
+            <div style={{ marginLeft: 20, marginTop: 20 }}>
+                <Icon icon="more" />
+                <div
+                    style={{
+                        color: color,
+                        marginBottom: 20,
+                        marginTop: 10,
+                    }}
+                >
+                    <H5
+                        style={{
+                            color: color,
+                        }}
+                    >
+                        No agents matched your search.
+                    </H5>
+                    <div>Try using search options.</div>
+                </div>
+                <Button
+                    onClick={() => setIsSearchOptionOpen(true)}
+                    text="Show search options"
+                />
+            </div>
+        );
+    }
     return (
         <>
             <Container fluid style={{ padding: "20px 20px 10px 21px" }}>

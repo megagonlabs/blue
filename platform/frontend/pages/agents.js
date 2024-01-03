@@ -7,10 +7,10 @@ import { AppToaster } from "@/components/toaster";
 import { Card, Intent, NonIdealState } from "@blueprintjs/core";
 import { faInboxIn, faMessages } from "@fortawesome/pro-duotone-svg-icons";
 import _ from "lodash";
-import { useContext, useEffect } from "react";
+import { useContext, useEffect, useState } from "react";
 export default function Agents() {
     const { appState, appActions } = useContext(AppContext);
-    const sessionIdFocus = appState.session.sessionIdFocus;
+    const [isSearchOptionOpen, setIsSearchOptionOpen] = useState(false);
     useEffect(() => {
     }, []);
     return (

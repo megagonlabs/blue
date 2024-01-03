@@ -13,7 +13,7 @@ export default function Sessions() {
     useEffect(() => {
         try {
             // Creating an instance of the WebSocket
-            const socket = new WebSocket("ws://localhost:5000/sessions/ws");
+            const socket = new WebSocket("ws://127.0.0.1:5000/sessions/ws");
             // Adding an event listener to when the connection is opened
             socket.onopen = () => {
                 AppToaster.show({

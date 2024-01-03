@@ -5,12 +5,28 @@ from ConnectionManager import ConnectionManager
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from routers import agents
 
+from fastapi.middleware.cors import CORSMiddleware
+
+origins = [
+    "*",
+    "http://localhost",
+    "http://localhost:5050",
+]
+
+
 _VERSION_PATH = Path(__file__).parent / "version"
 version = Path(_VERSION_PATH).read_text().strip()
 print("blue-platform-api: " + version)
 
 app = FastAPI()
 app.include_router(agents.router)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 connection_manager = ConnectionManager()
 
 
