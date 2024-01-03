@@ -56,7 +56,6 @@ export default function App({ children }) {
                     </Link>
                     <Link href="/data">
                         <Button
-                            disabled
                             text="Data"
                             icon={faIcon({ icon: faDatabase })}
                         />
