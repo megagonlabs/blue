@@ -1,42 +1,120 @@
-import { Classes } from "@blueprintjs/core";
-import { useContext, useEffect, useRef, useCallback, useState } from "react";
-import AutoSizer from "react-virtualized-auto-sizer";
-import classNames from "classnames";
-import { Row, Col, Container } from "react-grid-system";
-import { AppContext } from "../app-context";
 import {
-    Intent,
-    Card,
-    Tag,
-    H5,
-    ButtonGroup,
     Button,
-    Dialog,
-    Callout,
+    ButtonGroup,
+    Card,
+    H5,
+    Icon,
+    Intent,
+    Tag,
+    Tooltip,
 } from "@blueprintjs/core";
-import {
-    BUTTON_WITH_TOOLTIP2,
-    DARK_THEME_CLASS,
-    DEBOUNCE_INTERVAL,
-} from "../constant";
+import classNames from "classnames";
 import _ from "lodash";
-
-import { Tooltip } from "@blueprintjs/core";
 import Link from "next/link";
-import { Icon, IconSize } from "@blueprintjs/core";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
-
+import { useEffect, useRef, useState } from "react";
+import { Col, Container, Row } from "react-grid-system";
+import { BUTTON_WITH_TOOLTIP2 } from "../constant";
 export default function AgentList() {
-    const cardListClassName = `${Classes.CARD} ${Classes.CARD_LIST} ${Classes.CARD_LIST_BORDERED}`;
-    const { appState } = useContext(AppContext);
     const [isLoading, setIsLoading] = useState(true);
-    const [agents, setAgents] = useState([{"name":"TitleRecommender","type":"agent","scope":"\\\/","description":"Recommends next title given a title","properties":{"image":"blue-agent-simple_graph:latest"}},{"name":"Neo4J","type":"agent","scope":"\\\/","description":"Execute graph database queries","properties":{"image":"blue-agent-neo4j:latest"}},{"name":"OpenAITripleExtractor","type":"agent","scope":"\\\/","description":"Given a text extract entities and relations in the form of source and target entities and relationship between them using OpenAI","properties":{"image":"blue-agent-openai:latest"}},{"name":"OpenAINeo4JQuery","type":"agent","scope":"\\\/","description":"Given triples with source and target entities and relationships, transform triples to neo4j querys that can be executed","properties":{"image":"blue-agent-openai:latest"}},{"name":"Recorder","type":"agent","scope":"\\\/","description":"Scan JSON documents and find matched entities","properties":{"image":"blue-agent-recorder:latest"}},{"name":"Rationalizer","type":"agent","scope":"\\\/","description":"Given one or more text documents rationalize a relation between said documents","properties":{"image":"blue-agent-rationalizer:latest"}},{"name":"KnowledgeGrounding","type":"agent","scope":"\\\/","description":"Given a text identify missing knowledge to explain","properties":{"image":"blue-agent-knowledge_grounding:latest"}},{"name":"JobRecommender","type":"agent","scope":"\\\/","description":"Given a resume, recommend a job","properties":{"image":"blue-agent-job_recommender:latest"}},{"name":"CareerRecommender","type":"agent","scope":"\\\/","description":"Given a resume, give career advice","properties":{"image":"blue-agent-career_recommender:latest"}},{"name":"JobSearch","type":"agent","scope":"\\\/","description":"Search job descriptions database given keywords","properties":{"image":"blue-agent-job_search:latest"}},{"name":"JobCandidateMatch","type":"agent","scope":"\\\/","description":"Given a resume and job description, predict match","properties":{"image":"blue-agent-match:latest"}},{"name":"Explainer","type":"agent","scope":"\\\/","description":"Given a resume and a job description explain match","properties":{"image":"blue-agent-explainer:latest"}},{"name":"CandidateSearch","type":"agent","scope":"\\\/","description":"Search candidate resume database given keywords","properties":{"image":"blue-agent-candidate_search:latest"}}]);
+    const [agents, setAgents] = useState([
+        {
+            name: "TitleRecommender",
+            type: "agent",
+            scope: "\\/",
+            description: "Recommends next title given a title",
+            properties: { image: "blue-agent-simple_graph:latest" },
+        },
+        {
+            name: "Neo4J",
+            type: "agent",
+            scope: "\\/",
+            description: "Execute graph database queries",
+            properties: { image: "blue-agent-neo4j:latest" },
+        },
+        {
+            name: "OpenAITripleExtractor",
+            type: "agent",
+            scope: "\\/",
+            description:
+                "Given a text extract entities and relations in the form of source and target entities and relationship between them using OpenAI",
+            properties: { image: "blue-agent-openai:latest" },
+        },
+        {
+            name: "OpenAINeo4JQuery",
+            type: "agent",
+            scope: "\\/",
+            description:
+                "Given triples with source and target entities and relationships, transform triples to neo4j querys that can be executed",
+            properties: { image: "blue-agent-openai:latest" },
+        },
+        {
+            name: "Recorder",
+            type: "agent",
+            scope: "\\/",
+            description: "Scan JSON documents and find matched entities",
+            properties: { image: "blue-agent-recorder:latest" },
+        },
+        {
+            name: "Rationalizer",
+            type: "agent",
+            scope: "\\/",
+            description:
+                "Given one or more text documents rationalize a relation between said documents",
+            properties: { image: "blue-agent-rationalizer:latest" },
+        },
+        {
+            name: "KnowledgeGrounding",
+            type: "agent",
+            scope: "\\/",
+            description: "Given a text identify missing knowledge to explain",
+            properties: { image: "blue-agent-knowledge_grounding:latest" },
+        },
+        {
+            name: "JobRecommender",
+            type: "agent",
+            scope: "\\/",
+            description: "Given a resume, recommend a job",
+            properties: { image: "blue-agent-job_recommender:latest" },
+        },
+        {
+            name: "CareerRecommender",
+            type: "agent",
+            scope: "\\/",
+            description: "Given a resume, give career advice",
+            properties: { image: "blue-agent-career_recommender:latest" },
+        },
+        {
+            name: "JobSearch",
+            type: "agent",
+            scope: "\\/",
+            description: "Search job descriptions database given keywords",
+            properties: { image: "blue-agent-job_search:latest" },
+        },
+        {
+            name: "JobCandidateMatch",
+            type: "agent",
+            scope: "\\/",
+            description: "Given a resume and job description, predict match",
+            properties: { image: "blue-agent-match:latest" },
+        },
+        {
+            name: "Explainer",
+            type: "agent",
+            scope: "\\/",
+            description: "Given a resume and a job description explain match",
+            properties: { image: "blue-agent-explainer:latest" },
+        },
+        {
+            name: "CandidateSearch",
+            type: "agent",
+            scope: "\\/",
+            description: "Search candidate resume database given keywords",
+            properties: { image: "blue-agent-candidate_search:latest" },
+        },
+    ]);
     const fixedSizeListRef = useRef();
-    
-    useEffect(() => {
-        
-    }, [fixedSizeListRef]);
+
+    useEffect(() => {}, [fixedSizeListRef]);
     return (
         <>
             <Container fluid style={{ padding: "20px 20px 10px 21px" }}>
@@ -50,9 +128,7 @@ export default function AgentList() {
                             xxl={2}
                             key={`app-agents-agentlist-${agent.name}`}
                         >
-                            <Link
-                                href={`/agents?agentID=${agent.name}`}
-                            >
+                            <Link href={`/agents?agentID=${agent.name}`}>
                                 <Card
                                     interactive
                                     className="entity-card"
@@ -62,7 +138,7 @@ export default function AgentList() {
                                         padding: 10,
                                         height: "150px",
                                         position: "relative",
-                                        borderRadius: "5px"
+                                        borderRadius: "5px",
                                     }}
                                 >
                                     <H5
@@ -94,13 +170,9 @@ export default function AgentList() {
                                             overflow: "hidden",
                                         }}
                                     >
-                                        <ReactMarkdown
-                                            remarkPlugins={[remarkGfm]}
-                                        >
-                                            {_.isEmpty(agent.description)
-                                                ? ""
-                                                : agent.description}
-                                        </ReactMarkdown>
+                                        {_.isEmpty(agent.description)
+                                            ? ""
+                                            : agent.description}
                                     </div>
                                     <Card
                                         className="bp4-elevation-4 entity-actions"
@@ -116,7 +188,7 @@ export default function AgentList() {
                                             display: "none",
                                             backgroundColor: "transparent",
                                             boxShadow: "none",
-                                            border: "none"
+                                            border: "none",
                                         }}
                                     >
                                         <ButtonGroup
@@ -127,7 +199,6 @@ export default function AgentList() {
                                                     : null
                                             }
                                         >
-    
                                             <Tooltip
                                                 {...BUTTON_WITH_TOOLTIP2}
                                                 content="Edit"
@@ -135,18 +206,14 @@ export default function AgentList() {
                                                 <Button
                                                     onClick={(event) => {
                                                         event.stopPropagation();
-                                                        setEditId(
-                                                            agent.id
-                                                        );
+                                                        setEditId(agent.id);
                                                         setEntityName(
                                                             agent.name
                                                         );
                                                     }}
                                                     intent={Intent.PRIMARY}
                                                     minimal
-                                                    icon={
-                                                        <Icon icon="edit" />
-                                                    }
+                                                    icon={<Icon icon="edit" />}
                                                 />
                                             </Tooltip>
                                             <Tooltip
@@ -156,18 +223,14 @@ export default function AgentList() {
                                                 <Button
                                                     onClick={(event) => {
                                                         event.stopPropagation();
-                                                        setDeleteId(
-                                                            agent.id
-                                                        );
+                                                        setDeleteId(agent.id);
                                                         setEntityName(
                                                             agent.name
                                                         );
                                                     }}
                                                     intent={Intent.DANGER}
                                                     minimal
-                                                    icon={
-                                                        <Icon icon="cross" />
-                                                    }
+                                                    icon={<Icon icon="cross" />}
                                                 />
                                             </Tooltip>
                                         </ButtonGroup>
@@ -197,7 +260,7 @@ export default function AgentList() {
                                 width: "40px",
                                 height: "40px",
                                 position: "relative",
-                                borderRadius: "40px"
+                                borderRadius: "40px",
                             }}
                         >
                             <div
