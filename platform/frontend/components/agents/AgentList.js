@@ -1,35 +1,27 @@
-import { Classes } from "@blueprintjs/core";
-import { useContext, useEffect, useRef, useCallback, useState } from "react";
-import AutoSizer from "react-virtualized-auto-sizer";
-import classNames from "classnames";
-import { Row, Col, Container } from "react-grid-system";
-import { AppContext } from "../app-context";
 import {
-    Intent,
-    Card,
-    Tag,
-    H5,
-    ButtonGroup,
     Button,
-    Dialog,
-    Callout,
+    ButtonGroup,
+    Card,
+    H5,
+    Icon,
+    IconSize,
+    Intent,
+    Tag,
+    Tooltip,
 } from "@blueprintjs/core";
-import {
-    BUTTON_WITH_TOOLTIP2,
-    DARK_THEME_CLASS,
-    DEBOUNCE_INTERVAL,
-} from "../constant";
 import axios from "axios";
+import classNames from "classnames";
 import _ from "lodash";
 import { actionToaster, createToast } from "../toaster";
-import { Tooltip } from "@blueprintjs/core";
 import Link from "next/link";
-import { Icon, IconSize } from "@blueprintjs/core";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { useEffect, useRef, useState, useContext } from "react";
+import { Col, Container, Row } from "react-grid-system";
+import { AppContext } from "../app-context";
+import { BUTTON_WITH_TOOLTIP2 } from "../constant";
 
 export default function AgentList({ setIsSearchOptionOpen }) {
-    const cardListClassName = `${Classes.CARD} ${Classes.CARD_LIST} ${Classes.CARD_LIST_BORDERED}`;
     const { appState } = useContext(AppContext);
     const [isLoading, setIsLoading] = useState(true);
     const fixedSizeListRef = useRef();
@@ -184,9 +176,7 @@ export default function AgentList({ setIsSearchOptionOpen }) {
                             xxl={2}
                             key={`app-agents-agentlist-${agent.name}`}
                         >
-                            <Link
-                                href={`/agents?agentID=${agent.name}`}
-                            >
+                            <Link href={`/agents?agentID=${agent.name}`}>
                                 <Card
                                     interactive
                                     className="entity-card"
@@ -196,7 +186,7 @@ export default function AgentList({ setIsSearchOptionOpen }) {
                                         padding: 10,
                                         height: "150px",
                                         position: "relative",
-                                        borderRadius: "5px"
+                                        borderRadius: "5px",
                                     }}
                                 >
                                     <H5
@@ -228,13 +218,9 @@ export default function AgentList({ setIsSearchOptionOpen }) {
                                             overflow: "hidden",
                                         }}
                                     >
-                                        <ReactMarkdown
-                                            remarkPlugins={[remarkGfm]}
-                                        >
-                                            {_.isEmpty(agent.description)
-                                                ? ""
-                                                : agent.description}
-                                        </ReactMarkdown>
+                                        {_.isEmpty(agent.description)
+                                            ? ""
+                                            : agent.description}
                                     </div>
                                     <Card
                                         className="bp4-elevation-4 entity-actions"
@@ -250,7 +236,7 @@ export default function AgentList({ setIsSearchOptionOpen }) {
                                             display: "none",
                                             backgroundColor: "transparent",
                                             boxShadow: "none",
-                                            border: "none"
+                                            border: "none",
                                         }}
                                     >
                                         <ButtonGroup
@@ -261,7 +247,6 @@ export default function AgentList({ setIsSearchOptionOpen }) {
                                                     : null
                                             }
                                         >
-    
                                             <Tooltip
                                                 {...BUTTON_WITH_TOOLTIP2}
                                                 content="Edit"
@@ -269,18 +254,14 @@ export default function AgentList({ setIsSearchOptionOpen }) {
                                                 <Button
                                                     onClick={(event) => {
                                                         event.stopPropagation();
-                                                        setEditId(
-                                                            agent.id
-                                                        );
+                                                        setEditId(agent.id);
                                                         setEntityName(
                                                             agent.name
                                                         );
                                                     }}
                                                     intent={Intent.PRIMARY}
                                                     minimal
-                                                    icon={
-                                                        <Icon icon="edit" />
-                                                    }
+                                                    icon={<Icon icon="edit" />}
                                                 />
                                             </Tooltip>
                                             <Tooltip
@@ -290,18 +271,14 @@ export default function AgentList({ setIsSearchOptionOpen }) {
                                                 <Button
                                                     onClick={(event) => {
                                                         event.stopPropagation();
-                                                        setDeleteId(
-                                                            agent.id
-                                                        );
+                                                        setDeleteId(agent.id);
                                                         setEntityName(
                                                             agent.name
                                                         );
                                                     }}
                                                     intent={Intent.DANGER}
                                                     minimal
-                                                    icon={
-                                                        <Icon icon="cross" />
-                                                    }
+                                                    icon={<Icon icon="cross" />}
                                                 />
                                             </Tooltip>
                                         </ButtonGroup>
@@ -331,7 +308,7 @@ export default function AgentList({ setIsSearchOptionOpen }) {
                                 width: "40px",
                                 height: "40px",
                                 position: "relative",
-                                borderRadius: "40px"
+                                borderRadius: "40px",
                             }}
                         >
                             <div
