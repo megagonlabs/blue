@@ -1,42 +1,50 @@
-import { Classes } from "@blueprintjs/core";
-import { useContext, useEffect, useRef, useCallback, useState } from "react";
-import AutoSizer from "react-virtualized-auto-sizer";
-import classNames from "classnames";
-import { Row, Col, Container } from "react-grid-system";
-import { AppContext } from "../app-context";
 import {
-    Intent,
-    Card,
-    Tag,
-    H5,
-    ButtonGroup,
     Button,
-    Dialog,
-    Callout,
+    ButtonGroup,
+    Card,
+    H5,
+    Icon,
+    Intent,
+    Popover,
+    Tag,
 } from "@blueprintjs/core";
-import {
-    BUTTON_WITH_TOOLTIP2,
-    DARK_THEME_CLASS,
-    DEBOUNCE_INTERVAL,
-} from "../constant";
+import classNames from "classnames";
 import _ from "lodash";
-
-import { Popover2 } from "@blueprintjs/core";
 import Link from "next/link";
-import { Icon, IconSize } from "@blueprintjs/core";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
-
+import { useEffect, useRef, useState } from "react";
+import { Col, Container, Row } from "react-grid-system";
+import { BUTTON_WITH_TOOLTIP2 } from "../constant";
 export default function DataSourceList() {
-    const cardListClassName = `${Classes.CARD} ${Classes.CARD_LIST} ${Classes.CARD_LIST_BORDERED}`;
-    const { appState } = useContext(AppContext);
-    const [isLoading, setIsLoading] = useState(true);
-    const [datasources, setDataSources] = useState([{"name":"indeed_mongodb","type":"source","scope":"\\\/","description":"Source for all indeed original data","properties":{"connection":{"host":"localhost","port":27017,"protocol":"mongodb"}}},{"name":"indeed_yellowhat","type":"source","scope":"\\\/","description":"Source for all indeed yellowhat data","properties":{"connection":{"host":"3.17.140.111","port":7687,"protocol":"bolt"}}}]);
+    const [datasources, setDataSources] = useState([
+        {
+            name: "indeed_mongodb",
+            type: "source",
+            scope: "\\/",
+            description: "Source for all indeed original data",
+            properties: {
+                connection: {
+                    host: "localhost",
+                    port: 27017,
+                    protocol: "mongodb",
+                },
+            },
+        },
+        {
+            name: "indeed_yellowhat",
+            type: "source",
+            scope: "\\/",
+            description: "Source for all indeed yellowhat data",
+            properties: {
+                connection: {
+                    host: "3.17.140.111",
+                    port: 7687,
+                    protocol: "bolt",
+                },
+            },
+        },
+    ]);
     const fixedSizeListRef = useRef();
-    
-    useEffect(() => {
-        
-    }, [fixedSizeListRef]);
+    useEffect(() => {}, [fixedSizeListRef]);
     return (
         <>
             <Container fluid style={{ padding: "20px 20px 10px 21px" }}>
@@ -62,14 +70,13 @@ export default function DataSourceList() {
                                         padding: 10,
                                         height: "150px",
                                         position: "relative",
-                                        borderRadius: "5px"
+                                        borderRadius: "5px",
                                     }}
                                 >
                                     <H5
                                         className={classNames({
                                             "bp4-text-overflow-ellipsis": true,
                                             "margin-0": true,
-                                            "bp4-skeleton": isLoading,
                                         })}
                                     >
                                         {_.get(datasource, "name", "-")}
@@ -80,12 +87,27 @@ export default function DataSourceList() {
                                         minimal
                                         round
                                     >
-                                        {_.get(datasource, "properties.connection.protocol", "-")  + "://" +_.get(datasource, "properties.connection.host", "-") + ":" + _.get(datasource, "properties.connection.port", "-") }
+                                        {_.get(
+                                            datasource,
+                                            "properties.connection.protocol",
+                                            "-"
+                                        ) +
+                                            "://" +
+                                            _.get(
+                                                datasource,
+                                                "properties.connection.host",
+                                                "-"
+                                            ) +
+                                            ":" +
+                                            _.get(
+                                                datasource,
+                                                "properties.connection.port",
+                                                "-"
+                                            )}
                                     </Tag>
                                     <div
                                         className={classNames({
                                             "bp4-text-muted": true,
-                                            "bp4-skeleton": isLoading,
                                         })}
                                         style={{
                                             marginTop: 5,
@@ -94,13 +116,9 @@ export default function DataSourceList() {
                                             overflow: "hidden",
                                         }}
                                     >
-                                        <ReactMarkdown
-                                            remarkPlugins={[remarkGfm]}
-                                        >
-                                            {_.isEmpty(datasource.description)
-                                                ? ""
-                                                : datasource.description}
-                                        </ReactMarkdown>
+                                        {_.isEmpty(datasource.description)
+                                            ? ""
+                                            : datasource.description}
                                     </div>
                                     <Card
                                         className="bp4-elevation-4 entity-actions"
@@ -116,19 +134,11 @@ export default function DataSourceList() {
                                             display: "none",
                                             backgroundColor: "transparent",
                                             boxShadow: "none",
-                                            border: "none"
+                                            border: "none",
                                         }}
                                     >
-                                        <ButtonGroup
-                                            large
-                                            className={
-                                                isLoading
-                                                    ? "bp4-skeleton"
-                                                    : null
-                                            }
-                                        >
-    
-                                            <Popover2
+                                        <ButtonGroup large>
+                                            <Popover
                                                 {...BUTTON_WITH_TOOLTIP2}
                                                 content="Edit"
                                             >
@@ -144,12 +154,10 @@ export default function DataSourceList() {
                                                     }}
                                                     intent={Intent.PRIMARY}
                                                     minimal
-                                                    icon={
-                                                        <Icon icon="edit" />
-                                                    }
+                                                    icon={<Icon icon="edit" />}
                                                 />
-                                            </Popover2>
-                                            <Popover2
+                                            </Popover>
+                                            <Popover
                                                 {...BUTTON_WITH_TOOLTIP2}
                                                 content="Delete"
                                             >
@@ -165,11 +173,9 @@ export default function DataSourceList() {
                                                     }}
                                                     intent={Intent.DANGER}
                                                     minimal
-                                                    icon={
-                                                        <Icon icon="cross" />
-                                                    }
+                                                    icon={<Icon icon="cross" />}
                                                 />
-                                            </Popover2>
+                                            </Popover>
                                         </ButtonGroup>
                                     </Card>
                                 </Card>
@@ -197,7 +203,7 @@ export default function DataSourceList() {
                                 width: "40px",
                                 height: "40px",
                                 position: "relative",
-                                borderRadius: "40px"
+                                borderRadius: "40px",
                             }}
                         >
                             <div

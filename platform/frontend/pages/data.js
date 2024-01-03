@@ -1,18 +1,6 @@
-
-import { AppContext } from "@/components/app-context";
-import { H4, InputGroup, Button, ButtonGroup, H1 } from "@blueprintjs/core";
-import { faIcon } from "@/components/icon";
 import DataSourceList from "@/components/data/DataSourceList";
-import { AppToaster } from "@/components/toaster";
-import { Card, Intent, NonIdealState } from "@blueprintjs/core";
-import { faInboxIn, faMessages } from "@fortawesome/pro-duotone-svg-icons";
-import _ from "lodash";
-import { useContext, useEffect } from "react";
+import { H4 } from "@blueprintjs/core";
 export default function Data() {
-    const { appState, appActions } = useContext(AppContext);
-    const sessionIdFocus = appState.session.sessionIdFocus;
-    useEffect(() => {
-    }, []);
     return (
         <>
             <div
@@ -24,7 +12,7 @@ export default function Data() {
                     width: "100%",
                 }}
             >
-            <H4
+                <H4
                     className="margin-0"
                     style={{
                         lineHeight: "30px",
@@ -32,9 +20,8 @@ export default function Data() {
                     }}
                 >
                     Data Registry (default)
-            </H4>
-            
-            <DataSourceList />
+                </H4>
+                <DataSourceList />
             </div>
         </>
     );
