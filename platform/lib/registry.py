@@ -34,10 +34,7 @@ from redis.commands.search.query import Query
 #######
 import numpy as np
 from sentence_transformers import SentenceTransformer
-
-
-INDEX_NAME = "index"                              # Vector Index Name
-DOC_PREFIX = "doc:"     
+ 
 
 class Registry():
     def __init__(self, name, properties={}):
@@ -104,14 +101,19 @@ class Registry():
         # create registry-specific registry
         self.connection.json().set(self._get_data_namespace(), '$', {'contents':{}}, nx=True)
 
+    def _get_index_name(self):
+        return self.properties['type'] + "_" + self.name
+
+    def _get_doc_prefix(self):
+        return self.properties['type'] + "_" + 'doc:'
 
     def _init_search_index(self):
 
         # init embeddings model
         self._init_search_embeddings_model()
 
-        index_name = self.name
-        doc_prefix = 'doc:'
+        index_name = self._get_index_name()
+        doc_prefix = self._get_doc_prefix()
 
         try:
             # check if index exists
@@ -157,7 +159,8 @@ class Registry():
 
     def build_index(self):
 
-        index_name = self.name 
+        index_name = self._get_index_name()
+        doc_prefix = self._get_doc_prefix()
 
         records = self.list_records()
 
@@ -214,7 +217,8 @@ class Registry():
             res = pipe.execute()
 
     def __doc_key(self, name, type, scope):
-        doc_prefix = 'doc:' 
+        index_name = self._get_index_name()
+        doc_prefix = self._get_doc_prefix() 
 
         if scope[len(scope)-1] == '/':
             scope = scope[:-1]
@@ -254,8 +258,8 @@ class Registry():
 
     def search_records(self, keywords, type=None, scope=None, approximate=False, hybrid=False, page=0, page_size=5):
         
-        index_name = self.name
-        doc_prefix = 'doc:'
+        index_name = self._get_index_name()
+        doc_prefix = self._get_doc_prefix()
 
         q = None
         

@@ -8,6 +8,9 @@ mkdir -p lib/platform; cp -r ../lib/* lib/platform/
 # copy from agent_registry shared lib
 mkdir -p lib/agent_registry; cp -r ../agent_registry/src/* lib/agent_registry/
 
+# copy from data_registry shared lib
+mkdir -p lib/data_registry; cp -r ../data_registry/src/* lib/data_registry/
+
 # copy from utils shared lib
 mkdir -p lib/utils; cp -r ../../utils/lib/* lib/utils/
 

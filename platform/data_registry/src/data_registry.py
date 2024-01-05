@@ -38,7 +38,6 @@ import numpy as np
 from sentence_transformers import SentenceTransformer
 
 ###### Blue
-from agent import Agent
 from registry import Registry
 
 ###### Supported Data Sources
