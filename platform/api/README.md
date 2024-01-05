@@ -2,11 +2,11 @@
 Under `platform/api/`
 - Install dependencies: `pip install -r src/requirements.txt`
 - Run script (copy libs): `./docker_build_api.sh`
-- Start server: `uvicorn server:app --app-dir src --port 5000 --reload`
+- Start server: `uvicorn server:app --app-dir src --port 5050 --reload`
 
 ## API Documentation
 
-Check out [SwaggerUI](http://localhost:5000/docs)
+Check out [SwaggerUI](http://localhost:5050/docs)
 
 ## Add routes
 > For more detailed documentation, check out [APIRouter](https://fastapi.tiangolo.com/reference/apirouter/) class.

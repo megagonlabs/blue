@@ -50,7 +50,3 @@ async def websocket_endpoint(websocket: WebSocket):
         await connection_manager.broadcast(
             json.dumps({"type": "disconnected", "id": id})
         )
-
-
-# start the server
-# uvicorn server:app --port 5000 --reload

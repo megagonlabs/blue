@@ -1,10 +1,11 @@
 import json
 import random
+import time
 import uuid
 
 from websocket import create_connection
 
-ws = create_connection("ws://localhost:5000/sessions/ws")
+ws = create_connection("ws://localhost:5050/sessions/ws")
 result = ws.recv()
 client_id = json.loads(result)["id"]
 COMMON_P = (
@@ -259,4 +260,5 @@ for _ in range(11 * 11):
             }
         )
     )
+time.sleep(1)
 ws.close()
