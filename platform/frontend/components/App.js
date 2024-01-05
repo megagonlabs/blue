@@ -66,6 +66,11 @@ export default function App({ children }) {
                                 key={`app-card-button_group-link-${index}`}
                             >
                                 <Button
+                                    style={
+                                        !active
+                                            ? { backgroundColor: "transparent" }
+                                            : null
+                                    }
                                     intent={active ? Intent.PRIMARY : null}
                                     active={active}
                                     text={text}
