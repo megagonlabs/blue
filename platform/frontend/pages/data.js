@@ -1,27 +1,35 @@
-import DataSourceList from "@/components/data/DataSourceList";
-import { H4 } from "@blueprintjs/core";
+import { AppContext } from "@/components/app-context";
+import RegistryList from "@/components/registries/RegistryList";
+import { Card, H4, HTMLSelect } from "@blueprintjs/core";
+import { useContext, useEffect } from "react";
 export default function Data() {
+    const { appActions } = useContext(AppContext);
+    useEffect(() => {
+        // appActions.data.getData();
+    }, []);
     return (
         <>
-            <div
+            <Card
                 style={{
-                    // position: "absolute",
-                    top: 20,
-                    left: 20,
-                    height: "100%",
-                    width: "100%",
+                    borderRadius: 0,
+                    padding: 15,
+                    display: "flex",
+                    alignItems: "center",
                 }}
             >
-                <H4
-                    className="margin-0"
-                    style={{
-                        lineHeight: "30px",
-                        marginRight: 10,
-                    }}
-                >
-                    Data Registry (default)
-                </H4>
-                <DataSourceList />
+                <H4 style={{ margin: "0px 15px 0px 0px" }}>Data Registry</H4>
+                <HTMLSelect minimal>
+                    <option value="">default</option>
+                </HTMLSelect>
+            </Card>
+            <div
+                style={{
+                    height: "calc(100% - 61px)",
+                    overflowY: "auto",
+                    marginTop: 2,
+                }}
+            >
+                <RegistryList type="data" />
             </div>
         </>
     );
