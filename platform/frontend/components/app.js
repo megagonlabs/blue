@@ -22,7 +22,7 @@ export default function App({ children }) {
     const router = useRouter();
     const MENU_ITEMS = [
         { href: "/sessions", text: "Sessions", icon: faSignalStream },
-        { href: "/data", text: "Data", icon: faDatabase, disabled: true },
+        { href: "/data", text: "Data", icon: faDatabase },
         { href: "/agents", text: "Agents", icon: faCircleA },
     ];
     return (
