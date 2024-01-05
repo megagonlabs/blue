@@ -67,6 +67,9 @@ class DataRegistry(Registry):
         record = self.get_record(source, '/')
         self.deregister(record, rebuild=rebuild)
 
+    def get_sources(self):
+        return super().ist_records(type="source", scope="/"):
+      
     def get_source(self, source):
         return super().get_record(source, '/')
 
