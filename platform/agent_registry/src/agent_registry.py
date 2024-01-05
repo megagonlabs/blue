@@ -55,6 +55,16 @@ class AgentRegistry(Registry):
         self.properties['type'] = "agent"
 
     ######### agent
+    def add_agent(self, agent, description="", properties={}, rebuild=False):
+        super().register_record(agent, "agent", "/", description=description, properties=properties, rebuild=rebuild)
+
+    def update_agent(self, agent, description="", properties={}, rebuild=False):
+        super().update_record(agent, "agent", "/", description=description, properties=properties, rebuild=rebuild)
+
+    def remove_agent(self, agent, rebuild=False):
+        record = self.get_agent(agent)
+        super().deregister(record, rebuild=rebuild)
+
     def get_agent(self, agent):
         return super().get_record(agent, '/')
 
@@ -83,6 +93,16 @@ class AgentRegistry(Registry):
 
 
     ######### agent input and output parameters
+    def add_agent_input(self, agent, parameter, description="", properties={}, rebuild=False):
+        super().register_record(parameter, "input", "/"+agent, description=description, properties=properties, rebuild=rebuild)
+
+    def update_agent_input(self, agent, parameter, description="", properties={}, rebuild=False):
+        super().update_record(parameter, "input", "/"+agent, description=description, properties=properties, rebuild=rebuild)
+
+    def remove_agent_input(self, agent, parameter, rebuild=False):
+        record = self.get_agent_input(agent, parameter)
+        super().deregister(record, rebuild=rebuild)
+
     def get_agent_inputs(self, agent):
         super().get_record_contents(agent, '/', type='input')
 
@@ -96,6 +116,17 @@ class AgentRegistry(Registry):
     def del_agent_input(self, agent, parameter, rebuild=False):
         record = self.get_agent_input(agent, parameter)
         super().deregister(self, record, rebuild=rebuild)
+
+
+    def add_agent_output(self, agent, parameter, description="", properties={}, rebuild=False):
+        super().register_record(parameter, "output", "/"+agent, description=description, properties=properties, rebuild=rebuild)
+
+    def update_agent_output(self, agent, parameter, description="", properties={}, rebuild=False):
+        super().update_record(parameter, "output", "/"+agent, description=description, properties=properties, rebuild=rebuild)
+
+    def remove_agent_output(self, agent, parameter, rebuild=False):
+        record = self.get_agent_output(agent, parameter)
+        super().deregister(record, rebuild=rebuild)
 
     def get_agent_outputs(self, agent):
         super().get_record_contents(agent, '/', type='output')
