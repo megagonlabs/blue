@@ -1,6 +1,6 @@
 import { AppContext } from "@/components/app-context";
 import RegistryList from "@/components/registries/RegistryList";
-import { Card, H4, HTMLSelect } from "@blueprintjs/core";
+import { H4, HTMLSelect } from "@blueprintjs/core";
 import { useContext, useEffect } from "react";
 export default function Data() {
     const { appActions } = useContext(AppContext);
@@ -9,10 +9,9 @@ export default function Data() {
     }, []);
     return (
         <>
-            <Card
+            <div
                 style={{
-                    borderRadius: 0,
-                    padding: 15,
+                    padding: "15px 15px 7.5px 15px",
                     display: "flex",
                     alignItems: "center",
                 }}
@@ -21,7 +20,7 @@ export default function Data() {
                 <HTMLSelect minimal>
                     <option value="">default</option>
                 </HTMLSelect>
-            </Card>
+            </div>
             <div
                 style={{
                     height: "calc(100% - 61px)",
