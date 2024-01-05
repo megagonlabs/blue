@@ -1,7 +1,12 @@
 ## Run API server
 Under `platform/api/`
-- Install dependencies: `pip install -r requirements.txt`
-- Start server: `uvicorn server:app --port 5000 --reload`
+- Install dependencies: `pip install -r src/requirements.txt`
+- Run script (copy libs): `./docker_build_api.sh`
+- Start server: `uvicorn server:app --app-dir src --port 5000 --reload`
+
+## API Documentation
+
+Check out [SwaggerUI](http://localhost:5000/docs)
 
 ## Add routes
 > For more detailed documentation, check out [APIRouter](https://fastapi.tiangolo.com/reference/apirouter/) class.
@@ -24,6 +29,7 @@ router = APIRouter(prefix='<name>')
 def get_example():
     return JSONResponse(content={})
 ```
+
 ## Send websocket message
 Under `platform/api/`
 - `python test_client.py`
