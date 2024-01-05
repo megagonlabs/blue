@@ -1,36 +1,35 @@
-import AgentList from "@/components/agents/AgentList";
-import { AppToaster } from "@/components/toaster";
-import { Card, Intent, NonIdealState } from "@blueprintjs/core";
-import { faInboxIn, faMessages } from "@fortawesome/pro-duotone-svg-icons";
-import _ from "lodash";
-import { H4 } from "@blueprintjs/core";
 import { AppContext } from "@/components/app-context";
-import { useContext, useEffect, useState } from "react";
+import RegistryList from "@/components/registries/RegistryList";
+import { Card, H4, HTMLSelect } from "@blueprintjs/core";
+import { useContext, useEffect } from "react";
 export default function Agents() {
-    const { appState, appActions } = useContext(AppContext);
-    const [isSearchOptionOpen, setIsSearchOptionOpen] = useState(false);
-    useEffect(() => {}, []);
+    const { appActions } = useContext(AppContext);
+    useEffect(() => {
+        // appActions.agent.getAgents();
+    }, []);
     return (
         <>
-            <div
+            <Card
                 style={{
-                    // position: "absolute",
-                    top: 20,
-                    left: 20,
-                    height: "100%",
-                    width: "100%",
+                    borderRadius: 0,
+                    padding: 15,
+                    display: "flex",
+                    alignItems: "center",
                 }}
             >
-                <H4
-                    className="margin-0"
-                    style={{
-                        lineHeight: "30px",
-                        marginRight: 10,
-                    }}
-                >
-                    Agents Registry (default)
-                </H4>
-                <AgentList />
+                <H4 style={{ margin: "0px 15px 0px 0px" }}>Agents Registry</H4>
+                <HTMLSelect minimal>
+                    <option value="">default</option>
+                </HTMLSelect>
+            </Card>
+            <div
+                style={{
+                    height: "calc(100% - 61px)",
+                    overflowY: "auto",
+                    marginTop: 2,
+                }}
+            >
+                <RegistryList type="agent" />
             </div>
         </>
     );

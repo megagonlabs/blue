@@ -46,7 +46,6 @@ export default function App({ children }) {
                 </Navbar.Group>
             </Navbar>
             <Card
-                interactive
                 style={{
                     position: "absolute",
                     top: 50,
@@ -59,25 +58,22 @@ export default function App({ children }) {
                 }}
             >
                 <ButtonGroup alignText={Alignment.LEFT} vertical minimal large>
-                    {MENU_ITEMS.map(
-                        ({ href, icon, text, disabled = false }, index) => {
-                            const active = _.isEqual(router.pathname, href);
-                            return (
-                                <Link
-                                    href={href}
-                                    key={`app-card-button_group-link-${index}`}
-                                >
-                                    <Button
-                                        disabled={disabled}
-                                        intent={active ? Intent.PRIMARY : null}
-                                        active={active}
-                                        text={text}
-                                        icon={faIcon({ icon: icon })}
-                                    />
-                                </Link>
-                            );
-                        }
-                    )}
+                    {MENU_ITEMS.map(({ href, icon, text }, index) => {
+                        const active = _.isEqual(router.pathname, href);
+                        return (
+                            <Link
+                                href={href}
+                                key={`app-card-button_group-link-${index}`}
+                            >
+                                <Button
+                                    intent={active ? Intent.PRIMARY : null}
+                                    active={active}
+                                    text={text}
+                                    icon={faIcon({ icon: icon })}
+                                />
+                            </Link>
+                        );
+                    })}
                 </ButtonGroup>
             </Card>
             <div
