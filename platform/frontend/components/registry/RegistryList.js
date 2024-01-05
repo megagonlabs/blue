@@ -1,14 +1,30 @@
+import { NonIdealState } from "@blueprintjs/core";
 import _ from "lodash";
+import { useRouter } from "next/router";
 import { useContext } from "react";
 import { Col, Container, Row } from "react-grid-system";
 import { AppContext } from "../app-context";
+import { REGISTRY_TYPE_LOOKUP } from "../constant";
+import { faIcon } from "../icon";
 import RegistryCard from "./RegistryCard";
 export default function RegistryList({ type }) {
     const { appState } = useContext(AppContext);
+    const list = _.get(appState, [type, "list"], []);
+    if (_.isEmpty(list))
+        return (
+            <NonIdealState
+                icon={faIcon({
+                    icon: REGISTRY_TYPE_LOOKUP[type].icon,
+                    size: 50,
+                })}
+                title={`No ${_.capitalize(type)}`}
+            />
+        );
+    const router = useRouter();
     return (
-        <Container fluid>
-            <Row gutterWidth={15} align="stretch" style={{ paddingTop: 14 }}>
-                {_.get(appState, [type, "list"], []).map((element) => {
+        <Container fluid style={{ paddingLeft: 20, paddingRight: 20 }}>
+            <Row gutterWidth={20} align="stretch" style={{ paddingTop: 10 }}>
+                {list.map((element) => {
                     const properties = element.properties;
                     let extra = null;
                     switch (type) {
@@ -26,12 +42,13 @@ export default function RegistryList({ type }) {
                             md={6}
                             lg={4}
                             xxl={3}
-                            style={{ paddingBottom: 15 }}
+                            style={{ paddingBottom: 20 }}
                         >
                             <RegistryCard
                                 title={element.name}
                                 description={element.description}
                                 extra={extra}
+                                href={`${router.asPath}/${type}/${element.name}`}
                             />
                         </Col>
                     );

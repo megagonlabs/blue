@@ -17,17 +17,28 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
+import { useContext } from "react";
+import { AppContext } from "./app-context";
 import { faIcon } from "./icon";
 export default function App({ children }) {
     const router = useRouter();
+    const { appState } = useContext(AppContext);
     const MENU_ITEMS = [
         { href: "/sessions", text: "Sessions", icon: faSignalStream },
-        { href: "/data", text: "Data", icon: faDatabase },
-        { href: "/agents", text: "Agents", icon: faCircleA },
+        {
+            href: `/data/${appState.data.registryName}`,
+            text: "Data",
+            icon: faDatabase,
+        },
+        {
+            href: `/agents/${appState.agent.registryName}`,
+            text: "Agents",
+            icon: faCircleA,
+        },
     ];
     return (
         <>
-            <Navbar>
+            <Navbar style={{ paddingLeft: 20, paddingRight: 20 }}>
                 <Navbar.Group align="left">
                     <Image
                         width={25}
@@ -51,15 +62,14 @@ export default function App({ children }) {
                     top: 50,
                     left: 0,
                     height: "calc(100vh - 50px)",
-                    width: 150.55,
-                    padding: 15,
+                    width: 160.55,
                     borderRadius: 0,
                     zIndex: 1,
                 }}
             >
                 <ButtonGroup alignText={Alignment.LEFT} vertical minimal large>
                     {MENU_ITEMS.map(({ href, icon, text }, index) => {
-                        const active = _.isEqual(router.pathname, href);
+                        const active = _.startsWith(router.asPath, href);
                         return (
                             <Link
                                 href={href}
@@ -71,7 +81,6 @@ export default function App({ children }) {
                                             ? { backgroundColor: "transparent" }
                                             : null
                                     }
-                                    intent={active ? Intent.PRIMARY : null}
                                     active={active}
                                     text={text}
                                     icon={faIcon({ icon: icon })}
@@ -83,7 +92,7 @@ export default function App({ children }) {
             </Card>
             <div
                 style={{
-                    marginLeft: 150.55,
+                    marginLeft: 160.55,
                     height: "calc(100vh - 50px)",
                     position: "relative",
                 }}

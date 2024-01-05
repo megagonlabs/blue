@@ -11,7 +11,7 @@ export default function SessionRow({ index, style }) {
     return (
         <Card
             interactive
-            style={{ ...style, borderRadius: 0, padding: "20px 15px" }}
+            style={{ ...style, borderRadius: 0 }}
             onClick={() => appActions.session.setSessionIdFocus(sessionId)}
         >
             <div style={{ width: 31 }}>

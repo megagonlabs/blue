@@ -1,3 +1,11 @@
+const { faDatabase, faCircleA } = require("@fortawesome/pro-duotone-svg-icons");
 module.exports = {
-    BUTTON_WITH_TOOLTIP2: { minimal: true },
+    REGISTRY_TYPE_LOOKUP: {
+        data: {
+            icon: faDatabase,
+        },
+        agent: {
+            icon: faCircleA,
+        },
+    },
 };

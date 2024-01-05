@@ -11,7 +11,7 @@ export default function SessionMessages() {
     const messages = appState.session.sessions[sessionIdFocus];
     function getRowHeight(index) {
         return (
-            rowHeights.current[index] + 15 + (_.isEqual(index, 0) ? 15 : 0) ||
+            rowHeights.current[index] + 10 + (_.isEqual(index, 0) ? 20 : 0) ||
             51
         );
     }
@@ -46,7 +46,7 @@ export default function SessionMessages() {
             <div
                 style={{
                     ...style,
-                    padding: `${_.isEqual(index, 0) ? 15 : 0}px 15px 15px`,
+                    padding: `${_.isEqual(index, 0) ? 20 : 0}px 20px 10px`,
                 }}
             >
                 <Callout
@@ -73,7 +73,7 @@ export default function SessionMessages() {
     }, [variableSizeListRef, sessionIdFocus]);
     return (
         <>
-            <Card style={{ padding: 15, borderRadius: 0 }}>
+            <Card style={{ borderRadius: 0 }}>
                 <H4
                     className={Classes.TEXT_OVERFLOW_ELLIPSIS}
                     style={{ margin: 0 }}

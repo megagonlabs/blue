@@ -1,23 +1,27 @@
 import { AppContext } from "@/components/app-context";
-import RegistryList from "@/components/registries/RegistryList";
+import RegistryList from "@/components/registry/RegistryList";
 import { H4, HTMLSelect } from "@blueprintjs/core";
 import { useContext, useEffect } from "react";
 export default function Agents() {
-    const { appActions } = useContext(AppContext);
+    const { appState, appActions } = useContext(AppContext);
     useEffect(() => {
-        // appActions.agent.getAgents();
+        // appActions.agent.getList();
     }, []);
     return (
         <>
             <div
                 style={{
-                    padding: "15px 15px 7.5px 15px",
+                    padding: "20px 20px 10px 20px",
                     display: "flex",
                     alignItems: "center",
                 }}
             >
-                <H4 style={{ margin: "0px 15px 0px 0px" }}>Agents Registry</H4>
-                <HTMLSelect minimal>
+                <H4 style={{ margin: "0px 20px 0px 0px" }}>Agents Registry</H4>
+                <HTMLSelect
+                    minimal
+                    value={appState.data.registryName}
+                    onChange={(event) => {}}
+                >
                     <option value="">default</option>
                 </HTMLSelect>
             </div>
@@ -25,7 +29,6 @@ export default function Agents() {
                 style={{
                     height: "calc(100% - 61px)",
                     overflowY: "auto",
-                    marginTop: 2,
                 }}
             >
                 <RegistryList type="agent" />
