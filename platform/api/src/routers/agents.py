@@ -50,14 +50,14 @@ class Parameter(BaseModel):
 def get_agents():
     registry = AgentRegistry("default")
     results = registry.list_records()
-    return JSONResponse(content={ "list": list(results.values()) })
+    return JSONResponse(content={ "results": list(results.values()) })
 
 
 @router.get("/{registry_name}")
 def get_agents_from(registry_name):
     registry = AgentRegistry(registry_name)
     results = registry.list_records()
-    return JSONResponse(content={ "list": list(results.values()) })
+    return JSONResponse(content={ "results": list(results.values()) })
 
 @router.get("/{registry_name}/agent/{agent_name}")
 def get_agent(registry_name, agent_name):
