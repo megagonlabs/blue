@@ -79,6 +79,9 @@ def update_source(registry_name, source_name, data: Data, sync: bool = False, re
     registry = DataRegistry(registry_name)
     #TODO: properties
     registry.update_source(source_name, description=data.description, properties={}, rebuild=True)
+    if sync:
+        registry.sync_source(source_name, recursive=recursive, rebuild=True)
+
     return JSONResponse(content={ "message": "Success" }) 
 
 @router.delete("/{registry_name}/source/{source_name}")
@@ -112,6 +115,8 @@ def update_source_database(registry_name, source_name, database_name, data: Data
     registry = DataRegistry(registry_name)
     #TODO: properties
     registry.update_source_database(source_name, database_name, description=data.description, properties={}, rebuild=True)
+    if sync:
+        registry.sync_source_database(source_name, database_name, recursive=recursive, rebuild=True)
     return JSONResponse(content={ "message": "Success" })  
 
 @router.delete("/{registry_name}/source/{source_name}/database/{database_name}")
@@ -144,6 +149,8 @@ def update_source_database_collection(registry_name, source_name, database_name,
     registry = DataRegistry(registry_name)
     #TODO: properties
     registry.update_source_database_collection(source_name, database_name, collection_name, description=data.description, properties={}, rebuild=True)
+    if sync:
+        registry.sync_source_database_collection(source_name, database_name, collection_name, recursive=recursive, rebuild=True)
     return JSONResponse(content={ "message": "Success" })   
 
 @router.delete("/{registry_name}/source/{source_name}/database/{database_name}/collection/{collection_name}")

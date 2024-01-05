@@ -385,6 +385,18 @@ class Registry():
 
         self.register_record(name, type, scope, description=description, properties=properties)
 
+    def update_record(self, name, type, scope, description="", properties={}, rebuild=False):
+        record = {}
+        record['name'] = name
+        record['type'] = type
+        record['scope'] = scope
+        record['description'] = description
+
+        record['properties'] = properties
+
+        self.update_record_json(record)
+
+
     def update_record_json(self, record):
         name = None
         if 'name' in record:
