@@ -5,7 +5,7 @@ import { useContext, useEffect } from "react";
 export default function Data() {
     const { appState, appActions } = useContext(AppContext);
     useEffect(() => {
-        // appActions.data.getList();
+        appActions.data.getList();
     }, []);
     return (
         <>
@@ -29,7 +29,6 @@ export default function Data() {
                 style={{
                     height: "calc(100% - 61px)",
                     overflowY: "auto",
-                    marginTop: 2,
                 }}
             >
                 <RegistryList type="data" />

@@ -14,7 +14,7 @@ import { faIcon } from "../icon";
 export default function RegistryBreadcrumbs({ breadcrumbs }) {
     const HYPHEN_ICON = faIcon({
         icon: faAngleRight,
-        style: { marginLeft: 10, marginRight: 10 },
+        style: { marginLeft: 5, marginRight: 5 },
     });
     const BREADCRUMB_STYLE = {
         display: "flex",

@@ -5,11 +5,10 @@ export const agentAction = (dispatch) => ({
         axios.get("/agents").then((response) => {
             dispatch({
                 type: "agent/list/set",
-                payload: _.get(response, "data", []),
+                payload: _.get(response, "data.results", []),
             });
         });
     },
-    getAgent: () => {},
     setRegistryName: (payload) => {
         dispatch({
             type: "agent/registryName/set",

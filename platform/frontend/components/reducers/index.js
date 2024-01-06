@@ -6,7 +6,7 @@ export default function rootReducer(state = {}, action) {
     return {
         app: appReducer(state.app, action),
         session: sessionReducer(state.session, action),
-        agents: agentReducer(state.agents, action),
+        agent: agentReducer(state.agents, action),
         data: dataReducer(state.data, action),
     };
 }

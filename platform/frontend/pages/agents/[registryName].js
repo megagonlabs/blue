@@ -5,7 +5,7 @@ import { useContext, useEffect } from "react";
 export default function Agents() {
     const { appState, appActions } = useContext(AppContext);
     useEffect(() => {
-        // appActions.agent.getList();
+        appActions.agent.getList();
     }, []);
     return (
         <>

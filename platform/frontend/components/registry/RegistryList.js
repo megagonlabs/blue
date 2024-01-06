@@ -26,12 +26,14 @@ export default function RegistryList({ type }) {
             <Row gutterWidth={20} align="stretch" style={{ paddingTop: 10 }}>
                 {list.map((element) => {
                     const properties = element.properties;
-                    let extra = null;
+                    let extra = null,
+                        key = type;
                     switch (type) {
                         case "agent":
                             extra = properties.image;
                             break;
                         case "data":
+                            key = "source";
                             extra = `${properties.connection.protocol}://${properties.connection.host}:${properties.connection.port}`;
                             break;
                     }
@@ -48,7 +50,7 @@ export default function RegistryList({ type }) {
                                 title={element.name}
                                 description={element.description}
                                 extra={extra}
-                                href={`${router.asPath}/${type}/${element.name}`}
+                                href={`${router.asPath}/${key}/${element.name}`}
                             />
                         </Col>
                     );

@@ -1,4 +1,5 @@
 import { Card, H5, Intent, Tag } from "@blueprintjs/core";
+import _ from "lodash";
 import Link from "next/link";
 export default function RegistryCard({ title, description, href, extra }) {
     return (
@@ -6,14 +7,16 @@ export default function RegistryCard({ title, description, href, extra }) {
             <Card interactive style={{ height: "100%" }}>
                 <H5>{title}</H5>
                 <div className="multiline-ellipsis">{description}</div>
-                <Tag
-                    style={{ marginTop: 10 }}
-                    minimal
-                    intent={Intent.PRIMARY}
-                    interactive
-                >
-                    {extra}
-                </Tag>
+                {!_.isEmpty(extra) ? (
+                    <Tag
+                        style={{ marginTop: 10 }}
+                        minimal
+                        intent={Intent.PRIMARY}
+                        interactive
+                    >
+                        {extra}
+                    </Tag>
+                ) : null}
             </Card>
         </Link>
     );

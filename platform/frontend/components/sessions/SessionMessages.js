@@ -11,8 +11,9 @@ export default function SessionMessages() {
     const messages = appState.session.sessions[sessionIdFocus];
     function getRowHeight(index) {
         return (
-            rowHeights.current[index] + 10 + (_.isEqual(index, 0) ? 20 : 0) ||
-            51
+            rowHeights.current[index] +
+                (_.isEqual(index, messages.length - 1) ? 20 : 10) +
+                (_.isEqual(index, 0) ? 20 : 0) || 51
         );
     }
     function setRowHeight(index, size, shouldForceUpdate = true) {
@@ -46,7 +47,9 @@ export default function SessionMessages() {
             <div
                 style={{
                     ...style,
-                    padding: `${_.isEqual(index, 0) ? 20 : 0}px 20px 10px`,
+                    padding: `${_.isEqual(index, 0) ? 20 : 0}px 20px ${
+                        _.isEqual(index, messages.length - 1) ? 20 : 10
+                    }px`,
                 }}
             >
                 <Callout
@@ -84,7 +87,7 @@ export default function SessionMessages() {
             <AutoSizer>
                 {({ width, height }) => (
                     <VariableSizeList
-                        height={height - 51}
+                        height={height - 61}
                         itemCount={messages.length}
                         itemSize={getRowHeight}
                         ref={variableSizeListRef}
