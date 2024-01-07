@@ -73,7 +73,7 @@ export default function App({ children }) {
                         return (
                             <Link
                                 href={href}
-                                key={`app-card-button_group-link-${index}`}
+                                key={`app-card-button-group-link-${index}`}
                             >
                                 <Button
                                     style={

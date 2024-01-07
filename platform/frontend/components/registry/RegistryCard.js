@@ -10,6 +10,7 @@ export default function RegistryCard({ title, description, href, extra }) {
                 {!_.isEmpty(extra) ? (
                     <Tag
                         style={{ marginTop: 10 }}
+                        large
                         minimal
                         intent={Intent.PRIMARY}
                         interactive

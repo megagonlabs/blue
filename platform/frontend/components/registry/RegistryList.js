@@ -10,6 +10,7 @@ import RegistryCard from "./RegistryCard";
 export default function RegistryList({ type }) {
     const { appState } = useContext(AppContext);
     const list = _.get(appState, [type, "list"], []);
+    const router = useRouter();
     if (_.isEmpty(list))
         return (
             <NonIdealState
@@ -20,7 +21,6 @@ export default function RegistryList({ type }) {
                 title={`No ${_.capitalize(type)}`}
             />
         );
-    const router = useRouter();
     return (
         <Container fluid style={{ paddingLeft: 20, paddingRight: 20 }}>
             <Row gutterWidth={20} align="stretch" style={{ paddingTop: 10 }}>

@@ -15,6 +15,7 @@ export default function AgentEntity() {
     const router = useRouter();
     const [entity, setEntity] = useState({});
     useEffect(() => {
+        console.log(router);
         axios.get(router.asPath).then((response) => {
             setEntity(_.get(response, "data.result", {}));
         });
@@ -80,11 +81,13 @@ export default function AgentEntity() {
                             </tr>
                         </thead>
                         <tbody>
-                            {_.values(entity.contents).map((element) => {
+                            {_.values(entity.contents).map((element, index) => {
                                 if (!_.isEqual(element.type, "input"))
                                     return null;
                                 return (
-                                    <tr>
+                                    <tr
+                                        key={`agent-entity-table-input-${index}`}
+                                    >
                                         <td
                                             style={{
                                                 paddingLeft: 15,
@@ -95,6 +98,9 @@ export default function AgentEntity() {
                                                 href={`${router.asPath}/input/${element.name}`}
                                             >
                                                 <Tag
+                                                    style={{
+                                                        pointerEvents: "none",
+                                                    }}
                                                     minimal
                                                     interactive
                                                     large
@@ -129,11 +135,13 @@ export default function AgentEntity() {
                             </tr>
                         </thead>
                         <tbody>
-                            {_.values(entity.contents).map((element) => {
+                            {_.values(entity.contents).map((element, index) => {
                                 if (!_.isEqual(element.type, "output"))
                                     return null;
                                 return (
-                                    <tr>
+                                    <tr
+                                        key={`agent-entity-table-output-${index}`}
+                                    >
                                         <td
                                             style={{
                                                 paddingLeft: 15,
@@ -144,6 +152,9 @@ export default function AgentEntity() {
                                                 href={`${router.asPath}/output/${element.name}`}
                                             >
                                                 <Tag
+                                                    style={{
+                                                        pointerEvents: "none",
+                                                    }}
                                                     minimal
                                                     interactive
                                                     large

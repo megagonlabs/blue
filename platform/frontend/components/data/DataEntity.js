@@ -68,11 +68,13 @@ export default function DataEntity() {
                             </tr>
                         </thead>
                         <tbody>
-                            {_.values(entity.contents).map((element) => {
+                            {_.values(entity.contents).map((element, index) => {
                                 if (!_.isEqual(element.type, "database"))
                                     return null;
                                 return (
-                                    <tr>
+                                    <tr
+                                        key={`data-entity-table-database-${index}`}
+                                    >
                                         <td
                                             style={{
                                                 paddingLeft: 15,
@@ -83,6 +85,9 @@ export default function DataEntity() {
                                                 href={`${router.asPath}/database/${element.name}`}
                                             >
                                                 <Tag
+                                                    style={{
+                                                        pointerEvents: "none",
+                                                    }}
                                                     minimal
                                                     interactive
                                                     large

@@ -35,7 +35,7 @@ export default function RegistryBreadcrumbs({ breadcrumbs }) {
                                         return (
                                             <Link
                                                 href={href}
-                                                key={`registry-breadcrumb-overflow-${index}`}
+                                                key={`registry-breadcrumb-overflow-menu-item-${index}`}
                                             >
                                                 <MenuItem
                                                     intent={Intent.PRIMARY}
@@ -62,7 +62,7 @@ export default function RegistryBreadcrumbs({ breadcrumbs }) {
                     return (
                         <div
                             style={BREADCRUMB_STYLE}
-                            key={`registry-breadcrumb-${index}`}
+                            key={`registry-breadcrumb-visible-${index}`}
                         >
                             {!start || !end ? HYPHEN_ICON : null}
                             <Tag large minimal>
@@ -74,11 +74,14 @@ export default function RegistryBreadcrumbs({ breadcrumbs }) {
                 return (
                     <div
                         style={BREADCRUMB_STYLE}
-                        key={`registry-breadcrumb-${index}`}
+                        key={`registry-breadcrumb-visible-${index}`}
                     >
                         {!start ? HYPHEN_ICON : null}
                         <Link href={href}>
                             <Tag
+                                style={{
+                                    pointerEvents: "none",
+                                }}
                                 large
                                 minimal
                                 interactive
