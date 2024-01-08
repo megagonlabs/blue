@@ -15,7 +15,6 @@ export default function AgentEntity() {
     const router = useRouter();
     const [entity, setEntity] = useState({});
     useEffect(() => {
-        console.log(router);
         axios.get(router.asPath).then((response) => {
             setEntity(_.get(response, "data.result", {}));
         });
