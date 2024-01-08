@@ -247,7 +247,7 @@ def words(count):
     return " ".join(word_list)
 
 
-session_ids = [str(uuid.uuid4()) for _ in range(11)]
+session_ids = [str(uuid.uuid4()) for _ in range(11 * 2)]
 for _ in range(11 * 11):
     sentence_string = sentence()
     words_string = words(random.randint(4, 11))

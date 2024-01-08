@@ -27,9 +27,9 @@ export default function SessionList() {
                 <FixedSizeList
                     ref={fixedSizeListRef}
                     className={`session-list ${cardListClassName}`}
-                    style={{ borderRadius: 0 }}
-                    height={height}
-                    width={width}
+                    style={{ borderRadius: 0, marginTop: 1 }}
+                    height={height - 81}
+                    width={width - 1.65}
                     itemCount={appState.session.sessionIds.length}
                     itemSize={82}
                 >

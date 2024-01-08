@@ -1,4 +1,4 @@
-import { Callout, Card, Classes, H4 } from "@blueprintjs/core";
+import { Callout } from "@blueprintjs/core";
 import { useContext, useEffect, useRef } from "react";
 import AutoSizer from "react-virtualized-auto-sizer";
 import { VariableSizeList } from "react-window";
@@ -75,28 +75,18 @@ export default function SessionMessages() {
         }, 0);
     }, [variableSizeListRef, sessionIdFocus]);
     return (
-        <>
-            <Card style={{ borderRadius: 0 }}>
-                <H4
-                    className={Classes.TEXT_OVERFLOW_ELLIPSIS}
-                    style={{ margin: 0 }}
+        <AutoSizer>
+            {({ width, height }) => (
+                <VariableSizeList
+                    height={height}
+                    itemCount={messages.length}
+                    itemSize={getRowHeight}
+                    ref={variableSizeListRef}
+                    width={width}
                 >
-                    {sessionIdFocus}
-                </H4>
-            </Card>
-            <AutoSizer>
-                {({ width, height }) => (
-                    <VariableSizeList
-                        height={height - 61}
-                        itemCount={messages.length}
-                        itemSize={getRowHeight}
-                        ref={variableSizeListRef}
-                        width={width}
-                    >
-                        {Row}
-                    </VariableSizeList>
-                )}
-            </AutoSizer>
-        </>
+                    {Row}
+                </VariableSizeList>
+            )}
+        </AutoSizer>
     );
 }
