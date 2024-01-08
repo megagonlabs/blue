@@ -1,9 +1,9 @@
 import InputEntity from "@/components/agents/InputEntity";
 import OutputEntity from "@/components/agents/OutputEntity";
 import CollectionEntity from "@/components/data/CollectionEntity";
-import DataEntity from "@/components/data/DataEntity";
 import DatabaseEntity from "@/components/data/DatabaseEntity";
-import RegistryBreadcrumbs from "@/components/registry/RegistryBreadcrumbs";
+import SourceEntity from "@/components/data/SourceEntity";
+import Breadcrumbs from "@/components/entity/Breadcrumbs";
 import _ from "lodash";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
@@ -41,14 +41,14 @@ export default function RegistryEntity() {
         <>
             <div style={{ height: "100%", overflowY: "auto" }}>
                 <div style={{ margin: "20px 20px 10px" }}>
-                    <RegistryBreadcrumbs breadcrumbs={breadcrumbs} />
+                    <Breadcrumbs breadcrumbs={breadcrumbs} />
                 </div>
                 {_.isEqual(entityType, "/agent") ? <AgentEntity /> : null}
                 {_.isEqual(entityType, "/agent/input") ? <InputEntity /> : null}
                 {_.isEqual(entityType, "/agent/output") ? (
                     <OutputEntity />
                 ) : null}
-                {_.isEqual(entityType, "/source") ? <DataEntity /> : null}
+                {_.isEqual(entityType, "/source") ? <SourceEntity /> : null}
                 {_.isEqual(entityType, "/source/database") ? (
                     <DatabaseEntity />
                 ) : null}

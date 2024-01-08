@@ -8,3 +8,8 @@ a {
     -webkit-box-orient: vertical;
     overflow: hidden;
 }
+table.entity-section-card-table tr th,
+table.entity-section-card-table tr td {
+    padding-left: 20px;
+    padding-right: 20px;
+}

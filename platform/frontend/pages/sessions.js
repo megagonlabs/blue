@@ -39,8 +39,8 @@ export default function Sessions() {
                 try {
                     // parse the data from string to JSON object
                     const data = JSON.parse(event.data);
-                    // If the message is of type connect
-                    if (_.isEqual(data["type"], "message")) {
+                    // If the data is of type SESSION_MESSAGE
+                    if (_.isEqual(data["type"], "SESSION_MESSAGE")) {
                         appActions.session.addSessionMessage(data);
                     }
                 } catch (e) {

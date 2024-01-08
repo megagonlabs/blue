@@ -40,13 +40,11 @@ async def websocket_endpoint(websocket: WebSocket):
         while True:
             # Receive the message from the client
             data = await websocket.receive_text()
+            json_data = json.loads(data)
+            if json_data["type"] == "NEW_SESSION":
+                connection_id = connection_manager.find_connection_id(websocket)
+                connection_manager.new_session(connection_id, json_data["message"])
             print("Received: ", data)
-            # Send the message to all the clients
-            await connection_manager.broadcast(data)
     except WebSocketDisconnect:
         # Remove the connection from the list of active connections
-        id = connection_manager.disconnect(websocket)
-        # Broadcast the disconnection of client with id to all the clients
-        await connection_manager.broadcast(
-            json.dumps({"type": "disconnected", "id": id})
-        )
+        connection_manager.disconnect(websocket)

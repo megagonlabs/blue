@@ -11,7 +11,7 @@ import {
 import { faAngleRight, faBars } from "@fortawesome/pro-duotone-svg-icons";
 import Link from "next/link";
 import { faIcon } from "../icon";
-export default function RegistryBreadcrumbs({ breadcrumbs }) {
+export default function Breadcrumbs({ breadcrumbs }) {
     const HYPHEN_ICON = faIcon({
         icon: faAngleRight,
         style: { marginLeft: 5, marginRight: 5 },

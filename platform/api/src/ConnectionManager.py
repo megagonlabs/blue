@@ -9,12 +9,19 @@ from fastapi import WebSocket
 class ConnectionManager:
     def __init__(self) -> None:
         self.active_connections: dict = {}
+        self.session_to_client: dict = {}
 
-    async def connect(self, websocket: WebSocket):
+    async def connect(
+        self, websocket: WebSocket, connection_id: str = str(uuid.uuid4())
+    ):
         await websocket.accept()
-        id = str(uuid.uuid4())
         self.active_connections[id] = websocket
-        await self.send_message_to(websocket, json.dumps({"type": "connect", "id": id}))
+        await self.send_message_to(
+            websocket, json.dumps({"type": "CONNECTED", "id": id})
+        )
+
+    async def new_session(self, connection_id: str, message: str):
+        pass
 
     def disconnect(self, websocket: WebSocket):
         id = self.find_connection_id(websocket)
@@ -22,10 +29,9 @@ class ConnectionManager:
         return id
 
     def find_connection_id(self, websocket: WebSocket):
-        val_list = list(self.active_connections.values())
         key_list = list(self.active_connections.keys())
-        id = val_list.index(websocket)
-        return key_list[id]
+        val_list = list(self.active_connections.values())
+        return key_list[val_list.index(websocket)]
 
     async def send_message_to(self, ws: WebSocket, message: str):
         await ws.send_text(message)

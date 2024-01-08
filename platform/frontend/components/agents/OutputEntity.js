@@ -1,60 +1,24 @@
-import { Classes, Section, SectionCard } from "@blueprintjs/core";
 import axios from "axios";
 import _ from "lodash";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
+import EntityDescription from "../entity/EntityDescription";
+import EntityMain from "../entity/EntityMain";
+import EntityProperties from "../entity/EntityProperties";
 export default function OutputEntity() {
     const router = useRouter();
     const [entity, setEntity] = useState({});
     useEffect(() => {
+        if (!router.isReady) return;
         axios.get(router.asPath).then((response) => {
             setEntity(_.get(response, "data.result", {}));
         });
     }, [router]);
     return (
         <div style={{ padding: "10px 20px 20px" }}>
-            <Section compact>
-                <SectionCard>
-                    <div style={{ display: "flex" }}>
-                        <div
-                            className={Classes.TEXT_MUTED}
-                            style={{ width: 52.7 }}
-                        >
-                            Name
-                        </div>
-                        {entity.name}
-                    </div>
-                    <div style={{ display: "flex" }}>
-                        <div
-                            className={Classes.TEXT_MUTED}
-                            style={{ width: 52.7 }}
-                        >
-                            Type
-                        </div>
-                        {entity.type}
-                    </div>
-                </SectionCard>
-            </Section>
-            <Section
-                compact
-                collapsible
-                title="Description"
-                style={{ marginTop: 20 }}
-            >
-                <SectionCard>{entity.description}</SectionCard>
-            </Section>
-            <Section
-                compact
-                collapsible
-                title="Properties"
-                style={{ marginTop: 20 }}
-            >
-                <SectionCard>
-                    <pre className={Classes.TEXT_SMALL} style={{ margin: 0 }}>
-                        {JSON.stringify(entity.properties, null, 4)}
-                    </pre>
-                </SectionCard>
-            </Section>
+            <EntityMain entity={entity} />
+            <EntityDescription entity={entity} />
+            <EntityProperties entity={entity} />
         </div>
     );
 }
