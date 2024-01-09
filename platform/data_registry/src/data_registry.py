@@ -110,7 +110,7 @@ class DataRegistry(Registry):
 
 
     def register_source_database(self, source, database, description, properties={}, rebuild=False):
-        super().register_record(self, database, 'database', '/'+source, description=description, properties=properties, rebuild=rebuild)
+        super().register_record(database, 'database', '/'+source, description=description, properties=properties, rebuild=rebuild)
 
     def deregister_source_database(self, source, database, rebuild=False):
         record = self.get_source_database(source, database)

@@ -111,11 +111,11 @@ class AgentRegistry(Registry):
 
 
     def set_agent_input(self, agent, parameter, description, properties={}, rebuild=False):
-        super().register_record(self, parameter, 'input', '/'+agent, description=description, properties=properties, rebuild=rebuild)
+        super().register_record(parameter, 'input', '/'+agent, description=description, properties=properties, rebuild=rebuild)
 
     def del_agent_input(self, agent, parameter, rebuild=False):
         record = self.get_agent_input(agent, parameter)
-        super().deregister(self, record, rebuild=rebuild)
+        super().deregister(record, rebuild=rebuild)
 
 
     def add_agent_output(self, agent, parameter, description="", properties={}, rebuild=False):
@@ -136,7 +136,7 @@ class AgentRegistry(Registry):
 
 
     def set_agent_output(self, agent, parameter, description, rebuild=False):
-        super().register_record(self, parameter, 'output', '/'+agent, description=description, properties=properties, rebuild=rebuild)
+        super().register_record(parameter, 'output', '/'+agent, description=description, properties=properties, rebuild=rebuild)
 
     def del_agent_output(self, agent, parameter, rebuild=False):
         record = self.get_agent_output(agent, parameter)
