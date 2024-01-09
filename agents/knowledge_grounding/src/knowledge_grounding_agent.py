@@ -1,35 +1,36 @@
 ###### OS / Systems
+import json
 import os
 import sys
-import json
 
 ###### Add lib path
 sys.path.append('./lib/')
 sys.path.append('./lib/agent/')
 
-###### 
-import time
 import argparse
+import csv
+import itertools
+import json
 import logging
-import time
-import uuid
 import random
-# import openai
-
 ###### Parsers, Formats, Utils
 import re
-import csv
-import json
+###### 
+import time
+import uuid
 
-import itertools
-from tqdm import tqdm
-
+import pandas
 ###### Blue
 from agent import Agent
+from neo4j import GraphDatabase
 from session import Session
+from tqdm import tqdm
 
-from py2neo import Graph
-import pandas
+# import openai
+
+
+
+
 
 # set log level
 logging.getLogger().setLevel(logging.INFO)
@@ -84,7 +85,10 @@ class KnowledgGroundingAgent(Agent):
                     if processed:
                         return None
 
-                    graph = Graph("http://18.216.233.236:7474", auth=(os.environ["NEO4J_USER"], os.environ["NEO4J_PWD"]))
+                    URI = "http://18.216.233.236:7474"
+                    AUTH = (os.environ["NEO4J_USER"], os.environ["NEO4J_PWD"])
+                    driver = GraphDatabase.driver(URI, auth=AUTH)
+
                     person = worker.get_session_data("name")
                     next_title = worker.get_session_data("top_title_recommendation")
                     name_query = '''
@@ -101,14 +105,19 @@ class KnowledgGroundingAgent(Agent):
                         LIMIT 2
                     '''.format(next_title)
 
-                    s1 = graph.run(name_query) 
-                    s2 = graph.run(title_query)
-                    s1.columns = ['skill', 'duration']
-                    s2.columns = ['skill', 'avg_duration']
+                    s1, _, _ = driver.execute_query(name_query)
+                    s2, _, _ = driver.execute_query(title_query)
     
                     ret = {}
-                    resume_skills = json.loads(s1.to_data_frame().to_json(orient='records'))
-                    top_title_skills = json.loads(s2.to_data_frame().to_json(orient='records'))
+                    resume_skills = []
+                    top_title_skills = []
+
+                    for record in s1:
+                        resume_skills.append(dict(record))
+
+                    for record in s2:
+                        top_title_skills.append(dict(record))
+
                     ret["resume_skills"] = resume_skills
                     ret["top_title_skills"] = top_title_skills
 
