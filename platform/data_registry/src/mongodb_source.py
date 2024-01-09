@@ -98,7 +98,7 @@ class MongoDBSource(DataSource):
             schema = Schema()
 
         if source == None:
-            source = schema.add_entity("<>")
+            source = schema.add_entity("ROOT")
 
         if type(sample) == dict:
             for key in sample:

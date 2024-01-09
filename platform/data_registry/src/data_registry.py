@@ -134,12 +134,14 @@ class DataRegistry(Registry):
         super().set_record_property(database, '/'+source, key, value, rebuild=rebuild)
 
 
-   ######### source/database/collection
+    ######### source/database/collection
     def register_source_database_collection(self, source, database, collection, description="", properties={}, rebuild=False):
         self.register_record(collection, 'collection', '/'+source+'/'+database, description=description, properties=properties, rebuild=rebuild)
 
     def update_source_database_collection(self, source, database, collection, description=None, properties=None, rebuild=False):
-        self.update_record(collection, 'collection', '/'+source+'/'+database, description=description, properties=properties, rebuild=rebuild)
+        original_record, merged_record = self.update_record(collection, 'collection', '/'+source+'/'+database, description=description, properties=properties, rebuild=rebuild)
+        return original_record, merged_record
+
 
     def deregister_source_database_collection(self, source, database, collection, rebuild=False):
         record = self.get_record(collection, '/'+source+'/'+database)
@@ -169,6 +171,80 @@ class DataRegistry(Registry):
     def set_source_database_collection_property(self, source, database, collection, key, value, rebuild=False):
         super().set_record_property(collection, '/'+source+'/'+database, key, value, rebuild=rebuild)
 
+    ######### source/database/collection/entity
+    def register_source_database_collection_entity(self, source, database, collection, entity, description="", properties={}, rebuild=False):
+        self.register_record(entity, 'entity', '/'+source+'/'+database+'/'+collection, description=description, properties=properties, rebuild=rebuild)
+
+    def update_source_database_collection_entity(self, source, database, collection, entity, description=None, properties=None, rebuild=False):
+        original_record, merged_record = self.update_record(entity, 'entity', '/'+source+'/'+database+'/'+collection, description=description, properties=properties, rebuild=rebuild)
+        return original_record, merged_record
+
+
+    def deregister_source_database_collection_entity(self, source, database, collection, entity, rebuild=False):
+        record = self.get_record(entity, '/'+source+'/'+database+'/'+collection)
+        self.deregister(record, rebuild=rebuild)
+
+    def get_source_database_collection_entities(self, source, database, collection):
+        return super().get_record_contents(collection, '/'+source+'/'+database, type='entity')
+
+    def get_source_database_collection_entity(self, source, database, collection, entity):
+        return super().get_record_content(collection, '/'+source+'/'+database, entity, type='entity')
+
+
+    # description
+    def get_source_database_collection_entity_description(self, source, database, collection, entity):
+        return super().get_record_description(entity, '/'+source+'/'+database+'/'+collection)
+
+    def set_source_database_collection_entity_description(self, source, database, collection, entity, description, rebuild=False):
+        super().set_record_description(entity, '/'+source+'/'+database+'/'+collection, description, rebuild=rebuild)
+
+    # properties
+    def get_source_database_collection_entity_properties(self, source, database, collection, entity):
+        return super().get_record_properties(entity, '/'+source+'/'+database+'/'+collection)
+
+    def get_source_database_collection_entity_property(self, source, database, collection, entity, key):
+        return super().get_record_property(entity, '/'+source+'/'+database+'/'+collection, key)
+
+    def set_source_database_collection_entity_property(self, source, database, collection, entity, key, value, rebuild=False):
+        super().set_record_property(entity, '/'+source+'/'+database+'/'+collection, key, value, rebuild=rebuild)
+
+
+    ######### source/database/collection/relation
+    def register_source_database_collection_relation(self, source, database, collection, relation, description="", properties={}, rebuild=False):
+        self.register_record(relation, 'relation', '/'+source+'/'+database+'/'+collection, description=description, properties=properties, rebuild=rebuild)
+
+    def update_source_database_collection_relation(self, source, database, collection, relation, description=None, properties=None, rebuild=False):
+        original_record, merged_record = self.update_record(relation, 'relation', '/'+source+'/'+database+'/'+collection, description=description, properties=properties, rebuild=rebuild)
+        return original_record, merged_record
+
+
+    def deregister_source_database_collection_relation(self, source, database, collection, relation, rebuild=False):
+        record = self.get_record(relation, '/'+source+'/'+database+'/'+collection)
+        self.deregister(record, rebuild=rebuild)
+
+    def get_source_database_collection_relations(self, source, database, collection):
+        return super().get_record_contents(collection, '/'+source+'/'+database, type='relation')
+
+    def get_source_database_collection_relation(self, source, database, collection, relation):
+        return super().get_record_content(collection, '/'+source+'/'+database, relation, type='relation')
+
+
+    # description
+    def get_source_database_collection_relation_description(self, source, database, collection, relation):
+        return super().get_record_description(relation, '/'+source+'/'+database+'/'+collection)
+
+    def set_source_database_collection_relation_description(self, source, database, collection, relation, description, rebuild=False):
+        super().set_record_description(relation, '/'+source+'/'+database+'/'+collection, description, rebuild=rebuild)
+
+    # properties
+    def get_source_database_collection_relation_properties(self, source, database, collection, relation):
+        return super().get_record_properties(relation, '/'+source+'/'+database+'/'+collection)
+
+    def get_source_database_collection_relation_property(self, source, database, collection, relation, key):
+        return super().get_record_property(relation, '/'+source+'/'+database+'/'+collection, key)
+
+    def set_source_database_collection_relation_property(self, source, database, collection, relation, key, value, rebuild=False):
+        super().set_record_property(relation, '/'+source+'/'+database+'/'+collection, key, value, rebuild=rebuild)
 
     ######### sync
     # source connection (part of properties)
@@ -206,13 +282,9 @@ class DataRegistry(Registry):
             # fetch source metadata
             metadata = source_connection.fetch_metadata()
 
-            # fetch source schema
-            schema = source_connection.fetch_schema()
-
             # update source properties
             properties = {}
             properties['metadata'] = metadata 
-            properties['schema'] = schema
             description = ""
             if 'description' in metadata:
                 description = metadata['description']
@@ -271,13 +343,9 @@ class DataRegistry(Registry):
             # fetch database metadata
             metadata = source_connection.fetch_database_metadata(database)
 
-            # fetch database schema
-            schema = source_connection.fetch_database_schema(database)
-
             # update source database properties
             properties = {}
             properties['metadata'] = metadata 
-            properties['schema'] = schema
             description = ""
             if 'description' in metadata:
                 description = metadata['description']
@@ -312,8 +380,6 @@ class DataRegistry(Registry):
                 self.register_source_database_collection(source, database, collection, description="", properties={}, rebuild=rebuild)
 
             # remove
-            print("REMOVES:")
-            print(removes)
             for collection in removes:
                 self.deregister_source_database_collection(source, database, collection)
 
@@ -340,19 +406,89 @@ class DataRegistry(Registry):
         if source_connection:
             # fetch collection metadata
             metadata = source_connection.fetch_database_collection_metadata(database, collection)
-
-            # fetch collection schema
-            schema = source_connection.fetch_database_collection_schema(database, collection)
             
             # update source database collection properties
             properties = {}
             properties['metadata'] = metadata 
-            properties['schema'] = schema
             description = ""
             if 'description' in metadata:
                 description = metadata['description']
+
             self.update_source_database_collection(source, database, collection, description=description, properties=properties, rebuild=rebuild)
    
+
+            #### fetch collection schema
+            schema = source_connection.fetch_database_collection_schema(database, collection)
+            entities = schema['entities']
+            relations = schema['relations']
+
+            fetched_entities_set = set(entities.keys())
+            fetched_relations_set = set(relations.keys())
+
+            ## entities
+            # get existing schema entities
+            registry_entities = self.get_source_database_collection_entities(source, database, collection)
+            registry_entities_set = set(json_utils.json_query(registry_entities,'$.name', single=False))
+
+            adds = set()
+            removes = set()
+            merges = set()
+
+            ## compute add / remove / merge
+            for entity in fetched_entities_set:
+                if entity in registry_entities_set:
+                    merges.add(entity)
+                else:
+                    adds.add(entity)
+            for entity in registry_entities_set:
+                if entity not in fetched_entities_set:
+                    removes.add(entity)
+
+            # update registry
+            # add
+            for entity in adds:
+                self.register_source_database_collection_entity(source, database, collection, entity, description="", properties=entities[entity], rebuild=rebuild)
+
+            # remove
+            for entity in removes:
+                self.deregister_source_database_collection_entity(source, database, collection, entity)
+
+            # update
+            for collection in merges:
+                self.update_source_database_collection_entity(source, database, collection, entity, description="", properties=entities[entity], rebuild=rebuild)
+
+            ## relations
+            # get existing schema entities
+            registry_relations = self.get_source_database_collection_relations(source, database, collection)
+            registry_relations_set = set(json_utils.json_query(registry_relations,'$.name', single=False))
+
+            adds = set()
+            removes = set()
+            merges = set()
+
+            ## compute add / remove / merge
+            for relation in fetched_relations_set:
+                if relation in registry_relations_set:
+                    merges.add(relation)
+                else:
+                    adds.add(relation)
+            for relation in registry_relations_set:
+                if relation not in fetched_relations_set:
+                    removes.add(relation)
+
+            # update registry
+            # add
+            for relation in adds:
+                self.register_source_database_collection_relation(source, database, collection, relation, description="", properties=relations[relation], rebuild=rebuild)
+
+            # remove
+            for relation in removes:
+                self.deregister_source_database_collection_relation(source, database, collection, relation)
+
+            # update
+            for relation in merges:
+                self.update_source_database_collection_relation(source, database, collection, relation, description="", properties=relations[relation], rebuild=rebuild)
+
 
     ######
     def _start(self):
@@ -379,7 +515,7 @@ if __name__ == "__main__":
     parser.add_argument('--update', type=str, default=None, help='json array of data elements to be updated in the registry')
     parser.add_argument('--remove', type=str, default=None, help='json array of data elements names to be removed')
     parser.add_argument('--search', type=str, default=None, help='search registry with keywords')
-    parser.add_argument('--type', type=str, default=None, help='search registry limited to data metadata type [source, database, collection]')
+    parser.add_argument('--type', type=str, default=None, help='search registry limited to data metadata type [source, database, collection, entity, relation]')
     parser.add_argument('--scope', type=str, default=None, help='limit to scope')
     parser.add_argument('--page', type=int, default=0, help='search result page, default 0')
     parser.add_argument('--page_size', type=int, default=5, help='search result page size, default 5')

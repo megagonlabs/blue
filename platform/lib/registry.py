@@ -195,8 +195,9 @@ class Registry():
 
            
     def _create_index_doc(self, name, type, scope, description, pipe=None):
- 
-        vector = self._compute_embedding_vector(description)
+        
+        #TODO: Identify the best way to compute embedding vector, for now name + description 
+        vector = self._compute_embedding_vector(name + " " + description)
 
         doc = {
             'name': name,
@@ -394,7 +395,7 @@ class Registry():
 
         record['properties'] = properties
 
-        self.update_record_json(record)
+        return self.update_record_json(record)
 
 
     def update_record_json(self, record):
@@ -409,10 +410,12 @@ class Registry():
 
         # merge
         merged_record = json_utils.merge_json(original_record, record)
-        print(merged_record)
 
         # re-register
         self.register_record_json(merged_record)
+
+        # return original and merged
+        return original_record, merged_record
 
     def _get_record_path(self, name, scope):
         sp = self._get_scope_path(scope)

@@ -61,7 +61,9 @@ class Schema():
             properties_obj[property] = type
     
     def _relation_encoding(self, source, relation, target):
-        return "(" + source + ")" + "-" + relation + "->" + "(" + target + ")" 
+        s = source + " " + relation + " " + target 
+        return s.replace(" ", "__")
+        # return "(" + source + ")" + "-" + relation + "->" + "(" + target + ")" 
 
     def has_relation(self, source, relation, target):
         relation_encoding = self._relation_encoding(source, relation, target)
