@@ -9,10 +9,27 @@ export const agentAction = (dispatch) => ({
             });
         });
     },
-    setRegistryName: (payload) => {
-        dispatch({
-            type: "agent/registryName/set",
-            payload: payload,
-        });
+    searchList: (payload) => {
+        const filter = {
+            keywords: payload.keywords,
+            approximate: payload.approximate,
+            hybrid: payload.hybrid,
+            type: payload.type,
+            page: payload.page,
+            page_size: payload.pageSize,
+        };
+        axios
+            .get(`/agents/${payload.registryName}/search`, {
+                params: filter,
+            })
+            .then((response) => {
+                dispatch({
+                    type: "agent/search/set",
+                    payload: {
+                        list: _.get(response, "data.results", []),
+                        filter: payload,
+                    },
+                });
+            });
     },
 });

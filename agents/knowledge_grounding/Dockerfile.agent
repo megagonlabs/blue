@@ -5,7 +5,9 @@ WORKDIR /app
 
 # Build requirements first
 ADD src/requirements.txt /app/requirements.txt
+ADD lib/data_registry/requirements.txt /app/requirements_data_registry.txt
 RUN pip install -r requirements.txt
+RUN pip install -r requirements_data_registry.txt
 
 # Copy libs 
 ADD /lib /app/lib/

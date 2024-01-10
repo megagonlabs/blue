@@ -23,39 +23,37 @@ export default function Breadcrumbs({ breadcrumbs }) {
     return (
         <OverflowList
             items={breadcrumbs}
-            overflowRenderer={(items) => {
-                return (
-                    <Popover
-                        position={Position.BOTTOM_LEFT}
-                        content={
-                            <Menu>
-                                {_.reverse(items).map(
-                                    ({ href, text, end }, index) => {
-                                        if (end) return null;
-                                        return (
-                                            <Link
-                                                href={href}
-                                                key={`registry-breadcrumb-overflow-menu-item-${index}`}
-                                            >
-                                                <MenuItem
-                                                    intent={Intent.PRIMARY}
-                                                    text={text}
-                                                />
-                                            </Link>
-                                        );
-                                    }
-                                )}
-                            </Menu>
-                        }
-                    >
-                        <Button
-                            intent={Intent.PRIMARY}
-                            minimal
-                            icon={faIcon({ icon: faBars })}
-                        />
-                    </Popover>
-                );
-            }}
+            overflowRenderer={(items) => (
+                <Popover
+                    position={Position.BOTTOM_LEFT}
+                    content={
+                        <Menu>
+                            {_.reverse(items).map(
+                                ({ href, text, end }, index) => {
+                                    if (end) return null;
+                                    return (
+                                        <Link
+                                            href={href}
+                                            key={`registry-breadcrumb-overflow-menu-item-${index}`}
+                                        >
+                                            <MenuItem
+                                                intent={Intent.PRIMARY}
+                                                text={text}
+                                            />
+                                        </Link>
+                                    );
+                                }
+                            )}
+                        </Menu>
+                    }
+                >
+                    <Button
+                        intent={Intent.PRIMARY}
+                        minimal
+                        icon={faIcon({ icon: faBars })}
+                    />
+                </Popover>
+            )}
             visibleItemRenderer={(item, index) => {
                 const { href, text, start, end } = item;
                 if (end) {

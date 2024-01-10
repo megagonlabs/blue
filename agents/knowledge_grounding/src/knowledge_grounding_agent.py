@@ -6,6 +6,7 @@ import sys
 ###### Add lib path
 sys.path.append('./lib/')
 sys.path.append('./lib/agent/')
+sys.path.append('./lib/data_registry/')
 
 import argparse
 import csv
@@ -22,6 +23,7 @@ import uuid
 import pandas
 ###### Blue
 from agent import Agent
+from data_registry import DataRegistry
 from neo4j import GraphDatabase
 from session import Session
 from tqdm import tqdm
@@ -54,6 +56,8 @@ class KnowledgGroundingAgent(Agent):
 
         # rationalizer config
         self.properties['requires'] = ['name', 'top_title_recommendation',]
+
+        dr = DataRegistry("rat")
 
     def default_processor(self, stream, id, label, data, dtype=None, tags=None, properties=None, worker=None):    
         if label == 'EOS':

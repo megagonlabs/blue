@@ -13,7 +13,6 @@ export default function RegistryCard({ title, description, href, extra }) {
                         large
                         minimal
                         intent={Intent.PRIMARY}
-                        interactive
                     >
                         {extra}
                     </Tag>
