@@ -22,7 +22,7 @@ export default function RegistryList({ type }) {
                 title={`No ${_.capitalize(type)}`}
             />
         );
-    if (appState.agent.search) {
+    if (appState[type].search) {
         return <SearchList type={type} />;
     }
     return (

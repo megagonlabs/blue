@@ -18,11 +18,14 @@ import _ from "lodash";
 import { useCallback, useContext, useEffect, useState } from "react";
 export default function Data() {
     const { appState, appActions } = useContext(AppContext);
-    const [hybrid, setHybrid] = useState(true);
-    const [approximate, setApproximate] = useState(false);
-    const [type, setType] = useState("source");
-    const [keywords, setKeywords] = useState("");
+    const [hybrid, setHybrid] = useState(appState.data.filter.hybrid);
+    const [approximate, setApproximate] = useState(
+        appState.data.filter.approximate
+    );
+    const [type, setType] = useState(appState.data.filter.type);
+    const [keywords, setKeywords] = useState(appState.data.filter.keywords);
     useEffect(() => {
+        if (appState.data.search) return;
         appActions.data.getList();
     }, []);
     const debounceOnKeywordsChange = useCallback(
@@ -76,6 +79,17 @@ export default function Data() {
                         onChange={(event) => {
                             setKeywords(event.target.value);
                         }}
+                        onKeyDown={(event) => {
+                            if (_.isEqual(event.key, "Enter")) {
+                                debounceOnKeywordsChange({
+                                    registryName: appState.agent.registryName,
+                                    hybrid,
+                                    approximate,
+                                    keywords: event.target.value,
+                                    type,
+                                });
+                            }
+                        }}
                     />
                     <Popover
                         minimal
@@ -115,7 +129,6 @@ export default function Data() {
                                     }}
                                     selectedValue={type}
                                 >
-                                    <Radio large value="data" label="Data" />
                                     <Radio
                                         large
                                         value="source"

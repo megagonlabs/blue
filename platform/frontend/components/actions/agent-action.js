@@ -10,28 +10,26 @@ export const agentAction = (dispatch) => ({
         });
     },
     searchList: (payload) => {
+        const filter = {
+            keywords: payload.keywords,
+            approximate: payload.approximate,
+            hybrid: payload.hybrid,
+            type: payload.type,
+            page: payload.page,
+            page_size: payload.pageSize,
+        };
         axios
             .get(`/agents/${payload.registryName}/search`, {
-                params: {
-                    keywords: payload.keywords,
-                    approximate: payload.approximate,
-                    hybrid: payload.hybrid,
-                    type: payload.type,
-                    page: payload.page,
-                    page_size: payload.pageSize,
-                },
+                params: filter,
             })
             .then((response) => {
                 dispatch({
                     type: "agent/search/set",
-                    payload: _.get(response, "data.results", []),
+                    payload: {
+                        list: _.get(response, "data.results", []),
+                        filter: payload,
+                    },
                 });
             });
-    },
-    setRegistryName: (payload) => {
-        dispatch({
-            type: "agent/registryName/set",
-            payload: payload,
-        });
     },
 });

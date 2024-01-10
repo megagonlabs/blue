@@ -18,11 +18,14 @@ import _ from "lodash";
 import { useCallback, useContext, useEffect, useState } from "react";
 export default function Agents() {
     const { appState, appActions } = useContext(AppContext);
-    const [hybrid, setHybrid] = useState(true);
-    const [approximate, setApproximate] = useState(false);
-    const [type, setType] = useState("agent");
-    const [keywords, setKeywords] = useState("");
+    const [hybrid, setHybrid] = useState(appState.agent.filter.hybrid);
+    const [approximate, setApproximate] = useState(
+        appState.agent.filter.approximate
+    );
+    const [type, setType] = useState(appState.agent.filter.type);
+    const [keywords, setKeywords] = useState(appState.agent.filter.keywords);
     useEffect(() => {
+        if (appState.agent.search) return;
         appActions.agent.getList();
     }, []);
     const debounceOnKeywordsChange = useCallback(
