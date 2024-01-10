@@ -9,6 +9,25 @@ export const agentAction = (dispatch) => ({
             });
         });
     },
+    searchList: (payload) => {
+        axios
+            .get(`/agents/${payload.registryName}/search`, {
+                params: {
+                    keywords: payload.keywords,
+                    approximate: payload.approximate,
+                    hybrid: payload.hybrid,
+                    type: payload.type,
+                    page: payload.page,
+                    page_size: payload.pageSize,
+                },
+            })
+            .then((response) => {
+                dispatch({
+                    type: "agent/search/set",
+                    payload: _.get(response, "data.results", []),
+                });
+            });
+    },
     setRegistryName: (payload) => {
         dispatch({
             type: "agent/registryName/set",

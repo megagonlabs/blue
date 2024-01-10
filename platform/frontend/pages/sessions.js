@@ -128,7 +128,7 @@ export default function Sessions() {
                     height: "calc(100% - 80px)",
                     marginLeft: SESSION_LISTL_PANEL_WIDTH,
                     width: `calc(100vw - ${
-                        SESSION_LISTL_PANEL_WIDTH + 150.55
+                        SESSION_LISTL_PANEL_WIDTH + 160.55
                     }px)`,
                 }}
             >

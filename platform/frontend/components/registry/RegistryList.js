@@ -7,9 +7,10 @@ import { AppContext } from "../app-context";
 import { REGISTRY_TYPE_LOOKUP } from "../constant";
 import { faIcon } from "../icon";
 import RegistryCard from "./RegistryCard";
+import SearchList from "./SearchList";
 export default function RegistryList({ type }) {
     const { appState } = useContext(AppContext);
-    const list = _.get(appState, [type, "list"], []);
+    const list = appState[type].list;
     const router = useRouter();
     if (_.isEmpty(list))
         return (
@@ -21,21 +22,22 @@ export default function RegistryList({ type }) {
                 title={`No ${_.capitalize(type)}`}
             />
         );
+    if (appState.agent.search) {
+        return <SearchList type={type} />;
+    }
     return (
-        <Container fluid style={{ paddingLeft: 20, paddingRight: 20 }}>
+        <Container fluid style={{ paddingLeft: 21, paddingRight: 21 }}>
             <Row gutterWidth={20} align="stretch" style={{ paddingTop: 10 }}>
                 {list.map((element) => {
                     const properties = element.properties;
                     let extra = null,
                         key = type;
-                    switch (type) {
-                        case "agent":
-                            extra = properties.image;
-                            break;
-                        case "data":
-                            key = "source";
-                            extra = `${properties.connection.protocol}://${properties.connection.host}:${properties.connection.port}`;
-                            break;
+                    _.if;
+                    if (_.isEqual(type, "agent")) {
+                        extra = properties.image;
+                    } else if (_.isEqual(type, "data")) {
+                        key = "source";
+                        extra = `${properties.connection.protocol}://${properties.connection.host}:${properties.connection.port}`;
                     }
                     return (
                         <Col
