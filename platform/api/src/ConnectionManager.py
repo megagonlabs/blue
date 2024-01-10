@@ -20,7 +20,7 @@ class ConnectionManager:
             websocket, json.dumps({"type": "CONNECTED", "id": id})
         )
 
-    async def new_session(self, connection_id: str, message: str):
+    async def observe_session(self, connection_id: str, session_id: str):
         pass
 
     def disconnect(self, websocket: WebSocket):

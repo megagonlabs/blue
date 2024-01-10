@@ -41,9 +41,11 @@ async def websocket_endpoint(websocket: WebSocket):
             # Receive the message from the client
             data = await websocket.receive_text()
             json_data = json.loads(data)
-            if json_data["type"] == "NEW_SESSION":
+            if json_data["type"] == "OBSERVE_SESSION":
                 connection_id = connection_manager.find_connection_id(websocket)
-                connection_manager.new_session(connection_id, json_data["message"])
+                connection_manager.observe_session(
+                    connection_id, json_data["session_id"]
+                )
             print("Received: ", data)
     except WebSocketDisconnect:
         # Remove the connection from the list of active connections
