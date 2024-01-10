@@ -19,7 +19,7 @@ export default function RegistryList({ type }) {
                     icon: REGISTRY_TYPE_LOOKUP[type].icon,
                     size: 50,
                 })}
-                title={`No ${_.capitalize(type)}`}
+                title={`No ${_.capitalize(REGISTRY_TYPE_LOOKUP[type].key)}`}
             />
         );
     if (appState[type].search) {
@@ -31,12 +31,11 @@ export default function RegistryList({ type }) {
                 {list.map((element) => {
                     const properties = element.properties;
                     let extra = null,
-                        key = type;
+                        key = REGISTRY_TYPE_LOOKUP[type].key;
                     _.if;
                     if (_.isEqual(type, "agent")) {
                         extra = properties.image;
                     } else if (_.isEqual(type, "data")) {
-                        key = "source";
                         extra = `${properties.connection.protocol}://${properties.connection.host}:${properties.connection.port}`;
                     }
                     return (

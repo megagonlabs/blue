@@ -7,13 +7,16 @@ import {
     ControlGroup,
     Divider,
     H4,
-    HTMLSelect,
     InputGroup,
     Popover,
     Radio,
     RadioGroup,
 } from "@blueprintjs/core";
-import { faBarsFilter, faSearch } from "@fortawesome/pro-duotone-svg-icons";
+import {
+    faBarsFilter,
+    faSearch,
+    faTimes,
+} from "@fortawesome/pro-duotone-svg-icons";
 import _ from "lodash";
 import { useCallback, useContext, useEffect, useState } from "react";
 export default function Data() {
@@ -65,9 +68,6 @@ export default function Data() {
                 }}
             >
                 <H4 style={{ margin: "0px 20px 0px 0px" }}>Data Registry</H4>
-                <HTMLSelect minimal value={appState.data.registryName}>
-                    <option value="default">default</option>
-                </HTMLSelect>
             </div>
             <div style={{ padding: "0px 20px 10px 20px", maxWidth: 690 }}>
                 <ControlGroup fill>
@@ -79,10 +79,29 @@ export default function Data() {
                         onChange={(event) => {
                             setKeywords(event.target.value);
                         }}
+                        rightElement={
+                            !_.isEmpty(keywords) && appState.data.search ? (
+                                <Button
+                                    minimal
+                                    onClick={() => {
+                                        setKeywords("");
+                                        debounceOnKeywordsChange({
+                                            registryName:
+                                                appState.data.registryName,
+                                            hybrid,
+                                            approximate,
+                                            keywords: "",
+                                            type,
+                                        });
+                                    }}
+                                    icon={faIcon({ icon: faTimes })}
+                                />
+                            ) : null
+                        }
                         onKeyDown={(event) => {
                             if (_.isEqual(event.key, "Enter")) {
                                 debounceOnKeywordsChange({
-                                    registryName: appState.agent.registryName,
+                                    registryName: appState.data.registryName,
                                     hybrid,
                                     approximate,
                                     keywords: event.target.value,
@@ -122,12 +141,12 @@ export default function Data() {
                                 />
                                 <Divider />
                                 <RadioGroup
+                                    selectedValue={type}
                                     inline
                                     label="Type"
                                     onChange={(event) => {
                                         setType(event.currentTarget.value);
                                     }}
-                                    selectedValue={type}
                                 >
                                     <Radio
                                         large

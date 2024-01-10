@@ -5,17 +5,20 @@ import SessionMessages from "@/components/sessions/SessionMessages";
 import { AppToaster } from "@/components/toaster";
 import {
     Button,
+    ButtonGroup,
     Card,
     Classes,
     H4,
     Intent,
     NonIdealState,
+    Popover,
 } from "@blueprintjs/core";
 import {
+    faArrowRightFromArc,
     faBarsFilter,
+    faCaretDown,
     faInboxIn,
     faInboxOut,
-    faMessageSlash,
     faMessages,
 } from "@fortawesome/pro-duotone-svg-icons";
 import _ from "lodash";
@@ -97,12 +100,24 @@ export default function Sessions() {
                         outlined
                         rightIcon={faIcon({ icon: faBarsFilter })}
                     />
-                    <Button
-                        text="New session"
-                        large
-                        outlined
-                        rightIcon={faIcon({ icon: faInboxOut })}
-                    />
+                    <ButtonGroup large>
+                        <Button
+                            text="New session"
+                            outlined
+                            intent={Intent.PRIMARY}
+                            rightIcon={faIcon({ icon: faInboxOut })}
+                        />
+                        <Popover
+                            minimal
+                            placement="bottom-end"
+                            content={<div>Join existing session</div>}
+                        >
+                            <Button
+                                outlined
+                                rightIcon={faIcon({ icon: faCaretDown })}
+                            />
+                        </Popover>
+                    </ButtonGroup>
                 </div>
                 {_.isEmpty(appState.session.sessionIds) ? (
                     <Card
@@ -147,11 +162,11 @@ export default function Sessions() {
                         {sessionIdFocus}
                     </H4>
                     <Button
-                        text="End session"
-                        intent={Intent.DANGER}
+                        text="Leave session"
+                        intent={Intent.WARNING}
                         large
                         outlined
-                        rightIcon={faIcon({ icon: faMessageSlash })}
+                        rightIcon={faIcon({ icon: faArrowRightFromArc })}
                     />
                 </Card>
                 {_.isNull(sessionIdFocus) ? (

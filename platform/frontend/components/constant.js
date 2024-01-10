@@ -1,7 +1,7 @@
-const { faDatabase, faCircleA } = require("@fortawesome/pro-duotone-svg-icons");
+const { faCircleA, faServer } = require("@fortawesome/pro-duotone-svg-icons");
 module.exports = {
     REGISTRY_TYPE_LOOKUP: {
-        data: { icon: faDatabase },
-        agent: { icon: faCircleA },
+        data: { icon: faServer, key: "source" },
+        agent: { icon: faCircleA, key: "agent" },
     },
 };

@@ -27,7 +27,7 @@ export const agentAction = (dispatch) => ({
                     type: "agent/search/set",
                     payload: {
                         list: _.get(response, "data.results", []),
-                        filter: payload,
+                        filter: filter,
                     },
                 });
             });

@@ -11,11 +11,11 @@ export default function SearchList({ type }) {
         <AutoSizer>
             {({ width, height }) => (
                 <FixedSizeList
-                    style={{ padding: "0px 21px 20px 21px" }}
+                    style={{ padding: "0px 21px 10px 21px" }}
                     height={height}
                     width={width}
                     itemCount={appState[type].list.length}
-                    itemSize={68}
+                    itemSize={78}
                 >
                     {({ index, style }) => {
                         const item = appState[type].list[index];

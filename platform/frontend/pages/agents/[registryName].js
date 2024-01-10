@@ -7,13 +7,16 @@ import {
     ControlGroup,
     Divider,
     H4,
-    HTMLSelect,
     InputGroup,
     Popover,
     Radio,
     RadioGroup,
 } from "@blueprintjs/core";
-import { faBarsFilter, faSearch } from "@fortawesome/pro-duotone-svg-icons";
+import {
+    faBarsFilter,
+    faSearch,
+    faTimes,
+} from "@fortawesome/pro-duotone-svg-icons";
 import _ from "lodash";
 import { useCallback, useContext, useEffect, useState } from "react";
 export default function Agents() {
@@ -65,25 +68,36 @@ export default function Agents() {
                 }}
             >
                 <H4 style={{ margin: "0px 20px 0px 0px" }}>Agents Registry</H4>
-                <HTMLSelect minimal value={appState.data.registryName}>
-                    <option value="">default</option>
-                </HTMLSelect>
             </div>
-            <div
-                style={{
-                    padding: "0px 20px 10px 20px",
-                    maxWidth: 690,
-                }}
-            >
+            <div style={{ padding: "0px 20px 10px 20px", maxWidth: 690 }}>
                 <ControlGroup fill>
                     <InputGroup
                         large
                         fill
                         value={keywords}
+                        leftIcon={faIcon({ icon: faSearch })}
                         onChange={(event) => {
                             setKeywords(event.target.value);
                         }}
-                        leftIcon={faIcon({ icon: faSearch })}
+                        rightElement={
+                            !_.isEmpty(keywords) && appState.agent.search ? (
+                                <Button
+                                    minimal
+                                    onClick={() => {
+                                        setKeywords("");
+                                        debounceOnKeywordsChange({
+                                            registryName:
+                                                appState.agent.registryName,
+                                            hybrid,
+                                            approximate,
+                                            keywords: "",
+                                            type,
+                                        });
+                                    }}
+                                    icon={faIcon({ icon: faTimes })}
+                                />
+                            ) : null
+                        }
                         onKeyDown={(event) => {
                             if (_.isEqual(event.key, "Enter")) {
                                 debounceOnKeywordsChange({
