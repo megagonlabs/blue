@@ -157,11 +157,11 @@ $ python src/data_registry.py --search resume --approximate --type source
 
 Approximate data search using only collection type:
 ```
-$ python src/agent_registry.py --search resume --approximate --type collection
+$ python src/data_registry.py --search resume --approximate --type collection
 ```
 
 #### sync data elements
 ```
-$ python src/agent_registry.py --sync --source indeed_mongodb --recursive
-$ python src/agent_registry.py --sync --source indeed_mongodb --database indeed_dev --collection resume
+$ python src/data_registry.py --sync --source indeed_mongodb --recursive
+$ python src/data_registry.py --sync --source indeed_mongodb --database indeed_dev --collection resume
 ```
