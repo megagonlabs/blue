@@ -29,7 +29,7 @@ export default function Breadcrumbs({ breadcrumbs }) {
                     content={
                         <Menu>
                             {_.reverse(items).map(
-                                ({ href, text, end }, index) => {
+                                ({ href, text, end, icon }, index) => {
                                     if (end) return null;
                                     return (
                                         <Link
@@ -37,6 +37,11 @@ export default function Breadcrumbs({ breadcrumbs }) {
                                             key={`registry-breadcrumb-overflow-menu-item-${index}`}
                                         >
                                             <MenuItem
+                                                icon={
+                                                    !_.isNull(icon)
+                                                        ? faIcon({ icon: icon })
+                                                        : null
+                                                }
                                                 intent={Intent.PRIMARY}
                                                 text={text}
                                             />
@@ -55,7 +60,7 @@ export default function Breadcrumbs({ breadcrumbs }) {
                 </Popover>
             )}
             visibleItemRenderer={(item, index) => {
-                const { href, text, start, end } = item;
+                const { href, text, start, end, icon } = item;
                 if (end) {
                     return (
                         <div
@@ -63,7 +68,15 @@ export default function Breadcrumbs({ breadcrumbs }) {
                             key={`registry-breadcrumb-visible-${index}`}
                         >
                             {!start || !end ? HYPHEN_ICON : null}
-                            <Tag large minimal>
+                            <Tag
+                                large
+                                minimal
+                                icon={
+                                    !_.isNull(icon)
+                                        ? faIcon({ icon: icon })
+                                        : null
+                                }
+                            >
                                 {text}
                             </Tag>
                         </div>
@@ -77,6 +90,11 @@ export default function Breadcrumbs({ breadcrumbs }) {
                         {!start ? HYPHEN_ICON : null}
                         <Link href={href}>
                             <Tag
+                                icon={
+                                    !_.isNull(icon)
+                                        ? faIcon({ icon: icon })
+                                        : null
+                                }
                                 style={{
                                     pointerEvents: "none",
                                 }}
