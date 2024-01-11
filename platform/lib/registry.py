@@ -506,10 +506,11 @@ class Registry():
         records = self.__get_json_value(records)
         
         if type:
-            filtered_records = []
-            for record in records:
+            filtered_records = {}
+            for key in records:
+                record = records[key]
                 if record['type'] == type:
-                    filtered_records.append(record)
+                    filtered_records[key] = record
             records = filtered_records
         return records
 
