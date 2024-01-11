@@ -1,6 +1,8 @@
 #/bin/bash
 echo 'Building...'
 
+# cleanup libs
+rm -r lib
 
 # copy from platform shared lib
 mkdir -p lib/platform; cp -r ../lib/* lib/platform/

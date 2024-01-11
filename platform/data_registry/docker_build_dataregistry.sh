@@ -1,6 +1,9 @@
 #/bin/bash
 echo 'Building...'
 
+# cleanup libs
+rm -r lib
+
 # copy from agent shared lib
 mkdir -p lib/agent; cp -r ../../agents/lib/* lib/agent/
 
