@@ -1,10 +1,15 @@
-import { Card, H5, Intent, Tag } from "@blueprintjs/core";
+import { Card, Colors, H5, Intent, Tag } from "@blueprintjs/core";
 import _ from "lodash";
 import Link from "next/link";
 export default function RegistryCard({ title, description, href, extra }) {
     return (
         <Link href={href}>
-            <Card interactive style={{ height: "100%" }}>
+            <Card
+                style={{
+                    height: "100%",
+                    backgroundColor: Colors.LIGHT_GRAY5,
+                }}
+            >
                 <H5>{title}</H5>
                 <div className="multiline-ellipsis">{description}</div>
                 {!_.isEmpty(extra) ? (
