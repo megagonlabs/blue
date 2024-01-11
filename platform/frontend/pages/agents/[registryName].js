@@ -170,7 +170,7 @@ export default function Agents() {
             </div>
             <div
                 style={{
-                    height: "calc(100% - 110px)",
+                    height: "calc(100% - 101px)",
                     overflowY: "auto",
                 }}
             >
