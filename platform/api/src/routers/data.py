@@ -28,6 +28,7 @@ from utils import json_utils
 ###### Blue
 from data_registry import DataRegistry
 
+
 ###### FastAPI
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
@@ -40,6 +41,7 @@ router = APIRouter(prefix="/data")
 class Data(BaseModel):
     name: str
     description:  Union[str, None] = None
+
 
 
 @router.get("/")

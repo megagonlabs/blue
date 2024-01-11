@@ -5,7 +5,7 @@ from ConnectionManager import ConnectionManager
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from routers import agents
 from routers import data
-from routers import platform
+from routers import sessions
 
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -23,7 +23,7 @@ print("blue-platform-api: " + version)
 app = FastAPI()
 app.include_router(agents.router)
 app.include_router(data.router)
-app.include_router(platform.router)
+app.include_router(sessions.router)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,

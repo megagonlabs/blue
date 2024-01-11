@@ -5,7 +5,6 @@ import sys
 
 ###### Add lib path
 sys.path.append("./lib/")
-sys.path.append("./lib/agent/")
 sys.path.append("./lib/platform/")
 
 
@@ -26,7 +25,7 @@ from utils import json_utils
 
 ###### Blue
 from session import Session
-from platform import Platform
+from blueprint import Platform
 
 ###### FastAPI
 from fastapi import APIRouter
@@ -34,21 +33,21 @@ from fastapi.responses import JSONResponse
 from typing import Union
 from pydantic import BaseModel
 
-router = APIRouter(prefix="/platform")
+router = APIRouter(prefix="/sessions")
 
 
 @router.get("/")
 def get_sessions():
-    platform = Platform("default")
+    platform = Platform()
     results = platform.get_sessions()
-    return JSONResponse(content={"results": list(results.values())})
+    return JSONResponse(content={"results": results })
 
 
-@router.get("/{platform_name}")
+@router.get("/{platform_name}/sessions")
 def get_sessions_from(platform_name):
     platform = Platform(platform_name)
     results = platform.get_sessions()
-    return JSONResponse(content={"results": list(results.values())})
+    return JSONResponse(content={"results": results})
 
 
 @router.get("/{platform_name}/session/{session_id}")
@@ -67,5 +66,5 @@ def create_session(platform_name):
 @router.delete("/{platform_name}/session/{session_id}")
 def delete_session(platform_name, session_id):
     platform = Platform(platform_name)
-    result = platform.delete_session()
+    result = platform.delete_session(session_id)
     return JSONResponse(content={"message": "Success"})
