@@ -5,6 +5,8 @@ import { useContext } from "react";
 import AutoSizer from "react-virtualized-auto-sizer";
 import { FixedSizeList } from "react-window";
 import { AppContext } from "../app-context";
+import { SEARCH_LIST_TYPE_LOOKUP } from "../constant";
+import { faIcon } from "../icon";
 export default function SearchList({ type }) {
     const { appState } = useContext(AppContext);
     return (
@@ -38,20 +40,26 @@ export default function SearchList({ type }) {
                         link += `/${item.type}/${item.name}`;
                         return (
                             <div style={style}>
-                                <Card
-                                    style={{
-                                        margin: "10px 21px 0px 21px",
-                                        padding: 0,
-                                        lineHeight: "58px",
-                                    }}
-                                >
-                                    <Link
+                                <Link href={link}>
+                                    <Card
                                         style={{
                                             display: "flex",
-                                            padding: "0px 20px",
+                                            alignItems: "center",
+                                            padding: "18px 20px",
+                                            margin: "10px 21px 10px 21px",
                                         }}
-                                        href={link}
                                     >
+                                        <div
+                                            className={Classes.TEXT_MUTED}
+                                            style={{ marginRight: 10 }}
+                                        >
+                                            {faIcon({
+                                                icon: SEARCH_LIST_TYPE_LOOKUP[
+                                                    item.type
+                                                ].icon,
+                                                size: 21,
+                                            })}
+                                        </div>
                                         <div
                                             className={Classes.TEXT_MUTED}
                                             style={{ marginRight: 10 }}
@@ -61,8 +69,8 @@ export default function SearchList({ type }) {
                                             {item.type}
                                         </div>
                                         <div>{item.name}</div>
-                                    </Link>
-                                </Card>
+                                    </Card>
+                                </Link>
                             </div>
                         );
                     }}
