@@ -8,7 +8,8 @@ from this import d
 ###### Add lib path
 sys.path.append('./lib/')
 sys.path.append('./lib/agent/')
-
+sys.path.append('./lib/platform/')
+sys.path.append('./lib/utils/')
 ###### 
 import time
 import argparse

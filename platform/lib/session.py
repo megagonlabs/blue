@@ -238,7 +238,6 @@ class Session():
 ### EXAMPLE
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--name', type=str, default='processor')
     parser.add_argument('--loglevel', default="INFO", type=str)
  
     args = parser.parse_args()
@@ -246,39 +245,8 @@ if __name__ == "__main__":
     # set logging
     logging.getLogger().setLevel(args.loglevel.upper())
 
-
-    from agent import Agent
-
-    # create a user agent
-    user_agent = Agent("USER")
-    session = user_agent.start_session()
-
-    # sample func to process data for counter
-    stream_data = []
-
-    def processor(id, label, data, dtype=None):
-        if label == 'EOS':
-            # print all data received from stream
-            print(stream_data)
-
-            # compute stream data
-            l = len(stream_data)
-            time.sleep(4)
-            
-            # output to stream
-            return l
-           
-        elif label == 'DATA':
-            # store data value
-            stream_data.append(data)
-    
-        return None
-
-    # create a counter agent in the same session
-    counter_agent = Agent("COUNTER", session=session, processor=processor)
-
-    # user initiates an interaction
-    user_agent.interact("this is a simple interaction")
+    # create session
+    session = Session()
 
     # wait for session
     session.wait()
