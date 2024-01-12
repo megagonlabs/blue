@@ -107,7 +107,7 @@ class AgentRegistry(Registry):
         super().deregister(record, rebuild=rebuild)
 
     def get_agent_inputs(self, agent):
-        super().get_record_contents(agent, '/', type='input')
+        return super().get_record_contents(agent, '/', type='input')
 
     def get_agent_input(self, agent, parameter):
         return super().get_record_content(agent, '/', parameter, type='input')
@@ -132,7 +132,7 @@ class AgentRegistry(Registry):
         super().deregister(record, rebuild=rebuild)
 
     def get_agent_outputs(self, agent):
-        super().get_record_contents(agent, '/', type='output')
+        return super().get_record_contents(agent, '/', type='output')
 
     def get_agent_output(self, agent, parameter):
         return super().get_record_content(agent, '/', parameter, type='output')

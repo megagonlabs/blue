@@ -117,7 +117,6 @@ def get_agent_property(registry_name, agent_name, property_name):
 @router.post("/{registry_name}/agent/{agent_name}/property/{property_name}")
 def set_agent_property(registry_name, agent_name, property_name, property: JSONStructure):
     registry = AgentRegistry(registry_name)
-    print(property)
     registry.set_agent_property(
         agent_name,
         property_name,
