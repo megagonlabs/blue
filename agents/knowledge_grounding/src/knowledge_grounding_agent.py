@@ -58,97 +58,105 @@ class KnowledgGroundingAgent(Agent):
         self.properties['tags'] = ['JSON']
 
         # rationalizer config
-        self.properties['requires'] = ['name'] #, 'top_title_recommendation',]
+        self.properties['requires'] = [] #'name', 'top_title_recommendation',]
 
         self.registry = DataRegistry("default")
         self.db_client = None
         self.db = None
 
+    def resume_processing(self, worker):
+        # get source for resume
+        results = self.registry.search_records(keywords="resume", 
+                                                type="collection", 
+                                                scope=None, 
+                                                approximate=True, 
+                                                hybrid=False, 
+                                                page=0, 
+                                                page_size=10)
+        top_result = None
+        for result in results:
+            if result["name"] == "enriched_resume":
+                top_result = result
+        # establish connection to source
+        if top_result:
+            scope = top_result["scope"]
+            collection = top_result["name"]
+            source = scope.split["/"][1]
+            database = scope.split["/"][2]
+            source_connection = self.registry.connect_source(source)
+            self.db_client = source_connection._connect()
+            self.db = self.db_client[database][collection] #collection
+        else:
+            # output to stream
+            return "DATA", {}, "json", True
+        
+        # 
+        # Senior Developer
+        # execute query
+        ## given resume get top 10 skills and durations
+        ### db.enriched_resume.find({'profileId':"1c1p1gdtu0l1m47s"}).projection({'extractions.skill.duration':1})
+        #person = worker.get_session_data("name")
+        current_title = "Senior Developer" # worker.get_session_data("title")
+        profile = "1c1p1gdtu0l1m47s"
+        skills_duration_dict = self.db.find(
+            {'profileId':profile}).projection(
+                {'extractions.skill.duration':1})
+        skills_duration_sorted = sorted(
+            skills_duration_dict.items(), 
+            key=lambda x:x[1],
+            reverse=True)
+        if len(skills_duration_sorted) > 3:
+                skills_duration_sorted = skills_duration_sorted[:3]
+        ### query insight db to get next title skiill recommendation
+        next_title = "Head of Development/Operations"
+        # worker.get_session_data("top_title_recommendation")
+        skills_duration_next = skills_duration_sorted
+        
+        ret = {}
+        ret["resume_skills"] = skills_duration_sorted
+        ret["top_title_skills"] = skills_duration_next
+
+            # set processed to true
+        worker.set_agent_data('processed', True)
+
+        # output to stream
+        return "DATA", ret, "json", True
     def default_processor(self, stream, id, label, data, dtype=None, tags=None, properties=None, worker=None):    
-        if label == 'EOS':
-            if worker:
-                processed = worker.get_agent_data('processed')
-                if processed:
-                    return 'EOS', None, None
-            return None
+        if worker:
+            return self.resume_processing(worker)
+        # if label == 'EOS':
+        #     if worker:
+        #         processed = worker.get_agent_data('processed')
+        #         if processed:
+        #             return 'EOS', None, None
+        #     return None
                 
-        elif label == 'BOS':
-            pass
-        elif label == 'DATA':
-            # check if a required variable is seen
-            requires = properties['requires']
+        # elif label == 'BOS':
+        #     pass
+        # elif label == 'DATA':
+        #     pass
+        # # check if a required variable is seen
+        # requires = properties['requires']
 
-            required_recorded = True
-            for require in requires:
-                # check if require is in session memory
-                if worker:
-                    v = worker.get_session_data(require)
-                    logging.info("variable: {} value: {}".format(require, v))
-                    if v is None:
-                        required_recorded = False 
-                        break
+        # required_recorded = True
+        # for require in requires:
+        #     # check if require is in session memory
+        #     if worker:
+        #         v = worker.get_session_data(require)
+        #         logging.info("variable: {} value: {}".format(require, v))
+        #         if v is None:
+        #             required_recorded = False 
+        #             break
 
-            if required_recorded:
-                if worker:
-                    processed = worker.get_agent_data('processed')
-                    if processed:
-                        return None
-                    
-                    # get source for resume
-                    results = self.registry.search_records(keywords="resume", 
-                                                           type="collection", 
-                                                           scope=None, 
-                                                           approximate=True, 
-                                                           hybrid=False, 
-                                                           page=0, 
-                                                           page_size=10)
-                    top_result = None
-                    for result in results:
-                        if result["name"] == "enriched_resume":
-                            top_result = result
-                    # establish connection to source
-                    if top_result:
-                        scope = top_result["scope"]
-                        collection = top_result["name"]
-                        source = scope.split["/"][1]
-                        database = scope.split["/"][2]
-                        source_connection = self.registry.connect_source(source)
-                        self.db_client = source_connection._connect()
-                        self.db = self.db_client[database][collection] #collection
-                    else:
-                        # output to stream
-                        return "DATA", {}, "json", True
-                    
-                    # 
-                    # Senior Developer
-                    # execute query
-                    ## given resume get top 10 skills and durations
-                    ### db.enriched_resume.find({'profileId':"1c1p1gdtu0l1m47s"}).projection({'extractions.skill.duration':1})
-                    person = worker.get_session_data("name")
-                    current_title = "Senior Developer" # worker.get_session_data("title")
-                    profile = "1c1p1gdtu0l1m47s"
-                    skills_duration_dict = self.db.find(
-                        {'profileId':profile}).projection(
-                            {'extractions.skill.duration':1})
-                    skills_duration_sorted = sorted(
-                        skills_duration_dict.items(), 
-                        key=lambda x:x[1])
-                    if len(skills_duration_sorted) > 3:
-                          skills_duration_sorted = skills_duration_sorted[:3]
-                    ### query insight db to get next title skiill recommendation
-                    next_title = "Head of Development/Operations"
-                    # worker.get_session_data("top_title_recommendation")
-                    skills_duration_next = skills_duration_sorted
-                    
-                    ret = {}
-                    ret["resume_skills"] = skills_duration_sorted
-                    ret["top_title_skills"] = skills_duration_next
-
-                     # set processed to true
-                    worker.set_agent_data('processed', True)
-
-                    # output to stream
-                    return "DATA", ret, "json", True
+        # if required_recorded:
+        #     if worker:
+        #         processed = worker.get_agent_data('processed')
+        #         if processed:
+        #             return None
+                
+                ################################
+                ### resume processing code ####
+                ################################
     
         return None
 
