@@ -86,14 +86,17 @@ class Registry():
     def _get_data_namespace(self):
         return self.properties['type'] + "_REGISTRY" + ":" + self.name + ':DATA'
 
-    def __get_json_value(self, value):
+    def __get_json_value(self, value, single=True):
         if value is None:
             return None
         if type(value) is list:
             if len(value) == 0:
                 return None
             else:
-                return(value[0])
+                if single:
+                    return(value[0])
+                else:
+                    return value
         else:
             return value
 
@@ -434,12 +437,16 @@ class Registry():
     def get_record(self, name, scope):
         p = self._get_record_path(name, scope)
         record =  self.connection.json().get(self._get_data_namespace(), Path(p))
+        if len(record) == 0:
+            return {}
+        else:
+            record = record[0]
         return self.__get_json_value(record)
     
-    def get_record_data(self, name, scope, key):
+    def get_record_data(self, name, scope, key, single=True):
         p = self._get_record_path(name, scope)
         value =  self.connection.json().get(self._get_data_namespace(), Path(p + '.' + key))
-        return self.__get_json_value(value)
+        return self.__get_json_value(value, single=single)
 
 
     def set_record_data(self, name, scope, key, value, rebuild=False):
@@ -466,8 +473,6 @@ class Registry():
     def set_record_description(self, name, scope, description, rebuild=False):
         self.set_record_data(name, scope, 'description', description, rebuild=rebuild)
 
-
-
     def get_record_properties(self, name, scope):
         return self.get_record_data(name, scope, 'properties')
 
@@ -481,17 +486,20 @@ class Registry():
         self.delete_record_data(name, scope, 'properties' + '.' + key, rebuild=rebuild)
 
     def get_record_contents(self, name, scope, type=None):
+        contents = {}
         if type:
-            contents = self.get_record_data(name, scope, 'contents[?(@type=="' + type + '")]')
+            contents = self.get_record_data(name, scope, 'contents[?(@type=="' + type + '")]', single=False)
         else:
-            contents = self.get_record_data(name, scope, 'contents')
+            contents = self.get_record_data(name, scope, 'contents', single=False)
         return contents
 
     def get_record_content(self, name, scope, key, type=None):
+        data = {}
         if type:
-            return self.get_record_data(name, scope, 'contents[?(@type=="' + type + '"&&@name=="' + key + '")]')
+            data = self.get_record_data(name, scope, 'contents[?(@type=="' + type + '"&&@name=="' + key + '")]')
         else:
-            return self.get_record_data(name, scope, 'contents' + '.' + key)
+            data = self.get_record_data(name, scope, 'contents' + '.' + key)
+        return data
 
     def deregister(self, record, rebuild=False):
 
@@ -511,11 +519,9 @@ class Registry():
 
     def list_records(self, type=None, scope="/"):
         sp = self._get_scope_path(scope)
-    
-        records =  self.connection.json().get(self._get_data_namespace(), Path(sp))
-
-        records = self.__get_json_value(records)
-
+       
+        records =  self.connection.json().get(self._get_data_namespace(), Path(sp))[0]
+       
         if type:
             filtered_records = {}
             for key in records:
@@ -523,6 +529,7 @@ class Registry():
                 if record['type'] == type:
                     filtered_records[key] = record
             records = filtered_records
+    
         return records
 
     ######

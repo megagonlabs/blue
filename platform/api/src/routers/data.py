@@ -96,7 +96,7 @@ def delete_source(registry_name, source_name):
 def get_data_source_databases(registry_name, source_name):
     registry = DataRegistry(registry_name)
     results = registry.get_source_databases(source_name)
-    return JSONResponse(content={ "results": list(results.values()) })
+    return JSONResponse(content={ "results": results })
 
 @router.get("/{registry_name}/source/{source_name}/database/{database_name}")
 def get_data_source_database(registry_name, source_name, database_name):
@@ -131,7 +131,7 @@ def delete_source_database(registry_name, source_name, database_name):
 def get_data_source_database_collections(registry_name, source_name, database_name):
     registry = DataRegistry(registry_name)
     results = registry.get_source_database_collections(source_name, database_name)
-    return JSONResponse(content={ "results": list(results.values()) })
+    return JSONResponse(content={ "results": results })
 
 @router.get("/{registry_name}/source/{source_name}/database/{database_name}/collection/{collection_name}")
 def get_data_source_database_collection(registry_name, source_name, database_name, collection_name):
