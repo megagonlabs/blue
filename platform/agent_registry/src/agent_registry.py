@@ -84,6 +84,9 @@ class AgentRegistry(Registry):
     def set_agent_property(self, agent, key, value, rebuild=False):
         super().set_record_property(agent, '/', key, value, rebuild=rebuild)
 
+    def delete_agent_property(self, agent, key, rebuild=False):
+        super().delete_record_property(agent, '/', key, rebuild=rebuild)
+
     # agent image (part of properties)
     def get_agent_image(self, agent):
         return self.get_agent_property(agent, 'image')
