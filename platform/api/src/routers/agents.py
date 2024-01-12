@@ -30,12 +30,13 @@ from agent_registry import AgentRegistry
 ###### FastAPI
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
-from typing import Union
-from pydantic import BaseModel
+from typing import Union, Any, Dict, AnyStr, List
+from pydantic import BaseModel, Json
 
 router = APIRouter(prefix="/agents")
 
 
+###### Schema
 class Agent(BaseModel):
     name: str
     description: Union[str, None] = None
@@ -44,6 +45,11 @@ class Agent(BaseModel):
 class Parameter(BaseModel):
     name: str
     description: Union[str, None] = None
+
+
+JSONObject = Dict[AnyStr, Any]
+JSONArray = List[Any]
+JSONStructure = Union[JSONArray, JSONObject, Any]
 
 
 @router.get("/")
@@ -93,7 +99,44 @@ def delete_agent(registry_name, agent_name):
     registry.remove_agent(agent_name, rebuild=True)
     return JSONResponse(content={"message": "Success"})
 
+##### properties
+@router.get("/{registry_name}/agent/{agent_name}/properties")
+def get_agent_properties(registry_name, agent_name):
+    registry = AgentRegistry(registry_name)
+    results = registry.get_agent_properties(agent_name)
+    return JSONResponse(content={"results": results})
 
+
+@router.get("/{registry_name}/agent/{agent_name}/property/{property_name}")
+def get_agent_property(registry_name, agent_name, property_name):
+    registry = AgentRegistry(registry_name)
+    result = registry.get_agent_property(agent_name, property_name)
+    return JSONResponse(content={"result": result})
+
+
+@router.post("/{registry_name}/agent/{agent_name}/property/{property_name}")
+def set_agent_property(registry_name, agent_name, property_name, property: JSONStructure):
+    registry = AgentRegistry(registry_name)
+    print(property)
+    registry.set_agent_property(
+        agent_name,
+        property_name,
+        property,
+        rebuild=True,
+    )
+    return JSONResponse(content={"message": "Success"})
+
+@router.delete("/{registry_name}/agent/{agent_name}/property/{property_name}")
+def delete_agent_property(registry_name, agent_name, property_name):
+    registry = AgentRegistry(registry_name)
+    registry.delete_agent_property(
+        agent_name,
+        property_name,
+        rebuild=True,
+    )
+    return JSONResponse(content={"message": "Success"})
+
+##### inputs
 @router.get("/{registry_name}/agent/{agent_name}/inputs")
 def get_agent_inputs(registry_name, agent_name):
     registry = AgentRegistry(registry_name)
@@ -142,7 +185,7 @@ def delete_agent_input(registry_name, agent_name, param_name):
     registry.del_agent_input(agent_name, param_name, rebuild=True)
     return JSONResponse(content={"message": "Success"})
 
-
+##### outputs
 @router.get("/{registry_name}/agent/{agent_name}/outputs")
 def get_agent_outputs(registry_name, agent_name):
     registry = AgentRegistry(registry_name)

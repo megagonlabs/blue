@@ -448,7 +448,16 @@ class Registry():
 
         # rebuild now
         if rebuild:
-            record = self.get_record_data(name, scope)
+            record = self.get_record(name, scope)
+            self._set_index_record(record)
+
+    def delete_record_data(self, name, scope, key, rebuild=False):
+        p = self._get_record_path(name, scope)
+        self.connection.json().delete(self._get_data_namespace(), p + '.' + key)
+
+        # rebuild now
+        if rebuild:
+            record = self.get_record(name, scope)
             self._set_index_record(record)
 
     def get_record_description(self, scope, name):
@@ -468,7 +477,9 @@ class Registry():
     def set_record_property(self, name, scope, key, value, rebuild=False):
         self.set_record_data(name, scope, 'properties' + '.' + key, value, rebuild=rebuild)
 
-   
+    def delete_record_property(self, name, scope, key, rebuild=False):
+        self.delete_record_data(name, scope, 'properties' + '.' + key, rebuild=rebuild)
+
     def get_record_contents(self, name, scope, type=None):
         if type:
             contents = self.get_record_data(name, scope, 'contents[?(@type=="' + type + '")]')
@@ -504,7 +515,7 @@ class Registry():
         records =  self.connection.json().get(self._get_data_namespace(), Path(sp))
 
         records = self.__get_json_value(records)
-        
+
         if type:
             filtered_records = {}
             for key in records:

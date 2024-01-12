@@ -35,6 +35,8 @@ from pydantic import BaseModel
 
 router = APIRouter(prefix="/sessions")
 
+###### Schema
+
 
 @router.get("/")
 def get_sessions():
