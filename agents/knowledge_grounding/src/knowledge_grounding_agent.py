@@ -26,6 +26,7 @@ import pandas
 ###### Blue
 from agent import Agent
 from data_registry import DataRegistry
+
 from neo4j import GraphDatabase
 from session import Session
 from tqdm import tqdm
@@ -57,9 +58,11 @@ class KnowledgGroundingAgent(Agent):
         self.properties['tags'] = ['JSON']
 
         # rationalizer config
-        self.properties['requires'] = ['name', 'top_title_recommendation',]
+        self.properties['requires'] = ['name'] #, 'top_title_recommendation',]
 
-        dr = DataRegistry("rat")
+        self.registry = DataRegistry("default")
+        self.db_client = None
+        self.db = None
 
     def default_processor(self, stream, id, label, data, dtype=None, tags=None, properties=None, worker=None):    
         if label == 'EOS':
@@ -90,42 +93,53 @@ class KnowledgGroundingAgent(Agent):
                     processed = worker.get_agent_data('processed')
                     if processed:
                         return None
-
-                    URI = "http://18.216.233.236:7474"
-                    AUTH = (os.environ["NEO4J_USER"], os.environ["NEO4J_PWD"])
-                    driver = GraphDatabase.driver(URI, auth=AUTH)
-
+                    
+                    # get source for resume
+                    results = self.registry.search_records(keywords="resume", 
+                                                           type="collection", 
+                                                           scope=None, 
+                                                           approximate=True, 
+                                                           hybrid=False, 
+                                                           page=0, 
+                                                           page_size=10)
+                    top_result = results[0] if len(results) > 0 else None
+                    # establish connection to source
+                    if top_result:
+                        scope = top_result["scope"]
+                        collection = top_result["name"]
+                        source = scope.split["/"][1]
+                        database = scope.split["/"][2]
+                        source_connection = self.registry.connect_source(source)
+                        self.db_client = source_connection._connect()
+                        self.db = self.db_client[database]["enriched_resume"] #collection
+                    else:
+                        # output to stream
+                        return "DATA", {}, "json", True
+                    
+                    # 
+                    # Senior Developer
+                    # execute query
+                    ## given resume get top 10 skills and durations
+                    ### db.enriched_resume.find({'profileId':"1c1p1gdtu0l1m47s"}).projection({'extractions.skill.duration':1})
                     person = worker.get_session_data("name")
-                    next_title = worker.get_session_data("top_title_recommendation")
-                    name_query = '''
-                        MATCH (p:PERSON{{name: '{}'}})-[h1:HAS]->(b)-[h2:HAS]->(c)
-                        RETURN c.label AS skill, h2.duration AS duration
-                        ORDER BY h2.duration DESC
-                        LIMIT 2
-                    '''.format(person)
-
-                    title_query = '''
-                        MATCH (j:TITLE{{label: '{}'}})-[r:REQUIRES]->(b)
-                        RETURN b.label AS skill, r.avg_duration AS avg_duration
-                        ORDER BY r.avg_duration DESC
-                        LIMIT 2
-                    '''.format(next_title)
-
-                    s1, _, _ = driver.execute_query(name_query)
-                    s2, _, _ = driver.execute_query(title_query)
-    
+                    current_title = worker.get_session_data("title")
+                    profile = "1c1p1gdtu0l1m47s"
+                    skills_duration_dict = self.db.find(
+                        {'profileId':profile}).projection(
+                            {'extractions.skill.duration':1})
+                    skills_duration_sorted = sorted(
+                        skills_duration_dict.items(), 
+                        key=lambda x:x[1])
+                    if len(skills_duration_sorted) > 3:
+                          skills_duration_sorted = skills_duration_sorted[:3]
+                    ### query insight db to get next title skiill recommendation
+                    next_title = "Head of Development/Operations"
+                    # worker.get_session_data("top_title_recommendation")
+                    skills_duration_next = skills_duration_sorted
+                    
                     ret = {}
-                    resume_skills = []
-                    top_title_skills = []
-
-                    for record in s1:
-                        resume_skills.append(dict(record))
-
-                    for record in s2:
-                        top_title_skills.append(dict(record))
-
-                    ret["resume_skills"] = resume_skills
-                    ret["top_title_skills"] = top_title_skills
+                    ret["resume_skills"] = skills_duration_sorted
+                    ret["top_title_skills"] = skills_duration_next
 
                      # set processed to true
                     worker.set_agent_data('processed', True)
