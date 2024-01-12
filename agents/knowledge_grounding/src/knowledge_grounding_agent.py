@@ -102,7 +102,10 @@ class KnowledgGroundingAgent(Agent):
                                                            hybrid=False, 
                                                            page=0, 
                                                            page_size=10)
-                    top_result = results[0] if len(results) > 0 else None
+                    top_result = None
+                    for result in results:
+                        if result["name"] == "enriched_resume":
+                            top_result = result
                     # establish connection to source
                     if top_result:
                         scope = top_result["scope"]
@@ -111,7 +114,7 @@ class KnowledgGroundingAgent(Agent):
                         database = scope.split["/"][2]
                         source_connection = self.registry.connect_source(source)
                         self.db_client = source_connection._connect()
-                        self.db = self.db_client[database]["enriched_resume"] #collection
+                        self.db = self.db_client[database][collection] #collection
                     else:
                         # output to stream
                         return "DATA", {}, "json", True
@@ -122,7 +125,7 @@ class KnowledgGroundingAgent(Agent):
                     ## given resume get top 10 skills and durations
                     ### db.enriched_resume.find({'profileId':"1c1p1gdtu0l1m47s"}).projection({'extractions.skill.duration':1})
                     person = worker.get_session_data("name")
-                    current_title = worker.get_session_data("title")
+                    current_title = "Senior Developer" # worker.get_session_data("title")
                     profile = "1c1p1gdtu0l1m47s"
                     skills_duration_dict = self.db.find(
                         {'profileId':profile}).projection(
