@@ -166,3 +166,43 @@ def search_data(registry_name, keywords, approximate: bool = False, hybrid: bool
     registry = DataRegistry(registry_name)
     results = registry.search_records(keywords, type=type, scope=scope, approximate=approximate, hybrid=hybrid, page=page, page_size=page_size)
     return JSONResponse(content={ "results": results })
+
+@router.get("/{registry_name}/source/{source_name}/database/{database_name}/collection/{collection_name}/profile/{profile_id}")
+def get_skill_duration_given_profile(registry_name, source_name, database_name, collection_name, profile_id):
+    registry = DataRegistry(registry_name)
+    source_connection = registry.connect_source(source_name)
+    db_client = source_connection.connection
+    db = db_client[database_name][collection_name]
+    db_cursor = db.find(
+            {'profileId':profile_id},
+            {'extractions.skill.duration':1})
+    skills_duration_dict_ls = []
+    for dbc in db_cursor:
+        skills_duration_dict_ls.append(dbc)
+    skills_duration_dict = skills_duration_dict_ls[0]['extractions']['skill']['duration']
+    skills_duration_tuple = sorted(
+        skills_duration_dict.items(), 
+        key=lambda x:x[1],
+        reverse=True)
+    result = {}
+    for i, t in enumerate(skills_duration_tuple):
+        if i>2:
+            break
+        skill, duration = t
+        result[skill] = duration
+    return JSONResponse(content={ "result": result })
+
+@router.get("/{registry_name}/source/{source_name}/database/{database_name}/collection/{collection_name}/next_title/{next_title}")
+def get_insights_jt_req_skill(registry_name, source_name, database_name, collection_name, next_title):
+    registry = DataRegistry(registry_name)
+    source_connection = registry.connect_source(source_name)
+    db_client = source_connection.connection
+    #next_title = "hse officer"
+    title_query = '''
+        MATCH (j:JobTitle{{name: '{}'}})-[r:requires]->(s:Skill)
+        RETURN s.name as skill, r.duration as duration
+        ORDER BY r.duration DESC
+        LIMIT 3
+    '''.format(next_title) 
+    result = db_client.run_query(title_query)
+    return JSONResponse(content={ "result": result })
