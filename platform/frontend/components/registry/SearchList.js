@@ -17,7 +17,7 @@ export default function SearchList({ type }) {
                     height={height}
                     width={width}
                     itemCount={appState[type].list.length}
-                    itemSize={78}
+                    itemSize={69}
                 >
                     {({ index, style }) => {
                         const item = appState[type].list[index];
@@ -47,7 +47,7 @@ export default function SearchList({ type }) {
                                             alignItems: "center",
                                             justifyContent: "space-between",
                                             padding: "18px 20px",
-                                            margin: "10px 21px 10px 21px",
+                                            margin: "1px 21px 10px 21px",
                                         }}
                                     >
                                         <div

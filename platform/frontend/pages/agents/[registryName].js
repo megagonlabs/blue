@@ -60,13 +60,7 @@ export default function Agents() {
     }, [hybrid, approximate, type]);
     return (
         <>
-            <div
-                style={{
-                    padding: "20px 20px 10px 20px",
-                    display: "flex",
-                    alignItems: "center",
-                }}
-            >
+            <div style={{ padding: "20px 20px 10px 20px" }}>
                 <H4 style={{ margin: "0px 20px 0px 0px" }}>Agents Registry</H4>
             </div>
             <div style={{ padding: "0px 20px 10px 20px", maxWidth: 690 }}>
@@ -168,13 +162,13 @@ export default function Agents() {
                     </Popover>
                 </ControlGroup>
             </div>
-            <div
-                style={{
-                    height: "calc(100% - 101px)",
-                    overflowY: "auto",
-                }}
-            >
-                <RegistryList type="agent" />
+            <div style={{ height: "calc(100% - 101px)" }}>
+                <H4 style={{ margin: "0px 0px 10px 20px" }}>
+                    {appState.agent.search ? "Search Results" : "Contents"}
+                </H4>
+                <div style={{ height: "calc(100% - 31px)", overflowY: "auto" }}>
+                    <RegistryList type="agent" />
+                </div>
             </div>
         </>
     );
