@@ -1,6 +1,12 @@
 import axios from "axios";
 import _ from "lodash";
 export const agentAction = (dispatch) => ({
+    setState: (payload) => {
+        dispatch({
+            type: "agent/state/set",
+            payload: payload,
+        });
+    },
     getList: () => {
         axios.get("/agents").then((response) => {
             dispatch({

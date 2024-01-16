@@ -4,6 +4,7 @@ import RegistryList from "@/components/registry/RegistryList";
 import {
     Button,
     Checkbox,
+    Classes,
     ControlGroup,
     Divider,
     H4,
@@ -33,6 +34,7 @@ export default function Agents() {
     }, []);
     const debounceOnKeywordsChange = useCallback(
         _.debounce(({ registryName, hybrid, approximate, keywords, type }) => {
+            appActions.agent.setState({ key: "loading", value: true });
             if (_.isEmpty(keywords)) {
                 appActions.agent.getList();
             } else {
@@ -64,7 +66,10 @@ export default function Agents() {
                 <H4 style={{ margin: "0px 20px 0px 0px" }}>Agents Registry</H4>
             </div>
             <div style={{ padding: "0px 20px 10px 20px", maxWidth: 690 }}>
-                <ControlGroup fill>
+                <ControlGroup
+                    fill
+                    className={appState.agent.loading ? Classes.SKELETON : null}
+                >
                     <InputGroup
                         large
                         fill

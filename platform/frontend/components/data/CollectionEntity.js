@@ -17,8 +17,8 @@ export default function CollectionEntity() {
     return (
         <div style={{ padding: "10px 20px 20px" }}>
             <EntityMain entity={entity} />
-            <EntityProperties entity={entity} />
             <EntityDescription entity={entity} />
+            <EntityProperties entity={entity} />
         </div>
     );
 }

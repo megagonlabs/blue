@@ -4,6 +4,7 @@ import RegistryList from "@/components/registry/RegistryList";
 import {
     Button,
     Checkbox,
+    Classes,
     ControlGroup,
     Divider,
     H4,
@@ -64,7 +65,10 @@ export default function Data() {
                 <H4 style={{ margin: "0px 20px 0px 0px" }}>Data Registry</H4>
             </div>
             <div style={{ padding: "0px 20px 10px 20px", maxWidth: 690 }}>
-                <ControlGroup fill>
+                <ControlGroup
+                    fill
+                    className={appState.data.loading ? Classes.SKELETON : null}
+                >
                     <InputGroup
                         large
                         fill
