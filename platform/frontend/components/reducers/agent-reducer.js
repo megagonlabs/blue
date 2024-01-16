@@ -6,7 +6,7 @@ export const defaultState = {
         keywords: "",
         hybrid: false,
         approximate: true,
-        type: "agent",
+        type: "",
     },
 };
 export default function agentReducer(state = defaultState, { type, payload }) {

@@ -6,7 +6,7 @@ export const defaultState = {
         keywords: "",
         hybrid: false,
         approximate: true,
-        type: "source",
+        type: "",
     },
 };
 export default function dataReducer(state = defaultState, { type, payload }) {

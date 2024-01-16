@@ -142,6 +142,7 @@ export default function Agents() {
                                         setType(event.currentTarget.value);
                                     }}
                                 >
+                                    <Radio large value="" label="All" />
                                     <Radio large value="agent" label="Agent" />
                                     <Radio large value="input" label="Input" />
                                     <Radio

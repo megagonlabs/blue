@@ -142,6 +142,7 @@ export default function Data() {
                                         setType(event.currentTarget.value);
                                     }}
                                 >
+                                    <Radio large value="" label="All" />
                                     <Radio
                                         large
                                         value="source"
