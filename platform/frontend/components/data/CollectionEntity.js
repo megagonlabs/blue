@@ -4,6 +4,7 @@ import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import EntityDescription from "../entity/EntityDescription";
 import EntityMain from "../entity/EntityMain";
+import EntityProperties from "../entity/EntityProperties";
 export default function CollectionEntity() {
     const router = useRouter();
     const [entity, setEntity] = useState({});
@@ -17,6 +18,7 @@ export default function CollectionEntity() {
         <div style={{ padding: "10px 20px 20px" }}>
             <EntityMain entity={entity} />
             <EntityDescription entity={entity} />
+            <EntityProperties entity={entity} />
         </div>
     );
 }

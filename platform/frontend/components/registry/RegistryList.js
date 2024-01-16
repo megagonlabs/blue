@@ -27,7 +27,7 @@ export default function RegistryList({ type }) {
     }
     return (
         <Container fluid style={{ paddingLeft: 21, paddingRight: 21 }}>
-            <Row gutterWidth={20} align="stretch" style={{ paddingTop: 10 }}>
+            <Row gutterWidth={20} align="stretch" style={{ paddingTop: 1 }}>
                 {list.map((element) => {
                     const properties = element.properties;
                     let extra = null,

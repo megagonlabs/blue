@@ -4,6 +4,7 @@ import RegistryList from "@/components/registry/RegistryList";
 import {
     Button,
     Checkbox,
+    Classes,
     ControlGroup,
     Divider,
     H4,
@@ -60,17 +61,14 @@ export default function Data() {
     }, [hybrid, approximate, type]);
     return (
         <>
-            <div
-                style={{
-                    padding: "20px 20px 10px 20px",
-                    display: "flex",
-                    alignItems: "center",
-                }}
-            >
+            <div style={{ padding: "20px 20px 10px 20px" }}>
                 <H4 style={{ margin: "0px 20px 0px 0px" }}>Data Registry</H4>
             </div>
             <div style={{ padding: "0px 20px 10px 20px", maxWidth: 690 }}>
-                <ControlGroup fill>
+                <ControlGroup
+                    fill
+                    className={appState.data.loading ? Classes.SKELETON : null}
+                >
                     <InputGroup
                         large
                         fill
@@ -148,6 +146,7 @@ export default function Data() {
                                         setType(event.currentTarget.value);
                                     }}
                                 >
+                                    <Radio large value="" label="All" />
                                     <Radio
                                         large
                                         value="source"
@@ -176,13 +175,13 @@ export default function Data() {
                     </Popover>
                 </ControlGroup>
             </div>
-            <div
-                style={{
-                    height: "calc(100% - 101px)",
-                    overflowY: "auto",
-                }}
-            >
-                <RegistryList type="data" />
+            <div style={{ height: "calc(100% - 101px)" }}>
+                <H4 style={{ margin: "0px 0px 10px 20px" }}>
+                    {appState.data.search ? "Search Results" : "Contents"}
+                </H4>
+                <div style={{ height: "calc(100% - 31px)", overflowY: "auto" }}>
+                    <RegistryList type="data" />
+                </div>
             </div>
         </>
     );

@@ -4,6 +4,7 @@ import RegistryList from "@/components/registry/RegistryList";
 import {
     Button,
     Checkbox,
+    Classes,
     ControlGroup,
     Divider,
     H4,
@@ -33,6 +34,7 @@ export default function Agents() {
     }, []);
     const debounceOnKeywordsChange = useCallback(
         _.debounce(({ registryName, hybrid, approximate, keywords, type }) => {
+            appActions.agent.setState({ key: "loading", value: true });
             if (_.isEmpty(keywords)) {
                 appActions.agent.getList();
             } else {
@@ -60,17 +62,14 @@ export default function Agents() {
     }, [hybrid, approximate, type]);
     return (
         <>
-            <div
-                style={{
-                    padding: "20px 20px 10px 20px",
-                    display: "flex",
-                    alignItems: "center",
-                }}
-            >
+            <div style={{ padding: "20px 20px 10px 20px" }}>
                 <H4 style={{ margin: "0px 20px 0px 0px" }}>Agents Registry</H4>
             </div>
             <div style={{ padding: "0px 20px 10px 20px", maxWidth: 690 }}>
-                <ControlGroup fill>
+                <ControlGroup
+                    fill
+                    className={appState.agent.loading ? Classes.SKELETON : null}
+                >
                     <InputGroup
                         large
                         fill
@@ -148,6 +147,7 @@ export default function Agents() {
                                         setType(event.currentTarget.value);
                                     }}
                                 >
+                                    <Radio large value="" label="All" />
                                     <Radio large value="agent" label="Agent" />
                                     <Radio large value="input" label="Input" />
                                     <Radio
@@ -168,13 +168,13 @@ export default function Agents() {
                     </Popover>
                 </ControlGroup>
             </div>
-            <div
-                style={{
-                    height: "calc(100% - 101px)",
-                    overflowY: "auto",
-                }}
-            >
-                <RegistryList type="agent" />
+            <div style={{ height: "calc(100% - 101px)" }}>
+                <H4 style={{ margin: "0px 0px 10px 20px" }}>
+                    {appState.agent.search ? "Search Results" : "Contents"}
+                </H4>
+                <div style={{ height: "calc(100% - 31px)", overflowY: "auto" }}>
+                    <RegistryList type="agent" />
+                </div>
             </div>
         </>
     );
