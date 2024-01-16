@@ -45,30 +45,47 @@ export default function SearchList({ type }) {
                                         style={{
                                             display: "flex",
                                             alignItems: "center",
+                                            justifyContent: "space-between",
                                             padding: "18px 20px",
                                             margin: "10px 21px 10px 21px",
                                         }}
                                     >
                                         <div
-                                            className={Classes.TEXT_MUTED}
-                                            style={{ marginRight: 10 }}
+                                            style={{
+                                                display: "flex",
+                                                alignItems: "center",
+                                            }}
                                         >
-                                            {faIcon({
-                                                icon: SEARCH_LIST_TYPE_LOOKUP[
-                                                    item.type
-                                                ].icon,
-                                                size: 21,
-                                            })}
+                                            <div
+                                                className={Classes.TEXT_MUTED}
+                                                style={{ marginRight: 10 }}
+                                            >
+                                                {faIcon({
+                                                    icon: SEARCH_LIST_TYPE_LOOKUP[
+                                                        item.type
+                                                    ].icon,
+                                                    size: 21,
+                                                })}
+                                            </div>
+                                            <div
+                                                className={Classes.TEXT_MUTED}
+                                                style={{ marginRight: 10 }}
+                                            >
+                                                {item.scope}
+                                                {item.scope.length > 1 && "/"}
+                                                {item.type}
+                                            </div>
+                                            <div>{item.name}</div>
                                         </div>
-                                        <div
-                                            className={Classes.TEXT_MUTED}
-                                            style={{ marginRight: 10 }}
-                                        >
-                                            {item.scope}
-                                            {item.scope.length > 1 && "/"}
-                                            {item.type}
-                                        </div>
-                                        <div>{item.name}</div>
+                                        {!_.isNil(item.score) ? (
+                                            <div
+                                                className={
+                                                    Classes.TEXT_DISABLED
+                                                }
+                                            >
+                                                {item.score}
+                                            </div>
+                                        ) : null}
                                     </Card>
                                 </Link>
                             </div>
