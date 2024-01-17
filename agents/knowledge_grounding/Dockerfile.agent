@@ -16,6 +16,8 @@ ADD /lib /app/lib/
 ADD /src /app/
 
 # Environment variables
-ENV session=
+ENV profile=
+ENV title=
+ENV next_title=
 
-CMD ["sh", "-c", "python knowledge_grounding_agent.py --session ${session}"]
+CMD ["sh", "-c", "python knowledge_grounding_agent.py --profile \"${profile}\" --title \"${title}\" --next_title \"${next_title}\""]

@@ -55,7 +55,7 @@ class MongoDBSource(DataSource):
     def _connect(self, **connection):
         host = connection['host']
         port = connection['port']
-
+        
         connection_url = self.properties['protocol'] + "://" + host + ":" + str(port)    
         return MongoClient(connection_url)
 
