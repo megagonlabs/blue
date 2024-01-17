@@ -5,6 +5,7 @@ import sys
 ###### Add lib path
 sys.path.append('./lib/')
 sys.path.append('./lib/agent/')
+sys.path.append('./lib/openai/')
 sys.path.append('./lib/platform/')
 sys.path.append('./lib/utils/')
 
@@ -34,36 +35,44 @@ from websockets.sync.client import connect
 from agent import Agent
 from api_agent import APIAgent
 from session import Session
+from openai_agent import OpenAIAgent
 
 # set log level
 logging.getLogger().setLevel(logging.INFO)
 
 
-class OpenAIAgent(APIAgent):
-    def __init__(self, name="OPENAI", session=None, input_stream=None, processor=None, properties={}):
-        super().__init__(name, session=session, input_stream=input_stream, processor=processor, properties=properties)
+#######################
+ ##### sample properties for different openai models
+## --properties '{"openai.api":"ChatCompletion","openai.model":"gpt-4","output_path":"$.choices[0].message.content","input_json":"[{\"role\":\"user\"}]","input_context":"$[0]","input_context_field":"content","input_field":"messages"}'
+chatGPT_properties = {
+    "openai.api":"ChatCompletion",
+    "openai.model":"gpt-4",
+    "output_path":"$.choices[0].message.content",
+    "input_json":"[{\"role\":\"user\"}]",
+    "input_context":"$[0]",
+    "input_context_field":"content",
+    "input_field":"messages",
+    "listens": {
+        "includes": ["USER"],
+        "excludes": []
+    },
+    "tags": ["CHAT"],
+}
+   
+class ChatGPTAgent(OpenAIAgent):
+    def __init__(self, name="CHATGPT", session=None, input_stream=None, processor=None, properties={}):
+        super().__init__(name=name, session=session, input_stream=input_stream, processor=processor, properties=properties)
 
     def _initialize_properties(self):
         super()._initialize_properties()
 
-        self.properties['openai.service'] = "ws://localhost:8003"
-
-        self.properties['openai.api'] = 'Completion'
-        self.properties['openai.model'] = "text-davinci-003"
-        self.properties['input_json'] = None 
-        self.properties['input_context'] = None 
-        self.properties['input_context_field'] = None 
-        self.properties['input_field'] = 'prompt'
-        self.properties['output_path'] = '$.choices[0].text'
-        self.properties['openai.stream'] = False
-        self.properties['openai.max_tokens'] = 50
-
-        # prefix for service specific properties
-        self.properties['service.prefix'] = 'openai'
+        # init properties
+        for key in chatGPT_properties:
+            self.properties[key] = chatGPT_properties[key]
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--name', default="OPENAI", type=str)
+    parser.add_argument('--name', default="CHATGPT", type=str)
     parser.add_argument('--session', type=str)
     parser.add_argument('--input_stream', type=str)
     parser.add_argument('--properties', type=str)
@@ -88,13 +97,13 @@ if __name__ == "__main__":
     if args.session:
         # join an existing session
         session = Session(args.session)
-        a = OpenAIAgent(name=args.name, session=session, properties=properties)
+        a = ChatGPTAgent(name=args.name, session=session, properties=properties)
     elif args.input_stream:
         # no session, work on a single input stream
-        a = OpenAIAgent(name=args.name, input_stream=args.input_stream, properties=properties)
+        a = ChatGPTAgent(name=args.name, input_stream=args.input_stream, properties=properties)
     else:
         # create a new session
-        a = OpenAIAgent(name=args.name, properties=properties)
+        a = ChatGPTAgent(name=args.name, properties=properties)
         a.start_session()
 
     # wait for session

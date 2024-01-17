@@ -51,7 +51,10 @@ class APIAgent(Agent):
         self.properties['output_path'] = 'output'
 
     def get_prefix(self):
-        return self.name.lower() + '.'
+        prefix = self.name.lower()
+        if 'service.prefix' in self.properties:
+            prefix = self.properties['service.prefix']
+        return prefix + '.'
 
 
     def get_properties(self, properties=None):
@@ -114,6 +117,9 @@ class APIAgent(Agent):
     def validate_input(self, input_data):
         return True 
 
+    def process_output(self, output_data):
+        return output_data
+
     def default_processor(self, stream, id, label, data, dtype=None, tags=None, properties=None, worker=None):
         
         if label == 'EOS':
@@ -140,7 +146,10 @@ class APIAgent(Agent):
 
             # create output from response
             output_data = self.create_output(response)
-         
+
+            # process output data
+            output_data = self.process_output(output_data)
+
             output_dtype = None
 
             if type(output_data) == int:

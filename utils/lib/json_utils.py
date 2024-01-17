@@ -29,6 +29,7 @@ def load_json_array(json_file, single=False):
                 json_string = ''
     return json_array
 
+
 ## save json objects as an array from a file 
 # def save_json_array(file_path, json_array):
     with open(file_path, "w") as fp:
