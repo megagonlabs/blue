@@ -50,7 +50,7 @@ class KnowledgGroundingAgent(Agent):
 
         listeners = {}
         self.properties['listens'] = listeners
-        listeners['includes'] = []
+        listeners['includes'] = ["USER"]
         listeners['excludes'] = [self.name]
 
         ### default tags to tag output streams
@@ -84,8 +84,8 @@ class KnowledgGroundingAgent(Agent):
         if top_result:
             scope = top_result["scope"]
             collection = top_result["name"]
-            source = scope.split["/"][1]
-            database = scope.split["/"][2]
+            source = scope.split("/")[1]
+            database = scope.split("/")[2]
             source_connection = self.registry.connect_source(source)
             self.db_client = source_connection.connection
             self.db = self.db_client[database][collection]
@@ -130,7 +130,7 @@ class KnowledgGroundingAgent(Agent):
         # establish connection to source
         if top_result:
             scope = top_result["scope"]
-            source = scope.split["/"][1]
+            source = scope.split("/")[1]
             source_connection = self.registry.connect_source(source)
             self.db_client = source_connection.connection
         else:
@@ -152,11 +152,11 @@ class KnowledgGroundingAgent(Agent):
 
     def data_processing(self, worker):
         profile = self.properties['profile'] #"1bv5ncadl2srsbmv" #1c1p1gdtu0l1m47s"
-        current_title = self.properties("title") #"Software Engineer" # worker.get_session_data("title")
+        current_title = self.properties["title"] #"Software Engineer" # worker.get_session_data("title")
         skills_duration_current = self.resume_processing(profile)
         
         ### query insight db to get next title skiill recommendation
-        next_title = self.properties("next_title") #"Senior Software Engineer"
+        next_title = self.properties["next_title"] #"Senior Software Engineer"
         # worker.get_session_data("top_title_recommendation")
         skills_duration_next = self.insight_processing(next_title)
         
@@ -174,8 +174,8 @@ class KnowledgGroundingAgent(Agent):
             return None
                 
         elif label == 'BOS':
-            #pass
-        #elif label == 'DATA':
+            pass
+        elif label == 'DATA':
             # check if a required variable is seen
             requires = properties['requires']
 
