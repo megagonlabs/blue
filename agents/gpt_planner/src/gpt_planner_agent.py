@@ -7,6 +7,7 @@ sys.path.append('./lib/')
 sys.path.append('./lib/agent/')
 sys.path.append('./lib/openai/')
 sys.path.append('./lib/platform/')
+sys.path.append('./lib/agent_registry')
 sys.path.append('./lib/utils/')
 
 ###### 
@@ -36,6 +37,7 @@ from agent import Agent
 from api_agent import APIAgent
 from session import Session
 from openai_agent import OpenAIAgent
+from agent_registry import AgentRegistry
 
 # set log level
 logging.getLogger().setLevel(logging.INFO)
@@ -59,6 +61,7 @@ Examine the text below and identify a task plan  thatcan be fulfilled by various
     "openai.top_p":1,
     "openai.frequency_penalty":0,
     "openai.presence_penalty":0,
+    "registry.name": "default",
     "listens": {
         "includes": ["USER"],
         "excludes": []
@@ -69,6 +72,12 @@ Examine the text below and identify a task plan  thatcan be fulfilled by various
 class GPTPlannerAgent(OpenAIAgent):
     def __init__(self, name="GPTPLANNER", session=None, input_stream=None, processor=None, properties={}):
         super().__init__(name=name, session=session, input_stream=input_stream, processor=processor, properties=properties)
+
+        logging.info("Using agent registry:" + self.properties['registry.name'])
+        self.agent_registry = AgentRegistry(self.properties['registry.name'])
+
+        agents = self.agent_registry.list_records()
+        logging.info(json.dumps(agents, indent=4))
 
     def _initialize_properties(self):
         super()._initialize_properties()
