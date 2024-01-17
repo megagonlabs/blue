@@ -50,7 +50,7 @@ class KnowledgGroundingAgent(Agent):
 
         listeners = {}
         self.properties['listens'] = listeners
-        listeners['includes'] = ['RECORDER']
+        listeners['includes'] = []
         listeners['excludes'] = [self.name]
 
         ### default tags to tag output streams
@@ -64,7 +64,7 @@ class KnowledgGroundingAgent(Agent):
         self.db_client = None
         self.db = None
 
-    def resume_processing(self):
+    def resume_processing(self, profile):
         # get source for resume
         results = self.registry.search_records(keywords="resume", 
                                                 type="collection", 
@@ -73,6 +73,9 @@ class KnowledgGroundingAgent(Agent):
                                                 hybrid=False, 
                                                 page=0, 
                                                 page_size=10)
+        
+        logging.info("List of collections with relevant information about resume.")
+        logging.info(results)
         top_result = None
         for result in results:
             if result["name"] == "enriched_resume":
@@ -91,7 +94,6 @@ class KnowledgGroundingAgent(Agent):
             # return "DATA", {}, "json", True
             return {}
         
-        profile = "1c1p1gdtu0l1m47s"
         db_cursor = self.db.find(
             {'profileId':profile},
             {'extractions.skill.duration':1})
@@ -137,6 +139,7 @@ class KnowledgGroundingAgent(Agent):
             return {}
         
         #next_title = "hse officer"
+        ## what does the insight DB have about a skill?
         title_query = '''
             MATCH (j:JobTitle{{name: '{}'}})-[r:requires]->(s:Skill)
             RETURN s.name as skill, r.duration as duration
@@ -148,27 +151,21 @@ class KnowledgGroundingAgent(Agent):
         return result
 
     def data_processing(self, worker):
-        current_title = "Senior Developer" # worker.get_session_data("title")
-        skills_duration_current = self.resume_processing()
+        profile = self.properties['profile'] #"1bv5ncadl2srsbmv" #1c1p1gdtu0l1m47s"
+        current_title = self.properties("title") #"Software Engineer" # worker.get_session_data("title")
+        skills_duration_current = self.resume_processing(profile)
         
         ### query insight db to get next title skiill recommendation
-        next_title = "hse officer"
+        next_title = self.properties("next_title") #"Senior Software Engineer"
         # worker.get_session_data("top_title_recommendation")
         skills_duration_next = self.insight_processing(next_title)
         
         ret = {}
         ret["resume_skills"] = skills_duration_current
         ret["top_title_skills"] = skills_duration_next
-
-            # set processed to true
-        worker.set_agent_data('processed', True)
-
-        # output to stream
-        return "DATA", ret, "json", True
+        return ret
     
     def default_processor(self, stream, id, label, data, dtype=None, tags=None, properties=None, worker=None):    
-        if worker:
-            return self.resume_processing(worker)
         if label == 'EOS':
             if worker:
                 processed = worker.get_agent_data('processed')
@@ -177,38 +174,83 @@ class KnowledgGroundingAgent(Agent):
             return None
                 
         elif label == 'BOS':
-            pass
-        elif label == 'DATA':
-            pass
-        # check if a required variable is seen
-        requires = properties['requires']
+            #pass
+        #elif label == 'DATA':
+            # check if a required variable is seen
+            requires = properties['requires']
 
-        required_recorded = True
-        for require in requires:
-            # check if require is in session memory
-            if worker:
-                v = worker.get_session_data(require)
-                logging.info("variable: {} value: {}".format(require, v))
-                if v is None:
-                    required_recorded = False 
-                    break
+            required_recorded = True
+            for require in requires:
+                # check if require is in session memory
+                if worker:
+                    v = worker.get_session_data(require)
+                    logging.info("variable: {} value: {}".format(require, v))
+                    if v is None:
+                        required_recorded = False 
+                        break
 
-        if required_recorded:
-            if worker:
-                processed = worker.get_agent_data('processed')
-                if processed:
-                    return None
-                
-                ################################
-                ### resume processing code ####
-                ################################
-                return self.data_processing(worker)
+            if required_recorded:
+                if worker:
+                    processed = worker.get_agent_data('processed')
+                    if processed:
+                        return None
+
+                    ret = self.data_processing(worker)
+
+                     # set processed to true
+                    worker.set_agent_data('processed', True)
+
+                    # output to stream
+                    return "DATA", ret, "json", True
     
         return None
+        
+        
+        # if worker:
+        #     return self.data_processing(worker)
+        # if label == 'EOS':
+        #     if worker:
+        #         processed = worker.get_agent_data('processed')
+        #         if processed:
+        #             return 'EOS', None, None
+        #     return None
+                
+        # elif label == 'BOS':
+        #     pass
+        # elif label == 'DATA':
+        #     pass
+        # # check if a required variable is seen
+        # requires = properties['requires']
+
+        # required_recorded = True
+        # for require in requires:
+        #     # check if require is in session memory
+        #     if worker:
+        #         v = worker.get_session_data(require)
+        #         logging.info("variable: {} value: {}".format(require, v))
+        #         if v is None:
+        #             required_recorded = False 
+        #             break
+
+        # if required_recorded:
+        #     if worker:
+        #         processed = worker.get_agent_data('processed')
+        #         if processed:
+        #             return None
+                
+        #         ################################
+        #         ### resume processing code ####
+        #         ################################
+        #         return self.data_processing(worker)
+    
+        # return None
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--session', type=str)
+    parser.add_argument('--profile', type=str)
+    parser.add_argument('--title', type=str)
+    parser.add_argument('--next_title', type=str)
     parser.add_argument('--input_stream', type=str)
     parser.add_argument('--properties', type=str)
  
@@ -224,6 +266,15 @@ if __name__ == "__main__":
         # decode json
         properties = json.loads(p)
 
+    if args.profile:
+        properties['profile'] = args.profile
+    
+    if args.title:
+        properties['title'] = args.title
+
+    if args.next_title:
+        properties['next_title'] = args.next_title
+
     if args.session:
         # join an existing session
         session = Session(args.session)
@@ -234,7 +285,7 @@ if __name__ == "__main__":
     else:
         # create a new session
         a = KnowledgGroundingAgent(properties=properties)
-        a.start_session()
+        session = a.start_session()
 
     # wait for session
     session.wait()
