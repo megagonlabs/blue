@@ -74,9 +74,10 @@ class GPTPlannerAgent(OpenAIAgent):
         super().__init__(name=name, session=session, input_stream=input_stream, processor=processor, properties=properties)
 
         logging.info("Using agent registry:" + self.properties['registry.name'])
-        self.agent_registry = AgentRegistry(self.properties['registry.name'])
+        self.registry = AgentRegistry(self.properties['registry.name'])
 
-        agents = self.agent_registry.list_records()
+        agents = self.registry.list_records()
+        logging.info('Registry contents:')
         logging.info(json.dumps(agents, indent=4))
 
     def _initialize_properties(self):
