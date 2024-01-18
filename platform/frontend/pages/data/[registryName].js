@@ -116,7 +116,11 @@ export default function Data() {
                                             setKeywords("");
                                             setPage(0);
                                             setPageSize(10);
-                                            debounceOnKeywordsChange();
+                                            appActions.data.setState({
+                                                key: "loading",
+                                                value: true,
+                                            });
+                                            appActions.data.getList();
                                         }}
                                         icon={faIcon({ icon: faTimes })}
                                     />
