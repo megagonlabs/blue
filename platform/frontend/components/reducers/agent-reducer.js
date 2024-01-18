@@ -8,6 +8,8 @@ export const defaultState = {
         hybrid: false,
         approximate: true,
         type: "",
+        page: 0,
+        page_size: 10,
     },
 };
 export default function agentReducer(state = defaultState, { type, payload }) {

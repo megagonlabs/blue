@@ -11,12 +11,10 @@ import {
     H4,
     Intent,
     NonIdealState,
-    Popover,
 } from "@blueprintjs/core";
 import {
-    faArrowRightFromArc,
+    faArrowRightFromBracket,
     faBarsFilter,
-    faCaretDown,
     faInboxIn,
     faInboxOut,
     faMessages,
@@ -27,16 +25,10 @@ export default function Sessions() {
     const { appState, appActions } = useContext(AppContext);
     const sessionIdFocus = appState.session.sessionIdFocus;
     useEffect(() => {
+        if (!_.isNil(appState.session.connection)) return;
         try {
             // Creating an instance of the WebSocket
             const socket = new WebSocket("ws://localhost:5050/sessions/ws");
-            // Adding an event listener to when the connection is opened
-            socket.onopen = () => {
-                AppToaster.show({
-                    intent: Intent.SUCCESS,
-                    message: "Connection established",
-                });
-            };
             // Listening to messages from the server
             socket.onmessage = (event) => {
                 try {
@@ -56,18 +48,29 @@ export default function Sessions() {
                 }
             };
             socket.onerror = () => {
+                appActions.session.setConnection(null);
                 AppToaster.show({
                     intent: Intent.DANGER,
                     message: `Failed to connect to websocketc (onerror)`,
                 });
             };
             socket.close = () => {
+                appActions.session.setConnection(null);
                 AppToaster.show({
                     intent: Intent.PRIMARY,
                     message: "Connected closed",
                 });
             };
+            // Adding an event listener to when the connection is opened
+            socket.onopen = () => {
+                appActions.session.setConnection(socket);
+                AppToaster.show({
+                    intent: Intent.SUCCESS,
+                    message: "Connection established",
+                });
+            };
         } catch (e) {
+            appActions.session.setConnection(null);
             AppToaster.show({
                 intent: Intent.SUCCESS,
                 message: `Failed to connect to websocket: ${e}`,
@@ -82,7 +85,7 @@ export default function Sessions() {
                     position: "absolute",
                     top: 0,
                     left: 0,
-                    height: "100%",
+                    height: "calc(100% - 1px)",
                     width: SESSION_LISTL_PANEL_WIDTH,
                 }}
             >
@@ -102,21 +105,20 @@ export default function Sessions() {
                     />
                     <ButtonGroup large>
                         <Button
+                            disabled={_.isNil(appState.session.connection)}
                             text="New session"
                             outlined
                             intent={Intent.PRIMARY}
+                            onClick={() => {
+                                if (_.isNil(appState.session.connection))
+                                    return;
+                                appActions.session.createSession({
+                                    platform: appState.session.platform,
+                                    connection: appState.session.connection,
+                                });
+                            }}
                             rightIcon={faIcon({ icon: faInboxOut })}
                         />
-                        <Popover
-                            minimal
-                            placement="bottom-end"
-                            content={<div>Join existing session</div>}
-                        >
-                            <Button
-                                outlined
-                                rightIcon={faIcon({ icon: faCaretDown })}
-                            />
-                        </Popover>
                     </ButtonGroup>
                 </div>
                 {_.isEmpty(appState.session.sessionIds) ? (
@@ -166,7 +168,7 @@ export default function Sessions() {
                         intent={Intent.WARNING}
                         large
                         outlined
-                        rightIcon={faIcon({ icon: faArrowRightFromArc })}
+                        rightIcon={faIcon({ icon: faArrowRightFromBracket })}
                     />
                 </Card>
                 {_.isNull(sessionIdFocus) ? (
