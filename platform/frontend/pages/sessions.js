@@ -28,6 +28,7 @@ export default function Sessions() {
     const { appState, appActions } = useContext(AppContext);
     const sessionIdFocus = appState.session.sessionIdFocus;
     const [message, setMessage] = useState("");
+    const [loading, setLoading] = useState(false);
     const sendSessionMessage = (message) => {
         if (_.isNil(appState.session.connection)) return;
         setMessage("");
@@ -41,6 +42,7 @@ export default function Sessions() {
     };
     const connectToWebsocket = () => {
         if (!_.isNil(appState.session.connection)) return;
+        setLoading(true);
         try {
             // Creating an instance of the WebSocket
             const socket = new WebSocket("ws://localhost:5050/sessions/ws");
@@ -63,6 +65,7 @@ export default function Sessions() {
                 }
             };
             socket.onerror = () => {
+                setLoading(false);
                 appActions.session.setConnection(null);
                 AppToaster.show({
                     intent: Intent.DANGER,
@@ -70,6 +73,7 @@ export default function Sessions() {
                 });
             };
             socket.onclose = () => {
+                setLoading(false);
                 appActions.session.setConnection(null);
                 AppToaster.show({
                     intent: Intent.PRIMARY,
@@ -78,6 +82,7 @@ export default function Sessions() {
             };
             // Adding an event listener to when the connection is opened
             socket.onopen = () => {
+                setLoading(false);
                 appActions.session.setConnection(socket);
                 AppToaster.show({
                     intent: Intent.SUCCESS,
@@ -85,6 +90,7 @@ export default function Sessions() {
                 });
             };
         } catch (e) {
+            setLoading(false);
             appActions.session.setConnection(null);
             AppToaster.show({
                 intent: Intent.SUCCESS,
@@ -100,13 +106,14 @@ export default function Sessions() {
         return (
             <NonIdealState
                 icon={faIcon({ icon: faSignalStreamSlash, size: 50 })}
-                title="No connection"
+                title={loading ? "Connecting" : "No connection"}
                 action={
                     <Button
                         onClick={connectToWebsocket}
                         intent={Intent.PRIMARY}
                         outlined
                         large
+                        loading={loading}
                         text="Reconnect"
                     />
                 }
@@ -135,6 +142,7 @@ export default function Sessions() {
                         text="Filter"
                         large
                         outlined
+                        onClick={() => appState.session.connection.close()}
                         rightIcon={faIcon({ icon: faBarsFilter })}
                     />
                     <ButtonGroup large>
