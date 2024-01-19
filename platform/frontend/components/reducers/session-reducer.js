@@ -25,7 +25,7 @@ export default function sessionReducer(
                     ...state.sessions,
                     [payload.session_id]: [
                         ..._.get(state, `sessions.${payload.session_id}`, []),
-                        payload.content,
+                        payload.message,
                     ],
                 },
                 sessionIds: sessionIds,

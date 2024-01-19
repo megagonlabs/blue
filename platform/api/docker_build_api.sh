@@ -9,6 +9,7 @@ mkdir -p lib/platform; cp -r ../lib/* lib/platform/
 
 # copy from agent shared lib
 mkdir -p lib/agents; cp -r ../../agents/lib/* lib/agents/
+mkdir -p lib/agents; cp -r ../../agents/observer/src/* lib/agents/
 
 # copy from agent_registry shared lib
 mkdir -p lib/agent_registry; cp -r ../agent_registry/src/* lib/agent_registry/

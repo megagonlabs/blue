@@ -98,6 +98,7 @@ export default function Data() {
                 >
                     <ControlGroup fill>
                         <InputGroup
+                            placeholder="Search"
                             large
                             fill
                             className={

@@ -9,22 +9,37 @@ import {
     Card,
     Classes,
     H4,
+    InputGroup,
     Intent,
     NonIdealState,
 } from "@blueprintjs/core";
 import {
     faArrowRightFromBracket,
+    faArrowUpFromLine,
     faBarsFilter,
     faInboxIn,
     faInboxOut,
     faMessages,
+    faSignalStreamSlash,
 } from "@fortawesome/pro-duotone-svg-icons";
 import _ from "lodash";
-import { useContext, useEffect } from "react";
+import { useContext, useEffect, useState } from "react";
 export default function Sessions() {
     const { appState, appActions } = useContext(AppContext);
     const sessionIdFocus = appState.session.sessionIdFocus;
-    useEffect(() => {
+    const [message, setMessage] = useState("");
+    const sendSessionMessage = (message) => {
+        if (_.isNil(appState.session.connection)) return;
+        setMessage("");
+        appState.session.connection.send(
+            JSON.stringify({
+                type: "USER_SESSION_MESSAGE",
+                session_id: appState.session.sessionIdFocus,
+                message: message,
+            })
+        );
+    };
+    const connectToWebsocket = () => {
         if (!_.isNil(appState.session.connection)) return;
         try {
             // Creating an instance of the WebSocket
@@ -54,7 +69,7 @@ export default function Sessions() {
                     message: `Failed to connect to websocketc (onerror)`,
                 });
             };
-            socket.close = () => {
+            socket.onclose = () => {
                 appActions.session.setConnection(null);
                 AppToaster.show({
                     intent: Intent.PRIMARY,
@@ -76,8 +91,27 @@ export default function Sessions() {
                 message: `Failed to connect to websocket: ${e}`,
             });
         }
+    };
+    useEffect(() => {
+        connectToWebsocket();
     }, []);
     const SESSION_LISTL_PANEL_WIDTH = 451.65;
+    if (_.isNil(appState.session.connection))
+        return (
+            <NonIdealState
+                icon={faIcon({ icon: faSignalStreamSlash, size: 50 })}
+                title="No connection"
+                action={
+                    <Button
+                        onClick={connectToWebsocket}
+                        intent={Intent.PRIMARY}
+                        outlined
+                        large
+                        text="Reconnect"
+                    />
+                }
+            />
+        );
     return (
         <>
             <div
@@ -106,7 +140,7 @@ export default function Sessions() {
                     <ButtonGroup large>
                         <Button
                             disabled={_.isNil(appState.session.connection)}
-                            text="New session"
+                            text="New"
                             outlined
                             intent={Intent.PRIMARY}
                             onClick={() => {
@@ -164,7 +198,8 @@ export default function Sessions() {
                         {sessionIdFocus}
                     </H4>
                     <Button
-                        text="Leave session"
+                        disabled={_.isNil(appState.session.sessionIdFocus)}
+                        text="Leave"
                         intent={Intent.WARNING}
                         large
                         outlined
@@ -177,7 +212,52 @@ export default function Sessions() {
                         title="Messages"
                     />
                 ) : (
-                    <SessionMessages />
+                    <>
+                        <div
+                            style={{
+                                height: "calc(100% - 81px",
+                            }}
+                        >
+                            <SessionMessages />
+                        </div>
+                        <div
+                            style={{
+                                padding: 20,
+                                width: "100%",
+                                display: "flex",
+                                alignItems: "center",
+                                borderTop: "1px solid rgba(17, 20, 24, 0.15)",
+                            }}
+                        >
+                            <InputGroup
+                                fill
+                                large
+                                value={message}
+                                placeholder="Message"
+                                onChange={(event) => {
+                                    setMessage(event.target.value);
+                                }}
+                                onKeyDown={(event) => {
+                                    if (_.isEqual(event.key, "Enter")) {
+                                        sendSessionMessage(message);
+                                    }
+                                }}
+                                rightElement={
+                                    <Button
+                                        minimal
+                                        intent={Intent.PRIMARY}
+                                        text="Send"
+                                        onClick={() => {
+                                            sendSessionMessage(message);
+                                        }}
+                                        rightIcon={faIcon({
+                                            icon: faArrowUpFromLine,
+                                        })}
+                                    />
+                                }
+                            />
+                        </div>
+                    </>
                 )}
             </div>
         </>

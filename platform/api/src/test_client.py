@@ -247,16 +247,18 @@ def words(count):
     return " ".join(word_list)
 
 
-session_ids = [str(uuid.uuid4()) for _ in range(11 * 2)]
-for _ in range(11 * 11):
+# session_ids = [str(uuid.uuid4()) for _ in range(11)]
+session_id = input("session_id: ")
+session_ids = [session_id]
+for _ in range(11):
     sentence_string = sentence()
     words_string = words(random.randint(4, 11))
     ws.send(
         json.dumps(
             {
-                "type": "message",
+                "type": "OBSERVER_SESSION_MESSAGE",
                 "session_id": random.choice(session_ids),
-                "content": random.choice([sentence_string, words_string]),
+                "message": random.choice([sentence_string, words_string]),
             }
         )
     )
