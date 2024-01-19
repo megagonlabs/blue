@@ -23,6 +23,7 @@ import re
 import csv
 import json
 from utils import json_utils
+import copy 
 
 import itertools
 from tqdm import tqdm
@@ -89,11 +90,170 @@ class GPTPlannerAgent(OpenAIAgent):
 
     def process_output(self, output_data):
         logging.info(output_data)
+        # get gpt plan as json
         gpt_plan = json.loads(output_data)
+
+        # extract, standardize json plan
         extracted_plan = self.extract_plan(gpt_plan)
-        logging.info(json.dumps(extracted_plan, indent = 4))
+
+        # search, find related agents
+        searched_plan = self.search_plan(extracted_plan)
+
+        # rank matched agents, return plan
+        ranked_plan = self.rank_plan(searched_plan)
+
+        logging.info(json.dumps(ranked_plan, indent = 4))
         return output_data
-        
+            
+    def rank_plan(self, plan):
+        agent_dict = {}
+        # get more details on each agent, including inputs, outputs
+        agents = plan['agent'].values()
+        for agent in agents:
+            matches = agent['matches']
+            for match in matches:
+                name = match['name']
+                if 'name' in agent_dict:
+                    continue
+                agent_info = self.registry.get_agent(name)
+                agent_dict[name] = agent_info 
+        ### rank each agent in the plan by score of agents, inputs, outputs
+        # verify input/outputs 
+        for agent in agents:
+            matches = agent['matches']
+            inputs = agent['input']
+            outputs = agent['output']
+            filtered_matches = []
+            agent['filtered_matches'] = filtered_matches
+            for match in matches:
+                name = match['name']
+                if name in agent_dict:
+                    agent_info = agent_dict[name]
+                    # create copy for agent in plan, set score from search
+                    agent_info_copy = copy.deepcopy(agent_info)
+                    match['info'] = agent_info_copy
+                    # gather required agent inputs, outputs from registry record
+                    agent_inputs = set()
+                    agent_outputs = set()
+                    contents = agent_info_copy['contents']
+                    for pi in contents:
+                        content = contents[pi]
+                        if content['type'] == 'input':
+                            content['matches'] = []
+                            agent_inputs.add(pi)
+                        elif content['type'] == 'output':
+                            content['matches'] = []
+                            agent_outputs.add(pi)
+                    # check if number of inputs and outputs match
+                    if len(inputs) != len(agent_inputs):
+                        continue
+                    if len(outputs) != len(agent_outputs):
+                        continue 
+                    # check agent has a matching parameter in search results for each input in planned agent
+                    all_matched = True
+                    for ii in inputs:
+                        input = inputs[ii]
+                        input_matches = input['matches']
+                        # subset results for agent
+                        matched = False
+                        for input_match in input_matches:
+                            if input_match['scope'] == '/' + name:
+                                input_copy = copy.deepcopy(input)
+                                del input_copy['matches']
+                                input_copy['score'] = input_match['score']
+                                contents[input_match['name']]['matches'].append(input_copy)
+                                matched = True 
+                        if not matched:
+                            all_matched = False
+                            break
+                    # skip if an input from plan didn't match any from agent input parameters
+                    if not all_matched:
+                        continue
+                    # check agent has a matching parameter in search results for each output in planned agent
+                    all_matched = True
+                    for oi in outputs:
+                        output = outputs[oi]
+                        output_matches = output['matches']
+                        # subset results for agent
+                        matched = False
+                        for output_match in output_matches:
+                            if output_match['scope'] == '/' + name:
+                                output_copy = copy.deepcopy(output)
+                                del output_copy['matches']
+                                output_copy['score'] = output_match['score']
+                                contents[output_match['name']]['matches'].append(output_copy)
+                                matched = True 
+                        if not matched:
+                            all_matched = False
+                            break
+                    # skip if an output from plan didn't match any from agent output parameters
+                    if not all_matched:
+                        continue
+                    # check if agent from registry has matches for all parameters
+                    contents = agent_info_copy['contents']
+                    all_matched = True
+                    for pi in contents:
+                        content = contents[pi]
+                        if len(content['matches']) == 0:
+                            all_matched = False
+                    if not all_matched:
+                        continue 
+                    # TODO: Determine optimum mapping between planned agent parameters and registry agent parameters
+                    # Compute total score 
+                    total_score = float(match['score'])
+                    contents = agent_info_copy['contents']
+                    for pi in contents:
+                        content = contents[pi]
+                        # After optimization only one match left 
+                        total_score = total_score * float(content['matches'][0]['score'])
+                    match['total_score'] = total_score
+                # add to filtered matches
+                filtered_matches.append(match)
+            # sort by total_score
+            filtered_matches.sort(key=lambda match: match['total_score'])
+            # select top
+            if len(filtered_matches) > 0:
+                agent['top_match'] = filtered_matches[0]
+        return plan
+
+
+    def search_plan(self, plan):
+        agents = plan['agent'].values()
+        for agent in agents:
+            # search registry 
+            name = agent['name']
+            description = agent['description']
+
+            # agents
+            keywords = name + " " + description
+            matches = self.registry.search_records(keywords, type='agent', approximate=True, page_size=10)
+            agent['matches'] = matches
+
+            # inputs
+            inputs = agent['input'].values()
+            for input in inputs:
+                name = input['name']
+                description = input['description']
+
+                keywords = name + " " + description
+
+                matches = self.registry.search_records(keywords, type='input', approximate=True, page_size=10)
+                input['matches'] = matches
+
+
+            # outputs
+            outputs = agent['output'].values()
+            for output in outputs:
+                name = output['name']
+                description = output['description']
+
+                keywords = name + " " + description
+
+                matches = self.registry.search_records(keywords, type='output', approximate=True, page_size=10)
+                output['matches'] = matches
+
+        return plan
+
     def extract_plan(self, data):
         plan = {}
         self._extract_plan(data, plan)
