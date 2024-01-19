@@ -61,7 +61,10 @@ class ConnectionManager:
         if user_agent is not None:
             user_agent.interact(message)
 
-    async def observer_session_message(self, session_id: str, message: str):
+    async def observer_session_message(
+        self, session_id: str, message: str, stream: str
+    ):
+        # stream is an agent identifier
         client_id_list = pydash.objects.get(self.session_to_client, session_id, [])
         for client_id in client_id_list:
             try:
@@ -72,6 +75,7 @@ class ConnectionManager:
                             "type": "SESSION_MESSAGE",
                             "session_id": session_id,
                             "message": message,
+                            "stream": stream,
                         }
                     ),
                 )

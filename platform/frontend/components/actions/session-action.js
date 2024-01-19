@@ -1,7 +1,10 @@
 import axios from "axios";
 export const sessionAction = (dispatch) => ({
-    setConnection: (payload) => {
-        dispatch({ type: "session/connection/set", payload });
+    setState: (payload) => {
+        dispatch({
+            type: "session/state/set",
+            payload,
+        });
     },
     createSession: (payload) => {
         axios.post(`/sessions/${payload}/session`).then((response) => {

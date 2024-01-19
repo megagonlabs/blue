@@ -36,7 +36,9 @@ export default function SessionRow({ index, style }) {
                 <div
                     className={`${Classes.TEXT_OVERFLOW_ELLIPSIS} ${Classes.TEXT_MUTED}`}
                 >
-                    {_.isEmpty(sessionMessages) ? "-" : _.last(sessionMessages)}
+                    {_.isEmpty(sessionMessages)
+                        ? "-"
+                        : _.last(sessionMessages).message}
                 </div>
             </div>
         </Card>

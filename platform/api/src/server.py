@@ -50,7 +50,7 @@ async def websocket_endpoint(websocket: WebSocket):
                 )
             elif json_data["type"] == "OBSERVER_SESSION_MESSAGE":
                 await connection_manager.observer_session_message(
-                    json_data["session_id"], json_data["message"]
+                    json_data["session_id"], json_data["message"], json_data["stream"]
                 )
             print("Received", data)
     except WebSocketDisconnect:
