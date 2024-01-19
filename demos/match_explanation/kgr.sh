@@ -7,4 +7,4 @@ echo "Bring up KNOWLEDGE GROUNDING OPENAI agent:"
 docker run -e NEO4J_USER=$NEO4J_USER -e NEO4J_PWD=$NEO4J_PWD -e profile="$1" -e title="$2" -e next_title="$3" -e session=$4 --network="host" --name blue_agent_knowledge_grounding -d blue-agent-knowledge_grounding:latest
 # Rationalizer Agent
 echo "Bring up RATIONALIZER OPENAI agent:"
-docker run -e session=$1 -d --network="host" --name blue_agent_rationalizer blue-agent-rationalizer:latest
+docker run -e session=$4 -d --network="host" --name blue_agent_rationalizer blue-agent-rationalizer:latest

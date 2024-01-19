@@ -116,6 +116,8 @@ class RationalizerAgent(APIAgent):
 
                     message = self.create_message("", properties=properties)
 
+                    logging.info("::::: Message :::::")
+                    logging.info(self.properties["input_template"])
                     # serialize message, call service
                     m = json.dumps(message)
                     r = self.call_service(m)
