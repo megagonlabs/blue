@@ -92,19 +92,68 @@ class GPTPlannerAgent(OpenAIAgent):
         logging.info(output_data)
         # get gpt plan as json
         gpt_plan = json.loads(output_data)
+        logging.info('GPT Returned Plan:')
+        logging.info(json.dumps(gpt_plan, indent = 4))
+        logging.info('-------------------------')
 
         # extract, standardize json plan
         extracted_plan = self.extract_plan(gpt_plan)
 
         # search, find related agents
         searched_plan = self.search_plan(extracted_plan)
+        logging.info('Plan Search Results:')
+        logging.info(json.dumps(searched_plan, indent = 4))
+        logging.info('-------------------------')
 
         # rank matched agents, return plan
         ranked_plan = self.rank_plan(searched_plan)
 
-        logging.info(json.dumps(ranked_plan, indent = 4))
+        # finalize plan
+        final_plan = self.finalize_plan(ranked_plan)
+        logging.info('Final Plan:')
+        logging.info(json.dumps(final_plan, indent = 4))
         return output_data
             
+    def finalize_plan(self, plan):
+        agents = plan['agent'].values()
+        for agent in agents:
+            inputs = agent['input']
+            outputs = agent['output']
+
+            # delete matches, filtered matches
+            del agent['matches']
+            del agent['filtered_matches']
+            
+            # assign match to top matched agent
+            top_match = agent['top_match']
+            agent['match'] = top_match
+            del agent['top_match']
+            # copy metadata
+            match_info = top_match['info']
+            for key in match_info:
+                top_match[key] = match_info[key]
+            del top_match['info']
+
+            # clean up input/output parameters
+            matched_agent_scope = '/'+top_match['name']
+            for ii in inputs:
+                input = inputs[ii]
+                input_matches = input['matches']
+                filtered_input_matches = []
+                for input_match in input_matches:
+                    if input_match['scope'] == matched_agent_scope:
+                        filtered_input_matches.append(input_match)
+                input['matches'] =  filtered_input_matches
+            for oi in outputs:
+                output = outputs[oi]
+                output_matches = output['matches']
+                filtered_output_matches = []
+                for output_match in output_matches:
+                    if output_match['scope'] == matched_agent_scope:
+                        filtered_output_matches.append(output_match)
+                output['matches'] =  filtered_output_matches
+        return plan
+
     def rank_plan(self, plan):
         agent_dict = {}
         # get more details on each agent, including inputs, outputs
