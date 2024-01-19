@@ -1,4 +1,4 @@
-import { Callout } from "@blueprintjs/core";
+import { Callout, Intent } from "@blueprintjs/core";
 import { useContext, useEffect, useRef } from "react";
 import AutoSizer from "react-virtualized-auto-sizer";
 import { VariableSizeList } from "react-window";
@@ -43,23 +43,31 @@ export default function SessionMessages() {
                 window.removeEventListener("resize", handleResize);
             };
         }, []);
+        const own = _.startsWith(
+            messages[index].stream,
+            `USER:${appState.session.connectionId}`
+        );
         return (
             <div
                 style={{
                     ...style,
+                    display: "flex",
+                    justifyContent: own ? "end" : "start",
                     padding: `${_.isEqual(index, 0) ? 20 : 0}px 20px ${
                         _.isEqual(index, messages.length - 1) ? 20 : 10
                     }px`,
                 }}
             >
                 <Callout
+                    intent={own ? Intent.PRIMARY : null}
+                    icon={null}
                     style={{
                         maxWidth: 602.2,
                         whiteSpace: "pre-wrap",
                         width: "fit-content",
                     }}
                 >
-                    <div ref={rowRef}>{messages[index]}</div>
+                    <div ref={rowRef}>{messages[index].message}</div>
                 </Callout>
             </div>
         );

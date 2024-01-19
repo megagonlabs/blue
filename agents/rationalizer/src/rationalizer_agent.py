@@ -61,10 +61,10 @@ class RationalizerAgent(APIAgent):
         self.properties["input_field"] = "messages"
         self.properties["input_template"] = '''Let's assume a recommender system which recommends the next job position a candidate may pursue as their next job based on the candidate's current skill set and years of experience with each skill. 
 
-                Consider a candidate with the current job position:\n{title} \nand current skills with years of experience: {resume_skills}
+                Consider a candidate with the current job position:\n{title} \nand current skills with months of experience: {resume_skills}
 
                 Following is the recommended next job position: \n{top_title_recommendation}
-                \nThis job requires the following skills with a corresponding average years of experience: {top_title_skills}
+                \nThis job requires the following skills with a corresponding average months of experience: {top_title_skills}
 
                 Now provide rationale for why "{top_title_recommendation}" has been recommended as the next position the candidate should pursue.
                 '''
@@ -116,6 +116,8 @@ class RationalizerAgent(APIAgent):
 
                     message = self.create_message("", properties=properties)
 
+                    logging.info("::::: Message :::::")
+                    logging.info(self.properties["input_template"])
                     # serialize message, call service
                     m = json.dumps(message)
                     r = self.call_service(m)

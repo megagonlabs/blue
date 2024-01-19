@@ -105,14 +105,15 @@ class KnowledgGroundingAgent(Agent):
             skills_duration_dict.items(), 
             key=lambda x:x[1],
             reverse=True)
-        skills_duration_current = {}
+        skills_durations_current = []
         for i, t in enumerate(skills_duration_tuple):
-            if i>2:
-                break
             skill, duration = t
-            skills_duration_current[skill] = duration
-
-        return skills_duration_current
+            skills_durations_current.append({
+                "skill":skill,
+                "duration":duration
+            })
+        logging.info(skills_durations_current)
+        return skills_durations_current
     
     def insight_processing(self, next_title):
         # get source for insights
@@ -140,14 +141,20 @@ class KnowledgGroundingAgent(Agent):
         
         #next_title = "hse officer"
         ## what does the insight DB have about a skill?
+        # MATCH p = (n:JobTitle {{name:'{}'}})-[*1..2]->(d) Return n,d
+        # MATCH (j:JobTitle{{name: '{}'}})-[r:requires]->(s:Skill)
+        # RETURN s.name as skill, r.duration as duration
+        # ORDER BY r.duration DESC
+        # LIMIT 3
         title_query = '''
             MATCH (j:JobTitle{{name: '{}'}})-[r:requires]->(s:Skill)
             RETURN s.name as skill, r.duration as duration
             ORDER BY r.duration DESC
-            LIMIT 3
         '''.format(next_title) 
+        logging.info(title_query)
         result = self.db_client.run_query(title_query)
 
+        logging.info(result)
         return result
 
     def data_processing(self, worker):
@@ -161,6 +168,8 @@ class KnowledgGroundingAgent(Agent):
         skills_duration_next = self.insight_processing(next_title)
         
         ret = {}
+        ret["current_title"] = {"title": current_title}
+        ret["title_recommendations"] = [current_title, next_title]
         ret["resume_skills"] = skills_duration_current
         ret["top_title_skills"] = skills_duration_next
         return ret
@@ -168,6 +177,7 @@ class KnowledgGroundingAgent(Agent):
     def default_processor(self, stream, id, label, data, dtype=None, tags=None, properties=None, worker=None):    
         if label == 'EOS':
             if worker:
+                logging.info("WORKER")
                 processed = worker.get_agent_data('processed')
                 if processed:
                     return 'EOS', None, None

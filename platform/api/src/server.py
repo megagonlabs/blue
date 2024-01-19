@@ -9,11 +9,7 @@ from routers import sessions
 
 from fastapi.middleware.cors import CORSMiddleware
 
-origins = [
-    "*",
-    "http://localhost",
-    "http://localhost:5050",
-]
+origins = ["*", "http://localhost", "http://localhost:5050"]
 
 
 _VERSION_PATH = Path(__file__).parent / "version"
@@ -43,12 +39,20 @@ async def websocket_endpoint(websocket: WebSocket):
             # Receive the message from the client
             data = await websocket.receive_text()
             json_data = json.loads(data)
+            connection_id = connection_manager.find_connection_id(websocket)
             if json_data["type"] == "OBSERVE_SESSION":
-                connection_id = connection_manager.find_connection_id(websocket)
                 connection_manager.observe_session(
                     connection_id, json_data["session_id"]
                 )
-            print("Received: ", data)
+            elif json_data["type"] == "USER_SESSION_MESSAGE":
+                connection_manager.user_session_message(
+                    connection_id, json_data["session_id"], json_data["message"]
+                )
+            elif json_data["type"] == "OBSERVER_SESSION_MESSAGE":
+                await connection_manager.observer_session_message(
+                    json_data["session_id"], json_data["message"], json_data["stream"]
+                )
+            print("Received", data)
     except WebSocketDisconnect:
         # Remove the connection from the list of active connections
         connection_manager.disconnect(websocket)

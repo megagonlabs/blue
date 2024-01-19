@@ -42,7 +42,7 @@ router = APIRouter(prefix="/sessions")
 def get_sessions():
     platform = Platform()
     results = platform.get_sessions()
-    return JSONResponse(content={"results": results })
+    return JSONResponse(content={"results": results})
 
 
 @router.get("/{platform_name}/sessions")
@@ -63,10 +63,11 @@ def get_session(platform_name, session_id):
 def create_session(platform_name):
     platform = Platform(platform_name)
     result = platform.create_session()
-    return JSONResponse(content={"result":result, "message": "Success"})
+    return JSONResponse(content={"result": result, "message": "Success"})
+
 
 @router.delete("/{platform_name}/session/{session_id}")
 def delete_session(platform_name, session_id):
     platform = Platform(platform_name)
-    result = platform.delete_session(session_id)
+    platform.delete_session(session_id)
     return JSONResponse(content={"message": "Success"})

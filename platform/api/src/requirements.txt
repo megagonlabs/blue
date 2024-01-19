@@ -102,3 +102,4 @@ Werkzeug==2.3.4
 zipp==3.15.0
 zope.interface==6.1
 uvicorn[standard]
+pydash==7.0.6
