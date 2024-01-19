@@ -74,7 +74,7 @@ class ObserverAgent(Agent):
                                     {
                                         "type": "OBSERVER_SESSION_MESSAGE",
                                         "session_id": properties["session_id"],
-                                        "content": str_data,
+                                        "message": str_data,
                                     }
                                 )
                             )
