@@ -16,7 +16,9 @@ export default function sessionReducer(
     let sessionIds = state.sessionIds;
     switch (type) {
         case "session/sessions/message/add":
-            unreadSessionIds.add(payload.session_id);
+            if (!_.startsWith(payload.stream, `USER:${state.connectionId}`)) {
+                unreadSessionIds.add(payload.session_id);
+            }
             if (!_.includes(state.sessionIds, payload.session_id)) {
                 sessionIds.push(payload.session_id);
             }
