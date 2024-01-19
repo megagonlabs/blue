@@ -1,5 +1,6 @@
 import { AppContext } from "@/components/app-context";
 import { faIcon } from "@/components/icon";
+import Pagination from "@/components/registry/Pagination";
 import RegistryList from "@/components/registry/RegistryList";
 import {
     Button,
@@ -28,27 +29,40 @@ export default function Agents() {
     );
     const [type, setType] = useState(appState.agent.filter.type);
     const [keywords, setKeywords] = useState(appState.agent.filter.keywords);
+    const [page, setPage] = useState(appState.agent.filter.page);
+    const [pageSize, setPageSize] = useState(appState.agent.filter.page_size);
     useEffect(() => {
         if (appState.agent.search) return;
         appActions.agent.getList();
     }, []);
     const debounceOnKeywordsChange = useCallback(
-        _.debounce(({ registryName, hybrid, approximate, keywords, type }) => {
-            appActions.agent.setState({ key: "loading", value: true });
-            if (_.isEmpty(keywords)) {
-                appActions.agent.getList();
-            } else {
-                appActions.agent.searchList({
-                    registryName: registryName,
-                    hybrid: hybrid,
-                    approximate: approximate,
-                    keywords: keywords,
-                    type: type,
-                    page: 0,
-                    pageSize: 10,
-                });
-            }
-        }, 500),
+        _.debounce(
+            ({
+                registryName,
+                hybrid,
+                approximate,
+                keywords,
+                type,
+                page,
+                pageSize,
+            }) => {
+                appActions.agent.setState({ key: "loading", value: true });
+                if (_.isEmpty(keywords)) {
+                    appActions.agent.getList();
+                } else {
+                    appActions.agent.searchList({
+                        registryName: registryName,
+                        hybrid: hybrid,
+                        approximate: approximate,
+                        keywords: keywords,
+                        type: type,
+                        page: page,
+                        pageSize: pageSize,
+                    });
+                }
+            },
+            500
+        ),
         []
     );
     useEffect(() => {
@@ -58,115 +72,173 @@ export default function Agents() {
             approximate,
             keywords,
             type,
+            page,
+            pageSize,
         });
-    }, [hybrid, approximate, type]);
+    }, [hybrid, approximate, type, page, pageSize]);
     return (
         <>
             <div style={{ padding: "20px 20px 10px 20px" }}>
                 <H4 style={{ margin: "0px 20px 0px 0px" }}>Agents Registry</H4>
             </div>
-            <div style={{ padding: "0px 20px 10px 20px", maxWidth: 690 }}>
-                <ControlGroup
-                    fill
-                    className={appState.agent.loading ? Classes.SKELETON : null}
+            <div
+                style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    width: "100%",
+                    padding: "0px 20px 10px 20px",
+                }}
+            >
+                <div
+                    style={{
+                        maxWidth: 690,
+                        width: "calc(100% - 250px - 40px)",
+                    }}
                 >
-                    <InputGroup
-                        large
-                        fill
-                        value={keywords}
-                        leftIcon={faIcon({ icon: faSearch })}
-                        onChange={(event) => {
-                            setKeywords(event.target.value);
-                        }}
-                        rightElement={
-                            !_.isEmpty(keywords) && appState.agent.search ? (
-                                <Button
-                                    minimal
-                                    onClick={() => {
-                                        setKeywords("");
-                                        debounceOnKeywordsChange({
-                                            registryName:
-                                                appState.agent.registryName,
-                                            hybrid,
-                                            approximate,
-                                            keywords: "",
-                                            type,
-                                        });
-                                    }}
-                                    icon={faIcon({ icon: faTimes })}
-                                />
-                            ) : null
-                        }
-                        onKeyDown={(event) => {
-                            if (_.isEqual(event.key, "Enter")) {
-                                debounceOnKeywordsChange({
-                                    registryName: appState.agent.registryName,
-                                    hybrid,
-                                    approximate,
-                                    keywords: event.target.value,
-                                    type,
-                                });
+                    <ControlGroup fill>
+                        <InputGroup
+                            className={
+                                appState.agent.loading ? Classes.SKELETON : null
                             }
-                        }}
-                    />
-                    <Popover
-                        minimal
-                        placement="bottom-end"
-                        content={
-                            <div style={{ padding: "20px 20px 10px" }}>
-                                <Checkbox
-                                    inline
-                                    large
-                                    checked={hybrid}
-                                    label="Hybrid"
-                                    onChange={(event) => {
-                                        if (event.target.checked) {
-                                            setApproximate(false);
-                                        }
-                                        setHybrid(event.target.checked);
-                                    }}
-                                />
-                                <Checkbox
-                                    inline
-                                    large
-                                    checked={approximate}
-                                    label="Approximate"
-                                    onChange={(event) => {
-                                        if (event.target.checked) {
-                                            setHybrid(false);
-                                        }
-                                        setApproximate(event.target.checked);
-                                    }}
-                                />
-                                <Divider />
-                                <RadioGroup
-                                    selectedValue={type}
-                                    inline
-                                    label="Type"
-                                    onChange={(event) => {
-                                        setType(event.currentTarget.value);
-                                    }}
-                                >
-                                    <Radio large value="" label="All" />
-                                    <Radio large value="agent" label="Agent" />
-                                    <Radio large value="input" label="Input" />
-                                    <Radio
-                                        large
-                                        value="output"
-                                        label="Output"
-                                    />
-                                </RadioGroup>
-                            </div>
-                        }
-                    >
-                        <Button
                             large
-                            outlined
-                            text="Filter"
-                            rightIcon={faIcon({ icon: faBarsFilter })}
+                            fill
+                            value={keywords}
+                            leftIcon={faIcon({ icon: faSearch })}
+                            onChange={(event) => {
+                                setKeywords(event.target.value);
+                            }}
+                            rightElement={
+                                !_.isEmpty(keywords) &&
+                                appState.agent.search ? (
+                                    <Button
+                                        minimal
+                                        onClick={() => {
+                                            setKeywords("");
+                                            setPage(0);
+                                            setPageSize(10);
+                                            appActions.agent.setState({
+                                                key: "loading",
+                                                value: true,
+                                            });
+                                            appActions.agent.getList();
+                                        }}
+                                        icon={faIcon({ icon: faTimes })}
+                                    />
+                                ) : null
+                            }
+                            onKeyDown={(event) => {
+                                if (_.isEqual(event.key, "Enter")) {
+                                    debounceOnKeywordsChange({
+                                        registryName:
+                                            appState.agent.registryName,
+                                        hybrid,
+                                        approximate,
+                                        keywords: event.target.value,
+                                        type,
+                                        page,
+                                        pageSize,
+                                    });
+                                }
+                            }}
                         />
-                    </Popover>
-                </ControlGroup>
+                        <Popover
+                            minimal
+                            placement="bottom-end"
+                            content={
+                                <div style={{ padding: "20px 20px 10px" }}>
+                                    <Checkbox
+                                        className={
+                                            appState.agent.loading
+                                                ? Classes.SKELETON
+                                                : null
+                                        }
+                                        inline
+                                        large
+                                        checked={hybrid}
+                                        label="Hybrid"
+                                        onChange={(event) => {
+                                            if (event.target.checked) {
+                                                setApproximate(false);
+                                            }
+                                            setHybrid(event.target.checked);
+                                        }}
+                                    />
+                                    <Checkbox
+                                        className={
+                                            appState.agent.loading
+                                                ? Classes.SKELETON
+                                                : null
+                                        }
+                                        inline
+                                        large
+                                        checked={approximate}
+                                        label="Approximate"
+                                        onChange={(event) => {
+                                            if (event.target.checked) {
+                                                setHybrid(false);
+                                            }
+                                            setApproximate(
+                                                event.target.checked
+                                            );
+                                        }}
+                                    />
+                                    <Divider />
+                                    <RadioGroup
+                                        selectedValue={type}
+                                        inline
+                                        label="Type"
+                                        onChange={(event) => {
+                                            setType(event.currentTarget.value);
+                                        }}
+                                    >
+                                        {[
+                                            { value: "", text: "All" },
+                                            { value: "agent", text: "Agent" },
+                                            { value: "input", text: "Input" },
+                                            { value: "output", text: "Output" },
+                                        ].map(({ value, text }, index) => {
+                                            return (
+                                                <Radio
+                                                    key={`agent-registry-filter-type-${index}`}
+                                                    className={
+                                                        appState.agent.loading
+                                                            ? Classes.SKELETON
+                                                            : null
+                                                    }
+                                                    large
+                                                    value={value}
+                                                    label={text}
+                                                />
+                                            );
+                                        })}
+                                    </RadioGroup>
+                                </div>
+                            }
+                        >
+                            <Button
+                                className={
+                                    appState.agent.loading
+                                        ? Classes.SKELETON
+                                        : null
+                                }
+                                large
+                                outlined
+                                text="Filter"
+                                rightIcon={faIcon({ icon: faBarsFilter })}
+                            />
+                        </Popover>
+                    </ControlGroup>
+                </div>
+                {appState.agent.search ? (
+                    <Pagination
+                        page={page}
+                        setPage={setPage}
+                        pageSize={pageSize}
+                        setPageSize={setPageSize}
+                        type="agent"
+                    />
+                ) : null}
             </div>
             <div style={{ height: "calc(100% - 101px)" }}>
                 <H4 style={{ margin: "0px 0px 10px 20px" }}>

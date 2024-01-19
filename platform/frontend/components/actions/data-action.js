@@ -4,7 +4,7 @@ export const dataAction = (dispatch) => ({
     setState: (payload) => {
         dispatch({
             type: "agent/state/set",
-            payload: payload,
+            payload,
         });
     },
     getList: () => {

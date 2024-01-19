@@ -8,6 +8,7 @@ export default function SessionRow({ index, style }) {
     const { appState, appActions } = useContext(AppContext);
     const sessionId = appState.session.sessionIds[index];
     const unreadSessionIds = appState.session.unreadSessionIds;
+    const sessionMessages = appState.session.sessions[sessionId];
     return (
         <Card
             interactive
@@ -35,7 +36,7 @@ export default function SessionRow({ index, style }) {
                 <div
                     className={`${Classes.TEXT_OVERFLOW_ELLIPSIS} ${Classes.TEXT_MUTED}`}
                 >
-                    {_.last(appState.session.sessions[sessionId])}
+                    {_.isEmpty(sessionMessages) ? "-" : _.last(sessionMessages)}
                 </div>
             </div>
         </Card>

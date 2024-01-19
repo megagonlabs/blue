@@ -1,6 +1,8 @@
 import _ from "lodash";
 export const defaultState = {
     sessions: {},
+    connection: null,
+    platform: "default",
     sessionIds: [],
     sessionIdFocus: null,
     unreadSessionIds: new Set(),
@@ -28,6 +30,20 @@ export default function sessionReducer(
                 },
                 sessionIds: sessionIds,
                 unreadSessionIds: unreadSessionIds,
+            };
+        case "session/connection/set":
+            return {
+                ...state,
+                connection: payload,
+            };
+        case "session/sessions/add":
+            return {
+                ...state,
+                sessions: {
+                    ...state.sessions,
+                    [payload]: [],
+                },
+                sessionIds: [payload, ...state.sessionIds],
             };
         case "session/sessionIdFocus/set":
             unreadSessionIds.delete(payload);
