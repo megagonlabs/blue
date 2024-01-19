@@ -35,7 +35,6 @@ class ConnectionManager:
         await self.send_message_to(
             websocket, json.dumps({"type": "CONNECTED", "id": connection_id})
         )
-        print(connection_id)
 
     def observe_session(self, connection_id: str, session_id: str):
         session = Session(name=session_id)
