@@ -168,8 +168,8 @@ class KnowledgGroundingAgent(Agent):
         skills_duration_next = self.insight_processing(next_title)
         
         ret = {}
-        ret["title"] = {"title": current_title}
-        ret["top_title_recommendation"] = {"top_title_recommendation": next_title}
+        ret["current_title"] = {"title": current_title}
+        ret["title_recommendations"] = [current_title, next_title]
         ret["resume_skills"] = skills_duration_current
         ret["top_title_skills"] = skills_duration_next
         return ret
