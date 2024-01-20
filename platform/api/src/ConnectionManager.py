@@ -42,18 +42,29 @@ class ConnectionManager:
             self.session_to_client,
             [session_id, connection_id],
             {
-                "observer": ObserverAgent(session=session),
+                "observer": ObserverAgent(
+                    session=session,
+                    properties={
+                        "output": "websocket",
+                        "websocket": "ws://localhost:5050/sessions/ws",
+                        "session_id": session_id,
+                    },
+                ),
                 "user": Agent(name=f"USER:{connection_id}", session=session),
             },
         )
 
     def user_session_message(self, connection_id: str, session_id: str, message: str):
         user_agent = pydash.objects.get(
-            self.session_to_client, [session_id, connection_id, "user"]
+            self.session_to_client, [session_id, connection_id, "user"], None
         )
-        user_agent.interact(message)
+        if user_agent is not None:
+            user_agent.interact(message)
 
-    async def observer_session_message(self, session_id: str, message: str):
+    async def observer_session_message(
+        self, session_id: str, message: str, stream: str
+    ):
+        # stream is an agent identifier
         client_id_list = pydash.objects.get(self.session_to_client, session_id, [])
         for client_id in client_id_list:
             try:
@@ -64,6 +75,7 @@ class ConnectionManager:
                             "type": "SESSION_MESSAGE",
                             "session_id": session_id,
                             "message": message,
+                            "stream": stream,
                         }
                     ),
                 )
@@ -75,7 +87,10 @@ class ConnectionManager:
         del self.active_connections[id]
         session_id_list = list(self.session_to_client.keys())
         for session_id in session_id_list:
-            pydash.objects.invoke(self.session_to_client, [session_id, "del"], id)
+            try:
+                pydash.objects.unset(self.session_to_client, [session_id, id])
+            except Exception as ex:
+                print(ex)
         return id
 
     def find_connection_id(self, websocket: WebSocket):
@@ -88,4 +103,7 @@ class ConnectionManager:
 
     async def broadcast(self, message: str):
         for connection in self.active_connections.values():
-            await connection.send_text(message)
+            try:
+                await connection.send_text(message)
+            except Exception as ex:
+                print(ex)

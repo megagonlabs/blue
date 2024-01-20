@@ -9,13 +9,13 @@ import {
     Card,
     Classes,
     H4,
-    InputGroup,
     Intent,
+    KeyComboTag,
     NonIdealState,
+    TextArea,
 } from "@blueprintjs/core";
 import {
     faArrowRightFromBracket,
-    faArrowUpFromLine,
     faBarsFilter,
     faInboxIn,
     faInboxOut,
@@ -28,6 +28,7 @@ export default function Sessions() {
     const { appState, appActions } = useContext(AppContext);
     const sessionIdFocus = appState.session.sessionIdFocus;
     const [message, setMessage] = useState("");
+    const [loading, setLoading] = useState(false);
     const sendSessionMessage = (message) => {
         if (_.isNil(appState.session.connection)) return;
         setMessage("");
@@ -41,6 +42,7 @@ export default function Sessions() {
     };
     const connectToWebsocket = () => {
         if (!_.isNil(appState.session.connection)) return;
+        setLoading(true);
         try {
             // Creating an instance of the WebSocket
             const socket = new WebSocket("ws://localhost:5050/sessions/ws");
@@ -52,6 +54,11 @@ export default function Sessions() {
                     // If the data is of type SESSION_MESSAGE
                     if (_.isEqual(data["type"], "SESSION_MESSAGE")) {
                         appActions.session.addSessionMessage(data);
+                    } else if (_.isEqual(data["type"], "CONNECTED")) {
+                        appActions.session.setState({
+                            key: "connectionId",
+                            value: data.id,
+                        });
                     }
                 } catch (e) {
                     AppToaster.show({
@@ -63,14 +70,16 @@ export default function Sessions() {
                 }
             };
             socket.onerror = () => {
-                appActions.session.setConnection(null);
+                setLoading(false);
+                appActions.session.setState({ key: "connection", value: null });
                 AppToaster.show({
                     intent: Intent.DANGER,
                     message: `Failed to connect to websocketc (onerror)`,
                 });
             };
             socket.onclose = () => {
-                appActions.session.setConnection(null);
+                setLoading(false);
+                appActions.session.setState({ key: "connection", value: null });
                 AppToaster.show({
                     intent: Intent.PRIMARY,
                     message: "Connected closed",
@@ -78,14 +87,19 @@ export default function Sessions() {
             };
             // Adding an event listener to when the connection is opened
             socket.onopen = () => {
-                appActions.session.setConnection(socket);
+                setLoading(false);
+                appActions.session.setState({
+                    key: "connection",
+                    value: socket,
+                });
                 AppToaster.show({
                     intent: Intent.SUCCESS,
                     message: "Connection established",
                 });
             };
         } catch (e) {
-            appActions.session.setConnection(null);
+            setLoading(false);
+            appActions.session.setState({ key: "connection", value: null });
             AppToaster.show({
                 intent: Intent.SUCCESS,
                 message: `Failed to connect to websocket: ${e}`,
@@ -100,13 +114,14 @@ export default function Sessions() {
         return (
             <NonIdealState
                 icon={faIcon({ icon: faSignalStreamSlash, size: 50 })}
-                title="No connection"
+                title={loading ? "Connecting" : "No connection"}
                 action={
                     <Button
                         onClick={connectToWebsocket}
                         intent={Intent.PRIMARY}
                         outlined
                         large
+                        loading={loading}
                         text="Reconnect"
                     />
                 }
@@ -215,7 +230,7 @@ export default function Sessions() {
                     <>
                         <div
                             style={{
-                                height: "calc(100% - 81px",
+                                height: "calc(100% - 131px",
                             }}
                         >
                             <SessionMessages />
@@ -224,38 +239,59 @@ export default function Sessions() {
                             style={{
                                 padding: 20,
                                 width: "100%",
-                                display: "flex",
-                                alignItems: "center",
                                 borderTop: "1px solid rgba(17, 20, 24, 0.15)",
                             }}
                         >
-                            <InputGroup
-                                fill
-                                large
+                            <TextArea
+                                style={{ resize: "none" }}
                                 value={message}
                                 placeholder="Message"
                                 onChange={(event) => {
                                     setMessage(event.target.value);
                                 }}
                                 onKeyDown={(event) => {
-                                    if (_.isEqual(event.key, "Enter")) {
+                                    if (
+                                        _.isEqual(event.key, "Enter") &&
+                                        !event.shiftKey
+                                    ) {
                                         sendSessionMessage(message);
+                                        event.preventDefault();
                                     }
                                 }}
-                                rightElement={
-                                    <Button
-                                        minimal
-                                        intent={Intent.PRIMARY}
-                                        text="Send"
-                                        onClick={() => {
-                                            sendSessionMessage(message);
-                                        }}
-                                        rightIcon={faIcon({
-                                            icon: faArrowUpFromLine,
-                                        })}
-                                    />
-                                }
+                                fill
                             />
+                            <div
+                                style={{
+                                    display: "flex",
+                                    marginTop: 10,
+                                }}
+                            >
+                                <div
+                                    style={{
+                                        display: "flex",
+                                        alignItems: "center",
+                                    }}
+                                >
+                                    <KeyComboTag combo="enter" />
+                                    &nbsp;to send
+                                </div>
+                                <div
+                                    style={{
+                                        borderLeft: "1px solid lightgray",
+                                        marginLeft: 20,
+                                        marginRight: 20,
+                                    }}
+                                />
+                                <div
+                                    style={{
+                                        display: "flex",
+                                        alignItems: "center",
+                                    }}
+                                >
+                                    <KeyComboTag combo="shift + enter" />
+                                    &nbsp;to start a new line
+                                </div>
+                            </div>
                         </div>
                     </>
                 )}

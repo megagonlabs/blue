@@ -1,7 +1,6 @@
 import json
 import random
 import time
-import uuid
 
 from websocket import create_connection
 
@@ -247,9 +246,7 @@ def words(count):
     return " ".join(word_list)
 
 
-# session_ids = [str(uuid.uuid4()) for _ in range(11)]
 session_id = input("session_id: ")
-session_ids = [session_id]
 for _ in range(11):
     sentence_string = sentence()
     words_string = words(random.randint(4, 11))
@@ -257,7 +254,7 @@ for _ in range(11):
         json.dumps(
             {
                 "type": "OBSERVER_SESSION_MESSAGE",
-                "session_id": random.choice(session_ids),
+                "session_id": session_id,
                 "message": random.choice([sentence_string, words_string]),
             }
         )

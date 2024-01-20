@@ -18,6 +18,7 @@ redis==4.5.5
 six==1.16.0
 tqdm==4.65.0
 uuid==1.30
+websocket-client==1.7.0
 websockets==11.0.3
 Werkzeug==2.3.4
 zipp==3.15.0
