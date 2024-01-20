@@ -260,7 +260,7 @@ class Registry():
             print(res)
 
 
-    def search_records(self, keywords, type=None, scope=None, approximate=False, hybrid=False, page=0, page_size=5):
+    def search_records(self, keywords, type=None, scope=None, approximate=False, hybrid=False, page=0, page_size=5, page_limit=10):
         
         index_name = self._get_index_name()
         doc_prefix = self._get_doc_prefix()
@@ -268,19 +268,20 @@ class Registry():
         q = None
         
         qs = ""
+
         if type:
             qs = "(@type: " + type + " )" + " " + qs
         if scope:
             qs = "(@scope: " + scope + " )" + " " + qs
 
         if hybrid:
-            q = "( " + qs + " " + " $kw " + " )" + " => [KNN " + str((page+1) * page_size) + " @vector $v as score]"
+            q = "( " + qs + " " + " $kw " + " )" + " => [KNN " + str((page_limit) * page_size) + " @vector $v as score]"
             
             query = (
                 Query(q)
                 .sort_by("score")
                 .return_fields("id", "name", "type", "scope", "score")
-                .paging(page, page_size)
+                .paging(0, page_limit * page_size)
                 .dialect(2)
             )
 
@@ -288,12 +289,12 @@ class Registry():
             if approximate:
                 if qs == "":
                     qs = "*"
-                q =  "( " + qs + " )" + " => [KNN " + str((page+1) * page_size) + " @vector $v as score]"
+                q =  "( " + qs + " )" + " => [KNN " + str((page_limit) * page_size) + " @vector $v as score]"
                 query = (
                     Query(q)
                     .sort_by("score")
                     .return_fields("id", "name", "type", "scope", "score")
-                    .paging(page, page_size)
+                    .paging(0, page_limit * page_size)
                     .dialect(2)
                 )
 
@@ -302,7 +303,7 @@ class Registry():
                 query = (
                     Query(q)
                     .return_fields("id", "name", "type", "scope")
-                    .paging(page, page_size)
+                    .paging(0, page_limit * page_size)
                     .dialect(2)
                 )
 
@@ -322,7 +323,11 @@ class Registry():
             results = [ {"name": result['name'], "type": result['type'], "id": result['id'], "scope": result['scope'], "score": result['score']} for result in results]
         else:
             results = [ {"name": result['name'], "type": result['type'], "id": result['id'], "scope": result['scope']} for result in results]
-        return results
+
+        # do paging
+        print(len(results))
+        page_results = results[page * page_size : ( page + 1 ) * page_size]
+        return page_results
 
     ###### embeddings
     def _init_search_embeddings_model(self):    
