@@ -9,21 +9,18 @@ export default function EntityProperties({ entity, edit }) {
     const [error, setError] = useState(false);
     return (
         <Section
-            collapsible
+            collapsible={!edit}
             title="Properties"
             style={{ marginTop: 20 }}
             rightElement={
-                error ? (
+                error && edit ? (
                     <Tag large minimal intent={Intent.DANGER}>
                         Invalid JSON
                     </Tag>
                 ) : null
             }
         >
-            <SectionCard
-                padded={false}
-                style={{ height: edit ? 300 : null, overflowX: "auto" }}
-            >
+            <SectionCard padded={false}>
                 {!edit ? (
                     <pre
                         className={Classes.TEXT_SMALL}

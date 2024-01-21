@@ -6,7 +6,11 @@ export default function EntityDescription({ entity, edit }) {
         setDescription(entity.description);
     }, [entity]);
     return (
-        <Section collapsible title="Description" style={{ marginTop: 20 }}>
+        <Section
+            collapsible={!edit}
+            title="Description"
+            style={{ marginTop: 20 }}
+        >
             <SectionCard>
                 {edit ? (
                     <EditableText
