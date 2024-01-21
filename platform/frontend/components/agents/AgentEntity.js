@@ -16,6 +16,7 @@ import EntityProperties from "../entity/EntityProperties";
 export default function AgentEntity() {
     const router = useRouter();
     const [entity, setEntity] = useState({});
+    const [edit, setEdit] = useState(false);
     useEffect(() => {
         if (!router.isReady) return;
         axios.get(router.asPath).then((response) => {
@@ -24,9 +25,9 @@ export default function AgentEntity() {
     }, [router]);
     return (
         <div style={{ padding: "10px 20px 20px" }}>
-            <EntityMain entity={entity} />
-            <EntityDescription entity={entity} />
-            <EntityProperties entity={entity} />
+            <EntityMain edit={edit} setEdit={setEdit} entity={entity} />
+            <EntityDescription edit={edit} entity={entity} />
+            <EntityProperties edit={edit} entity={entity} />
             <Section title="Inputs" style={{ marginTop: 20 }}>
                 <SectionCard padded={false}>
                     <HTMLTable
