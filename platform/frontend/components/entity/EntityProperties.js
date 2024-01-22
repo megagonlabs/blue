@@ -1,18 +1,23 @@
 import { Classes, Intent, Section, SectionCard, Tag } from "@blueprintjs/core";
-import { useEffect, useState } from "react";
 import Editor from "../Editor";
-export default function EntityProperties({ entity, edit, error, setError }) {
-    const [properties, setProperties] = useState("");
-    useEffect(() => {
-        setProperties(JSON.stringify(entity.properties, null, 4));
-    }, [entity]);
+export default function EntityProperties({
+    entity,
+    edit,
+    jsonError,
+    setJsonError,
+    updateEntity,
+    setLoading,
+}) {
+    const setProperties = (value) => {
+        updateEntity({ path: "properties", value: JSON.parse(value) });
+    };
     return (
         <Section
             collapsible={!edit}
             title="Properties"
             style={{ marginTop: 20 }}
             rightElement={
-                error && edit ? (
+                jsonError && edit ? (
                     <Tag large minimal intent={Intent.DANGER}>
                         Invalid JSON
                     </Tag>
@@ -34,9 +39,10 @@ export default function EntityProperties({ entity, edit, error, setError }) {
                     </pre>
                 ) : (
                     <Editor
-                        code={properties}
+                        code={JSON.stringify(entity.properties, null, 4)}
                         setCode={setProperties}
-                        setError={setError}
+                        setLoading={setLoading}
+                        setError={setJsonError}
                     />
                 )}
             </SectionCard>

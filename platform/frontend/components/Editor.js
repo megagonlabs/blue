@@ -8,7 +8,7 @@ import { keymap, lineNumbers } from "@codemirror/view";
 import { EditorView, minimalSetup } from "codemirror";
 import _ from "lodash";
 import { useCallback, useEffect, useRef } from "react";
-export default function Editor({ code, setCode, setError }) {
+export default function Editor({ code, setCode, setError, setLoading }) {
     const editor = useRef();
     const debounced = useCallback(
         _.debounce((v) => {
@@ -22,10 +22,12 @@ export default function Editor({ code, setCode, setError }) {
             if (!error) {
                 setCode(v.state.doc.toString());
             }
-        }, 500),
+            setLoading(false);
+        }, 800),
         []
     );
     const onUpdate = EditorView.updateListener.of((v) => {
+        setLoading(true);
         debounced(v);
     });
     useEffect(() => {

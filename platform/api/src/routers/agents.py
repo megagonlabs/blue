@@ -99,6 +99,7 @@ def delete_agent(registry_name, agent_name):
     registry.remove_agent(agent_name, rebuild=True)
     return JSONResponse(content={"message": "Success"})
 
+
 ##### properties
 @router.get("/{registry_name}/agent/{agent_name}/properties")
 def get_agent_properties(registry_name, agent_name):
@@ -115,7 +116,9 @@ def get_agent_property(registry_name, agent_name, property_name):
 
 
 @router.post("/{registry_name}/agent/{agent_name}/property/{property_name}")
-def set_agent_property(registry_name, agent_name, property_name, property: JSONStructure):
+def set_agent_property(
+    registry_name, agent_name, property_name, property: JSONStructure
+):
     registry = AgentRegistry(registry_name)
     registry.set_agent_property(
         agent_name,
@@ -124,6 +127,7 @@ def set_agent_property(registry_name, agent_name, property_name, property: JSONS
         rebuild=True,
     )
     return JSONResponse(content={"message": "Success"})
+
 
 @router.delete("/{registry_name}/agent/{agent_name}/property/{property_name}")
 def delete_agent_property(registry_name, agent_name, property_name):
@@ -134,6 +138,7 @@ def delete_agent_property(registry_name, agent_name, property_name):
         rebuild=True,
     )
     return JSONResponse(content={"message": "Success"})
+
 
 ##### inputs
 @router.get("/{registry_name}/agent/{agent_name}/inputs")
@@ -183,6 +188,7 @@ def delete_agent_input(registry_name, agent_name, param_name):
     registry = AgentRegistry(registry_name)
     registry.del_agent_input(agent_name, param_name, rebuild=True)
     return JSONResponse(content={"message": "Success"})
+
 
 ##### outputs
 @router.get("/{registry_name}/agent/{agent_name}/outputs")

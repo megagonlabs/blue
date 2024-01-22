@@ -19,7 +19,7 @@ export default function EntityMain({
     setEdit,
     saveEntity,
     loading,
-    error,
+    jsonError,
 }) {
     const router = useRouter();
     const deleteEntity = () => {
@@ -87,14 +87,14 @@ export default function EntityMain({
                         right: 15,
                         top: "50%",
                         transform: "translateY(-50%)",
-                        "-ms-transform": "translateY(-50%)",
+                        msTransform: "translateY(-50%)",
                     }}
                 >
                     {edit ? (
                         <Button
                             className={loading ? Classes.SKELETON : null}
                             large
-                            disabled={error}
+                            disabled={jsonError}
                             minimal
                             intent={Intent.SUCCESS}
                             text="Save"
