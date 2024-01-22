@@ -1,24 +1,19 @@
 import { EditableText, Section, SectionCard } from "@blueprintjs/core";
-import { useEffect, useState } from "react";
-export default function EntityDescription({ entity, edit }) {
-    const [description, setDescription] = useState("");
-    useEffect(() => {
-        setDescription(entity.description);
-    }, [entity]);
+export default function EntityDescription({ entity, edit, updateEntity }) {
     return (
         <Section
             collapsible={!edit}
             title="Description"
             style={{ marginTop: 20 }}
         >
-            <SectionCard>
+            <SectionCard style={{ whiteSpace: !edit ? "pre-wrap" : null }}>
                 {edit ? (
                     <EditableText
                         multiline
                         onChange={(value) => {
-                            setDescription(value);
+                            updateEntity({ path: "description", value });
                         }}
-                        value={description}
+                        value={entity.description}
                     />
                 ) : (
                     entity.description

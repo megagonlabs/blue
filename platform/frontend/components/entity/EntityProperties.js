@@ -1,12 +1,11 @@
 import { Classes, Intent, Section, SectionCard, Tag } from "@blueprintjs/core";
 import { useEffect, useState } from "react";
 import Editor from "../Editor";
-export default function EntityProperties({ entity, edit }) {
+export default function EntityProperties({ entity, edit, error, setError }) {
     const [properties, setProperties] = useState("");
     useEffect(() => {
         setProperties(JSON.stringify(entity.properties, null, 4));
     }, [entity]);
-    const [error, setError] = useState(false);
     return (
         <Section
             collapsible={!edit}

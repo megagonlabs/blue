@@ -2,7 +2,6 @@ import {
     Button,
     ButtonGroup,
     Classes,
-    EditableText,
     Intent,
     Popover,
     Section,
@@ -12,10 +11,16 @@ import {
 import { faCheck, faPen, faTrash } from "@fortawesome/pro-duotone-svg-icons";
 import axios from "axios";
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
 import { faIcon } from "../icon";
 import { AppToaster } from "../toaster";
-export default function EntityMain({ entity, edit, setEdit }) {
+export default function EntityMain({
+    entity,
+    edit,
+    setEdit,
+    saveEntity,
+    loading,
+    error,
+}) {
     const router = useRouter();
     const deleteEntity = () => {
         if (!router.isReady) return;
@@ -39,10 +44,6 @@ export default function EntityMain({ entity, edit, setEdit }) {
                 });
             });
     };
-    const [name, setName] = useState("");
-    useEffect(() => {
-        setName(entity.name);
-    }, [entity]);
     return (
         <Section style={{ position: "relative" }}>
             <SectionCard padded={false}>
@@ -60,16 +61,7 @@ export default function EntityMain({ entity, edit, setEdit }) {
                             padding: "20px 10px 10px 10px",
                         }}
                     >
-                        {edit ? (
-                            <EditableText
-                                value={name}
-                                onChange={(value) => {
-                                    setName(value);
-                                }}
-                            />
-                        ) : (
-                            entity.name
-                        )}
+                        {entity.name}
                     </div>
                 </div>
                 <div style={{ display: "flex" }}>
@@ -100,15 +92,21 @@ export default function EntityMain({ entity, edit, setEdit }) {
                 >
                     {edit ? (
                         <Button
+                            className={loading ? Classes.SKELETON : null}
                             large
+                            disabled={error}
                             minimal
                             intent={Intent.SUCCESS}
                             text="Save"
-                            onClick={() => setEdit(false)}
+                            onClick={saveEntity}
                             icon={faIcon({ icon: faCheck })}
                         />
                     ) : (
-                        <ButtonGroup large minimal>
+                        <ButtonGroup
+                            large
+                            minimal
+                            className={loading ? Classes.SKELETON : null}
+                        >
                             <Tooltip content="Edit" minimal placement="bottom">
                                 <Button
                                     onClick={() => setEdit(true)}
