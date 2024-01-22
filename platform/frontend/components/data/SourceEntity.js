@@ -27,7 +27,12 @@ export default function SourceEntity() {
             <EntityMain entity={entity} />
             <EntityDescription entity={entity} />
             <EntityProperties entity={entity} />
-            <Section title="Databases" style={{ marginTop: 20 }}>
+            <Section
+                compact
+                collapsible
+                title="Databases"
+                style={{ marginTop: 20 }}
+            >
                 <SectionCard padded={false}>
                     <HTMLTable
                         className="entity-section-card-table"
@@ -42,8 +47,9 @@ export default function SourceEntity() {
                         </thead>
                         <tbody>
                             {_.values(entity.contents).map((element, index) => {
-                                if (!_.isEqual(element.type, "database"))
+                                if (!_.isEqual(element.type, "database")) {
                                     return null;
+                                }
                                 return (
                                     <tr
                                         key={`data-entity-table-database-${index}`}

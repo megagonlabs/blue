@@ -14,6 +14,13 @@ $ cd platform
 $ ./start.sh
 ```
 
+### Add Data Registry
+
+```
+$ cd platform/data_registry
+$ python src/data_registry.py --add "`cat data/rationalizer_demo_data.json`"
+```
+
 ### Set BLUE_INSTALL_DIR
 
 Set the `$BLUE_INSTALL_DIR` to your local path where the blue repo has been installed.
@@ -27,11 +34,15 @@ To flush the contents of the Redis backend run:
 ```
 $ ./flush.sh
 ```
-
+### Start Blue OpenAI service
+```
+$ cd agents/openai
+$ ./start_service.sh
+```
 ### user.sh
 Invoke user agent to input text:
 ```
-$ ./user.sh 'Using the information from the resume of Kushan Mitra recommend a title for him'
+$ ./user.sh 'Using the information from the resume of Michael Gibbons rationalize why he was recommended the senior software engineer title'
 ```
 
  Run the following command and retrieve `SESSION_ID` from the docker logs which states "...streamed into session <SESSION_ID>"
@@ -40,7 +51,7 @@ docker logs -f <docker_id>
 ```
 Or, alternatively you can also retrieve it from the Redis Stream
 
-### observer.sh
+<!-- ### observer.sh
 To observe the outputs from each agent run observer agent using the session is from the output of user.sh script:
 ```
 $ ./observer.sh <SESSION_ID>
@@ -62,7 +73,7 @@ Set environment variables `NEO4J_USER`, `NEO4J_PWD` and `NEO4J_HOST`.
 Then, run agent to execute CYPHER queries and fetch the results:
 ```
 $ ./neo4j.sh <SESSION_ID>
-```
+``` -->
 
 ### recorder.sh
 To scan JSON output from a number of agents and record in session memory:
@@ -70,11 +81,11 @@ To scan JSON output from a number of agents and record in session memory:
 $ ./recorder.sh <SESSION_ID>
 ```
 
-### recommender.sh
+<!-- ### recommender.sh
 Given a title in memory run a recommeder for next title:
 ```
 $ ./recommender.sh <SESSION_ID>
-```
+``` -->
 
 ### kgr.sh
 Given a title recommendation, ground the information gap to rationalize the result, pull in additional information, and summarize/rationalize the result:

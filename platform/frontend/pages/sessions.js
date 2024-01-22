@@ -150,7 +150,6 @@ export default function Sessions() {
                         text="Filter"
                         large
                         outlined
-                        onClick={() => appState.session.connection.close()}
                         rightIcon={faIcon({ icon: faBarsFilter })}
                     />
                     <ButtonGroup large>
