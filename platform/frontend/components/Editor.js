@@ -27,7 +27,9 @@ export default function Editor({ code, setCode, setError, setLoading }) {
         []
     );
     const onUpdate = EditorView.updateListener.of((v) => {
-        setLoading(true);
+        if (v.docChanged) {
+            setLoading(true);
+        }
         debounced(v);
     });
     useEffect(() => {
