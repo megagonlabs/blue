@@ -13,6 +13,7 @@ export default function EntityProperties({
     };
     return (
         <Section
+            compact
             collapsible={!edit}
             title="Properties"
             style={{ marginTop: 20 }}

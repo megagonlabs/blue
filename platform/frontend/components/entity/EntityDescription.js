@@ -2,6 +2,7 @@ import { EditableText, Section, SectionCard } from "@blueprintjs/core";
 export default function EntityDescription({ entity, edit, updateEntity }) {
     return (
         <Section
+            compact
             collapsible={!edit}
             title="Description"
             style={{ marginTop: 20 }}

@@ -45,7 +45,7 @@ export default function EntityMain({
             });
     };
     return (
-        <Section style={{ position: "relative" }}>
+        <Section compact style={{ position: "relative" }}>
             <SectionCard padded={false}>
                 <div style={{ display: "flex" }}>
                     <div

@@ -27,7 +27,12 @@ export default function DatabaseEntity() {
             <EntityMain entity={entity} />
             <EntityDescription entity={entity} />
             <EntityProperties entity={entity} />
-            <Section compact title="Collections" style={{ marginTop: 20 }}>
+            <Section
+                collapsible
+                compact
+                title="Collections"
+                style={{ marginTop: 20 }}
+            >
                 <SectionCard padded={false}>
                     <HTMLTable
                         className="entity-section-card-table"
@@ -42,8 +47,9 @@ export default function DatabaseEntity() {
                         </thead>
                         <tbody>
                             {_.values(entity.contents).map((element, index) => {
-                                if (!_.isEqual(element.type, "collection"))
+                                if (!_.isEqual(element.type, "collection")) {
                                     return null;
+                                }
                                 return (
                                     <tr
                                         key={`data-entity-table-collection-${index}`}

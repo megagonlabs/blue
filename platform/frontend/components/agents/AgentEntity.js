@@ -193,7 +193,12 @@ export default function AgentEntity() {
                 updateEntity={updateEntity}
                 setLoading={setLoading}
             />
-            <Section title="Inputs" style={{ marginTop: 20 }}>
+            <Section
+                compact
+                collapsible
+                title="Inputs"
+                style={{ marginTop: 20 }}
+            >
                 <SectionCard padded={false}>
                     <HTMLTable
                         className="entity-section-card-table"
@@ -208,8 +213,9 @@ export default function AgentEntity() {
                         </thead>
                         <tbody>
                             {_.values(entity.contents).map((element, index) => {
-                                if (!_.isEqual(element.type, "input"))
+                                if (!_.isEqual(element.type, "input")) {
                                     return null;
+                                }
                                 return (
                                     <tr
                                         key={`agent-entity-table-input-${index}`}
@@ -239,7 +245,12 @@ export default function AgentEntity() {
                     </HTMLTable>
                 </SectionCard>
             </Section>
-            <Section title="Outputs" style={{ marginTop: 20 }}>
+            <Section
+                compact
+                collapsible
+                title="Outputs"
+                style={{ marginTop: 20 }}
+            >
                 <SectionCard padded={false}>
                     <HTMLTable
                         className="entity-section-card-table"
@@ -254,8 +265,9 @@ export default function AgentEntity() {
                         </thead>
                         <tbody>
                             {_.values(entity.contents).map((element, index) => {
-                                if (!_.isEqual(element.type, "output"))
+                                if (!_.isEqual(element.type, "output")) {
                                     return null;
+                                }
                                 return (
                                     <tr
                                         key={`agent-entity-table-output-${index}`}
