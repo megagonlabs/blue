@@ -95,7 +95,6 @@ export default function EntityMain({
                             className={loading ? Classes.SKELETON : null}
                             large
                             disabled={jsonError}
-                            minimal
                             intent={Intent.SUCCESS}
                             text="Save"
                             onClick={saveEntity}

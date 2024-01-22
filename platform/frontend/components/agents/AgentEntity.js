@@ -182,11 +182,13 @@ export default function AgentEntity() {
             />
             <EntityDescription
                 edit={edit}
+                setEdit={setEdit}
                 entity={editEntity}
                 updateEntity={updateEntity}
             />
             <EntityProperties
                 edit={edit}
+                setEdit={setEdit}
                 entity={editEntity}
                 jsonError={jsonError}
                 setJsonError={setJsonError}

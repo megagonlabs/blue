@@ -1,5 +1,10 @@
 import { EditableText, Section, SectionCard } from "@blueprintjs/core";
-export default function EntityDescription({ entity, edit, updateEntity }) {
+export default function EntityDescription({
+    entity,
+    edit,
+    updateEntity,
+    setEdit,
+}) {
     return (
         <Section
             compact
@@ -7,7 +12,12 @@ export default function EntityDescription({ entity, edit, updateEntity }) {
             title="Description"
             style={{ marginTop: 20 }}
         >
-            <SectionCard style={{ whiteSpace: !edit ? "pre-wrap" : null }}>
+            <SectionCard
+                style={{ whiteSpace: !edit ? "pre-wrap" : null }}
+                onDoubleClick={() => {
+                    setEdit(true);
+                }}
+            >
                 {edit ? (
                     <EditableText
                         multiline

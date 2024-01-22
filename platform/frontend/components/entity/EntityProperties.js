@@ -3,6 +3,7 @@ import Editor from "../Editor";
 export default function EntityProperties({
     entity,
     edit,
+    setEdit,
     jsonError,
     setJsonError,
     updateEntity,
@@ -25,7 +26,12 @@ export default function EntityProperties({
                 ) : null
             }
         >
-            <SectionCard padded={false}>
+            <SectionCard
+                padded={false}
+                onDoubleClick={() => {
+                    setEdit(true);
+                }}
+            >
                 {!edit ? (
                     <pre
                         className={Classes.TEXT_SMALL}
