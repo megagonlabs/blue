@@ -27,7 +27,6 @@ const renderProgress = (progress, requestError = false, callback = null) => {
     }
     return {
         icon: faIcon({ icon: faPenSwirl }),
-        isCloseButtonShown: false,
         message: (
             <ProgressBar
                 className={classNames("margin-top-5", {
