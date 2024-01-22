@@ -107,6 +107,9 @@ class GPTPlannerAgent(OpenAIAgent):
 
         # rank matched agents, return plan
         ranked_plan = self.rank_plan(searched_plan)
+        logging.info('Plan Ranked Results:')
+        logging.info(json.dumps(ranked_plan, indent = 4))
+        logging.info('-------------------------')
 
         # finalize plan
         final_plan = self.finalize_plan(ranked_plan)
@@ -125,17 +128,25 @@ class GPTPlannerAgent(OpenAIAgent):
             del agent['filtered_matches']
             
             # assign match to top matched agent
-            top_match = agent['top_match']
-            agent['match'] = top_match
-            del agent['top_match']
-            # copy metadata
-            match_info = top_match['info']
-            for key in match_info:
-                top_match[key] = match_info[key]
-            del top_match['info']
+            top_match = {}
+            if 'top_match' in agent:
+                top_match = agent['top_match']
+                del agent['top_match']
 
+                 # copy metadata
+                match_info = top_match['info']
+                for key in match_info:
+                    top_match[key] = match_info[key]
+                del top_match['info']
+
+            # assing top match as the match
+            agent['match'] = top_match
+            
             # clean up input/output parameters
-            matched_agent_scope = '/'+top_match['name']
+            matched_agent_scope = ''
+            if len(top_match) > 0:
+                matched_agent_scope = '/'+top_match['name']
+
             for ii in inputs:
                 input = inputs[ii]
                 input_matches = input['matches']
@@ -247,10 +258,48 @@ class GPTPlannerAgent(OpenAIAgent):
                             all_matched = False
                     if not all_matched:
                         continue 
-                    # TODO: Determine optimum mapping between planned agent parameters and registry agent parameters
-                    # Compute total score 
+
+                    # Determine a greedy mapping between planned agent parameters and registry agent parameters
+                    mappings = {}
+                    for pi in contents:
+                        content = contents[pi]
+                        source = content['name']
+                        content_matches = content['matches']
+                        for content_match in content_matches:
+                            target = content_match['name']
+                            score = content_match['score']
+                            mapping = { 'source': source, 'target': target, 'score': score}
+
+                            source_mappings = {}
+                            if source in mappings:
+                                source_mappings = mappings[source]
+                            else:
+                                mappings[source] = source_mappings 
+
+                            source_mappings[target] = mapping 
+
+                    logging.info(mappings)
+            
+                    solved_mappings = self.greedy_search(mappings)
+                    logging.info(solved_mappings)
+
+                    # apply solved mappings, remove other matches
+                    for pi in contents:
+                        content = contents[pi]
+                        source = content['name']
+                        target = list(solved_mappings[source].keys())[0]
+                        content_matches = content['matches']
+                        solved_matches = []
+                        for content_match in content_matches:
+                            matched = content_match['name']
+                            if matched == target:
+                                solved_matches.append(content_match)
+                        content['matches'] = solved_matches
+
+                    logging.info(contents)
+                    # compute total score 
                     total_score = float(match['score'])
-                    contents = agent_info_copy['contents']
+                    
                     for pi in contents:
                         content = contents[pi]
                         # After optimization only one match left 
@@ -265,6 +314,67 @@ class GPTPlannerAgent(OpenAIAgent):
                 agent['top_match'] = filtered_matches[0]
         return plan
 
+    def greedy_search(self, mappings):
+        # build mappings list and sort
+        mappings_list = []
+        for source in mappings:
+            source_mappings = mappings[source]
+            for target in source_mappings:
+                mapping = source_mappings[target]
+                mappings_list.append(mapping)
+        # sort
+        mappings_list.sort(key=lambda mapping: mapping['score'])
+
+        # search
+        self._greedy_search(mappings, mappings_list)
+        
+        return mappings 
+
+    def _greedy_search(self, mappings, sorted_mappings):
+        # pick top from sorted mappings
+        if len(sorted_mappings) == 0:
+            return {}
+        
+        top = sorted_mappings[0]
+        top_source = top['source']
+        top_target = top['target']
+
+        # assign to target, remove all other options
+        top_source_mapping = mappings[top_source]
+        top_source_mapping = {}
+        top_source_mapping[top_target] = top
+
+        # remove alternatives from sorted_mappings
+        filtered_sorted_mappings = []
+        for sorted_mapping in sorted_mappings[1:]:
+            if sorted_mapping['source'] == top_source:
+                continue
+            if sorted_mapping['target'] == top_target:
+                continue
+            filtered_sorted_mappings.append(sorted_mapping)
+        
+        # solve recursively
+        remaining_mappings = copy.deepcopy(mappings)
+        del remaining_mappings[top_source]
+        solved_mappings = self._greedy_search(remaining_mappings, filtered_sorted_mappings)
+
+        # add top to solved mappings
+        solved_mappings[top_source] = top_source_mapping
+        
+        # check if solution is valid
+        valid = True
+        for source in solved_mappings:
+            if len(solved_mappings[source]) == 1:
+                continue
+            else:
+                valid = False
+                break
+        # if valid return solution
+        if valid:
+            return solved_mappings
+        else:
+            # go on to next on sorted
+            return self._greedy_search(mappings, sorted_mappings[1:])
 
     def search_plan(self, plan):
         agents = plan['agent'].values()
