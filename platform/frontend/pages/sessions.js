@@ -15,8 +15,6 @@ import {
     TextArea,
 } from "@blueprintjs/core";
 import {
-    faArrowRightFromBracket,
-    faBarsFilter,
     faInboxIn,
     faInboxOut,
     faMessages,
@@ -146,12 +144,6 @@ export default function Sessions() {
                         justifyContent: "space-between",
                     }}
                 >
-                    <Button
-                        text="Filter"
-                        large
-                        outlined
-                        rightIcon={faIcon({ icon: faBarsFilter })}
-                    />
                     <ButtonGroup large>
                         <Button
                             disabled={_.isNil(appState.session.connection)}
@@ -203,6 +195,7 @@ export default function Sessions() {
                         borderRadius: 0,
                         display: "flex",
                         alignItems: "center",
+                        height: 80,
                         justifyContent: "space-between",
                     }}
                 >
@@ -212,14 +205,6 @@ export default function Sessions() {
                     >
                         {sessionIdFocus}
                     </H4>
-                    <Button
-                        disabled={_.isNil(appState.session.sessionIdFocus)}
-                        text="Leave"
-                        intent={Intent.WARNING}
-                        large
-                        outlined
-                        rightIcon={faIcon({ icon: faArrowRightFromBracket })}
-                    />
                 </Card>
                 {_.isNull(sessionIdFocus) ? (
                     <NonIdealState
