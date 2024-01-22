@@ -1,4 +1,4 @@
-import { Callout, Intent } from "@blueprintjs/core";
+import { Callout, Classes, Intent } from "@blueprintjs/core";
 import { useContext, useEffect, useRef } from "react";
 import AutoSizer from "react-virtualized-auto-sizer";
 import { VariableSizeList } from "react-window";
@@ -10,10 +10,16 @@ export default function SessionMessages() {
     const sessionIdFocus = appState.session.sessionIdFocus;
     const messages = appState.session.sessions[sessionIdFocus];
     function getRowHeight(index) {
+        const own =
+            !_.isEmpty(messages) &&
+            _.startsWith(
+                messages[index].stream,
+                `USER:${appState.session.connectionId}`
+            );
         return (
             rowHeights.current[index] +
                 (_.isEqual(index, messages.length - 1) ? 20 : 10) +
-                (_.isEqual(index, 0) ? 20 : 0) || 51
+                (_.isEqual(index, 0) ? 20 : 0) || 51 + (!own ? 15.43 : 0)
         );
     }
     function setRowHeight(index, size, shouldForceUpdate = true) {
@@ -22,9 +28,16 @@ export default function SessionMessages() {
     }
     function Row({ index, style }) {
         const rowRef = useRef({});
+        const own = _.startsWith(
+            messages[index].stream,
+            `USER:${appState.session.connectionId}`
+        );
         useEffect(() => {
             if (rowRef.current) {
-                setRowHeight(index, rowRef.current.clientHeight + 30);
+                setRowHeight(
+                    index,
+                    rowRef.current.clientHeight + 30 + (!own ? 15.43 : 0)
+                );
             }
         }, [rowRef]);
         useEffect(() => {
@@ -33,7 +46,7 @@ export default function SessionMessages() {
                 if (rowRef.current) {
                     setRowHeight(
                         index,
-                        rowRef.current.clientHeight + 30,
+                        rowRef.current.clientHeight + 30 + (!own ? 15.43 : 0),
                         false
                     );
                 }
@@ -43,16 +56,13 @@ export default function SessionMessages() {
                 window.removeEventListener("resize", handleResize);
             };
         }, []);
-        const own = _.startsWith(
-            messages[index].stream,
-            `USER:${appState.session.connectionId}`
-        );
         return (
             <div
                 style={{
                     ...style,
                     display: "flex",
-                    justifyContent: own ? "end" : "start",
+                    flexDirection: "column",
+                    alignItems: `flex-${own ? "end" : "start"}`,
                     padding: `${_.isEqual(index, 0) ? 20 : 0}px 20px ${
                         _.isEqual(index, messages.length - 1) ? 20 : 10
                     }px`,
@@ -69,6 +79,13 @@ export default function SessionMessages() {
                 >
                     <div ref={rowRef}>{messages[index].message}</div>
                 </Callout>
+                {!own ? (
+                    <div
+                        className={`${Classes.TEXT_DISABLED} ${Classes.TEXT_SMALL}`}
+                    >
+                        {messages[index].stream}
+                    </div>
+                ) : null}
             </div>
         );
     }
