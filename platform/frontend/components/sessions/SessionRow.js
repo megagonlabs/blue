@@ -63,7 +63,11 @@ export default function SessionRow({ index, style }) {
                     msTransform: "translateY(-50%)",
                 }}
             >
-                <Tooltip content="Copy session ID" minimal placement="left">
+                <Tooltip
+                    content="Copy session ID"
+                    minimal
+                    placement="bottom-end"
+                >
                     <Button
                         onClick={(event) => {
                             copy(sessionId);

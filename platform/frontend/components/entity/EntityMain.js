@@ -2,14 +2,21 @@ import {
     Button,
     ButtonGroup,
     Classes,
+    Divider,
     Intent,
     Popover,
     Section,
     SectionCard,
     Tooltip,
 } from "@blueprintjs/core";
-import { faCheck, faPen, faTrash } from "@fortawesome/pro-duotone-svg-icons";
+import {
+    faCheck,
+    faPen,
+    faPlay,
+    faTrash,
+} from "@fortawesome/pro-duotone-svg-icons";
 import axios from "axios";
+import _ from "lodash";
 import { useRouter } from "next/router";
 import { faIcon } from "../icon";
 import { AppToaster } from "../toaster";
@@ -106,8 +113,17 @@ export default function EntityMain({
                             minimal
                             className={loading ? Classes.SKELETON : null}
                         >
+                            <Tooltip content="Try" minimal placement="bottom">
+                                <Button
+                                    disabled
+                                    intent={Intent.SUCCESS}
+                                    icon={faIcon({ icon: faPlay })}
+                                />
+                            </Tooltip>
+                            <Divider />
                             <Tooltip content="Edit" minimal placement="bottom">
                                 <Button
+                                    disabled={!_.isFunction(setEdit)}
                                     onClick={() => setEdit(true)}
                                     intent={Intent.PRIMARY}
                                     icon={faIcon({ icon: faPen })}
