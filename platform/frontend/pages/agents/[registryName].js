@@ -147,7 +147,12 @@ export default function Agents() {
                             minimal
                             placement="bottom-end"
                             content={
-                                <div style={{ padding: "20px 20px 10px" }}>
+                                <div
+                                    style={{
+                                        padding: "20px 20px 10px",
+                                        maxWidth: 500,
+                                    }}
+                                >
                                     <Checkbox
                                         className={
                                             appState.agent.loading

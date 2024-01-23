@@ -46,6 +46,7 @@ export default function sessionReducer(
                     ...state.sessions,
                     [payload]: [],
                 },
+                sessionIdFocus: payload,
                 sessionIds: [payload, ...state.sessionIds],
             };
         case "session/sessionIdFocus/set":

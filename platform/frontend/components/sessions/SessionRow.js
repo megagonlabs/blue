@@ -1,7 +1,8 @@
-import { Card, Classes, Colors, H5 } from "@blueprintjs/core";
-import { faCircleDot } from "@fortawesome/pro-duotone-svg-icons";
+import { Button, Card, Classes, Colors, H5, Tooltip } from "@blueprintjs/core";
+import { faCircleDot, faCopy } from "@fortawesome/pro-duotone-svg-icons";
+import copy from "copy-to-clipboard";
 import _ from "lodash";
-import { useContext } from "react";
+import { useContext, useState } from "react";
 import { AppContext } from "../app-context";
 import { faIcon } from "../icon";
 export default function SessionRow({ index, style }) {
@@ -9,10 +10,20 @@ export default function SessionRow({ index, style }) {
     const sessionId = appState.session.sessionIds[index];
     const unreadSessionIds = appState.session.unreadSessionIds;
     const sessionMessages = appState.session.sessions[sessionId];
+    const [showActions, setShowActions] = useState(false);
     return (
         <Card
             interactive
-            style={{ ...style, borderRadius: 0 }}
+            style={{
+                ...style,
+                borderRadius: 0,
+            }}
+            onMouseEnter={() => {
+                setShowActions(true);
+            }}
+            onMouseLeave={() => {
+                setShowActions(false);
+            }}
             onClick={() => appActions.session.setSessionIdFocus(sessionId)}
         >
             <div style={{ width: 31 }}>
@@ -35,11 +46,34 @@ export default function SessionRow({ index, style }) {
                 </H5>
                 <div
                     className={`${Classes.TEXT_OVERFLOW_ELLIPSIS} ${Classes.TEXT_MUTED}`}
+                    style={{ paddingRight: showActions ? 50 : 0 }}
                 >
                     {_.isEmpty(sessionMessages)
                         ? "-"
                         : _.last(sessionMessages).message}
                 </div>
+            </div>
+            <div
+                style={{
+                    display: showActions ? null : "none",
+                    position: "absolute",
+                    right: 20,
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    msTransform: "translateY(-50%)",
+                }}
+            >
+                <Tooltip content="Copy session ID" minimal placement="left">
+                    <Button
+                        onClick={(event) => {
+                            copy(sessionId);
+                            event.stopPropagation();
+                        }}
+                        large
+                        minimal
+                        icon={faIcon({ icon: faCopy })}
+                    />
+                </Tooltip>
             </div>
         </Card>
     );

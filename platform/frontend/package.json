@@ -24,6 +24,7 @@
         "axios": "^1.6.3",
         "classnames": "^2.5.1",
         "codemirror": "^6.0.1",
+        "copy-to-clipboard": "^3.3.3",
         "deep-diff": "^1.0.2",
         "firebase": "^10.7.1",
         "javascript-time-ago": "^2.5.9",
