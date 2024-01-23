@@ -9,12 +9,16 @@ import {
     Card,
     Classes,
     H4,
+    H5,
+    InputGroup,
     Intent,
     KeyComboTag,
     NonIdealState,
+    Popover,
     TextArea,
 } from "@blueprintjs/core";
 import {
+    faCaretDown,
     faInboxIn,
     faInboxOut,
     faMessages,
@@ -27,6 +31,7 @@ export default function Sessions() {
     const sessionIdFocus = appState.session.sessionIdFocus;
     const [message, setMessage] = useState("");
     const [loading, setLoading] = useState(false);
+    const [joinSessionId, setJoinSessionId] = useState("");
     const sendSessionMessage = (message) => {
         if (_.isNil(appState.session.connection)) return;
         setMessage("");
@@ -160,6 +165,47 @@ export default function Sessions() {
                             }}
                             rightIcon={faIcon({ icon: faInboxOut })}
                         />
+                        <Popover
+                            content={
+                                <div style={{ padding: 10 }}>
+                                    <H5>Join an existing session</H5>
+                                    <InputGroup
+                                        fill
+                                        value={joinSessionId}
+                                        onChange={(event) => {
+                                            setJoinSessionId(
+                                                event.target.value
+                                            );
+                                        }}
+                                    />
+                                    <Button
+                                        className={Classes.POPOVER_DISMISS}
+                                        text="Join"
+                                        onClick={() => {
+                                            if (
+                                                _.isNil(
+                                                    appState.session.connection
+                                                )
+                                            )
+                                                return;
+                                            appActions.session.observeSession({
+                                                sessionId: joinSessionId,
+                                                connection:
+                                                    appState.session.connection,
+                                            });
+                                            setJoinSessionId("");
+                                        }}
+                                        style={{ marginTop: 10 }}
+                                        intent={Intent.SUCCESS}
+                                    />
+                                </div>
+                            }
+                        >
+                            <Button
+                                outlined
+                                icon={faIcon({ icon: faCaretDown })}
+                            />
+                        </Popover>
                     </ButtonGroup>
                 </div>
                 {_.isEmpty(appState.session.sessionIds) ? (

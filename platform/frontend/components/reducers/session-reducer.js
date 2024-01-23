@@ -37,6 +37,9 @@ export default function sessionReducer(
         case "session/state/set":
             return { ...state, [payload.key]: payload.value };
         case "session/sessions/add":
+            if (_.includes(sessionIds, payload)) {
+                return { ...state };
+            }
             return {
                 ...state,
                 sessions: {

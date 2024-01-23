@@ -7,7 +7,7 @@ export const sessionAction = (dispatch) => ({
         });
     },
     createSession: (payload) => {
-        axios.post(`/sessions/${payload}/session`).then((response) => {
+        axios.post(`/sessions/${payload.platform}/session`).then((response) => {
             try {
                 const sessionId = _.get(response, "data.result.id");
                 payload.connection.send(
@@ -21,6 +21,15 @@ export const sessionAction = (dispatch) => ({
                 console.log(error);
             }
         });
+    },
+    observeSession: (payload) => {
+        payload.connection.send(
+            JSON.stringify({
+                type: "OBSERVE_SESSION",
+                session_id: payload.sessionId,
+            })
+        );
+        dispatch({ type: "session/sessions/add", payload: payload.sessionId });
     },
     addSessionMessage: (payload) =>
         dispatch({ type: "session/sessions/message/add", payload }),
