@@ -203,6 +203,14 @@ export default function Data() {
                                                 value: "collection",
                                                 text: "Collection",
                                             },
+                                            {
+                                                value: "entity",
+                                                text: "Entity",
+                                            },
+                                            {
+                                                value: "relation",
+                                                text: "Relation",
+                                            },
                                         ].map(({ value, text }, index) => {
                                             return (
                                                 <Radio

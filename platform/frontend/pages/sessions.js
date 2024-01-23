@@ -122,7 +122,6 @@ export default function Sessions() {
                     <Button
                         onClick={connectToWebsocket}
                         intent={Intent.PRIMARY}
-                        outlined
                         large
                         loading={loading}
                         text="Reconnect"
@@ -181,6 +180,7 @@ export default function Sessions() {
                                     <Button
                                         className={Classes.POPOVER_DISMISS}
                                         text="Join"
+                                        outlined
                                         onClick={() => {
                                             if (
                                                 _.isNil(
