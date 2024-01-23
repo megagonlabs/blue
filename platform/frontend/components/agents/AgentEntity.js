@@ -62,9 +62,9 @@ export default function AgentEntity() {
         });
     }, [router]);
     const updateEntity = ({ path, value }) => {
-        let currentEntity = _.cloneDeep(editEntity);
-        _.set(currentEntity, path, value);
-        setEditEntity(currentEntity);
+        let newEntity = _.cloneDeep(editEntity);
+        _.set(newEntity, path, value);
+        setEditEntity(newEntity);
     };
     const saveEntity = () => {
         setLoading(true);
