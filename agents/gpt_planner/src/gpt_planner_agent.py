@@ -89,27 +89,27 @@ class GPTPlannerAgent(OpenAIAgent):
             self.properties[key] = plannerGPT_properties[key]
 
     def process_output(self, output_data):
-        logging.info(output_data)
+        # logging.info(output_data)
         # get gpt plan as json
         gpt_plan = json.loads(output_data)
-        logging.info('GPT Returned Plan:')
+        logging.info('GPT Initial Plan:')
         logging.info(json.dumps(gpt_plan, indent = 4))
-        logging.info('-------------------------')
+        logging.info('========================================================================================================')
 
         # extract, standardize json plan
         extracted_plan = self.extract_plan(gpt_plan)
 
         # search, find related agents
         searched_plan = self.search_plan(extracted_plan)
-        logging.info('Plan Search Results:')
+        logging.info('Plan Plan Search Results:')
         logging.info(json.dumps(searched_plan, indent = 4))
-        logging.info('-------------------------')
+        logging.info('========================================================================================================')
 
         # rank matched agents, return plan
         ranked_plan = self.rank_plan(searched_plan)
-        logging.info('Plan Ranked Results:')
-        logging.info(json.dumps(ranked_plan, indent = 4))
-        logging.info('-------------------------')
+        # logging.info('Plan Ranked Results:')
+        # logging.info(json.dumps(ranked_plan, indent = 4))
+        # logging.info('===========================================================')
 
         # finalize plan
         final_plan = self.finalize_plan(ranked_plan)
@@ -278,10 +278,10 @@ class GPTPlannerAgent(OpenAIAgent):
 
                             source_mappings[target] = mapping 
 
-                    logging.info(mappings)
+                    # logging.info(mappings)
             
                     solved_mappings = self.greedy_search(mappings)
-                    logging.info(solved_mappings)
+                    # logging.info(solved_mappings)
 
                     # apply solved mappings, remove other matches
                     for pi in contents:
@@ -296,7 +296,7 @@ class GPTPlannerAgent(OpenAIAgent):
                                 solved_matches.append(content_match)
                         content['matches'] = solved_matches
 
-                    logging.info(contents)
+                    # logging.info(contents)
                     # compute total score 
                     total_score = float(match['score'])
                     
@@ -325,10 +325,13 @@ class GPTPlannerAgent(OpenAIAgent):
         # sort
         mappings_list.sort(key=lambda mapping: mapping['score'])
 
+        # logging.info('sorted mappings:')
+        # logging.info(mappings_list)
+
         # search
-        self._greedy_search(mappings, mappings_list)
+        optimal_mappings = self._greedy_search(mappings, mappings_list)
         
-        return mappings 
+        return optimal_mappings 
 
     def _greedy_search(self, mappings, sorted_mappings):
         # pick top from sorted mappings
