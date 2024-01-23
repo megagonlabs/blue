@@ -371,7 +371,7 @@ class Registry():
         if rebuild:
             self._set_index_record(record)
 
-    def register_record_json(self, record):
+    def register_record_json(self, record, recursive=True, rebuild=False):
         name = None
         if 'name' in record:
             name = record['name']
@@ -392,7 +392,16 @@ class Registry():
         if 'properties' in record:
             properties = record['properties']
 
-        self.register_record(name, type, scope, description=description, properties=properties)
+        self.register_record(name, type, scope, description=description, properties=properties, rebuild=rebuild)
+
+        if recursive:
+            contents = {}
+            if 'contents' in record:
+                contents = record['contents']
+            for key in contents:
+                content = contents[key]
+                self.register_record_json(content, recursive=recursive, rebuild=rebuild)
+
 
     def update_record(self, name, type, scope, description="", properties={}, rebuild=False):
         record = {}
@@ -403,10 +412,10 @@ class Registry():
 
         record['properties'] = properties
 
-        return self.update_record_json(record)
+        return self.update_record_json(record, rebuild=rebuild)
 
 
-    def update_record_json(self, record):
+    def update_record_json(self, record, recursive=True, rebuild=False):
         name = None
         if 'name' in record:
             name = record['name']
@@ -420,7 +429,7 @@ class Registry():
         merged_record = json_utils.merge_json(original_record, record)
 
         # re-register
-        self.register_record_json(merged_record)
+        self.register_record_json(merged_record, recursive=recursive, rebuild=rebuild)
 
         # return original and merged
         return original_record, merged_record
