@@ -29,6 +29,7 @@ import { useContext, useEffect, useState } from "react";
 export default function Sessions() {
     const { appState, appActions } = useContext(AppContext);
     const sessionIdFocus = appState.session.sessionIdFocus;
+    const sessionIds = appState.session.sessionIds;
     const [message, setMessage] = useState("");
     const [loading, setLoading] = useState(false);
     const [joinSessionId, setJoinSessionId] = useState("");
@@ -99,6 +100,14 @@ export default function Sessions() {
                     intent: Intent.SUCCESS,
                     message: "Connection established",
                 });
+                if (!_.isEmpty(sessionIds)) {
+                    for (var i = 0; i < sessionIds.length; i++) {
+                        appActions.session.observeSession({
+                            sessionId: sessionIds[i],
+                            connection: socket,
+                        });
+                    }
+                }
             };
         } catch (e) {
             setLoading(false);
@@ -165,6 +174,7 @@ export default function Sessions() {
                             rightIcon={faIcon({ icon: faInboxOut })}
                         />
                         <Popover
+                            placement="bottom"
                             content={
                                 <div style={{ padding: 10 }}>
                                     <H5>Join an existing session</H5>
