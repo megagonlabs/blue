@@ -3,6 +3,7 @@ import OutputEntity from "@/components/agents/OutputEntity";
 import { SEARCH_LIST_TYPE_LOOKUP } from "@/components/constant";
 import CollectionEntity from "@/components/data/CollectionEntity";
 import DatabaseEntity from "@/components/data/DatabaseEntity";
+import EntityEntity from "@/components/data/EntityEntity";
 import SourceEntity from "@/components/data/SourceEntity";
 import Breadcrumbs from "@/components/entity/Breadcrumbs";
 import _ from "lodash";
@@ -58,6 +59,9 @@ export default function RegistryEntity() {
                 ) : null}
                 {_.isEqual(entityType, "/source/database/collection") ? (
                     <CollectionEntity />
+                ) : null}
+                {_.isEqual(entityType, "/source/database/collection/entity") ? (
+                    <EntityEntity />
                 ) : null}
             </div>
         </>

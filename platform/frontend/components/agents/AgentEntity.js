@@ -166,6 +166,7 @@ export default function AgentEntity() {
             await Promise.allSettled(promises);
             if (!requestError) {
                 setEdit(false);
+                setEntity(editEntity);
             }
             setLoading(false);
         })();
@@ -182,11 +183,13 @@ export default function AgentEntity() {
             />
             <EntityDescription
                 edit={edit}
+                setEdit={setEdit}
                 entity={editEntity}
                 updateEntity={updateEntity}
             />
             <EntityProperties
                 edit={edit}
+                setEdit={setEdit}
                 entity={editEntity}
                 jsonError={jsonError}
                 setJsonError={setJsonError}
