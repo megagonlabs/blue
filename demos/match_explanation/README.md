@@ -39,7 +39,25 @@ $ ./flush.sh
 $ cd agents/openai
 $ ./start_service.sh
 ```
-### user.sh
+### Access the Blue-UI
+1. Launch the API server as follows:
+```sh
+uvicorn server:app --app-dir src --port 5050 --reload
+```
+
+2. Skip this step if you already went through the configuration once.When launching the first time, set up configurtation using `npm config set` (Contact eser@megaon.ai or rafael@megagon.ai for details). Then run the follwing: 
+```sh
+npm install
+```
+
+3. Then start the Web-UI as follows:
+```sh
+cd platform/frontend
+npm run dev
+```
+4. Lauch the UI in browser at: http://localhost:3000/
+
+<!-- ### user.sh
 Invoke user agent to input text:
 ```
 $ ./user.sh 'Using the information from the resume of Michael Gibbons rationalize why he was recommended the senior software engineer title'
@@ -49,7 +67,7 @@ $ ./user.sh 'Using the information from the resume of Michael Gibbons rationaliz
 ```
 docker logs -f <docker_id>
 ```
-Or, alternatively you can also retrieve it from the Redis Stream
+Or, alternatively you can also retrieve it from the Redis Stream -->
 
 <!-- ### observer.sh
 To observe the outputs from each agent run observer agent using the session is from the output of user.sh script:
@@ -74,6 +92,11 @@ Then, run agent to execute CYPHER queries and fetch the results:
 ```
 $ ./neo4j.sh <SESSION_ID>
 ``` -->
+
+### Start a Session in the UI
+
+Start a new session and type in the following in the chat:
+`Using the information from the resume of Michael Gibbons rationalize why he was recommended the senior software engineer title.`
 
 ### recorder.sh
 To scan JSON output from a number of agents and record in session memory:
