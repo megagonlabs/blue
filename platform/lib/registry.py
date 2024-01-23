@@ -491,13 +491,16 @@ class Registry():
         return self.get_record_data(name, scope, 'properties')
 
     def get_record_property(self, name, scope, key):
-        return self.get_record_data(name, scope, 'properties' + '.' + key)
+        escaped_key = '["' + key + '"]'
+        return self.get_record_data(name, scope, 'properties' + '.' + escaped_key)
 
     def set_record_property(self, name, scope, key, value, rebuild=False):
-        self.set_record_data(name, scope, 'properties' + '.' + key, value, rebuild=rebuild)
+        escaped_key = '["' + key + '"]'
+        self.set_record_data(name, scope, 'properties' + '.' + escaped_key, value, rebuild=rebuild)
 
     def delete_record_property(self, name, scope, key, rebuild=False):
-        self.delete_record_data(name, scope, 'properties' + '.' + key, rebuild=rebuild)
+        escaped_key = '["' + key + '"]'
+        self.delete_record_data(name, scope, 'properties' + '.' + escaped_key, rebuild=rebuild)
 
     def get_record_contents(self, name, scope, type=None):
         contents = {}
