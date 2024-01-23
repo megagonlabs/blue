@@ -113,14 +113,23 @@ export default function EntityMain({
                             minimal
                             className={loading ? Classes.SKELETON : null}
                         >
-                            <Tooltip content="Try" minimal placement="bottom">
-                                <Button
-                                    disabled
-                                    intent={Intent.SUCCESS}
-                                    icon={faIcon({ icon: faPlay })}
-                                />
-                            </Tooltip>
-                            <Divider />
+                            {_.isEqual(entity.type, "agent") ? (
+                                <>
+                                    <Tooltip
+                                        content="Try"
+                                        minimal
+                                        placement="bottom"
+                                    >
+                                        <Button
+                                            disabled
+                                            intent={Intent.SUCCESS}
+                                            icon={faIcon({ icon: faPlay })}
+                                        />
+                                    </Tooltip>
+                                    <Divider />
+                                </>
+                            ) : null}
+
                             <Tooltip content="Edit" minimal placement="bottom">
                                 <Button
                                     disabled={!_.isFunction(setEdit)}

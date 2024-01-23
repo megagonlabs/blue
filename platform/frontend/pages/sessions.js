@@ -195,6 +195,10 @@ export default function Sessions() {
                                             if (
                                                 _.isNil(
                                                     appState.session.connection
+                                                ) ||
+                                                _.includes(
+                                                    sessionIds,
+                                                    joinSessionId
                                                 )
                                             )
                                                 return;
