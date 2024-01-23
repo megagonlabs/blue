@@ -74,6 +74,10 @@ class GPTPlannerAgent(OpenAIAgent):
     def __init__(self, name="GPTPLANNER", session=None, input_stream=None, processor=None, properties={}):
         super().__init__(name=name, session=session, input_stream=input_stream, processor=processor, properties=properties)
 
+    def _initialize(self, properties=None):
+        super()._initialize(properties=properties)
+
+        # connect to registry
         logging.info("Using agent registry:" + self.properties['registry.name'])
         self.registry = AgentRegistry(self.properties['registry.name'])
 
@@ -115,8 +119,36 @@ class GPTPlannerAgent(OpenAIAgent):
         final_plan = self.finalize_plan(ranked_plan)
         logging.info('Final Plan:')
         logging.info(json.dumps(final_plan, indent = 4))
-        return output_data
+
+        human_readable_plan = self.present_plan(final_plan)
+        
+        return human_readable_plan
             
+    def present_plan(self, plan):
+        plan_text = ""
+        agents = plan['agent']
+        for step in agents:
+            plan_text = plan_text + "\n" + "STEP " + step + ":\n"
+            agent = agents[step]
+            match = agent['match']
+            if match:
+                match_name = match['name']
+                match_description = match['description']
+                plan_text = plan_text + match_name + ":" + match_description + "\n"
+                match_contents = match['contents'].values()
+                for match_content in match_contents:
+                    param_name = match_content['name']
+                    param_type = match_content['type']
+                    param_description = match_content['description']
+                    param_data = match_content['matches'][0]['description']
+                    # plan_text = plan_text + param_type.upper() + " " + param_name + ":" + param_description + " [" + param_data + "]" + "\n"
+                    plan_text = plan_text + param_type.upper() + " " + param_name + ":" + " [" + param_data + " ]" + "\n"
+            else:
+                plan_text = plan_text + "No Matching Agent Found"
+        return plan_text
+           
+
+
     def finalize_plan(self, plan):
         agents = plan['agent'].values()
         for agent in agents:
@@ -388,7 +420,7 @@ class GPTPlannerAgent(OpenAIAgent):
 
             # agents
             keywords = name + " " + description
-            matches = self.registry.search_records(keywords, type='agent', approximate=True, page_size=10)
+            matches = self.registry.search_records(keywords, type='agent', approximate=True, page_size=15)
             agent['matches'] = matches
 
             # inputs
@@ -399,7 +431,7 @@ class GPTPlannerAgent(OpenAIAgent):
 
                 keywords = name + " " + description
 
-                matches = self.registry.search_records(keywords, type='input', approximate=True, page_size=10)
+                matches = self.registry.search_records(keywords, type='input', approximate=True, page_size=15)
                 input['matches'] = matches
 
 
@@ -411,7 +443,7 @@ class GPTPlannerAgent(OpenAIAgent):
 
                 keywords = name + " " + description
 
-                matches = self.registry.search_records(keywords, type='output', approximate=True, page_size=10)
+                matches = self.registry.search_records(keywords, type='output', approximate=True, page_size=15)
                 output['matches'] = matches
 
         return plan
