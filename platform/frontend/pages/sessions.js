@@ -100,6 +100,7 @@ export default function Sessions() {
                 AppToaster.show({
                     intent: Intent.SUCCESS,
                     message: "Connection established",
+                    timeout: 2000,
                 });
                 if (!_.isEmpty(sessionIds)) {
                     for (var i = 0; i < sessionIds.length; i++) {
