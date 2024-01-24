@@ -27,6 +27,7 @@ export default function EntityMain({
     saveEntity,
     loading,
     jsonError,
+    initialized,
 }) {
     const router = useRouter();
     const deleteEntity = () => {
@@ -99,7 +100,11 @@ export default function EntityMain({
                 >
                     {edit ? (
                         <Button
-                            className={loading ? Classes.SKELETON : null}
+                            className={
+                                loading || !initialized
+                                    ? Classes.SKELETON
+                                    : null
+                            }
                             large
                             disabled={jsonError}
                             intent={Intent.SUCCESS}

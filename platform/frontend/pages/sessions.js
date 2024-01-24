@@ -185,6 +185,7 @@ export default function Sessions() {
                                 <div style={{ padding: 10 }}>
                                     <H5>Join an existing session</H5>
                                     <InputGroup
+                                        large
                                         fill
                                         value={joinSessionId}
                                         onChange={(event) => {
@@ -192,31 +193,42 @@ export default function Sessions() {
                                                 event.target.value
                                             );
                                         }}
-                                    />
-                                    <Button
-                                        className={Classes.POPOVER_DISMISS}
-                                        text="Join"
-                                        outlined
-                                        onClick={() => {
-                                            if (
-                                                _.isNil(
-                                                    appState.session.connection
-                                                ) ||
-                                                _.includes(
-                                                    sessionIds,
-                                                    joinSessionId
-                                                )
-                                            )
-                                                return;
-                                            appActions.session.observeSession({
-                                                sessionId: joinSessionId,
-                                                connection:
-                                                    appState.session.connection,
-                                            });
-                                            setJoinSessionId("");
-                                        }}
-                                        style={{ marginTop: 10 }}
-                                        intent={Intent.SUCCESS}
+                                        rightElement={
+                                            <Button
+                                                className={
+                                                    Classes.POPOVER_DISMISS
+                                                }
+                                                minimal
+                                                text="Join"
+                                                onClick={() => {
+                                                    if (
+                                                        _.isEmpty(
+                                                            joinSessionId
+                                                        ) ||
+                                                        _.isNil(
+                                                            appState.session
+                                                                .connection
+                                                        ) ||
+                                                        _.includes(
+                                                            sessionIds,
+                                                            joinSessionId
+                                                        )
+                                                    )
+                                                        return;
+                                                    appActions.session.observeSession(
+                                                        {
+                                                            sessionId:
+                                                                joinSessionId,
+                                                            connection:
+                                                                appState.session
+                                                                    .connection,
+                                                        }
+                                                    );
+                                                    setJoinSessionId("");
+                                                }}
+                                                intent={Intent.SUCCESS}
+                                            />
+                                        }
                                     />
                                 </div>
                             }
@@ -279,11 +291,7 @@ export default function Sessions() {
                     />
                 ) : (
                     <>
-                        <div
-                            style={{
-                                height: "calc(100% - 131px",
-                            }}
-                        >
+                        <div style={{ height: "calc(100% - 131px" }}>
                             <SessionMessages />
                         </div>
                         <div

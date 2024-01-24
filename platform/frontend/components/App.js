@@ -57,6 +57,7 @@ export default function App({ children }) {
                 </Navbar.Group>
             </Navbar>
             <Card
+                interactive
                 style={{
                     position: "absolute",
                     top: 50,

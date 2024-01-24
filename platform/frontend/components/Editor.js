@@ -1,3 +1,4 @@
+import { Classes } from "@blueprintjs/core";
 import { closeBrackets } from "@codemirror/autocomplete";
 import { indentWithTab } from "@codemirror/commands";
 import { json, jsonParseLinter } from "@codemirror/lang-json";
@@ -8,10 +9,17 @@ import { keymap, lineNumbers } from "@codemirror/view";
 import { EditorView, minimalSetup } from "codemirror";
 import _ from "lodash";
 import { useCallback, useEffect, useRef } from "react";
-export default function Editor({ code, setCode, setError, setLoading }) {
+export default function Editor({
+    code,
+    setCode,
+    setError,
+    setLoading,
+    setInitialized,
+    initialized,
+}) {
     const editor = useRef();
     const debounced = useCallback(
-        _.debounce((v) => {
+        _.debounce((v, setInitialized) => {
             let error = false;
             forEachDiagnostic(v.state, (diagnostic) => {
                 if (_.isEqual(diagnostic.severity, "error")) {
@@ -23,6 +31,7 @@ export default function Editor({ code, setCode, setError, setLoading }) {
                 setCode(v.state.doc.toString());
             }
             setLoading(false);
+            setInitialized(true);
         }, 800),
         []
     );
@@ -30,7 +39,7 @@ export default function Editor({ code, setCode, setError, setLoading }) {
         if (v.docChanged) {
             setLoading(true);
         }
-        debounced(v);
+        debounced(v, setInitialized);
     });
     useEffect(() => {
         const state = EditorState.create({
@@ -56,5 +65,7 @@ export default function Editor({ code, setCode, setError, setLoading }) {
             view.destroy();
         };
     }, []);
-    return <div ref={editor} />;
+    return (
+        <div className={!initialized ? Classes.SKELETON : null} ref={editor} />
+    );
 }
