@@ -61,7 +61,7 @@ export default function Data() {
                     });
                 }
             },
-            500
+            300
         ),
         []
     );

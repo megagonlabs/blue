@@ -61,7 +61,7 @@ export default function Agents() {
                     });
                 }
             },
-            500
+            300
         ),
         []
     );
