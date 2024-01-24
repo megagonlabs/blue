@@ -8,8 +8,6 @@ export default function EntityProperties({
     setJsonError,
     updateEntity,
     setLoading,
-    setInitialized,
-    initialized,
 }) {
     const setProperties = (value) => {
         updateEntity({ path: "properties", value: JSON.parse(value) });
@@ -48,11 +46,9 @@ export default function EntityProperties({
                     </pre>
                 ) : (
                     <Editor
-                        initialized={initialized}
                         code={JSON.stringify(entity.properties, null, 4)}
                         setCode={setProperties}
                         setLoading={setLoading}
-                        setInitialized={setInitialized}
                         setError={setJsonError}
                     />
                 )}

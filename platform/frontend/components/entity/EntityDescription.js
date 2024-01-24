@@ -1,10 +1,9 @@
-import { Classes, EditableText, Section, SectionCard } from "@blueprintjs/core";
+import { EditableText, Section, SectionCard } from "@blueprintjs/core";
 export default function EntityDescription({
     entity,
     edit,
     updateEntity,
     setEdit,
-    initialized,
 }) {
     return (
         <Section
@@ -14,7 +13,6 @@ export default function EntityDescription({
             style={{ marginTop: 20 }}
         >
             <SectionCard
-                className={edit && !initialized ? Classes.SKELETON : null}
                 style={{ whiteSpace: !edit ? "pre-wrap" : null }}
                 onDoubleClick={(event) => {
                     setEdit(true);

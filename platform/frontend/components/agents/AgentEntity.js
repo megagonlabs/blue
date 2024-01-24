@@ -25,7 +25,6 @@ export default function AgentEntity() {
     const [edit, setEdit] = useState(false);
     const [loading, setLoading] = useState(true);
     const [jsonError, setJsonError] = useState(false);
-    const [initialized, setInitialized] = useState(false);
     useEffect(() => {
         if (!router.isReady) return;
         axios.get(router.asPath).then((response) => {
@@ -131,14 +130,12 @@ export default function AgentEntity() {
                 entity={entity}
                 saveEntity={saveEntity}
                 loading={loading}
-                initialized={initialized}
                 jsonError={jsonError}
             />
             <EntityDescription
                 edit={edit}
                 setEdit={setEdit}
                 entity={editEntity}
-                initialized={initialized}
                 updateEntity={updateEntity}
             />
             <EntityProperties
@@ -149,8 +146,6 @@ export default function AgentEntity() {
                 setJsonError={setJsonError}
                 updateEntity={updateEntity}
                 setLoading={setLoading}
-                initialized={initialized}
-                setInitialized={setInitialized}
             />
             <Section
                 compact
