@@ -25,7 +25,7 @@ import {
     faSignalStreamSlash,
 } from "@fortawesome/pro-duotone-svg-icons";
 import _ from "lodash";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 export default function Sessions() {
     const { appState, appActions } = useContext(AppContext);
     const sessionIdFocus = appState.session.sessionIdFocus;
@@ -33,6 +33,7 @@ export default function Sessions() {
     const [message, setMessage] = useState("");
     const [loading, setLoading] = useState(false);
     const [joinSessionId, setJoinSessionId] = useState("");
+    const sessionMessageTextArea = useRef(null);
     const sendSessionMessage = (message) => {
         if (_.isNil(appState.session.connection)) return;
         setMessage("");
@@ -121,6 +122,11 @@ export default function Sessions() {
     useEffect(() => {
         connectToWebsocket();
     }, []);
+    useEffect(() => {
+        if (sessionMessageTextArea.current) {
+            sessionMessageTextArea.current.focus();
+        }
+    }, [sessionIdFocus]);
     const SESSION_LISTL_PANEL_WIDTH = 451.65;
     if (_.isNil(appState.session.connection))
         return (
@@ -288,6 +294,7 @@ export default function Sessions() {
                             }}
                         >
                             <TextArea
+                                inputRef={sessionMessageTextArea}
                                 style={{ resize: "none" }}
                                 value={message}
                                 placeholder="Message"

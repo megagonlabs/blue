@@ -1,15 +1,11 @@
 import {
-    Classes,
     HTMLTable,
     Intent,
-    ProgressBar,
     Section,
     SectionCard,
     Tag,
 } from "@blueprintjs/core";
-import { faPenSwirl } from "@fortawesome/pro-duotone-svg-icons";
 import axios from "axios";
-import classNames from "classnames";
 import { diff } from "deep-diff";
 import _ from "lodash";
 import Link from "next/link";
@@ -19,32 +15,8 @@ import { AppContext } from "../app-context";
 import EntityDescription from "../entity/EntityDescription";
 import EntityMain from "../entity/EntityMain";
 import EntityProperties from "../entity/EntityProperties";
-import { faIcon } from "../icon";
+import { settlePromises } from "../helper";
 import { AppToaster } from "../toaster";
-const renderProgress = (progress, requestError = false, callback = null) => {
-    if (progress >= 100 && _.isFunction(callback)) {
-        callback();
-    }
-    return {
-        icon: faIcon({ icon: faPenSwirl }),
-        message: (
-            <ProgressBar
-                className={classNames("margin-top-5", {
-                    [Classes.PROGRESS_NO_STRIPES]: progress >= 100,
-                })}
-                intent={
-                    requestError
-                        ? Intent.DANGER
-                        : progress < 100
-                        ? Intent.PRIMARY
-                        : Intent.SUCCESS
-                }
-                value={progress / 100}
-            />
-        ),
-        timeout: progress < 100 ? 0 : 2000,
-    };
-};
 export default function AgentEntity() {
     const { appState } = useContext(AppContext);
     const router = useRouter();
@@ -142,34 +114,13 @@ export default function AgentEntity() {
                 }
             }
         }
-        (async () => {
-            let progress = 0,
-                requestError = false;
-            const key = AppToaster.show(renderProgress(progress));
-            const promises = tasks.map((task) => {
-                return task
-                    .catch((status) => {
-                        if (!status) {
-                            requestError = true;
-                        }
-                    })
-                    .finally(() => {
-                        progress += 100 / tasks.length;
-                        AppToaster.show(
-                            renderProgress(progress, requestError, () => {
-                                setLoading(false);
-                            }),
-                            key
-                        );
-                    });
-            });
-            await Promise.allSettled(promises);
-            if (!requestError) {
+        settlePromises(tasks, (error) => {
+            if (!error) {
                 setEdit(false);
                 setEntity(editEntity);
             }
             setLoading(false);
-        })();
+        });
     };
     return (
         <div style={{ padding: "10px 20px 20px" }}>
