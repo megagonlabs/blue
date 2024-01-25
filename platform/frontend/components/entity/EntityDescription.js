@@ -14,13 +14,15 @@ export default function EntityDescription({
         >
             <SectionCard
                 style={{ whiteSpace: !edit ? "pre-wrap" : null }}
-                onDoubleClick={() => {
+                onDoubleClick={(event) => {
                     setEdit(true);
+                    event.stopPropagation();
                 }}
             >
                 {edit ? (
                     <EditableText
                         multiline
+                        minLines={2}
                         onChange={(value) => {
                             updateEntity({ path: "description", value });
                         }}

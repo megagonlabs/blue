@@ -7,8 +7,12 @@ import { EditorState } from "@codemirror/state";
 import { keymap, lineNumbers } from "@codemirror/view";
 import { EditorView, minimalSetup } from "codemirror";
 import _ from "lodash";
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 export default function Editor({ code, setCode, setError, setLoading }) {
+    const [doc, setDoc] = useState(code);
+    useEffect(() => {
+        setCode(doc);
+    }, [doc]);
     const editor = useRef();
     const debounced = useCallback(
         _.debounce((v) => {
@@ -20,10 +24,10 @@ export default function Editor({ code, setCode, setError, setLoading }) {
             });
             setError(error);
             if (!error) {
-                setCode(v.state.doc.toString());
+                setDoc(v.state.doc.toString());
             }
             setLoading(false);
-        }, 800),
+        }, 300),
         []
     );
     const onUpdate = EditorView.updateListener.of((v) => {
@@ -34,13 +38,13 @@ export default function Editor({ code, setCode, setError, setLoading }) {
     });
     useEffect(() => {
         const state = EditorState.create({
-            doc: code,
+            doc: doc,
             extensions: [
                 minimalSetup,
                 lineNumbers(),
                 bracketMatching(),
                 closeBrackets(),
-                linter(jsonParseLinter()),
+                linter(jsonParseLinter(), { delay: 0 }),
                 lintGutter(),
                 keymap.of([indentWithTab]),
                 indentUnit.of("    "),
