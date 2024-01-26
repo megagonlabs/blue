@@ -5,6 +5,7 @@ import _ from "lodash";
 import { useContext, useState } from "react";
 import { AppContext } from "../app-context";
 import { faIcon } from "../icon";
+import { AppToaster } from "../toaster";
 export default function SessionRow({ index, style }) {
     const { appState, appActions } = useContext(AppContext);
     const sessionId = appState.session.sessionIds[index];
@@ -71,6 +72,10 @@ export default function SessionRow({ index, style }) {
                     <Button
                         onClick={(event) => {
                             copy(sessionId);
+                            AppToaster.show({
+                                message: "Copied",
+                                timeout: 2000,
+                            });
                             event.stopPropagation();
                         }}
                         large

@@ -4,13 +4,17 @@ import {
     Classes,
     Divider,
     Intent,
+    Menu,
+    MenuItem,
     Popover,
     Section,
     SectionCard,
     Tooltip,
 } from "@blueprintjs/core";
 import {
+    faCaretDown,
     faCheck,
+    faClone,
     faPen,
     faPlay,
     faTrash,
@@ -64,7 +68,7 @@ export default function EntityMain({
                     <div
                         className={Classes.TEXT_OVERFLOW_ELLIPSIS}
                         style={{
-                            width: "calc(100% - 178.66px)",
+                            width: "calc(100% - 248.86px)",
                             padding: "20px 10px 10px 10px",
                         }}
                     >
@@ -81,7 +85,7 @@ export default function EntityMain({
                     <div
                         className={Classes.TEXT_OVERFLOW_ELLIPSIS}
                         style={{
-                            width: "calc(100% - 178.66px)",
+                            width: "calc(100% - 248.86px)",
                             padding: "0px 10px 20px 10px",
                         }}
                     >
@@ -129,45 +133,41 @@ export default function EntityMain({
                                     <Divider />
                                 </>
                             ) : null}
-
-                            <Tooltip content="Edit" minimal placement="bottom">
-                                <Button
-                                    disabled={!_.isFunction(setEdit)}
-                                    onClick={() => setEdit(true)}
-                                    intent={Intent.PRIMARY}
-                                    icon={faIcon({ icon: faPen })}
-                                />
-                            </Tooltip>
                             <Popover
+                                minimal
                                 placement="bottom-end"
                                 content={
-                                    <div style={{ padding: 10 }}>
-                                        <ButtonGroup large minimal>
-                                            <Button
-                                                className={
-                                                    Classes.POPOVER_DISMISS
-                                                }
-                                                text="Cancel"
-                                            />
-                                            <Button
-                                                onClick={deleteEntity}
+                                    <Menu>
+                                        <MenuItem
+                                            disabled={!_.isFunction(setEdit)}
+                                            onClick={() => setEdit(true)}
+                                            intent={Intent.PRIMARY}
+                                            icon={faIcon({ icon: faPen })}
+                                            text="Edit"
+                                        />
+                                        <MenuItem
+                                            disabled
+                                            icon={faIcon({ icon: faClone })}
+                                            text="Duplicate"
+                                        />
+                                        <MenuItem
+                                            intent={Intent.DANGER}
+                                            icon={faIcon({ icon: faTrash })}
+                                            text="Delete"
+                                        >
+                                            <MenuItem
                                                 intent={Intent.DANGER}
-                                                text="Delete"
+                                                text="Confirm"
+                                                onClick={deleteEntity}
                                             />
-                                        </ButtonGroup>
-                                    </div>
+                                        </MenuItem>
+                                    </Menu>
                                 }
                             >
-                                <Tooltip
-                                    content="Delete"
-                                    minimal
-                                    placement="bottom-end"
-                                >
-                                    <Button
-                                        intent={Intent.DANGER}
-                                        icon={faIcon({ icon: faTrash })}
-                                    />
-                                </Tooltip>
+                                <Button
+                                    text="Actions"
+                                    rightIcon={faIcon({ icon: faCaretDown })}
+                                />
                             </Popover>
                         </ButtonGroup>
                     )}

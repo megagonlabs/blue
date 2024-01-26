@@ -2,6 +2,6 @@ import { OverlayToaster, Position } from "@blueprintjs/core";
 export const AppToaster =
     typeof window !== "undefined"
         ? OverlayToaster.create({
-              position: Position.BOTTOM,
+              position: Position.BOTTOM_LEFT,
           })
         : null;

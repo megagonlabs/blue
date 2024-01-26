@@ -1,4 +1,5 @@
-import { NonIdealState } from "@blueprintjs/core";
+import { Card, Colors, NonIdealState } from "@blueprintjs/core";
+import { faPlus } from "@fortawesome/pro-duotone-svg-icons";
 import _ from "lodash";
 import { useRouter } from "next/router";
 import { useContext } from "react";
@@ -56,6 +57,43 @@ export default function RegistryList({ type }) {
                         </Col>
                     );
                 })}
+                {_.includes(["agent"], type) ? (
+                    <Col
+                        sm={12}
+                        md={6}
+                        lg={4}
+                        xxl={3}
+                        style={{ paddingBottom: 20 }}
+                    >
+                        <Card
+                            onClick={() => {}}
+                            style={{
+                                minHeight: 127,
+                                padding: 0,
+                                height: "100%",
+                                position: "relative",
+                                backgroundColor: Colors.LIGHT_GRAY5,
+                                cursor: "pointer",
+                            }}
+                        >
+                            <div
+                                style={{
+                                    position: "absolute",
+                                    top: "50%",
+                                    left: "50%",
+                                    textAlign: "center",
+                                    transform: "translate(-50%, -50%)",
+                                    msTransform: "translate(-50%, -50%)",
+                                }}
+                            >
+                                <div style={{ marginBottom: 10 }}>
+                                    {faIcon({ icon: faPlus, size: 20 })}
+                                </div>
+                                Add {type}
+                            </div>
+                        </Card>
+                    </Col>
+                ) : null}
             </Row>
         </Container>
     );

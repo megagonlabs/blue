@@ -28,8 +28,9 @@ export default function EntityProperties({
         >
             <SectionCard
                 padded={false}
-                onDoubleClick={() => {
+                onDoubleClick={(event) => {
                     setEdit(true);
+                    event.stopPropagation();
                 }}
             >
                 {!edit ? (
