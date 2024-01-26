@@ -77,10 +77,12 @@ export default function SessionMessages() {
                         width: "fit-content",
                     }}
                 >
-                    <div ref={rowRef}
-                    dangerouslySetInnerHTML={{__html: messages[index].message}}
+                    <div
+                        ref={rowRef}
+                        dangerouslySetInnerHTML={{
+                            __html: messages[index].message,
+                        }}
                     />
-                
                 </Callout>
                 {!own ? (
                     <div

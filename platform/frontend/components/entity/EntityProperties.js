@@ -1,4 +1,5 @@
 import { Classes, Intent, Section, SectionCard, Tag } from "@blueprintjs/core";
+import _ from "lodash";
 import Editor from "../Editor";
 export default function EntityProperties({
     entity,
@@ -29,7 +30,9 @@ export default function EntityProperties({
             <SectionCard
                 padded={false}
                 onDoubleClick={(event) => {
-                    setEdit(true);
+                    if (_.isFunction(setEdit)) {
+                        setEdit(true);
+                    }
                     event.stopPropagation();
                 }}
             >

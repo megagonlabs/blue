@@ -15,7 +15,7 @@ import { AppContext } from "../app-context";
 import EntityDescription from "../entity/EntityDescription";
 import EntityMain from "../entity/EntityMain";
 import EntityProperties from "../entity/EntityProperties";
-import { settlePromises } from "../helper";
+import { constructSavePropertyRequests, settlePromises } from "../helper";
 import { AppToaster } from "../toaster";
 export default function AgentEntity() {
     const { appState } = useContext(AppContext);
@@ -40,7 +40,6 @@ export default function AgentEntity() {
     };
     const saveEntity = () => {
         setLoading(true);
-        const difference = diff(entity.properties, editEntity.properties);
         let tasks = [
             new Promise((resolve, reject) => {
                 axios
@@ -51,7 +50,7 @@ export default function AgentEntity() {
                             description: editEntity.description,
                         }
                     )
-                    .then((response) => {
+                    .then(() => {
                         resolve(true);
                     })
                     .catch((error) => {
@@ -63,57 +62,16 @@ export default function AgentEntity() {
                     });
             }),
         ];
-        if (_.isArray(difference)) {
-            for (var i = 0; i < difference.length; i++) {
-                const kind = difference[i].kind,
-                    path = difference[i].path[0];
-                if (_.isEqual(kind, "D")) {
-                    tasks.push(
-                        new Promise((resolve, reject) => {
-                            axios
-                                .delete(
-                                    `/agents/${appState.agent.registryName}/agent/${entity.name}/property/${path}`
-                                )
-                                .then((response) => {
-                                    resolve(true);
-                                })
-                                .catch((error) => {
-                                    AppToaster.show({
-                                        intent: Intent.DANGER,
-                                        message: `${error.name}: ${error.message}`,
-                                    });
-                                    reject(false);
-                                });
-                        })
-                    );
-                } else {
-                    tasks.push(
-                        new Promise((resolve, reject) => {
-                            axios
-                                .post(
-                                    `/agents/${appState.agent.registryName}/agent/${entity.name}/property/${path}`,
-                                    editEntity.properties[path],
-                                    {
-                                        headers: {
-                                            "Content-type": "application/json",
-                                        },
-                                    }
-                                )
-                                .then((response) => {
-                                    resolve(true);
-                                })
-                                .catch((error) => {
-                                    AppToaster.show({
-                                        intent: Intent.DANGER,
-                                        message: `${error.name}: ${error.message}`,
-                                    });
-                                    reject(false);
-                                });
-                        })
-                    );
-                }
-            }
-        }
+        const difference = diff(entity.properties, editEntity.properties);
+        tasks.concat(
+            constructSavePropertyRequests({
+                axios,
+                difference,
+                appState,
+                entity,
+                editEntity,
+            })
+        );
         settlePromises(tasks, (error) => {
             if (!error) {
                 setEdit(false);

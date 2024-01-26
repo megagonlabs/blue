@@ -7,6 +7,7 @@ import EntityEntity from "@/components/data/EntityEntity";
 import RelationEntity from "@/components/data/RelationEntity";
 import SourceEntity from "@/components/data/SourceEntity";
 import Breadcrumbs from "@/components/entity/Breadcrumbs";
+import NewEntity from "@/components/entity/NewEntity";
 import _ from "lodash";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
@@ -40,37 +41,30 @@ export default function RegistryEntity() {
                 end: i + 2 >= params.length,
             });
         }
+        if (_.isEqual(type, "/new")) {
+            crumbs = crumbs.slice(0, 1);
+            _.set(crumbs, "0.href", null);
+        }
         setEntityType(type);
         setBreadcrumbs(crumbs);
     }, [router]);
+    const ENTITY_TYPE_TO_COMPONENT = {
+        "/new": <NewEntity type="agent" />,
+        "/agent": <AgentEntity />,
+        "/agent/input": <InputEntity />,
+        "/agent/output": <OutputEntity />,
+        "/source": <SourceEntity />,
+        "/source/database": <DatabaseEntity />,
+        "/source/database/collection": <CollectionEntity />,
+        "/source/database/collection/entity": <EntityEntity />,
+        "/source/database/collection/relation": <RelationEntity />,
+    };
     return (
-        <>
-            <div style={{ height: "100%", overflowY: "auto" }}>
-                <div style={{ margin: "20px 20px 10px" }}>
-                    <Breadcrumbs breadcrumbs={breadcrumbs} />
-                </div>
-                {_.isEqual(entityType, "/agent") ? <AgentEntity /> : null}
-                {_.isEqual(entityType, "/agent/input") ? <InputEntity /> : null}
-                {_.isEqual(entityType, "/agent/output") ? (
-                    <OutputEntity />
-                ) : null}
-                {_.isEqual(entityType, "/source") ? <SourceEntity /> : null}
-                {_.isEqual(entityType, "/source/database") ? (
-                    <DatabaseEntity />
-                ) : null}
-                {_.isEqual(entityType, "/source/database/collection") ? (
-                    <CollectionEntity />
-                ) : null}
-                {_.isEqual(entityType, "/source/database/collection/entity") ? (
-                    <EntityEntity />
-                ) : null}
-                {_.isEqual(
-                    entityType,
-                    "/source/database/collection/relation"
-                ) ? (
-                    <RelationEntity />
-                ) : null}
+        <div style={{ height: "100%", overflowY: "auto" }}>
+            <div style={{ margin: "20px 20px 10px" }}>
+                <Breadcrumbs breadcrumbs={breadcrumbs} />
             </div>
-        </>
+            {_.get(ENTITY_TYPE_TO_COMPONENT, entityType, null)}
+        </div>
     );
 }

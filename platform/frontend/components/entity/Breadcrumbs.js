@@ -9,6 +9,7 @@ import {
     Tag,
 } from "@blueprintjs/core";
 import { faAngleRight, faBars } from "@fortawesome/pro-duotone-svg-icons";
+import _ from "lodash";
 import Link from "next/link";
 import { faIcon } from "../icon";
 export default function Breadcrumbs({ breadcrumbs }) {
@@ -19,6 +20,10 @@ export default function Breadcrumbs({ breadcrumbs }) {
     const BREADCRUMB_STYLE = {
         display: "flex",
         alignItems: "center",
+    };
+    const TAG_PROPS = {
+        large: true,
+        minimal: true,
     };
     return (
         <OverflowList
@@ -31,6 +36,20 @@ export default function Breadcrumbs({ breadcrumbs }) {
                             {_.reverse(items).map(
                                 ({ href, text, end, icon }, index) => {
                                     if (end) return null;
+                                    if (_.isNil(href)) {
+                                        return (
+                                            <MenuItem
+                                                key={`registry-breadcrumb-overflow-menu-item-${index}`}
+                                                icon={
+                                                    !_.isNull(icon)
+                                                        ? faIcon({ icon: icon })
+                                                        : null
+                                                }
+                                                intent={Intent.PRIMARY}
+                                                text={text}
+                                            />
+                                        );
+                                    }
                                     return (
                                         <Link
                                             href={href}
@@ -69,8 +88,7 @@ export default function Breadcrumbs({ breadcrumbs }) {
                         >
                             {!start || !end ? HYPHEN_ICON : null}
                             <Tag
-                                large
-                                minimal
+                                {...TAG_PROPS}
                                 icon={
                                     !_.isNull(icon)
                                         ? faIcon({ icon: icon })
@@ -88,24 +106,34 @@ export default function Breadcrumbs({ breadcrumbs }) {
                         key={`registry-breadcrumb-visible-${index}`}
                     >
                         {!start ? HYPHEN_ICON : null}
-                        <Link href={href}>
+                        {_.isNil(href) ? (
                             <Tag
+                                {...TAG_PROPS}
                                 icon={
                                     !_.isNull(icon)
                                         ? faIcon({ icon: icon })
                                         : null
                                 }
-                                style={{
-                                    pointerEvents: "none",
-                                }}
-                                large
-                                minimal
-                                interactive
-                                intent={Intent.PRIMARY}
                             >
                                 {text}
                             </Tag>
-                        </Link>
+                        ) : (
+                            <Link href={href}>
+                                <Tag
+                                    {...TAG_PROPS}
+                                    icon={
+                                        !_.isNull(icon)
+                                            ? faIcon({ icon: icon })
+                                            : null
+                                    }
+                                    style={{ pointerEvents: "none" }}
+                                    interactive
+                                    intent={Intent.PRIMARY}
+                                >
+                                    {text}
+                                </Tag>
+                            </Link>
+                        )}
                     </div>
                 );
             }}

@@ -2,21 +2,18 @@ import {
     Button,
     ButtonGroup,
     Classes,
-    Divider,
     Intent,
     Menu,
     MenuItem,
     Popover,
     Section,
     SectionCard,
-    Tooltip,
 } from "@blueprintjs/core";
 import {
     faCaretDown,
     faCheck,
     faClone,
     faPen,
-    faPlay,
     faTrash,
 } from "@fortawesome/pro-duotone-svg-icons";
 import axios from "axios";
@@ -68,7 +65,7 @@ export default function EntityMain({
                     <div
                         className={Classes.TEXT_OVERFLOW_ELLIPSIS}
                         style={{
-                            width: "calc(100% - 248.86px)",
+                            width: "calc(100% - 197.86px)",
                             padding: "20px 10px 10px 10px",
                         }}
                     >
@@ -85,7 +82,7 @@ export default function EntityMain({
                     <div
                         className={Classes.TEXT_OVERFLOW_ELLIPSIS}
                         style={{
-                            width: "calc(100% - 248.86px)",
+                            width: "calc(100% - 197.86px)",
                             padding: "0px 10px 20px 10px",
                         }}
                     >
@@ -117,27 +114,11 @@ export default function EntityMain({
                             minimal
                             className={loading ? Classes.SKELETON : null}
                         >
-                            {_.isEqual(entity.type, "agent") ? (
-                                <>
-                                    <Tooltip
-                                        content="Try"
-                                        minimal
-                                        placement="bottom"
-                                    >
-                                        <Button
-                                            disabled
-                                            intent={Intent.SUCCESS}
-                                            icon={faIcon({ icon: faPlay })}
-                                        />
-                                    </Tooltip>
-                                    <Divider />
-                                </>
-                            ) : null}
                             <Popover
                                 minimal
                                 placement="bottom-end"
                                 content={
-                                    <Menu>
+                                    <Menu large>
                                         <MenuItem
                                             disabled={!_.isFunction(setEdit)}
                                             onClick={() => setEdit(true)}
