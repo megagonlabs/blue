@@ -72,12 +72,15 @@ export default function SessionMessages() {
                     intent={own ? Intent.PRIMARY : null}
                     icon={null}
                     style={{
-                        maxWidth: 602.2,
+                        maxWidth: 802.2,
                         whiteSpace: "pre-wrap",
                         width: "fit-content",
                     }}
                 >
-                    <div ref={rowRef}>{messages[index].message}</div>
+                    <div ref={rowRef}
+                    dangerouslySetInnerHTML={{__html: messages[index].message}}
+                    />
+                
                 </Callout>
                 {!own ? (
                     <div

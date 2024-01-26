@@ -125,26 +125,32 @@ class GPTPlannerAgent(OpenAIAgent):
         return human_readable_plan
             
     def present_plan(self, plan):
-        plan_text = ""
+        plan_text = "<b>PROPOSED PLAN</b>\n"
+        plan_text = plan_text + "<i>Review the proposed plan below and if necessary make appropriate adjustments.</i><p/>"
         agents = plan['agent']
         for step in agents:
-            plan_text = plan_text + "\n" + "STEP " + step + ":\n"
+            checkbox = "<input type=\"checkbox\">"
+            plan_text = plan_text + "\n" + checkbox + " <b>" + "STEP " + step + "</b>: "
             agent = agents[step]
             match = agent['match']
             if match:
                 match_name = match['name']
                 match_description = match['description']
-                plan_text = plan_text + match_name + ":" + match_description + "\n"
+                select_agent =  "<select><option value=\"" + match_name + "\">" + match_name + "</option></select>"
+                plan_text = plan_text + select_agent + " <i>" + match_description + "</i>\n"
                 match_contents = match['contents'].values()
                 for match_content in match_contents:
                     param_name = match_content['name']
                     param_type = match_content['type']
                     param_description = match_content['description']
                     param_data = match_content['matches'][0]['description']
+                    select_param =  "<select><option value=\"" + param_name + "\">" + param_name + "</option></select>"
+        
                     # plan_text = plan_text + param_type.upper() + " " + param_name + ":" + param_description + " [" + param_data + "]" + "\n"
-                    plan_text = plan_text + param_type.upper() + " " + param_name + ":" + " [" + param_data + " ]" + "\n"
+                    plan_text = plan_text + param_type.upper() + " " + select_param + " " + " [" + param_data + " ]" + "\n"
             else:
                 plan_text = plan_text + "No Matching Agent Found"
+        plan_text = plan_text + "<p><button type=\"button\">Execute</button></p>"
         return plan_text
            
 
