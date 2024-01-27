@@ -27,6 +27,7 @@ export default function AgentEntity() {
     const [jsonError, setJsonError] = useState(false);
     useEffect(() => {
         if (!router.isReady) return;
+        if (_.includes(router.asPath, "/default/new?entity=")) return;
         axios.get(router.asPath).then((response) => {
             setEntity(_.get(response, "data.result", {}));
             setEditEntity(_.get(response, "data.result", {}));

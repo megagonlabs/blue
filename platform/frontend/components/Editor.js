@@ -36,6 +36,14 @@ export default function Editor({ code, setCode, setError, setLoading }) {
         }
         debounced(v);
     });
+    const [codeEditorView, setCodeEditorView] = useState(null);
+    useEffect(() => {
+        if (_.isEqual(code, doc)) return;
+        if (_.isNil(codeEditorView)) return;
+        codeEditorView.dispatch({
+            changes: { from: 0, to: doc.length, insert: code },
+        });
+    }, [code]);
     useEffect(() => {
         const state = EditorState.create({
             doc: doc,
@@ -56,6 +64,7 @@ export default function Editor({ code, setCode, setError, setLoading }) {
             state,
             parent: editor.current,
         });
+        setCodeEditorView(view);
         return () => {
             view.destroy();
         };

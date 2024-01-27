@@ -16,3 +16,7 @@ table.entity-section-card-table tr td {
 .margin-top-5 {
     margin-top: 5px;
 }
+.required:after {
+    content: " *";
+    color: #cd4246;
+}

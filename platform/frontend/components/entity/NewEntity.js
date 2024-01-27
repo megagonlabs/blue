@@ -8,9 +8,11 @@ import {
 } from "@blueprintjs/core";
 import { faCheck } from "@fortawesome/pro-duotone-svg-icons";
 import axios from "axios";
+import classNames from "classnames";
 import { diff } from "deep-diff";
+import _ from "lodash";
 import { useRouter } from "next/router";
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { AppContext } from "../app-context";
 import { constructSavePropertyRequests, settlePromises } from "../helper";
 import { faIcon } from "../icon";
@@ -22,7 +24,7 @@ export default function NewEntity({ type }) {
     const router = useRouter();
     const [entity, setEntity] = useState({
         name: "",
-        properties: { image: "" },
+        properties: {},
         description: "",
     });
     const [created, setCreated] = useState(false);
@@ -33,6 +35,21 @@ export default function NewEntity({ type }) {
         _.set(newEntity, path, value);
         setEntity(newEntity);
     };
+    useEffect(() => {
+        if (!router.isReady) return;
+        if (!_.includes(router.asPath, "/default/new?entity=")) return;
+        let params = [..._.get(router, "query.params", [])];
+        params.splice(params.length - 1, 1);
+        axios
+            .get(`/${params.join("/")}/${type}/${router.query.entity}`)
+            .then((response) => {
+                let result = _.get(response, "data.result", {});
+                _.set(result, "name", "");
+                if (!_.isEmpty(result)) {
+                    setEntity(_.get(response, "data.result", {}));
+                }
+            });
+    }, [router]);
     const saveEntity = () => {
         if (!router.isReady) return;
         setLoading(true);
@@ -45,22 +62,28 @@ export default function NewEntity({ type }) {
         )
             .then(() => {
                 setCreated(true);
-                const difference = diff({}, entity.properties),
-                    tasks = constructSavePropertyRequests({
+                const difference = diff({}, entity.properties);
+                settlePromises(
+                    constructSavePropertyRequests({
                         axios,
                         difference,
                         appState,
                         entity,
                         editEntity: entity,
-                    });
-                settlePromises(tasks, (error) => {
-                    if (!error) {
-                        let path = router.asPath;
-                        path = path.substring(0, path.lastIndexOf("/"));
-                        router.push(`${path}/agent/${entity.name}`);
+                    }),
+                    (error) => {
+                        if (!error) {
+                            let params = _.cloneDeep(
+                                _.get(router, "query.params", [])
+                            );
+                            params.splice(params.length - 1, 1);
+                            router.push(
+                                `/${params.join("/")}/agent/${entity.name}`
+                            );
+                        }
                         setLoading(false);
                     }
-                });
+                );
             })
             .catch((error) => {
                 AppToaster.show({
@@ -76,7 +99,10 @@ export default function NewEntity({ type }) {
                 <SectionCard padded={false}>
                     <div style={{ display: "flex" }}>
                         <div
-                            className={Classes.TEXT_MUTED}
+                            className={classNames(
+                                Classes.TEXT_MUTED,
+                                "required"
+                            )}
                             style={{ width: 52.7, margin: "20px 0px 0px 20px" }}
                         >
                             Name
@@ -89,6 +115,11 @@ export default function NewEntity({ type }) {
                             }}
                         >
                             <EditableText
+                                intent={
+                                    _.isEmpty(entity.name)
+                                        ? Intent.DANGER
+                                        : null
+                                }
                                 value={entity.name}
                                 onChange={(value) => {
                                     updateEntity({ path: "name", value });
@@ -125,7 +156,7 @@ export default function NewEntity({ type }) {
                         <Button
                             className={loading ? Classes.SKELETON : null}
                             large
-                            disabled={jsonError}
+                            disabled={jsonError || _.isEmpty(entity.name)}
                             intent={Intent.SUCCESS}
                             text="Save"
                             onClick={saveEntity}

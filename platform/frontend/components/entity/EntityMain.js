@@ -35,15 +35,13 @@ export default function EntityMain({
         axios
             .delete(router.asPath)
             .then(() => {
-                let path = router.asPath;
-                // intended duplicate lines
-                path = path.substring(0, path.lastIndexOf("/"));
-                path = path.substring(0, path.lastIndexOf("/"));
+                let params = _.cloneDeep(_.get(router, "query.params", []));
+                params.splice(params.length - 2, 2);
                 AppToaster.show({
                     intent: Intent.SUCCESS,
                     message: `${entity.name} ${entity.type} deleted`,
                 });
-                router.push(path);
+                router.push(`/${params.join("/")}`);
             })
             .catch((error) => {
                 AppToaster.show({
@@ -119,18 +117,43 @@ export default function EntityMain({
                                 placement="bottom-end"
                                 content={
                                     <Menu large>
-                                        <MenuItem
-                                            disabled={!_.isFunction(setEdit)}
-                                            onClick={() => setEdit(true)}
-                                            intent={Intent.PRIMARY}
-                                            icon={faIcon({ icon: faPen })}
-                                            text="Edit"
-                                        />
-                                        <MenuItem
-                                            disabled
-                                            icon={faIcon({ icon: faClone })}
-                                            text="Duplicate"
-                                        />
+                                        {_.isFunction(setEdit) ? (
+                                            <MenuItem
+                                                onClick={() => {
+                                                    setEdit(true);
+                                                }}
+                                                intent={Intent.PRIMARY}
+                                                icon={faIcon({ icon: faPen })}
+                                                text="Edit"
+                                            />
+                                        ) : null}
+                                        {_.isEqual(entity.type, "agent") ? (
+                                            <MenuItem
+                                                icon={faIcon({ icon: faClone })}
+                                                text="Duplicate"
+                                                onClick={() => {
+                                                    if (!router.isReady) return;
+                                                    let params = _.cloneDeep(
+                                                        _.get(
+                                                            router,
+                                                            "query.params",
+                                                            []
+                                                        )
+                                                    );
+                                                    params.splice(
+                                                        params.length - 2,
+                                                        2
+                                                    );
+                                                    router.push(
+                                                        `/${params.join(
+                                                            "/"
+                                                        )}/new?entity=${
+                                                            entity.name
+                                                        }`
+                                                    );
+                                                }}
+                                            />
+                                        ) : null}
                                         <MenuItem
                                             intent={Intent.DANGER}
                                             icon={faIcon({ icon: faTrash })}
