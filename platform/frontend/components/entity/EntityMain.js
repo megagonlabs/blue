@@ -10,9 +10,9 @@ import {
     SectionCard,
 } from "@blueprintjs/core";
 import {
-    faCaretDown,
     faCheck,
     faClone,
+    faListDropdown,
     faPen,
     faTrash,
 } from "@fortawesome/pro-duotone-svg-icons";
@@ -63,7 +63,7 @@ export default function EntityMain({
                     <div
                         className={Classes.TEXT_OVERFLOW_ELLIPSIS}
                         style={{
-                            width: "calc(100% - 197.86px)",
+                            width: "calc(100% - 110.16px - 87.7px)",
                             padding: "20px 10px 10px 10px",
                         }}
                     >
@@ -80,7 +80,7 @@ export default function EntityMain({
                     <div
                         className={Classes.TEXT_OVERFLOW_ELLIPSIS}
                         style={{
-                            width: "calc(100% - 197.86px)",
+                            width: "calc(100% - 110.16px - 87.7px)",
                             padding: "0px 10px 20px 10px",
                         }}
                     >
@@ -169,8 +169,9 @@ export default function EntityMain({
                                 }
                             >
                                 <Button
+                                    outlined
                                     text="Actions"
-                                    rightIcon={faIcon({ icon: faCaretDown })}
+                                    rightIcon={faIcon({ icon: faListDropdown })}
                                 />
                             </Popover>
                         </ButtonGroup>
