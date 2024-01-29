@@ -73,7 +73,7 @@ export default function SessionRow({ index, style }) {
                         onClick={(event) => {
                             copy(sessionId);
                             AppToaster.show({
-                                message: "Copied",
+                                message: `Copied "${sessionId}"`,
                                 timeout: 2000,
                             });
                             event.stopPropagation();
