@@ -1,5 +1,5 @@
 {
-    "name": "auth",
+    "name": "blue",
     "version": "0.1.0",
     "private": true,
     "scripts": {
@@ -39,6 +39,7 @@
     },
     "devDependencies": {
         "eslint": "^8.55.0",
-        "eslint-config-next": "^14.0.3"
+        "eslint-config-next": "^14.0.3",
+        "eslint-plugin-react": "^7.33.2"
     }
 }

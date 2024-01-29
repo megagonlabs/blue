@@ -14,7 +14,7 @@ export const defaultState = {
 };
 export default function agentReducer(state = defaultState, { type, payload }) {
     switch (type) {
-        case "agent/list/set":
+        case "agent/list/set": {
             return {
                 ...state,
                 list: payload,
@@ -22,10 +22,13 @@ export default function agentReducer(state = defaultState, { type, payload }) {
                 search: false,
                 loading: false,
             };
-        case "agent/search/set":
+        }
+        case "agent/search/set": {
             return { ...state, ...payload, search: true, loading: false };
-        case "agent/state/set":
+        }
+        case "agent/state/set": {
             return { ...state, [payload.key]: payload.value };
+        }
         default:
             return state;
     }

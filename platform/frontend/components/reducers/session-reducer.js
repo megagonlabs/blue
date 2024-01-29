@@ -15,7 +15,7 @@ export default function sessionReducer(
     let unreadSessionIds = state.unreadSessionIds;
     let sessionIds = state.sessionIds;
     switch (type) {
-        case "session/sessions/message/add":
+        case "session/sessions/message/add": {
             if (!_.startsWith(payload.stream, `USER:${state.connectionId}`)) {
                 unreadSessionIds.add(payload.session_id);
             }
@@ -34,9 +34,11 @@ export default function sessionReducer(
                 sessionIds: sessionIds,
                 unreadSessionIds: unreadSessionIds,
             };
-        case "session/state/set":
+        }
+        case "session/state/set": {
             return { ...state, [payload.key]: payload.value };
-        case "session/sessions/add":
+        }
+        case "session/sessions/add": {
             if (_.includes(sessionIds, payload)) {
                 return { ...state };
             }
@@ -49,13 +51,15 @@ export default function sessionReducer(
                 sessionIdFocus: payload,
                 sessionIds: [payload, ...state.sessionIds],
             };
-        case "session/sessionIdFocus/set":
+        }
+        case "session/sessionIdFocus/set": {
             unreadSessionIds.delete(payload);
             return {
                 ...state,
                 sessionIdFocus: payload,
                 unreadSessionIds: unreadSessionIds,
             };
+        }
         default:
             return state;
     }

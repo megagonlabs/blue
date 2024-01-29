@@ -1,3 +1,3 @@
-export default function InteractiveMessage({}) {
+export default function InteractiveMessage() {
     return null;
 }

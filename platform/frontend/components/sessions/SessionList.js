@@ -18,7 +18,9 @@ export default function SessionList() {
                 )[0];
                 if (_.isEqual(element.className, cardListClassName)) return;
                 element.className = cardListClassName;
-            } catch (error) {}
+            } catch (error) {
+                // empty
+            }
         }, 0);
     }, [fixedSizeListRef]);
     return (

@@ -14,7 +14,7 @@ export const defaultState = {
 };
 export default function dataReducer(state = defaultState, { type, payload }) {
     switch (type) {
-        case "data/list/set":
+        case "data/list/set": {
             return {
                 ...state,
                 list: payload,
@@ -22,10 +22,13 @@ export default function dataReducer(state = defaultState, { type, payload }) {
                 search: false,
                 loading: false,
             };
-        case "data/search/set":
+        }
+        case "data/search/set": {
             return { ...state, ...payload, search: true, loading: false };
-        case "data/state/set":
+        }
+        case "data/state/set": {
             return { ...state, [payload.key]: payload.value };
+        }
         default:
             return state;
     }
