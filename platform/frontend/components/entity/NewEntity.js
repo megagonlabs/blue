@@ -62,6 +62,10 @@ export default function NewEntity({ type }) {
         )
             .then(() => {
                 setCreated(true);
+                AppToaster.show({
+                    intent: Intent.SUCCESS,
+                    message: `${entity.name} ${type} created`,
+                });
                 const difference = diff({}, entity.properties);
                 settlePromises(
                     constructSavePropertyRequests({
