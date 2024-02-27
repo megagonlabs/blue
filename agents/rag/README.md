@@ -2,11 +2,11 @@
 
 RAG Agent is a thin-wrapper around Llama-index that interfaces with blue. The core functionalities of the agent are:
 1. Reading a query (or text) from the (blue) stream initiated by USER agent
-2. Running the query over the llama-index pipeline
+2. Running the query over a llama-index pipeline
 3. Writing the output to the (blue) stream
 
 ## Setup
-1. Pull the dependencies
+Pull the dependencies
 
 ```
 cd agents/rag/
