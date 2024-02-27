@@ -91,9 +91,7 @@ class RAGAgent(Agent):
             if worker:
                 query = worker.get_data('stream')
                 if len(query):
-                    query = ' '.join(query)
-                    print('query....', query)
-                    response = properties['query_engine'].query(query)
+                    response = properties['query_engine'].query(' '.join(query))
                     logging.info(response)
                     # output to stream
                     return response
