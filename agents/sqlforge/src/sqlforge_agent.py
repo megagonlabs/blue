@@ -27,14 +27,15 @@ from tqdm import tqdm
 ###### Blue
 from agent import Agent
 from session import Session
+from rpc import RPCServer
 
 # set log level
 logging.getLogger().setLevel(logging.INFO)
 
 #######################
 class SQLForgeAgent(Agent):
-    def __init__(self, session=None, input_stream=None, processor=None, properties={}):
-        super().__init__("SQLFORGE", session=session, input_stream=input_stream, processor=processor, properties=properties)
+    def __init__(self, name="SQLFORGE", session=None, input_stream=None, processor=None, properties={}):
+        super().__init__(name, session=session, input_stream=input_stream, processor=processor, properties=properties)
 
 
     def default_processor(self, stream, id, label, data, dtype=None, tags=None, properties=None, worker=None):
@@ -80,31 +81,56 @@ if __name__ == "__main__":
     # set logging
     logging.getLogger().setLevel(args.loglevel.upper())
 
-
-    session = None
-    a = None
-
     # set properties
     properties = {}
     p = args.properties
     if p:
         # decode json
         properties = json.loads(p)
+    
+    if args.serve:
+        # launch agent with parameters, start session
+        def launch(*args, **kwargs):
+            logging.info("Launching UserAgent...")
+            logging.info(kwargs)
+            agent = SQLForgeAgent(*args, **kwargs)
+            session = agent.start_session()
+            logging.info("Started session: " + session.name)
+            logging.info("Launched.")
+            return session.name
 
-    if args.session:
-        # join an existing session
-        session = Session(args.session)
-        a = SQLForgeAgent(session=session, properties=properties)
-    elif args.input_stream:
-        # no session, work on a single input stream
-        a = SQLForgeAgent(input_stream=args.input_stream, properties=properties)
+        # launch agent with parameters, join session in keyword args (session=)
+        def join(*args, **kwargs):
+            logging.info("Launching UserAgent...")
+            logging.info(kwargs)
+            agent = SQLForgeAgent(*args, **kwargs)
+            logging.info("Joined session: " + kwargs['session'])
+            logging.info("Launched.")
+            return kwargs['session']
+
+        # run rpc server
+        rpc = RPCServer(args.name, properties=properties)
+        rpc.register(launch)
+        rpc.register(join)
+        rpc.run()
     else:
-        # create a new session
-        a = SQLForgeAgent(properties=properties)
-        a.start_session()
+        a = None
+        session = None
+        if args.session:
+            # join an existing session
+            session = Session(args.session)
+            a = SQLForgeAgent(name=args.name, session=session, properties=properties)
+        elif args.input_stream:
+            # no session, work on a single input stream
+            a = SQLForgeAgent(name=args.name, input_stream=args.input_stream, properties=properties)
+        else:
+            # create a new session
+            a = SQLForgeAgent(name=args.name, properties=properties)
+            session = a.start_session()
 
-    # wait for session
-    session.wait()
+        # wait for session
+        if session:
+            session.wait()
 
 
 

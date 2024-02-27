@@ -1,5 +1,5 @@
 #/bin/bash
-echo 'Building...'
+echo 'Building Platform API...'
 
 # cleanup libs
 rm -r lib
@@ -21,5 +21,5 @@ mkdir -p lib/data_registry; cp -r ../data_registry/src/* lib/data_registry/
 mkdir -p lib/utils; cp -r ../../utils/lib/* lib/utils/
 
 # build docker
-docker build -t blue-api:latest -f Dockerfile.api .
+docker build -t blue-platform-api:latest -f Dockerfile.api .
 echo 'Done...'

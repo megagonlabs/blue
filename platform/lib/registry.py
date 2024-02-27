@@ -58,8 +58,8 @@ class Registry():
         self.properties['type'] = "default"
         
         # db connectivity
-        self.properties['host'] = 'localhost'
-        self.properties['port'] = 6379
+        self.properties['db.host'] = 'localhost'
+        self.properties['db.port'] = 6379
 
         # embeddings
         self.properties['vector_dimensions'] = 4
@@ -78,8 +78,8 @@ class Registry():
 
     ###### database, data, index
     def _start_connection(self):
-        host = self.properties['host']
-        port = self.properties['port']
+        host = self.properties['db.host']
+        port = self.properties['db.port']
 
         self.connection = redis.Redis(host=host, port=port, decode_responses=True)
 

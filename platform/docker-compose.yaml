@@ -28,7 +28,7 @@ services:
       retries: 50
       start_period: 30s
     networks:
-      - default
+      - net
     environment:
       <<: *blue-common-env
     restart: always
@@ -38,7 +38,7 @@ services:
     ports:
       - "5432:5432"
     networks:
-      - default
+      - net
     volumes:
       - ${BLUE_INSTALL_DIR:-.}postgres-data:/var/lib/postgresql/data
     environment:
@@ -52,9 +52,23 @@ services:
       - "7687:7687"
       - "7474:7474"
     networks:
-      - default
+      - net
     volumes:
       - ${BLUE_INSTALL_DIR:-.}neo4j-data:/data
     environment:
       <<: *blue-common-env
     restart: always
+
+  api:
+    image: blue-platform-api
+    ports:
+      - "5050:5050"
+    networks:
+      - net
+    environment:
+      <<: *blue-common-env
+    restart: always
+
+networks:
+  net:
+      driver: bridge

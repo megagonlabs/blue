@@ -3,6 +3,7 @@ from curses import noecho
 import os
 import sys
 
+
 ###### 
 import time
 import argparse
@@ -29,6 +30,7 @@ from producer import Producer
 from consumer import Consumer
 from session import Session
 from worker import Worker
+from rpc import RPCServer
 
 class Agent():
     def __init__(self, name, session=None, input_stream=None, processor=None, properties={}):
@@ -64,8 +66,8 @@ class Agent():
         self.properties = {}
 
         # db connectivity
-        self.properties['host'] = 'localhost'
-        self.properties['port'] = 6379
+        self.properties['db.host'] = 'localhost'
+        self.properties['db.port'] = 6379
 
         # aggregator (have a single producer for all workers)
         self.properties['aggregator'] = False
@@ -92,9 +94,11 @@ class Agent():
 
     ###### database, data
     def _start_connection(self):
-        host = self.properties['host']
-        port = self.properties['port']
+        host = self.properties['db.host']
+        port = self.properties['db.port']
 
+        # db connection
+        logging.info("Starting connection to: " + host + ":" + str(port))
         self.connection = redis.Redis(host=host, port=port, decode_responses=True)
 
     ###### worker
@@ -125,7 +129,7 @@ class Agent():
     ###### sesion
     def start_session(self):
         # create a new session
-        session = Session()
+        session = Session(properties=self.properties)
         
         # set agent's session, start listening...
         self.set_session(session)
@@ -315,16 +319,16 @@ class Agent():
 #######################
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--name', type=str, default='processor')
+    parser.add_argument('--name', type=str, default='agent')
     parser.add_argument('--input_stream', type=str, default='input')
     parser.add_argument('--properties', type=str)
     parser.add_argument('--loglevel', default="INFO", type=str)
+    parser.add_argument('--serve', default=False, action=argparse.BooleanOptionalAction)
  
     args = parser.parse_args()
    
     # set logging
     logging.getLogger().setLevel(args.loglevel.upper())
-
 
     # set properties
     properties = {}
@@ -333,25 +337,50 @@ if __name__ == "__main__":
         # decode json
         properties = json.loads(p)
     
+    if args.serve:
+        # launch agent with parameters, start session
+        def launch(*args, **kwargs):
+            logging.info("Launching UserAgent...")
+            logging.info(kwargs)
+            agent = Agent(*args, **kwargs)
+            session = agent.start_session()
+            logging.info("Started session: " + session.name)
+            logging.info("Launched.")
+            return session.name
 
-    # sample func to process data from 
-    # return a value other than None
-    # to create a stream 
-    def processor(stream, id, label, data, dtype=None):
-        logging.into(stream)
-        logging.info(id)
-        logging.info(label)
-        logging.info(data)
-       
-        return None
+        # launch agent with parameters, join session in keyword args (session=)
+        def join(*args, **kwargs):
+            logging.info("Launching UserAgent...")
+            logging.info(kwargs)
+            agent = Agent(*args, **kwargs)
+            logging.info("Joined session: " + kwargs['session'])
+            logging.info("Launched.")
+            return kwargs['session']
+
+        # run rpc server
+        rpc = RPCServer(args.name, properties=properties)
+        rpc.register(launch)
+        rpc.register(join)
+        rpc.run()
+    else:
+        # sample func to process data from 
+        # return a value other than None
+        # to create a stream 
+        def processor(stream, id, label, data, dtype=None):
+            logging.into(stream)
+            logging.info(id)
+            logging.info(label)
+            logging.info(data)
+        
+            return None
 
 
-    # create an agent and then create a session, and add agents
-    a = Agent(args.name, processor=processor, session=None, properties=properties)
-    s = a.start_session()
+        # create an agent and then create a session, and add agents
+        a = Agent(args.name, processor=processor, session=None, properties=properties)
+        s = a.start_session()
 
-    # optionally you can create an agent in a session directly
-    b = Agent(args.name, processor=processor, session=s, properties=properties)
+        # optionally you can create an agent in a session directly
+        b = Agent(args.name, processor=processor, session=s, properties=properties)
 
   
    

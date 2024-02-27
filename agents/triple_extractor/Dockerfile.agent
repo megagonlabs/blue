@@ -13,8 +13,4 @@ ADD /lib /app/lib/
 # Copy service files
 ADD /src /app/
 
-# Environment variables
-ENV session=
-ENV properties=
-
-CMD ["sh", "-c", "python triple_extractor_agent.py --properties \"${properties}\" --session ${session}"]
+ENTRYPOINT ["python", "triple_extractor_agent.py"]

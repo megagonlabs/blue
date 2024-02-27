@@ -15,10 +15,4 @@ ADD /lib /app/lib/
 # Copy service files
 ADD /src /app/
 
-# Environment variables
-ENV profile=
-ENV title=
-ENV next_title=
-ENV session=
-
-CMD ["sh", "-c", "python knowledge_grounding_agent.py --profile \"${profile}\" --title \"${title}\" --next_title \"${next_title}\" --session ${session}"]
+ENTRYPOINT ["python", "knowledge_grounding_agent.py"]

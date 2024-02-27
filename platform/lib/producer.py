@@ -43,7 +43,7 @@ class Producer():
         if suffix:
             self.stream += "-" + str(suffix)
 
-        self._initialize()
+
 
     ###### initialization
     def _initialize(self, properties=None):
@@ -52,8 +52,8 @@ class Producer():
 
     def _initialize_properties(self):
         self.properties = {}
-        self.properties['host'] = 'localhost'
-        self.properties['port'] = 6379
+        self.properties['db.host'] = 'localhost'
+        self.properties['db.port'] = 6379
 
     def _update_properties(self, properties=None):
         if properties is None:
@@ -62,6 +62,7 @@ class Producer():
         # override
         for p in properties:
             self.properties[p] = properties[p]
+
 
     ####### open connection, create group, start threads
     def start(self):
@@ -73,9 +74,10 @@ class Producer():
 
 
     def _start_connection(self):
-        host = self.properties['host']
-        port = self.properties['port']
+        host = self.properties['db.host']
+        port = self.properties['db.port']
 
+        logging.info("PRODUCE START....." + host)
         self.connection = redis.Redis(host=host, port=port, decode_responses=True)
 
     def _start_stream(self):

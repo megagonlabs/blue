@@ -4,4 +4,4 @@ docker compose -f $BLUE_INSTALL_DIR/agents/openai/docker-compose.yaml -p blue_se
 # GPT Planer Agent
 export GPT_PLANNER_PROPERTIES='{}'
 echo "Bring up GPT PLANNER OPENAI agent using the following properties: $GPT_PLANNER_PROPERTIES"
-docker run -e session=$1 -e properties="$GPT_PLANNER_PROPERTIES" -d --network="host" --name blue_agent_gpt_planner blue-agent-gpt_planner:latest
+docker run -d --network="host" --name blue_agent_gpt_planner blue-agent-gpt_planner:latest --session $1 --properties "$GPT_PLANNER_PROPERTIES"

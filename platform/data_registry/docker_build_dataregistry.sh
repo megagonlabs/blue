@@ -1,5 +1,5 @@
 #/bin/bash
-echo 'Building...'
+echo 'Building DataRegistry...'
 
 # cleanup libs
 rm -r lib

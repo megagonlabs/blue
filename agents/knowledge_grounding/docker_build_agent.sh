@@ -1,5 +1,5 @@
 #/bin/bash
-echo 'Building...'
+echo 'Building Knowledge Grounding Agent ...'
 
 # cleanup libs
 rm -r lib

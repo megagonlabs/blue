@@ -3,6 +3,10 @@ FROM python:3.9
 # Set workdir
 WORKDIR /app
 
+# Install ping
+RUN apt-get update
+RUN apt-get install iputils-ping -y
+
 # Update pip
 RUN pip install --upgrade pip
 
@@ -21,4 +25,4 @@ ENV parameters '--list'
 ENV host '0.0.0.0'
 ENV port '5050'
 
-CMD ["sh", "-c", "uvicorn server:app --host ${host}--port ${port}"]
+CMD ["sh", "-c", "uvicorn server:app --host ${host} --port ${port}"]

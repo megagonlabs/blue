@@ -1,5 +1,5 @@
 #/bin/bash
-echo 'Building...'
+echo 'Building SQLForge Agent...'
 
 # cleanup libs
 rm -r lib

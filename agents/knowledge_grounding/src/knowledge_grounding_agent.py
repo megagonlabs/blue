@@ -10,40 +10,42 @@ sys.path.append('./lib/platform/')
 sys.path.append('./lib/utils/')
 sys.path.append('./lib/data_registry/')
 
-import argparse
-import csv
-import itertools
-import json
-import logging
-import random
-###### Parsers, Formats, Utils
-import re
 ###### 
 import time
+import argparse
+import logging
 import uuid
+import random
 
-import pandas
-###### Blue
-from agent import Agent
-from data_registry import DataRegistry
+###### Parsers, Formats, Utils
+import re
+import csv
+import json
+from utils import json_utils
 
-from neo4j import GraphDatabase
-from session import Session
+import itertools
 from tqdm import tqdm
 
-# import openai
+###### Machine learning, Data Science
+import pandas
+
+###### Databases
+from neo4j import GraphDatabase
 
 
-
-
+###### Blue
+from agent import Agent
+from session import Session
+from data_registry import DataRegistry
+from rpc import RPCServer
 
 # set log level
 logging.getLogger().setLevel(logging.INFO)
 
 #######################
 class KnowledgGroundingAgent(Agent):
-    def __init__(self, session=None, input_stream=None, processor=None, properties={}):
-        super().__init__("KNOWLEDGE", session=session, input_stream=input_stream, processor=processor, properties=properties)
+    def __init__(self, name="KNOWLEDGE",session=None, input_stream=None, processor=None, properties={}):
+        super().__init__(name, session=session, input_stream=input_stream, processor=processor, properties=properties)
 
     def _initialize_properties(self):
         super()._initialize_properties()
@@ -257,17 +259,22 @@ class KnowledgGroundingAgent(Agent):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
+    parser.add_argument('--name', default="KNOWLEDGE", type=str)
     parser.add_argument('--session', type=str)
+    parser.add_argument('--input_stream', type=str)
+    parser.add_argument('--properties', type=str)
+    parser.add_argument('--loglevel', default="INFO", type=str)
+    parser.add_argument('--serve', default=False, action=argparse.BooleanOptionalAction)
+
+    #TODO: temporary, remove
     parser.add_argument('--profile', type=str)
     parser.add_argument('--title', type=str)
     parser.add_argument('--next_title', type=str)
-    parser.add_argument('--input_stream', type=str)
-    parser.add_argument('--properties', type=str)
- 
+    
     args = parser.parse_args()
-
-    session = None
-    a = None
+    
+    # set logging
+    logging.getLogger().setLevel(args.loglevel.upper())
 
     # set properties
     properties = {}
@@ -275,30 +282,59 @@ if __name__ == "__main__":
     if p:
         # decode json
         properties = json.loads(p)
-
-    if args.profile:
-        properties['profile'] = args.profile
     
-    if args.title:
-        properties['title'] = args.title
+    if args.serve:
+        # launch agent with parameters, start session
+        def launch(*args, **kwargs):
+            logging.info("Launching UserAgent...")
+            logging.info(kwargs)
+            agent = KnowledgGroundingAgent(*args, **kwargs)
+            session = agent.start_session()
+            logging.info("Started session: " + session.name)
+            logging.info("Launched.")
+            return session.name
 
-    if args.next_title:
-        properties['next_title'] = args.next_title
+        # launch agent with parameters, join session in keyword args (session=)
+        def join(*args, **kwargs):
+            logging.info("Launching UserAgent...")
+            logging.info(kwargs)
+            agent = KnowledgGroundingAgent(*args, **kwargs)
+            logging.info("Joined session: " + kwargs['session'])
+            logging.info("Launched.")
+            return kwargs['session']
 
-    if args.session:
-        # join an existing session
-        session = Session(args.session)
-        a = KnowledgGroundingAgent(session=session, properties=properties)
-    elif args.input_stream:
-        # no session, work on a single input stream
-        a = KnowledgGroundingAgent(input_stream=args.input_stream, properties=properties)
+        # run rpc server
+        rpc = RPCServer(args.name, properties=properties)
+        rpc.register(launch)
+        rpc.register(join)
+        rpc.run()
     else:
-        # create a new session
-        a = KnowledgGroundingAgent(properties=properties)
-        session = a.start_session()
 
-    # wait for session
-    session.wait()
+        # TODO, temporary, remove
+        if args.profile:
+            properties['profile'] = args.profile
+        
+        if args.title:
+            properties['title'] = args.title
+
+        if args.next_title:
+            properties['next_title'] = args.next_title
+
+        if args.session:
+            # join an existing session
+            session = Session(args.session)
+            a = KnowledgGroundingAgent(session=session, properties=properties)
+        elif args.input_stream:
+            # no session, work on a single input stream
+            a = KnowledgGroundingAgent(input_stream=args.input_stream, properties=properties)
+        else:
+            # create a new session
+            a = KnowledgGroundingAgent(properties=properties)
+            session = a.start_session()
+
+        # wait for session
+        if session:
+            session.wait()
 
 
 

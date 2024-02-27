@@ -1,4 +1,4 @@
-docker rm blue_agent_simple_graph
-# Reommender Agent
-echo "Bring up RECOMMENDER agent:"
-docker run -e session=$1 -d --network="host" --name blue_agent_simple_graph blue-agent-simple_graph:latest
+docker rm blue_agent_title_recommender
+# TitleReommender Agent
+echo "Bring up TITLERECOMMENDER agent:"
+docker run  -d --network="host" --name blue_agent_title_recommender blue-agent-title_recommender:latest --session $1

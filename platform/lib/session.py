@@ -1,6 +1,7 @@
 ###### OS / Systems
 import os
 import sys
+from xml.sax.handler import property_dom_node
 
 ###### Add lib path
 sys.path.append('./lib/')
@@ -57,11 +58,11 @@ class Session():
 
     def _initialize_properties(self):
 
-        if 'host' not in self.properties:
-            self.properties['host'] = 'localhost'
+        if 'db.host' not in self.properties:
+            self.properties['db.host'] = 'localhost'
 
-        if 'port' not in self.properties:
-            self.properties['port'] = 6379
+        if 'db.port' not in self.properties:
+            self.properties['db.port'] = 6379
 
     def get_stream(self):
         return self.producer.get_stream()
@@ -205,15 +206,15 @@ class Session():
         logging.info('Started session {name}'.format(name=self.name))
 
     def _start_connection(self):
-        host = self.properties['host']
-        port = self.properties['port']
+        host = self.properties['db.host']
+        port = self.properties['db.port']
 
         self.connection = redis.Redis(host=host, port=port, decode_responses=True)
 
     def _start_producer(self):
         # start, if not started
         if self.producer == None:
-            producer = Producer("SESSION", sid=self.name)
+            producer = Producer("SESSION", sid=self.name, properties=self.properties)
             producer.start()
             self.producer = producer
 

@@ -7,6 +7,7 @@ sys.path.append('./lib/')
 sys.path.append('./lib/agent/')
 sys.path.append('./lib/platform/')
 sys.path.append('./lib/utils/')
+
 ###### 
 import time
 import argparse
@@ -33,6 +34,7 @@ from websockets.sync.client import connect
 from agent import Agent
 from api_agent import APIAgent
 from session import Session
+from rpc import RPCServer
 
 ###### Agent Specific
 
@@ -41,8 +43,8 @@ from session import Session
 logging.getLogger().setLevel(logging.INFO)
 
 class NEO4JAgent(APIAgent):
-    def __init__(self, session=None, input_stream=None, processor=None, properties={}):
-        super().__init__("NEO4J", session=session, input_stream=input_stream, processor=processor, properties=properties)
+    def __init__(self, name="NEO4J", session=None, input_stream=None, processor=None, properties={}):
+        super().__init__(name, session=session, input_stream=input_stream, processor=processor, properties=properties)
 
     def _initialize_properties(self):
         super()._initialize_properties()
@@ -77,39 +79,65 @@ class NEO4JAgent(APIAgent):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
+    parser.add_argument('--name', default="NEO4J", type=str)
     parser.add_argument('--session', type=str)
     parser.add_argument('--input_stream', type=str)
     parser.add_argument('--properties', type=str)
     parser.add_argument('--loglevel', default="INFO", type=str)
+    parser.add_argument('--serve', default=False, action=argparse.BooleanOptionalAction)
  
     args = parser.parse_args()
 
      # set logging
     logging.getLogger().setLevel(args.loglevel.upper())
 
-    session = None
-    a = None
-
     # set properties
     properties = {}
     p = args.properties
-
-
     if p:
         # decode json
         properties = json.loads(p)
     
-    if args.session:
-        # join an existing session
-        session = Session(args.session)
-        a = NEO4JAgent(session=session, properties=properties)
-    elif args.input_stream:
-        # no session, work on a single input stream
-        a = NEO4JAgent(input_stream=args.input_stream, properties=properties)
-    else:
-        # create a new session
-        a = NEO4JAgent(properties=properties)
-        a.start_session()
+    if args.serve:
+        # launch agent with parameters, start session
+        def launch(*args, **kwargs):
+            logging.info("Launching UserAgent...")
+            logging.info(kwargs)
+            agent = NEO4JAgent(*args, **kwargs)
+            session = agent.start_session()
+            logging.info("Started session: " + session.name)
+            logging.info("Launched.")
+            return session.name
 
-    # wait for session
-    session.wait()
+        # launch agent with parameters, join session in keyword args (session=)
+        def join(*args, **kwargs):
+            logging.info("Launching UserAgent...")
+            logging.info(kwargs)
+            agent = NEO4JAgent(*args, **kwargs)
+            logging.info("Joined session: " + kwargs['session'])
+            logging.info("Launched.")
+            return kwargs['session']
+
+        # run rpc server
+        rpc = RPCServer(args.name, properties=properties)
+        rpc.register(launch)
+        rpc.register(join)
+        rpc.run()
+    else:
+        a = None
+        session = None
+        if args.session:
+            # join an existing session
+            session = Session(args.session)
+            a = NEO4JAgent(session=session, properties=properties)
+        elif args.input_stream:
+            # no session, work on a single input stream
+            a = NEO4JAgent(input_stream=args.input_stream, properties=properties)
+        else:
+            # create a new session
+            a = NEO4JAgent(properties=properties)
+            session = a.start_session()
+
+        # wait for session
+        if session:
+            session.wait()

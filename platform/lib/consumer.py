@@ -60,8 +60,8 @@ class Consumer():
     def _initialize_properties(self):
         self.properties = {}
         self.properties['num_threads'] = 1
-        self.properties['host'] = 'localhost'
-        self.properties['port'] = 6379
+        self.properties['db.host'] = 'localhost'
+        self.properties['db.port'] = 6379
 
     def _update_properties(self, properties=None):
         if properties is None:
@@ -94,8 +94,8 @@ class Consumer():
             t.join()
 
     def _start_connection(self):
-        host = self.properties['host']
-        port = self.properties['port']
+        host = self.properties['db.host']
+        port = self.properties['db.port']
 
         self.connection = redis.Redis(host=host, port=port, decode_responses=True)
 

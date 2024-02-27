@@ -1,5 +1,5 @@
 #/bin/bash
-echo 'Building...'
+echo 'Building Recorder Agent...'
 
 # cleanup libs
 rm -r lib

@@ -5,6 +5,7 @@ import sys
 ###### Add lib path
 sys.path.append('./lib/')
 sys.path.append('./lib/agent/')
+sys.path.append('./lib/apicaller/')
 sys.path.append('./lib/openai/')
 sys.path.append('./lib/platform/')
 sys.path.append('./lib/utils/')
@@ -36,6 +37,7 @@ from agent import Agent
 from api_agent import APIAgent
 from session import Session
 from openai_agent import OpenAIAgent
+from rpc import RPCServer
 
 # set log level
 logging.getLogger().setLevel(logging.INFO)
@@ -92,15 +94,12 @@ if __name__ == "__main__":
     parser.add_argument('--input_stream', type=str)
     parser.add_argument('--properties', type=str)
     parser.add_argument('--loglevel', default="INFO", type=str)
+    parser.add_argument('--serve', default=False, action=argparse.BooleanOptionalAction)
  
     args = parser.parse_args()
    
     # set logging
     logging.getLogger().setLevel(args.loglevel.upper())
-
-
-    session = None
-    a = None
 
     # set properties
     properties = {}
@@ -109,17 +108,46 @@ if __name__ == "__main__":
         # decode json
         properties = json.loads(p)
     
-    if args.session:
-        # join an existing session
-        session = Session(args.session)
-        a = TripleExtractorAgent(name=args.name, session=session, properties=properties)
-    elif args.input_stream:
-        # no session, work on a single input stream
-        a = TripleExtractorAgent(name=args.name, input_stream=args.input_stream, properties=properties)
-    else:
-        # create a new session
-        a = TripleExtractorAgent(name=args.name, properties=properties)
-        a.start_session()
+    if args.serve:
+        # launch agent with parameters, start session
+        def launch(*args, **kwargs):
+            logging.info("Launching UserAgent...")
+            logging.info(kwargs)
+            agent = TripleExtractorAgent(*args, **kwargs)
+            session = agent.start_session()
+            logging.info("Started session: " + session.name)
+            logging.info("Launched.")
+            return session.name
 
-    # wait for session
-    session.wait()
+        # launch agent with parameters, join session in keyword args (session=)
+        def join(*args, **kwargs):
+            logging.info("Launching UserAgent...")
+            logging.info(kwargs)
+            agent = TripleExtractorAgent(*args, **kwargs)
+            logging.info("Joined session: " + kwargs['session'])
+            logging.info("Launched.")
+            return kwargs['session']
+
+        # run rpc server
+        rpc = RPCServer(args.name, properties=properties)
+        rpc.register(launch)
+        rpc.register(join)
+        rpc.run()
+    else:
+        a = None
+        session = None
+        if args.session:
+            # join an existing session
+            session = Session(args.session)
+            a = TripleExtractorAgent(name=args.name, session=session, properties=properties)
+        elif args.input_stream:
+            # no session, work on a single input stream
+            a = TripleExtractorAgent(name=args.name, input_stream=args.input_stream, properties=properties)
+        else:
+            # create a new session
+            a = TripleExtractorAgent(name=args.name, properties=properties)
+            session = a.start_session()
+
+        # wait for session
+        if session:
+            session.wait()

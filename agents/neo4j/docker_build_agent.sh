@@ -1,5 +1,5 @@
 #/bin/bash
-echo 'Building...'
+echo 'Building Neo4J Agent...'
 
 # cleanup libs
 rm -r lib

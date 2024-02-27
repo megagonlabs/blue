@@ -29,6 +29,7 @@ from tqdm import tqdm
 ###### Blue
 from agent import Agent
 from session import Session
+from rpc import RPCServer
 
 # set log level
 logging.getLogger().setLevel(logging.INFO)
@@ -49,8 +50,8 @@ logging.getLogger().setLevel(logging.INFO)
 # and lastly agent d will take results from b and c to produce it's results
 #
 class PlannerAgent(Agent):
-    def __init__(self, session=None, input_stream=None, processor=None, properties={}):
-        super().__init__("PLANNER", session=session, input_stream=input_stream, processor=processor, properties=properties)
+    def __init__(self, name="PLANNER", session=None, input_stream=None, processor=None, properties={}):
+        super().__init__(name, session=session, input_stream=input_stream, processor=processor, properties=properties)
 
         self.initialize_plan()
 
@@ -304,61 +305,68 @@ class AgentB(Agent):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
+    parser.add_argument('--name', default="PLANNER", type=str)
     parser.add_argument('--session', type=str)
     parser.add_argument('--input_stream', type=str)
     parser.add_argument('--properties', type=str)
     parser.add_argument('--loglevel', default="INFO", type=str)
+    parser.add_argument('--serve', default=False, action=argparse.BooleanOptionalAction)
  
     args = parser.parse_args()
    
     # set logging
     logging.getLogger().setLevel(args.loglevel.upper())
 
-
-    session = None
-    a = None
-
     # set properties
     properties = {}
-    # sample plan
-    plan = [
-        ["USER", "A"],
-        ["A", "B"]
-    ]
-    
     p = args.properties
-
     if p:
         # decode json
         properties = json.loads(p)
+    
+    if args.serve:
+        # launch agent with parameters, start session
+        def launch(*args, **kwargs):
+            logging.info("Launching UserAgent...")
+            logging.info(kwargs)
+            agent = PlannerAgent(*args, **kwargs)
+            session = agent.start_session()
+            logging.info("Started session: " + session.name)
+            logging.info("Launched.")
+            return session.name
 
-    if 'plan' not in properties:
-        properties['plan'] = plan
+        # launch agent with parameters, join session in keyword args (session=)
+        def join(*args, **kwargs):
+            logging.info("Launching UserAgent...")
+            logging.info(kwargs)
+            agent = PlannerAgent(*args, **kwargs)
+            logging.info("Joined session: " + kwargs['session'])
+            logging.info("Launched.")
+            return kwargs['session']
 
-    if args.session:
-        # join an existing session
-        session = Session(args.session)
-        pa = PlannerAgent(session=session, properties=properties)
-
-        # only listen to planner
-        agent_properties = {}
-        listeners = {}
-        agent_properties['listens'] = listeners
-        listeners['includes'] = ['.*PLANNER.*']
-        listeners['excludes'] = []
-
-        a = AgentA(session=session, properties=agent_properties)
-        b = AgentB(session=session, properties=agent_properties)
-    elif args.input_stream:
-        # no session, work on a single input stream
-        pa = PlannerAgent(input_stream=args.input_stream, properties=properties)
+        # run rpc server
+        rpc = RPCServer(args.name, properties=properties)
+        rpc.register(launch)
+        rpc.register(join)
+        rpc.run()
     else:
-        # create a new session
-        pa = PlannerAgent(properties=properties)
-        pa.start_session()
+        a = None
+        session = None
+        if args.session:
+            # join an existing session
+            session = Session(args.session)
+            a = PlannerAgent(name=args.name, session=session, properties=properties)
+        elif args.input_stream:
+            # no session, work on a single input stream
+            a = PlannerAgent(name=args.name, input_stream=args.input_stream, properties=properties)
+        else:
+            # create a new session
+            a = PlannerAgent(name=args.name, properties=properties)
+            session = a.start_session()
 
-    # wait for session
-    session.wait()
+        # wait for session
+        if session:
+            session.wait()
 
 
 

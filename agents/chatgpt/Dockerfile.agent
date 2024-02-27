@@ -10,11 +10,7 @@ RUN pip install -r requirements.txt
 # Copy libs 
 ADD /lib /app/lib/
 
-# Copy service files
+# Copy source files
 ADD /src /app/
 
-# Environment variables
-ENV session=
-ENV properties=
-
-CMD ["sh", "-c", "python chatgpt_agent.py --properties \"${properties}\" --session ${session}"]
+ENTRYPOINT ["python", "chatgpt_agent.py"]
