@@ -21,4 +21,5 @@ mkdir -p lib/utils; cp -r ../../utils/lib/* lib/utils/
 
 # build docker
 docker build -t blue-agent-triple_extractor:latest -f Dockerfile.agent .
+
 echo 'Done...'

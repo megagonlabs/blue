@@ -1,6 +1,8 @@
 #/bin/bash
-echo 'Building...'
+echo 'Building API Agent Service...'
 
-# build docker
-docker build -t blue-service-websocket_counter:latest -f Dockerfile.service .
+# tag and publish
+docker tag blue-service-apicaller:latest megagonlabs/blue-service-apicaller:latest
+docker push megagonlabs/blue-service-apiicaller:latest
+
 echo 'Done...'

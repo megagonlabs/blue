@@ -18,4 +18,5 @@ mkdir -p lib/data_registry; cp -r ../../platform/data_registry/src/* lib/data_re
 
 # build docker
 docker build -t blue-agent-knowledge_grounding:latest -f Dockerfile.agent .
+
 echo 'Done...'

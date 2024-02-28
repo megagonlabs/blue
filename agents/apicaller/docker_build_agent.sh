@@ -1,5 +1,5 @@
 #/bin/bash
-echo 'Building...'
+echo 'Building API Agent...'
 
 # cleanup libs
 rm -r lib
@@ -14,5 +14,6 @@ mkdir -p lib/platform; cp -r ../../platform/lib/* lib/platform/
 mkdir -p lib/utils; cp -r ../../utils/lib/* lib/utils/
 
 # build docker
-docker build -t blue-agent-api:latest -f Dockerfile.agent .
+docker build -t blue-agent-apicaller:latest -f Dockerfile.agent .
+
 echo 'Done...'

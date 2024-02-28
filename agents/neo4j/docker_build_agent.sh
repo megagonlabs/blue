@@ -15,4 +15,5 @@ mkdir -p lib/utils; cp -r ../../utils/lib/* lib/utils/
 
 # build docker
 docker build -t blue-agent-neo4j:latest -f Dockerfile.agent .
+
 echo 'Done...'
