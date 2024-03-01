@@ -1,0 +1,5 @@
+src/designs/
+src/node_modules/
+src/out/
+src/.env.development
+src/.next/

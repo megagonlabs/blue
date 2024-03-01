@@ -35,7 +35,8 @@
         "react-dom": "^18.2.0",
         "react-grid-system": "^8.1.9",
         "react-virtualized-auto-sizer": "^1.0.20",
-        "react-window": "^1.8.10"
+        "react-window": "^1.8.10",
+        "sharp": "^0.33.2"
     },
     "devDependencies": {
         "eslint": "^8.55.0",
