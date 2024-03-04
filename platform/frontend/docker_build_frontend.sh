@@ -9,6 +9,6 @@ if [ -z "$fa_token" ]
 fi
 
 # build docker
-docker build . --tag blue-platform-frontend:latest -f Dockerfile.frontend --build-arg fa_token=$fa_token
+docker build . --t blue-platform-frontend:latest -f Dockerfile.frontend --build-arg fa_token=$fa_token
 
 echo 'Done...'
