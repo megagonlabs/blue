@@ -75,7 +75,7 @@ echo "IMAGE = ${IMAGE}"
 
 if [ $BLUE_DEPLOY_TARGET == swarm ]
 then
-   docker service create --hostname blue_agent_${REGISTRY}_${AGENT} --network blue_net_${PLATFORM} --constraint node.labels.target==agent ${IMAGE} --serve ${POSITIONAL_ARGS}
+   docker service create --hostname blue_agent_${REGISTRY}_${AGENT} --network blue_platform_${BLUE_DEPLOY_PLATFORM}_network_overlay --constraint node.labels.target==agent ${IMAGE} --serve ${POSITIONAL_ARGS}
 elif [ $BLUE_DEPLOY_TARGET == localhost ]
 then
    docker run -d --network="host" --name blue_agent_${AGENT} ${IMAGE} --serve ${POSITIONAL_ARGS}

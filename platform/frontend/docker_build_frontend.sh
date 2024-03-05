@@ -1,7 +1,7 @@
 #/bin/bash
 echo 'Building Platform Frontend...'
-
-fa_token=$1
+echo 'Make sure to store fa.token in $BLUE_INSTALL_DIR/secrets/fa.token'
+fa_token=$(cat $BLUE_INSTALL_DIR/secrets/fa.token)
 # if no argument supplied
 if [ -z "$fa_token" ]
     then
@@ -9,6 +9,6 @@ if [ -z "$fa_token" ]
 fi
 
 # build docker
-docker build . --t blue-platform-frontend:latest -f Dockerfile.frontend --build-arg fa_token=$fa_token
+docker build -t blue-platform-frontend:latest -f Dockerfile.frontend --build-arg fa_token=$fa_token .
 
 echo 'Done...'

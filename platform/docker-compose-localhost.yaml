@@ -1,0 +1,58 @@
+---
+version: '3.8'
+x-blue-common:
+  &blue-common
+  # build: .
+  image: python:3.9.0
+  environment:
+    &blue-common-env
+    BLUE__BACKEND__URL: redis://:@redis:6379/0
+  volumes:
+    - ${BLUE_INSTALL_DIR:-.}/data:/opt/blue/data
+  user: "${BLUE_USER:-50000}:0"
+  depends_on:
+    &blue-common-depends-on
+    redis:
+      condition: service_healthy
+
+services:
+  redis:
+    image: redis/redis-stack:latest
+    ports:
+      - "8000:8000"
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 30s
+      retries: 50
+      start_period: 30s
+    networks:
+      - blue_net_default
+    environment:
+      <<: *blue-common-env
+    restart: always
+
+  api:
+    image: blue-platform-api
+    ports:
+      - "5050:5050"
+    networks:
+      - blue_net_default
+    environment:
+      <<: *blue-common-env
+    restart: always
+
+  frontend:
+    image: blue-platform-frontend
+    ports:
+      - "3000:3000"
+    networks:
+      - blue_net_default
+    environment:
+      <<: *blue-common-env
+    restart: always
+
+networks:
+  blue_net_default:
+      driver: bridge

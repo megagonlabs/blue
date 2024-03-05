@@ -1,0 +1,76 @@
+---
+version: '3.8'
+x-blue-common:
+  &blue-common
+  # build: .
+  image: python:3.9.0
+  environment:
+    &blue-common-env
+    BLUE__BACKEND__URL: redis://:@redis:6379/0
+  volumes:
+    - ${BLUE_INSTALL_DIR:-.}/data:/opt/blue/data
+  user: "${BLUE_USER:-50000}:0"
+  depends_on:
+    &blue-common-depends-on
+    redis:
+      condition: service_healthy
+
+services:
+  redis:
+    image: redis/redis-stack:latest
+    hostname: blue_db_redis
+    deploy:
+      placement:
+        constraints:
+          - node.labels.target == db
+    ports:
+      - "8000:8000"
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 30s
+      retries: 50
+      start_period: 30s
+    networks:
+      - network_overlay
+    environment:
+      <<: *blue-common-env
+    restart: always
+
+  api:
+    image: megagonlabs/blue-platform-api
+    hostname: blue_platform_api
+    deploy:
+      placement:
+        constraints:
+          - node.labels.target == platform
+    ports:
+      - "5050:5050"
+    networks:
+      - network_overlay
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      <<: *blue-common-env
+    restart: always
+
+  frontend:
+    image: megagonlabs/blue-platform-frontend
+    hostname: blue_platform_frontend
+    deploy:
+      placement:
+        constraints:
+          - node.labels.target == platform
+    ports:
+      - "3000:3000"
+    networks:
+      - network_overlay
+    environment:
+      <<: *blue-common-env
+    restart: always
+
+networks:
+  network_overlay:
+      driver: overlay
+      attachable: true
