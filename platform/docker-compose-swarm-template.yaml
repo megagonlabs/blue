@@ -6,7 +6,7 @@ x-blue-common:
   image: python:3.9.0
   environment:
     &blue-common-env
-    BLUE__PROPERTIES: '{"db.host":"blue_db_redis"}'
+    BLUE__PROPERTIES: '{"platform.name":"${BLUE_DEPLOY_PLATFORM}", "platform.deploy.target":"${BLUE_DEPLOY_TARGET}", "db.host":"blue_db_redis"}'
   depends_on:
     &blue-common-depends-on
     redis:
