@@ -46,7 +46,7 @@ class Session():
 
         self._initialize()
 
-        self.agents = []
+        self.agents = {}
 
         self._start()
 
@@ -70,11 +70,48 @@ class Session():
     ###### AGENTS, NOTIFICATION
     def add_agent(self, agent):
         self._init_agent_data_namespace(agent)
-        self.agents.append(agent)
+        self.agents[agent.name] = agent
 
+        # add join message 
+        data = {}
+        data['agent'] = agent.name
+        label = "JOIN"
+        self.producer.write(data=data, dtype="json", label=label, eos=False)
+
+    def remove_agent(self, agent):
+        ### TODO: Purge agent memory, probably not..
+
+        if agent.name in self.agents:
+            del self.agents[agent.name]
+
+        # add leave message 
+        data = {}
+        data['agent'] = agent.name
+        label = "LEAVE"
+        self.producer.write(data=data, dtype="json", label=label, eos=False)
+
+    def list_agents(self):
+        ## read stream in producer, scan join/leave events
+        agents = set()
+
+        m = self.producer.read_all()
+        for message in m:
+            label = message['label']
+            if label == 'JOIN':
+                data = message['data']
+                data = json.loads(data)
+                agent = data['agent']
+                agents.add(agent)
+            if label == 'LEAVE':
+                data = message['data']
+                data = json.loads(data)
+                agent = data['agent']
+                agents.remove(agent)
+        return list(agents)
+            
     def notify(self, worker_stream, tags):
-        # start producer on first write
-        self._start_producer()
+        # # start producer on first write
+        # self._start_producer()
 
         # create data namespace to share data on stream, success = True, if not existing
         success = self._init_stream_data_namespace(worker_stream)
@@ -90,7 +127,7 @@ class Session():
 
 
     
-    ###### DATA RELATED 
+    ###### MEMORY RELATED 
     def __get_json_value(self, value):
         if value is None:
             return None
@@ -105,67 +142,67 @@ class Session():
     ## session data
     def _init_data_namespace(self):
         # create namespaces for any session common data, and stream-specific data
-        self.connection.json().set(self._get_data_namespace(), '$', {'common':{},'stream':{},'agent':{}}, nx=True)
+        self.connection.json().set(self._get_data_namespace(), '$', {'memory':{'common':{},'stream':{},'agent':{}}}, nx=True)
 
     def _get_data_namespace(self):
-        return self.name+':DATA'
+        return self.name + ":DATA"
 
     def set_data(self, key, value):
-        self.connection.json().set(self._get_data_namespace(), '$.common.' + key, value)
+        self.connection.json().set(self._get_data_namespace(), '$.memory.common.' + key, value)
 
     def get_data(self, key):
-        value =  self.connection.json().get(self._get_data_namespace(), Path('$.common.' + key))
+        value =  self.connection.json().get(self._get_data_namespace(), Path('$.memory.common.' + key))
         return self.__get_json_value(value)
 
     def append_data(self, key, value):
-        self.connection.json().arrappend(self._get_data_namespace(), '$.common.' + key, value)
+        self.connection.json().arrappend(self._get_data_namespace(), '$.memory.common.' + key, value)
 
     def get_data_len(self, key):
-        return self.connection.json().arrlen(self._get_data_namespace(), '$.common.' + key)
+        return self.connection.json().arrlen(self._get_data_namespace(), '$.memory.common.' + key)
 
 
     ## session agent data (among agent workers)
     def _init_agent_data_namespace(self, agent):
         # create namespaces for stream-specific data
-        return self.connection.json().set(self._get_data_namespace(), '$.agent.' + self._get_agent_data_namespace(agent), {}, nx=True)
+        return self.connection.json().set(self._get_data_namespace(), '$.memory.agent.' + self._get_agent_data_namespace(agent), {}, nx=True)
 
     def _get_agent_data_namespace(self, agent):
-        return agent.name + ':DATA'
+        return agent.name 
         
     def set_agent_data(self, agent, key, value):
-        self.connection.json().set(self._get_data_namespace(), '$.agent.' + self._get_agent_data_namespace(agent) + '.' + key, value)
+        self.connection.json().set(self._get_data_namespace(), '$.memory.agent.' + self._get_agent_data_namespace(agent) + '.' + key, value)
 
     def get_agent_data(self, agent, key):
-        value = self.connection.json().get(self._get_data_namespace(), Path('$.agent.' + self._get_agent_data_namespace(agent) + '.' + key))
+        value = self.connection.json().get(self._get_data_namespace(), Path('$.memory.agent.' + self._get_agent_data_namespace(agent) + '.' + key))
         return self.__get_json_value(value)
 
     def append_agent_data(self, agent, key, value):
-        self.connection.json().arrappend(self._get_data_namespace(), '$.agent.' + self._get_agent_data_namespace(agent) + '.' + key, value)
+        self.connection.json().arrappend(self._get_data_namespace(), '$.memory.agent.' + self._get_agent_data_namespace(agent) + '.' + key, value)
 
     def get_agent_data_len(self, agent, key):
-        return self.connection.json().arrlen(self._get_data_namespace(), Path('$.agent.' + self._get_agent_data_namespace(agent) + '.' + key))
+        return self.connection.json().arrlen(self._get_data_namespace(), Path('$.memory.agent.' + self._get_agent_data_namespace(agent) + '.' + key))
 
    
     ## session stream data
     def _init_stream_data_namespace(self, stream):
         # create namespaces for stream-specific data
-        return self.connection.json().set(self._get_data_namespace(), '$.stream.' + self._get_stream_data_namespace(stream), {'common':{},'agent':{}}, nx=True)
+        return self.connection.json().set(self._get_data_namespace(), '$.memory.stream.' + self._get_stream_data_namespace(stream), {'common':{},'agent':{}}, nx=True)
 
     def _get_stream_data_namespace(self, stream):
-        return stream + ':DATA'
+        return stream
         
     def set_stream_data(self, stream, key, value):
-        self.connection.json().set(self._get_data_namespace(), '$.stream.' + self._get_stream_data_namespace(stream) + '.common.' + key, value)
+        self.connection.json().set(self._get_data_namespace(), '$.memory.stream.' + self._get_stream_data_namespace(stream) + '.common.' + key, value)
 
     def get_stream_data(self, stream, key):
-        value = self.connection.json().get(self._get_data_namespace(), Path('$.stream.' + self._get_stream_data_namespace(stream) + '.common.' + key))
+        value = self.connection.json().get(self._get_data_namespace(), Path('$.memory.stream.' + self._get_stream_data_namespace(stream) + '.common.' + key))
         return self.__get_json_value(value)
 
     def append_stream_data(self, stream, key, value):
-        self.connection.json().arrappend(self._get_data_namespace(), '$.stream.' + self._get_stream_data_namespace(stream) + '.common.' + key, value)
+        self.connection.json().arrappend(self._get_data_namespace(), '$.memory.stream.' + self._get_stream_data_namespace(stream) + '.common.' + key, value)
 
     def get_stream_data_len(self, stream, key):
-        return self.connection.json().arrlen(self._get_data_namespace(), Path('$.stream.' + self._get_stream_data_namespace(stream) + '.common.' + key))
+        return self.connection.json().arrlen(self._get_data_namespace(), Path('$.memory.stream.' + self._get_stream_data_namespace(stream) + '.common.' + key))
 
     
 
@@ -173,23 +210,23 @@ class Session():
     ## session stream worker data
     def _init_stream_agent_data_namespace(self, stream, agent):
         # create namespaces for stream-specific data
-        return self.connection.json().set(self._get_data_namespace(), '$.stream.' + self._get_stream_data_namespace(stream) + '.agent.' + self._get_stream_agent_data_namespace(agent), {}, nx=True)
+        return self.connection.json().set(self._get_data_namespace(), '$.memory.stream.' + self._get_stream_data_namespace(stream) + '.agent.' + self._get_stream_agent_data_namespace(agent), {}, nx=True)
 
     def _get_stream_agent_data_namespace(self, agent):
-        return agent + ':DATA'
+        return agent
         
     def set_stream_agent_data(self, stream, agent, key, value):
-        self.connection.json().set(self._get_data_namespace(), '$.stream.' + self._get_stream_data_namespace(stream) + '.agent.' + self._get_stream_agent_data_namespace(agent) + '.' + key, value)
+        self.connection.json().set(self._get_data_namespace(), '$.memory.stream.' + self._get_stream_data_namespace(stream) + '.agent.' + self._get_stream_agent_data_namespace(agent) + '.' + key, value)
 
     def get_stream_agent_data(self, stream, agent, key):
-        value = self.connection.json().get(self._get_data_namespace(), Path('$.stream.' + self._get_stream_data_namespace(stream) + '.agent.' + self._get_stream_agent_data_namespace(agent) + '.' + key))
+        value = self.connection.json().get(self._get_data_namespace(), Path('$.memory.stream.' + self._get_stream_data_namespace(stream) + '.agent.' + self._get_stream_agent_data_namespace(agent) + '.' + key))
         return self.__get_json_value(value)
         
     def append_stream_agent_data(self, stream, agent, key, value):
-        self.connection.json().arrappend(self._get_data_namespace(), '$.stream.' + self._get_stream_data_namespace(stream) + '.agent.' + self._get_stream_agent_data_namespace(agent) + '.' + key, value)
+        self.connection.json().arrappend(self._get_data_namespace(), '$.memory.stream.' + self._get_stream_data_namespace(stream) + '.agent.' + self._get_stream_agent_data_namespace(agent) + '.' + key, value)
         
     def get_stream_agent_data_len(self, stream, agent, key):
-        return self.connection.json().arrlen(self._get_data_namespace(), Path('$.stream.' + self._get_stream_data_namespace(stream) + '.agent.' + self._get_stream_agent_data_namespace(agent) + '.' + key))
+        return self.connection.json().arrlen(self._get_data_namespace(), Path('$.memory.stream.' + self._get_stream_data_namespace(stream) + '.agent.' + self._get_stream_agent_data_namespace(agent) + '.' + key))
 
 
     ###### OPERATIONS

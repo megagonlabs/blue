@@ -48,5 +48,5 @@ then
    docker stack rm blue_platform_${BLUE_DEPLOY_PLATFORM}
 elif [ $BLUE_DEPLOY_TARGET == localhost ]
 then
-   docker compose --project-directory ${BLUE_INSTALL_DIR}/platform -f docker-compose-localhost.yaml -p blue_platform_${BLUE_DEPLOY_PLATFORM} down -d
+   docker compose --project-directory ${BLUE_INSTALL_DIR}/platform -f docker-compose-localhost.yaml -p blue_platform_${BLUE_DEPLOY_PLATFORM} down 
 fi

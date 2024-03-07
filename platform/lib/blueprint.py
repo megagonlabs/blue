@@ -72,12 +72,12 @@ class Platform():
     def get_session(self, session_id):
         session_keys = self.connection.keys(pattern='*SESSION:*')
         if session_id in set(session_keys):
-            return { "id": session_id, "name": session_id, "description": "" }
+            return Session(name=session_id, properties=self.properties)
         else:
             return None
 
     def create_session(self):
-        session = Session()
+        session = Session(properties=self.properties)
         session_id = session.name
         return { "id": session_id, "name": session_id, "description": "" }
 
@@ -87,6 +87,9 @@ class Platform():
         # delete session data
         self.connection.delete(session_id + ":DATA")
         # TODO: delete more
+        
+        # TOOO: remove, stop all agents
+
 
 
     ###### OPERATIONS

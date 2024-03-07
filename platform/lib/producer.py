@@ -161,6 +161,20 @@ class Producer():
         self.connection.xadd(self.stream, message)
         logging.info("Streamed into {s} message {m}".format(s=self.stream, m=str(message)))
 
+    def read_all(self):
+        sl = self.connection.xlen(self.stream)
+        m = self.connection.xread(streams={self.stream:'0'}, count=sl, block=200)
+        messages = []
+        e = m[0]
+        s = e[0]
+        d = e[1]
+        for di in d:
+            id = di[0]
+            message = di[1]
+            messages.append(message)
+
+        return messages
+                
 
 #######################
 if __name__ == "__main__":

@@ -47,7 +47,7 @@ class Agent():
 
         self.input_stream = input_stream
         
-        self.set_session(session)
+        self.join_session(session)
 
         self.aggregate_producer_id = None
         self.consumer = None
@@ -132,18 +132,22 @@ class Agent():
         session = Session(properties=self.properties)
         
         # set agent's session, start listening...
-        self.set_session(session)
+        self.join_session(session)
 
         # start consuming session stream
         self._start_session_consumer()
         return session
 
 
-    def set_session(self, session):
+    def join_session(self, session):
         self.session = session
 
         if self.session:
            self.session.add_agent(self)
+
+    def leave_session(self):
+        if self.session:
+           self.session.remove_agent(self)
 
 
 
@@ -305,6 +309,9 @@ class Agent():
 
 
     def stop(self):
+        # leave session 
+        self.leave_session
+
         # send stop to each worker
         for w in self.workers:
             w.stop()

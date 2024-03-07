@@ -78,5 +78,5 @@ then
    docker service create --hostname blue_agent_${REGISTRY}_${AGENT} --network blue_platform_${BLUE_DEPLOY_PLATFORM}_network_overlay --constraint node.labels.target==agent ${IMAGE} --serve ${POSITIONAL_ARGS}
 elif [ $BLUE_DEPLOY_TARGET == localhost ]
 then
-   docker run -d --network="host" --name blue_agent_${AGENT} ${IMAGE} --serve ${POSITIONAL_ARGS}
+   docker run -d --network=blue_platform_${BLUE_DEPLOY_PLATFORM}_network_bridge --hostname blue_agent_${REGISTRY}_${AGENT} ${IMAGE} --serve ${POSITIONAL_ARGS}
 fi

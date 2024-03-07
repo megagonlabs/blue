@@ -6,10 +6,7 @@ x-blue-common:
   image: python:3.9.0
   environment:
     &blue-common-env
-    BLUE__BACKEND__URL: redis://:@redis:6379/0
-  volumes:
-    - ${BLUE_INSTALL_DIR:-.}/data:/opt/blue/data
-  user: "${BLUE_USER:-50000}:0"
+    BLUE__PROPERTIES: '{"platform.name":"${BLUE_DEPLOY_PLATFORM}", "platform.deploy.target":"${BLUE_DEPLOY_TARGET}", "db.host":"blue_db_redis"}'
   depends_on:
     &blue-common-depends-on
     redis:
@@ -18,6 +15,7 @@ x-blue-common:
 services:
   redis:
     image: redis/redis-stack:latest
+    hostname: blue_db_redis
     ports:
       - "8000:8000"
       - "6379:6379"
@@ -28,31 +26,35 @@ services:
       retries: 50
       start_period: 30s
     networks:
-      - blue_net_default
+      - network_bridge
     environment:
       <<: *blue-common-env
     restart: always
 
   api:
     image: blue-platform-api
+    hostname: blue_platform_api
     ports:
       - "5050:5050"
     networks:
-      - blue_net_default
+      - network_bridge
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
     environment:
       <<: *blue-common-env
     restart: always
 
   frontend:
     image: blue-platform-frontend
+    hostname: blue_platform_frontend
     ports:
       - "3000:3000"
     networks:
-      - blue_net_default
+      - network_bridge
     environment:
       <<: *blue-common-env
     restart: always
 
 networks:
-  blue_net_default:
+  network_bridge:
       driver: bridge
