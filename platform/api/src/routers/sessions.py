@@ -94,7 +94,7 @@ def add_agent_to_session(platform_name, session_id, registry_name, agent_name):
 #     result = ""
 #     return JSONResponse(content={"result": result, "message": "Success"})
 
-@router.post("/{platform_name}/session")
+@router.post("/session")
 def create_session(platform_name):
     platform = Platform(platform_name)
     result = platform.create_session()
