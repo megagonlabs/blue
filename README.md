@@ -87,6 +87,12 @@ $ docker run -e session=SESSION:493e2083-61a0-4c90-accf-3d372f5b8aac --network="
 
 ## development
 
+### requirements
+
+### configuration
+
+### deployment
+
 Let's dive into a bit of development of the agents. The `agents/lib` contains an Agent class that can be used as a base class for developing new agents. You do not necessarily need to extend the base class to create a new class for an agent as you can use the Agent class directly, and use the APIs to process data from other agents. Let's go through an example that basically uses base class:
 
 ```
@@ -275,6 +281,14 @@ Recorder Agent essentially consumes every JSON stream in a session to find match
 $ cd agents/recorder
 # python src/recorder.py --properties '{"records":[{"variale":<name>,"query":<jsonpath_query>},...]}' --session <SESSION>
 ```
+
+## production
+
+### requirements
+
+### configuration
+
+### deployment
 
 ## Changes
 Below is a list of recent changes:
