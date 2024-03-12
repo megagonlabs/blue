@@ -11,7 +11,8 @@ The objective is to explore a design space where the LLM plays a key role but no
 We are building blue with the appropriate level of separation-of-concerns among components of the system. We want to experiment with different approaches to planning, different mechanisms of control and agency, and communication, and different agents that perform work. We also want to explore productionalization of such multi-agents systems and address some of the concerns of the product, both functional and non-functional requirements. 
 
 ## architecture
-![High-Level Architecture](https://github.com/rit-git/blue/blob/docs/images/overview.png)
+![High-Level Architecture](./docs/images/overview.png)
+
 
 ## streams
 The central "data" concept in Blue is a `stream`. A stream is essentially a continuous sequence of data (or instructions) that can be dynamically produced, monitored, and consumed. For example, a temperature sensor can spit out the current temperature every minute to a stream. In our context, a user typing in text in a chat, for example, asking a question can be a stream, where each token or word are transmitted as they are typed. An LLM generating text can be another stream, and generated tokens can be output as they are being generated. 
