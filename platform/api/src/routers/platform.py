@@ -170,7 +170,7 @@ def deploy_agent_container(registry_name, agent_name):
             hostname="blue_agent_" + registry_name + "_" + agent_name, stdout=True, stderr=True)
     elif PROPERTIES['platform.deploy.target'] == 'swarm':
         constraints = ["node.labels.target==agent"]
-        client.services.create(image, '--serve',
+        client.services.create(image, args=['--serve'],
             networks=["blue_platform_" + PROPERTIES['platform.name'] + "_network_overlay"], constraints=constraints,
             hostname="blue_agent_" + registry_name + "_" + agent_name) 
     result = ""
