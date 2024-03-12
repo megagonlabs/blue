@@ -18,8 +18,12 @@ The central "data" concept in Blue is a `stream`. A stream is essentially a cont
 
 ![Stream](./docs/images/stream.png)
 
+In blue, streams are used in multiple places, including as well as agents joining and leaving a session, and annoucing newly created streams as their output. As such streams are the main way of passing data and instructions between agents, where an agent can produce a stream (data and instructions) and another agent can consume from the stream. 
+
 ## agents
-The central "compute" concept in the blueprint architecture is an agent. An agent basically spawns a worker to monitor to a stream, if it decides to act on it, can process the data and produce output in another stream. There might be yet another agent monitoring the output of the first agent and do something on top or choose to listen to the user stream. 
+The central "compute" concept in blue is an agent. An agent basically spawns a worker to monitor to a stream, if it decides to act on it, can process the data and produce output in another stream. There might be yet another agent monitoring the output of the first agent and do something on top or choose to listen to the user stream. 
+
+![Agent](./docs/images/agent.png)
 
 ### worker
 A worker is a thread of an agent that is basically dedicated to a specific input stream and outputs to a specific output stream.
