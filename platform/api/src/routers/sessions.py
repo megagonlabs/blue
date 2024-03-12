@@ -88,7 +88,7 @@ def add_agent_to_session(platform_name, session_id, registry_name, agent_name):
 
 # @router.delete("/{platform_name}/session/{session_id}/agents/{registry_name}/agent/{agent_name}")
 # def delete_agent_to_session(platform_name, session_id):
-#     platform = Platform(platform_name)
+#     platform = Platform(platform_name, properties=PROPERTIES)
 #     session = platform.get_session(session_id)
 #     #TODO
 #     result = ""
@@ -96,13 +96,13 @@ def add_agent_to_session(platform_name, session_id, registry_name, agent_name):
 
 @router.post("/session")
 def create_session(platform_name):
-    platform = Platform(platform_name)
+    platform = Platform(platform_name, properties=PROPERTIES)
     result = platform.create_session()
     return JSONResponse(content={"result": result, "message": "Success"})
 
 
 # @router.delete("/{platform_name}/session/{session_id}")
 # def delete_session(platform_name, session_id):
-#     platform = Platform(platform_name)
+#     platform = Platform(platform_name, properties=PROPERTIES)
 #     platform.delete_session(session_id)
 #     return JSONResponse(content={"message": "Success"})
