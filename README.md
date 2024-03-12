@@ -2,7 +2,7 @@
 
 LLMs have demonstrated impressive capabilities in many tasks that go beyond traditional NLP problems, leading people to develop applications that exploit their capabilities in many domains. In these approaches LLMs play the key role (agent), planning tasks, executing tools, and retrieving necessary data.  
 
-We see a significant shift towards AI systems, where LLMs still play an important role but they are part of a large software infrastructure, with a multitude of components (agents and beyond) to plan and break-down complex tasks, to discover and query proprietary data, and to exploit proprietary models and services, and an underlying system that orchestrates the flow of data and control among components to function together. 
+We see a significant shift towards AI systems, where LLMs still play an important role but they are part of a large software infrastructure, with a multitude of components (agents and beyond) to plan and break-down complex tasks, to discover and query proprietary data, and to exploit proprietary models and services, all functioning properly together with an underlying system that orchestrates the flow of data and control among components. 
 
 Blue is a platform to explore large language models (LLM) in the context of complex tasks, when decomposed, will require access to (1) external structured and unstructured data and/or knowledge, (2) services that perform deterministic tasks, and (3) additional task- and domain-specific models. 
 
@@ -10,8 +10,7 @@ The objective is to explore a design space where the LLM plays a key role but no
 
 We are building blue with the appropriate level of separation-of-concerns among components of the system. We want to experiment with different approaches to planning, different mechanisms of control and agency, and communication, and different agents that perform work. We also want to explore productionalization of such multi-agents systems and address some of the concerns of the product, both functional and non-functional requirements. 
 
-## architecture
-![High-Level Architecture](./docs/images/overview.png)
+
 
 
 ## streams
@@ -281,6 +280,20 @@ $ cd agents/recorder
 ```
 
 ## production
+
+### architecture
+![High-Level Architecture](./docs/images/overview.png)
+
+At the higheset level a typical instantiation of blue has (1) a data lake to retrieve data coupled with a data registry that contains its metadata (2) an agent repository where agent code (docker images) are fetched from, coupled with an agent registry that contains agent metadata including docker images, (3) blue platform runtime, which hosts api and frontend servers along with the redis db as the backend to store agent and session streams, as well as session memory. 
+
+All above (expect data lake) is hosted on a compute cluster where at deployment time containers for Redis, API, and frontend are started. Agents containers are started on demand from the api and are also hosted on the compute cluster.
+
+The mapping various components to the compute cluster is done through deployment constraints. In the current setup the cluster has nodes with labels: db, platform, and agent. 
+Redis container is deployed on the db nodes, API and frontend deployed on the platform node, and agent containers are deployed to the agent node. Communication between the various components is done through an overlay network dedicated to the plaform.
+
+Each deployment of the platform is named, with a separate network so that each component in the platform is addressible using the same hostname within its specific network, as shown below:
+
+![Swarm](./docs/images/swarm.png)
 
 ### requirements
 
