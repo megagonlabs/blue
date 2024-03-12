@@ -10,9 +10,6 @@ from routers import platform
 
 from fastapi.middleware.cors import CORSMiddleware
 
-origins = ["*", "http://localhost", "http://localhost:5050"]
-
-
 _VERSION_PATH = Path(__file__).parent / "version"
 version = Path(_VERSION_PATH).read_text().strip()
 print("blue-platform-api: " + version)
@@ -22,13 +19,6 @@ app.include_router(agents.router)
 app.include_router(data.router)
 app.include_router(sessions.router)
 app.include_router(platform.router)
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 connection_manager = ConnectionManager()
 
 
@@ -58,3 +48,12 @@ async def websocket_endpoint(websocket: WebSocket):
     except WebSocketDisconnect:
         # Remove the connection from the list of active connections
         connection_manager.disconnect(websocket)
+
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*", "http://localhost", "http://localhost:5050"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
