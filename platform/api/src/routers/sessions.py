@@ -81,7 +81,8 @@ def add_agent_to_session(session_id, registry_name, agent_name):
 
     # override db.host
     properties['db.host'] = "redis"
-    client.executor().launch(name=registry_name + "_" + agent_name, properties=properties)
+
+    client.executor().launch(name=registry_name + "_" + agent_name, session=session_id, properties=properties)
 
     result = ""
     return JSONResponse(content={"result": result, "message": "Success"})
