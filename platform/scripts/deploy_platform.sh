@@ -22,6 +22,7 @@ while [[ $# -gt 0 ]]; do
       # pass argument and value
       shift
       shift
+      ;;
     -*|--*)
       echo "Unknown argument: $1"
       exit 1
