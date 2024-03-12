@@ -33,14 +33,18 @@ Agents (i.e. agent workers) can store and share data among each other. Data is s
 Blue requires docker engine to build and run the infrastruture and agents. To develop on your local machine you would need to install docker enginer from 
 https://docs.docker.com/engine/install/
 
-## infrastructure
-To run the infrastructure necessary, follow the instructions below:
-```
-$ cd platform
-$ docker compose up
-```
 
-## v0.1 example
+
+
+## development
+
+### requirements
+
+### configuration
+
+### deployment
+
+### v0.1 example
 To try out demo of v0.1, run the following commands:
 ```
 $ cd agents/simple_user
@@ -85,13 +89,7 @@ $ docker run -e session=SESSION:493e2083-61a0-4c90-accf-3d372f5b8aac --network="
 $ docker run -e session=SESSION:493e2083-61a0-4c90-accf-3d372f5b8aac --network="host" blue-agent-websocket_counter
 ```
 
-## development
-
-### requirements
-
-### configuration
-
-### deployment
+### agent development
 
 Let's dive into a bit of development of the agents. The `agents/lib` contains an Agent class that can be used as a base class for developing new agents. You do not necessarily need to extend the base class to create a new class for an agent as you can use the Agent class directly, and use the APIs to process data from other agents. Let's go through an example that basically uses base class:
 
