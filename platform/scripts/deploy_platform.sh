@@ -1,6 +1,6 @@
 #/bin/bash
 
-# USAGE: deploy_platform --target localhost|swarm --platform platform
+# USAGE: deploy_platform --target localhost|swarm --platform platform --api_server http://ipaddress
 # if no arguments, use env variable as default
 
 while [[ $# -gt 0 ]]; do
@@ -17,6 +17,11 @@ while [[ $# -gt 0 ]]; do
       shift 
       shift 
       ;;
+    -a|--api_server)
+      BLUE_PUBLIC_API_SERVER="$2"
+      # pass argument and value
+      shift
+      shift
     -*|--*)
       echo "Unknown argument: $1"
       exit 1
