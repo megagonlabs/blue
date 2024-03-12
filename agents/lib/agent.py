@@ -140,6 +140,9 @@ class Agent():
 
 
     def join_session(self, session):
+        if type(session) == str:
+            session = Session(name=session, properties=self.properties)
+
         self.session = session
 
         if self.session:
