@@ -54,7 +54,6 @@ services:
       - "3000:3000"
     networks:
       - network_bridge
-    command: ["sh", "-c", "./launch.sh"]
     environment:
       <<: *blue-common-env
       BLUE_PUBLIC_API_SERVER: "${BLUE_PUBLIC_API_SERVER}"
