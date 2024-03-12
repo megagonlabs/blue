@@ -134,8 +134,19 @@ def list_agent_containers():
             results.append(c)
     elif PROPERTIES['platform.deploy.target'] == 'swarm':
         services = client.services.list()
+        results = []
         for service in services:
-            print(service) 
+            c = {}
+            c['id'] = service.attrs['ID']
+            c['hostname'] = service.attrs['Spec']['TaskTemplate']['ContainerSpec']['Hostname']
+            c['created_date'] = service.attrs['CreatedAt']
+            c['image'] = service.attrs['Spec']['TaskTemplate']['ContainerSpec']['Image']
+            if c['hostname'].find('blue_agent') < 0:
+                continue
+            hs = c['hostname'].split("_")
+            c['agent'] = hs[3]
+            c['registry'] = hs[2]
+            results.append(c)
 
     return JSONResponse(content={"results": results})
 
@@ -161,7 +172,7 @@ def deploy_agent_container(registry_name, agent_name):
         constraints = ["node.labels.target==agent"]
         client.services.create(image, '--serve',
             networks=["blue_platform_" + PROPERTIES['platform.name'] + "_network_overlay"], constraints=constraints,
-            hostname="blue_agent_" + registry_name + "_" + agent_name, stdout=True, stderr=True) 
+            hostname="blue_agent_" + registry_name + "_" + agent_name) 
     result = ""
     return JSONResponse(content={"result": result, "message": "Success"})
 
