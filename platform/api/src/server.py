@@ -1,8 +1,17 @@
+###### OS / Systems
+from curses import noecho
+import os
+import sys
+
+###### Parsers, Formats, Utils
 import json
 from pathlib import Path
 
+##### Web / Sockets
 from ConnectionManager import ConnectionManager
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+
+###### API Routerss
 from routers import agents
 from routers import data
 from routers import sessions
@@ -13,6 +22,14 @@ from fastapi.middleware.cors import CORSMiddleware
 _VERSION_PATH = Path(__file__).parent / "version"
 version = Path(_VERSION_PATH).read_text().strip()
 print("blue-platform-api: " + version)
+
+###### Properties
+PROPERTIES = os.getenv('BLUE__PROPERTIES')
+PROPERTIES = json.loads(PROPERTIES)
+
+print(str(PROPERTIES))
+api_server = PROPERTIES['api.server']
+api_server_host = ":".join(api_server.split(":")[:2])
 
 app = FastAPI()
 app.include_router(agents.router)
@@ -50,9 +67,10 @@ async def websocket_endpoint(websocket: WebSocket):
         connection_manager.disconnect(websocket)
 
 
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*", "http://localhost", "http://localhost:5050"],
+    allow_origins=["http://localhost", "http://localhost:5050", api_server, api_server_host],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
