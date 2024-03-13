@@ -18,8 +18,12 @@ The central "data" concept in Blue is a `stream`. A stream is essentially a cont
 
 ![Stream](./docs/images/stream.png)
 
+In blue, streams are used in multiple places, including as well as agents joining and leaving a session, and annoucing newly created streams as their output. As such streams are the main way of passing data and instructions between agents, where an agent can produce a stream (data and instructions) and another agent can consume from the stream. 
+
 ## agents
-The central "compute" concept in the blueprint architecture is an agent. An agent basically spawns a worker to monitor to a stream, if it decides to act on it, can process the data and produce output in another stream. There might be yet another agent monitoring the output of the first agent and do something on top or choose to listen to the user stream. 
+The central "compute" concept in blue is an agent. An agent basically spawns a worker to monitor to a stream, if it decides to act on it, can process the data and produce output in another stream. There might be yet another agent monitoring the output of the first agent and do something on top or choose to listen to the user stream. 
+
+![Agent](./docs/images/agent.png)
 
 ### worker
 A worker is a thread of an agent that is basically dedicated to a specific input stream and outputs to a specific output stream.
@@ -30,16 +34,17 @@ The central "context" concept in Blue is a `session`. A session is initiated by 
 ## memory
 Agents (i.e. agent workers) can store and share data among each other. Data is stored and retrieved in three levels of context: (a) session (b) stream (c) agent and (d) workers. A worker can put data into the session store which can be seen and retrieved by any agent and worker in the session. A worker can further limit the scope of the data to a stream, where data can be seen only by agents which are working on a specific stream. Finally, a worker can put private data where it can only be seen by the worker itself, or more broadly by all workers in the agent.
 
-## requirements
-Blue requires docker engine to build and run the infrastruture and agents. To develop on your local machine you would need to install docker enginer from 
-https://docs.docker.com/engine/install/
-
-
-
 
 ## development
 
+Blue can be deployed in two modes: (1) `localhost` (2) `swarm` mode. `localhost` is more suitable for development and `swarm` mode is more suitable for production. Below we describe how you can deploy blue in `localhost` mode and further down we will talk about `swarm` mode as we discuss production.
+
+
 ### requirements
+Blue requires docker engine to build and run the infrastructure and agents. To develop on your local machine you would need to install docker engine from 
+https://docs.docker.com/engine/install/
+
+Once installed you can configure 
 
 ### configuration
 
