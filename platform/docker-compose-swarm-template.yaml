@@ -32,7 +32,7 @@ services:
     networks:
       - network_overlay
     volumes:
-      - blue_data:/blue_data
+      - blue_${BLUE_DEPLOY_PLATFORM}_data:/blue_data
     environment:
       <<: *blue-common-env
     restart: always
@@ -50,7 +50,7 @@ services:
       - network_overlay
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - blue_data:/blue_data
+      - blue_${BLUE_DEPLOY_PLATFORM}_data:/blue_data
     environment:
       <<: *blue-common-env
     restart: always
@@ -77,5 +77,5 @@ networks:
       attachable: true
 
 volumes:
-  blue_data:
+  blue_${BLUE_DEPLOY_PLATFORM}_data:
       external: true
