@@ -26,10 +26,15 @@ print("blue-platform-api: " + version)
 ###### Properties
 PROPERTIES = os.getenv('BLUE__PROPERTIES')
 PROPERTIES = json.loads(PROPERTIES)
-
 print(str(PROPERTIES))
+
+###  Get API server address from properties to white list
 api_server = PROPERTIES['api.server']
 api_server_host = ":".join(api_server.split(":")[:2])
+
+allowed_origins = ["http://localhost", "http://localhost:3000", api_server_host, api_server_host+":3000"]
+
+print(allowed_origins)
 
 app = FastAPI()
 app.include_router(agents.router)
@@ -38,6 +43,13 @@ app.include_router(sessions.router)
 app.include_router(platform.router)
 connection_manager = ConnectionManager()
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=allowed_origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.websocket("/sessions/ws")
 async def websocket_endpoint(websocket: WebSocket):
@@ -66,12 +78,3 @@ async def websocket_endpoint(websocket: WebSocket):
         # Remove the connection from the list of active connections
         connection_manager.disconnect(websocket)
 
-
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["http://localhost", "http://localhost:5050", api_server, api_server_host],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
