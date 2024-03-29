@@ -7,7 +7,7 @@ export const sessionAction = (dispatch) => ({
         });
     },
     createSession: (payload) => {
-        axios.post(`/sessions/${payload.platform}/session`).then((response) => {
+        axios.post(`/sessions/session`).then((response) => {
             try {
                 const sessionId = _.get(response, "data.result.id");
                 payload.connection.send(
@@ -16,7 +16,10 @@ export const sessionAction = (dispatch) => ({
                         session_id: sessionId,
                     })
                 );
-                dispatch({ type: "session/sessions/add", payload: sessionId });
+                dispatch({
+                    type: "session/sessions/add",
+                    payload: sessionId,
+                });
             } catch (error) {
                 console.log(error);
             }

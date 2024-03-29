@@ -37,7 +37,7 @@ done
 # set target to local, if not provided
 if [ -z "$BLUE_DEPLOY_TARGET" ]
 then
-   export BLUE_DEPLOY_TARGET=local
+   export BLUE_DEPLOY_TARGET=localhost
 fi
 
 # set platform to default, if not provided
@@ -48,6 +48,7 @@ fi
 
 echo "DEPLOY TARGET   = ${BLUE_DEPLOY_TARGET}"
 echo "DEPLOY PLATFORM = ${BLUE_DEPLOY_PLATFORM}"
+echo "BLUE_INSTALL_DIR = ${BLUE_INSTALL_DIR}"
 
 if [ $BLUE_DEPLOY_TARGET == swarm ]
 then

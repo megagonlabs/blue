@@ -36,17 +36,20 @@ from pydantic import BaseModel, Json
 router = APIRouter(prefix="/agents")
 
 ###### Properties
-PROPERTIES = os.getenv('BLUE__PROPERTIES')
+PROPERTIES = os.getenv("BLUE__PROPERTIES")
 PROPERTIES = json.loads(PROPERTIES)
+
 
 ###### Schema
 class Agent(BaseModel):
     name: str
     description: Union[str, None] = None
 
+
 class Parameter(BaseModel):
     name: str
     description: Union[str, None] = None
+
 
 JSONObject = Dict[AnyStr, Any]
 JSONArray = List[Any]

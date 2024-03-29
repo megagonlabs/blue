@@ -13,3 +13,4 @@ sentence_transformers==2.2.2
 tqdm==4.65.0
 uvicorn==0.25.0
 websocket_client==1.7.0
+websockets==11.0.3

@@ -5,7 +5,7 @@ import sys
 
 ###### Add lib path
 sys.path.append("./lib/")
-sys.path.append('./lib/agent_registry/')
+sys.path.append("./lib/agent_registry/")
 sys.path.append("./lib/platform/")
 
 
@@ -39,11 +39,12 @@ from pydantic import BaseModel
 router = APIRouter(prefix="/sessions")
 
 ###### Properties
-PROPERTIES = os.getenv('BLUE__PROPERTIES')
+PROPERTIES = os.getenv("BLUE__PROPERTIES")
 PROPERTIES = json.loads(PROPERTIES)
 
 ###### Schema
 ######
+
 
 @router.get("/")
 def get_sessions():
@@ -51,11 +52,13 @@ def get_sessions():
     results = platform.get_sessions()
     return JSONResponse(content={"results": results})
 
+
 @router.get("/session/{session_id}")
 def get_session(session_id):
     platform = Platform(properties=PROPERTIES)
     result = platform.get_session(session_id)
     return JSONResponse(content={"result": result})
+
 
 @router.get("/session/{session_id}/agents")
 def list_session_agents(session_id):
@@ -63,6 +66,7 @@ def list_session_agents(session_id):
     session = platform.get_session(session_id)
     results = session.list_agents()
     return JSONResponse(content={"results": results})
+
 
 @router.post("/session/{session_id}/agents/{registry_name}/agent/{agent_name}")
 def add_agent_to_session(session_id, registry_name, agent_name):
@@ -76,16 +80,21 @@ def add_agent_to_session(session_id, registry_name, agent_name):
     agent_rpc_host = "blue_agent_" + registry_name + "_" + agent_name
 
     ## create an rpc connection to launch agent
-    client = RPCClient(registry_name + "_"+ agent_name, properties={"rpc.host":agent_rpc_host})
+    client = RPCClient(
+        registry_name + "_" + agent_name, properties={"rpc.host": agent_rpc_host}
+    )
     client.connect()
 
     # override db.host
-    properties['db.host'] = "redis"
+    properties["db.host"] = "redis"
 
-    client.executor().launch(name=registry_name + "_" + agent_name, session=session_id, properties=properties)
+    client.executor().launch(
+        name=registry_name + "_" + agent_name, session=session_id, properties=properties
+    )
 
     result = ""
     return JSONResponse(content={"result": result, "message": "Success"})
+
 
 # @router.delete("/{platform_name}/session/{session_id}/agents/{registry_name}/agent/{agent_name}")
 # def delete_agent_to_session(session_id):
@@ -95,10 +104,13 @@ def add_agent_to_session(session_id, registry_name, agent_name):
 #     result = ""
 #     return JSONResponse(content={"result": result, "message": "Success"})
 
+
 @router.post("/session")
-def create_session(platform_name):
+def create_session():
     platform = Platform(properties=PROPERTIES)
+    print(platform)
     result = platform.create_session()
+    print(result)
     return JSONResponse(content={"result": result, "message": "Success"})
 
 
