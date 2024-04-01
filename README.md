@@ -115,7 +115,10 @@ $ docker ps
 
 and the list should contain three containers running: redis, api , and frontend
 
-Assuming you have set 
+If you want to see it in action on the web, you can bring up the frontend by browsing to `http://localhost:3000`
+
+## examples, demos
+
 ### v0.1 example
 To try out demo of v0.1, run the following commands:
 ```
@@ -161,7 +164,7 @@ $ docker run -e session=SESSION:493e2083-61a0-4c90-accf-3d372f5b8aac --network="
 $ docker run -e session=SESSION:493e2083-61a0-4c90-accf-3d372f5b8aac --network="host" blue-agent-websocket_counter
 ```
 
-### agent development
+## agent development
 
 Let's dive into a bit of development of the agents. The `agents/lib` contains an Agent class that can be used as a base class for developing new agents. You do not necessarily need to extend the base class to create a new class for an agent as you can use the Agent class directly, and use the APIs to process data from other agents. Let's go through an example that basically uses base class:
 
@@ -258,7 +261,7 @@ To share data among all agent works in the session, you can use `set_session_dat
 
 
 
-## agents on blue
+## generic agents
 
 Beyond the basic proof of concept agents below we document agents we develop that are a bit more useful for a variety of tasks. 
 
@@ -352,7 +355,7 @@ $ cd agents/recorder
 # python src/recorder.py --properties '{"records":[{"variale":<name>,"query":<jsonpath_query>},...]}' --session <SESSION>
 ```
 
-## production
+# staging, production
 
 ### architecture
 ![High-Level Architecture](./docs/images/overview.png)
