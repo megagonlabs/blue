@@ -81,7 +81,7 @@ This will create a directory called `default` under the `$BLUE_DATA_DIR` directo
 
 ## build
 
-Even when running blue locally during development, many components of blue will run in docker containers. It is important to build the various docker images first.
+Even when running blue locally during development, many components of blue should be run in docker containers. It is important to build the various docker images first.
 
 ### building agents
 
@@ -99,6 +99,25 @@ $ ./docker_build_agent.sh
 
 ### building platform components
 
+The key components in platform that require building are the API and the frontend.
+
+#### building API
+
+Run:
+```
+$ cd platform/api
+$ ./docker_build_api.sh
+```
+
+#### building frontend
+
+Run:
+```
+$ cd platform/frontend
+$ ./docker_build_frontend.sh
+```
+
+While not necessary to build images for agent and data regisries, if you would like to use them independently, you could build images for them as well. Simply `cd agent_registry` and `./docker_build_agent_regisry.sh` to build agent registry and `cd data_registry` and `./docker_build_data_regisry.sh` to build data registry.
 
 ## deployment
 
@@ -115,7 +134,7 @@ $ docker ps
 
 and the list should contain three containers running: redis, api , and frontend
 
-If you want to see it in action on the web, you can bring up the frontend by browsing to `http://localhost:3000`
+If you want to see it in action on the web, you can bring up the frontend by browsing to `http://localhost:3000` and the API documentation on `http://localhost:5050/docs#/`
 
 ## examples, demos
 
