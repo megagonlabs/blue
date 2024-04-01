@@ -357,10 +357,9 @@ $ cd agents/recorder
 
 # staging, production
 
-### architecture
-![High-Level Architecture](./docs/images/overview.png)
+The main difference between a `localhost` deployment and a `swarm` deployment is that there are multiple compute nodes where various components can be deployed to. 
 
-At the higheset level a typical instantiation of blue has (1) a data lake to retrieve data coupled with a data registry that contains its metadata (2) an agent repository where agent code (docker images) are fetched from, coupled with an agent registry that contains agent metadata including docker images, (3) blue platform runtime, which hosts api and frontend servers along with the redis db as the backend to store agent and session streams, as well as session memory. 
+## clusters
 
 All above (expect data lake) is hosted on a compute cluster where at deployment time containers for Redis, API, and frontend are started. Agents containers are started on demand from the api and are also hosted on the compute cluster.
 
@@ -371,11 +370,48 @@ Each deployment of the platform is named, with a separate network so that each c
 
 ![Swarm](./docs/images/swarm.png)
 
-### requirements
+## requirements
 
-### configuration
+## configuration
 
-### deployment
+## setup
+
+### swarm setup
+
+First, you need to create multiple compute (e.g. AWS EC2) instances. For this step, please refer to your cloud providers documentation. For AWS, you can find it here: https://aws.amazon.com/ec2/getting-started/. In addition, to allow some easy data sharing you can create a filesystem to share among the compute instances. For AWS EFS, refer to: https://aws.amazon.com/efs/getting-started/. 
+
+Once you have several compute instances, you can build a swarm consisting of manager and worker nodes. As part of blue platform scripts, we have convenience scripts to help you initiate a swarm, add nodes, and label them for blue deployments. For more details on swarm you can read: https://docs.docker.com/engine/swarm/
+
+To initiate a swarm, run below command on the designated manager node:
+```
+$ cd platform/scripts
+$ ./init_swarm.sh
+```
+
+Once completed, you will have the manager and worker tokens saved as `.manager.token` and `.worker.token`.  You can then use to go to other compute instances and join the swarm. You can either copy these files or share them via shared filesystem:
+
+Before running below commands make sure `.manager.token` and `.worker.token` files are transferred and are in the same directory.
+
+To join as worker, run:
+```
+$ cd platform/scripts
+$ ./join_swarm.sh worker
+```
+To join as manager run `./joinswarm.sh manager`. To leave swarm run `./leave_swarm.sh`
+
+Once all nodes are in the swarm, label them so that when blue is deployed they go to the appropriate node. Blue uses by default three labels: `platform`, `db`, and `agent`
+
+For each node label them with one of the above labels:
+```
+$ cd platform/scripts
+# ./add_label.sh <label> <node>
+```
+where <label> is either `platform`, `db`, or `agent` and <node> is the node id when you run `docker node ls`.
+
+## build 
+
+## deployment
+
 
 ## Changes
 Below is a list of recent changes:
