@@ -376,18 +376,19 @@ $ cd agents/recorder
 
 # staging, production
 
-The main difference between a `localhost` deployment and a `swarm` deployment is that there are multiple compute nodes where various components can be deployed to. 
+The main difference between a `localhost` deployment and a `swarm` deployment is that there are multiple compute nodes where various components can be deployed to. Another key difference is that ccomponents are added as a service where each can be configure with multiple scalability configurations and other service options.
 
 ## clusters
 
-All above (expect data lake) is hosted on a compute cluster where at deployment time containers for Redis, API, and frontend are started. Agents containers are started on demand from the api and are also hosted on the compute cluster.
-
-The mapping various components to the compute cluster is done through deployment constraints. In the current setup the cluster has nodes with labels: db, platform, and agent. 
-Redis container is deployed on the db nodes, API and frontend deployed on the platform node, and agent containers are deployed to the agent node. Communication between the various components is done through an overlay network dedicated to the plaform.
-
-Each deployment of the platform is named, with a separate network so that each component in the platform is addressible using the same hostname within its specific network, as shown below:
-
 ![Swarm](./docs/images/swarm.png)
+
+As show above at the minimum there is a cluser of three compute instances, labeled `platform`, `db`, and `agent`. 
+
+The mapping various components to the compute cluster is done through deployment constraints (see below swarm setup). In the current setup the cluster has nodes with labels: db, platform, and agent. Redis container is deployed on the db nodes, API and frontend deployed on the platform node, and agent containers are deployed to the agent node. Communication between the various components is done through an overlay network dedicated to the plaform. The overlay network enables easy communication among components with components simply reachable through their service names (see https://docs.docker.com/network/drivers/overlay/)
+
+For larger deployments and complex scenarios, multiple nodes can be designated to each function, and one can introduce different labels to define complex deployment targets.
+
+Each deployment of the platform is named, with a separate network so that each component in the platform is addressible using the same hostname within its specific network.
 
 ## requirements
 
@@ -426,6 +427,15 @@ $ cd platform/scripts
 # ./add_label.sh <label> <node>
 ```
 where <label> is either `platform`, `db`, or `agent` and <node> is the node id when you run `docker node ls`.
+
+### data volume setup
+
+For the swarm mode it is best to utilize a shared filesystem as the location of the data folder. Set `BLUE_DATA_DIR` to a folder on such a shared filesystem. Next, to create a data volume, run:
+
+$ cd platform/scripts
+$ ./create_data_volume.sh --data default
+
+This will create a directory called default under the $BLUE_DATA_DIR directory, and create a volume on that directory.
 
 ## build 
 
