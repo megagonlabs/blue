@@ -4,14 +4,25 @@ LLMs have demonstrated impressive capabilities in many tasks that go beyond trad
 
 We see a significant shift towards AI systems, where LLMs still play an important role but they are part of a large software infrastructure, with a multitude of components (agents and beyond) to plan and break-down complex tasks, to discover and query proprietary data, and to exploit proprietary models and services, all functioning properly together with an underlying system that orchestrates the flow of data and control among components. 
 
-Blue is a platform to explore large language models (LLM) in the context of complex tasks, when decomposed, will require access to (1) external structured and unstructured data and/or knowledge, (2) services that perform deterministic tasks, and (3) additional task- and domain-specific models. 
+Blue is an orchestraion platform to coordinate data and work among components of an AI system. We are building Blue to explore a design space where the LLM plays a key role but not necessarily they are the 'be-all and end-all'. This is in contrast to other approaches where everything is baked into LLMs; LLMs act as planner, LLMs act as the orchestrator, LLMs decide what and how to interface with services, tools, and data. 
 
-The objective is to explore a design space where the LLM plays a key role but not necessarily they are the 'be-all and end-all'. This is in contrast to other approaches where everything is baked into LLMs; LLMs act as planner, LLMs act as the orchestrator, LLMs decide what and how to interface with services, tools, and data. Instead, we conceptualize: (1) a planner (which can be an LLM) or a set of planners which breaks down complex tasks into pieces (along with the data necessary for the tasks), either through “recipes” (pre-determined plans) in a prescriptive manner, or in a decentralized but learned manner with potentially human feedback (2) set of agents that have specific roles/tasks that interface to data, services, and models, (3) an orchestration platform that facilitates coordination of data and instructions among agents and the planner(s), and collects data from all interactions, and (4) a conversational user interface where users can create sessions, add agents to their conversation and accomplish tasks. While a conversational UI is suitable for end-users, directly interacting with the agents, we are also targeting use-cases where the end-user isn't directly interacting in natural language but agents are utilized in prescriptive manner, exploiting LLMs (and other agents) under the covers.
+![Stream](./docs/images/overview.png)
 
-We are building blue with the appropriate level of separation-of-concerns among components of the system. We want to experiment with different approaches to planning, different mechanisms of control and agency, and communication, and different agents that perform work. We also want to explore productionalization of such multi-agents systems and address some of the concerns of the product, both functional and non-functional requirements. 
+In Blue, key components of the AI system are: 
+- data lake(s) to store and query data from, consisting of a multitude of databases 
+- data registry, serving as a metadata store for data sources, with capabilities to discover and search data, and eventually query data from the sources
+- data planner(s), modeled as an agent, utilizing metadata (performance and beyond) in the data registry, provide crucial functionality to generate query plans
+- agent registry, serving as a metadata store for agents, with capabilities to search agent metadata (e.g. descriptions, inputs, outputs)
+- agent(s) providing a wide range of functionality, from calling APIs, interfacing with LLMs, to running predictive models, etc. 
+- task planner(s), also modeled as an agent, taking initial user/agent input and creating execution plans, utilizing metadata in the agent registry, as well as basic operators to serve as glue between inputs and outputs.
+- task coordinator(s), modeled as an agent,coordinate and monitor execution progress, once a plan is created. 
+- operators, supporting the need for basic common capabilities such as data transformation and beyond, as executable functions accessible to the coordinator to invoke
+- orchestration, supporting infrastructure and streams to govern the flow of data and instructions among all agents within a user session
+- a conversational user interface where users can create sessions, add agents to their conversation and accomplish tasks.
+- a python API to allow other modalities where a multi-agent system can function
 
 
-
+# orchestration, concepts
 
 ## streams
 The central "data" concept in Blue is a `stream`. A stream is essentially a continuous sequence of data (or instructions) that can be dynamically produced, monitored, and consumed. For example, a temperature sensor can spit out the current temperature every minute to a stream. In our context, a user typing in text in a chat, for example, asking a question can be a stream, where each token or word are transmitted as they are typed. An LLM generating text can be another stream, and generated tokens can be output as they are being generated. 
