@@ -50,19 +50,72 @@ Agents (i.e. agent workers) can store and share data among each other. Data is s
 
 # development
 
-Blue can be deployed in two modes: (1) `localhost` (2) `swarm` mode. `localhost` is more suitable for development and `swarm` mode is more suitable for production. Below we describe how you can deploy blue in `localhost` mode and further down we will talk about `swarm` mode as we discuss production.
+Blue can be deployed in two modes: (1) `localhost` (2) `swarm` mode. `localhost` is more suitable for development and `swarm` mode is more suitable for staging and production. Below we describe how you can deploy blue in `localhost` mode and further down we will talk about `swarm` mode as we discuss production.
 
-
-### requirements
+## requirements
 Blue requires docker engine to build and run the infrastructure and agents. To develop on your local machine you would need to install docker engine from 
 https://docs.docker.com/engine/install/
 
-Once installed you can configure 
+## configuration
 
-### configuration
+Most of blue scripts require a number of parameters. While you can use defaults, configuring your setup can be more easy, if you set environment variables for your choices. Below is the list of environment varibles:
 
-### deployment
+- `BLUE_INSTALL_DIR`, directory containing blue source code, for example, `/Users/me/blue`
+- `BLUE_DEPLOY_TARGET`, deployment target, localhost (default) or swarm
+- `BLUE_DEPLOY_PLATFORM`, platform name, default (default)
+- `BLUE_PUBLIC_API_SERVER`, server address for the REST API , for example, `http://localhost:5050`
+- `BLUE_DATA_DIR`, directory hosting daa for blue services, for example `${BLUE_INSTALL_DIR}/data`
 
+Use of utilities such as [direnv](https://direnv.net/) is strongly encouraged to help management environment variables.
+
+## setup
+
+A data volume is added to several services (agents, API, etc.) where common data such as models can be stored within a platform (e.g. `default`). To create a data volume on your development environment, run:
+
+```
+$ cd platform/scripts
+$ ./create_data_volume.sh --data default
+```
+
+This will create a directory called `default` under the `$BLUE_DATA_DIR` directory, and create a volume on that directory.
+
+## build
+
+Even when running blue locally during development, many components of blue will run in docker containers. It is important to build the various docker images first.
+
+### building agents
+
+To build docker images for all agents, run:
+```
+$ cd agents
+$ ./docker_build_all_agents.sh
+```
+
+Or if you can also build images for certain agents, you can do so by first changing to the directory for the agent, for example, to build user agent only:
+```
+$ cd agents/user
+$ ./docker_build_agent.sh
+```
+
+### building platform components
+
+
+## deployment
+
+To deploy blue locally, with the default options, run:
+```
+$ cd platform/scripts
+$ ./deploy_platform.sh
+```
+
+To test your deployment you can run:
+```
+$ docker ps
+```
+
+and the list should contain three containers running: redis, api , and frontend
+
+Assuming you have set 
 ### v0.1 example
 To try out demo of v0.1, run the following commands:
 ```
