@@ -18,14 +18,14 @@ In Blue, key components of the AI system are:
 - task coordinator(s), modeled as an agent,coordinate and monitor execution progress, once a plan is created. 
 - operators, supporting the need for basic common capabilities such as data transformation and beyond, as executable functions accessible to the coordinator to invoke
 - orchestration, supporting infrastructure and streams to govern the flow of data and instructions among all agents within a user session
-- a conversational user interface where users can create sessions, add agents to their conversation and accomplish tasks.
-- a python API to allow other modalities where a multi-agent system can function
+- a conversational user interface where users can create sessions, add agents to their conversation, interact with them, and accomplish tasks.
+- a python API to allow other modalities where a multi-agent system can be utilized programatically, such as developing APIs.
 
 
 # orchestration, concepts
 
 ## streams
-The central "data" concept in Blue is a `stream`. A stream is essentially a continuous sequence of data (or instructions) that can be dynamically produced, monitored, and consumed. For example, a temperature sensor can spit out the current temperature every minute to a stream. In our context, a user typing in text in a chat, for example, asking a question can be a stream, where each token or word are transmitted as they are typed. An LLM generating text can be another stream, and generated tokens can be output as they are being generated. 
+The central "orchestration" concept in Blue is a `stream`. A stream is essentially a continuous sequence of data (or instructions) that can be dynamically produced, monitored, and consumed. For example, a temperature sensor can spit out the current temperature every minute to a stream. In our context, a user typing in text in a chat, for example, asking a question can be a stream, where each token or word are transmitted as they are typed. An LLM generating text can be another stream, and generated tokens can be output as they are being generated. 
 
 ![Stream](./docs/images/stream.png)
 
