@@ -8,7 +8,13 @@ import { keymap, lineNumbers } from "@codemirror/view";
 import { EditorView, minimalSetup } from "codemirror";
 import _ from "lodash";
 import { useCallback, useEffect, useRef, useState } from "react";
-export default function Editor({ code, setCode, setError, setLoading }) {
+export default function Editor({
+    code,
+    setCode,
+    setError,
+    setLoading,
+    allowSaveWithError = false,
+}) {
     const [doc, setDoc] = useState(code);
     useEffect(() => {
         setCode(doc);
@@ -22,16 +28,20 @@ export default function Editor({ code, setCode, setError, setLoading }) {
                     error = true;
                 }
             });
-            setError(error);
-            if (!error) {
+            if (_.isFunction(setError)) {
+                setError(error);
+            }
+            if (!error || allowSaveWithError) {
                 setDoc(v.state.doc.toString());
             }
-            setLoading(false);
+            if (_.isFunction(setLoading)) {
+                setLoading(false);
+            }
         }, 300),
         []
     );
     const onUpdate = EditorView.updateListener.of((v) => {
-        if (v.docChanged) {
+        if (_.isFunction(setLoading) && v.docChanged) {
             setLoading(true);
         }
         debounced(v);

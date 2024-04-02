@@ -11,6 +11,7 @@ import {
 } from "@blueprintjs/core";
 import {
     faCircleA,
+    faCompassDrafting,
     faDatabase,
     faSignalStream,
 } from "@fortawesome/pro-duotone-svg-icons";
@@ -89,6 +90,26 @@ export default function App({ children }) {
                             </Link>
                         );
                     })}
+                </ButtonGroup>
+                <ButtonGroup
+                    alignText={Alignment.LEFT}
+                    vertical
+                    minimal
+                    large
+                    style={{ marginTop: 40 }}
+                >
+                    <Link href="/designer">
+                        <Button
+                            style={
+                                !_.startsWith(router.asPath, "/designer")
+                                    ? { backgroundColor: "transparent" }
+                                    : null
+                            }
+                            active={_.startsWith(router.asPath, "/designer")}
+                            text="Designer"
+                            icon={faIcon({ icon: faCompassDrafting })}
+                        />
+                    </Link>
                 </ButtonGroup>
             </Card>
             <div

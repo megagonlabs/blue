@@ -1,6 +1,15 @@
+:root {
+    --separator-border: rgba(17, 20, 24, 0.15);
+}
 a:not([class^="bp"]) {
     color: inherit !important;
     text-decoration: none !important;
+}
+.full-parent-height {
+    height: 100%;
+}
+.full-parent-width {
+    width: 100%;
 }
 .multiline-ellipsis {
     display: -webkit-box;
