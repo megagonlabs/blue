@@ -4,21 +4,34 @@ LLMs have demonstrated impressive capabilities in many tasks that go beyond trad
 
 We see a significant shift towards AI systems, where LLMs still play an important role but they are part of a large software infrastructure, with a multitude of components (agents and beyond) to plan and break-down complex tasks, to discover and query proprietary data, and to exploit proprietary models and services, all functioning properly together with an underlying system that orchestrates the flow of data and control among components. 
 
-Blue is a platform to explore large language models (LLM) in the context of complex tasks, when decomposed, will require access to (1) external structured and unstructured data and/or knowledge, (2) services that perform deterministic tasks, and (3) additional task- and domain-specific models. 
+Blue is an orchestraion platform to coordinate data and work among components of an AI system. We are building Blue to explore a design space where the LLM plays a key role but not necessarily they are the 'be-all and end-all'. This is in contrast to other approaches where everything is baked into LLMs; LLMs act as planner, LLMs act as the orchestrator, LLMs decide what and how to interface with services, tools, and data. 
 
-The objective is to explore a design space where the LLM plays a key role but not necessarily they are the 'be-all and end-all'. This is in contrast to other approaches where everything is baked into LLMs; LLMs act as planner, LLMs act as the orchestrator, LLMs decide what and how to interface with services, tools, and data. Instead, we conceptualize: (1) a planner (which can be an LLM) or a set of planners which breaks down complex tasks into pieces (along with the data necessary for the tasks), either through “recipes” (pre-determined plans) in a prescriptive manner, or in a decentralized but learned manner with potentially human feedback (2) set of agents that have specific roles/tasks that interface to data, services, and models, (3) an orchestration platform that facilitates coordination of data and instructions among agents and the planner(s), and collects data from all interactions, and (4) a conversational user interface where users can create sessions, add agents to their conversation and accomplish tasks. While a conversational UI is suitable for end-users, directly interacting with the agents, we are also targeting use-cases where the end-user isn't directly interacting in natural language but agents are utilized in prescriptive manner, exploiting LLMs (and other agents) under the covers.
+![Stream](./docs/images/overview.png)
 
-We are building blue with the appropriate level of separation-of-concerns among components of the system. We want to experiment with different approaches to planning, different mechanisms of control and agency, and communication, and different agents that perform work. We also want to explore productionalization of such multi-agents systems and address some of the concerns of the product, both functional and non-functional requirements. 
+In Blue, key components of the AI system are: 
+- data lake(s) to store and query data from, consisting of a multitude of databases 
+- data registry, serving as a metadata store for data sources, with capabilities to discover and search data, and eventually query data from the sources
+- data planner(s), modeled as an agent, utilizing metadata (performance and beyond) in the data registry, provide crucial functionality to generate query plans
+- agent registry, serving as a metadata store for agents, with capabilities to search agent metadata (e.g. descriptions, inputs, outputs)
+- agent(s) providing a wide range of functionality, from calling APIs, interfacing with LLMs, to running predictive models, etc. 
+- task planner(s), also modeled as an agent, taking initial user/agent input and creating execution plans, utilizing metadata in the agent registry, as well as basic operators to serve as glue between inputs and outputs.
+- task coordinator(s), modeled as an agent,coordinate and monitor execution progress, once a plan is created. 
+- operators, supporting the need for basic common capabilities such as data transformation and beyond, as executable functions accessible to the coordinator to invoke
+- orchestration, supporting infrastructure and streams to govern the flow of data and instructions among all agents within a user session
+- a conversational user interface where users can create sessions, add agents to their conversation, interact with them, and accomplish tasks.
+- a python API to allow other modalities where a multi-agent system can be utilized programatically, such as developing APIs.
 
 
-
+# orchestration, concepts
 
 ## streams
-The central "data" concept in Blue is a `stream`. A stream is essentially a continuous sequence of data (or instructions) that can be dynamically produced, monitored, and consumed. For example, a temperature sensor can spit out the current temperature every minute to a stream. In our context, a user typing in text in a chat, for example, asking a question can be a stream, where each token or word are transmitted as they are typed. An LLM generating text can be another stream, and generated tokens can be output as they are being generated. 
+The central "orchestration" concept in Blue is a `stream`. A stream is essentially a continuous sequence of messages (data, instructions) that can be dynamically produced, monitored, and consumed. For example, a temperature sensor can spit out the current temperature every minute to a stream. In our context, a user typing in text in a chat, for example, asking a question can be a stream, where each word is transmitted as they are typed. An LLM generating text can be another stream, and generated text can be output as they are being generated. 
 
 ![Stream](./docs/images/stream.png)
 
-In blue, streams are used in multiple places, including as well as agents joining and leaving a session, and annoucing newly created streams as their output. As such streams are the main way of passing data and instructions between agents, where an agent can produce a stream (data and instructions) and another agent can consume from the stream. 
+In blue, streams are used in multiple places. Agents consume streams and produce their output into streams. Sessions are also streams, with messages announcing agents joining and leaving as well as new streams produced in the session. As such streams are the main way of passing data and instructions between agents, where an agent can produce a stream (data and instructions) and another agent can consume from the stream. 
+
+Messages can be data and instruction messages, with supported data types of integer, string, and JSON objects.
 
 ## agents
 The central "compute" concept in blue is an agent. An agent basically spawns a worker to monitor to a stream, if it decides to act on it, can process the data and produce output in another stream. There might be yet another agent monitoring the output of the first agent and do something on top or choose to listen to the user stream. 
@@ -35,20 +48,95 @@ The central "context" concept in Blue is a `session`. A session is initiated by 
 Agents (i.e. agent workers) can store and share data among each other. Data is stored and retrieved in three levels of context: (a) session (b) stream (c) agent and (d) workers. A worker can put data into the session store which can be seen and retrieved by any agent and worker in the session. A worker can further limit the scope of the data to a stream, where data can be seen only by agents which are working on a specific stream. Finally, a worker can put private data where it can only be seen by the worker itself, or more broadly by all workers in the agent.
 
 
-## development
+# development
 
-Blue can be deployed in two modes: (1) `localhost` (2) `swarm` mode. `localhost` is more suitable for development and `swarm` mode is more suitable for production. Below we describe how you can deploy blue in `localhost` mode and further down we will talk about `swarm` mode as we discuss production.
+Blue can be deployed in two modes: (1) `localhost` (2) `swarm` mode. `localhost` is more suitable for development and `swarm` mode is more suitable for staging and production. Below we describe how you can deploy blue in `localhost` mode and further down we will talk about `swarm` mode as we discuss production.
 
-
-### requirements
+## requirements
 Blue requires docker engine to build and run the infrastructure and agents. To develop on your local machine you would need to install docker engine from 
 https://docs.docker.com/engine/install/
 
-Once installed you can configure 
+## configuration
 
-### configuration
+Most of blue scripts require a number of parameters. While you can use defaults, configuring your setup can be more easy, if you set environment variables for your choices. Below is the list of environment varibles:
 
-### deployment
+- `BLUE_INSTALL_DIR`, directory containing blue source code, for example, `/Users/me/blue`
+- `BLUE_DEPLOY_TARGET`, deployment target, localhost (default) or swarm
+- `BLUE_DEPLOY_PLATFORM`, platform name, default (default)
+- `BLUE_PUBLIC_API_SERVER`, server address for the REST API , for example, `http://localhost:5050`
+- `BLUE_DATA_DIR`, directory hosting daa for blue services, for example `${BLUE_INSTALL_DIR}/data`
+
+Use of utilities such as [direnv](https://direnv.net/) is strongly encouraged to help management environment variables.
+
+## setup
+
+A data volume is added to several services (agents, API, etc.) where common data such as models can be stored within a platform (e.g. `default`). To create a data volume on your development environment, run:
+
+```
+$ cd platform/scripts
+$ ./create_data_volume.sh --data default
+```
+
+This will create a directory called `default` under the `$BLUE_DATA_DIR` directory, and create a volume on that directory.
+
+## build
+
+Even when running blue locally during development, many components of blue should be run in docker containers. It is important to build the various docker images first.
+
+### building agents
+
+To build docker images for all agents, run:
+```
+$ cd agents
+$ ./docker_build_all_agents.sh
+```
+
+Or if you can also build images for certain agents, you can do so by first changing to the directory for the agent, for example, to build user agent only:
+```
+$ cd agents/user
+$ ./docker_build_agent.sh
+```
+
+### building platform components
+
+The key components in platform that require building are the API and the frontend.
+
+#### building API
+
+Run:
+```
+$ cd platform/api
+$ ./docker_build_api.sh
+```
+
+#### building frontend
+
+Run:
+```
+$ cd platform/frontend
+$ ./docker_build_frontend.sh
+```
+
+While not necessary to build images for agent and data regisries, if you would like to use them independently, you could build images for them as well. Simply `cd agent_registry` and `./docker_build_agent_regisry.sh` to build agent registry and `cd data_registry` and `./docker_build_data_regisry.sh` to build data registry.
+
+## deployment
+
+To deploy blue locally, with the default options, run:
+```
+$ cd platform/scripts
+$ ./deploy_platform.sh
+```
+
+To test your deployment you can run:
+```
+$ docker ps
+```
+
+and the list should contain three containers running: redis, api , and frontend
+
+If you want to see it in action on the web, you can bring up the frontend by browsing to `http://localhost:3000` and the API documentation on `http://localhost:5050/docs#/`
+
+## examples, demos
 
 ### v0.1 example
 To try out demo of v0.1, run the following commands:
@@ -95,7 +183,7 @@ $ docker run -e session=SESSION:493e2083-61a0-4c90-accf-3d372f5b8aac --network="
 $ docker run -e session=SESSION:493e2083-61a0-4c90-accf-3d372f5b8aac --network="host" blue-agent-websocket_counter
 ```
 
-### agent development
+## agent development
 
 Let's dive into a bit of development of the agents. The `agents/lib` contains an Agent class that can be used as a base class for developing new agents. You do not necessarily need to extend the base class to create a new class for an agent as you can use the Agent class directly, and use the APIs to process data from other agents. Let's go through an example that basically uses base class:
 
@@ -192,7 +280,7 @@ To share data among all agent works in the session, you can use `set_session_dat
 
 
 
-## agents on blue
+## generic agents
 
 Beyond the basic proof of concept agents below we document agents we develop that are a bit more useful for a variety of tasks. 
 
@@ -286,34 +374,105 @@ $ cd agents/recorder
 # python src/recorder.py --properties '{"records":[{"variale":<name>,"query":<jsonpath_query>},...]}' --session <SESSION>
 ```
 
-## production
+# staging, production
 
-### architecture
-![High-Level Architecture](./docs/images/overview.png)
+The main difference between a `localhost` deployment and a `swarm` deployment is that there are multiple compute nodes where various components can be deployed to. Another key difference is that ccomponents are added as a service where each can be configure with multiple scalability configurations and other service options.
 
-At the higheset level a typical instantiation of blue has (1) a data lake to retrieve data coupled with a data registry that contains its metadata (2) an agent repository where agent code (docker images) are fetched from, coupled with an agent registry that contains agent metadata including docker images, (3) blue platform runtime, which hosts api and frontend servers along with the redis db as the backend to store agent and session streams, as well as session memory. 
-
-All above (expect data lake) is hosted on a compute cluster where at deployment time containers for Redis, API, and frontend are started. Agents containers are started on demand from the api and are also hosted on the compute cluster.
-
-The mapping various components to the compute cluster is done through deployment constraints. In the current setup the cluster has nodes with labels: db, platform, and agent. 
-Redis container is deployed on the db nodes, API and frontend deployed on the platform node, and agent containers are deployed to the agent node. Communication between the various components is done through an overlay network dedicated to the plaform.
-
-Each deployment of the platform is named, with a separate network so that each component in the platform is addressible using the same hostname within its specific network, as shown below:
+## clusters
 
 ![Swarm](./docs/images/swarm.png)
 
-### requirements
+As show above at the minimum there is a cluser of three compute instances, labeled `platform`, `db`, and `agent`. 
 
-### configuration
+The mapping various components to the compute cluster is done through deployment constraints (see below swarm setup). In the current setup the cluster has nodes with labels: db, platform, and agent. Redis container is deployed on the db nodes, API and frontend deployed on the platform node, and agent containers are deployed to the agent node. Communication between the various components is done through an overlay network dedicated to the plaform. The overlay network enables easy communication among components with components simply reachable through their service names (see https://docs.docker.com/network/drivers/overlay/)
 
-### deployment
+For larger deployments and complex scenarios, multiple nodes can be designated to each function, and one can introduce different labels to define complex deployment targets.
 
-## Changes
-Below is a list of recent changes:
-* [9/7/2023]: recorder agent
-* [9/7/2023]: agent can tag streams
-* [9/6/2023]: observer agent
-* [9/6/2023]: neo4j agent
-* [9/6/2023]: --loglevel parameter
-* [9/1/2023]: agent level memory
-* [9/1/2023]: include/exclude lists
+Each deployment of the platform is named, with a separate network so that each component in the platform is addressible using the same hostname within its specific network.
+
+## requirements
+
+As in the `localhost` deployment mode, the production of Blue also requires docker engine to build and run the infrastructure and agents. In addition, docker swarm is used for creating a production infrasructture and docker hub is used as a repository of docker images.
+
+## configuration
+
+Below are the environment variables and typical settings for staging and production:
+
+- `BLUE_INSTALL_DIR`, directory containing blue installation, used in deployment scripts
+- `BLUE_DEPLOY_TARGET`, deployment target, swarm should be used for staging and 
+- `BLUE_DEPLOY_PLATFORM`, platform name, reflecting specific deployment/use case
+- `BLUE_PUBLIC_API_SERVER`, server address for the REST API , for example, `http://10.0.160.75:5050`
+- `BLUE_DATA_DIR`, directory hosting daa for blue services, for example `${BLUE_INSTALL_DIR}/data`, used in deployment scripts
+  
+## setup
+
+### swarm setup
+
+First, you need to create multiple compute (e.g. AWS EC2) instances. For this step, please refer to your cloud providers documentation. For AWS, you can find it here: https://aws.amazon.com/ec2/getting-started/. In addition, to allow some easy data sharing you can create a filesystem to share among the compute instances. For AWS EFS, refer to: https://aws.amazon.com/efs/getting-started/. 
+
+Once you have several compute instances, you can build a swarm consisting of manager and worker nodes. As part of blue platform scripts, we have convenience scripts to help you initiate a swarm, add nodes, and label them for blue deployments. For more details on swarm you can read: https://docs.docker.com/engine/swarm/
+
+To initiate a swarm, run below command on the designated manager node:
+```
+$ cd platform/scripts
+$ ./init_swarm.sh
+```
+
+Once completed, you will have the manager and worker tokens saved as `.manager.token` and `.worker.token`.  You can then use to go to other compute instances and join the swarm. You can either copy these files or share them via shared filesystem:
+
+Before running below commands make sure `.manager.token` and `.worker.token` files are transferred and are in the same directory.
+
+To join as worker, run:
+```
+$ cd platform/scripts
+$ ./join_swarm.sh worker
+```
+To join as manager run `./joinswarm.sh manager`. To leave swarm run `./leave_swarm.sh`
+
+Once all nodes are in the swarm, label them so that when blue is deployed they go to the appropriate node. Blue uses by default three labels: `platform`, `db`, and `agent`
+
+For each node label them with one of the above labels:
+```
+$ cd platform/scripts
+# ./add_label.sh <label> <node>
+```
+where <label> is either `platform`, `db`, or `agent` and <node> is the node id when you run `docker node ls`.
+
+### data volume setup
+
+For the swarm mode it is best to utilize a shared filesystem as the location of the data folder. Set `BLUE_DATA_DIR` to a folder on such a shared filesystem. Next, to create a data volume, run:
+
+$ cd platform/scripts
+$ ./create_data_volume.sh --data default
+
+This will create a directory called default under the $BLUE_DATA_DIR directory, and create a volume on that directory.
+
+## build / publish
+
+Beyond building docker images for agents and platform componens, as in the `localhost` mode, in the `swarm` mode the images need to be published to docker hub. To do so, once built, you need to run publish scriips.
+
+For example, to publish all agent images:
+```
+$ cd agents
+$ ./docker_publish_all_agents.sh
+```
+
+Likewise, for API and frontend run their respective scriipts, `docker_publish_api.sh` and `docker_publish_frontend.sh` in their directories.
+
+## deployment
+
+To deploy blue on a swarm, with the default options, run:
+```
+$ cd platform/scripts
+$ ./deploy_platform.sh --target swarm
+```
+
+To test your deployment you can run:
+```
+$ docker service ls
+```
+
+and the list should contain three services running: redis, api , and frontend
+
+If you want to see it in action on the web, you can bring up the frontend by browsing to `http://<platform_ip_address>:3000` and the API documentation on `http://<platform_ip_address>:5050/docs#/`
+
