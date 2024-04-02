@@ -4,7 +4,7 @@ Below you will find more information on developing your own agents as well as a 
 
 Use below links for quick accces:
 * [agent development](#agent-development)
-* [generic agents][#generic-agents]
+* [generic agents](#generic-agents)
 
   
 ## agent development
