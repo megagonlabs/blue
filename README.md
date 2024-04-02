@@ -21,6 +21,8 @@ In Blue, key components of the AI system are:
 - a conversational user interface where users can create sessions, add agents to their conversation, interact with them, and accomplish tasks.
 - a python API to allow other modalities where a multi-agent system can be utilized programatically, such as developing APIs.
 
+</br>
+
 Sounds interesting? Want to learn more? 
 
 Below is an outline of the documentation on this repo:
@@ -32,7 +34,11 @@ Below is an outline of the documentation on this repo:
 * [generic agents](#generic-agents)
 * [production](#production)
 
+</br>
+</br>
+
 Let's start with introducing concepts in blue.
+
 
 ---
 # orchestration concepts
@@ -68,6 +74,10 @@ Agents (i.e. agent workers) can store and share data among each other. Data is s
 - A worker can further limit the scope of the data to a specificc stream, where data can be seen only by agents (workers) which are working on that specific stream. This is the `stream memory`. 
 - Finally, a worker can put data into the private `agent memory`  where it can only be seen by the workers of the agent itself.
 
+
+
+</br>
+</br>
 
 Want to get started? Follow the installation steps below.. 
 
@@ -162,6 +172,10 @@ and the list should contain three containers running: redis, api , and frontend
 If you want to see it in action on the web, you can bring up the frontend by browsing to `http://localhost:3000` and the API documentation on `http://localhost:5050/docs#/`
 
 
+</br>
+</br>
+
+---
 # hello world example
 
 Let's try running a very basic example. In this example, a user agent emits some text and a counter agent simply listens to the user agent and returns the number of words.
@@ -212,115 +226,34 @@ $ docker run -e session=SESSION:493e2083-61a0-4c90-accf-3d372f5b8aac --network="
 $ docker run -e session=SESSION:493e2083-61a0-4c90-accf-3d372f5b8aac --network="host" blue-agent-websocket_counter
 ```
 
+</br>
+</br>
+
 ---
-
-
-
 
 # development
 
-Let's dive into a bit of development of the agents. The `agents/lib` contains an Agent class that can be used as a base class for developing new agents. You do not necessarily need to extend the base class to create a new class for an agent as you can use the Agent class directly, and use the APIs to process data from other agents. Let's go through an example that basically uses base class:
+To learn more about developing agents yourself please go to [agents](agents) for more details.
 
-```
-# create a user agent
-    user_agent = Agent("USER")
-    session = user_agent.start_session()
 
-    # sample func to process data for counter
-    stream_data = []
-
-    def processor(stream, id, label, data):
-        if label == 'EOS':
-            # print all data received from stream
-            print(stream_data)
-
-            # compute stream data
-            l = len(stream_data)
-            time.sleep(4)
-            
-            # output to stream
-            return l
-           
-        elif label == 'DATA':
-            # store data value
-            stream_data.append(data)
-    
-        return None
-
-    # create a counter agent in the same session
-    counter_agent = Agent("COUNTER", session=session, processor=processor)
-
-    # user initiates an interaction
-    user_agent.interact("hello world!")
-
-    # wait for session
-    session.wait()
-```
-
-In the above example, a `USER` agent is created and `create_session` function on the Agent is called to create a Session object. That session object is passed to another Agent, called `COUNTER`, along with a `processor` function to process data in the `COUNTER` agent. 
-
-The signature of the `processor` function is `stream`, `id`, `label`, and `data`. `stream` is the input stream to process, `id` is the data id assigned (by Redis) stream. `label` is the label of data in the stream, for example `BOS` for beginning of stream, `EOS` for end of stream, `DATA` for a data in stream. Essentially above `processor` function adds new data to `stream_data` when it receives new data (e.g. on `DATA` label) and returns count when all data is received (e.g. on `EOS` label). The base class `Agent` automatically creates a new stream in the session and adds the returned value from the stream so that other agents might start listening to new streams and data in the session.
-
-In the end, upon running the above code the streams in the session will be:
-
-| SESSION:493e2083-61a0-4c90-accf-3d372f5b8aac                   |
-| ---------------------------------------------------------------|
-| label: BOS                                                     | 
-| label: ADD, data: USER:c124ca2b-6602-4bdf-882e-f45518d30c85   |
-| label: ADD, data: COUNTER:44d7b977-eb7f-4d7f-8c33-8b3d2b11c3c2|
-
-| USER:c124ca2b-6602-4bdf-882e-f45518d30c85 |
-|-------------------------------------------|
-| label: BOS                                |
-| label: DATA, data: hello, type: str       |
-| label: DATA, data: world!, type: str      |
-| label: EOS                                |
-
-| COUNTER:44d7b977-eb7f-4d7f-8c33-8b3d2b11c3c2 | 
-|----------------------------------------------|
-| label: BOS                                   |
-| label: DATA, data: 2, type: int              |
-| label: EOS                                   |
-
-First stream refers to session stream, specifically when a new stream is generated by an agent, all others can get which stream is generated and who generated it.
-
-Second stream refers to the output from the `USER` stream, essentially the text entered: `hello` and `world!`
-
-Third stream refers to the output from the `COUNTER` stream, essentially the count of the tokens in the `USER` stream, as processed and returned by the agent.
-
-That is it!
-
-Not quite. One question is who is listening to who. To decide which agents to listen to agents have a `listens` property and `includes` and `excludes` list. Basicall agents tag each stream they produce and others in the session can check they `includes` and `excludes` list against the tags of the stream. Agents by default tag each stream they produce by their own name. Addition tags can be provided as a property (`tags`).  `includes` and `excludes` lists are ordered lists of regular expressions that are evaluated on stream tags (e.g. USER, ). To decide if an agents should be listened to first the `includes` list is processed. If none of the regular expressions is matched, the stream with the tags is not listened to. If any of the regular expressions is a match, a further check is made in the `excludes` list. If none of the `excludes` regular expressions is matched the stream is listened. If any one of `excludes` is matched the stream is not listened to. Default `includes` list is ['.*'], i.e. all agents are listened to, and the default `excludes` list is [self.name], i.e. if it is self it is not listened to. Both include and exclude list can include an element that is itself a list, e.g. `["A","B",["C","D"]]` to support conjunctions. For example, in the previous example both "C" and "D" tags (or regular expressions) need to match.
-    
-That is it, for now. :) 
-
-## memory 
-The above example works if there is only one worker and that worker is solely responsible from start to end (i.e. it doesn't fail). The reason is that in the above example `stream_data` is a shared variable among all workers of the agent, even when they worker on a different stream. To resolve this issue, you need to create distributed memory (uses Redis JSON) that a worker can write its private data that is only specific to a stream. 
-
-As discussed above there are three levels of data context. Below are API functions for reading and writing in these respective context. To allow this you will need to pass worker as a keyword parameter to the processor function, i.e. 
-```
-def processor(stream, id, label, data, worker=None):
-```
-
-and use the following worker functions to write data.
-
-For private worker/stream you can call the following functions on the keyword parameter `worker`, `set_data(key, value)`, `append_data(key, value)`, `get_data(key)`, and `get_data_len(key)`. For example, worker.set_data('a', 3), and worker.get_data('a'). The value can be any JSON value. 
-
-To share data among workers from the same agent, you can use `set_agent_data(key, value)`, `append_agent_data(key, value)`, `get_agent_data(key)`, and `get_agent_data_len(key)`.
-
-To share data among workers processing data from the same stream, you can use `set_stream_data(key, value)`, `append_stream_data(key, value)`, `get_stream_data(key)`, and `get_stream_data_len(key)`.
-
-To share data among all agent works in the session, you can use `set_session_data(key, value)`, `append_session_data(key, value)`, `get_session_data(key)`, and `get_session_data_len(key)`.
+</br>
+</br>
 
 ---
 
 # demos
 
-There are lots of demos in the [demos](demos) folder. Please try them on your own following the respective documentation in the folders.
+There are more demos in the [demos](demos) folder. Please try them on your own following the respective documentation in the folders.
+
+</br>
 
 # generic agents
 
 There are a number of generic multi-purpose agents we developed which you can either use as templates or find direct use of them in your applications. To learn more about them follow the README under [agents](agents) directory. 
+
+
+</br>
+</br>
 
 ---
 
