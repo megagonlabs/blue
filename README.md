@@ -299,11 +299,11 @@ To share data among all agent works in the session, you can use `set_session_dat
 
 # demos
 
-There are lots of demos in the demos folder. Please try them on your own following the respective documentation in the folders.
+There are lots of demos in the [demos](demos) folder. Please try them on your own following the respective documentation in the folders.
 
 # generic agents
 
-There are a number of generic multi-purpose agents we develop which you can either use as templates or find direct use of them in your applications. To learn more about them follow the README under agents directory. 
+There are a number of generic multi-purpose agents we developed which you can either use as templates or find direct use of them in your applications. To learn more about them follow the README under [agents](agents) directory. 
 
 
 # production
