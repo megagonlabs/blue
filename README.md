@@ -26,7 +26,7 @@ Sounds interesting? Want to learn more?
 Below is an outline of the documentation on this repo:
 * [orchestration concepts](#orchestration-concepts)
 * [installation](#installation)
-* [a basic example](#a-basic-example)
+* [hello world example](#hello-world-example)
 * [development](#development)
 * [demos](#demos)
 * [generic agents](#generic-agents)
@@ -162,7 +162,7 @@ and the list should contain three containers running: redis, api , and frontend
 If you want to see it in action on the web, you can bring up the frontend by browsing to `http://localhost:3000` and the API documentation on `http://localhost:5050/docs#/`
 
 
-# 'hello world' example
+# hello world example
 
 Let's try running a very basic example. In this example, a user agent emits some text and a counter agent simply listens to the user agent and returns the number of words.
 
