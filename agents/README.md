@@ -2,12 +2,12 @@
 
 Below you will find more information on developing your own agents as well as a list of generic agents that you can learn from and use as a template.
 
-Use bel
+Use below links for quick accces:
 * [agent development](#agent-development)
+* [generic agents][#generic-agents]
 
-* 
-## development
-
+  
+## agent development
 
 Let's dive into a bit of development of the agents. The `agents/lib` contains an Agent class that can be used as a base class for developing new agents. You do not necessarily need to extend the base class to create a new class for an agent as you can use the Agent class directly, and use the APIs to process data from other agents. Let's go through an example that basically uses base class:
 
@@ -107,7 +107,7 @@ To share data among all agent works in the session, you can use `set_session_dat
 </br>
 
 ---
-## generic agens
+## generic agents
 
 ### api
 APIAgent is a generic Agent that is designed to be a base class for a variety of agents that essentially talk to an API. To support this it has a number of properties designed to construct a message to the API from input and other properties and parse response from the API to build the right output. Below are the properties to support this:
