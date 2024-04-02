@@ -30,8 +30,11 @@ import StringRenderer, {
 import UnknownRenderer, {
     UnknownTester,
 } from "@/components/jsonforms/renderers/Unknown";
-import { Alignment, Button, Callout } from "@blueprintjs/core";
-import { faArrowsFromLine } from "@fortawesome/pro-duotone-svg-icons";
+import { Alignment, Button, Callout, Intent } from "@blueprintjs/core";
+import {
+    faArrowsFromLine,
+    faCircleXmark,
+} from "@fortawesome/pro-duotone-svg-icons";
 import { JsonForms } from "@jsonforms/react";
 import { vanillaCells, vanillaRenderers } from "@jsonforms/vanilla-renderers";
 import { Allotment } from "allotment";
@@ -72,6 +75,12 @@ export default function Designer() {
                             }}
                         >
                             <Button
+                                intent={uiSchemaError ? Intent.DANGER : null}
+                                icon={
+                                    uiSchemaError
+                                        ? faIcon({ icon: faCircleXmark })
+                                        : null
+                                }
                                 {...BUTTON_PROPS}
                                 text="UI Schema"
                                 onClick={() => {
@@ -107,6 +116,12 @@ export default function Designer() {
                             }}
                         >
                             <Button
+                                intent={schemaError ? Intent.DANGER : null}
+                                icon={
+                                    schemaError
+                                        ? faIcon({ icon: faCircleXmark })
+                                        : null
+                                }
                                 {...BUTTON_PROPS}
                                 text="Schema"
                                 onClick={() => {
