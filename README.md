@@ -29,7 +29,7 @@ Below is an outline of the documentation on this repo:
 * [a basic example](#a-basic-example)
 * [development](#development)
 * [demos](#demos)
-* [agents](#agents)
+* [generic agents](#generic-agents)
 * [production](#production)
 
 Let's start with introducing concepts in blue.
@@ -301,7 +301,7 @@ To share data among all agent works in the session, you can use `set_session_dat
 
 There are lots of demos in the demos folder. Please try them on your own following the respective documentation in the folders.
 
-# agents
+# generic agents
 
 There are a number of generic multi-purpose agents we develop which you can either use as templates or find direct use of them in your applications. To learn more about them follow the README under agents directory. 
 
