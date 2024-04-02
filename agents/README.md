@@ -6,7 +6,11 @@ Use below links for quick accces:
 * [agent development](#agent-development)
 * [generic agents](#generic-agents)
 
-  
+</br>
+</br>
+
+---
+
 ## agent development
 
 Let's dive into a bit of development of the agents. The `agents/lib` contains an Agent class that can be used as a base class for developing new agents. You do not necessarily need to extend the base class to create a new class for an agent as you can use the Agent class directly, and use the APIs to process data from other agents. Let's go through an example that basically uses base class:
@@ -107,6 +111,7 @@ To share data among all agent works in the session, you can use `set_session_dat
 </br>
 
 ---
+
 ## generic agents
 
 ### api
