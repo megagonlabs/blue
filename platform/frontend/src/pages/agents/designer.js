@@ -57,6 +57,7 @@ export default function Designer() {
         } catch (error) {}
     }, [uiSchema, schema]);
     const BUTTON_PROPS = {
+        large: true,
         alignText: Alignment.LEFT,
         fill: true,
         minimal: true,
@@ -96,7 +97,7 @@ export default function Designer() {
                             className="full-parent-height"
                             style={{
                                 overflowY: "auto",
-                                maxHeight: "calc(100% - 41px)",
+                                maxHeight: "calc(100% - 51px)",
                             }}
                         >
                             <Editor
@@ -138,7 +139,7 @@ export default function Designer() {
                             className="full-parent-height"
                             style={{
                                 overflowY: "auto",
-                                maxHeight: "calc(100% - 41px)",
+                                maxHeight: "calc(100% - 51px)",
                             }}
                         >
                             <Editor

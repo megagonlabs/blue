@@ -12,17 +12,21 @@ import {
     H5,
     InputGroup,
     Intent,
-    KeyComboTag,
+    Menu,
+    MenuItem,
     NonIdealState,
     Popover,
     TextArea,
 } from "@blueprintjs/core";
 import {
     faCaretDown,
+    faCirclePlus,
     faInboxIn,
     faInboxOut,
     faMessages,
+    faPaperPlaneTop,
     faSignalStreamSlash,
+    faSquareDashedCirclePlus,
 } from "@fortawesome/pro-duotone-svg-icons";
 import _ from "lodash";
 import { useContext, useEffect, useRef, useState } from "react";
@@ -102,7 +106,7 @@ export default function Sessions() {
                     message: "Connection established",
                     timeout: 2000,
                 });
-                if (!_.isEmpty(sessionIds)) {
+                if (!_.isEmpty(sessionIds) && false) {
                     for (var i = 0; i < sessionIds.length; i++) {
                         appActions.session.observeSession({
                             sessionId: sessionIds[i],
@@ -298,15 +302,59 @@ export default function Sessions() {
                         <div
                             style={{
                                 padding: 20,
-                                width: "100%",
+                                position: "relative",
+                                height: "calc(100% - 772px",
                                 borderTop: "1px solid rgba(17, 20, 24, 0.15)",
                             }}
                         >
+                            <div
+                                style={{
+                                    position: "absolute",
+                                    height: "calc(100% - 40px)",
+                                    top: "50%",
+                                    transform: "translateY(-50%)",
+                                    msTransform: "translateY(-50%)",
+                                    left: 20,
+                                }}
+                            >
+                                <Popover
+                                    minimal
+                                    placement="top-start"
+                                    targetProps={{ style: { height: "100%" } }}
+                                    content={
+                                        <Menu large>
+                                            <MenuItem
+                                                disabled
+                                                icon={faIcon({
+                                                    icon: faSquareDashedCirclePlus,
+                                                })}
+                                                text="Add agent"
+                                            ></MenuItem>
+                                        </Menu>
+                                    }
+                                >
+                                    <Button
+                                        large
+                                        minimal
+                                        style={{
+                                            height: "100%",
+                                            borderTopRightRadius: 0,
+                                            borderBottomRightRadius: 0,
+                                        }}
+                                        icon={faIcon({ icon: faCirclePlus })}
+                                    />
+                                </Popover>
+                            </div>
                             <TextArea
                                 inputRef={sessionMessageTextArea}
-                                style={{ resize: "none" }}
+                                style={{
+                                    resize: "none",
+                                    minHeight: "100%",
+                                    paddingLeft: 50,
+                                    paddingRight: 50,
+                                }}
                                 value={message}
-                                placeholder="Message"
+                                placeholder={`Message @${sessionIdFocus}\nPress [enter] to send\nUse [shift + enter] to start a new line`}
                                 onChange={(event) => {
                                     setMessage(event.target.value);
                                 }}
@@ -321,7 +369,26 @@ export default function Sessions() {
                                 }}
                                 fill
                             />
-                            <div
+                            <Button
+                                large
+                                minimal
+                                intent={Intent.PRIMARY}
+                                style={{
+                                    position: "absolute",
+                                    height: "calc(100% - 40px)",
+                                    top: "50%",
+                                    transform: "translateY(-50%)",
+                                    msTransform: "translateY(-50%)",
+                                    right: 20,
+                                    borderTopLeftRadius: 0,
+                                    borderBottomLeftRadius: 0,
+                                }}
+                                onClick={() => {
+                                    sendSessionMessage(message);
+                                }}
+                                icon={faIcon({ icon: faPaperPlaneTop })}
+                            />
+                            {/* <div
                                 style={{
                                     display: "flex",
                                     marginTop: 10,
@@ -352,7 +419,7 @@ export default function Sessions() {
                                     <KeyComboTag combo="shift + enter" />
                                     &nbsp;to start a new line
                                 </div>
-                            </div>
+                            </div> */}
                         </div>
                     </>
                 )}

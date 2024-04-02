@@ -15,6 +15,7 @@ import {
     faDatabase,
     faSignalStream,
 } from "@fortawesome/pro-duotone-svg-icons";
+import _ from "lodash";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -24,19 +25,24 @@ import { faIcon } from "./icon";
 export default function App({ children }) {
     const router = useRouter();
     const { appState } = useContext(AppContext);
-    const MENU_ITEMS = [
-        { href: "/sessions", text: "Sessions", icon: faSignalStream },
-        {
+    const MENU_ITEMS = {
+        sessions: { href: "/sessions", text: "Sessions", icon: faSignalStream },
+        data: {
             href: `/data/${appState.data.registryName}`,
             text: "Data",
             icon: faDatabase,
         },
-        {
+        agents: {
             href: `/agents/${appState.agent.registryName}`,
             text: "Agents",
             icon: faCircleA,
         },
-    ];
+        designer: {
+            href: "/agents/designer",
+            text: "Designer",
+            icon: faCompassDrafting,
+        },
+    };
     return (
         <>
             <Navbar style={{ paddingLeft: 20, paddingRight: 20 }}>
@@ -70,7 +76,8 @@ export default function App({ children }) {
                 }}
             >
                 <ButtonGroup alignText={Alignment.LEFT} vertical minimal large>
-                    {MENU_ITEMS.map(({ href, icon, text }, index) => {
+                    {["sessions", "data", "agents"].map((key, index) => {
+                        const { href, icon, text } = _.get(MENU_ITEMS, key, {});
                         const active = _.startsWith(router.asPath, href);
                         return (
                             <Link
@@ -96,20 +103,29 @@ export default function App({ children }) {
                     vertical
                     minimal
                     large
-                    style={{ marginTop: 40 }}
+                    style={{ marginTop: 20 }}
                 >
-                    <Link href="/designer">
-                        <Button
-                            style={
-                                !_.startsWith(router.asPath, "/designer")
-                                    ? { backgroundColor: "transparent" }
-                                    : null
-                            }
-                            active={_.startsWith(router.asPath, "/designer")}
-                            text="Designer"
-                            icon={faIcon({ icon: faCompassDrafting })}
-                        />
-                    </Link>
+                    {["designer"].map((key, index) => {
+                        const { href, icon, text } = _.get(MENU_ITEMS, key, {});
+                        const active = _.startsWith(router.asPath, href);
+                        return (
+                            <Link
+                                href={href}
+                                key={`app-card-button-group-link-${index}`}
+                            >
+                                <Button
+                                    style={
+                                        !active
+                                            ? { backgroundColor: "transparent" }
+                                            : null
+                                    }
+                                    active={active}
+                                    text={text}
+                                    icon={faIcon({ icon: icon })}
+                                />
+                            </Link>
+                        );
+                    })}
                 </ButtonGroup>
             </Card>
             <div
