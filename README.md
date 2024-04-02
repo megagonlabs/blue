@@ -392,8 +392,18 @@ Each deployment of the platform is named, with a separate network so that each c
 
 ## requirements
 
+As in the `localhost` deployment mode, the production of Blue also requires docker engine to build and run the infrastructure and agents. In addition, docker swarm is used for creating a production infrasructture and docker hub is used as a repository of docker images.
+
 ## configuration
 
+Below are the environment variables and typical settings for staging and production:
+
+- `BLUE_INSTALL_DIR`, directory containing blue installation, used in deployment scripts
+- `BLUE_DEPLOY_TARGET`, deployment target, swarm should be used for staging and 
+- `BLUE_DEPLOY_PLATFORM`, platform name, reflecting specific deployment/use case
+- `BLUE_PUBLIC_API_SERVER`, server address for the REST API , for example, `http://10.0.160.75:5050`
+- `BLUE_DATA_DIR`, directory hosting daa for blue services, for example `${BLUE_INSTALL_DIR}/data`, used in deployment scripts
+  
 ## setup
 
 ### swarm setup
@@ -437,17 +447,32 @@ $ ./create_data_volume.sh --data default
 
 This will create a directory called default under the $BLUE_DATA_DIR directory, and create a volume on that directory.
 
-## build 
+## build / publish
+
+Beyond building docker images for agents and platform componens, as in the `localhost` mode, in the `swarm` mode the images need to be published to docker hub. To do so, once built, you need to run publish scriips.
+
+For example, to publish all agent images:
+```
+$ cd agents
+$ ./docker_publish_all_agents.sh
+```
+
+Likewise, for API and frontend run their respective scriipts, `docker_publish_api.sh` and `docker_publish_frontend.sh` in their directories.
 
 ## deployment
 
+To deploy blue on a swarm, with the default options, run:
+```
+$ cd platform/scripts
+$ ./deploy_platform.sh --target swarm
+```
 
-## Changes
-Below is a list of recent changes:
-* [9/7/2023]: recorder agent
-* [9/7/2023]: agent can tag streams
-* [9/6/2023]: observer agent
-* [9/6/2023]: neo4j agent
-* [9/6/2023]: --loglevel parameter
-* [9/1/2023]: agent level memory
-* [9/1/2023]: include/exclude lists
+To test your deployment you can run:
+```
+$ docker service ls
+```
+
+and the list should contain three services running: redis, api , and frontend
+
+If you want to see it in action on the web, you can bring up the frontend by browsing to `http://<platform_ip_address>:3000` and the API documentation on `http://<platform_ip_address>:5050/docs#/`
+
