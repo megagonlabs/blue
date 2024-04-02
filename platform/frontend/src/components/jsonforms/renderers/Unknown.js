@@ -1,7 +1,6 @@
 import { Callout, Colors, Intent } from "@blueprintjs/core";
 import { rankWith } from "@jsonforms/core";
 import { withJsonFormsCellProps } from "@jsonforms/react";
-import _ from "lodash";
 const UnknownRenderer = ({ uischema }) => {
     return (
         <div
@@ -9,13 +8,11 @@ const UnknownRenderer = ({ uischema }) => {
                 backgroundColor: Colors.WHITE,
                 border: `2px dashed ${Colors.RED3}`,
                 borderRadius: 2,
-                overflow: "hidden",
-                whiteSpace: "wrap",
+                wordWrap: "break-word",
             }}
         >
             <Callout icon={null} intent={Intent.DANGER}>
-                No applicable renderer found for "{_.get(uischema, "type", "-")}
-                ".
+                No applicable renderer found for {JSON.stringify(uischema)}.
             </Callout>
         </div>
     );

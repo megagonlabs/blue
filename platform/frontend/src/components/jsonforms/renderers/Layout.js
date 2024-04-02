@@ -23,6 +23,7 @@ const LayoutRenderer = ({
             }}
         >
             {visible &&
+                !_.isEmpty(uischema.elements) &&
                 uischema.elements.map((child, index) => {
                     return (
                         <div

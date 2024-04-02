@@ -106,7 +106,7 @@ export default function Sessions() {
                     message: "Connection established",
                     timeout: 2000,
                 });
-                if (!_.isEmpty(sessionIds) && false) {
+                if (!_.isEmpty(sessionIds)) {
                     for (var i = 0; i < sessionIds.length; i++) {
                         appActions.session.observeSession({
                             sessionId: sessionIds[i],

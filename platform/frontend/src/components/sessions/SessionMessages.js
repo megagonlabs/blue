@@ -72,9 +72,9 @@ export default function SessionMessages() {
                     intent={own ? Intent.PRIMARY : null}
                     icon={null}
                     style={{
-                        width: 802.2,
+                        maxWidth: "min(802.2px, 100%)",
                         whiteSpace: "pre-wrap",
-                        maxWidth: "fit-content",
+                        width: "fit-content",
                     }}
                 >
                     <div

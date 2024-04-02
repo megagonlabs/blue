@@ -20,6 +20,7 @@ const GroupRenderer = ({
         >
             <SectionCard style={{ display: "flex", flexDirection: "column" }}>
                 {visible &&
+                    !_.isEmpty(uischema.elements) &&
                     uischema.elements.map((child, index) => {
                         return (
                             <JsonFormsDispatch

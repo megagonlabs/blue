@@ -1,6 +1,7 @@
 import { NumericInput } from "@blueprintjs/core";
 import _ from "lodash";
-import { useReducer } from "react";
+import { useContext, useReducer } from "react";
+import { AppContext } from "../app-context";
 const NumberAbbreviation = {
     BILLION: "b",
     MILLION: "m",
@@ -14,6 +15,7 @@ export default function NumberInput({
     data,
     precision = 11,
 }) {
+    const { appState } = useContext(AppContext);
     const [, forceUpdate] = useReducer((x) => x + 1, 0);
     const expandScientificNotationTerms = (value) => {
         // leave empty strings empty
@@ -125,6 +127,18 @@ export default function NumberInput({
         // the same value. force the update to ensure a render triggers even if
         // this is the case.
         forceUpdate();
+        if (_.isNil(appState.session.connection)) return;
+        setTimeout(() => {
+            appState.session.connection.send(
+                JSON.stringify({
+                    type: "INTERACTIVE_EVENT_MESSAGE",
+                    stream_id: _.get(uischema, "props.streamId", null),
+                    name_id: _.get(uischema, "props.nameId", null),
+                    message: _.toNumber(result),
+                    timestamp: Date.now(),
+                })
+            );
+        }, 0);
     };
     const handleKeyDown = (event) => {
         if (_.isEqual(event.key, "Enter")) {

@@ -1,4 +1,4 @@
-import { Card, Colors, NonIdealState } from "@blueprintjs/core";
+import { Button, Card, Colors, Intent, NonIdealState } from "@blueprintjs/core";
 import { faPlus } from "@fortawesome/pro-duotone-svg-icons";
 import _ from "lodash";
 import Link from "next/link";
@@ -22,6 +22,19 @@ export default function RegistryList({ type }) {
                     size: 50,
                 })}
                 title={`No ${_.capitalize(REGISTRY_TYPE_LOOKUP[type].key)}`}
+                action={
+                    _.includes(["agent"], type) ? (
+                        <Link href={`${router.asPath}/new`}>
+                            <Button
+                                intent={Intent.PRIMARY}
+                                large
+                                outlined
+                                icon={faIcon({ icon: faPlus })}
+                                text={`Add ${REGISTRY_TYPE_LOOKUP[type].key}`}
+                            />
+                        </Link>
+                    ) : null
+                }
             />
         );
     if (appState[type].search) {
@@ -68,7 +81,6 @@ export default function RegistryList({ type }) {
                     >
                         <Link href={`${router.asPath}/new`}>
                             <Card
-                                onClick={() => {}}
                                 style={{
                                     minHeight: 127,
                                     padding: 0,
