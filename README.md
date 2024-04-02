@@ -34,7 +34,7 @@ Below is an outline of the documentation on this repo:
 
 Let's start with introducing concepts in blue.
 
-
+---
 # orchestration concepts
 
 ## streams
@@ -69,8 +69,10 @@ Agents (i.e. agent workers) can store and share data among each other. Data is s
 - Finally, a worker can put data into the private `agent memory`  where it can only be seen by the workers of the agent itself.
 
 
-Want to get started? Follow the installation steps below..
+Want to get started? Follow the installation steps below.. 
 
+
+---
 # installation
 
 Blue can be deployed in two modes: (1) `localhost` (2) `swarm` mode. `localhost` is more suitable for development and `swarm` mode is more suitable for staging and production. Below we describe how you can deploy blue in `localhost` mode and further down we will talk about `swarm` mode when we discuss production mode of deployment.
@@ -210,6 +212,11 @@ $ docker run -e session=SESSION:493e2083-61a0-4c90-accf-3d372f5b8aac --network="
 $ docker run -e session=SESSION:493e2083-61a0-4c90-accf-3d372f5b8aac --network="host" blue-agent-websocket_counter
 ```
 
+---
+
+
+
+
 # development
 
 Let's dive into a bit of development of the agents. The `agents/lib` contains an Agent class that can be used as a base class for developing new agents. You do not necessarily need to extend the base class to create a new class for an agent as you can use the Agent class directly, and use the APIs to process data from other agents. Let's go through an example that basically uses base class:
@@ -305,6 +312,7 @@ To share data among workers processing data from the same stream, you can use `s
 
 To share data among all agent works in the session, you can use `set_session_data(key, value)`, `append_session_data(key, value)`, `get_session_data(key)`, and `get_session_data_len(key)`.
 
+---
 
 # demos
 
@@ -314,6 +322,7 @@ There are lots of demos in the [demos](demos) folder. Please try them on your ow
 
 There are a number of generic multi-purpose agents we developed which you can either use as templates or find direct use of them in your applications. To learn more about them follow the README under [agents](agents) directory. 
 
+---
 
 # production
 
