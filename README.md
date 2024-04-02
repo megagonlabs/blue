@@ -21,8 +21,21 @@ In Blue, key components of the AI system are:
 - a conversational user interface where users can create sessions, add agents to their conversation, interact with them, and accomplish tasks.
 - a python API to allow other modalities where a multi-agent system can be utilized programatically, such as developing APIs.
 
+Sounds interesting? Want to learn more? 
 
-# orchestration, concepts
+Below is an outline of the documentation on this repo:
+* [orchestration concepts](#orchestration-concepts)
+* [installation](#installation)
+* [a basic example](#a-basic-example)
+* [development](#development)
+* [demos](#demos)
+* [agents](#agents)
+* [production](#production)
+
+Let's start with introducing concepts in blue.
+
+
+# orchestration concepts
 
 ## streams
 The central "orchestration" concept in Blue is a `stream`. A stream is essentially a continuous sequence of messages (data, instructions) that can be dynamically produced, monitored, and consumed. For example, a temperature sensor can spit out the current temperature every minute to a stream. In our context, a user typing in text in a chat, for example, asking a question can be a stream, where each word is transmitted as they are typed. An LLM generating text can be another stream, and generated text can be output as they are being generated. 
@@ -48,7 +61,7 @@ The central "context" concept in Blue is a `session`. A session is initiated by 
 Agents (i.e. agent workers) can store and share data among each other. Data is stored and retrieved in three levels of context: (a) session (b) stream (c) agent and (d) workers. A worker can put data into the session store which can be seen and retrieved by any agent and worker in the session. A worker can further limit the scope of the data to a stream, where data can be seen only by agents which are working on a specific stream. Finally, a worker can put private data where it can only be seen by the worker itself, or more broadly by all workers in the agent.
 
 
-# development
+# installation
 
 Blue can be deployed in two modes: (1) `localhost` (2) `swarm` mode. `localhost` is more suitable for development and `swarm` mode is more suitable for staging and production. Below we describe how you can deploy blue in `localhost` mode and further down we will talk about `swarm` mode as we discuss production.
 
@@ -138,7 +151,7 @@ If you want to see it in action on the web, you can bring up the frontend by bro
 
 
 
-## trying a basic example
+# a basic example
 
 Let's try running a very basic example. In this example, a user agent emits some text and a counter agent simply listens to the user agent and returns the number of words.
 
@@ -188,7 +201,7 @@ $ docker run -e session=SESSION:493e2083-61a0-4c90-accf-3d372f5b8aac --network="
 $ docker run -e session=SESSION:493e2083-61a0-4c90-accf-3d372f5b8aac --network="host" blue-agent-websocket_counter
 ```
 
-## agent development
+# development
 
 Let's dive into a bit of development of the agents. The `agents/lib` contains an Agent class that can be used as a base class for developing new agents. You do not necessarily need to extend the base class to create a new class for an agent as you can use the Agent class directly, and use the APIs to process data from other agents. Let's go through an example that basically uses base class:
 
@@ -265,7 +278,7 @@ Not quite. One question is who is listening to who. To decide which agents to li
     
 That is it, for now. :) 
 
-### memory 
+## memory 
 The above example works if there is only one worker and that worker is solely responsible from start to end (i.e. it doesn't fail). The reason is that in the above example `stream_data` is a shared variable among all workers of the agent, even when they worker on a different stream. To resolve this issue, you need to create distributed memory (uses Redis JSON) that a worker can write its private data that is only specific to a stream. 
 
 As discussed above there are three levels of data context. Below are API functions for reading and writing in these respective context. To allow this you will need to pass worker as a keyword parameter to the processor function, i.e. 
@@ -284,16 +297,16 @@ To share data among workers processing data from the same stream, you can use `s
 To share data among all agent works in the session, you can use `set_session_data(key, value)`, `append_session_data(key, value)`, `get_session_data(key)`, and `get_session_data_len(key)`.
 
 
-## examples, demos
+# demos
 
 There are lots of demos in the demos folder. Please try them on your own following the respective documentation in the folders.
 
-## generic agents
+# agents
 
 There are a number of generic multi-purpose agents we develop which you can either use as templates or find direct use of them in your applications. To learn more about them follow the README under agents directory. 
 
 
-# staging, production
+# production
 
 The main difference between a `localhost` deployment and a `swarm` deployment is that there are multiple compute nodes where various components can be deployed to. Another key difference is that ccomponents are added as a service where each can be configure with multiple scalability configurations and other service options.
 
