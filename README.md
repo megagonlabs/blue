@@ -136,10 +136,13 @@ and the list should contain three containers running: redis, api , and frontend
 
 If you want to see it in action on the web, you can bring up the frontend by browsing to `http://localhost:3000` and the API documentation on `http://localhost:5050/docs#/`
 
-## examples, demos
 
-### v0.1 example
-To try out demo of v0.1, run the following commands:
+
+## trying a basic example
+
+Let's try running a very basic example. In this example, a user agent emits some text and a counter agent simply listens to the user agent and returns the number of words.
+
+To input some text through the user agent, run:
 ```
 $ cd agents/simple_user
 $ python src/simple_user_agent.py --interactive
@@ -147,12 +150,14 @@ $ python src/simple_user_agent.py --interactive
 INFO:root:Started consumer USER for stream SESSION:493e2083-61a0-4c90-accf-3d372f5b8aac
 Enter Text: Hello, this is a really long message. Kidding not really.
 ```
+
 Then copy the session the USER agent created (i.e. SESSION:493e2083-61a0-4c90-accf-3d372f5b8aac)  so that another agent can participate in the same session:
 ```
 $ cd agents/simple_counter
 $ python src/simple_counter_agent.py --session SESSION:493e2083-61a0-4c90-accf-3d372f5b8aac --loglevel ERROR
 [...]
 ```
+
 In the above example, the user enters some text and another agents listens to the sesssion the user agent works in, when the user agent creates a stream and enter text, the counter agent above picks up the stream and computes the length of the user stream and outputs that into another stream in the session.. You can see the demo stream contents using RedisInsight or use Observer agent (see below).
 
 A more sophisticated example would be where an agent talks to a service over websockets. To run an example like that you first need to bring up a web service and then run the agent that talks to the service. Let's first build the service as a docker image:
@@ -279,10 +284,14 @@ To share data among workers processing data from the same stream, you can use `s
 To share data among all agent works in the session, you can use `set_session_data(key, value)`, `append_session_data(key, value)`, `get_session_data(key)`, and `get_session_data_len(key)`.
 
 
+## examples, demos
+
+There are lots of demos in the demos folder. Please try them on your own following the respective documentation in the folders.
 
 ## generic agents
 
-Beyond the basic proof of concept agents below we document agents we develop that are a bit more useful for a variety of tasks. 
+There are a number of generic multi-purpose agents we develop which you can either use as templates or find direct use of them in your applications. To learn more about them follow the README under agents directory. 
+
 
 ### api
 APIAgent is a generic Agent that is designed to be a base class for a variety of agents that essentially talk to an API. To support this it has a number of properties designed to construct a message to the API from input and other properties and parse response from the API to build the right output. Below are the properties to support this:
