@@ -42,28 +42,38 @@ The central "orchestration" concept in Blue is a `stream`. A stream is essential
 
 ![Stream](./docs/images/stream.png)
 
-In blue, streams are used in multiple places. Agents consume streams and produce their output into streams. Sessions are also streams, with messages announcing agents joining and leaving as well as new streams produced in the session. As such streams are the main way of passing data and instructions between agents, where an agent can produce a stream (data and instructions) and another agent can consume from the stream. 
+In blue, streams are used in multiple places. Agents consume streams and produce their output into streams. Sessions are also streams, with agents announcing  joining and leaving a session and producing output as a message in the session stream. Planners (or any other agent) instructing other agents to do work is also a message in the stream. As such streams are the main way of passing data and instructions between agents, where an agent can produce a stream (data and instructions) and another agent can consume from the stream. 
 
 Messages can be data and instruction messages, with supported data types of integer, string, and JSON objects.
 
+Streams are tagged by the agent which created the stream. Tags serve multiple purpose but mainly to allow other agents to determine if they are interested to listen to stream.
+
 ## agents
-The central "compute" concept in blue is an agent. An agent basically spawns a worker to monitor to a stream, if it decides to act on it, can process the data and produce output in another stream. There might be yet another agent monitoring the output of the first agent and do something on top or choose to listen to the user stream. 
+The central "compute" concept in blue is an agent. An agent basically spawns a worker to monitor to a stream, if it decides to act on it, can process the data and produce output in another stream(s). There might be yet another agent monitoring the output of the first agent and do something on top, and so on. 
 
 ![Agent](./docs/images/agent.png)
 
+Agents have a set of properties which defines options and settings regarding how an agent will operating. Most of the properties are specific to the agent. All agents also define a `listens` property which define `includes` and `excludes` rule to determine which streams to listen to. 
+
 ### worker
-A worker is a thread of an agent that is basically dedicated to a specific input stream and outputs to a specific output stream.
+A worker is a thread of an agent that is basically dedicated to a specific input stream and outputs to a specific output stream. How a worker should process the input stream (processor function) is passed on to the worker from the agent. Similarly an agent's properties are also passed on to any of its workers.
 
 ## session
-The central "context" concept in Blue is a `session`. A session is initiated by an agent, usually a user agent input into a stream, and continiously expanded by other agents responding to the initial stream and other streams in the session. Agents are added to a session to orchestrate a response to the initial user input. Once added an agent can listen to any `stream` in the session and decide to follow-up and process data in the stream to produce more streams in the session.
+The central "context" concept in Blue is a `session`. A session is initiated by an agent, typically a user agent, and continiously expanded by other agents responding to the initial stream and other streams in the session. Agents are added to a session to orchestrate a response to the initial user input. Once added an agent can listen to any `stream` in the session and decide to follow-up and process data in the stream to produce more streams in the session.
 
 ## memory
-Agents (i.e. agent workers) can store and share data among each other. Data is stored and retrieved in three levels of context: (a) session (b) stream (c) agent and (d) workers. A worker can put data into the session store which can be seen and retrieved by any agent and worker in the session. A worker can further limit the scope of the data to a stream, where data can be seen only by agents which are working on a specific stream. Finally, a worker can put private data where it can only be seen by the worker itself, or more broadly by all workers in the agent.
+Agents (i.e. agent workers) can store and share data among each other. Data is stored to and retrieved from the `shared memory` at three levels of scope: (a) session (b) stream (c) agent. 
 
+- A worker can put data into the `session memory` which can be seen and retrieved by any agent and its worker in the session. 
+- A worker can further limit the scope of the data to a specificc stream, where data can be seen only by agents (workers) which are working on that specific stream. This is the `stream memory`. 
+- Finally, a worker can put data into the private `agent memory`  where it can only be seen by the workers of the agent itself.
+
+
+Want to get started? Follow the installation steps below..
 
 # installation
 
-Blue can be deployed in two modes: (1) `localhost` (2) `swarm` mode. `localhost` is more suitable for development and `swarm` mode is more suitable for staging and production. Below we describe how you can deploy blue in `localhost` mode and further down we will talk about `swarm` mode as we discuss production.
+Blue can be deployed in two modes: (1) `localhost` (2) `swarm` mode. `localhost` is more suitable for development and `swarm` mode is more suitable for staging and production. Below we describe how you can deploy blue in `localhost` mode and further down we will talk about `swarm` mode when we discuss production mode of deployment.
 
 ## requirements
 Blue requires docker engine to build and run the infrastructure and agents. To develop on your local machine you would need to install docker engine from 
@@ -71,7 +81,7 @@ https://docs.docker.com/engine/install/
 
 ## configuration
 
-Most of blue scripts require a number of parameters. While you can use defaults, configuring your setup can be more easy, if you set environment variables for your choices. Below is the list of environment varibles:
+Most of blue scripts require a number of parameters. While you can use the defaults, configuring your setup can be more easy, if you set environment variables for your choices. Below is the list of environment varibles:
 
 - `BLUE_INSTALL_DIR`, directory containing blue source code, for example, `/Users/me/blue`
 - `BLUE_DEPLOY_TARGET`, deployment target, localhost (default) or swarm
@@ -94,7 +104,7 @@ This will create a directory called `default` under the `$BLUE_DATA_DIR` directo
 
 ## build
 
-Even when running blue locally during development, many components of blue should be run in docker containers. It is important to build the various docker images first.
+Even when running blue locally during development, many components of blue should be run as docker containers. As such it is important to build the various docker images first.
 
 ### building agents
 
@@ -130,7 +140,7 @@ $ cd platform/frontend
 $ ./docker_build_frontend.sh
 ```
 
-While not necessary to build images for agent and data regisries, if you would like to use them independently, you could build images for them as well. Simply `cd agent_registry` and `./docker_build_agent_regisry.sh` to build agent registry and `cd data_registry` and `./docker_build_data_regisry.sh` to build data registry.
+While not necessary to build images for agent and data regisries, if you would like to use them independently, you could build images for them as well. Simply `cd agent_registry` and `./docker_build_agent_regisry.sh` to build agent registry and `cd data_registry` and `./docker_build_data_regisry.sh` to build data registry. See more in [agent_registry](platform/agent_regisry) and [data_registry](platform/data_registry).
 
 ## deployment
 
@@ -150,8 +160,7 @@ and the list should contain three containers running: redis, api , and frontend
 If you want to see it in action on the web, you can bring up the frontend by browsing to `http://localhost:3000` and the API documentation on `http://localhost:5050/docs#/`
 
 
-
-# a basic example
+# 'hello world' example
 
 Let's try running a very basic example. In this example, a user agent emits some text and a counter agent simply listens to the user agent and returns the number of words.
 
@@ -161,7 +170,7 @@ $ cd agents/simple_user
 $ python src/simple_user_agent.py --interactive
 [...]
 INFO:root:Started consumer USER for stream SESSION:493e2083-61a0-4c90-accf-3d372f5b8aac
-Enter Text: Hello, this is a really long message. Kidding not really.
+Enter Text: Hello, world!
 ```
 
 Then copy the session the USER agent created (i.e. SESSION:493e2083-61a0-4c90-accf-3d372f5b8aac)  so that another agent can participate in the same session:
