@@ -96,8 +96,8 @@ https://docs.docker.com/engine/install/
 Most of blue scripts require a number of parameters. While you can use the defaults, configuring your setup can be more easy, if you set environment variables for your choices. Below is the list of environment varibles:
 
 - `BLUE_INSTALL_DIR`, directory containing blue source code, for example, `/Users/me/blue`
-- `BLUE_DEPLOY_TARGET`, deployment target, localhost (default) or swarm
-- `BLUE_DEPLOY_PLATFORM`, platform name, default (default)
+- `BLUE_DEPLOY_TARGET`, deployment target, `localhost` (default) or `swarm`
+- `BLUE_DEPLOY_PLATFORM`, platform name, `default` (default)
 - `BLUE_PUBLIC_API_SERVER`, server address for the REST API , for example, `http://localhost:5050`
 - `BLUE_DATA_DIR`, directory hosting daa for blue services, for example `${BLUE_INSTALL_DIR}/data`
 
@@ -105,14 +105,29 @@ Use of utilities such as [direnv](https://direnv.net/) is strongly encouraged to
 
 ## setup
 
+### data volume setup
+
+
 A data volume is added to several services (agents, API, etc.) where common data such as models can be stored within a platform (e.g. `default`). To create a data volume on your development environment, run:
 
 ```
 $ cd platform/scripts
 $ ./create_data_volume.sh --data default
 ```
-
 This will create a directory called `default` under the `$BLUE_DATA_DIR` directory, and create a volume on that directory.
+
+#### data volume contents
+
+In the default configuration some of the components of blue require data and models, stored in the data volume. Below are the steps to put them into the volume you just created:
+
+```
+$ brew install git-lfs
+$ git lfs install
+$ cd $BLUE_DATA_DIR/$BLUE_DEPLOY_PLATFORM
+$ mkdir models
+$ cd models
+$ git clone https://huggingface.co/sentence-transformers/paraphrase-MiniLM-L6-v2
+``` 
 
 ## build
 
