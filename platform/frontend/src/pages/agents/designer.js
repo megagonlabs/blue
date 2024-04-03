@@ -30,10 +30,20 @@ import StringRenderer, {
 import UnknownRenderer, {
     UnknownTester,
 } from "@/components/jsonforms/renderers/Unknown";
-import { Alignment, Button, Callout, Intent } from "@blueprintjs/core";
+import {
+    Alignment,
+    Button,
+    ButtonGroup,
+    Callout,
+    Card,
+    Divider,
+    Intent,
+} from "@blueprintjs/core";
 import {
     faArrowsFromLine,
+    faBookOpenCover,
     faCircleXmark,
+    faTrash,
 } from "@fortawesome/pro-duotone-svg-icons";
 import { JsonForms } from "@jsonforms/react";
 import { vanillaCells, vanillaRenderers } from "@jsonforms/vanilla-renderers";
@@ -64,159 +74,194 @@ export default function Designer() {
         style: { fontWeight: 600 },
     };
     return (
-        <Allotment>
-            <Allotment.Pane minSize={321.094}>
-                <Allotment vertical ref={topPaneRef}>
-                    <Allotment.Pane minSize={187.5}>
-                        <div
-                            style={{
-                                padding: 5,
-                                borderBottom:
-                                    "1px solid rgba(17, 20, 24, 0.15)",
-                            }}
-                        >
-                            <Button
-                                intent={uiSchemaError ? Intent.DANGER : null}
-                                icon={
-                                    uiSchemaError
-                                        ? faIcon({ icon: faCircleXmark })
-                                        : null
-                                }
-                                {...BUTTON_PROPS}
-                                text="UI Schema"
-                                onClick={() => {
-                                    topPaneRef.current.resize([
-                                        window.innerHeight,
-                                        187.5,
-                                    ]);
-                                }}
-                                rightIcon={faIcon({ icon: faArrowsFromLine })}
-                            />
-                        </div>
-                        <div
-                            className="full-parent-height"
-                            style={{
-                                overflowY: "auto",
-                                maxHeight: "calc(100% - 51px)",
-                            }}
-                        >
-                            <Editor
-                                allowSaveWithError
-                                code={uiSchema}
-                                setCode={setUiSchema}
-                                setError={setUiSchemaError}
-                            />
-                        </div>
-                    </Allotment.Pane>
-                    <Allotment.Pane minSize={187.5}>
-                        <div
-                            style={{
-                                padding: 5,
-                                borderBottom:
-                                    "1px solid rgba(17, 20, 24, 0.15)",
-                            }}
-                        >
-                            <Button
-                                intent={schemaError ? Intent.DANGER : null}
-                                icon={
-                                    schemaError
-                                        ? faIcon({ icon: faCircleXmark })
-                                        : null
-                                }
-                                {...BUTTON_PROPS}
-                                text="Schema"
-                                onClick={() => {
-                                    topPaneRef.current.resize([
-                                        187.5,
-                                        window.innerHeight,
-                                    ]);
-                                }}
-                                rightIcon={faIcon({ icon: faArrowsFromLine })}
-                            />
-                        </div>
+        <>
+            <Card interactive style={{ padding: 5, borderRadius: 0 }}>
+                <ButtonGroup large minimal>
+                    <Button
+                        disabled
+                        text="Doc"
+                        icon={faIcon({ icon: faBookOpenCover })}
+                    />
+                    <Divider />
+                    <Button
+                        disabled
+                        intent={Intent.DANGER}
+                        text="Clear All"
+                        icon={faIcon({ icon: faTrash })}
+                    />
+                </ButtonGroup>
+            </Card>
+            <div style={{ height: "calc(100% - 40px)" }}>
+                <Allotment>
+                    <Allotment.Pane minSize={321.094}>
+                        <Allotment vertical ref={topPaneRef}>
+                            <Allotment.Pane minSize={187.5}>
+                                <div
+                                    style={{
+                                        padding: 5,
+                                        borderBottom:
+                                            "1px solid rgba(17, 20, 24, 0.15)",
+                                    }}
+                                >
+                                    <Button
+                                        intent={
+                                            uiSchemaError ? Intent.DANGER : null
+                                        }
+                                        icon={
+                                            uiSchemaError
+                                                ? faIcon({
+                                                      icon: faCircleXmark,
+                                                  })
+                                                : null
+                                        }
+                                        {...BUTTON_PROPS}
+                                        text="UI Schema"
+                                        onClick={() => {
+                                            topPaneRef.current.resize([
+                                                window.innerHeight,
+                                                187.5,
+                                            ]);
+                                        }}
+                                        rightIcon={faIcon({
+                                            icon: faArrowsFromLine,
+                                        })}
+                                    />
+                                </div>
+                                <div
+                                    className="full-parent-height"
+                                    style={{
+                                        overflowY: "auto",
+                                        maxHeight: "calc(100% - 51px)",
+                                    }}
+                                >
+                                    <Editor
+                                        allowSaveWithError
+                                        code={uiSchema}
+                                        setCode={setUiSchema}
+                                        setError={setUiSchemaError}
+                                    />
+                                </div>
+                            </Allotment.Pane>
+                            <Allotment.Pane minSize={187.5}>
+                                <div
+                                    style={{
+                                        padding: 5,
+                                        borderBottom:
+                                            "1px solid rgba(17, 20, 24, 0.15)",
+                                    }}
+                                >
+                                    <Button
+                                        intent={
+                                            schemaError ? Intent.DANGER : null
+                                        }
+                                        icon={
+                                            schemaError
+                                                ? faIcon({
+                                                      icon: faCircleXmark,
+                                                  })
+                                                : null
+                                        }
+                                        {...BUTTON_PROPS}
+                                        text="Schema"
+                                        onClick={() => {
+                                            topPaneRef.current.resize([
+                                                187.5,
+                                                window.innerHeight,
+                                            ]);
+                                        }}
+                                        rightIcon={faIcon({
+                                            icon: faArrowsFromLine,
+                                        })}
+                                    />
+                                </div>
 
+                                <div
+                                    className="full-parent-height"
+                                    style={{
+                                        overflowY: "auto",
+                                        maxHeight: "calc(100% - 51px)",
+                                    }}
+                                >
+                                    <Editor
+                                        allowSaveWithError
+                                        code={schema}
+                                        setCode={setSchema}
+                                        setError={setSchemaError}
+                                    />
+                                </div>
+                            </Allotment.Pane>
+                        </Allotment>
+                    </Allotment.Pane>
+                    <Allotment.Pane minSize={321.094}>
                         <div
                             className="full-parent-height"
-                            style={{
-                                overflowY: "auto",
-                                maxHeight: "calc(100% - 51px)",
-                            }}
+                            style={{ padding: 20, overflowY: "auto" }}
                         >
-                            <Editor
-                                allowSaveWithError
-                                code={schema}
-                                setCode={setSchema}
-                                setError={setSchemaError}
-                            />
+                            <Callout
+                                style={{
+                                    maxWidth: "min(802.2px, 100%)",
+                                    whiteSpace: "pre-wrap",
+                                    width: "fit-content",
+                                }}
+                            >
+                                <JsonForms
+                                    schema={jsonSchema}
+                                    uischema={jsonUiSchema}
+                                    data={data}
+                                    renderers={[
+                                        ...vanillaRenderers,
+                                        {
+                                            tester: GroupTester,
+                                            renderer: GroupRenderer,
+                                        },
+                                        {
+                                            tester: LabelTester,
+                                            renderer: LabelRenderer,
+                                        },
+                                        {
+                                            tester: BooleanTester,
+                                            renderer: BooleanRenderer,
+                                        },
+                                        {
+                                            tester: EnumTester,
+                                            renderer: EnumRenderer,
+                                        },
+                                        {
+                                            tester: LayoutTester,
+                                            renderer: LayoutRenderer,
+                                        },
+                                        {
+                                            tester: StringTester,
+                                            renderer: StringRenderer,
+                                        },
+                                        {
+                                            tester: NumberTester,
+                                            renderer: NumberRenderer,
+                                        },
+                                        {
+                                            tester: IntegerTester,
+                                            renderer: IntegerRenderer,
+                                        },
+                                        {
+                                            tester: ButtonTester,
+                                            renderer: ButtonRenderer,
+                                        },
+                                        {
+                                            tester: UnknownTester,
+                                            renderer: UnknownRenderer,
+                                        },
+                                    ]}
+                                    cells={vanillaCells}
+                                    onChange={({ data, errors }) => {
+                                        console.log(data, errors);
+                                        setData(data);
+                                    }}
+                                />
+                            </Callout>
                         </div>
                     </Allotment.Pane>
                 </Allotment>
-            </Allotment.Pane>
-            <Allotment.Pane minSize={187.5}>
-                <div
-                    className="full-parent-height"
-                    style={{ padding: 20, overflowY: "auto" }}
-                >
-                    <Callout
-                        style={{
-                            maxWidth: "min(802.2px, 100%)",
-                            whiteSpace: "pre-wrap",
-                            width: "fit-content",
-                        }}
-                    >
-                        <JsonForms
-                            schema={jsonSchema}
-                            uischema={jsonUiSchema}
-                            data={data}
-                            renderers={[
-                                ...vanillaRenderers,
-                                {
-                                    tester: GroupTester,
-                                    renderer: GroupRenderer,
-                                },
-                                {
-                                    tester: LabelTester,
-                                    renderer: LabelRenderer,
-                                },
-                                {
-                                    tester: BooleanTester,
-                                    renderer: BooleanRenderer,
-                                },
-                                { tester: EnumTester, renderer: EnumRenderer },
-                                {
-                                    tester: LayoutTester,
-                                    renderer: LayoutRenderer,
-                                },
-                                {
-                                    tester: StringTester,
-                                    renderer: StringRenderer,
-                                },
-                                {
-                                    tester: NumberTester,
-                                    renderer: NumberRenderer,
-                                },
-                                {
-                                    tester: IntegerTester,
-                                    renderer: IntegerRenderer,
-                                },
-                                {
-                                    tester: ButtonTester,
-                                    renderer: ButtonRenderer,
-                                },
-                                {
-                                    tester: UnknownTester,
-                                    renderer: UnknownRenderer,
-                                },
-                            ]}
-                            cells={vanillaCells}
-                            onChange={({ data, errors }) => {
-                                console.log(data, errors);
-                                setData(data);
-                            }}
-                        />
-                    </Callout>
-                </div>
-            </Allotment.Pane>
-        </Allotment>
+            </div>
+        </>
     );
 }

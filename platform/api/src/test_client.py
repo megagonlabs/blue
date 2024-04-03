@@ -255,7 +255,10 @@ for _ in range(11):
             {
                 "type": "OBSERVER_SESSION_MESSAGE",
                 "session_id": session_id,
-                "message": random.choice([sentence_string, words_string]),
+                "message": {
+                    "type": "STRING",
+                    "content": random.choice([sentence_string, words_string]),
+                },
             }
         )
     )

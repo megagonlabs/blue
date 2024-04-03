@@ -29,3 +29,6 @@ table.entity-section-card-table tr td {
     content: " *";
     color: #cd4246;
 }
+.margin-0 {
+    margin: 0;
+}

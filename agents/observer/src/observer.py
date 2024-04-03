@@ -8,7 +8,7 @@ sys.path.append("./lib/agent/")
 sys.path.append("./lib/platform/")
 sys.path.append("./lib/utils/")
 
-###### 
+######
 import time
 import argparse
 import logging
@@ -37,7 +37,14 @@ logging.getLogger().setLevel(logging.INFO)
 
 #######################
 class ObserverAgent(Agent):
-    def __init__(self, name="OBSERVER", session=None, input_stream=None, processor=None, properties={}):
+    def __init__(
+        self,
+        name="OBSERVER",
+        session=None,
+        input_stream=None,
+        processor=None,
+        properties={},
+    ):
         super().__init__(
             name,
             session=session,
@@ -77,7 +84,10 @@ class ObserverAgent(Agent):
                                     {
                                         "type": "OBSERVER_SESSION_MESSAGE",
                                         "session_id": properties["session_id"],
-                                        "message": str_data,
+                                        "message": {
+                                            "type": "STRING",
+                                            "content": str_data,
+                                        },
                                         "stream": stream,
                                     }
                                 )
@@ -108,12 +118,12 @@ class ObserverAgent(Agent):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--name', default="OBSERVER", type=str)
+    parser.add_argument("--name", default="OBSERVER", type=str)
     parser.add_argument("--session", type=str)
     parser.add_argument("--input_stream", type=str)
     parser.add_argument("--properties", type=str)
     parser.add_argument("--loglevel", default="ERROR", type=str)
-    parser.add_argument('--serve', default=False, action=argparse.BooleanOptionalAction)
+    parser.add_argument("--serve", default=False, action=argparse.BooleanOptionalAction)
 
     args = parser.parse_args()
 
@@ -126,7 +136,7 @@ if __name__ == "__main__":
     if p:
         # decode json
         properties = json.loads(p)
-    
+
     if args.serve:
         # launch agent with parameters, start session
         def launch(*args, **kwargs):
@@ -143,9 +153,9 @@ if __name__ == "__main__":
             logging.info("Launching UserAgent...")
             logging.info(kwargs)
             agent = ObserverAgent(*args, **kwargs)
-            logging.info("Joined session: " + kwargs['session'])
+            logging.info("Joined session: " + kwargs["session"])
             logging.info("Launched.")
-            return kwargs['session']
+            return kwargs["session"]
 
         # run rpc server
         rpc = RPCServer(args.name, properties=properties)
@@ -161,7 +171,9 @@ if __name__ == "__main__":
             a = ObserverAgent(name=args.name, session=session, properties=properties)
         elif args.input_stream:
             # no session, work on a single input stream
-            a = ObserverAgent(name=args.name, input_stream=args.input_stream, properties=properties)
+            a = ObserverAgent(
+                name=args.name, input_stream=args.input_stream, properties=properties
+            )
         else:
             # create a new session
             a = ObserverAgent(name=args.name, properties=properties)

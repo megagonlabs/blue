@@ -1,8 +1,10 @@
 import { Callout, Classes, Intent } from "@blueprintjs/core";
+import _ from "lodash";
 import { useContext, useEffect, useRef } from "react";
 import AutoSizer from "react-virtualized-auto-sizer";
 import { VariableSizeList } from "react-window";
 import { AppContext } from "../app-context";
+import InteractiveMessage from "./InteractiveMessage";
 export default function SessionMessages() {
     const variableSizeListRef = useRef();
     const rowHeights = useRef({});
@@ -56,6 +58,8 @@ export default function SessionMessages() {
                 window.removeEventListener("resize", handleResize);
             };
         }, []);
+        const messageType = _.get(messages[index].message, "type", "STRING"),
+            messageContent = _.get(messages[index].message, "content", null);
         return (
             <div
                 style={{
@@ -77,12 +81,13 @@ export default function SessionMessages() {
                         width: "fit-content",
                     }}
                 >
-                    <div
-                        ref={rowRef}
-                        dangerouslySetInnerHTML={{
-                            __html: messages[index].message,
-                        }}
-                    />
+                    <div ref={rowRef}>
+                        {_.isEqual(messageType, "STRING") ? (
+                            messageContent
+                        ) : _.isEqual(messageType, "INTERACTIVE") ? (
+                            <InteractiveMessage content={messageContent} />
+                        ) : null}
+                    </div>
                 </Callout>
                 {!own ? (
                     <div

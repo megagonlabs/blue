@@ -1,3 +1,3 @@
-export default function InteractiveMessage() {
-    return null;
+export default function InteractiveMessage({ content }) {
+    return JSON.stringify(content);
 }

@@ -5,6 +5,7 @@ import {
     Card,
     H3,
     Intent,
+    MenuDivider,
     Navbar,
     NavbarHeading,
     Tag,
@@ -75,7 +76,14 @@ export default function App({ children }) {
                     zIndex: 1,
                 }}
             >
-                <ButtonGroup alignText={Alignment.LEFT} vertical minimal large>
+                <MenuDivider title="" className="margin-0" />
+                <ButtonGroup
+                    alignText={Alignment.LEFT}
+                    vertical
+                    minimal
+                    large
+                    style={{ marginBottom: 20 }}
+                >
                     {["sessions", "data", "agents"].map((key, index) => {
                         const { href, icon, text } = _.get(MENU_ITEMS, key, {});
                         const active = _.startsWith(router.asPath, href);
@@ -98,12 +106,13 @@ export default function App({ children }) {
                         );
                     })}
                 </ButtonGroup>
+                <MenuDivider title="Tools" />
                 <ButtonGroup
                     alignText={Alignment.LEFT}
                     vertical
                     minimal
                     large
-                    style={{ marginTop: 20 }}
+                    style={{ marginBottom: 20 }}
                 >
                     {["designer"].map((key, index) => {
                         const { href, icon, text } = _.get(MENU_ITEMS, key, {});
@@ -127,6 +136,7 @@ export default function App({ children }) {
                         );
                     })}
                 </ButtonGroup>
+                <MenuDivider title="Administration" />
             </Card>
             <div
                 style={{
