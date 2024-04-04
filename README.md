@@ -112,7 +112,7 @@ A data volume is added to several services (agents, API, etc.) where common data
 
 ```
 $ cd platform/scripts
-$ ./create_data_volume.sh --data default
+$ ./create_data_volume.sh --platform default
 ```
 This will create a directory called `default` under the `$BLUE_DATA_DIR` directory, and create a volume on that directory.
 
@@ -342,8 +342,10 @@ where <label> is either `platform`, `db`, or `agent` and <node> is the node id w
 
 For the swarm mode it is best to utilize a shared filesystem as the location of the data folder. Set `BLUE_DATA_DIR` to a folder on such a shared filesystem. Next, to create a data volume, run:
 
+```
 $ cd platform/scripts
-$ ./create_data_volume.sh --data default
+$ ./create_data_volume.sh --platform default
+```
 
 This will create a directory called default under the $BLUE_DATA_DIR directory, and create a volume on that directory.
 
