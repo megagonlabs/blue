@@ -217,6 +217,26 @@ $ python src/counter_agent.py --session SESSION:2f6ecafe --loglevel ERROR
 
 In the above example, the user enters some text and another agents listens to the sesssion the user agent works in, when the user agent creates a stream and enter text, the counter agent above picks up the stream and computes the length of the user stream and outputs that into another stream in the session. You can see the log output from the counter agent to see its output. You can also see the demo stream contents using RedisInsight or use Observer agent (see [Observer](agents/observer)).
 
+Now let's do a more sophisticted 'hello world!'
+
+A more sophisticated example would be where the agent doesn't do the heavy work itself (counting is hard!) but merely makes a call to a service over websockets. To run an example like that you first need to bring up a web service and then run the agent that talks to the service. Let's first build the service as a docker image:
+
+```
+$ cd agents/websocket_counter
+$ ./docker_build_service.sh
+```
+
+Then deploy the service:
+```
+$ cd platform/scripts
+$ ./deploy_service.sh --name websocket_counter --port_mapping 8001:8001 --image blue-service-websocket_counter:latest
+```
+
+And lastly run the agent:
+```
+$ cd agents/websocket_counter
+$ python src/websocket_counter_agent.py --session SESSION:2f6ecafe --properties='{"counter.service":"ws://localhost:8001"}'
+```
 
 
 </br>

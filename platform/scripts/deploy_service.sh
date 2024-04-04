@@ -1,6 +1,6 @@
 #/bin/bash
 
-# USAGE: deploy_service --target localhost|swarm --platform platform --name name --image image <positional arguments for service>
+# USAGE: deploy_service --target localhost|swarm --platform platform --port_mapping port_mapping --name name --image image <positional arguments for service>
 # if no arguments, use env variable as default
 
 # initialize positional args
@@ -16,6 +16,12 @@ while [[ $# -gt 0 ]]; do
       ;;
     -p|--platform)
       BLUE_DEPLOY_PLATFORM="$2"
+      # pass argument and value
+      shift 
+      shift 
+      ;;
+    -m|--port_mapping)
+      PORT_MAPPING="$2"
       # pass argument and value
       shift 
       shift 
@@ -65,5 +71,5 @@ then
    docker service create --mount type=volume,source=blue_${BLUE_DEPLOY_PLATFORM}_data,destination=/blue_data --network blue_platform_${BLUE_DEPLOY_PLATFORM}_network_overlay --hostname blue_service_${NAME} --constraint node.labels.target==service ${IMAGE} ${POSITIONAL_ARGS}
 elif [ $BLUE_DEPLOY_TARGET == localhost ]
 then
-   docker run -d --volume=blue_${BLUE_DEPLOY_PLATFORM}_data:/blue_data --network=blue_platform_${BLUE_DEPLOY_PLATFORM}_network_bridge --hostname blue_service_${NAME} ${IMAGE} ${POSITIONAL_ARGS}
+   docker run -d --volume=blue_${BLUE_DEPLOY_PLATFORM}_data:/blue_data --network=blue_platform_${BLUE_DEPLOY_PLATFORM}_network_bridge --hostname blue_service_${NAME} -p ${PORT_MAPPING} ${IMAGE} ${POSITIONAL_ARGS}
 fi
