@@ -199,49 +199,25 @@ Let's try running a very basic example. In this example, a user agent emits some
 
 To input some text through the user agent, run:
 ```
-$ cd agents/simple_user
-$ python src/simple_user_agent.py --interactive
+$ cd agents/user
+$ python src/user_agent.py --interactive
 [...]
-INFO:root:Started consumer USER for stream SESSION:493e2083-61a0-4c90-accf-3d372f5b8aac
+INFO:root:Started consumer USER for stream SESSION:2f6ecafe
+[...]
 Enter Text: Hello, world!
 ```
 
-Then copy the session the USER agent created (i.e. SESSION:493e2083-61a0-4c90-accf-3d372f5b8aac)  so that another agent can participate in the same session:
+Then copy the session the USER agent created (i.e. SESSION:2f6ecafe)  so that another agent can participate in the same session:
+
 ```
-$ cd agents/simple_counter
-$ python src/simple_counter_agent.py --session SESSION:493e2083-61a0-4c90-accf-3d372f5b8aac --loglevel ERROR
+$ cd agents/counter
+$ python src/counter_agent.py --session SESSION:2f6ecafe --loglevel ERROR
 [...]
 ```
 
-In the above example, the user enters some text and another agents listens to the sesssion the user agent works in, when the user agent creates a stream and enter text, the counter agent above picks up the stream and computes the length of the user stream and outputs that into another stream in the session.. You can see the demo stream contents using RedisInsight or use Observer agent (see below).
+In the above example, the user enters some text and another agents listens to the sesssion the user agent works in, when the user agent creates a stream and enter text, the counter agent above picks up the stream and computes the length of the user stream and outputs that into another stream in the session. You can see the log output from the counter agent to see its output. You can also see the demo stream contents using RedisInsight or use Observer agent (see [Observer](agents/observer)).
 
-A more sophisticated example would be where an agent talks to a service over websockets. To run an example like that you first need to bring up a web service and then run the agent that talks to the service. Let's first build the service as a docker image:
 
-```
-$ cd agents/websocket_counter
-$ ./docker_build_service.sh
-```
-
-Then run the service:
-```
-$ cd agents/websocker_counter
-$ docker compose up
-```
-
-And lastly run the agent:
-```
-$ cd agents/websocket_counter
-$ python src/websocket_counter_agent.py --session SESSION:493e2083-61a0-4c90-accf-3d372f5b8aac --loglevel ERROR
-```
-
-As a matter of fact, not just the services for the agents, the agents themselves can also be run in a dockerized manner. To do so, run the `docker_build_agent.sh` in the respective agents folders. This should be docker images such as `blue-agent-websocket_counter`, which you can list using `docker image ls`, for example.
-
-To run dockerized version of the agents you would need to run `docker run` commands with the image names and parameters. For example, the agents in v0.1 examples can be as below:
-```
-$ docker run -e text="this is a different text" --network="host" blue-agent-simple_user
-$ docker run -e session=SESSION:493e2083-61a0-4c90-accf-3d372f5b8aac --network="host" blue-agent-simple_counter
-$ docker run -e session=SESSION:493e2083-61a0-4c90-accf-3d372f5b8aac --network="host" blue-agent-websocket_counter
-```
 
 </br>
 </br>
