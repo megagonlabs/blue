@@ -20,7 +20,12 @@ const NumberRenderer = ({ uischema, handleChange, path, data, required }) => {
             label={labelElement}
             helperText={_.get(uischema, "props.helperText", null)}
         >
-            <NumberInput handleChange={handleChange} path={path} data={data} />
+            <NumberInput
+                uischema={uischema}
+                handleChange={handleChange}
+                path={path}
+                data={data}
+            />
         </FormCell>
     );
 };

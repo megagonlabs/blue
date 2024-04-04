@@ -5,8 +5,8 @@ import { FixedSizeList } from "react-window";
 import { AppContext } from "../app-context";
 import SessionRow from "./SessionRow";
 const Row = (props) => <SessionRow {...props} />;
+const cardListClassName = `${Classes.CARD} ${Classes.CARD_LIST} ${Classes.CARD_LIST_BORDERED}`;
 export default function SessionList() {
-    const cardListClassName = `${Classes.CARD} ${Classes.CARD_LIST} ${Classes.CARD_LIST_BORDERED}`;
     const { appState } = useContext(AppContext);
     const fixedSizeListRef = useRef();
     useEffect(() => {

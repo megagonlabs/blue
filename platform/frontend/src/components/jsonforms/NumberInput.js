@@ -10,6 +10,7 @@ const NumberAbbreviation = {
 const NUMBER_ABBREVIATION_REGEX = /((\.\d+)|(\d+(\.\d+)?))(k|m|b)\b/gi;
 const SCIENTIFIC_NOTATION_REGEX = /((\.\d+)|(\d+(\.\d+)?))(e\d+)\b/gi;
 export default function NumberInput({
+    uischema,
     handleChange,
     path,
     data,
@@ -48,7 +49,7 @@ export default function NumberInput({
         // parse all terms from the expression. we allow simple addition and
         // subtraction only, so we'll split on the + and - characters and then
         // validate that each term is a number.
-        const terms = value.split(/[+\-]/);
+        const terms = value.split(/[+-]/);
         // ex. "1 + 2 - 3 * 4" will parse on the + and - signs into
         // ["1 ", " 2 ", " 3 * 4"]. after trimming whitespace from each term
         // and coercing them to numbers, the third term will become NaN,
@@ -69,7 +70,7 @@ export default function NumberInput({
         // "1.1"
         // "+ 1"
         // "-   1.1"
-        const matches = value.match(/[+\-]*\s*(\.\d+|\d+(\.\d+)?)/gi) || [];
+        const matches = value.match(/[+-]*\s*(\.\d+|\d+(\.\d+)?)/gi) || [];
         for (const match of matches) {
             const compactedMatch = match.replace(/\s/g, "");
             total += parseFloat(compactedMatch);
