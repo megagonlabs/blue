@@ -1,6 +1,7 @@
 import Editor from "@/components/Editor";
 import { JSONFORMS_RENDERERS } from "@/components/constant";
 import { faIcon } from "@/components/icon";
+import DocDrawer from "@/components/jsonforms/docs/DocDrawer";
 import {
     Alignment,
     Button,
@@ -60,7 +61,7 @@ export default function Designer() {
         try {
             setJsonUiSchema(JSON.parse(uiSchema));
         } catch (error) {}
-        if (!uiSchemaLoading) {
+        if (uiSchemaInitialized) {
             sessionStorage.setItem("uiSchema", uiSchema);
         }
     }, [uiSchema]);
@@ -68,7 +69,7 @@ export default function Designer() {
         try {
             setJsonSchema(JSON.parse(schema));
         } catch (error) {}
-        if (!schemaLoading) {
+        if (schemaInitialized) {
             sessionStorage.setItem("schema", schema);
         }
     }, [schema]);
@@ -81,18 +82,25 @@ export default function Designer() {
     };
     const handleReset = () => {
         topPaneRef.current.resize([50, 50]);
+        setUiSchemaError(false);
+        setSchemaError(false);
         setUiSchema("{}");
         setSchema("{}");
         sessionStorage.removeItem("jsonUiSchema");
         sessionStorage.removeItem("jsonSchema");
     };
+    const [isDocOpen, setIsDocOpen] = useState(false);
     return (
         <>
+            <DocDrawer isOpen={isDocOpen} setIsDocOpen={setIsDocOpen} />
             <Card interactive style={{ padding: 5, borderRadius: 0 }}>
                 <ButtonGroup large minimal>
                     <Button
                         text="Docs."
                         icon={faIcon({ icon: faBookOpenCover })}
+                        onClick={() => {
+                            setIsDocOpen(!isDocOpen);
+                        }}
                     />
                     <Divider />
                     <Button
@@ -214,7 +222,7 @@ export default function Designer() {
                             </Allotment.Pane>
                         </Allotment>
                     </Allotment.Pane>
-                    <Allotment.Pane minSize={321.094}>
+                    <Allotment.Pane minSize={400}>
                         <div
                             className="full-parent-height"
                             style={{ padding: 20, overflowY: "auto" }}

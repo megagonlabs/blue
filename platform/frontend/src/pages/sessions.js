@@ -1,8 +1,8 @@
 import { AppContext } from "@/components/app-context";
+import { connectToWebsocket } from "@/components/helper";
 import { faIcon } from "@/components/icon";
 import SessionList from "@/components/sessions/SessionList";
 import SessionMessages from "@/components/sessions/SessionMessages";
-import { AppToaster } from "@/components/toaster";
 import {
     Button,
     ButtonGroup,
@@ -49,83 +49,8 @@ export default function Sessions() {
             })
         );
     };
-    const connectToWebsocket = () => {
-        if (!_.isNil(appState.session.connection)) return;
-        setLoading(true);
-        try {
-            // Creating an instance of the WebSocket
-            const socket = new WebSocket("ws://localhost:5050/sessions/ws");
-            // Listening to messages from the server
-            socket.onmessage = (event) => {
-                try {
-                    // parse the data from string to JSON object
-                    const data = JSON.parse(event.data);
-                    // If the data is of type SESSION_MESSAGE
-                    if (_.isEqual(data["type"], "SESSION_MESSAGE")) {
-                        appActions.session.addSessionMessage(data);
-                    } else if (_.isEqual(data["type"], "CONNECTED")) {
-                        appActions.session.setState({
-                            key: "connectionId",
-                            value: data.id,
-                        });
-                    }
-                } catch (e) {
-                    AppToaster.show({
-                        intent: Intent.PRIMARY,
-                        message: event.data,
-                    });
-                    console.log(event.data);
-                    console.error(e);
-                }
-            };
-            socket.onerror = () => {
-                setLoading(false);
-                appActions.session.setState({ key: "connection", value: null });
-                AppToaster.show({
-                    intent: Intent.DANGER,
-                    message: `Failed to connect to websocketc (onerror)`,
-                });
-            };
-            socket.onclose = () => {
-                setLoading(false);
-                appActions.session.setState({ key: "connection", value: null });
-                AppToaster.show({
-                    intent: Intent.PRIMARY,
-                    message: "Connected closed",
-                });
-            };
-            // Adding an event listener to when the connection is opened
-            socket.onopen = () => {
-                setLoading(false);
-                appActions.session.setState({
-                    key: "connection",
-                    value: socket,
-                });
-                AppToaster.show({
-                    intent: Intent.SUCCESS,
-                    message: "Connection established",
-                    timeout: 2000,
-                });
-                if (!_.isEmpty(sessionIds)) {
-                    for (var i = 0; i < sessionIds.length; i++) {
-                        appActions.session.observeSession({
-                            sessionId: sessionIds[i],
-                            connection: socket,
-                        });
-                    }
-                }
-            };
-        } catch (e) {
-            setLoading(false);
-            appActions.session.setState({ key: "connection", value: null });
-            AppToaster.show({
-                intent: Intent.SUCCESS,
-                message: `Failed to connect to websocket: ${e}`,
-            });
-        }
-    };
     useEffect(() => {
-        connectToWebsocket();
+        connectToWebsocket({ appState, appActions, setLoading, sessionIds });
     }, []);
     useEffect(() => {
         if (sessionMessageTextArea.current) {

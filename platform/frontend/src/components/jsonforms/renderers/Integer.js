@@ -23,6 +23,7 @@ const IntegerRenderer = ({ uischema, handleChange, path, data, required }) => {
             helperText={_.get(uischema, "props.helperText", null)}
         >
             <NumberInput
+                uischema={uischema}
                 precision={0}
                 handleChange={handleChange}
                 path={path}
