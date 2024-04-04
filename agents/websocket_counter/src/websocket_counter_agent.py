@@ -32,14 +32,15 @@ from websockets.sync.client import connect
 ###### Blue
 from agent import Agent
 from session import Session
+from rpc import RPCServer
 
 # set log level
 logging.getLogger().setLevel(logging.INFO)
 
 #######################
 class CounterAgent(Agent):
-    def __init__(self, session=None, input_stream=None, processor=None, properties={}):
-        super().__init__("COUNTER", session=session, input_stream=input_stream, processor=processor, properties=properties)
+    def __init__(self, name="WEBSOCKET_COUNTER", session=None, input_stream=None, processor=None, properties={}):
+        super().__init__(name, session=session, input_stream=input_stream, processor=processor, properties=properties)
         
         
     def _initialize_properties(self):
@@ -80,7 +81,7 @@ class CounterAgent(Agent):
             pass
         elif label == 'DATA':
             # store data value
-            logging.info(value)
+            logging.info(data)
             
             if worker:
                 worker.append_data('stream',data)
@@ -102,10 +103,12 @@ class CounterAgent(Agent):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
+    parser.add_argument('--name', default="WEBSOCKET_COUNTER", type=str)
     parser.add_argument('--session', type=str)
     parser.add_argument('--input_stream', type=str)
     parser.add_argument('--properties', type=str)
     parser.add_argument('--loglevel', default="INFO", type=str)
+    parser.add_argument('--serve', default=False, action=argparse.BooleanOptionalAction)
  
     args = parser.parse_args()
    
@@ -113,28 +116,55 @@ if __name__ == "__main__":
     logging.getLogger().setLevel(args.loglevel.upper())
 
 
-    session = None
-    a = None
-
     # set properties
     properties = {}
     p = args.properties
     if p:
         # decode json
         properties = json.loads(p)
+    
+    if args.serve:
+        # launch agent with parameters, start session
+        def launch(*args, **kwargs):
+            logging.info("Launching WebSocket_CounterAgent...")
+            logging.info(kwargs)
+            agent = CounterAgent(*args, **kwargs)
+            session = agent.start_session()
+            logging.info("Started session: " + session.name)
+            logging.info("Launched.")
+            return session.name
 
-    if args.session:
-        # join an existing session
-        session = Session(args.session)
-        a = CounterAgent(session=session, properties=properties)
-    elif args.input_stream:
-        # no session, work on a single input stream
-        a = CounterAgent(input_stream=args.input_stream, properties=properties)
+        # launch agent with parameters, join session in keyword args (session=)
+        def join(*args, **kwargs):
+            logging.info("Launching WebSocket_CounterAgent...")
+            logging.info(kwargs)
+            agent = CounterAgent(*args, **kwargs)
+            logging.info("Joined session: " + kwargs['session'])
+            logging.info("Launched.")
+            return kwargs['session']
+
+        # run rpc server
+        rpc = RPCServer(args.name, properties=properties)
+        rpc.register(launch)
+        rpc.register(join)
+        rpc.run()
     else:
-        # create a new session
-        a = CounterAgent(properties=properties)
-        a.start_session()
+        a = None
+        session = None
+        if args.session:
+            # join an existing session
+            session = Session(args.session)
+            a = CounterAgent(name=args.name, session=session, properties=properties)
+        elif args.input_stream:
+            # no session, work on a single input stream
+            a = CounterAgent(name=args.name, input_stream=args.input_stream, properties=properties)
+        else:
+            # create a new session
+            a = CounterAgent(name=args.name, properties=properties)
+            session = a.start_session()
+
+        # wait for session
+        if session:
+            session.wait()
 
 
-    # wait for session
-    session.wait()

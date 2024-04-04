@@ -112,7 +112,7 @@ A data volume is added to several services (agents, API, etc.) where common data
 
 ```
 $ cd platform/scripts
-$ ./create_data_volume.sh --data default
+$ ./create_data_volume.sh --platform default
 ```
 This will create a directory called `default` under the `$BLUE_DATA_DIR` directory, and create a volume on that directory.
 
@@ -161,6 +161,8 @@ $ ./docker_build_api.sh
 
 #### building frontend
 
+Before building the frontend you need to update `secrets/fa.token`, please contact eser@megagon.ai or rafael@megagon.ai to get the token.
+
 Run:
 ```
 $ cd platform/frontend
@@ -197,49 +199,25 @@ Let's try running a very basic example. In this example, a user agent emits some
 
 To input some text through the user agent, run:
 ```
-$ cd agents/simple_user
-$ python src/simple_user_agent.py --interactive
+$ cd agents/user
+$ python src/user_agent.py --interactive
 [...]
-INFO:root:Started consumer USER for stream SESSION:493e2083-61a0-4c90-accf-3d372f5b8aac
+INFO:root:Started consumer USER for stream SESSION:2f6ecafe
+[...]
 Enter Text: Hello, world!
 ```
 
-Then copy the session the USER agent created (i.e. SESSION:493e2083-61a0-4c90-accf-3d372f5b8aac)  so that another agent can participate in the same session:
+Then copy the session the USER agent created (i.e. SESSION:2f6ecafe)  so that another agent can participate in the same session:
+
 ```
-$ cd agents/simple_counter
-$ python src/simple_counter_agent.py --session SESSION:493e2083-61a0-4c90-accf-3d372f5b8aac --loglevel ERROR
+$ cd agents/counter
+$ python src/counter_agent.py --session SESSION:2f6ecafe --loglevel ERROR
 [...]
 ```
 
-In the above example, the user enters some text and another agents listens to the sesssion the user agent works in, when the user agent creates a stream and enter text, the counter agent above picks up the stream and computes the length of the user stream and outputs that into another stream in the session.. You can see the demo stream contents using RedisInsight or use Observer agent (see below).
+In the above example, the user enters some text and another agents listens to the sesssion the user agent works in, when the user agent creates a stream and enter text, the counter agent above picks up the stream and computes the length of the user stream and outputs that into another stream in the session. You can see the log output from the counter agent to see its output. You can also see the demo stream contents using RedisInsight or use Observer agent (see [Observer](agents/observer)).
 
-A more sophisticated example would be where an agent talks to a service over websockets. To run an example like that you first need to bring up a web service and then run the agent that talks to the service. Let's first build the service as a docker image:
 
-```
-$ cd agents/websocket_counter
-$ ./docker_build_service.sh
-```
-
-Then run the service:
-```
-$ cd agents/websocker_counter
-$ docker compose up
-```
-
-And lastly run the agent:
-```
-$ cd agents/websocket_counter
-$ python src/websocket_counter_agent.py --session SESSION:493e2083-61a0-4c90-accf-3d372f5b8aac --loglevel ERROR
-```
-
-As a matter of fact, not just the services for the agents, the agents themselves can also be run in a dockerized manner. To do so, run the `docker_build_agent.sh` in the respective agents folders. This should be docker images such as `blue-agent-websocket_counter`, which you can list using `docker image ls`, for example.
-
-To run dockerized version of the agents you would need to run `docker run` commands with the image names and parameters. For example, the agents in v0.1 examples can be as below:
-```
-$ docker run -e text="this is a different text" --network="host" blue-agent-simple_user
-$ docker run -e session=SESSION:493e2083-61a0-4c90-accf-3d372f5b8aac --network="host" blue-agent-simple_counter
-$ docker run -e session=SESSION:493e2083-61a0-4c90-accf-3d372f5b8aac --network="host" blue-agent-websocket_counter
-```
 
 </br>
 </br>
@@ -280,9 +258,9 @@ The main difference between a `localhost` deployment and a `swarm` deployment is
 
 ![Swarm](./docs/images/swarm.png)
 
-As show above at the minimum there is a cluser of three compute instances, labeled `platform`, `db`, and `agent`. 
+As show above at the minimum there is a cluster of four compute instances, labeled `platform`, `db`, `agent`, and `service`. 
 
-The mapping various components to the compute cluster is done through deployment constraints (see below swarm setup). In the current setup the cluster has nodes with labels: db, platform, and agent. Redis container is deployed on the db nodes, API and frontend deployed on the platform node, and agent containers are deployed to the agent node. Communication between the various components is done through an overlay network dedicated to the plaform. The overlay network enables easy communication among components with components simply reachable through their service names (see https://docs.docker.com/network/drivers/overlay/)
+The mapping various components to the compute cluster is done through deployment constraints (see below swarm setup). In the current setup the cluster has nodes with labels: db, platform, agent, and service. Redis container is deployed on the db nodes, API and frontend deployed on the platform node,  agent containers are deployed to the agent node, and finally any service that can be used by agents is deployed on service node. Communication between the various components is done through an overlay network dedicated to the plaform. The overlay network enables easy communication among components with components simply reachable through their service names (see https://docs.docker.com/network/drivers/overlay/)
 
 For larger deployments and complex scenarios, multiple nodes can be designated to each function, and one can introduce different labels to define complex deployment targets.
 
@@ -313,7 +291,7 @@ Once you have several compute instances, you can build a swarm consisting of man
 To initiate a swarm, run below command on the designated manager node:
 ```
 $ cd platform/scripts
-$ ./init_swarm.sh
+$ ./init_swarm.sh /mnt/efs/fs1/blue_swarm
 ```
 
 Once completed, you will have the manager and worker tokens saved as `.manager.token` and `.worker.token`.  You can then use to go to other compute instances and join the swarm. You can either copy these files or share them via shared filesystem:
@@ -323,25 +301,27 @@ Before running below commands make sure `.manager.token` and `.worker.token` fil
 To join as worker, run:
 ```
 $ cd platform/scripts
-$ ./join_swarm.sh worker
+$ ./join_swarm.sh worker /mnt/efs/fs1/blue_swarm
 ```
 To join as manager run `./joinswarm.sh manager`. To leave swarm run `./leave_swarm.sh`
 
-Once all nodes are in the swarm, label them so that when blue is deployed they go to the appropriate node. Blue uses by default three labels: `platform`, `db`, and `agent`
+Once all nodes are in the swarm, label them so that when blue is deployed they go to the appropriate node. Blue uses by default four labels: `platform`, `db`, `agent` and `service`
 
 For each node label them with one of the above labels:
 ```
 $ cd platform/scripts
 # ./add_label.sh <label> <node>
 ```
-where <label> is either `platform`, `db`, or `agent` and <node> is the node id when you run `docker node ls`.
+where <label> is either `platform`, `db`, `agent` or `service` and <node> is the node id when you run `docker node ls`.
 
 ### data volume setup
 
 For the swarm mode it is best to utilize a shared filesystem as the location of the data folder. Set `BLUE_DATA_DIR` to a folder on such a shared filesystem. Next, to create a data volume, run:
 
+```
 $ cd platform/scripts
-$ ./create_data_volume.sh --data default
+$ ./create_data_volume.sh --platform default
+```
 
 This will create a directory called default under the $BLUE_DATA_DIR directory, and create a volume on that directory.
 

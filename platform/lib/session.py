@@ -257,16 +257,16 @@ class Session():
 
     def stop(self):
         # stop agents
-        for a in self.agents:
-            a.stop()
+        for agent_name in self.agents:
+            self.agents[agent_name].stop()
 
         # put EOS to stream
         self.producer.write(label="EOS")
 
     def wait(self):
-        for a in self.agents:
-            a.wait()
-
+        for agent_name in self.agents:
+            self.agents[agent_name].wait()
+            
         while True:
             time.sleep(1)
 
