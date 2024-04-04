@@ -1,35 +1,6 @@
 import Editor from "@/components/Editor";
+import { JSONFORMS_RENDERERS } from "@/components/constant";
 import { faIcon } from "@/components/icon";
-import BooleanRenderer, {
-    BooleanTester,
-} from "@/components/jsonforms/renderers/Boolean";
-import ButtonRenderer, {
-    ButtonTester,
-} from "@/components/jsonforms/renderers/Button";
-import EnumRenderer, {
-    EnumTester,
-} from "@/components/jsonforms/renderers/Enum";
-import GroupRenderer, {
-    GroupTester,
-} from "@/components/jsonforms/renderers/Group";
-import IntegerRenderer, {
-    IntegerTester,
-} from "@/components/jsonforms/renderers/Integer";
-import LabelRenderer, {
-    LabelTester,
-} from "@/components/jsonforms/renderers/Label";
-import LayoutRenderer, {
-    LayoutTester,
-} from "@/components/jsonforms/renderers/Layout";
-import NumberRenderer, {
-    NumberTester,
-} from "@/components/jsonforms/renderers/Number";
-import StringRenderer, {
-    StringTester,
-} from "@/components/jsonforms/renderers/String";
-import UnknownRenderer, {
-    UnknownTester,
-} from "@/components/jsonforms/renderers/Unknown";
 import {
     Alignment,
     Button,
@@ -49,7 +20,7 @@ import {
     faTrash,
 } from "@fortawesome/pro-duotone-svg-icons";
 import { JsonForms } from "@jsonforms/react";
-import { vanillaCells, vanillaRenderers } from "@jsonforms/vanilla-renderers";
+import { vanillaCells } from "@jsonforms/vanilla-renderers";
 import { Allotment } from "allotment";
 import classNames from "classnames";
 import _ from "lodash";
@@ -120,7 +91,7 @@ export default function Designer() {
             <Card interactive style={{ padding: 5, borderRadius: 0 }}>
                 <ButtonGroup large minimal>
                     <Button
-                        text="Doc."
+                        text="Docs."
                         icon={faIcon({ icon: faBookOpenCover })}
                     />
                     <Divider />
@@ -221,7 +192,6 @@ export default function Designer() {
                                         })}
                                     />
                                 </div>
-
                                 <div
                                     className={classNames({
                                         "full-parent-height": true,
@@ -261,49 +231,7 @@ export default function Designer() {
                                         schema={jsonSchema}
                                         uischema={jsonUiSchema}
                                         data={data}
-                                        renderers={[
-                                            ...vanillaRenderers,
-                                            {
-                                                tester: GroupTester,
-                                                renderer: GroupRenderer,
-                                            },
-                                            {
-                                                tester: LabelTester,
-                                                renderer: LabelRenderer,
-                                            },
-                                            {
-                                                tester: BooleanTester,
-                                                renderer: BooleanRenderer,
-                                            },
-                                            {
-                                                tester: EnumTester,
-                                                renderer: EnumRenderer,
-                                            },
-                                            {
-                                                tester: LayoutTester,
-                                                renderer: LayoutRenderer,
-                                            },
-                                            {
-                                                tester: StringTester,
-                                                renderer: StringRenderer,
-                                            },
-                                            {
-                                                tester: NumberTester,
-                                                renderer: NumberRenderer,
-                                            },
-                                            {
-                                                tester: IntegerTester,
-                                                renderer: IntegerRenderer,
-                                            },
-                                            {
-                                                tester: ButtonTester,
-                                                renderer: ButtonRenderer,
-                                            },
-                                            {
-                                                tester: UnknownTester,
-                                                renderer: UnknownRenderer,
-                                            },
-                                        ]}
+                                        renderers={JSONFORMS_RENDERERS}
                                         cells={vanillaCells}
                                         onChange={({ data, errors }) => {
                                             console.log(data, errors);
