@@ -40,14 +40,15 @@ class CounterAgent(Agent):
 
     def default_processor(self, stream, id, label, data, dtype=None, tags=None, properties=None, worker=None):
         if label == 'EOS':
-            # compute stream data
-            l = 0
+            # get all data received from stream
+            stream_data = ""
             if worker:
-                l = worker.get_data_len('stream')
-            time.sleep(4)
+                stream_data = worker.get_data('stream')
             
             # output to stream
-            return l
+            output_data = len(stream_data)
+            return output_data
+        
         elif label == 'BOS':
             # init stream to empty array
             if worker:
@@ -87,7 +88,7 @@ if __name__ == "__main__":
     if args.serve:
         # launch agent with parameters, start session
         def launch(*args, **kwargs):
-            logging.info("Launching UserAgent...")
+            logging.info("Launching CounterAgent...")
             logging.info(kwargs)
             agent = CounterAgent(*args, **kwargs)
             session = agent.start_session()
@@ -97,7 +98,7 @@ if __name__ == "__main__":
 
         # launch agent with parameters, join session in keyword args (session=)
         def join(*args, **kwargs):
-            logging.info("Launching UserAgent...")
+            logging.info("Launching CounterAgent...")
             logging.info(kwargs)
             agent = CounterAgent(*args, **kwargs)
             logging.info("Joined session: " + kwargs['session'])
