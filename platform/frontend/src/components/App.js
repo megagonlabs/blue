@@ -136,7 +136,7 @@ export default function App({ children }) {
                         );
                     })}
                 </ButtonGroup>
-                <MenuDivider title="Administration" />
+                <MenuDivider title="Admin." />
             </Card>
             <div
                 style={{

@@ -36,18 +36,23 @@ import {
     ButtonGroup,
     Callout,
     Card,
+    Classes,
     Divider,
     Intent,
+    NonIdealState,
 } from "@blueprintjs/core";
 import {
     faArrowsFromLine,
     faBookOpenCover,
+    faBracketsCurly,
     faCircleXmark,
     faTrash,
 } from "@fortawesome/pro-duotone-svg-icons";
 import { JsonForms } from "@jsonforms/react";
 import { vanillaCells, vanillaRenderers } from "@jsonforms/vanilla-renderers";
 import { Allotment } from "allotment";
+import classNames from "classnames";
+import _ from "lodash";
 import { createRef, useEffect, useState } from "react";
 export default function Designer() {
     const topPaneRef = createRef();
@@ -58,14 +63,44 @@ export default function Designer() {
     const [jsonSchema, setJsonSchema] = useState({});
     const [uiSchemaError, setUiSchemaError] = useState(false);
     const [schemaError, setSchemaError] = useState(false);
+    const [uiSchemaLoading, setUiSchemaLoading] = useState(true);
+    const [uiSchemaInitialized, setUiSchemaInitialized] = useState(false);
+    const [schemaLoading, setSchemaLoading] = useState(true);
+    const [schemaInitialized, setSchemaInitialized] = useState(false);
+    useEffect(() => {
+        if (!uiSchemaLoading) {
+            let uiSchemaCache = sessionStorage.getItem("uiSchema");
+            if (!uiSchemaInitialized && uiSchemaCache) {
+                setUiSchema(uiSchemaCache);
+            }
+            setUiSchemaInitialized(true);
+        }
+    }, [uiSchemaLoading]);
+    useEffect(() => {
+        if (!schemaLoading) {
+            let schemaCache = sessionStorage.getItem("schema");
+            if (!schemaInitialized && schemaCache) {
+                setSchema(schemaCache);
+            }
+            setSchemaInitialized(true);
+        }
+    }, [schemaLoading]);
     useEffect(() => {
         try {
             setJsonUiSchema(JSON.parse(uiSchema));
         } catch (error) {}
+        if (!uiSchemaLoading) {
+            sessionStorage.setItem("uiSchema", uiSchema);
+        }
+    }, [uiSchema]);
+    useEffect(() => {
         try {
             setJsonSchema(JSON.parse(schema));
         } catch (error) {}
-    }, [uiSchema, schema]);
+        if (!schemaLoading) {
+            sessionStorage.setItem("schema", schema);
+        }
+    }, [schema]);
     const BUTTON_PROPS = {
         large: true,
         alignText: Alignment.LEFT,
@@ -73,25 +108,31 @@ export default function Designer() {
         minimal: true,
         style: { fontWeight: 600 },
     };
+    const handleReset = () => {
+        topPaneRef.current.resize([50, 50]);
+        setUiSchema("{}");
+        setSchema("{}");
+        sessionStorage.removeItem("jsonUiSchema");
+        sessionStorage.removeItem("jsonSchema");
+    };
     return (
         <>
             <Card interactive style={{ padding: 5, borderRadius: 0 }}>
                 <ButtonGroup large minimal>
                     <Button
-                        disabled
-                        text="Doc"
+                        text="Doc."
                         icon={faIcon({ icon: faBookOpenCover })}
                     />
                     <Divider />
                     <Button
-                        disabled
                         intent={Intent.DANGER}
                         text="Clear All"
+                        onClick={handleReset}
                         icon={faIcon({ icon: faTrash })}
                     />
                 </ButtonGroup>
             </Card>
-            <div style={{ height: "calc(100% - 40px)" }}>
+            <div style={{ height: "calc(100% - 50px)" }}>
                 <Allotment>
                     <Allotment.Pane minSize={321.094}>
                         <Allotment vertical ref={topPaneRef}>
@@ -128,13 +169,19 @@ export default function Designer() {
                                     />
                                 </div>
                                 <div
-                                    className="full-parent-height"
+                                    className={classNames({
+                                        "full-parent-height": true,
+                                        [Classes.SKELETON]:
+                                            uiSchemaLoading &&
+                                            !uiSchemaInitialized,
+                                    })}
                                     style={{
                                         overflowY: "auto",
                                         maxHeight: "calc(100% - 51px)",
                                     }}
                                 >
                                     <Editor
+                                        setLoading={setUiSchemaLoading}
                                         allowSaveWithError
                                         code={uiSchema}
                                         setCode={setUiSchema}
@@ -176,13 +223,18 @@ export default function Designer() {
                                 </div>
 
                                 <div
-                                    className="full-parent-height"
+                                    className={classNames({
+                                        "full-parent-height": true,
+                                        [Classes.SKELETON]:
+                                            schemaLoading && !schemaInitialized,
+                                    })}
                                     style={{
                                         overflowY: "auto",
                                         maxHeight: "calc(100% - 51px)",
                                     }}
                                 >
                                     <Editor
+                                        setLoading={setSchemaLoading}
                                         allowSaveWithError
                                         code={schema}
                                         setCode={setSchema}
@@ -197,67 +249,77 @@ export default function Designer() {
                             className="full-parent-height"
                             style={{ padding: 20, overflowY: "auto" }}
                         >
-                            <Callout
-                                style={{
-                                    maxWidth: "min(802.2px, 100%)",
-                                    whiteSpace: "pre-wrap",
-                                    width: "fit-content",
-                                }}
-                            >
-                                <JsonForms
-                                    schema={jsonSchema}
-                                    uischema={jsonUiSchema}
-                                    data={data}
-                                    renderers={[
-                                        ...vanillaRenderers,
-                                        {
-                                            tester: GroupTester,
-                                            renderer: GroupRenderer,
-                                        },
-                                        {
-                                            tester: LabelTester,
-                                            renderer: LabelRenderer,
-                                        },
-                                        {
-                                            tester: BooleanTester,
-                                            renderer: BooleanRenderer,
-                                        },
-                                        {
-                                            tester: EnumTester,
-                                            renderer: EnumRenderer,
-                                        },
-                                        {
-                                            tester: LayoutTester,
-                                            renderer: LayoutRenderer,
-                                        },
-                                        {
-                                            tester: StringTester,
-                                            renderer: StringRenderer,
-                                        },
-                                        {
-                                            tester: NumberTester,
-                                            renderer: NumberRenderer,
-                                        },
-                                        {
-                                            tester: IntegerTester,
-                                            renderer: IntegerRenderer,
-                                        },
-                                        {
-                                            tester: ButtonTester,
-                                            renderer: ButtonRenderer,
-                                        },
-                                        {
-                                            tester: UnknownTester,
-                                            renderer: UnknownRenderer,
-                                        },
-                                    ]}
-                                    cells={vanillaCells}
-                                    onChange={({ data, errors }) => {
-                                        console.log(data, errors);
-                                        setData(data);
+                            {!_.isEmpty(jsonUiSchema) ? (
+                                <Callout
+                                    style={{
+                                        maxWidth: "min(802.2px, 100%)",
+                                        whiteSpace: "pre-wrap",
+                                        width: "fit-content",
                                     }}
+                                >
+                                    <JsonForms
+                                        schema={jsonSchema}
+                                        uischema={jsonUiSchema}
+                                        data={data}
+                                        renderers={[
+                                            ...vanillaRenderers,
+                                            {
+                                                tester: GroupTester,
+                                                renderer: GroupRenderer,
+                                            },
+                                            {
+                                                tester: LabelTester,
+                                                renderer: LabelRenderer,
+                                            },
+                                            {
+                                                tester: BooleanTester,
+                                                renderer: BooleanRenderer,
+                                            },
+                                            {
+                                                tester: EnumTester,
+                                                renderer: EnumRenderer,
+                                            },
+                                            {
+                                                tester: LayoutTester,
+                                                renderer: LayoutRenderer,
+                                            },
+                                            {
+                                                tester: StringTester,
+                                                renderer: StringRenderer,
+                                            },
+                                            {
+                                                tester: NumberTester,
+                                                renderer: NumberRenderer,
+                                            },
+                                            {
+                                                tester: IntegerTester,
+                                                renderer: IntegerRenderer,
+                                            },
+                                            {
+                                                tester: ButtonTester,
+                                                renderer: ButtonRenderer,
+                                            },
+                                            {
+                                                tester: UnknownTester,
+                                                renderer: UnknownRenderer,
+                                            },
+                                        ]}
+                                        cells={vanillaCells}
+                                        onChange={({ data, errors }) => {
+                                            console.log(data, errors);
+                                            setData(data);
+                                        }}
+                                    />
+                                </Callout>
+                            ) : (
+                                <NonIdealState
+                                    icon={faIcon({
+                                        icon: faBracketsCurly,
+                                        size: 50,
+                                    })}
+                                    title="Empty UI Schema"
                                 />
-                            </Callout>
+                            )}
                         </div>
                     </Allotment.Pane>
                 </Allotment>
