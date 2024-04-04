@@ -4,6 +4,7 @@ from dataclasses import dataclass
 
 from fastapi import WebSocket
 import sys
+import os
 
 import pydash
 
@@ -12,6 +13,10 @@ sys.path.append("./lib/platform/")
 from observer import ObserverAgent
 from session import Session
 from agent import Agent
+
+###### Properties
+PROPERTIES = os.getenv("BLUE__PROPERTIES")
+PROPERTIES = json.loads(PROPERTIES)
 
 
 @dataclass
@@ -37,7 +42,7 @@ class ConnectionManager:
         )
 
     def observe_session(self, connection_id: str, session_id: str):
-        session = Session(name=session_id)
+        session = Session(name=session_id, properties=PROPERTIES)
         pydash.objects.set_(
             self.session_to_client,
             [session_id, connection_id],
@@ -45,12 +50,15 @@ class ConnectionManager:
                 "observer": ObserverAgent(
                     session=session,
                     properties={
+                        **PROPERTIES,
                         "output": "websocket",
                         "websocket": "ws://localhost:5050/sessions/ws",
                         "session_id": session_id,
                     },
                 ),
-                "user": Agent(name=f"USER:{connection_id}", session=session),
+                "user": Agent(
+                    name=f"USER:{connection_id}", session=session, properties=PROPERTIES
+                ),
             },
         )
 

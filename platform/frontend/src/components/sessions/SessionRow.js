@@ -1,8 +1,20 @@
-import { Button, Card, Classes, Colors, H5, Tooltip } from "@blueprintjs/core";
-import { faCircleDot, faCopy } from "@fortawesome/pro-duotone-svg-icons";
+import {
+    Button,
+    Card,
+    Classes,
+    Colors,
+    H5,
+    Tag,
+    Tooltip,
+} from "@blueprintjs/core";
+import {
+    faCircleDot,
+    faCopy,
+    faPenField,
+} from "@fortawesome/pro-duotone-svg-icons";
 import copy from "copy-to-clipboard";
 import _ from "lodash";
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { AppContext } from "../app-context";
 import { faIcon } from "../icon";
 import { AppToaster } from "../toaster";
@@ -12,6 +24,21 @@ export default function SessionRow({ index, style }) {
     const unreadSessionIds = appState.session.unreadSessionIds;
     const sessionMessages = appState.session.sessions[sessionId];
     const [showActions, setShowActions] = useState(false);
+    const [lastMessage, setLastMessage] = useState("-");
+    useEffect(() => {
+        const last = _.last(sessionMessages),
+            messageType = _.get(last, "message.type", "STRING"),
+            messageContent = _.get(last, "message.content", null);
+        if (_.isEqual(messageType, "STRING")) {
+            setLastMessage(messageContent);
+        } else if (_.isEqual(messageType, "INTERACTIVE")) {
+            setLastMessage(
+                <Tag minimal icon={faIcon({ icon: faPenField })}>
+                    interactive message
+                </Tag>
+            );
+        }
+    }, [sessionMessages]);
     return (
         <Card
             interactive
@@ -49,9 +76,7 @@ export default function SessionRow({ index, style }) {
                     className={`${Classes.TEXT_OVERFLOW_ELLIPSIS} ${Classes.TEXT_MUTED}`}
                     style={{ paddingRight: showActions ? 50 : 0 }}
                 >
-                    {_.isEmpty(sessionMessages)
-                        ? "-"
-                        : _.last(sessionMessages).message}
+                    {_.isEmpty(sessionMessages) ? "-" : lastMessage}
                 </div>
             </div>
             <div

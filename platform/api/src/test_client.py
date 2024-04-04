@@ -259,6 +259,7 @@ for _ in range(11):
                     "type": "STRING",
                     "content": random.choice([sentence_string, words_string]),
                 },
+                "stream": "local-test-client",
             }
         )
     )
