@@ -161,6 +161,8 @@ $ ./docker_build_api.sh
 
 #### building frontend
 
+Before building the frontend you need to update `secrets/fa.token`, please contact eser@megagon.ai or rafael@megagon.ai to get the token.
+
 Run:
 ```
 $ cd platform/frontend
