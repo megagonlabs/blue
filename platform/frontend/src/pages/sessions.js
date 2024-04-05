@@ -49,8 +49,11 @@ export default function Sessions() {
             })
         );
     };
-    useEffect(() => {
+    const handleConnectToWebsocket = () => {
         connectToWebsocket({ appState, appActions, setLoading, sessionIds });
+    };
+    useEffect(() => {
+        handleConnectToWebsocket();
     }, []);
     useEffect(() => {
         if (sessionMessageTextArea.current) {
@@ -65,7 +68,7 @@ export default function Sessions() {
                 title={loading ? "Connecting" : "No connection"}
                 action={
                     <Button
-                        onClick={connectToWebsocket}
+                        onClick={handleConnectToWebsocket}
                         intent={Intent.PRIMARY}
                         large
                         loading={loading}
@@ -279,7 +282,7 @@ export default function Sessions() {
                                     paddingRight: 50,
                                 }}
                                 value={message}
-                                placeholder={`Message @${sessionIdFocus}\nPress [enter] to send\nUse [shift + enter] to start a new line`}
+                                placeholder={`Message @${sessionIdFocus}`}
                                 onChange={(event) => {
                                     setMessage(event.target.value);
                                 }}
@@ -313,38 +316,6 @@ export default function Sessions() {
                                 }}
                                 icon={faIcon({ icon: faPaperPlaneTop })}
                             />
-                            {/* <div
-                                style={{
-                                    display: "flex",
-                                    marginTop: 10,
-                                }}
-                            >
-                                <div
-                                    style={{
-                                        display: "flex",
-                                        alignItems: "center",
-                                    }}
-                                >
-                                    <KeyComboTag combo="enter" />
-                                    &nbsp;to send
-                                </div>
-                                <div
-                                    style={{
-                                        borderLeft: "1px solid lightgray",
-                                        marginLeft: 20,
-                                        marginRight: 20,
-                                    }}
-                                />
-                                <div
-                                    style={{
-                                        display: "flex",
-                                        alignItems: "center",
-                                    }}
-                                >
-                                    <KeyComboTag combo="shift + enter" />
-                                    &nbsp;to start a new line
-                                </div>
-                            </div> */}
                         </div>
                     </>
                 )}
