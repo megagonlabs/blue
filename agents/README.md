@@ -4,6 +4,7 @@ Below you will find more information on developing your own agents as well as a 
 
 Use below links for quick accces:
 * [agent development](#agent-development)
+* [template agent](#template-agent)
 * [generic agents](#generic-agents)
 
 </br>
@@ -136,6 +137,14 @@ To share data among workers processing data from the same stream, you can use `s
 To share data among all agent works in the session, you can use `set_session_data(key, value)`, `append_session_data(key, value)`, `get_session_data(key)`, and `get_session_data_len(key)`.
 
 
+</br>
+</br>
+
+---
+
+## template agent
+
+Key functionality of the agent is defined in the `processor` function, the rest is template. To help develop agents you can use the `agents/template` code as starter code.
 </br>
 </br>
 
