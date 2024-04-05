@@ -152,6 +152,11 @@ Key functionality of the agent is defined in the `processor` function, the rest 
 
 ## generic agents
 
+Below is a list of agents that you can directly use as they are generic. Also look for other agents in `agents` directory to use them as examples.
+
+* [API Caller Agent](agents/apicaller)
+* [OpenAI Agent](agents/apicaller)
+
 ### api
 APIAgent is a generic Agent that is designed to be a base class for a variety of agents that essentially talk to an API. To support this it has a number of properties designed to construct a message to the API from input and other properties and parse response from the API to build the right output. Below are the properties to support this:
 
