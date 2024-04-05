@@ -154,5 +154,5 @@ Key functionality of the agent is defined in the `processor` function, the rest 
 
 Below is a list of agents that you can directly use as they are generic. Also look for other agents in `agents` directory to use them as examples.
 
-* [API Caller Agent](agents/apicaller)
-* [OpenAI Agent](agents/apicaller)
+* [API Caller Agent](apicaller)
+* [OpenAI Agent](openai)
