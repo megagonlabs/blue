@@ -13,42 +13,60 @@ Use below links for quick accces:
 
 ## agent development
 
-Let's dive into a bit of development of the agents. The `agents/lib` contains an Agent class that can be used as a base class for developing new agents. You do not necessarily need to extend the base class to create a new class for an agent as you can use the Agent class directly, and use the APIs to process data from other agents. Let's go through an example that basically uses base class:
+Let's dive into a bit of development of the agents. 
 
+The `agents/lib` contains an Agent class that can be used as a base class for developing new agents. However, you do not necessarily need to extend the base class as you can simply use the Agent class directly. 
+
+Let's go through an example that basically uses base class.
+
+First, to import Agent class, `import sys` so that you can access classes defined in various directories under `lib`. Afterwards, import `Agent` and `Session`:
+```
+import sys
+
+sys.path.append('./lib/')
+sys.path.append('./lib/agent/')
+sys.path.append('./lib/platform/')
+
+from agent import Agent
+from session import Session
+```
+
+Note: Use above approach until we have released a blue python library. 
+
+To 
 ```
 # create a user agent
-    user_agent = Agent("USER")
-    session = user_agent.start_session()
+user_agent = Agent("USER")
+session = user_agent.start_session()
 
-    # sample func to process data for counter
-    stream_data = []
+# sample func to process data for counter
+stream_data = []
 
-    def processor(stream, id, label, data):
-        if label == 'EOS':
-            # print all data received from stream
-            print(stream_data)
+def processor(stream, id, label, data):
+    if label == 'EOS':
+        # print all data received from stream
+        print(stream_data)
 
-            # compute stream data
-            l = len(stream_data)
-            time.sleep(4)
-            
-            # output to stream
-            return l
+        # compute stream data
+        l = len(stream_data)
+        time.sleep(4)
+
+        # output to stream
+        return l
            
-        elif label == 'DATA':
-            # store data value
-            stream_data.append(data)
-    
+    elif label == 'DATA':
+        # store data value
+        stream_data.append(data)
         return None
 
-    # create a counter agent in the same session
-    counter_agent = Agent("COUNTER", session=session, processor=processor)
+# create a counter agent in the same session
+counter_agent = Agent("COUNTER", session=session, processor=processor)
 
-    # user initiates an interaction
-    user_agent.interact("hello world!")
+# user initiates an interaction
+user_agent.interact("hello world!")
 
-    # wait for session
-    session.wait()
+# wait for session
+session.wait()
 ```
 
 In the above example, a `USER` agent is created and `create_session` function on the Agent is called to create a Session object. That session object is passed to another Agent, called `COUNTER`, along with a `processor` function to process data in the `COUNTER` agent. 
