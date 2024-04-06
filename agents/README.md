@@ -4,6 +4,7 @@ Below you will find more information on developing your own agents as well as a 
 
 Use below links for quick accces:
 * [agent development](#agent-development)
+* [template agent](#template-agent)
 * [generic agents](#generic-agents)
 
 </br>
@@ -13,90 +14,119 @@ Use below links for quick accces:
 
 ## agent development
 
-Let's dive into a bit of development of the agents. The `agents/lib` contains an Agent class that can be used as a base class for developing new agents. You do not necessarily need to extend the base class to create a new class for an agent as you can use the Agent class directly, and use the APIs to process data from other agents. Let's go through an example that basically uses base class:
+Let's dive into a bit of development of the agents. 
 
+The `agents/lib` contains an Agent class that can be used as a base class for developing new agents. However, you do not necessarily need to extend the base class as you can simply use the Agent class directly. 
+
+Let's go through an example that basically uses base class. You can find this example in `agents/test` directory. To setup for this example:
+
+```
+$ cd agents/python
+$ pip install -r requirements.txt
+$ ./build_agent.sh
+```
+
+[Developers Note: Use above approach until we have released a blue python library]. 
+
+Then, invoke a python interpreter (in `agents/test`):
+```
+$ python
+```
+
+First, to import Agent class, `import sys` so that you can access classes defined in various directories under `lib`. Afterwards, import `Agent` and `Session`:
+```
+import sys
+
+sys.path.append('./lib/')
+sys.path.append('./lib/agent/')
+sys.path.append('./lib/platform/')
+
+from agent import Agent
+from session import Session
+```
+
+In this example, let's first create a USER agent by simply using the existing Agent class, then start a session, and input some text using the `interact` function of the Agent class.
 ```
 # create a user agent
-    user_agent = Agent("USER")
-    session = user_agent.start_session()
+user_agent = Agent("USER")
+session = user_agent.start_session()
 
-    # sample func to process data for counter
-    stream_data = []
+# user initiates an interaction
+user_agent.interact("hello world!")
+```
+If you examine the logs (see below), you will see that we create a new stream `USER:275e2d0b` with `BOS` (begin-of-stream) and then put two `DATA` messages into the stream corresponding to the input text, and ended the stream with `EOS` (end-of-stream).
 
-    def processor(stream, id, label, data):
-        if label == 'EOS':
-            # print all data received from stream
-            print(stream_data)
-
-            # compute stream data
-            l = len(stream_data)
-            time.sleep(4)
-            
-            # output to stream
-            return l
-           
-        elif label == 'DATA':
-            # store data value
-            stream_data.append(data)
-    
-        return None
-
-    # create a counter agent in the same session
-    counter_agent = Agent("COUNTER", session=session, processor=processor)
-
-    # user initiates an interaction
-    user_agent.interact("hello world!")
-
-    # wait for session
-    session.wait()
+```
+INFO:root:Streamed into USER:275e2d0b message {'label': 'BOS'}
+[...]
+INFO:root:Streamed into USER:275e2d0b message {'label': 'DATA', 'data': 'hello', 'type': 'str'}
+INFO:root:Streamed into USER:275e2d0b message {'label': 'DATA', 'data': 'world!', 'type': 'str'}
+INFO:root:Streamed into USER:275e2d0b message {'label': 'EOS'}
 ```
 
-In the above example, a `USER` agent is created and `create_session` function on the Agent is called to create a Session object. That session object is passed to another Agent, called `COUNTER`, along with a `processor` function to process data in the `COUNTER` agent. 
+Now, let's create a COUNTER agent, again using the base Agent class. The counter agent will listen to the streams in the same session as the USER agent (Note session=session in the initializer of the agent, where session is created above by the USER agent). Then we define a `processor` function to process stream data.
 
-The signature of the `processor` function is `stream`, `id`, `label`, and `data`. `stream` is the input stream to process, `id` is the data id assigned (by Redis) stream. `label` is the label of data in the stream, for example `BOS` for beginning of stream, `EOS` for end of stream, `DATA` for a data in stream. Essentially above `processor` function adds new data to `stream_data` when it receives new data (e.g. on `DATA` label) and returns count when all data is received (e.g. on `EOS` label). The base class `Agent` automatically creates a new stream in the session and adds the returned value from the stream so that other agents might start listening to new streams and data in the session.
+The signature of the `processor` function is `stream`, `id`, `label`, and `data`. `stream` is the input stream to process, `id` is the data id assigned stream. `label` is the label of message in the stream, for example `BOS` for begin-of-stream, `EOS` for end-of-stream, `DATA` for a data in stream. Essentially, above `processor` function adds new data to `stream_data` when it receives new data (e.g. on `DATA` label) and returns count when all data is received (e.g. on `EOS` label). The base class `Agent` automatically creates a new stream in the session and adds the returned value from the processor function.
 
-In the end, upon running the above code the streams in the session will be:
 
-| SESSION:493e2083-61a0-4c90-accf-3d372f5b8aac                   |
-| ---------------------------------------------------------------|
-| label: BOS                                                     | 
-| label: ADD, data: USER:c124ca2b-6602-4bdf-882e-f45518d30c85   |
-| label: ADD, data: COUNTER:44d7b977-eb7f-4d7f-8c33-8b3d2b11c3c2|
+```
+# sample func to process data for counter
+stream_data = []
 
-| USER:c124ca2b-6602-4bdf-882e-f45518d30c85 |
-|-------------------------------------------|
-| label: BOS                                |
-| label: DATA, data: hello, type: str       |
-| label: DATA, data: world!, type: str      |
-| label: EOS                                |
+def processor(stream, id, label, data, dtype=None, tags=None, properties=None, worker=None):
+    if label == 'EOS':
+        # print all data received from stream
+        print(stream_data)
+        # compute stream data
+        l = len(stream_data)
+        # output to stream
+        return l 
+    elif label == 'DATA':
+        # store data value
+        stream_data.append(data)
+        return None
 
-| COUNTER:44d7b977-eb7f-4d7f-8c33-8b3d2b11c3c2 | 
-|----------------------------------------------|
-| label: BOS                                   |
-| label: DATA, data: 2, type: int              |
-| label: EOS                                   |
+# create a counter agent in the same session
+counter_agent = Agent("COUNTER", session=session, processor=processor)
+```
 
-First stream refers to session stream, specifically when a new stream is generated by an agent, all others can get which stream is generated and who generated it.
+Now, this time if you examine the logs you will see:
+```
+[...]
+INFO:root:Streamed into COUNTER:5f1fa5a5 message {'label': 'DATA', 'data': 2, 'type': 'int'}
+[...]
+```
 
-Second stream refers to the output from the `USER` stream, essentially the text entered: `hello` and `world!`
+In addition if you examine the session stream, you will see:
 
-Third stream refers to the output from the `COUNTER` stream, essentially the count of the tokens in the `USER` stream, as processed and returned by the agent.
+```
+| SESSION:5db16fd4                                                                   |
+| -----------------------------------------------------------------------------------|
+| label: BOS                                                                         | 
+| label: JOIN, data: {"agent": "USER"}, type: JSON                                   | 
+| label: ADD, data: {"stream": "USER:8d29992c", "tags": ["USER"]}, type: JSON        |
+| label: JOIN, data: {"agent": "COUNTER"}, type: JSON                                | 
+| label: ADD, data: {"stream": "COUNTER:5f1fa5a5", "tags": ["COUNTER"]}, type: JSON  |
+```
 
-That is it!
+This basically illustrates the session mechanism. When an agents starts a session, a new session stream (`SESSION:5db16fd4`) is started. Then we see a `JOIN` event and agent `USER` joined the session, and it created a new stream `USER:8d29992c`. In a way the session stream announced that there is new data in the session, produced by the `USER` agent. Then, later we see another `JOIN` event and agent `COUNTER` joined the session, and it later created a new stream `COUNTER:5f1fa5a5` upon listening and processing data from the `USER` agent in `USER:8d29992c` stream.
 
-Not quite. One question is who is listening to who. To decide which agents to listen to agents have a `listens` property and `includes` and `excludes` list. Basicall agents tag each stream they produce and others in the session can check they `includes` and `excludes` list against the tags of the stream. Agents by default tag each stream they produce by their own name. Addition tags can be provided as a property (`tags`).  `includes` and `excludes` lists are ordered lists of regular expressions that are evaluated on stream tags (e.g. USER, ). To decide if an agents should be listened to first the `includes` list is processed. If none of the regular expressions is matched, the stream with the tags is not listened to. If any of the regular expressions is a match, a further check is made in the `excludes` list. If none of the `excludes` regular expressions is matched the stream is listened. If any one of `excludes` is matched the stream is not listened to. Default `includes` list is ['.*'], i.e. all agents are listened to, and the default `excludes` list is [self.name], i.e. if it is self it is not listened to. Both include and exclude list can include an element that is itself a list, e.g. `["A","B",["C","D"]]` to support conjunctions. For example, in the previous example both "C" and "D" tags (or regular expressions) need to match.
-    
-That is it, for now. :) 
+So, you might ask how did the `COUNTER` agent listened to `USER` agent. Each agent joining the session listens to all events in the session stream, and start keeping track of `ADD` events where new data is introduced into the session. As you see above along with each stream there are `tags`, for example stream `USER:8d29992c` is tagged as `USER`.
+
+To decide which agents to listen to agents (actually more like streams), each agent defines a `listens` property and `includes` and `excludes` list. 
+
+Basically, agents tag each stream they produce, as you have seen above, `USER` agent tagged its output stream as `USER`. Other agents in the session check if their `includes` and `excludes` list against the tags of the stream. Agents by default tag each stream they produce by their own name. Additional, tags can be provided as a property (`tags`).  `includes` and `excludes` lists are ordered lists of regular expressions that are evaluated on stream tags (e.g. USER, ). To decide if an agents should be listened to first the `includes` list is processed. If none of the regular expressions is matched, the stream with the tags is not listened to. If any of the regular expressions is a match, a further check is made in the `excludes` list. If none of the `excludes` regular expressions is matched the stream is listened. If any one of `excludes` is matched the stream is not listened to. Default `includes` list is ['.*'], i.e. all agents are listened to, and the default `excludes` list is `[self.name]`, i.e. self is not listened to. Both include and exclude list can include an element that is itself a list, e.g. `["A","B",["C","D"]]` to support conjunctions. For example, previous example is `A or B or (C and D)`.
+
 
 ## memory 
-The above example works if there is only one worker and that worker is solely responsible from start to end (i.e. it doesn't fail). The reason is that in the above example `stream_data` is a shared variable among all workers of the agent, even when they worker on a different stream. To resolve this issue, you need to create distributed memory (uses Redis JSON) that a worker can write its private data that is only specific to a stream. 
+The above example works if there is only one worker and that worker is solely responsible from start to end (i.e. it doesn't fail). The reason is that in the above example `stream_data` is a shared variable among all workers of the agent, even when they work on a different stream. To resolve this issue, you need to create distributed memory (uses Redis JSON) that a worker can write its private data that is only specific to a stream. 
 
-As discussed above there are three levels of data context. Below are API functions for reading and writing in these respective context. To allow this you will need to pass worker as a keyword parameter to the processor function, i.e. 
+As discussed earlier there are three scopes of shared memory. Below are API functions for reading and writing in these respective scopes. To allow this you will use the worker that is passed on as a keyword parameter to the processor function, i.e. 
 ```
 def processor(stream, id, label, data, worker=None):
 ```
 
-and use the following worker functions to write data.
+and use the following worker functions to write data:
 
 For private worker/stream you can call the following functions on the keyword parameter `worker`, `set_data(key, value)`, `append_data(key, value)`, `get_data(key)`, and `get_data_len(key)`. For example, worker.set_data('a', 3), and worker.get_data('a'). The value can be any JSON value. 
 
@@ -112,94 +142,17 @@ To share data among all agent works in the session, you can use `set_session_dat
 
 ---
 
+## template agent
+
+Key functionality of the agent is defined in the `processor` function, the rest is template. To help develop agents you can use the `agents/template` code as starter code.
+</br>
+</br>
+
+---
+
 ## generic agents
 
-### api
-APIAgent is a generic Agent that is designed to be a base class for a variety of agents that essentially talk to an API. To support this it has a number of properties designed to construct a message to the API from input and other properties and parse response from the API to build the right output. Below are the properties to support this:
+Below is a list of agents that you can directly use as they are generic. Also look for other agents in `agents` directory to use them as examples.
 
-`input_json`: Initializes input if JSON is the input format. When set to None, input is just text. Otherwise JSON is constructed from the value of this property and input is plugged in to the right place in the input json using below properties. 
-
-`input_context`: Defines where in the input json input is plugged in using JSONPath.
-
-`input_context_field`: Defines the input field name where input is plugged in.
-
-`input_field`: Defines the input field of the API call. Input is set as the value of this property, as constructued from above process for constructing input. 
-
-`input_template`: Defines the template of the input using a template. When set to None it is assumed that input is passed on without an additionally formatting. Otherwise, `input_template` is expected to be of the following format: `.....{var1}....{input}....{var2}...` where `var1` and `var2` is substituted from the corresponding properties of the agent, and `input` is coming from the input stream. 
-
-`output_path`: Define where in the API response to find the output using JSONPath. For example, `$.result` would point to the `result` property in the response JSON.
-
-`output_template`: Defines the template of the output (in a similar fashion as in `input_template` using a template. When set to None it is assumed that output is returned without an additionally formatting. Otherwise, `output_template` is expected to be of the following format: `.....{var1}....{output}....{var2}...` where `var1` and `var2` is substituted from the corresponding properties of the agent, and `output` is coming from the response, extracted through `output_path`. 
-
-### openai
-OpenAI has a number of models available through APIs. OpenAI agent is basically a wrapper around models offered. The agent has a webservice component that works with the APIs. To create an OpenAI agent:
-```
-$ cd agents/openai
-$ python src/openai_agent.py --session <session_id> --properties '{"openai.api":"ChatCompletion","openai.model":"gpt-4","output_path":"$.choices[0].message.content","input_json":"[{\"role\":\"user\"}]","input_context":"$[0]","input_context_field":"content","input_field":"messages"}'
-```
-As you see above details of the model (e.g. `gpt-4`), api (e.g. `ChatCompletion`), etc. are provided as input to the agent. In addition to prepare input data for the API and to fetch response you need to provide additional properties such as `input_field`, `input_context`, `input_concext_field`, and `output_path`. `input_field` is the name of the field to where text data is provided to the API (e.g. `prompt` for `text_davinci_003`, `messages` for `gpt-4`). `output_path` is json_path to where the API returns the resulting text in the response (e.g. `$.choices[0].message`). Some of the API calls require more structured input such as `ChatCompletion`. The JSON structure is specified in `input_json`, and where to insert input text data is provided as json_path in `input_context` and the associated input field name is provided in `input_context_field`. Note that any properties with the prefix `openai.` will be passed on to OpenAI API, everything else is used by the agent itself for data processing.
-
-For the OpenAI agent you would also need to start a webservice that will proxy to OpenAI APIs . To start the service :
-```
-$ cd agents/openai
-$ docker compose up 
-```
-
-Finally, to setup openai authentication, edit `openai.env` and replace `<openai_api_key>` with your API Keys. 
-
-### nl2sql
-OpenAI has models (e.g. 'text-davinci-003') that can convert natural language statements to SQL queries, optionally given a schema. To bring NL2SQL agent, all you need to do is to pass in properties that will allow OpenAI to make the proper calls, with the right prompts, and input/output processing:
-```
-$ cd agents/openai
-#  python src/openai_agent.py --properties  '{"openai.api":"Completion","openai.model":"text-davinci-003","output_path":"$.choices[0].text","input_field":"prompt","input_template":"### Postgres SQL tables, with their properties:\n#\n{schema}\n#\n###{input}\nSELECT","openai.max_tokens":100,"openai.temperature":0,"openai.max_tokens":150,"openai.top_p":1.0,"openai.frequency_penalty":0.0,"openai.presence_penalty":0.0,"openai.stop":["#", ";"],"schema":"","output_template":"SELECT {output}"}' --session
-```
-
-As you can see above details of the model (e.g. `text-davinci-003`), api (e.g. `Completion`), etc. are provided as input to the agent. Beyond what is discussed above there are other properties that are needed to process input and ouput appropriately. For example, to set the prompt that also takes in a schema you can set `input_template` and provide additional attributes that can be set from properties. Above we initialize a prompt string that takes in `schema` and `input` as attributes. `input` is set by the agent, which is essentially input stream data, i.e. user query. `schema` is set in the agent properties (above just initialized to empty string). Siimilarly, `output_template` defines what to put back into the stream. Above a prefix (e.g. `SELECT `) is prepended to data coming from the model so the complete query can be obtained. 
-
-As above to run the agent you will need to start the service.
-
-### postgres 
-Postgres Agent essentially scans a stream for any valid SQL statements and executes the query against its database. To bring up a Postgress agent, you need to provide properties such as host name, port, database, etc. For example:
-```
-$ cd agents/postgres
-# python src/postgres_agent.py --properties  '{"postgres.user":"postgres", "postgres.password":"example", "postgres.database":"mydatabase", "postgres.host":"host.docker.internal"}' --session <SESSION>
-```
-Note that any properties with the prefix `postgres.` will be passed on to Postgress service, everything else is used by the agent itself for data processing and preparation.
-
-For the Postgress agent you would also need to start a webservice to execute queries on Postgres . To start the service :
-```
-$ cd agents/postgres
-$ docker compose up 
-```
-
-The postgress database itself is part of the blue platform, and it runs when you bring up the platform services (as noted above in infrastructure)
-
-### neo4j 
-NEO4J Agent essentially scans a stream for any neo4j/CYPHER query statements and executes the query against its database. To bring up a NEO4J agent, you need to provide properties such as host name, etc. For example:
-```
-$ cd agents/neo4j
-# python src/neo4j_agent.py --properties  '{"neo4j.user":"neo4j", "neo4j.password":"neo4j", "neo4j.host":"bolt://host.docker.internal"}' --session <SESSION>
-```
-Note that any properties with the prefix `neo4j.` will be passed on to NEO4J service, everything else is used by the agent itself for data processing and preparation.
-
-For the NEO4J agent you would also need to start a webservice to execute queries on Postgres . To start the service :
-```
-$ cd agents/neo4j
-$ docker compose up 
-```
-
-The neo4j database itself is part of the blue platform, and it runs when you bring up the platform services (as noted above in infrastructure)
-
-### observer 
-Observer Agent essentially consumes every stream in a session and outputs the contents into a readable format that can be used for demo and debugging purposes. To bring up an Observer agent, all you need is to pass the session to observe. For example:
-```
-$ cd agents/observer
-# python src/observer.py  --session <SESSION>
-```
-
-### recorder 
-Recorder Agent essentially consumes every JSON stream in a session to find matches and writes them to session memory for every agents consumtion. `records` property is an array of records which consists of `variable`, `query`, and `single`, where the recorder agent executes JSONPATH query in `query` and assigns it to `variable` in the session. When a variable assignment is made it is announced in the recorder's stream.
-```
-$ cd agents/recorder
-# python src/recorder.py --properties '{"records":[{"variale":<name>,"query":<jsonpath_query>},...]}' --session <SESSION>
-```
+* [API Caller Agent](apicaller)
+* [OpenAI Agent](openai)
