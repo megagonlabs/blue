@@ -1,10 +1,10 @@
 import { AppContext } from "@/components/app-context";
+import FormCell from "@/components/jsonforms/FormCell";
 import { HTMLSelect } from "@blueprintjs/core";
 import { isEnumControl, rankWith } from "@jsonforms/core";
 import { withJsonFormsControlProps } from "@jsonforms/react";
 import _ from "lodash";
 import { useContext } from "react";
-import FormCell from "../FormCell";
 const EnumRenderer = ({
     uischema,
     schema,

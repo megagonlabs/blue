@@ -1,3 +1,4 @@
+import { AppContext } from "@/components/app-context";
 import { faIcon } from "@/components/icon";
 import {
     Button,
@@ -11,7 +12,6 @@ import {
 import { faArrowLeft, faArrowRight } from "@fortawesome/pro-duotone-svg-icons";
 import _ from "lodash";
 import { useContext } from "react";
-import { AppContext } from "../app-context";
 export default function Pagination({
     type,
     page,

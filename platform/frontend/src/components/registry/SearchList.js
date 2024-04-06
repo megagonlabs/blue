@@ -1,12 +1,12 @@
+import { AppContext } from "@/components/app-context";
+import { SEARCH_LIST_TYPE_LOOKUP } from "@/components/constant";
+import { faIcon } from "@/components/icon";
 import { Card, Classes } from "@blueprintjs/core";
 import _ from "lodash";
 import Link from "next/link";
 import { useContext } from "react";
 import AutoSizer from "react-virtualized-auto-sizer";
 import { FixedSizeList } from "react-window";
-import { AppContext } from "../app-context";
-import { SEARCH_LIST_TYPE_LOOKUP } from "../constant";
-import { faIcon } from "../icon";
 export default function SearchList({ type }) {
     const { appState } = useContext(AppContext);
     return (

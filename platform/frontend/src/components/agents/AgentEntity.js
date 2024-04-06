@@ -1,3 +1,12 @@
+import { AppContext } from "@/components/app-context";
+import EntityDescription from "@/components/entity/EntityDescription";
+import EntityMain from "@/components/entity/EntityMain";
+import EntityProperties from "@/components/entity/EntityProperties";
+import {
+    constructSavePropertyRequests,
+    settlePromises,
+} from "@/components/helper";
+import { AppToaster } from "@/components/toaster";
 import {
     HTMLTable,
     Intent,
@@ -11,12 +20,6 @@ import _ from "lodash";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useContext, useEffect, useState } from "react";
-import { AppContext } from "../app-context";
-import EntityDescription from "../entity/EntityDescription";
-import EntityMain from "../entity/EntityMain";
-import EntityProperties from "../entity/EntityProperties";
-import { constructSavePropertyRequests, settlePromises } from "../helper";
-import { AppToaster } from "../toaster";
 export default function AgentEntity() {
     const { appState } = useContext(AppContext);
     const router = useRouter();

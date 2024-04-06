@@ -1,3 +1,5 @@
+import { faIcon } from "@/components/icon";
+import { AppToaster } from "@/components/toaster";
 import {
     Button,
     ButtonGroup,
@@ -19,8 +21,6 @@ import {
 import axios from "axios";
 import _ from "lodash";
 import { useRouter } from "next/router";
-import { faIcon } from "../icon";
-import { AppToaster } from "../toaster";
 export default function EntityMain({
     entity,
     edit,

@@ -89,7 +89,7 @@ export default function Designer() {
         sessionStorage.removeItem("jsonUiSchema");
         sessionStorage.removeItem("jsonSchema");
     };
-    const [isDocOpen, setIsDocOpen] = useState(false);
+    const [isDocOpen, setIsDocOpen] = useState(true);
     return (
         <>
             <DocDrawer isOpen={isDocOpen} setIsDocOpen={setIsDocOpen} />

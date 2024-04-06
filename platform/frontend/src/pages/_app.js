@@ -1,5 +1,7 @@
 import App from "@/components/App";
 import { AppProvider } from "@/components/app-context";
+import "@/styles/custom.css";
+import "@/styles/docs.css";
 import { FocusStyleManager } from "@blueprintjs/core";
 import "@blueprintjs/core/lib/css/blueprint.css";
 import "@blueprintjs/icons/lib/css/blueprint-icons.css";
@@ -11,7 +13,6 @@ import _ from "lodash";
 import dynamic from "next/dynamic";
 import Head from "next/head";
 import "normalize.css/normalize.css";
-import "../styles/custom.css";
 TimeAgo.addLocale(en);
 axios.defaults.withCredentials = true;
 axios.defaults.baseURL = process.env.NEXT_PUBLIC_API_SERVER;

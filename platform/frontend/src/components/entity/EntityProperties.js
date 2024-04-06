@@ -1,6 +1,6 @@
+import Editor from "@/components/Editor";
 import { Classes, Intent, Section, SectionCard, Tag } from "@blueprintjs/core";
 import _ from "lodash";
-import Editor from "../Editor";
 export default function EntityProperties({
     entity,
     edit,

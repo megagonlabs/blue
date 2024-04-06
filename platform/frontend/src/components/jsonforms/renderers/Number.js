@@ -1,7 +1,7 @@
+import FormCell from "@/components/jsonforms/FormCell";
+import NumberInput from "@/components/jsonforms/NumberInput";
 import { isNumberControl, rankWith } from "@jsonforms/core";
 import { withJsonFormsControlProps } from "@jsonforms/react";
-import FormCell from "../FormCell";
-import NumberInput from "../NumberInput";
 const NumberRenderer = ({ uischema, handleChange, path, data, required }) => {
     const label = _.get(uischema, "label", null);
     const labelElement =

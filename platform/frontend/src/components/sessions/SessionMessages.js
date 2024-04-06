@@ -1,9 +1,9 @@
+import { AppContext } from "@/components/app-context";
 import { Callout, Classes, Intent } from "@blueprintjs/core";
 import _ from "lodash";
 import { useContext, useEffect, useRef } from "react";
 import AutoSizer from "react-virtualized-auto-sizer";
 import { VariableSizeList } from "react-window";
-import { AppContext } from "../app-context";
 import InteractiveMessage from "./InteractiveMessage";
 export default function SessionMessages() {
     const variableSizeListRef = useRef();
@@ -78,6 +78,7 @@ export default function SessionMessages() {
                     style={{
                         maxWidth: "min(802.2px, 100%)",
                         whiteSpace: "pre-wrap",
+                        wordBreak: "break-all",
                         width: "fit-content",
                     }}
                 >
