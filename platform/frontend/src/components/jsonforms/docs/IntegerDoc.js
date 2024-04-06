@@ -95,6 +95,7 @@ export default function IntegerDoc({ closePanel }) {
                         {docProps.nameId}
                     </tbody>
                 </HTMLTable>
+                {docProps.numericInputTip}
             </div>
         </>
     );

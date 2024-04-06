@@ -1,4 +1,4 @@
-const { Code, Classes } = require("@blueprintjs/core");
+const { Code, Classes, Callout, Intent } = require("@blueprintjs/core");
 import classNames from "classnames";
 module.exports = {
     style: (
@@ -78,5 +78,33 @@ module.exports = {
                 <div>Optional helper text.</div>
             </td>
         </tr>
+    ),
+    numericInputTip: (
+        <Callout
+            title="Extended interactions"
+            compact
+            intent={Intent.PRIMARY}
+            icon={null}
+        >
+            <ul>
+                <li>
+                    Number abbreviations: (e.g. <Code>2.1k</Code>,&nbsp;
+                    <Code>-0.3m</Code>)
+                </li>
+                <li>
+                    Scientific notation: (e.g. <Code>2.1e3</Code>,&nbsp;
+                    <Code>-0.3e6</Code>)
+                </li>
+                <li>
+                    Addition and subtraction expressions: (e.g. <Code>3+2</Code>
+                    ,&nbsp;<Code>0.1m - 5k + 1</Code>)
+                </li>
+            </ul>
+            These special-case inputs are evaluated when <Code>Enter</Code> is
+            pressed (via a custom <Code>onKeyDown</Code> callback) and when the
+            field loses focus (via a custom <Code>onBlur</Code> callback). If
+            the input is invalid when either of these callbacks is trigged, the
+            field will be cleared.
+        </Callout>
     ),
 };
