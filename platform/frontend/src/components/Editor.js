@@ -53,7 +53,7 @@ export default function Editor({
         codeEditorView.dispatch({
             changes: { from: 0, to: doc.length, insert: code },
         });
-    }, [code]);
+    }, [code]); // eslint-disable-line react-hooks/exhaustive-deps
     useEffect(() => {
         const state = EditorState.create({
             doc: doc,
@@ -78,6 +78,6 @@ export default function Editor({
         return () => {
             view.destroy();
         };
-    }, []);
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
     return <div ref={editor} />;
 }

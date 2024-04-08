@@ -3,6 +3,7 @@ import * as docProps from "@/components/jsonforms/docs/constant";
 import {
     Button,
     Classes,
+    Code,
     H1,
     H2,
     HTMLTable,
@@ -11,6 +12,7 @@ import {
     Tooltip,
 } from "@blueprintjs/core";
 import { faArrowLeft, faCopy } from "@fortawesome/pro-duotone-svg-icons";
+import classNames from "classnames";
 export default function StringDoc({ closePanel }) {
     return (
         <>
@@ -92,6 +94,26 @@ export default function StringDoc({ closePanel }) {
                         </tr>
                     </thead>
                     <tbody>
+                        <tr>
+                            <td>
+                                <Code>options.multi</Code>
+                            </td>
+                            <td>
+                                <strong>string</strong>
+                                <em
+                                    className={classNames(
+                                        Classes.TEXT_MUTED,
+                                        "docs-prop-default"
+                                    )}
+                                >
+                                    false
+                                </em>
+                                <div>
+                                    Whether to render as multi-line textarea or
+                                    single-line input
+                                </div>
+                            </td>
+                        </tr>
                         {docProps.inline}
                         {docProps.helperText}
                         {docProps.style}

@@ -122,7 +122,6 @@ export default function ButtonDoc({ closePanel }) {
                                     styles.
                                 </div>
                                 <Callout
-                                    compact
                                     style={{
                                         margin: 0,
                                         marginTop: 5,
@@ -155,7 +154,6 @@ export default function ButtonDoc({ closePanel }) {
                                 </div>
 
                                 <Callout
-                                    compact
                                     style={{
                                         margin: 0,
                                         marginTop: 5,

@@ -41,7 +41,7 @@ export default function SessionMessages() {
                     rowRef.current.clientHeight + 30 + (!own ? 15.43 : 0)
                 );
             }
-        }, [rowRef]);
+        }, [rowRef]); // eslint-disable-line react-hooks/exhaustive-deps
         useEffect(() => {
             const handleResize = () => {
                 // do magic for resize
@@ -57,7 +57,7 @@ export default function SessionMessages() {
             return () => {
                 window.removeEventListener("resize", handleResize);
             };
-        }, []);
+        }, []); // eslint-disable-line react-hooks/exhaustive-deps
         const messageType = _.get(messages[index].message, "type", "STRING"),
             messageContent = _.get(messages[index].message, "content", null);
         return (
@@ -109,7 +109,7 @@ export default function SessionMessages() {
                 );
             }
         }, 0);
-    }, [variableSizeListRef, sessionIdFocus]);
+    }, [variableSizeListRef, sessionIdFocus]); // eslint-disable-line react-hooks/exhaustive-deps
     return (
         <AutoSizer>
             {({ width, height }) => (

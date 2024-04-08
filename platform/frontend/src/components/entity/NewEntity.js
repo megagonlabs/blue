@@ -52,7 +52,7 @@ export default function NewEntity({ type }) {
                     setEntity(_.get(response, "data.result", {}));
                 }
             });
-    }, [router]);
+    }, [router]); // eslint-disable-line react-hooks/exhaustive-deps
     const saveEntity = () => {
         if (!router.isReady) return;
         setLoading(true);

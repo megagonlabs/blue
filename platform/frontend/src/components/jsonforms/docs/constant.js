@@ -82,7 +82,6 @@ module.exports = {
     numericInputTip: (
         <Callout
             title="Extended interactions"
-            compact
             intent={Intent.PRIMARY}
             icon={null}
         >

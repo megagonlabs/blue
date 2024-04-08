@@ -32,4 +32,4 @@ const Blue = ({ Component, pageProps }) => {
         );
     return null;
 };
-export default dynamic(() => Promise.resolve(Blue), { ssr: false });
+export default dynamic(() => Promise.resolve(Blue), { ssr: true });

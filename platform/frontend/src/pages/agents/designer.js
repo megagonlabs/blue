@@ -12,12 +12,14 @@ import {
     Divider,
     Intent,
     NonIdealState,
+    Tooltip,
 } from "@blueprintjs/core";
 import {
     faArrowsFromLine,
     faBookOpenCover,
     faBracketsCurly,
     faCircleXmark,
+    faRotate,
     faTrash,
 } from "@fortawesome/pro-duotone-svg-icons";
 import { JsonForms } from "@jsonforms/react";
@@ -26,10 +28,17 @@ import { Allotment } from "allotment";
 import classNames from "classnames";
 import _ from "lodash";
 import { createRef, useEffect, useState } from "react";
-export default function Designer() {
+import { useErrorBoundary, withErrorBoundary } from "react-use-error-boundary";
+const DEFAULT_SCHEMA = JSON.stringify(
+    { type: "object", properties: {} },
+    null,
+    4
+);
+function Designer() {
+    const [error, resetError] = useErrorBoundary();
     const topPaneRef = createRef();
     const [uiSchema, setUiSchema] = useState("{}");
-    const [schema, setSchema] = useState("{}");
+    const [schema, setSchema] = useState(DEFAULT_SCHEMA);
     const [data, setData] = useState({});
     const [jsonUiSchema, setJsonUiSchema] = useState({});
     const [jsonSchema, setJsonSchema] = useState({});
@@ -40,6 +49,11 @@ export default function Designer() {
     const [schemaLoading, setSchemaLoading] = useState(true);
     const [schemaInitialized, setSchemaInitialized] = useState(false);
     useEffect(() => {
+        if (error) {
+            setIsDocOpen(false);
+        }
+    }, [error]);
+    useEffect(() => {
         if (!uiSchemaLoading) {
             let uiSchemaCache = sessionStorage.getItem("uiSchema");
             if (!uiSchemaInitialized && uiSchemaCache) {
@@ -47,7 +61,7 @@ export default function Designer() {
             }
             setUiSchemaInitialized(true);
         }
-    }, [uiSchemaLoading]);
+    }, [uiSchemaLoading]); // eslint-disable-line react-hooks/exhaustive-deps
     useEffect(() => {
         if (!schemaLoading) {
             let schemaCache = sessionStorage.getItem("schema");
@@ -56,7 +70,7 @@ export default function Designer() {
             }
             setSchemaInitialized(true);
         }
-    }, [schemaLoading]);
+    }, [schemaLoading]); // eslint-disable-line react-hooks/exhaustive-deps
     useEffect(() => {
         try {
             setJsonUiSchema(JSON.parse(uiSchema));
@@ -64,7 +78,7 @@ export default function Designer() {
         if (uiSchemaInitialized) {
             sessionStorage.setItem("uiSchema", uiSchema);
         }
-    }, [uiSchema]);
+    }, [uiSchema]); // eslint-disable-line react-hooks/exhaustive-deps
     useEffect(() => {
         try {
             setJsonSchema(JSON.parse(schema));
@@ -72,7 +86,7 @@ export default function Designer() {
         if (schemaInitialized) {
             sessionStorage.setItem("schema", schema);
         }
-    }, [schema]);
+    }, [schema]); // eslint-disable-line react-hooks/exhaustive-deps
     const BUTTON_PROPS = {
         large: true,
         alignText: Alignment.LEFT,
@@ -85,21 +99,35 @@ export default function Designer() {
         setUiSchemaError(false);
         setSchemaError(false);
         setUiSchema("{}");
-        setSchema("{}");
+        setSchema(DEFAULT_SCHEMA);
         sessionStorage.removeItem("jsonUiSchema");
         sessionStorage.removeItem("jsonSchema");
     };
-    const [isDocOpen, setIsDocOpen] = useState(false);
+    const [isDocOpen, setIsDocOpen] = useState(
+        _.isEqual(sessionStorage.getItem("isDocOpen"), "true")
+    );
     return (
         <>
             <DocDrawer isOpen={isDocOpen} setIsDocOpen={setIsDocOpen} />
             <Card interactive style={{ padding: 5, borderRadius: 0 }}>
                 <ButtonGroup large minimal>
+                    {error ? (
+                        <Button
+                            intent={Intent.SUCCESS}
+                            text="Re-run"
+                            onClick={resetError}
+                            icon={faIcon({ icon: faRotate })}
+                        />
+                    ) : null}
                     <Button
                         text="Docs."
                         icon={faIcon({ icon: faBookOpenCover })}
                         onClick={() => {
                             setIsDocOpen(!isDocOpen);
+                            sessionStorage.setItem(
+                                "isDocOpen",
+                                String(!isDocOpen)
+                            );
                         }}
                     />
                     <Divider />
@@ -123,29 +151,40 @@ export default function Designer() {
                                             "1px solid rgba(17, 20, 24, 0.15)",
                                     }}
                                 >
-                                    <Button
-                                        intent={
-                                            uiSchemaError ? Intent.DANGER : null
+                                    <Tooltip
+                                        fill
+                                        minimal
+                                        placement="bottom-start"
+                                        content={
+                                            "The UI schema that describes how the form should be rendered."
                                         }
-                                        icon={
-                                            uiSchemaError
-                                                ? faIcon({
-                                                      icon: faCircleXmark,
-                                                  })
-                                                : null
-                                        }
-                                        {...BUTTON_PROPS}
-                                        text="UI Schema"
-                                        onClick={() => {
-                                            topPaneRef.current.resize([
-                                                window.innerHeight,
-                                                187.5,
-                                            ]);
-                                        }}
-                                        rightIcon={faIcon({
-                                            icon: faArrowsFromLine,
-                                        })}
-                                    />
+                                    >
+                                        <Button
+                                            intent={
+                                                uiSchemaError
+                                                    ? Intent.DANGER
+                                                    : null
+                                            }
+                                            icon={
+                                                uiSchemaError
+                                                    ? faIcon({
+                                                          icon: faCircleXmark,
+                                                      })
+                                                    : null
+                                            }
+                                            {...BUTTON_PROPS}
+                                            text="UI Schema"
+                                            onClick={() => {
+                                                topPaneRef.current.resize([
+                                                    window.innerHeight,
+                                                    187.5,
+                                                ]);
+                                            }}
+                                            rightIcon={faIcon({
+                                                icon: faArrowsFromLine,
+                                            })}
+                                        />
+                                    </Tooltip>
                                 </div>
                                 <div
                                     className={classNames({
@@ -176,29 +215,40 @@ export default function Designer() {
                                             "1px solid rgba(17, 20, 24, 0.15)",
                                     }}
                                 >
-                                    <Button
-                                        intent={
-                                            schemaError ? Intent.DANGER : null
+                                    <Tooltip
+                                        fill
+                                        minimal
+                                        placement="bottom-start"
+                                        content={
+                                            "The JSON schema that describes the underlying data."
                                         }
-                                        icon={
-                                            schemaError
-                                                ? faIcon({
-                                                      icon: faCircleXmark,
-                                                  })
-                                                : null
-                                        }
-                                        {...BUTTON_PROPS}
-                                        text="Schema"
-                                        onClick={() => {
-                                            topPaneRef.current.resize([
-                                                187.5,
-                                                window.innerHeight,
-                                            ]);
-                                        }}
-                                        rightIcon={faIcon({
-                                            icon: faArrowsFromLine,
-                                        })}
-                                    />
+                                    >
+                                        <Button
+                                            intent={
+                                                schemaError
+                                                    ? Intent.DANGER
+                                                    : null
+                                            }
+                                            icon={
+                                                schemaError
+                                                    ? faIcon({
+                                                          icon: faCircleXmark,
+                                                      })
+                                                    : null
+                                            }
+                                            {...BUTTON_PROPS}
+                                            text="Schema"
+                                            onClick={() => {
+                                                topPaneRef.current.resize([
+                                                    187.5,
+                                                    window.innerHeight,
+                                                ]);
+                                            }}
+                                            rightIcon={faIcon({
+                                                icon: faArrowsFromLine,
+                                            })}
+                                        />
+                                    </Tooltip>
                                 </div>
                                 <div
                                     className={classNames({
@@ -229,23 +279,29 @@ export default function Designer() {
                         >
                             {!_.isEmpty(jsonUiSchema) ? (
                                 <Callout
+                                    icon={null}
+                                    intent={error ? Intent.DANGER : null}
                                     style={{
                                         maxWidth: "min(802.2px, 100%)",
                                         whiteSpace: "pre-wrap",
                                         width: "fit-content",
                                     }}
                                 >
-                                    <JsonForms
-                                        schema={jsonSchema}
-                                        uischema={jsonUiSchema}
-                                        data={data}
-                                        renderers={JSONFORMS_RENDERERS}
-                                        cells={vanillaCells}
-                                        onChange={({ data, errors }) => {
-                                            console.log(data, errors);
-                                            setData(data);
-                                        }}
-                                    />
+                                    {!error ? (
+                                        <JsonForms
+                                            schema={jsonSchema}
+                                            uischema={jsonUiSchema}
+                                            data={data}
+                                            renderers={JSONFORMS_RENDERERS}
+                                            cells={vanillaCells}
+                                            onChange={({ data, errors }) => {
+                                                console.log(data, errors);
+                                                setData(data);
+                                            }}
+                                        />
+                                    ) : (
+                                        String(error)
+                                    )}
                                 </Callout>
                             ) : (
                                 <NonIdealState
@@ -263,3 +319,4 @@ export default function Designer() {
         </>
     );
 }
+export default withErrorBoundary(Designer);

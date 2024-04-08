@@ -53,7 +53,7 @@ export default function Sessions() {
     };
     useEffect(() => {
         handleConnectToWebsocket();
-    }, []);
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
     useEffect(() => {
         if (sessionMessageTextArea.current) {
             sessionMessageTextArea.current.focus();

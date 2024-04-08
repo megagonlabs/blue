@@ -2,12 +2,15 @@ import { faIcon } from "@/components/icon";
 import * as docProps from "@/components/jsonforms/docs/constant";
 import {
     Button,
+    Callout,
+    Checkbox,
     Classes,
     Code,
     H1,
     H2,
     HTMLTable,
     Intent,
+    Switch,
     Tag,
     Tooltip,
 } from "@blueprintjs/core";
@@ -109,6 +112,24 @@ export default function BooleanDoc({ closePanel }) {
                                     Whether this control should use switch
                                     component.
                                 </div>
+                                <Callout
+                                    style={{
+                                        margin: 0,
+                                        marginTop: 5,
+                                        display: "flex",
+                                        gap: 10,
+                                        flexWrap: "wrap",
+                                    }}
+                                >
+                                    <Checkbox
+                                        style={{ margin: 0 }}
+                                        label="switch: false"
+                                    />
+                                    <Switch
+                                        style={{ margin: 0 }}
+                                        label="switch: true"
+                                    />
+                                </Callout>
                             </td>
                         </tr>
                         {docProps.style}

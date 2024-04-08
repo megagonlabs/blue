@@ -34,7 +34,7 @@ export default function Agents() {
     useEffect(() => {
         if (appState.agent.search) return;
         appActions.agent.getList();
-    }, []);
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
     const debounceOnKeywordsChange = useCallback(
         _.debounce(
             ({
@@ -75,7 +75,7 @@ export default function Agents() {
             page,
             pageSize,
         });
-    }, [hybrid, approximate, type, page, pageSize]);
+    }, [hybrid, approximate, type, page, pageSize]); // eslint-disable-line react-hooks/exhaustive-deps
     return (
         <>
             <div style={{ padding: "20px 20px 10px 20px" }}>
