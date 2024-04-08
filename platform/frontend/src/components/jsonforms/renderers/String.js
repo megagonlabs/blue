@@ -8,6 +8,7 @@ import { useContext } from "react";
 const StringRenderer = ({ uischema, handleChange, path, data, required }) => {
     const { appState } = useContext(AppContext);
     const multiline = _.get(uischema, "options.multi", false);
+    const placeholder = _.get(uischema, "props.placeholder", null);
     const label = _.get(uischema, "label", null);
     const labelElement = _.isString(label) ? (
         <label
@@ -41,6 +42,7 @@ const StringRenderer = ({ uischema, handleChange, path, data, required }) => {
                 helperText={_.get(uischema, "props.helperText", null)}
             >
                 <TextArea
+                    placeholder={placeholder}
                     value={data}
                     onChange={handleOnChange}
                     fill
@@ -57,7 +59,13 @@ const StringRenderer = ({ uischema, handleChange, path, data, required }) => {
             style={_.get(uischema, "props.style", {})}
             helperText={_.get(uischema, "props.helperText", null)}
         >
-            <InputGroup large value={data} onChange={handleOnChange} fill />
+            <InputGroup
+                placeholder={placeholder}
+                large
+                value={data}
+                onChange={handleOnChange}
+                fill
+            />
         </FormCell>
     );
 };

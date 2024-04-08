@@ -71,6 +71,7 @@ export default function StringDoc({ closePanel }) {
                             },
                             props: {
                                 inline: false,
+                                placeholder: null,
                                 helperText: null,
                                 style: {},
                                 nameId: null,
@@ -110,10 +111,11 @@ export default function StringDoc({ closePanel }) {
                                 </em>
                                 <div>
                                     Whether to render as multi-line textarea or
-                                    single-line input
+                                    single-line input.
                                 </div>
                             </td>
                         </tr>
+                        {docProps.placeholder}
                         {docProps.inline}
                         {docProps.helperText}
                         {docProps.style}

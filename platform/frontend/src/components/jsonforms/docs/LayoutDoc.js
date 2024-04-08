@@ -139,7 +139,7 @@ export default function LayoutDoc({ closePanel }) {
                                     true
                                 </em>
                                 <div>
-                                    Whether to have elements with equal width
+                                    Whether to have elements with equal width.
                                 </div>
                                 <Tag
                                     intent={Intent.PRIMARY}

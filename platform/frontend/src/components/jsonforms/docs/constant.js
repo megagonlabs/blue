@@ -106,4 +106,23 @@ module.exports = {
             field will be cleared.
         </Callout>
     ),
+    placeholder: (
+        <tr>
+            <td>
+                <Code>placeholder</Code>
+            </td>
+            <td>
+                <strong>string</strong>
+                <em
+                    className={classNames(
+                        Classes.TEXT_MUTED,
+                        "docs-prop-default"
+                    )}
+                >
+                    null
+                </em>
+                <div>Placeholder text.</div>
+            </td>
+        </tr>
+    ),
 };

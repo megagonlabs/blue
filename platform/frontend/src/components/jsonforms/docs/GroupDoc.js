@@ -118,7 +118,7 @@ export default function GroupDoc({ closePanel }) {
                                 </em>
                                 <div>
                                     defaultIsOpen attribute sets the default
-                                    open state of the group
+                                    open state of the group.
                                 </div>
                             </td>
                         </tr>

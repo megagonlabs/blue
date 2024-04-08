@@ -76,7 +76,6 @@ export default function App({ children }) {
                     zIndex: 1,
                 }}
             >
-                <MenuDivider title="" className="margin-0" />
                 <ButtonGroup
                     alignText={Alignment.LEFT}
                     vertical
