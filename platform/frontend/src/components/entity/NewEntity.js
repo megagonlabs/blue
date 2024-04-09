@@ -1,3 +1,10 @@
+import { AppContext } from "@/components/app-context";
+import {
+    constructSavePropertyRequests,
+    settlePromises,
+} from "@/components/helper";
+import { faIcon } from "@/components/icon";
+import { AppToaster } from "@/components/toaster";
 import {
     Button,
     Classes,
@@ -13,10 +20,6 @@ import { diff } from "deep-diff";
 import _ from "lodash";
 import { useRouter } from "next/router";
 import { useContext, useEffect, useState } from "react";
-import { AppContext } from "../app-context";
-import { constructSavePropertyRequests, settlePromises } from "../helper";
-import { faIcon } from "../icon";
-import { AppToaster } from "../toaster";
 import EntityDescription from "./EntityDescription";
 import EntityProperties from "./EntityProperties";
 export default function NewEntity({ type }) {
@@ -49,7 +52,7 @@ export default function NewEntity({ type }) {
                     setEntity(_.get(response, "data.result", {}));
                 }
             });
-    }, [router]);
+    }, [router]); // eslint-disable-line react-hooks/exhaustive-deps
     const saveEntity = () => {
         if (!router.isReady) return;
         setLoading(true);

@@ -4,17 +4,16 @@ import { withJsonFormsCellProps } from "@jsonforms/react";
 import classNames from "classnames";
 import _ from "lodash";
 const LabelRenderer = ({ uischema }) => {
-    const isMuted = _.get(uischema, "props.muted", false);
-    const isSmall = _.get(uischema, "props.small", false);
     return (
         <div
             style={_.get(uischema, "props.style", {})}
             className={classNames({
-                [Classes.TEXT_MUTED]: isMuted,
-                [Classes.TEXT_SMALL]: isSmall,
+                [Classes.TEXT_MUTED]: _.get(uischema, "props.muted", false),
+                [Classes.TEXT_SMALL]: _.get(uischema, "props.small", false),
+                [Classes.TEXT_LARGE]: _.get(uischema, "props.large", false),
             })}
         >
-            {_.get(uischema, "text", null)}
+            {_.get(uischema, "label", null)}
         </div>
     );
 };

@@ -1,3 +1,6 @@
+import { AppContext } from "@/components/app-context";
+import { faIcon } from "@/components/icon";
+import { AppToaster } from "@/components/toaster";
 import {
     Button,
     Card,
@@ -15,9 +18,6 @@ import {
 import copy from "copy-to-clipboard";
 import _ from "lodash";
 import { useContext, useEffect, useState } from "react";
-import { AppContext } from "../app-context";
-import { faIcon } from "../icon";
-import { AppToaster } from "../toaster";
 export default function SessionRow({ index, style }) {
     const { appState, appActions } = useContext(AppContext);
     const sessionId = appState.session.sessionIds[index];

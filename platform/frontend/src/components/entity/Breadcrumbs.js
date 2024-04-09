@@ -1,3 +1,4 @@
+import { faIcon } from "@/components/icon";
 import {
     Button,
     Intent,
@@ -11,7 +12,6 @@ import {
 import { faAngleRight, faBars } from "@fortawesome/pro-duotone-svg-icons";
 import _ from "lodash";
 import Link from "next/link";
-import { faIcon } from "../icon";
 export default function Breadcrumbs({ breadcrumbs }) {
     const HYPHEN_ICON = faIcon({
         icon: faAngleRight,

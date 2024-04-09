@@ -1,13 +1,14 @@
 import { AppContext } from "@/components/app-context";
+import FormCell from "@/components/jsonforms/FormCell";
 import { InputGroup, TextArea } from "@blueprintjs/core";
 import { isStringControl, rankWith } from "@jsonforms/core";
 import { withJsonFormsControlProps } from "@jsonforms/react";
 import _ from "lodash";
 import { useContext } from "react";
-import FormCell from "../FormCell";
 const StringRenderer = ({ uischema, handleChange, path, data, required }) => {
     const { appState } = useContext(AppContext);
     const multiline = _.get(uischema, "options.multi", false);
+    const placeholder = _.get(uischema, "props.placeholder", null);
     const label = _.get(uischema, "label", null);
     const labelElement = _.isString(label) ? (
         <label
@@ -35,11 +36,13 @@ const StringRenderer = ({ uischema, handleChange, path, data, required }) => {
     if (multiline) {
         return (
             <FormCell
-                inline
+                inline={_.get(uischema, "props.inline", false)}
                 label={labelElement}
                 style={_.get(uischema, "props.style", {})}
+                helperText={_.get(uischema, "props.helperText", null)}
             >
                 <TextArea
+                    placeholder={placeholder}
                     value={data}
                     onChange={handleOnChange}
                     fill
@@ -51,10 +54,18 @@ const StringRenderer = ({ uischema, handleChange, path, data, required }) => {
     }
     return (
         <FormCell
+            inline={_.get(uischema, "props.inline", false)}
             label={labelElement}
             style={_.get(uischema, "props.style", {})}
+            helperText={_.get(uischema, "props.helperText", null)}
         >
-            <InputGroup large value={data} onChange={handleOnChange} fill />
+            <InputGroup
+                placeholder={placeholder}
+                large
+                value={data}
+                onChange={handleOnChange}
+                fill
+            />
         </FormCell>
     );
 };

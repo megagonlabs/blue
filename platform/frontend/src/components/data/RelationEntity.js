@@ -1,9 +1,9 @@
+import EntityDescription from "@/components/entity/EntityDescription";
+import EntityMain from "@/components/entity/EntityMain";
+import EntityProperties from "@/components/entity/EntityProperties";
 import axios from "axios";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
-import EntityDescription from "../entity/EntityDescription";
-import EntityMain from "../entity/EntityMain";
-import EntityProperties from "../entity/EntityProperties";
 export default function RelationEntity() {
     const router = useRouter();
     const [entity, setEntity] = useState({});

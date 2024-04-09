@@ -12,9 +12,9 @@ const ButtonRenderer = ({ uischema }) => {
             appState.session.connection.send(
                 JSON.stringify({
                     type: "INTERACTIVE_EVENT_MESSAGE",
+                    session_id: appState.session.sessionIdFocus,
                     stream_id: _.get(uischema, "props.streamId", null),
                     name_id: _.get(uischema, "props.nameId", null),
-                    message: _.get(uischema, "props.action", null),
                     timestamp: Date.now(),
                 })
             );
@@ -23,10 +23,11 @@ const ButtonRenderer = ({ uischema }) => {
     return (
         <Button
             onClick={onClickHandler}
+            outlined={_.get(uischema, "props.outlined", false)}
             style={_.get(uischema, "props.style", {})}
             large={_.get(uischema, "props.large", false)}
             intent={_.get(uischema, "props.intent", null)}
-            text={_.get(uischema, "text", null)}
+            text={_.get(uischema, "label", null)}
         />
     );
 };

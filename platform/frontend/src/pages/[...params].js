@@ -1,3 +1,4 @@
+import AgentEntity from "@/components/agents/AgentEntity";
 import InputEntity from "@/components/agents/InputEntity";
 import OutputEntity from "@/components/agents/OutputEntity";
 import { SEARCH_LIST_TYPE_LOOKUP } from "@/components/constant";
@@ -11,7 +12,6 @@ import NewEntity from "@/components/entity/NewEntity";
 import _ from "lodash";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
-import AgentEntity from "../components/agents/AgentEntity";
 export default function RegistryEntity() {
     const router = useRouter();
     const [breadcrumbs, setBreadcrumbs] = useState([]);

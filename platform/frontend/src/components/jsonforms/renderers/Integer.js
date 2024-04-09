@@ -1,11 +1,9 @@
+import FormCell from "@/components/jsonforms/FormCell";
+import NumberInput from "@/components/jsonforms/NumberInput";
 import { isIntegerControl, rankWith } from "@jsonforms/core";
 import { withJsonFormsControlProps } from "@jsonforms/react";
-import FormCell from "../FormCell";
-import NumberInput from "../NumberInput";
 const IntegerRenderer = ({ uischema, handleChange, path, data, required }) => {
-    const isInline = _.get(uischema, "props.inline", false);
     const label = _.get(uischema, "label", null);
-    const style = _.get(uischema, "props.style", {});
     const labelElement =
         !_.isString(label) && !required ? null : (
             <label
@@ -17,8 +15,8 @@ const IntegerRenderer = ({ uischema, handleChange, path, data, required }) => {
         );
     return (
         <FormCell
-            inline={isInline}
-            style={style}
+            inline={_.get(uischema, "props.inline", false)}
+            style={_.get(uischema, "props.style", {})}
             label={labelElement}
             helperText={_.get(uischema, "props.helperText", null)}
         >

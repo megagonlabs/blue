@@ -1,9 +1,9 @@
+import { AppContext } from "@/components/app-context";
 import { Callout, Classes, Intent } from "@blueprintjs/core";
 import _ from "lodash";
-import { useContext, useEffect, useRef } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import AutoSizer from "react-virtualized-auto-sizer";
 import { VariableSizeList } from "react-window";
-import { AppContext } from "../app-context";
 import InteractiveMessage from "./InteractiveMessage";
 export default function SessionMessages() {
     const variableSizeListRef = useRef();
@@ -41,7 +41,7 @@ export default function SessionMessages() {
                     rowRef.current.clientHeight + 30 + (!own ? 15.43 : 0)
                 );
             }
-        }, [rowRef]);
+        }, [rowRef]); // eslint-disable-line react-hooks/exhaustive-deps
         useEffect(() => {
             const handleResize = () => {
                 // do magic for resize
@@ -57,9 +57,10 @@ export default function SessionMessages() {
             return () => {
                 window.removeEventListener("resize", handleResize);
             };
-        }, []);
+        }, []); // eslint-disable-line react-hooks/exhaustive-deps
         const messageType = _.get(messages[index].message, "type", "STRING"),
             messageContent = _.get(messages[index].message, "content", null);
+        const [hasError, setHasError] = useState(false);
         return (
             <div
                 style={{
@@ -73,11 +74,14 @@ export default function SessionMessages() {
                 }}
             >
                 <Callout
-                    intent={own ? Intent.PRIMARY : null}
+                    intent={
+                        hasError ? Intent.DANGER : own ? Intent.PRIMARY : null
+                    }
                     icon={null}
                     style={{
                         maxWidth: "min(802.2px, 100%)",
                         whiteSpace: "pre-wrap",
+                        wordBreak: "break-all",
                         width: "fit-content",
                     }}
                 >
@@ -85,7 +89,10 @@ export default function SessionMessages() {
                         {_.isEqual(messageType, "STRING") ? (
                             messageContent
                         ) : _.isEqual(messageType, "INTERACTIVE") ? (
-                            <InteractiveMessage content={messageContent} />
+                            <InteractiveMessage
+                                setHasError={setHasError}
+                                content={messageContent}
+                            />
                         ) : null}
                     </div>
                 </Callout>
@@ -108,7 +115,7 @@ export default function SessionMessages() {
                 );
             }
         }, 0);
-    }, [variableSizeListRef, sessionIdFocus]);
+    }, [variableSizeListRef, sessionIdFocus]); // eslint-disable-line react-hooks/exhaustive-deps
     return (
         <AutoSizer>
             {({ width, height }) => (

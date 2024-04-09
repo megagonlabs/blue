@@ -1,6 +1,6 @@
+import EditorJSON from "@/components/codemirror/EditorJSON";
 import { Classes, Intent, Section, SectionCard, Tag } from "@blueprintjs/core";
 import _ from "lodash";
-import Editor from "../Editor";
 export default function EntityProperties({
     entity,
     edit,
@@ -49,7 +49,7 @@ export default function EntityProperties({
                         {JSON.stringify(entity.properties, null, 4)}
                     </pre>
                 ) : (
-                    <Editor
+                    <EditorJSON
                         code={JSON.stringify(entity.properties, null, 4)}
                         setCode={setProperties}
                         setLoading={setLoading}

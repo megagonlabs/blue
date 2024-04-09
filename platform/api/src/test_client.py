@@ -263,5 +263,28 @@ for _ in range(11):
             }
         )
     )
+ws.send(
+    json.dumps(
+        {
+            "type": "OBSERVER_SESSION_MESSAGE",
+            "session_id": session_id,
+            "message": {
+                "type": "INTERACTIVE",
+                "content": {
+                    "uischema": {
+                        "type": "Control",
+                        "props": {"placeholder": "name"},
+                        "scope": "#/properties/name",
+                    },
+                    "schema": {
+                        "type": "object",
+                        "properties": {"name": {"type": "string"}},
+                    },
+                },
+            },
+            "stream": "local-test-client",
+        }
+    )
+)
 time.sleep(1)
 ws.close()

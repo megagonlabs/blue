@@ -24,7 +24,6 @@ import {
     faInboxIn,
     faInboxOut,
     faMessages,
-    faPaperPlaneTop,
     faSignalStreamSlash,
     faSquareDashedCirclePlus,
 } from "@fortawesome/pro-duotone-svg-icons";
@@ -54,7 +53,7 @@ export default function Sessions() {
     };
     useEffect(() => {
         handleConnectToWebsocket();
-    }, []);
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
     useEffect(() => {
         if (sessionMessageTextArea.current) {
             sessionMessageTextArea.current.focus();
@@ -265,9 +264,10 @@ export default function Sessions() {
                                         large
                                         minimal
                                         style={{
-                                            height: "100%",
                                             borderTopRightRadius: 0,
                                             borderBottomRightRadius: 0,
+                                            paddingBottom: 62,
+                                            paddingTop: 12,
                                         }}
                                         icon={faIcon({ icon: faCirclePlus })}
                                     />
@@ -279,7 +279,6 @@ export default function Sessions() {
                                     resize: "none",
                                     minHeight: "100%",
                                     paddingLeft: 50,
-                                    paddingRight: 50,
                                 }}
                                 value={message}
                                 placeholder={`Message @${sessionIdFocus}`}
@@ -296,25 +295,6 @@ export default function Sessions() {
                                     }
                                 }}
                                 fill
-                            />
-                            <Button
-                                large
-                                minimal
-                                intent={Intent.PRIMARY}
-                                style={{
-                                    position: "absolute",
-                                    height: "calc(100% - 40px)",
-                                    top: "50%",
-                                    transform: "translateY(-50%)",
-                                    msTransform: "translateY(-50%)",
-                                    right: 20,
-                                    borderTopLeftRadius: 0,
-                                    borderBottomLeftRadius: 0,
-                                }}
-                                onClick={() => {
-                                    sendSessionMessage(message);
-                                }}
-                                icon={faIcon({ icon: faPaperPlaneTop })}
                             />
                         </div>
                     </>

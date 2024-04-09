@@ -45,7 +45,7 @@ export default function App({ children }) {
         },
     };
     return (
-        <>
+        <div>
             <Navbar style={{ paddingLeft: 20, paddingRight: 20 }}>
                 <Navbar.Group align="left">
                     <Image
@@ -76,7 +76,6 @@ export default function App({ children }) {
                     zIndex: 1,
                 }}
             >
-                <MenuDivider title="" className="margin-0" />
                 <ButtonGroup
                     alignText={Alignment.LEFT}
                     vertical
@@ -147,6 +146,6 @@ export default function App({ children }) {
             >
                 {children}
             </div>
-        </>
+        </div>
     );
 }

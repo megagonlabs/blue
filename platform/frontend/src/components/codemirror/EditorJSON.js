@@ -6,13 +6,15 @@ import { forEachDiagnostic, lintGutter, linter } from "@codemirror/lint";
 import { EditorState } from "@codemirror/state";
 import { keymap, lineNumbers } from "@codemirror/view";
 import { EditorView, minimalSetup } from "codemirror";
+import { jsonSchema } from "codemirror-json-schema";
 import _ from "lodash";
 import { useCallback, useEffect, useRef, useState } from "react";
-export default function Editor({
+export default function EditorJSON({
     code,
     setCode,
     setError,
     setLoading,
+    schema = null,
     allowSaveWithError = false,
 }) {
     const [doc, setDoc] = useState(code);
@@ -53,22 +55,26 @@ export default function Editor({
         codeEditorView.dispatch({
             changes: { from: 0, to: doc.length, insert: code },
         });
-    }, [code]);
+    }, [code]); // eslint-disable-line react-hooks/exhaustive-deps
     useEffect(() => {
+        let extensionList = [
+            minimalSetup,
+            lineNumbers(),
+            bracketMatching(),
+            closeBrackets(),
+            linter(jsonParseLinter(), { delay: 0 }),
+            lintGutter(),
+            keymap.of([indentWithTab]),
+            indentUnit.of("    "),
+            json(),
+            onUpdate,
+        ];
+        if (!_.isEmpty(schema)) {
+            extensionList.push(jsonSchema(schema));
+        }
         const state = EditorState.create({
             doc: doc,
-            extensions: [
-                minimalSetup,
-                lineNumbers(),
-                bracketMatching(),
-                closeBrackets(),
-                linter(jsonParseLinter(), { delay: 0 }),
-                lintGutter(),
-                keymap.of([indentWithTab]),
-                indentUnit.of("    "),
-                json(),
-                onUpdate,
-            ],
+            extensions: extensionList,
         });
         const view = new EditorView({
             state,
@@ -78,6 +84,6 @@ export default function Editor({
         return () => {
             view.destroy();
         };
-    }, []);
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
     return <div ref={editor} />;
 }

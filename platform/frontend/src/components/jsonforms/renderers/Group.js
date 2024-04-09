@@ -13,6 +13,9 @@ const GroupRenderer = ({
     const label = _.get(uischema, "label", null);
     return (
         <Section
+            collapseProps={{
+                defaultIsOpen: _.get(uischema, "props.defaultIsOpen", true),
+            }}
             style={_.get(uischema, "props.style", {})}
             compact={_.get(uischema, "props.compact", false)}
             collapsible={_.get(uischema, "props.collapsible", false)}

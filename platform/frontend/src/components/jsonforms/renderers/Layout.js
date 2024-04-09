@@ -19,7 +19,7 @@ const LayoutRenderer = ({
             style={{
                 display: "flex",
                 flexDirection: direction,
-                columnGap: 10,
+                columnGap: 15,
             }}
         >
             {visible &&
