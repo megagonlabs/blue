@@ -2,11 +2,14 @@ import { JSONFORMS_RENDERERS } from "@/components/constant";
 import { JsonForms } from "@jsonforms/react";
 import { vanillaCells } from "@jsonforms/vanilla-renderers";
 import _ from "lodash";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useErrorBoundary } from "react-use-error-boundary";
-export default function InteractiveMessage({ content }) {
+export default function InteractiveMessage({ content, setHasError }) {
     const [error] = useErrorBoundary();
     const [data, setData] = useState(_.get(content, "data", {}));
+    useEffect(() => {
+        setHasError(Boolean(error));
+    }, [error]);
     return !error ? (
         <JsonForms
             schema={_.get(content, "schema", {})}

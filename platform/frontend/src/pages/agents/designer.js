@@ -1,4 +1,8 @@
-import Editor from "@/components/Editor";
+import EditorJSON from "@/components/codemirror/EditorJSON";
+import {
+    DATA_JSON_SCHEMA,
+    UI_JSON_SCHEMA,
+} from "@/components/codemirror/constant";
 import { JSONFORMS_RENDERERS } from "@/components/constant";
 import { faIcon } from "@/components/icon";
 import DocDrawer from "@/components/jsonforms/docs/DocDrawer";
@@ -19,6 +23,7 @@ import {
     faBookOpenCover,
     faBracketsCurly,
     faCircleXmark,
+    faIndent,
     faRotate,
     faTrash,
 } from "@fortawesome/pro-duotone-svg-icons";
@@ -30,44 +35,18 @@ import _ from "lodash";
 import { createRef, useEffect, useState } from "react";
 import { useErrorBoundary, withErrorBoundary } from "react-use-error-boundary";
 const DEFAULT_SCHEMA = JSON.stringify(
-        { type: "object", properties: {} },
-        null,
-        4
-    ),
-    DATA_SCHEMA = {
-        type: "object",
-        definitions: {
-            type: {
-                type: "string",
-                enum: ["object", "boolean", "integer", "number", "string"],
-            },
-            enum: {
-                type: "array",
-                minItems: 1,
-            },
-        },
-        properties: {
-            type: { $ref: "#/definitions/type" },
-            enum: { $ref: "#/definitions/enum" },
-        },
-        patternProperties: {
-            "^.*$": {
-                properties: {
-                    type: { $ref: "#/definitions/type" },
-                    enum: { $ref: "#/definitions/enum" },
-                },
-                additionalProperties: { $ref: "#" },
-            },
-        },
-    };
+    { type: "object", properties: {} },
+    null,
+    4
+);
 function Designer() {
     const [error, resetError] = useErrorBoundary();
     const topPaneRef = createRef();
-    const [uiSchema, setUiSchema] = useState("{}");
-    const [schema, setSchema] = useState(DEFAULT_SCHEMA);
+    const [uiSchema, setUiSchema] = useState({});
+    const [schema, setSchema] = useState({});
     const [data, setData] = useState({});
-    const [jsonUiSchema, setJsonUiSchema] = useState({});
-    const [jsonSchema, setJsonSchema] = useState({});
+    const [jsonUiSchema, setJsonUiSchema] = useState("{}");
+    const [jsonSchema, setJsonSchema] = useState(DEFAULT_SCHEMA);
     const [uiSchemaError, setUiSchemaError] = useState(false);
     const [schemaError, setSchemaError] = useState(false);
     const [uiSchemaLoading, setUiSchemaLoading] = useState(true);
@@ -81,38 +60,38 @@ function Designer() {
     }, [error]);
     useEffect(() => {
         if (!uiSchemaLoading) {
-            let uiSchemaCache = sessionStorage.getItem("uiSchema");
+            let uiSchemaCache = sessionStorage.getItem("jsonUiSchema");
             if (!uiSchemaInitialized && uiSchemaCache) {
-                setUiSchema(uiSchemaCache);
+                setJsonUiSchema(uiSchemaCache);
             }
             setUiSchemaInitialized(true);
         }
     }, [uiSchemaLoading]); // eslint-disable-line react-hooks/exhaustive-deps
     useEffect(() => {
         if (!schemaLoading) {
-            let schemaCache = sessionStorage.getItem("schema");
+            let schemaCache = sessionStorage.getItem("jsonSchema");
             if (!schemaInitialized && schemaCache) {
-                setSchema(schemaCache);
+                setJsonSchema(schemaCache);
             }
             setSchemaInitialized(true);
         }
     }, [schemaLoading]); // eslint-disable-line react-hooks/exhaustive-deps
     useEffect(() => {
         try {
-            setJsonUiSchema(JSON.parse(uiSchema));
+            setUiSchema(JSON.parse(jsonUiSchema));
         } catch (error) {}
         if (uiSchemaInitialized) {
-            sessionStorage.setItem("uiSchema", uiSchema);
+            sessionStorage.setItem("jsonUiSchema", jsonUiSchema);
         }
-    }, [uiSchema]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [jsonUiSchema]); // eslint-disable-line react-hooks/exhaustive-deps
     useEffect(() => {
         try {
-            setJsonSchema(JSON.parse(schema));
+            setSchema(JSON.parse(jsonSchema));
         } catch (error) {}
         if (schemaInitialized) {
-            sessionStorage.setItem("schema", schema);
+            sessionStorage.setItem("jsonSchema", jsonSchema);
         }
-    }, [schema]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [jsonSchema]); // eslint-disable-line react-hooks/exhaustive-deps
     const BUTTON_PROPS = {
         large: true,
         alignText: Alignment.LEFT,
@@ -120,6 +99,7 @@ function Designer() {
         minimal: true,
         style: { fontWeight: 600 },
     };
+    const handleFormattingCode = () => {};
     const handleReset = () => {
         topPaneRef.current.resize([50, 50]);
         setUiSchemaError(false);
@@ -138,15 +118,29 @@ function Designer() {
             <Card interactive style={{ padding: 5, borderRadius: 0 }}>
                 <ButtonGroup large minimal>
                     {error ? (
-                        <Button
-                            intent={Intent.SUCCESS}
-                            text="Re-run"
-                            onClick={resetError}
-                            icon={faIcon({ icon: faRotate })}
-                        />
+                        <>
+                            <Button
+                                intent={Intent.SUCCESS}
+                                text="Re-run"
+                                onClick={resetError}
+                                icon={faIcon({ icon: faRotate })}
+                            />
+                            <Divider />
+                        </>
                     ) : null}
+                    <Tooltip
+                        placement="bottom-start"
+                        minimal
+                        content="Format Code"
+                    >
+                        <Button
+                            icon={faIcon({ icon: faIndent })}
+                            onClick={handleFormattingCode}
+                        />
+                    </Tooltip>
                     <Button
                         text="Docs."
+                        active={isDocOpen}
                         icon={faIcon({ icon: faBookOpenCover })}
                         onClick={() => {
                             setIsDocOpen(!isDocOpen);
@@ -224,11 +218,12 @@ function Designer() {
                                         maxHeight: "calc(100% - 51px)",
                                     }}
                                 >
-                                    <Editor
+                                    <EditorJSON
+                                        schema={UI_JSON_SCHEMA}
                                         setLoading={setUiSchemaLoading}
                                         allowSaveWithError
-                                        code={uiSchema}
-                                        setCode={setUiSchema}
+                                        code={jsonUiSchema}
+                                        setCode={setJsonUiSchema}
                                         setError={setUiSchemaError}
                                     />
                                 </div>
@@ -287,12 +282,12 @@ function Designer() {
                                         maxHeight: "calc(100% - 51px)",
                                     }}
                                 >
-                                    <Editor
-                                        schema={DATA_SCHEMA}
+                                    <EditorJSON
+                                        schema={DATA_JSON_SCHEMA}
                                         setLoading={setSchemaLoading}
                                         allowSaveWithError
-                                        code={schema}
-                                        setCode={setSchema}
+                                        code={jsonSchema}
+                                        setCode={setJsonSchema}
                                         setError={setSchemaError}
                                     />
                                 </div>
@@ -304,7 +299,7 @@ function Designer() {
                             className="full-parent-height"
                             style={{ padding: 20, overflowY: "auto" }}
                         >
-                            {!_.isEmpty(jsonUiSchema) ? (
+                            {!_.isEmpty(uiSchema) ? (
                                 <Callout
                                     icon={null}
                                     intent={error ? Intent.DANGER : null}
@@ -316,8 +311,8 @@ function Designer() {
                                 >
                                     {!error ? (
                                         <JsonForms
-                                            schema={jsonSchema}
-                                            uischema={jsonUiSchema}
+                                            schema={schema}
+                                            uischema={uiSchema}
                                             data={data}
                                             renderers={JSONFORMS_RENDERERS}
                                             cells={vanillaCells}

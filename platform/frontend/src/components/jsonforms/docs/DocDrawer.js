@@ -81,76 +81,77 @@ const MainMenuPanel = (props) => {
                     />
                 ))}
                 <MenuDivider title="Schema" />
-            </Menu>
-            <HTMLTable style={{ width: "100%" }}>
-                <thead>
-                    <tr>
-                        <th>Props</th>
-                        <th>Description</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>
-                            <Code>type</Code>
-                        </td>
-                        <td>
-                            &quot;object&quot;, &quot;boolean&quot;,
-                            &quot;integer&quot;, &quot;number&quot;,
-                            &quot;string&quot;
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <Code>properties</Code>
-                        </td>
-                        <td>
-                            <div>
-                                Define a mapping from string keys to values.
-                            </div>
-                            <Tag
-                                minimal
-                                intent={Intent.PRIMARY}
-                                style={{ marginTop: 5 }}
-                            >
-                                Applies to type &quot;
-                                <strong>object</strong>&quot; only
-                            </Tag>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <Code>enum</Code>
-                        </td>
-                        <td>
-                            <div>
-                                Enables for a variable to be a set of predefined
-                                constants.
-                            </div>
-                            <Tag
-                                minimal
-                                intent={Intent.PRIMARY}
-                                style={{ marginTop: 5 }}
-                            >
-                                Applies to type &quot;
-                                <strong>string</strong>&quot; only
-                            </Tag>
-                            <Pre>
-                                {JSON.stringify(
-                                    {
-                                        example: {
-                                            type: "string",
-                                            enum: ["foo", "bar", "foobar"],
+                <HTMLTable style={{ width: "100%" }}>
+                    <thead>
+                        <tr>
+                            <th>Props</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <Code>type</Code>
+                            </td>
+                            <td>
+                                &quot;object&quot;, &quot;boolean&quot;,
+                                &quot;integer&quot;, &quot;number&quot;,
+                                &quot;string&quot;
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <Code>properties</Code>
+                            </td>
+                            <td>
+                                <div>
+                                    Define a mapping from string keys to values.
+                                </div>
+                                <Tag
+                                    minimal
+                                    intent={Intent.PRIMARY}
+                                    style={{ marginTop: 5 }}
+                                >
+                                    Applies to type &quot;
+                                    <strong>object</strong>&quot; only
+                                </Tag>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <Code>enum</Code>
+                            </td>
+                            <td>
+                                <div>
+                                    Enables for a variable to be a set of
+                                    predefined constants.
+                                </div>
+                                <Tag
+                                    minimal
+                                    intent={Intent.PRIMARY}
+                                    style={{ marginTop: 5 }}
+                                >
+                                    Applies to type &quot;
+                                    <strong>string</strong>&quot; only
+                                </Tag>
+                                <Pre>
+                                    {JSON.stringify(
+                                        {
+                                            example: {
+                                                type: "string",
+                                                enum: ["foo", "bar", "foobar"],
+                                            },
                                         },
-                                    },
-                                    null,
-                                    4
-                                )}
-                            </Pre>
-                        </td>
-                    </tr>
-                </tbody>
-            </HTMLTable>
+                                        null,
+                                        4
+                                    )}
+                                </Pre>
+                            </td>
+                        </tr>
+                    </tbody>
+                </HTMLTable>
+                <MenuDivider title="Examples" />
+            </Menu>
         </div>
     );
 };
