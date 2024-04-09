@@ -64,7 +64,7 @@ export default function EnumDoc({ closePanel }) {
                     {JSON.stringify(
                         {
                             type: "Control",
-                            label: null,
+                            label: "",
                             props: {
                                 inline: false,
                                 helperText: null,

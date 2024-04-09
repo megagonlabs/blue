@@ -69,7 +69,7 @@ export default function BooleanDoc({ closePanel }) {
                     {JSON.stringify(
                         {
                             type: "Control",
-                            label: null,
+                            label: "",
                             props: {
                                 switch: false,
                                 style: {},

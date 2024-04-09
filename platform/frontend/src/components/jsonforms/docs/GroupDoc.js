@@ -56,7 +56,7 @@ export default function GroupDoc({ closePanel }) {
                     {JSON.stringify(
                         {
                             type: "Group",
-                            label: null,
+                            label: "",
                             props: {
                                 collapsible: false,
                                 defaultIsOpen: true,

@@ -58,7 +58,7 @@ export default function ButtonDoc({ closePanel }) {
                     {JSON.stringify(
                         {
                             type: "Control",
-                            label: null,
+                            label: "",
                             props: {
                                 large: false,
                                 outlined: false,

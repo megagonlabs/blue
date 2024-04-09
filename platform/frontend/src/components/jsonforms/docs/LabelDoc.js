@@ -57,7 +57,7 @@ export default function LabelDoc({ closePanel }) {
                     {JSON.stringify(
                         {
                             type: "Control",
-                            label: null,
+                            label: "",
                             props: {
                                 muted: false,
                                 small: false,
