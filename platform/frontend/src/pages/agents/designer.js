@@ -30,10 +30,36 @@ import _ from "lodash";
 import { createRef, useEffect, useState } from "react";
 import { useErrorBoundary, withErrorBoundary } from "react-use-error-boundary";
 const DEFAULT_SCHEMA = JSON.stringify(
-    { type: "object", properties: {} },
-    null,
-    4
-);
+        { type: "object", properties: {} },
+        null,
+        4
+    ),
+    DATA_SCHEMA = {
+        type: "object",
+        definitions: {
+            type: {
+                type: "string",
+                enum: ["object", "boolean", "integer", "number", "string"],
+            },
+            enum: {
+                type: "array",
+                minItems: 1,
+            },
+        },
+        properties: {
+            type: { $ref: "#/definitions/type" },
+            enum: { $ref: "#/definitions/enum" },
+        },
+        patternProperties: {
+            "^.*$": {
+                properties: {
+                    type: { $ref: "#/definitions/type" },
+                    enum: { $ref: "#/definitions/enum" },
+                },
+                additionalProperties: { $ref: "#" },
+            },
+        },
+    };
 function Designer() {
     const [error, resetError] = useErrorBoundary();
     const topPaneRef = createRef();
@@ -262,6 +288,7 @@ function Designer() {
                                     }}
                                 >
                                     <Editor
+                                        schema={DATA_SCHEMA}
                                         setLoading={setSchemaLoading}
                                         allowSaveWithError
                                         code={schema}
