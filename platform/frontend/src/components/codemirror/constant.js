@@ -42,26 +42,18 @@ module.exports = {
             props: {
                 type: "object",
                 properties: {
-                    // boolean
                     switch: { type: "boolean" },
-                    // button
-                    large: { type: "boolean" },
                     outlined: { type: "boolean" },
                     intent: { type: "string" },
-                    // enum, integer, number
                     inline: { type: "boolean" },
                     helperText: { type: "string", minLength: 1 },
-                    // group
                     collapsible: { type: "boolean" },
                     defaultIsOpen: { type: "boolean" },
                     compact: { type: "boolean" },
-                    // label
                     muted: { type: "boolean" },
                     small: { type: "boolean" },
                     large: { type: "boolean" },
-                    // layout
                     spaceEvenly: { type: "boolean" },
-                    // string
                     placeholder: { type: "string", minLength: 1 },
                     style: { type: "object" },
                     streamId: { type: "string", minLength: 1 },
