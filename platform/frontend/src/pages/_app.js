@@ -15,7 +15,7 @@ import Head from "next/head";
 import "normalize.css/normalize.css";
 TimeAgo.addLocale(en);
 axios.defaults.withCredentials = true;
-axios.defaults.baseURL = process.env.NEXT_PUBLIC_API_SERVER;
+axios.defaults.baseURL = process.env.NEXT_PUBLIC_REST_API_SERVER;
 FocusStyleManager.onlyShowFocusOnTabs();
 const Blue = ({ Component, pageProps }) => {
     if (_.isEqual(typeof window, "object"))
