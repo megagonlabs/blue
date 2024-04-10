@@ -6,7 +6,7 @@ x-blue-common:
   image: python:3.9.0
   environment:
     &blue-common-env
-    BLUE__PROPERTIES: '{"platform.name":"${BLUE_DEPLOY_PLATFORM}", "platform.deploy.target":"${BLUE_DEPLOY_TARGET}", "api.server":"${BLUE_PUBLIC_API_SERVER}", "db.host":"blue_db_redis"}'
+    BLUE__PROPERTIES: '{"platform.name":"${BLUE_DEPLOY_PLATFORM}", "platform.deploy.target":"${BLUE_DEPLOY_TARGET}", "api.server":"${BLUE_PUBLIC_API_SERVER}", "db.host":"blue_db_redis", "embeddings_model":"/blue_data/models/paraphrase-MiniLM-L6-v2"}'
   depends_on:
     &blue-common-depends-on
     redis:
