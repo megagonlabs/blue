@@ -25,7 +25,7 @@ class SessionManager:
     def __initialize(self):
         pass
 
-    def create_session(self, name=None, description=None):
+    def create_session(self, NAME=None, DESCRIPTION=None):
         profile = ProfileManager().get_selected_profile()
         api_server = os.environ['BLUE_PUBLIC_API_SERVER']
 
@@ -58,7 +58,7 @@ class SessionManager:
             print(rjson)
         else:
             print(r.json())
-            
+
     def get_session_list(self):
         profile = ProfileManager().get_selected_profile()
         api_server = os.environ['BLUE_PUBLIC_API_SERVER']
