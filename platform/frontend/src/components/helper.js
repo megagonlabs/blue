@@ -119,7 +119,7 @@ module.exports = {
         try {
             // Creating an instance of the WebSocket
             const socket = new WebSocket(
-                `${process.env.NEXT_PUBLIC_WS_SERVER}/sessions/ws`
+                `${process.env.NEXT_PUBLIC_WS_API_SERVER}/sessions/ws`
             );
             // Listening to messages from the server
             socket.onmessage = (event) => {
