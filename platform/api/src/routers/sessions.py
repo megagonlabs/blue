@@ -33,7 +33,7 @@ from rpc import RPCClient
 ###### FastAPI
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
-from typing import Union
+from typing import Union, Any, Dict, AnyStr, List
 from pydantic import BaseModel
 
 router = APIRouter(prefix="/sessions")
@@ -43,6 +43,9 @@ PROPERTIES = os.getenv("BLUE__PROPERTIES")
 PROPERTIES = json.loads(PROPERTIES)
 
 ###### Schema
+JSONObject = Dict[str, Any]
+JSONArray = List[Any]
+JSONStructure = Union[JSONArray, JSONObject, Any]
 ######
 
 
@@ -69,12 +72,23 @@ def list_session_agents(session_id):
 
 
 @router.post("/session/{session_id}/agents/{registry_name}/agent/{agent_name}")
-def add_agent_to_session(session_id, registry_name, agent_name):
+def add_agent_to_session(session_id, registry_name, agent_name, properties: JSONObject, input: Union[str, None] = None):
     platform = Platform(properties=PROPERTIES)
     session = platform.get_session(session_id)
 
     registry = AgentRegistry(registry_name, properties=PROPERTIES)
-    properties = registry.get_agent_properties(agent_name)
+    properties_from_registry = registry.get_agent_properties(agent_name)
+
+    # start with platform properties, merge properties from registry, then merge properties from API call
+    properties_from_api = properties
+
+    p = PROPERTIES
+    p = json_utils.merge_json(p, properties_from_registry)
+    p = json_utils.merge_json(p, properties_from_api)
+
+    print(p)
+    print(input)
+    print(type(input))
 
     # assumption: agent is already deployed
     agent_rpc_host = "blue_agent_" + registry_name + "_" + agent_name
@@ -85,12 +99,12 @@ def add_agent_to_session(session_id, registry_name, agent_name):
     )
     client.connect()
 
-    # override db.host
-    properties["db.host"] = "redis"
-
-    client.executor().launch(
-        name=registry_name + "_" + agent_name, session=session_id, properties=properties
-    )
+    # execute join method
+    if input:
+        client.executor().join(name=registry_name + "_" + agent_name, session=session_id, input=input, properties=p)
+    else:
+        client.executor().join(name=registry_name + "_" + agent_name, session=session_id, properties=p)
+    
 
     result = ""
     return JSONResponse(content={"result": result, "message": "Success"})
