@@ -132,7 +132,7 @@ class ProfileManager:
         else:
             return None
 
-    def create_profile(self, profile_name, AWS_PROFILE='default', BLUE_INSTALL_DIR="~/blue",BLUE_DEPLOY_TARGET="localhost",BLUE_DEPLOY_PLATFORM="default",BLUE_PUBLIC_API_SERVER="http://localhost:5050",BLUE_DATA_DIR="~/.blue/data"):
+    def create_profile(self, profile_name, AWS_PROFILE='default', BLUE_INSTALL_DIR="~/blue",BLUE_DEPLOY_TARGET="localhost",BLUE_DEPLOY_PLATFORM="default",BLUE_PUBLIC_API_SERVER="localhost:5050",BLUE_DATA_DIR="~/.blue/data"):
         # read profiles file
         self.__read_profiles()
 
@@ -282,7 +282,7 @@ def show():
 @click.option(
     "--BLUE_PUBLIC_API_SERVER",
     required=False,
-    default="http://localhost:5050",
+    default="localhost:5050",
     help="blue api server address, `http://localhost:5050` (default)",
 )
 @click.option(

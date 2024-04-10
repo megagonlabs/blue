@@ -1,6 +1,6 @@
 #/bin/bash
 
-# USAGE: deploy_platform --target localhost|swarm --platform platform --api_server http://ipaddress
+# USAGE: deploy_platform --target localhost|swarm --platform platform --api_server address:port
 # if no arguments, use env variable as default
 
 while [[ $# -gt 0 ]]; do
