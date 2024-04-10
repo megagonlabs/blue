@@ -117,7 +117,6 @@ module.exports = {
             setLoading(true);
         }
         try {
-            console.log(process.env.NEXT_PUBLIC_API_SERVER);
             // Creating an instance of the WebSocket
             const socket = new WebSocket(
                 `${process.env.NEXT_PUBLIC_WS_SERVER}/sessions/ws`
