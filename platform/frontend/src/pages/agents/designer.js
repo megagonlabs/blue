@@ -31,6 +31,7 @@ import { JsonForms } from "@jsonforms/react";
 import { vanillaCells } from "@jsonforms/vanilla-renderers";
 import { Allotment } from "allotment";
 import classNames from "classnames";
+import jsonFormatter from "json-string-formatter";
 import _ from "lodash";
 import { createRef, useEffect, useState } from "react";
 import { useErrorBoundary, withErrorBoundary } from "react-use-error-boundary";
@@ -99,7 +100,22 @@ function Designer() {
         minimal: true,
         style: { fontWeight: 600 },
     };
-    const handleFormattingCode = () => {};
+    const handleFormattingCode = () => {
+        try {
+            if (_.isEqual(jsonUiSchema.replace(/\s/g, ""), "{}")) {
+                setJsonUiSchema("{}");
+            } else {
+                setJsonUiSchema(jsonFormatter.format(jsonUiSchema, "    "));
+            }
+        } catch (error) {}
+        try {
+            if (_.isEqual(jsonSchema.replace(/\s/g, ""), "{}")) {
+                setJsonSchema("{}");
+            } else {
+                setJsonSchema(jsonFormatter.format(jsonSchema, "    "));
+            }
+        } catch (error) {}
+    };
     const handleReset = () => {
         topPaneRef.current.resize([50, 50]);
         setUiSchemaError(false);
@@ -117,27 +133,26 @@ function Designer() {
             <DocDrawer isOpen={isDocOpen} setIsDocOpen={setIsDocOpen} />
             <Card interactive style={{ padding: 5, borderRadius: 0 }}>
                 <ButtonGroup large minimal>
-                    {error ? (
-                        <>
-                            <Button
-                                intent={Intent.SUCCESS}
-                                text="Re-run"
-                                onClick={resetError}
-                                icon={faIcon({ icon: faRotate })}
-                            />
-                            <Divider />
-                        </>
-                    ) : null}
+                    <Tooltip placement="bottom-start" minimal content="Re-run">
+                        <Button
+                            disabled={!error}
+                            intent={Intent.SUCCESS}
+                            onClick={resetError}
+                            icon={faIcon({ icon: faRotate })}
+                        />
+                    </Tooltip>
+
                     <Tooltip
                         placement="bottom-start"
                         minimal
-                        content="Format Code"
+                        content="Format JSON"
                     >
                         <Button
                             icon={faIcon({ icon: faIndent })}
                             onClick={handleFormattingCode}
                         />
                     </Tooltip>
+                    <Divider />
                     <Button
                         text="Docs."
                         active={isDocOpen}
