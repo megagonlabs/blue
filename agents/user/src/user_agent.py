@@ -64,9 +64,16 @@ if __name__ == "__main__":
         def launch(*args, **kwargs):
             logging.info("Launching UserAgent...")
             logging.info(kwargs)
+            input = None
+            if 'input' in kwargs:
+                input = kwargs['input']
+                del kwargs['input']
             agent = UserAgent(*args, **kwargs)
             session = agent.start_session()
             logging.info("Started session: " + session.name)
+            if input:
+                agent.interact(input)
+                logging.info("Interact: " + input)
             logging.info("Launched.")
             return session.name
 
@@ -74,32 +81,22 @@ if __name__ == "__main__":
         def join(*args, **kwargs):
             logging.info("Launching UserAgent...")
             logging.info(kwargs)
+            input = None
+            if 'input' in kwargs:
+                input = kwargs['input']
+                del kwargs['input']
             agent = UserAgent(*args, **kwargs)
             logging.info("Joined session: " + kwargs['session'])
+            if input:
+                agent.interact(input)
+                logging.info("Interact: " + input)
             logging.info("Launched.")
             return kwargs['session']
-
-        # launch agent with parameters, start session, write text in keyword args (text=)
-        def interact(*args, **kwargs):
-            logging.info("Launching UserAgent...")
-            logging.info(kwargs)
-            text = None
-            if 'text' in kwargs:
-                text = kwargs['text']
-                del kwargs['text']
-            agent = UserAgent(*args, **kwargs)
-            session = agent.start_session()
-            logging.info("Started session: " + session.name)
-            agent.interact(text)
-            logging.info("Interact: " + text)
-            logging.info("Launched.")
-            return session.name
 
         # run rpc server
         rpc = RPCServer(args.name, properties=properties)
         rpc.register(launch)
         rpc.register(join)
-        rpc.register(interact)
         rpc.run()
     else:
         a = None
