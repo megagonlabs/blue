@@ -46,7 +46,7 @@ PROPERTIES = os.getenv('BLUE__PROPERTIES')
 PROPERTIES = json.loads(PROPERTIES)
 
 ###### Schema
-JSONObject = Dict[AnyStr, Any]
+JSONObject = Dict[str, Any]
 JSONArray = List[Any]
 JSONStructure = Union[JSONArray, JSONObject, Any]
 ######
