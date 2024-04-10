@@ -22,5 +22,56 @@ module.exports = {
             },
         },
     },
-    UI_JSON_SCHEMA: {},
+    UI_JSON_SCHEMA: {
+        type: "object",
+        required: ["type"],
+        additionalProperties: false,
+        properties: {
+            type: {
+                type: "string",
+                enum: [
+                    "VerticalLayout",
+                    "HorizontalLayout",
+                    "Button",
+                    "Control",
+                    "Label",
+                    "Group",
+                ],
+            },
+            label: { type: "string", minLength: 1 },
+            props: {
+                type: "object",
+                properties: {
+                    // boolean
+                    switch: { type: "boolean" },
+                    // button
+                    large: { type: "boolean" },
+                    outlined: { type: "boolean" },
+                    intent: { type: "string" },
+                    // enum, integer, number
+                    inline: { type: "boolean" },
+                    helperText: { type: "string", minLength: 1 },
+                    // group
+                    collapsible: { type: "boolean" },
+                    defaultIsOpen: { type: "boolean" },
+                    compact: { type: "boolean" },
+                    // label
+                    muted: { type: "boolean" },
+                    small: { type: "boolean" },
+                    large: { type: "boolean" },
+                    // layout
+                    spaceEvenly: { type: "boolean" },
+                    // string
+                    placeholder: { type: "string", minLength: 1 },
+                    style: { type: "object" },
+                    streamId: { type: "string", minLength: 1 },
+                    nameId: { type: "string", minLength: 1 },
+                },
+                additionalProperties: false,
+            },
+            scope: { type: "string", minLength: 1 },
+            required: { type: "boolean" },
+            elements: { type: "array", items: { $ref: "#" } },
+        },
+    },
 };
