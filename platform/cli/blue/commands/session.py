@@ -17,6 +17,38 @@ from click import Context
 from blue.commands.helper import RESERVED_KEYS, bcolors
 from blue.commands.profile import ProfileManager
 
+import blue.commands.json_utils as json_utils
+
+from io import StringIO
+import json
+import pandas as pd
+
+
+def show_output(data, ctx, **options):    
+    output = ctx.obj["output"]
+    query = ctx.obj["query"]
+
+    single =  True
+    if 'single' in options:
+        single = options['single']
+        del options['single']
+
+    results = json_utils.json_query(data, query, single=single)
+
+    if output == "table":
+        print(tabulate.tabulate(results, **options))
+    elif output == "json":
+       
+        print(json.dumps(results, indent=3))
+    elif output == "csv":
+        if type(results) == dict:
+            results = [results]
+            
+        df = pd.DataFrame(results)
+        print(df.to_csv())
+    else:
+        print('Unknown output format: ' + output)
+
 
 class SessionManager:
     def __init__(self) -> None:
@@ -31,33 +63,32 @@ class SessionManager:
 
         r = requests.post('http://' + api_server + '/sessions/session')
         rjson = None
+        result = {}
+        message = None
         if r.status_code == 200:
             rjson = r.json()
             result = rjson['result']
-            print(f"{bcolors.OKBLUE}{'Session Created:'}{bcolors.ENDC}")
-            table = []
-            table.append([result['id'], result['name'], result['description']])
-            print(
-                tabulate.tabulate(
-                    table,
-                    headers=["id", "name", "description"],
-                    tablefmt="plain",
-                )
-            )
         else:
-            print(r.json())
+            message = r.json()
 
-    def join_session(self, session_id, REGISTRY_NAME='default', AGENT_NAME=None, AGENT_PROPERTIES="{}"): 
+        return result, message
+
+    def join_session(self, session_id, REGISTRY='default', AGENT=None, AGENT_PROPERTIES="{}", AGENT_INPUT=None): 
         profile = ProfileManager().get_selected_profile()
         api_server = os.environ['BLUE_PUBLIC_API_SERVER']
 
-        r = requests.post('http://' + api_server + '/sessions/session/' + session_id + "/agents/" + REGISTRY_NAME + "/agent/" + AGENT_NAME, data=AGENT_PROPERTIES)
+
+        r = requests.post('http://' + api_server + '/sessions/session/' + session_id + "/agents/" + REGISTRY + "/agent/" + AGENT + ("?input=" + AGENT_INPUT if AGENT_INPUT else ""), data=AGENT_PROPERTIES)
         rjson = None
+        result = {}
+        message = None
         if r.status_code == 200:
             rjson = r.json()
-            print(rjson)
+            result = rjson['result']
         else:
-            print(r.json())
+            message = r.json()
+
+        return result, message
 
     def get_session_list(self):
         profile = ProfileManager().get_selected_profile()
@@ -76,21 +107,6 @@ class SessionManager:
             message = r.json()
 
         return results, message
-            
-
-    def list_sessions(self):
-        results, message = self.get_session_list()
-        
-        if message is None:
-            results = results.values()
-            table = []
-            for result in results:
-                table.append([result['id'], result['name'], result['description']])
-
-            print(f"{bcolors.OKBLUE}{'Sessions:'}{bcolors.ENDC}")
-            print(tabulate.tabulate(table, headers=["id", "name", "description"], tablefmt="plain"))
-        else:
-            print(message)
 
 
     def parse_ctx_args(self, ctx: Context) -> dict:
@@ -121,14 +137,18 @@ class SessionID(click.Group):
                 args.insert(0, "")
         super(SessionID, self).parse_args(ctx, args)
 
-@click.group(cls=SessionID, help="command group to interact with blue sessions")
-@click.argument("session-id", required=False)
+@click.group(help="command group to interact with blue sessions")
+@click.option("--session-id", default=None, required=False, help="id of the session")
+@click.option("--output", default='table', required=False, type=str, help="output format (table|json|csv)")
+@click.option("--query", default="$",  required=False, type=str, help="query on output results")
 @click.pass_context
-def session(ctx: Context, session_id):
+def session(ctx: Context, session_id, output, query):
     global session_mgr
     session_mgr = SessionManager()
     ctx.ensure_object(dict)
     ctx.obj["session_id"] = session_id
+    ctx.obj["output"] = output
+    ctx.obj["query"] = query
 
 
 # session commands
@@ -146,20 +166,50 @@ def session(ctx: Context, session_id):
     help="description of the session",
 )
 def create(name, description):
-    session_mgr.create_session(NAME=name, DESCRIPTION=description)
+    ctx = click.get_current_context()
+    output = ctx.obj["output"]
+    result, message = session_mgr.create_session(NAME=name, DESCRIPTION=description)
+
+    if message is None:
+        if output == "table":
+            data = []
+            data.append([result['id'], result['name'], result['description']])
+
+            print(f"{bcolors.OKBLUE}{'Session Created:'}{bcolors.ENDC}")
+        else:
+            data = result
+        show_output(data, ctx, single=True, headers=["id", "name", "description"], tablefmt="plain")
+    else:
+        print(message)
 
 @session.command(help="list sessions")
 def ls():
-    session_mgr.list_sessions()
+    ctx = click.get_current_context()
+    output = ctx.obj["output"]
+    results, message = session_mgr.get_session_list()
+
+    if message is None:
+        results = list(results.values())
+        if output == "table":
+            data = []
+            for result in results:
+                data.append([result['id'], result['name'], result['description']])
+
+            print(f"{bcolors.OKBLUE}{'Sessions:'}{bcolors.ENDC}")
+        else:
+            data = results
+        show_output(data, ctx, single=True, headers=["id", "name", "description"], tablefmt="plain")
+    else:
+        print(message)
 
 @click.option(
-    "--REGISTRY_NAME",
+    "--REGISTRY",
     required=False,
     default="default",
     help="name of the agent registry",
 )
 @click.option(
-    "--AGENT_NAME",
+    "--AGENT",
     required=True,
     default="default",
     help="name of the agent",
@@ -168,10 +218,16 @@ def ls():
     "--AGENT_PROPERTIES",
     required=False,
     default="{}",
-    help="properties of the agent in JSON",
+    help="optional properties of the agent in JSON",
+)
+@click.option(
+    "--AGENT_INPUT",
+    required=False,
+    default=None,
+    help="optional input text",
 )
 @session.command(help="add an agent to a session",)
-def join(registry_name, agent_name, agent_properties):
+def join(registry, agent, agent_properties, agent_input):
     ctx = click.get_current_context()
     session_id = ctx.obj["session_id"]
     if len(session_id) == 0:
@@ -182,7 +238,7 @@ def join(registry_name, agent_name, agent_properties):
         if session_id not in sessions:
             raise Exception(f"session {session_id} does not exist")
         
-        session_mgr.join_session(session_id, REGISTRY_NAME=registry_name, AGENT_NAME=agent_name, AGENT_PROPERTIES=agent_properties)
+        session_mgr.join_session(session_id, REGISTRY=registry, AGENT=agent, AGENT_PROPERTIES=agent_properties, AGENT_INPUT=agent_input)
     else:
         print(message)
    
