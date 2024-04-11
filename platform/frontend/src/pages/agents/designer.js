@@ -16,6 +16,7 @@ import {
     Divider,
     Intent,
     NonIdealState,
+    Pre,
     Tooltip,
 } from "@blueprintjs/core";
 import {
@@ -23,6 +24,7 @@ import {
     faBookOpenCover,
     faBracketsCurly,
     faCircleXmark,
+    faDownload,
     faIndent,
     faRotate,
     faTrash,
@@ -42,7 +44,7 @@ const DEFAULT_SCHEMA = JSON.stringify(
 );
 function Designer() {
     const [error, resetError] = useErrorBoundary();
-    const topPaneRef = createRef();
+    const leftPaneRef = createRef();
     const [uiSchema, setUiSchema] = useState({});
     const [schema, setSchema] = useState({});
     const [data, setData] = useState({});
@@ -93,6 +95,7 @@ function Designer() {
             sessionStorage.setItem("jsonSchema", jsonSchema);
         }
     }, [jsonSchema]); // eslint-disable-line react-hooks/exhaustive-deps
+    const [resultPanel, setResultPanel] = useState(true);
     const BUTTON_PROPS = {
         large: true,
         alignText: Alignment.LEFT,
@@ -117,11 +120,12 @@ function Designer() {
         } catch (error) {}
     };
     const handleReset = () => {
-        topPaneRef.current.resize([50, 50]);
+        leftPaneRef.current.resize([50, 50]);
         setUiSchemaError(false);
         setSchemaError(false);
-        setUiSchema("{}");
-        setSchema(DEFAULT_SCHEMA);
+        setJsonUiSchema("{}");
+        setJsonSchema(DEFAULT_SCHEMA);
+        setResultPanel(true);
         sessionStorage.removeItem("jsonUiSchema");
         sessionStorage.removeItem("jsonSchema");
     };
@@ -141,16 +145,14 @@ function Designer() {
                             icon={faIcon({ icon: faRotate })}
                         />
                     </Tooltip>
-
-                    <Tooltip
-                        placement="bottom-start"
-                        minimal
-                        content="Format JSON"
-                    >
+                    <Tooltip minimal content="Format JSON">
                         <Button
                             icon={faIcon({ icon: faIndent })}
                             onClick={handleFormattingCode}
                         />
+                    </Tooltip>
+                    <Tooltip minimal content="Export config.">
+                        <Button icon={faIcon({ icon: faDownload })} />
                     </Tooltip>
                     <Divider />
                     <Button
@@ -168,7 +170,7 @@ function Designer() {
                     <Divider />
                     <Button
                         intent={Intent.DANGER}
-                        text="Clear All"
+                        text="Reset all"
                         onClick={handleReset}
                         icon={faIcon({ icon: faTrash })}
                     />
@@ -177,7 +179,7 @@ function Designer() {
             <div style={{ height: "calc(100% - 50px)" }}>
                 <Allotment>
                     <Allotment.Pane minSize={321.094}>
-                        <Allotment vertical ref={topPaneRef}>
+                        <Allotment vertical ref={leftPaneRef}>
                             <Allotment.Pane minSize={187.5}>
                                 <div
                                     style={{
@@ -210,7 +212,7 @@ function Designer() {
                                             {...BUTTON_PROPS}
                                             text="UI Schema"
                                             onClick={() => {
-                                                topPaneRef.current.resize([
+                                                leftPaneRef.current.resize([
                                                     window.innerHeight,
                                                     187.5,
                                                 ]);
@@ -275,7 +277,7 @@ function Designer() {
                                             {...BUTTON_PROPS}
                                             text="Schema"
                                             onClick={() => {
-                                                topPaneRef.current.resize([
+                                                leftPaneRef.current.resize([
                                                     187.5,
                                                     window.innerHeight,
                                                 ]);
@@ -311,43 +313,89 @@ function Designer() {
                     </Allotment.Pane>
                     <Allotment.Pane minSize={400}>
                         <div
-                            className="full-parent-height"
-                            style={{ padding: 20, overflowY: "auto" }}
+                            style={{
+                                padding: 5,
+                                borderBottom:
+                                    "1px solid rgba(17, 20, 24, 0.15)",
+                                display: "flex",
+                            }}
                         >
-                            {!_.isEmpty(uiSchema) ? (
-                                <Callout
-                                    icon={null}
-                                    intent={error ? Intent.DANGER : null}
-                                    style={{
-                                        maxWidth: "min(802.2px, 100%)",
-                                        whiteSpace: "pre-wrap",
-                                        width: "fit-content",
+                            <Tooltip
+                                minimal
+                                placement="bottom-start"
+                                content="Read-only"
+                            >
+                                <Button
+                                    {...BUTTON_PROPS}
+                                    fill={false}
+                                    text="Data"
+                                    active={!resultPanel}
+                                    onClick={() => {
+                                        setResultPanel(false);
                                     }}
-                                >
-                                    {!error ? (
-                                        <JsonForms
-                                            schema={schema}
-                                            uischema={uiSchema}
-                                            data={data}
-                                            renderers={JSONFORMS_RENDERERS}
-                                            cells={vanillaCells}
-                                            onChange={({ data, errors }) => {
-                                                console.log(data, errors);
-                                                setData(data);
-                                            }}
-                                        />
-                                    ) : (
-                                        String(error)
-                                    )}
-                                </Callout>
-                            ) : (
-                                <NonIdealState
-                                    icon={faIcon({
-                                        icon: faBracketsCurly,
-                                        size: 50,
-                                    })}
-                                    title="Empty UI Schema"
                                 />
+                            </Tooltip>
+                            <Button
+                                {...BUTTON_PROPS}
+                                fill={false}
+                                text="Result"
+                                active={resultPanel}
+                                onClick={() => {
+                                    setResultPanel(true);
+                                }}
+                            />
+                        </div>
+                        <div
+                            className="full-parent-height"
+                            style={{
+                                padding: 20,
+                                overflowY: "auto",
+                                height: "calc(100% - 51px)",
+                            }}
+                        >
+                            {resultPanel ? (
+                                !_.isEmpty(uiSchema) ? (
+                                    <Callout
+                                        icon={null}
+                                        intent={error ? Intent.DANGER : null}
+                                        style={{
+                                            maxWidth: "min(802.2px, 100%)",
+                                            whiteSpace: "pre-wrap",
+                                            width: "fit-content",
+                                        }}
+                                    >
+                                        {!error ? (
+                                            <JsonForms
+                                                schema={schema}
+                                                uischema={uiSchema}
+                                                data={data}
+                                                renderers={JSONFORMS_RENDERERS}
+                                                cells={vanillaCells}
+                                                onChange={({
+                                                    data,
+                                                    errors,
+                                                }) => {
+                                                    console.log(data, errors);
+                                                    setData(data);
+                                                }}
+                                            />
+                                        ) : (
+                                            String(error)
+                                        )}
+                                    </Callout>
+                                ) : (
+                                    <NonIdealState
+                                        icon={faIcon({
+                                            icon: faBracketsCurly,
+                                            size: 50,
+                                        })}
+                                        title="Empty UI Schema"
+                                    />
+                                )
+                            ) : (
+                                <Pre style={{ margin: 0 }}>
+                                    {JSON.stringify(data, null, 4)}
+                                </Pre>
                             )}
                         </div>
                     </Allotment.Pane>
