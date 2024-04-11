@@ -69,6 +69,11 @@ class ConnectionManager:
         if user_agent is not None:
             user_agent.interact(message)
 
+    async def interactive_event_message(
+        self, session_id: str, stream_id: str, name_id: str, timestamp: float
+    ):
+        pass
+
     async def observer_session_message(
         self, session_id: str, message: str, stream: str
     ):
