@@ -140,7 +140,7 @@ export default function Sessions() {
             }
             appActions.session.setState({ key: "connection", value: null });
             AppToaster.show({
-                intent: Intent.SUCCESS,
+                intent: Intent.DANGER,
                 message: `Failed to connect to websocket: ${e}`,
             });
         }
