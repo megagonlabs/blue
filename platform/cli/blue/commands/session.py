@@ -29,7 +29,7 @@ class SessionManager:
         profile = ProfileManager().get_selected_profile()
         api_server = os.environ['BLUE_PUBLIC_API_SERVER']
 
-        r = requests.post(api_server + '/sessions/session')
+        r = requests.post('http://' + api_server + '/sessions/session')
         rjson = None
         if r.status_code == 200:
             rjson = r.json()
@@ -51,7 +51,7 @@ class SessionManager:
         profile = ProfileManager().get_selected_profile()
         api_server = os.environ['BLUE_PUBLIC_API_SERVER']
 
-        r = requests.post(api_server + '/sessions/session/' + session_id + "/agents/" + REGISTRY_NAME + "/agent/" + AGENT_NAME, data=AGENT_PROPERTIES)
+        r = requests.post('http://' + api_server + '/sessions/session/' + session_id + "/agents/" + REGISTRY_NAME + "/agent/" + AGENT_NAME, data=AGENT_PROPERTIES)
         rjson = None
         if r.status_code == 200:
             rjson = r.json()
@@ -63,7 +63,7 @@ class SessionManager:
         profile = ProfileManager().get_selected_profile()
         api_server = os.environ['BLUE_PUBLIC_API_SERVER']
         
-        r = requests.get(api_server + '/sessions')
+        r = requests.get('http://' + api_server + '/sessions')
         rjson = None
         results = {}
         message = None

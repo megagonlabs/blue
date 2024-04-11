@@ -30,13 +30,13 @@ print(str(PROPERTIES))
 
 ###  Get API server address from properties to white list
 api_server = PROPERTIES["api.server"]
-api_server_host = ":".join(api_server.split(":")[:2])
+api_server_host = ":".join(api_server.split(":")[:1])
 
 allowed_origins = [
     "http://localhost",
     "http://localhost:3000",
-    api_server_host,
-    api_server_host + ":3000",
+    "http://" + api_server_host,
+    "http://" + api_server_host + ":3000",
 ]
 
 print(allowed_origins)

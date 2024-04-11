@@ -98,7 +98,7 @@ Most of blue scripts require a number of parameters. While you can use the defau
 - `BLUE_INSTALL_DIR`, directory containing blue source code, for example, `/Users/me/blue`
 - `BLUE_DEPLOY_TARGET`, deployment target, `localhost` (default) or `swarm`
 - `BLUE_DEPLOY_PLATFORM`, platform name, `default` (default)
-- `BLUE_PUBLIC_API_SERVER`, server address for the REST API , for example, `http://localhost:5050`
+- `BLUE_PUBLIC_API_SERVER`, server address for the API , for example, `localhost:5050`
 - `BLUE_DATA_DIR`, directory hosting daa for blue services, for example `${BLUE_INSTALL_DIR}/data`
 
 Use of utilities such as [direnv](https://direnv.net/) is strongly encouraged to help management environment variables.
@@ -297,7 +297,7 @@ Below are the environment variables and typical settings for staging and product
 - `BLUE_INSTALL_DIR`, directory containing blue installation, used in deployment scripts
 - `BLUE_DEPLOY_TARGET`, deployment target, swarm should be used for staging and 
 - `BLUE_DEPLOY_PLATFORM`, platform name, reflecting specific deployment/use case
-- `BLUE_PUBLIC_API_SERVER`, server address for the REST API , for example, `http://10.0.160.75:5050`
+- `BLUE_PUBLIC_API_SERVER`, server address for the REST API , for example, `10.0.160.75:5050`
 - `BLUE_DATA_DIR`, directory hosting daa for blue services, for example `${BLUE_INSTALL_DIR}/data`, used in deployment scripts
   
 ## setup
