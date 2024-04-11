@@ -7,9 +7,39 @@ import tabulate
 from click import Context
 
 from blue.commands.helper import RESERVED_KEYS, bcolors
+import blue.commands.json_utils as json_utils
+
+from io import StringIO
+import json
+import pandas as pd
 
 tabulate.PRESERVE_WHITESPACE = True
 
+
+
+def show_output(data, ctx, **options):    
+    output = ctx.obj["output"]
+    query = ctx.obj["query"]
+
+    single =  True
+    if 'single' in options:
+        single = options['single']
+        del options['single']
+
+    results = json_utils.json_query(data, query, single=single)
+
+    if output == "table":
+        print(tabulate.tabulate(results, **options))
+    elif output == "json":
+        print(json.dumps(results, indent=3))
+    elif output == "csv":
+        if type(results) == dict:
+            results = [results]
+            
+        df = pd.DataFrame(results)
+        print(df.to_csv())
+    else:
+        print('Unknown output format: ' + output)
 
 class ProfileManager:
     def __init__(self):
@@ -72,7 +102,8 @@ class ProfileManager:
         for key in self.profiles[self.selected_profile]:
             value = self.profiles[self.selected_profile][key]
             os.environ[key] = value
-        
+        # os.system("bash -c $BLUE_INSTALL_DIR/platform/scripts/show_vars.sh")
+
 
     def get_default_profile(self):
         default_profile_name = self.get_default_profile_name()
@@ -206,52 +237,68 @@ class ProfileName(click.Group):
         super(ProfileName, self).parse_args(ctx, args)
 
 
-@click.group(cls=ProfileName, help="command group to interact with blue profiles")
-@click.argument("profile-name", required=False)
+@click.group(help="command group to interact with blue profiles")
+@click.option("--profile-name", default=None, required=False, help="name of the profile, deault is selected profile")
+@click.option("--output", default='table', required=False, type=str, help="output format (table|json|csv)")
+@click.option("--query", default="$",  required=False, type=str, help="query on output results")
 @click.pass_context
 @click.version_option()
-def profile(ctx: Context, profile_name):
+def profile(ctx: Context, profile_name, output, query):
     global profile_mgr
     profile_mgr = ProfileManager()
     ctx.ensure_object(dict)
     ctx.obj["profile_name"] = profile_name
+    ctx.obj["output"] = output
+    ctx.obj["query"] = query
 
 
 # profile commands
 @profile.command(help="list all profiles")
 def ls():
+    ctx = click.get_current_context()
+    output = ctx.obj["output"]
     profiles = profile_mgr.get_profile_list()
     selected_profile = profile_mgr.get_selected_profile_name()
-    blue_profiles = []
+    data = []
     for profile in profiles:
-        prefix = "*" if selected_profile == profile else " "
-        cells = [f"{prefix} {profile}"]
-        if selected_profile == profile:
-            cells = [f"{bcolors.OKGREEN}{prefix} {profile}{bcolors.ENDC}"]
-        blue_profiles.append(cells)
-    print(
-        tabulate.tabulate(
-            blue_profiles,
-            tablefmt="plain",
-        )
-    )
+        if output ==  "table":
+            prefix = "*" if selected_profile == profile else " "
+            cells = [f"{prefix} {profile}"]
+            if output == "table":
+                if selected_profile == profile:
+                    cells = [f"{bcolors.OKGREEN}{prefix} {profile}{bcolors.ENDC}"]
+            data.append(cells)
+        else:
+            data.append({"name": profile, "selected": (selected_profile == profile)})
+
+    show_output(data, ctx, single=True,  headers=["name", "selected"], tablefmt="plain")
+    
 
 
 @profile.command(help="show profile values")
 def show():
     ctx = click.get_current_context()
+    output = ctx.obj["output"]
     profile_name = ctx.obj["profile_name"]
-    if len(profile_name) == 0:
+    if profile_name is None:
         profile_name = profile_mgr.get_selected_profile_name()
     if profile_name not in profile_mgr.get_profile_list():
         raise Exception(f"profile {profile_name} does not exist")
     profile = dict(profile_mgr.get_profile(profile_name=profile_name))
-    table = []
+    if output == "table":
+        data = []
+    else:
+        data = {}
     for key in profile:
-        table.append([key, profile[key]])
-    table.sort(key=lambda x: x[0])
-    print(f"{bcolors.OKBLUE}{profile_name}{bcolors.ENDC}")
-    print(tabulate.tabulate(table, tablefmt="plain"))
+        if output == "table":
+            data.append([key, profile[key]])
+        else:
+            data[key] = profile[key]
+
+    if output == "table":
+        print(f"{bcolors.OKBLUE}{profile_name}{bcolors.ENDC}")
+
+    show_output(data, ctx, tablefmt="plain")
 
 
 @profile.command(short_help="create a blue profile")
@@ -294,6 +341,7 @@ def show():
 def create(aws_profile, blue_install_dir, blue_deploy_target, blue_deploy_platform, blue_public_api_serveer, blue_data_dir):
     ctx = click.get_current_context()
     profile_name = ctx.obj["profile_name"]
+    output = ctx.obj["output"]
     allowed_characters = set(
         string.ascii_lowercase + string.ascii_uppercase + string.digits + "_"
     )
@@ -306,8 +354,8 @@ def create(aws_profile, blue_install_dir, blue_deploy_target, blue_deploy_platfo
         )
     if profile_name in profile_mgr.get_profile_list():
         raise Exception(f"profile {profile_name} exists")
+    
     profile_mgr.create_profile(profile_name, AWS_PROFILE=aws_profile, BLUE_INSTALL_DIR=blue_install_dir,BLUE_DEPLOY_TARGET=blue_deploy_target,BLUE_DEPLOY_PLATFORM=blue_deploy_platform,BLUE_PUBLIC_API_SERVER=blue_public_api_serveer,BLUE_DATA_DIR=blue_data_dir)
-
 
 @profile.command(short_help="select a blue profile")
 def select():
@@ -315,6 +363,7 @@ def select():
     profile_name = ctx.obj["profile_name"]
     if len(profile_name) == 0:
         raise Exception(f"profile name cannot be empty")
+    
     profile_mgr.select_profile(profile_name)
 
 
