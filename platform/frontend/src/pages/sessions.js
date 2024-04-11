@@ -1,8 +1,8 @@
 import { AppContext } from "@/components/app-context";
-import { connectToWebsocket } from "@/components/helper";
 import { faIcon } from "@/components/icon";
 import SessionList from "@/components/sessions/SessionList";
 import SessionMessages from "@/components/sessions/SessionMessages";
+import { AppToaster } from "@/components/toaster";
 import {
     Button,
     ButtonGroup,
@@ -16,19 +16,23 @@ import {
     MenuItem,
     NonIdealState,
     Popover,
+    Tag,
     TextArea,
+    Tooltip,
 } from "@blueprintjs/core";
 import {
     faCaretDown,
+    faCircleA,
     faCirclePlus,
     faInboxIn,
     faInboxOut,
     faMessages,
     faSignalStreamSlash,
-    faSquareDashedCirclePlus,
 } from "@fortawesome/pro-duotone-svg-icons";
+import axios from "axios";
 import _ from "lodash";
 import { useContext, useEffect, useRef, useState } from "react";
+import { FixedSizeList } from "react-window";
 export default function Sessions() {
     const { appState, appActions } = useContext(AppContext);
     const sessionIdFocus = appState.session.sessionIdFocus;
@@ -49,7 +53,97 @@ export default function Sessions() {
         );
     };
     const handleConnectToWebsocket = () => {
-        connectToWebsocket({ appState, appActions, setLoading, sessionIds });
+        if (!_.isNil(appState.session.connection)) return;
+        if (_.isFunction(setLoading)) {
+            setLoading(true);
+        }
+        try {
+            // Creating an instance of the WebSocket
+            const socket = new WebSocket(
+                `${process.env.NEXT_PUBLIC_WS_API_SERVER}/sessions/ws`
+            );
+            // Listening to messages from the server
+            socket.onmessage = (event) => {
+                try {
+                    // parse the data from string to JSON object
+                    const data = JSON.parse(event.data);
+                    // If the data is of type SESSION_MESSAGE
+                    if (_.isEqual(data["type"], "SESSION_MESSAGE")) {
+                        appActions.session.addSessionMessage(data);
+                    } else if (_.isEqual(data["type"], "CONNECTED")) {
+                        appActions.session.setState({
+                            key: "connectionId",
+                            value: data.id,
+                        });
+                    } else if (
+                        _.isEqual(data["type"], "NEW_SESSION_BROADCAST")
+                    ) {
+                        appActions.session.observeSessionBroadcast(
+                            data["session_id"]
+                        );
+                    }
+                } catch (e) {
+                    AppToaster.show({
+                        intent: Intent.PRIMARY,
+                        message: event.data,
+                    });
+                    console.log(event.data);
+                    console.error(e);
+                }
+            };
+            socket.onerror = () => {
+                if (_.isFunction(setLoading)) {
+                    setLoading(false);
+                }
+                appActions.session.setState({ key: "connection", value: null });
+                AppToaster.show({
+                    intent: Intent.DANGER,
+                    message: `Failed to connect to websocketc (onerror)`,
+                });
+            };
+            socket.onclose = () => {
+                if (_.isFunction(setLoading)) {
+                    setLoading(false);
+                }
+                appActions.session.setState({ key: "connection", value: null });
+                AppToaster.show({
+                    intent: Intent.PRIMARY,
+                    message: "Connected closed",
+                });
+            };
+            // Adding an event listener to when the connection is opened
+            socket.onopen = () => {
+                if (_.isFunction(setLoading)) {
+                    setLoading(false);
+                }
+                appActions.session.setState({
+                    key: "connection",
+                    value: socket,
+                });
+                AppToaster.show({
+                    intent: Intent.SUCCESS,
+                    message: "Connection established",
+                    timeout: 2000,
+                });
+                if (!_.isEmpty(sessionIds)) {
+                    for (var i = 0; i < sessionIds.length; i++) {
+                        appActions.session.observeSession({
+                            sessionId: sessionIds[i],
+                            connection: socket,
+                        });
+                    }
+                }
+            };
+        } catch (e) {
+            if (_.isFunction(setLoading)) {
+                setLoading(false);
+            }
+            appActions.session.setState({ key: "connection", value: null });
+            AppToaster.show({
+                intent: Intent.SUCCESS,
+                message: `Failed to connect to websocket: ${e}`,
+            });
+        }
     };
     useEffect(() => {
         handleConnectToWebsocket();
@@ -60,6 +154,50 @@ export default function Sessions() {
         }
     }, [sessionIdFocus]);
     const SESSION_LISTL_PANEL_WIDTH = 451.65;
+    const [getSessionsRequest, setGetSessionsRequest] = useState(null);
+    const [existingSessions, setExistingSessions] = useState(null);
+    const fetchExistingSessions = () => {
+        if (!_.isNil(getSessionsRequest)) {
+            getSessionsRequest.cancel();
+            setGetSessionsRequest(null);
+        }
+        const requestSource = axios.CancelToken.source();
+        setGetSessionsRequest(requestSource);
+        axios
+            .get("/sessions", {
+                cancelToken: requestSource.token,
+            })
+            .then((response) => {
+                setExistingSessions(
+                    _.get(response, "data.results", []).filter((session) => {
+                        return !_.includes(sessionIds, session.id);
+                    })
+                );
+            })
+            .catch((error) => {});
+    };
+    const initialJoinAll = useRef(true);
+    const joinAllSessions = () => {
+        // automatically join all existing sessions onload
+        axios.get("/sessions").then((response) => {
+            const sessions = _.get(response, "data.results", []);
+            for (let i = 0; i < sessions.length; i++) {
+                const sessionId = sessions[i].id;
+                if (_.includes(sessionIds, sessionId)) continue;
+                appActions.session.observeSession({
+                    sessionId: sessionId,
+                    connection: appState.session.connection,
+                });
+            }
+        });
+    };
+    useEffect(() => {
+        if (_.isNil(appState.session.connection)) return;
+        if (initialJoinAll.current) {
+            initialJoinAll.current = false;
+            joinAllSessions();
+        }
+    }, [appState.session.connection]);
     if (_.isNil(appState.session.connection))
         return (
             <NonIdealState
@@ -96,72 +234,161 @@ export default function Sessions() {
                     }}
                 >
                     <ButtonGroup large>
-                        <Button
-                            disabled={_.isNil(appState.session.connection)}
-                            text="New"
-                            outlined
-                            intent={Intent.PRIMARY}
-                            onClick={() => {
-                                if (_.isNil(appState.session.connection))
-                                    return;
-                                appActions.session.createSession({
-                                    platform: appState.session.platform,
-                                    connection: appState.session.connection,
-                                });
-                            }}
-                            rightIcon={faIcon({ icon: faInboxOut })}
-                        />
+                        <Tooltip
+                            minimal
+                            placement="bottom-start"
+                            content="Start a new session"
+                        >
+                            <Button
+                                disabled={_.isNil(appState.session.connection)}
+                                text="New"
+                                outlined
+                                intent={Intent.PRIMARY}
+                                onClick={() => {
+                                    if (_.isNil(appState.session.connection))
+                                        return;
+                                    appActions.session.createSession({
+                                        platform: appState.session.platform,
+                                        connection: appState.session.connection,
+                                    });
+                                }}
+                                rightIcon={faIcon({ icon: faInboxOut })}
+                            />
+                        </Tooltip>
                         <Popover
                             placement="bottom"
+                            onOpening={fetchExistingSessions}
+                            onClose={() => {
+                                setExistingSessions(null);
+                                setJoinSessionId("");
+                            }}
                             content={
-                                <div style={{ padding: 10 }}>
-                                    <H5>Join an existing session</H5>
-                                    <InputGroup
-                                        large
-                                        fill
-                                        value={joinSessionId}
-                                        onChange={(event) => {
-                                            setJoinSessionId(
-                                                event.target.value
-                                            );
-                                        }}
-                                        rightElement={
-                                            <Button
-                                                className={
-                                                    Classes.POPOVER_DISMISS
-                                                }
-                                                minimal
-                                                text="Join"
-                                                onClick={() => {
-                                                    if (
-                                                        _.isEmpty(
-                                                            joinSessionId
-                                                        ) ||
-                                                        _.isNil(
-                                                            appState.session
-                                                                .connection
-                                                        ) ||
-                                                        _.includes(
-                                                            sessionIds,
-                                                            joinSessionId
-                                                        )
-                                                    )
-                                                        return;
-                                                    appActions.session.observeSession(
-                                                        {
-                                                            sessionId:
-                                                                joinSessionId,
-                                                            connection:
+                                <div>
+                                    <div style={{ padding: 10 }}>
+                                        <H5>Join an existing session</H5>
+                                        <InputGroup
+                                            large
+                                            fill
+                                            value={joinSessionId}
+                                            onChange={(event) => {
+                                                setJoinSessionId(
+                                                    event.target.value
+                                                );
+                                            }}
+                                            rightElement={
+                                                <Button
+                                                    className={
+                                                        Classes.POPOVER_DISMISS
+                                                    }
+                                                    minimal
+                                                    disabled={_.isEmpty(
+                                                        joinSessionId
+                                                    )}
+                                                    text="Join"
+                                                    onClick={() => {
+                                                        if (
+                                                            _.isEmpty(
+                                                                joinSessionId
+                                                            ) ||
+                                                            _.isNil(
                                                                 appState.session
-                                                                    .connection,
-                                                        }
-                                                    );
-                                                    setJoinSessionId("");
-                                                }}
-                                                intent={Intent.SUCCESS}
-                                            />
-                                        }
-                                    />
+                                                                    .connection
+                                                            ) ||
+                                                            _.includes(
+                                                                sessionIds,
+                                                                joinSessionId
+                                                            )
+                                                        )
+                                                            return;
+                                                        appActions.session.observeSession(
+                                                            {
+                                                                sessionId:
+                                                                    joinSessionId,
+                                                                connection:
+                                                                    appState
+                                                                        .session
+                                                                        .connection,
+                                                            }
+                                                        );
+                                                        setJoinSessionId("");
+                                                    }}
+                                                    intent={Intent.SUCCESS}
+                                                />
+                                            }
+                                        />
+                                    </div>
+                                    {!_.isEmpty(existingSessions) ? (
+                                        <FixedSizeList
+                                            className="bp-border-top"
+                                            height={267}
+                                            itemCount={_.size(existingSessions)}
+                                            itemSize={40}
+                                        >
+                                            {({ index, style }) => {
+                                                const item =
+                                                    existingSessions[index];
+                                                return (
+                                                    <div style={style}>
+                                                        <Tag
+                                                            onClick={() => {
+                                                                if (
+                                                                    _.includes(
+                                                                        sessionIds,
+                                                                        item.id
+                                                                    )
+                                                                )
+                                                                    return;
+                                                                appActions.session.observeSession(
+                                                                    {
+                                                                        sessionId:
+                                                                            item.id,
+                                                                        connection:
+                                                                            appState
+                                                                                .session
+                                                                                .connection,
+                                                                    }
+                                                                );
+                                                            }}
+                                                            intent={
+                                                                !_.includes(
+                                                                    sessionIds,
+                                                                    item.id
+                                                                )
+                                                                    ? Intent.PRIMARY
+                                                                    : null
+                                                            }
+                                                            interactive={
+                                                                !_.includes(
+                                                                    sessionIds,
+                                                                    item.id
+                                                                )
+                                                            }
+                                                            large
+                                                            minimal
+                                                            style={{
+                                                                margin: 10,
+                                                                width: "calc(100% - 20px)",
+                                                            }}
+                                                            id={item.id}
+                                                        >
+                                                            <div
+                                                                className={
+                                                                    _.includes(
+                                                                        sessionIds,
+                                                                        item.id
+                                                                    )
+                                                                        ? Classes.TEXT_DISABLED
+                                                                        : null
+                                                                }
+                                                            >
+                                                                {item.name}
+                                                            </div>
+                                                        </Tag>
+                                                    </div>
+                                                );
+                                            }}
+                                        </FixedSizeList>
+                                    ) : null}
                                 </div>
                             }
                         >
@@ -253,9 +480,9 @@ export default function Sessions() {
                                             <MenuItem
                                                 disabled
                                                 icon={faIcon({
-                                                    icon: faSquareDashedCirclePlus,
+                                                    icon: faCircleA,
                                                 })}
-                                                text="Add agent"
+                                                text="Agents"
                                             ></MenuItem>
                                         </Menu>
                                     }

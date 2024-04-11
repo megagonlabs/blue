@@ -19,12 +19,7 @@ import classNames from "classnames";
 export default function BooleanDoc({ closePanel }) {
     return (
         <>
-            <div
-                style={{
-                    padding: 10,
-                    borderBottom: "1px solid rgba(17, 20, 24, 0.15)",
-                }}
-            >
+            <div className="bp-border-bottom" style={{ padding: 10 }}>
                 <Button
                     outlined
                     text="Back"

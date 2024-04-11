@@ -35,7 +35,7 @@ import { Allotment } from "allotment";
 import classNames from "classnames";
 import jsonFormatter from "json-string-formatter";
 import _ from "lodash";
-import { createRef, useEffect, useState } from "react";
+import { createRef, useEffect, useRef, useState } from "react";
 import { useErrorBoundary, withErrorBoundary } from "react-use-error-boundary";
 const DEFAULT_SCHEMA = JSON.stringify(
     { type: "object", properties: {} },
@@ -53,9 +53,9 @@ function Designer() {
     const [uiSchemaError, setUiSchemaError] = useState(false);
     const [schemaError, setSchemaError] = useState(false);
     const [uiSchemaLoading, setUiSchemaLoading] = useState(true);
-    const [uiSchemaInitialized, setUiSchemaInitialized] = useState(false);
+    const uiSchemaInitialized = useRef(false);
     const [schemaLoading, setSchemaLoading] = useState(true);
-    const [schemaInitialized, setSchemaInitialized] = useState(false);
+    const schemaInitialized = useRef(false);
     useEffect(() => {
         if (error) {
             setIsDocOpen(false);
@@ -64,26 +64,26 @@ function Designer() {
     useEffect(() => {
         if (!uiSchemaLoading) {
             let uiSchemaCache = sessionStorage.getItem("jsonUiSchema");
-            if (!uiSchemaInitialized && uiSchemaCache) {
+            if (!uiSchemaInitialized.current && uiSchemaCache) {
                 setJsonUiSchema(uiSchemaCache);
             }
-            setUiSchemaInitialized(true);
+            uiSchemaInitialized.current = true;
         }
     }, [uiSchemaLoading]); // eslint-disable-line react-hooks/exhaustive-deps
     useEffect(() => {
         if (!schemaLoading) {
             let schemaCache = sessionStorage.getItem("jsonSchema");
-            if (!schemaInitialized && schemaCache) {
+            if (!schemaInitialized.current && schemaCache) {
                 setJsonSchema(schemaCache);
             }
-            setSchemaInitialized(true);
+            schemaInitialized.current = true;
         }
     }, [schemaLoading]); // eslint-disable-line react-hooks/exhaustive-deps
     useEffect(() => {
         try {
             setUiSchema(JSON.parse(jsonUiSchema));
         } catch (error) {}
-        if (uiSchemaInitialized) {
+        if (uiSchemaInitialized.current) {
             sessionStorage.setItem("jsonUiSchema", jsonUiSchema);
         }
     }, [jsonUiSchema]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -91,7 +91,7 @@ function Designer() {
         try {
             setSchema(JSON.parse(jsonSchema));
         } catch (error) {}
-        if (schemaInitialized) {
+        if (schemaInitialized.current) {
             sessionStorage.setItem("jsonSchema", jsonSchema);
         }
     }, [jsonSchema]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -182,11 +182,8 @@ function Designer() {
                         <Allotment vertical ref={leftPaneRef}>
                             <Allotment.Pane minSize={187.5}>
                                 <div
-                                    style={{
-                                        padding: 5,
-                                        borderBottom:
-                                            "1px solid rgba(17, 20, 24, 0.15)",
-                                    }}
+                                    className="bp-border-bottom"
+                                    style={{ padding: 5 }}
                                 >
                                     <Tooltip
                                         fill
@@ -228,7 +225,7 @@ function Designer() {
                                         "full-parent-height": true,
                                         [Classes.SKELETON]:
                                             uiSchemaLoading &&
-                                            !uiSchemaInitialized,
+                                            !uiSchemaInitialized.current,
                                     })}
                                     style={{
                                         overflowY: "auto",
@@ -247,11 +244,8 @@ function Designer() {
                             </Allotment.Pane>
                             <Allotment.Pane minSize={187.5}>
                                 <div
-                                    style={{
-                                        padding: 5,
-                                        borderBottom:
-                                            "1px solid rgba(17, 20, 24, 0.15)",
-                                    }}
+                                    className="bp-border-bottom"
+                                    style={{ padding: 5 }}
                                 >
                                     <Tooltip
                                         fill
@@ -292,7 +286,8 @@ function Designer() {
                                     className={classNames({
                                         "full-parent-height": true,
                                         [Classes.SKELETON]:
-                                            schemaLoading && !schemaInitialized,
+                                            schemaLoading &&
+                                            !schemaInitialized.current,
                                     })}
                                     style={{
                                         overflowY: "auto",
@@ -313,12 +308,8 @@ function Designer() {
                     </Allotment.Pane>
                     <Allotment.Pane minSize={400}>
                         <div
-                            style={{
-                                padding: 5,
-                                borderBottom:
-                                    "1px solid rgba(17, 20, 24, 0.15)",
-                                display: "flex",
-                            }}
+                            className="bp-border-bottom"
+                            style={{ padding: 5, display: "flex" }}
                         >
                             <Tooltip
                                 minimal

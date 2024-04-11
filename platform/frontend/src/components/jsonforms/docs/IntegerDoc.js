@@ -14,12 +14,7 @@ import { faArrowLeft, faCopy } from "@fortawesome/pro-duotone-svg-icons";
 export default function IntegerDoc({ closePanel }) {
     return (
         <>
-            <div
-                style={{
-                    padding: 10,
-                    borderBottom: "1px solid rgba(17, 20, 24, 0.15)",
-                }}
-            >
+            <div className="bp-border-bottom" style={{ padding: 10 }}>
                 <Button
                     outlined
                     text="Back"

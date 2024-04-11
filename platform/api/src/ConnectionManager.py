@@ -117,6 +117,6 @@ class ConnectionManager:
     async def broadcast(self, message: str):
         for connection in self.active_connections.values():
             try:
-                await connection.send_text(message)
+                await self.send_message_to(connection, message)
             except Exception as ex:
-                print(ex)
+                print("broadcast", ex)

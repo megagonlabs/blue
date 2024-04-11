@@ -3,6 +3,7 @@ Under `platform/api/`
 - Install dependencies: `pip install -r src/requirements.txt`
 - Run script (copy libs): `./docker_build_api.sh`
 - Start server: `uvicorn server:app --app-dir src --port 5050 --reload`
+  - To set environment variables inside `.env` : `set -a; source .env; set +a`
 
 ## API Documentation
 

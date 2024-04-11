@@ -25,6 +25,10 @@ export const sessionAction = (dispatch) => ({
             }
         });
     },
+    observeSessionBroadcast: (payload) => {
+        dispatch({ type: "session/sessions/broadcast", payload: payload });
+        dispatch({ type: "session/sessions/add", payload: payload });
+    },
     observeSession: (payload) => {
         payload.connection.send(
             JSON.stringify({

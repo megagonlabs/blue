@@ -47,6 +47,7 @@ app.include_router(data.router)
 app.include_router(sessions.router)
 app.include_router(platform.router)
 connection_manager = ConnectionManager()
+app.connection_manager = connection_manager
 
 app.add_middleware(
     CORSMiddleware,

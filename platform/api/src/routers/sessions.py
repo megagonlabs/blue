@@ -31,7 +31,7 @@ from agent_registry import AgentRegistry
 from rpc import RPCClient
 
 ###### FastAPI
-from fastapi import APIRouter
+from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
 from typing import Union, Any, Dict, AnyStr, List
 from pydantic import BaseModel
@@ -72,7 +72,13 @@ def list_session_agents(session_id):
 
 
 @router.post("/session/{session_id}/agents/{registry_name}/agent/{agent_name}")
-def add_agent_to_session(session_id, registry_name, agent_name, properties: JSONObject, input: Union[str, None] = None):
+def add_agent_to_session(
+    session_id,
+    registry_name,
+    agent_name,
+    properties: JSONObject,
+    input: Union[str, None] = None,
+):
     platform = Platform(properties=PROPERTIES)
     session = platform.get_session(session_id)
 
@@ -101,10 +107,16 @@ def add_agent_to_session(session_id, registry_name, agent_name, properties: JSON
 
     # execute join method
     if input:
-        client.executor().join(name=registry_name + "_" + agent_name, session=session_id, input=input, properties=p)
+        client.executor().join(
+            name=registry_name + "_" + agent_name,
+            session=session_id,
+            input=input,
+            properties=p,
+        )
     else:
-        client.executor().join(name=registry_name + "_" + agent_name, session=session_id, properties=p)
-    
+        client.executor().join(
+            name=registry_name + "_" + agent_name, session=session_id, properties=p
+        )
 
     result = ""
     return JSONResponse(content={"result": result, "message": "Success"})
@@ -120,11 +132,14 @@ def add_agent_to_session(session_id, registry_name, agent_name, properties: JSON
 
 
 @router.post("/session")
-def create_session():
+async def create_session(request: Request):
     platform = Platform(properties=PROPERTIES)
     print(platform)
     result = platform.create_session()
     print(result)
+    await request.app.connection_manager.broadcast(
+        json.dumps({"type": "NEW_SESSION_BROADCAST", "session_id": result["id"]})
+    )
     return JSONResponse(content={"result": result, "message": "Success"})
 
 
