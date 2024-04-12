@@ -6,6 +6,7 @@ import {
 import { JSONFORMS_RENDERERS } from "@/components/constant";
 import { faIcon } from "@/components/icon";
 import DocDrawer from "@/components/jsonforms/docs/DocDrawer";
+import { AppToaster } from "@/components/toaster";
 import {
     Alignment,
     Button,
@@ -33,6 +34,7 @@ import { JsonForms } from "@jsonforms/react";
 import { vanillaCells } from "@jsonforms/vanilla-renderers";
 import { Allotment } from "allotment";
 import classNames from "classnames";
+import copy from "copy-to-clipboard";
 import jsonFormatter from "json-string-formatter";
 import _ from "lodash";
 import { createRef, useEffect, useRef, useState } from "react";
@@ -47,7 +49,8 @@ function Designer() {
     const leftPaneRef = createRef();
     const [uiSchema, setUiSchema] = useState({});
     const [schema, setSchema] = useState({});
-    const [data, setData] = useState({});
+    const ssData = sessionStorage.getItem("data");
+    const [data, setData] = useState(_.isNil(ssData) ? {} : JSON.parse(ssData));
     const [jsonUiSchema, setJsonUiSchema] = useState("{}");
     const [jsonSchema, setJsonSchema] = useState(DEFAULT_SCHEMA);
     const [uiSchemaError, setUiSchemaError] = useState(false);
@@ -79,6 +82,9 @@ function Designer() {
             schemaInitialized.current = true;
         }
     }, [schemaLoading]); // eslint-disable-line react-hooks/exhaustive-deps
+    useEffect(() => {
+        sessionStorage.setItem("data", JSON.stringify(data));
+    }, [data]);
     useEffect(() => {
         try {
             setUiSchema(JSON.parse(jsonUiSchema));
@@ -119,6 +125,19 @@ function Designer() {
             }
         } catch (error) {}
     };
+    const handleExportConfig = () => {
+        copy(
+            JSON.stringify({
+                schema: schema,
+                uiSchema: uiSchema,
+                data: data,
+            })
+        );
+        AppToaster.show({
+            intent: Intent.SUCCESS,
+            message: "Copied message configuration",
+        });
+    };
     const handleReset = () => {
         leftPaneRef.current.resize([50, 50]);
         setUiSchemaError(false);
@@ -152,7 +171,10 @@ function Designer() {
                         />
                     </Tooltip>
                     <Tooltip minimal content="Export config.">
-                        <Button icon={faIcon({ icon: faDownload })} />
+                        <Button
+                            icon={faIcon({ icon: faDownload })}
+                            onClick={handleExportConfig}
+                        />
                     </Tooltip>
                     <Divider />
                     <Button
@@ -384,7 +406,7 @@ function Designer() {
                                     />
                                 )
                             ) : (
-                                <Pre style={{ margin: 0 }}>
+                                <Pre style={{ margin: 0, overflowX: "auto" }}>
                                     {JSON.stringify(data, null, 4)}
                                 </Pre>
                             )}
