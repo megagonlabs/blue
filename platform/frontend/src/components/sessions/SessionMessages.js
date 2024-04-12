@@ -1,10 +1,10 @@
 import { AppContext } from "@/components/app-context";
+import InteractiveMessage from "@/components/sessions/InteractiveMessage";
 import { Callout, Classes, Intent } from "@blueprintjs/core";
 import _ from "lodash";
 import { useContext, useEffect, useRef, useState } from "react";
 import AutoSizer from "react-virtualized-auto-sizer";
 import { VariableSizeList } from "react-window";
-import InteractiveMessage from "./InteractiveMessage";
 export default function SessionMessages() {
     const variableSizeListRef = useRef();
     const rowHeights = useRef({});

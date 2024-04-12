@@ -1,3 +1,5 @@
+import { AppContext } from "@/components/app-context";
+import { faIcon } from "@/components/icon";
 import {
     Alignment,
     Button,
@@ -21,8 +23,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useContext } from "react";
-import { AppContext } from "./app-context";
-import { faIcon } from "./icon";
 export default function App({ children }) {
     const router = useRouter();
     const { appState } = useContext(AppContext);

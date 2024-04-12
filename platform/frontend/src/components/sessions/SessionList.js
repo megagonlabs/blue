@@ -1,9 +1,9 @@
 import { AppContext } from "@/components/app-context";
+import SessionRow from "@/components/sessions/SessionRow";
 import { Classes } from "@blueprintjs/core";
 import { useContext, useEffect, useRef } from "react";
 import AutoSizer from "react-virtualized-auto-sizer";
 import { FixedSizeList } from "react-window";
-import SessionRow from "./SessionRow";
 const Row = (props) => <SessionRow {...props} />;
 const cardListClassName = `${Classes.CARD} ${Classes.CARD_LIST} ${Classes.CARD_LIST_BORDERED}`;
 export default function SessionList() {

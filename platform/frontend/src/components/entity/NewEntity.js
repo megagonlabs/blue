@@ -1,4 +1,6 @@
 import { AppContext } from "@/components/app-context";
+import EntityDescription from "@/components/entity/EntityDescription";
+import EntityProperties from "@/components/entity/EntityProperties";
 import {
     constructSavePropertyRequests,
     settlePromises,
@@ -20,8 +22,6 @@ import { diff } from "deep-diff";
 import _ from "lodash";
 import { useRouter } from "next/router";
 import { useContext, useEffect, useState } from "react";
-import EntityDescription from "./EntityDescription";
-import EntityProperties from "./EntityProperties";
 export default function NewEntity({ type }) {
     const { appState } = useContext(AppContext);
     const router = useRouter();

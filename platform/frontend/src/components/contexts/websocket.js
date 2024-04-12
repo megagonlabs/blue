@@ -1,5 +1,6 @@
 import { AppToaster } from "@/components/toaster";
 import { Intent } from "@blueprintjs/core";
+import _ from "lodash";
 import { createContext, useEffect, useState } from "react";
 let webSocket = null;
 try {
@@ -7,10 +8,12 @@ try {
         `${process.env.NEXT_PUBLIC_WS_API_SERVER}/sessions/ws`
     );
 } catch (error) {
-    AppToaster.show({
-        intent: Intent.DANGER,
-        message: `Failed to initialize websocket: ${error}`,
-    });
+    if (AppToaster) {
+        AppToaster.show({
+            intent: Intent.DANGER,
+            message: `Failed to initialize websocket: ${error}`,
+        });
+    }
 }
 export const SocketContext = createContext(webSocket);
 export const SocketProvider = (props) => {
@@ -45,14 +48,16 @@ export const SocketProvider = (props) => {
                 message: `Failed to connect to websocket (onerror)`,
             });
         };
-        ws.addEventListener("close", onClose);
-        ws.addEventListener("open", onOpen);
-        ws.addEventListener("error", onError);
-        return () => {
-            ws.removeEventListener("close", onClose);
-            ws.removeEventListener("open", onOpen);
-            ws.removeEventListener("error", onError);
-        };
+        if (!_.isNil(ws)) {
+            ws.addEventListener("close", onClose);
+            ws.addEventListener("open", onOpen);
+            ws.addEventListener("error", onError);
+            return () => {
+                ws.removeEventListener("close", onClose);
+                ws.removeEventListener("open", onOpen);
+                ws.removeEventListener("error", onError);
+            };
+        }
     }, [ws, setWs]);
     return (
         <SocketContext.Provider value={{ socket: ws, reconnectWs: reconnect }}>
