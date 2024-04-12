@@ -238,7 +238,7 @@ class ProfileName(click.Group):
 
 
 @click.group(help="command group to interact with blue profiles")
-@click.option("--profile-name", default=None, required=False, help="name of the profile, deault is selected profile")
+@click.option("--profile-name", default=None, required=False, help="name of the profile, default is selected profile")
 @click.option("--output", default='table', required=False, type=str, help="output format (table|json|csv)")
 @click.option("--query", default="$",  required=False, type=str, help="query on output results")
 @click.pass_context
@@ -330,7 +330,7 @@ def show():
     "--BLUE_PUBLIC_API_SERVER",
     required=False,
     default="localhost:5050",
-    help="blue api server address, `http://localhost:5050` (default)",
+    help="blue api server address, `localhost:5050` (default)",
 )
 @click.option(
     "--BLUE_DATA_DIR",
@@ -338,30 +338,26 @@ def show():
     default="~/.blue/data",
     help="directory to host blue data, `~/.blue/data` (default)",
 )
-def create(aws_profile, blue_install_dir, blue_deploy_target, blue_deploy_platform, blue_public_api_serveer, blue_data_dir):
+def create(aws_profile, blue_install_dir, blue_deploy_target, blue_deploy_platform, blue_public_api_server, blue_data_dir):
     ctx = click.get_current_context()
     profile_name = ctx.obj["profile_name"]
     output = ctx.obj["output"]
     allowed_characters = set(
         string.ascii_lowercase + string.ascii_uppercase + string.digits + "_"
     )
-    valid = set(profile_name) <= allowed_characters
-    if len(profile_name) == 0:
-        raise Exception(f"profile name cannot be empty")
-    if not valid:
-        raise Exception(
-            "profile name contains invalid characters; only from a-z, A-Z, 0-9, and underscore are allowed."
-        )
+    if profile_name is None:
+        profile_name = 'default'
+   
     if profile_name in profile_mgr.get_profile_list():
         raise Exception(f"profile {profile_name} exists")
     
-    profile_mgr.create_profile(profile_name, AWS_PROFILE=aws_profile, BLUE_INSTALL_DIR=blue_install_dir,BLUE_DEPLOY_TARGET=blue_deploy_target,BLUE_DEPLOY_PLATFORM=blue_deploy_platform,BLUE_PUBLIC_API_SERVER=blue_public_api_serveer,BLUE_DATA_DIR=blue_data_dir)
+    profile_mgr.create_profile(profile_name, AWS_PROFILE=aws_profile, BLUE_INSTALL_DIR=blue_install_dir,BLUE_DEPLOY_TARGET=blue_deploy_target,BLUE_DEPLOY_PLATFORM=blue_deploy_platform,BLUE_PUBLIC_API_SERVER=blue_public_api_server,BLUE_DATA_DIR=blue_data_dir)
 
 @profile.command(short_help="select a blue profile")
 def select():
     ctx = click.get_current_context()
     profile_name = ctx.obj["profile_name"]
-    if len(profile_name) == 0:
+    if profile_name is None:
         raise Exception(f"profile name cannot be empty")
     
     profile_mgr.select_profile(profile_name)
@@ -374,7 +370,7 @@ def select():
 def delete():
     ctx = click.get_current_context()
     profile_name = ctx.obj["profile_name"]
-    if len(profile_name) == 0:
+    if profile_name is None:
         raise Exception(f"profile name cannot be empty")
     profile_mgr.delete_profile(profile_name)
 
@@ -391,7 +387,7 @@ def config(key: str, value):
         key = key.upper()
     ctx = click.get_current_context()
     profile_name = ctx.obj["profile_name"]
-    if len(profile_name) == 0:
+    if profile_name is None:
         profile_name = profile_mgr.get_selected_profile_name()
     if key is not None:
         profile_mgr.set_profile_attribute(

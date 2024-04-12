@@ -202,6 +202,8 @@ def ls():
     else:
         print(message)
 
+
+@session.command(help="add an agent to a session",)
 @click.option(
     "--REGISTRY",
     required=False,
@@ -226,11 +228,10 @@ def ls():
     default=None,
     help="optional input text",
 )
-@session.command(help="add an agent to a session",)
 def join(registry, agent, agent_properties, agent_input):
     ctx = click.get_current_context()
     session_id = ctx.obj["session_id"]
-    if len(session_id) == 0:
+    if session_id is None:
         raise Exception(f"missing session_id")
     sessions, message = session_mgr.get_session_list()
 
