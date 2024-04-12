@@ -1,5 +1,6 @@
 import App from "@/components/App";
 import { AppProvider } from "@/components/app-context";
+import { SocketProvider } from "@/components/contexts/websocket";
 import "@/styles/custom.css";
 import "@/styles/docs.css";
 import { FocusStyleManager } from "@blueprintjs/core";
@@ -25,9 +26,11 @@ const Blue = ({ Component, pageProps }) => {
                     <title>Blue</title>
                     <link rel="icon" href="/favicon.ico" />
                 </Head>
-                <App>
-                    <Component {...pageProps} />
-                </App>
+                <SocketProvider>
+                    <App>
+                        <Component {...pageProps} />
+                    </App>
+                </SocketProvider>
             </AppProvider>
         );
     return null;

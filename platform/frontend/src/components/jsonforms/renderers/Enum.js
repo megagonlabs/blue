@@ -1,10 +1,9 @@
-import { AppContext } from "@/components/app-context";
+import { useSocket } from "@/components/hooks/useSocket";
 import FormCell from "@/components/jsonforms/FormCell";
 import { HTMLSelect } from "@blueprintjs/core";
 import { isEnumControl, rankWith } from "@jsonforms/core";
 import { withJsonFormsControlProps } from "@jsonforms/react";
 import _ from "lodash";
-import { useContext } from "react";
 const EnumRenderer = ({
     uischema,
     schema,
@@ -13,7 +12,7 @@ const EnumRenderer = ({
     required,
     data,
 }) => {
-    const { appState } = useContext(AppContext);
+    const { socket } = useSocket();
     const label = _.get(uischema, "label", null);
     const labelElement =
         !_.isString(label) && !required ? null : (
@@ -52,9 +51,9 @@ const EnumRenderer = ({
                         value = null;
                     }
                     handleChange(path, value);
-                    if (_.isNil(appState.session.connection)) return;
+                    if (!_.isEqual(socket.readyState, 1)) return;
                     setTimeout(() => {
-                        appState.session.connection.send(
+                        socket.send(
                             JSON.stringify({
                                 type: "INTERACTIVE_EVENT_MESSAGE",
                                 stream_id: _.get(

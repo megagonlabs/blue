@@ -1,7 +1,6 @@
 import _ from "lodash";
 export const defaultState = {
     sessions: {},
-    connection: null,
     platform: "default",
     sessionIds: [],
     sessionIdFocus: null,
@@ -37,17 +36,6 @@ export default function sessionReducer(
         }
         case "session/state/set": {
             return { ...state, [payload.key]: payload.value };
-        }
-        case "session/sessions/broadcast": {
-            if (!_.includes(state.sessionIds, payload)) {
-                state.connection.send(
-                    JSON.stringify({
-                        type: "OBSERVE_SESSION",
-                        session_id: payload,
-                    })
-                );
-            }
-            return state;
         }
         case "session/sessions/add": {
             if (_.includes(sessionIds, payload)) {

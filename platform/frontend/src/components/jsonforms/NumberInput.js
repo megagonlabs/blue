@@ -1,7 +1,7 @@
-import { AppContext } from "@/components/app-context";
+import { useSocket } from "@/components/hooks/useSocket";
 import { NumericInput } from "@blueprintjs/core";
 import _ from "lodash";
-import { useContext, useReducer } from "react";
+import { useReducer } from "react";
 const NumberAbbreviation = {
     BILLION: "b",
     MILLION: "m",
@@ -16,7 +16,7 @@ export default function NumberInput({
     data,
     precision = 11,
 }) {
-    const { appState } = useContext(AppContext);
+    const { socket } = useSocket();
     const [, forceUpdate] = useReducer((x) => x + 1, 0);
     const expandScientificNotationTerms = (value) => {
         // leave empty strings empty
@@ -128,9 +128,9 @@ export default function NumberInput({
         // the same value. force the update to ensure a render triggers even if
         // this is the case.
         forceUpdate();
-        if (_.isNil(appState.session.connection)) return;
+        if (!_.isEqual(socket.readyState, 1)) return;
         setTimeout(() => {
-            appState.session.connection.send(
+            socket.send(
                 JSON.stringify({
                     type: "INTERACTIVE_EVENT_MESSAGE",
                     stream_id: _.get(uischema, "props.streamId", null),

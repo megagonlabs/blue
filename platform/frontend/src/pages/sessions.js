@@ -1,4 +1,5 @@
 import { AppContext } from "@/components/app-context";
+import { useSocket } from "@/components/hooks/useSocket";
 import { faIcon } from "@/components/icon";
 import SessionList from "@/components/sessions/SessionList";
 import SessionMessages from "@/components/sessions/SessionMessages";
@@ -31,20 +32,19 @@ import {
 } from "@fortawesome/pro-duotone-svg-icons";
 import axios from "axios";
 import _ from "lodash";
-import { useContext, useEffect, useRef, useState } from "react";
+import { useCallback, useContext, useEffect, useRef, useState } from "react";
 import { FixedSizeList } from "react-window";
 export default function Sessions() {
     const { appState, appActions } = useContext(AppContext);
     const sessionIdFocus = appState.session.sessionIdFocus;
     const sessionIds = appState.session.sessionIds;
     const [message, setMessage] = useState("");
-    const [loading, setLoading] = useState(false);
     const [joinSessionId, setJoinSessionId] = useState("");
     const sessionMessageTextArea = useRef(null);
     const sendSessionMessage = (message) => {
-        if (_.isNil(appState.session.connection)) return;
+        if (!_.isEqual(socket.readyState, 1)) return;
         setMessage("");
-        appState.session.connection.send(
+        socket.send(
             JSON.stringify({
                 type: "USER_SESSION_MESSAGE",
                 session_id: appState.session.sessionIdFocus,
@@ -52,102 +52,40 @@ export default function Sessions() {
             })
         );
     };
-    const handleConnectToWebsocket = () => {
-        if (!_.isNil(appState.session.connection)) return;
-        if (_.isFunction(setLoading)) {
-            setLoading(true);
-        }
+    const { socket, reconnectWs } = useSocket();
+    const onMessage = useCallback((event) => {
+        // Listening to messages from the server
         try {
-            // Creating an instance of the WebSocket
-            const socket = new WebSocket(
-                `${process.env.NEXT_PUBLIC_WS_API_SERVER}/sessions/ws`
-            );
-            // Listening to messages from the server
-            socket.onmessage = (event) => {
-                try {
-                    // parse the data from string to JSON object
-                    const data = JSON.parse(event.data);
-                    // If the data is of type SESSION_MESSAGE
-                    if (_.isEqual(data["type"], "SESSION_MESSAGE")) {
-                        appActions.session.addSessionMessage(data);
-                    } else if (_.isEqual(data["type"], "CONNECTED")) {
-                        appActions.session.setState({
-                            key: "connectionId",
-                            value: data.id,
-                        });
-                    } else if (
-                        _.isEqual(data["type"], "NEW_SESSION_BROADCAST")
-                    ) {
-                        appActions.session.observeSessionBroadcast(
-                            data["session_id"]
-                        );
-                    }
-                } catch (e) {
-                    AppToaster.show({
-                        intent: Intent.PRIMARY,
-                        message: event.data,
-                    });
-                    console.log(event.data);
-                    console.error(e);
-                }
-            };
-            socket.onerror = () => {
-                if (_.isFunction(setLoading)) {
-                    setLoading(false);
-                }
-                appActions.session.setState({ key: "connection", value: null });
-                AppToaster.show({
-                    intent: Intent.DANGER,
-                    message: `Failed to connect to websocketc (onerror)`,
-                });
-            };
-            socket.onclose = () => {
-                if (_.isFunction(setLoading)) {
-                    setLoading(false);
-                }
-                appActions.session.setState({ key: "connection", value: null });
-                AppToaster.show({
-                    intent: Intent.PRIMARY,
-                    message: "Connected closed",
-                });
-            };
-            // Adding an event listener to when the connection is opened
-            socket.onopen = () => {
-                if (_.isFunction(setLoading)) {
-                    setLoading(false);
-                }
+            // parse the data from string to JSON object
+            const data = JSON.parse(event.data);
+            // If the data is of type SESSION_MESSAGE
+            if (_.isEqual(data["type"], "SESSION_MESSAGE")) {
+                appActions.session.addSessionMessage(data);
+            } else if (_.isEqual(data["type"], "CONNECTED")) {
                 appActions.session.setState({
-                    key: "connection",
-                    value: socket,
+                    key: "connectionId",
+                    value: data.id,
                 });
-                AppToaster.show({
-                    intent: Intent.SUCCESS,
-                    message: "Connection established",
-                    timeout: 2000,
+            } else if (_.isEqual(data["type"], "NEW_SESSION_BROADCAST")) {
+                appActions.session.observeSession({
+                    sessionId: data["session_id"],
+                    socket: socket,
                 });
-                if (!_.isEmpty(sessionIds)) {
-                    for (var i = 0; i < sessionIds.length; i++) {
-                        appActions.session.observeSession({
-                            sessionId: sessionIds[i],
-                            connection: socket,
-                        });
-                    }
-                }
-            };
-        } catch (e) {
-            if (_.isFunction(setLoading)) {
-                setLoading(false);
             }
-            appActions.session.setState({ key: "connection", value: null });
+        } catch (e) {
             AppToaster.show({
                 intent: Intent.DANGER,
-                message: `Failed to connect to websocket: ${e}`,
+                message: event.data,
             });
+            console.error(e);
         }
-    };
+    }, []);
     useEffect(() => {
-        handleConnectToWebsocket();
-    }, []); // eslint-disable-line react-hooks/exhaustive-deps
+        socket.addEventListener("message", onMessage);
+        return () => {
+            socket.removeEventListener("message", onMessage);
+        };
+    }, [socket, onMessage]);
     useEffect(() => {
         if (sessionMessageTextArea.current) {
             sessionMessageTextArea.current.focus();
@@ -186,29 +124,34 @@ export default function Sessions() {
                 if (_.includes(sessionIds, sessionId)) continue;
                 appActions.session.observeSession({
                     sessionId: sessionId,
-                    connection: appState.session.connection,
+                    socket: socket,
                 });
             }
         });
     };
     useEffect(() => {
-        if (_.isNil(appState.session.connection)) return;
+        if (!_.isEqual(socket.readyState, 1)) return;
         if (initialJoinAll.current) {
             initialJoinAll.current = false;
+            socket.send(JSON.stringify({ type: "REQUEST_CONNECTION_ID" }));
             joinAllSessions();
         }
-    }, [appState.session.connection]);
-    if (_.isNil(appState.session.connection))
+    }, [socket.readyState]);
+    if (_.includes([0, 3], socket.readyState))
         return (
             <NonIdealState
                 icon={faIcon({ icon: faSignalStreamSlash, size: 50 })}
-                title={loading ? "Connecting" : "No connection"}
+                title={
+                    _.isEqual(socket.readyState, 0)
+                        ? "Connecting"
+                        : "No connection"
+                }
                 action={
                     <Button
-                        onClick={handleConnectToWebsocket}
+                        onClick={reconnectWs}
                         intent={Intent.PRIMARY}
                         large
-                        loading={loading}
+                        loading={_.isEqual(socket.readyState, 0)}
                         text="Reconnect"
                     />
                 }
@@ -240,16 +183,16 @@ export default function Sessions() {
                             content="Start a new session"
                         >
                             <Button
-                                disabled={_.isNil(appState.session.connection)}
+                                disabled={!_.isEqual(socket.readyState, 1)}
                                 text="New"
                                 outlined
                                 intent={Intent.PRIMARY}
                                 onClick={() => {
-                                    if (_.isNil(appState.session.connection))
+                                    if (!_.isEqual(socket.readyState, 1))
                                         return;
                                     appActions.session.createSession({
                                         platform: appState.session.platform,
-                                        connection: appState.session.connection,
+                                        socket: socket,
                                     });
                                 }}
                                 rightIcon={faIcon({ icon: faInboxOut })}
@@ -290,9 +233,9 @@ export default function Sessions() {
                                                             _.isEmpty(
                                                                 joinSessionId
                                                             ) ||
-                                                            _.isNil(
-                                                                appState.session
-                                                                    .connection
+                                                            !_.isEqual(
+                                                                socket.readyState,
+                                                                1
                                                             ) ||
                                                             _.includes(
                                                                 sessionIds,
@@ -304,10 +247,7 @@ export default function Sessions() {
                                                             {
                                                                 sessionId:
                                                                     joinSessionId,
-                                                                connection:
-                                                                    appState
-                                                                        .session
-                                                                        .connection,
+                                                                socket: socket,
                                                             }
                                                         );
                                                         setJoinSessionId("");
@@ -342,10 +282,7 @@ export default function Sessions() {
                                                                     {
                                                                         sessionId:
                                                                             item.id,
-                                                                        connection:
-                                                                            appState
-                                                                                .session
-                                                                                .connection,
+                                                                        socket: socket,
                                                                     }
                                                                 );
                                                             }}

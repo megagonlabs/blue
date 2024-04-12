@@ -1,15 +1,14 @@
-import { AppContext } from "@/components/app-context";
+import { useSocket } from "@/components/hooks/useSocket";
 import { rankWith, uiTypeIs } from "@jsonforms/core";
 import { withJsonFormsCellProps } from "@jsonforms/react";
 import _ from "lodash";
-import { useContext } from "react";
 const { Button } = require("@blueprintjs/core");
 const ButtonRenderer = ({ uischema }) => {
-    const { appState } = useContext(AppContext);
+    const { socket } = useSocket();
     const onClickHandler = () => {
-        if (_.isNil(appState.session.connection)) return;
+        if (!_.isEqual(socket.readyState, 1)) return;
         setTimeout(() => {
-            appState.session.connection.send(
+            socket.send(
                 JSON.stringify({
                     type: "INTERACTIVE_EVENT_MESSAGE",
                     session_id: appState.session.sessionIdFocus,
