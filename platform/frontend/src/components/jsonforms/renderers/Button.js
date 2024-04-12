@@ -11,7 +11,6 @@ const ButtonRenderer = ({ uischema }) => {
             socket.send(
                 JSON.stringify({
                     type: "INTERACTIVE_EVENT_MESSAGE",
-                    session_id: appState.session.sessionIdFocus,
                     stream_id: _.get(uischema, "props.streamId", null),
                     name_id: _.get(uischema, "props.nameId", null),
                     timestamp: Date.now(),
