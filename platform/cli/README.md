@@ -2,7 +2,7 @@
 
 ## Installation
 
-* Install `blue` CLI using pip install with either SSH or HTTPS:
+* To install `blue` CLI:
 
 ```
 $ cd blue/platform/cli
