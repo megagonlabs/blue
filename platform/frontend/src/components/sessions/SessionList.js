@@ -1,4 +1,4 @@
-import { AppContext } from "@/components/app-context";
+import { AppContext } from "@/components/contexts/app-context";
 import SessionRow from "@/components/sessions/SessionRow";
 import { Classes } from "@blueprintjs/core";
 import { useContext, useEffect, useRef } from "react";

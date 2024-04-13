@@ -1,5 +1,5 @@
-import { AppContext } from "@/components/app-context";
 import { SEARCH_LIST_TYPE_LOOKUP } from "@/components/constant";
+import { AppContext } from "@/components/contexts/app-context";
 import { faIcon } from "@/components/icon";
 import { Card, Classes } from "@blueprintjs/core";
 import _ from "lodash";

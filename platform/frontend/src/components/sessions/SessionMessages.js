@@ -1,4 +1,4 @@
-import { AppContext } from "@/components/app-context";
+import { AppContext } from "@/components/contexts/app-context";
 import InteractiveMessage from "@/components/sessions/InteractiveMessage";
 import { Callout, Classes, Intent } from "@blueprintjs/core";
 import _ from "lodash";

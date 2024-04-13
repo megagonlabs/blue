@@ -1,5 +1,5 @@
-import { AppContext } from "@/components/app-context";
 import { REGISTRY_TYPE_LOOKUP } from "@/components/constant";
+import { AppContext } from "@/components/contexts/app-context";
 import { faIcon } from "@/components/icon";
 import RegistryCard from "@/components/registry/RegistryCard";
 import SearchList from "@/components/registry/SearchList";
