@@ -10,7 +10,7 @@ rm -r lib
 mkdir -p lib/agent; cp -r ../lib/* lib/agent/
 
 # copy from api agent lib
-mkdir -p lib/apicaller; cp -r ../api/src/* lib/apicaller/
+mkdir -p lib/apicaller; cp -r ../apicaller/src/* lib/apicaller/
 
 # copy from openai agent lib
 mkdir -p lib/openai; cp -r ../openai/src/* lib/openai/

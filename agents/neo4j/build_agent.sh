@@ -9,6 +9,9 @@ rm -r lib
 # copy from agent lib
 mkdir -p lib/agent; cp -r ../lib/* lib/agent/
 
+# copy from api agent lib
+mkdir -p lib/apicaller; cp -r ../apicaller/src/* lib/apicaller/
+
 # copy from platform lib
 mkdir -p lib/platform; cp -r ../../platform/lib/* lib/platform/
 

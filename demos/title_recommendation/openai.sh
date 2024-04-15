@@ -1,12 +1,7 @@
-docker rm blue_agent_openai_tripleextractor
-docker rm blue_agent_openai_cyphertranslator
-# OpenAI websocket backend
-docker compose -f $BLUE_INSTALL_DIR/agents/openai/docker-compose.yaml -p blue_service_openai up -d
-# Triple Extractor Agent
-export TRIPLE_EXTRACTOR_PROPERTIES='{"openai.api":"ChatCompletion","openai.model":"gpt-4","output_path":"$.choices[0].message.content","input_json":"[{\"role\":\"user\"}]","input_context":"$[0]","input_context_field":"content","input_field":"messages","input_template":"Given below schema that describe an ontology:\n{schema}\nwhere  {explanation}\n extract one triple from the below sentence in the above format in a list using only above ontology concepts, entities, relations, and properties:\n{input}",  "openai.temperature":0,"openai.max_tokens":256,"openai.top_p":1,"openai.frequency_penalty":0,"openai.presence_penalty":0,"schema":"(PERSON {name,age,id})\n(JOB {from,to,company,title,description})\n(RESUME {date,content,id})\nand relations:\n(PERSON) --[HAS]-> (RESUME)\n(RESUME)--[CONTAINS]->(JOB)\n","explanation":"PERSON, JOB, and RESUME are Concepts,\nHAS is a Relation between PERSON and RESUME,  CONTAINS is a Relation between RESUME and JOB,\nname, age are properties of PERSON and  date, content are properties of RESUME, \n(PERSON {name: \"Michael Gibbons\"})--[HAS]-> (RESUME),\n(RESUME) --[CONTAINS]->(JOB {title:  \"software engineer\"}) are example triples \n","example":"(PERSON {name: \"Michael Gibbons\"})--[HAS]-> (RESUME)","tags": ["TRIPLE"]}'
-echo "Bring up TRIPLE EXTRACTOR OPENAI agent using the following properties: $TRIPLE_EXTRACTOR_PROPERTIES"
-docker run  -d --network="host" --name blue_agent_openai_tripleextractor blue-agent-openai:latest --session $1 --properties "$TRIPLE_EXTRACTOR_PROPERTIES"
-# CYPHER Translator Agent
-export CYPHER_TRANSLATOR_PROPERTIES='{"openai.api":"ChatCompletion","openai.model":"gpt-4","output_path":"$.choices[0].message.content","listens":{"includes":["TRIPLE"],"excludes":[]},"tags": ["CYPHER"],"input_json":"[{\"role\":\"user\"}]","input_context":"$[0]","input_context_field":"content","input_field":"messages","input_template":"Convert below triple into a MATCH CYPHER query: {input}","openai.temperature":0,"openai.max_tokens":256,"openai.top_p":1,"openai.frequency_penalty":0,"openai.presence_penalty":0}'
-echo "Bring up CYPHER TRANSLATOR OPENAI agent using the following properties: $CYPHER_TRANSLATOR_PROPERTIES"
-docker run  -d --network="host" --name blue_agent_openai_cyphertranslator blue-agent-openai:latest --session $1 --properties "$CYPHER_TRANSLATOR_PROPERTIES"
+export SESSION_ID=$(cat .sid)
+# Triple Extractor
+export TRIPLE_EXTRACTOR_PROPERTIES='{"openai.service":"ws://blue_service_neo4j:8002","listens": {"includes": ["USER"],"excludes": []},"tags": ["TRIPLE"]}'
+blue session --session-id ${SESSION_ID} --REGISTRY default --AGENT OpenAITripleExtractor --AGENT_PROPERTIES "${TRIPLE_EXTRACTOR_PROPERTIES}" join
+#  Cypher Translator
+export CYPHER_TRANSLATOR_PROPERTIES='{"openai.service":"ws://blue_service_neo4j:8002","listens":{"includes":["TRIPLE"],"excludes":[]},"tags": ["CYPHER"]}'
+blue session --session-id ${SESSION_ID} --REGISTRY default --AGENT OpenAINeo4JQuery --AGENT_PROPERTIES "${CYPHER_TRANSLATOR_PROPERTIES}" join
