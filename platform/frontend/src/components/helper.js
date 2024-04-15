@@ -1,9 +1,9 @@
 const { faPenSwirl } = require("@fortawesome/pro-duotone-svg-icons");
-const { faIcon } = require("./icon");
+const { faIcon } = require("@/components/icon");
 const { ProgressBar, Classes, Intent } = require("@blueprintjs/core");
 const classNames = require("classnames");
 const _ = require("lodash");
-const { AppToaster } = require("./toaster");
+const { AppToaster } = require("@/components/toaster");
 const renderProgress = (progress, requestError = false) => {
     return {
         icon: faIcon({ icon: faPenSwirl }),

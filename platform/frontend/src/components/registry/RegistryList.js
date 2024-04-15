@@ -1,6 +1,8 @@
-import { AppContext } from "@/components/app-context";
 import { REGISTRY_TYPE_LOOKUP } from "@/components/constant";
+import { AppContext } from "@/components/contexts/app-context";
 import { faIcon } from "@/components/icon";
+import RegistryCard from "@/components/registry/RegistryCard";
+import SearchList from "@/components/registry/SearchList";
 import { Button, Card, Colors, Intent, NonIdealState } from "@blueprintjs/core";
 import { faPlus } from "@fortawesome/pro-duotone-svg-icons";
 import _ from "lodash";
@@ -8,8 +10,6 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { useContext } from "react";
 import { Col, Container, Row } from "react-grid-system";
-import RegistryCard from "./RegistryCard";
-import SearchList from "./SearchList";
 export default function RegistryList({ type }) {
     const { appState } = useContext(AppContext);
     const list = appState[type].list;

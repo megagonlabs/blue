@@ -1,4 +1,13 @@
 import { faIcon } from "@/components/icon";
+import BooleanDoc from "@/components/jsonforms/docs/BooleanDoc";
+import ButtonDoc from "@/components/jsonforms/docs/ButtonDoc";
+import EnumDoc from "@/components/jsonforms/docs/EnumDoc";
+import GroupDoc from "@/components/jsonforms/docs/GroupDoc";
+import IntegerDoc from "@/components/jsonforms/docs/IntegerDoc";
+import LabelDoc from "@/components/jsonforms/docs/LabelDoc";
+import LayoutDoc from "@/components/jsonforms/docs/LayoutDoc";
+import NumberDoc from "@/components/jsonforms/docs/NumberDoc";
+import StringDoc from "@/components/jsonforms/docs/StringDoc";
 import {
     Code,
     Drawer,
@@ -24,15 +33,6 @@ import {
 } from "@fortawesome/pro-duotone-svg-icons";
 import _ from "lodash";
 import { useCallback, useState } from "react";
-import BooleanDoc from "./BooleanDoc";
-import ButtonDoc from "./ButtonDoc";
-import EnumDoc from "./EnumDoc";
-import GroupDoc from "./GroupDoc";
-import IntegerDoc from "./IntegerDoc";
-import LabelDoc from "./LabelDoc";
-import LayoutDoc from "./LayoutDoc";
-import NumberDoc from "./NumberDoc";
-import StringDoc from "./StringDoc";
 const RendererDetailPanel = (props) => {
     const DOCS = {
         boolean: <BooleanDoc closePanel={props.closePanel} />,

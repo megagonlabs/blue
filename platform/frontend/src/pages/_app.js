@@ -1,5 +1,5 @@
 import App from "@/components/App";
-import { AppProvider } from "@/components/app-context";
+import { AppProvider } from "@/components/contexts/app-context";
 import { SocketProvider } from "@/components/contexts/websocket";
 import "@/styles/custom.css";
 import "@/styles/docs.css";

@@ -1,4 +1,4 @@
-import { AppContext } from "@/components/app-context";
+import { AppContext } from "@/components/contexts/app-context";
 import { useSocket } from "@/components/hooks/useSocket";
 import { faIcon } from "@/components/icon";
 import SessionList from "@/components/sessions/SessionList";
@@ -415,7 +415,6 @@ export default function Sessions() {
                                     content={
                                         <Menu large>
                                             <MenuItem
-                                                disabled
                                                 icon={faIcon({
                                                     icon: faCircleA,
                                                 })}

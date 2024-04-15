@@ -1,4 +1,4 @@
-import { AppContext } from "@/components/app-context";
+import { AppContext } from "@/components/contexts/app-context";
 import EntityDescription from "@/components/entity/EntityDescription";
 import EntityMain from "@/components/entity/EntityMain";
 import EntityProperties from "@/components/entity/EntityProperties";

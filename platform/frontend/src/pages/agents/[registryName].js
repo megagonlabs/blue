@@ -1,4 +1,4 @@
-import { AppContext } from "@/components/app-context";
+import { AppContext } from "@/components/contexts/app-context";
 import { faIcon } from "@/components/icon";
 import Pagination from "@/components/registry/Pagination";
 import RegistryList from "@/components/registry/RegistryList";
