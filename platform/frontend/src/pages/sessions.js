@@ -1,6 +1,7 @@
 import { AppContext } from "@/components/contexts/app-context";
 import { useSocket } from "@/components/hooks/useSocket";
 import { faIcon } from "@/components/icon";
+import SessionDetail from "@/components/sessions/SessionDetail";
 import SessionList from "@/components/sessions/SessionList";
 import SessionMessages from "@/components/sessions/SessionMessages";
 import { AppToaster } from "@/components/toaster";
@@ -24,10 +25,10 @@ import {
 import {
     faCaretDown,
     faCircleA,
-    faCirclePlus,
     faInboxIn,
     faInboxOut,
     faMessages,
+    faPlusLarge,
     faSignalStreamSlash,
 } from "@fortawesome/pro-duotone-svg-icons";
 import axios from "axios";
@@ -41,6 +42,7 @@ export default function Sessions() {
     const [message, setMessage] = useState("");
     const [joinSessionId, setJoinSessionId] = useState("");
     const sessionMessageTextArea = useRef(null);
+    const [isSessionDetailOpen, setIsSessionDetailOpen] = useState(false);
     const sendSessionMessage = (message) => {
         if (!_.isEqual(socket.readyState, 1)) return;
         setMessage("");
@@ -117,17 +119,21 @@ export default function Sessions() {
     const initialJoinAll = useRef(true);
     const joinAllSessions = () => {
         // automatically join all existing sessions onload
-        axios.get("/sessions").then((response) => {
-            const sessions = _.get(response, "data.results", []);
-            for (let i = 0; i < sessions.length; i++) {
-                const sessionId = sessions[i].id;
-                if (_.includes(sessionIds, sessionId)) continue;
-                appActions.session.observeSession({
-                    sessionId: sessionId,
-                    socket: socket,
-                });
-            }
-        });
+        axios
+            .get("/sessions")
+            .then((response) => {
+                const sessions = _.get(response, "data.results", []);
+                appActions.session.setSessionDetail(sessions);
+                for (let i = 0; i < sessions.length; i++) {
+                    const sessionId = sessions[i].id;
+                    if (_.includes(sessionIds, sessionId)) continue;
+                    appActions.session.observeSession({
+                        sessionId: sessionId,
+                        socket: socket,
+                    });
+                }
+            })
+            .catch((error) => {});
     };
     useEffect(() => {
         if (!_.isEqual(socket.readyState, 1)) return;
@@ -137,7 +143,10 @@ export default function Sessions() {
             joinAllSessions();
         }
     }, [socket.readyState]);
-    if (_.includes([0, 3], socket.readyState))
+    const [isSocketConnected, setIsSocketConnected] = useState(
+        !_.includes([0, 3], socket.readyState)
+    );
+    if (!isSocketConnected && _.isEmpty(sessionIds))
         return (
             <NonIdealState
                 icon={faIcon({ icon: faSignalStreamSlash, size: 50 })}
@@ -191,7 +200,6 @@ export default function Sessions() {
                                     if (!_.isEqual(socket.readyState, 1))
                                         return;
                                     appActions.session.createSession({
-                                        platform: appState.session.platform,
                                         socket: socket,
                                     });
                                 }}
@@ -330,11 +338,21 @@ export default function Sessions() {
                             }
                         >
                             <Button
+                                disabled={!isSocketConnected}
                                 outlined
                                 icon={faIcon({ icon: faCaretDown })}
                             />
                         </Popover>
                     </ButtonGroup>
+                    {!isSocketConnected ? (
+                        <Button
+                            onClick={reconnectWs}
+                            intent={Intent.PRIMARY}
+                            large
+                            loading={_.isEqual(socket.readyState, 0)}
+                            text="Reconnect"
+                        />
+                    ) : null}
                 </div>
                 {_.isEmpty(appState.session.sessionIds) ? (
                     <Card
@@ -373,12 +391,23 @@ export default function Sessions() {
                         justifyContent: "space-between",
                     }}
                 >
-                    <H4
-                        className={Classes.TEXT_OVERFLOW_ELLIPSIS}
-                        style={{ margin: 0 }}
+                    <Tooltip
+                        minimal
+                        content="Get session details"
+                        placement="bottom-start"
                     >
-                        {sessionIdFocus}
-                    </H4>
+                        <Button
+                            large
+                            minimal
+                            onClick={() => {
+                                setIsSessionDetailOpen(true);
+                            }}
+                            rightIcon={faIcon({ icon: faCaretDown })}
+                            text={
+                                <H4 style={{ margin: 0 }}>{sessionIdFocus}</H4>
+                            }
+                        />
+                    </Tooltip>
                 </Card>
                 {_.isNull(sessionIdFocus) ? (
                     <NonIdealState
@@ -424,6 +453,7 @@ export default function Sessions() {
                                     }
                                 >
                                     <Button
+                                        disabled={!isSocketConnected}
                                         large
                                         minimal
                                         style={{
@@ -432,11 +462,12 @@ export default function Sessions() {
                                             paddingBottom: 62,
                                             paddingTop: 12,
                                         }}
-                                        icon={faIcon({ icon: faCirclePlus })}
+                                        icon={faIcon({ icon: faPlusLarge })}
                                     />
                                 </Popover>
                             </div>
                             <TextArea
+                                disabled={!isSocketConnected}
                                 inputRef={sessionMessageTextArea}
                                 style={{
                                     resize: "none",
@@ -451,7 +482,8 @@ export default function Sessions() {
                                 onKeyDown={(event) => {
                                     if (
                                         _.isEqual(event.key, "Enter") &&
-                                        !event.shiftKey
+                                        !event.shiftKey &&
+                                        !isSocketConnected
                                     ) {
                                         sendSessionMessage(message);
                                         event.preventDefault();
@@ -463,6 +495,10 @@ export default function Sessions() {
                     </>
                 )}
             </div>
+            <SessionDetail
+                setIsSessionDetailOpen={setIsSessionDetailOpen}
+                isOpen={isSessionDetailOpen}
+            />
         </>
     );
 }

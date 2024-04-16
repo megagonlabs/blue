@@ -1,5 +1,6 @@
 import App from "@/components/App";
 import { AppProvider } from "@/components/contexts/app-context";
+import { AuthProvider } from "@/components/contexts/auth-context";
 import { SocketProvider } from "@/components/contexts/websocket";
 import "@/styles/custom.css";
 import "@/styles/docs.css";
@@ -26,11 +27,13 @@ const Blue = ({ Component, pageProps }) => {
                     <title>Blue</title>
                     <link rel="icon" href="/favicon.ico" />
                 </Head>
-                <SocketProvider>
-                    <App>
-                        <Component {...pageProps} />
-                    </App>
-                </SocketProvider>
+                <AuthProvider>
+                    <SocketProvider>
+                        <App>
+                            <Component {...pageProps} />
+                        </App>
+                    </SocketProvider>
+                </AuthProvider>
             </AppProvider>
         );
     return null;

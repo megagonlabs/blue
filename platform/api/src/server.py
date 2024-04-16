@@ -5,17 +5,23 @@ import sys
 
 ###### Parsers, Formats, Utils
 import json
+import re
 from pathlib import Path
+
+from fastapi.responses import JSONResponse
 
 ##### Web / Sockets
 from ConnectionManager import ConnectionManager
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Request
 
 ###### API Routerss
+from constant import EMAIL_DOMAIN_ADDRESS_REGEXP
 from routers import agents
 from routers import data
 from routers import sessions
 from routers import platform
+from routers import accounts
+from firebase_admin import auth
 
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -35,20 +41,74 @@ api_server_host = ":".join(api_server.split(":")[:1])
 allowed_origins = [
     "http://localhost",
     "http://localhost:3000",
-    "http://" + api_server_host,
-    "http://" + api_server_host + ":3000",
+    "https://blue.megagon.ai",
 ]
-
-print(allowed_origins)
 
 app = FastAPI()
 app.include_router(agents.router)
 app.include_router(data.router)
 app.include_router(sessions.router)
 app.include_router(platform.router)
+app.include_router(accounts.router)
 connection_manager = ConnectionManager()
 app.connection_manager = connection_manager
 
+
+@app.middleware("http")
+async def session_verification(request: Request, call_next):
+    session_cookie = request.cookies.get("session")
+    if request.method == "OPTIONS":
+        return await call_next(request)
+    if not session_cookie:
+        if request.url.path not in ["/accounts/signin"]:
+            # Session cookie is unavailable. Force user to login.
+            return JSONResponse(
+                status_code=400,
+                content={
+                    "message": "Session cookie is unavailable",
+                    "error_code": "session_cookie_unavailable",
+                },
+            )
+    # Verify the session cookie. In this case an additional check is added to detect
+    # if the user's Firebase session was revoked, user deleted/disabled, etc.
+    else:
+        try:
+            decoded_claims = auth.verify_session_cookie(
+                session_cookie, check_revoked=True
+            )
+            email = decoded_claims["email"]
+            email_domain = re.search(EMAIL_DOMAIN_ADDRESS_REGEXP, email).group(1)
+            request.state.user = {
+                "name": decoded_claims["name"],
+                "picture": decoded_claims["picture"],
+                "uid": decoded_claims["uid"],
+                "email_domain": email_domain,
+                "email": email,
+                "exp": decoded_claims["exp"],
+            }
+        except auth.InvalidSessionCookieError:
+            # Session cookie is invalid, expired or revoked. Force user to login.
+            response = JSONResponse(
+                content={
+                    "message": "Session cookie is invalid, epxpired or revoked",
+                    "error_code": "session_cookie_invalid",
+                },
+                status_code=401,
+            )
+            response.set_cookie("session", expires=0, path="/")
+            return response
+    return await call_next(request)
+
+
+@app.middleware("http")
+async def health_check(request: Request, call_next):
+    if request.url.path not in ["/health_check"]:
+        return await call_next(request)
+    return JSONResponse(content={"message": "Success"}, status_code=200)
+
+
+# middlewares are added in reverse order
+# moved down so CORSMiddleware gets added before the @app.middleware("http")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=allowed_origins,
@@ -91,7 +151,6 @@ async def websocket_endpoint(websocket: WebSocket):
                 await connection_manager.observer_session_message(
                     json_data["session_id"], json_data["message"], json_data["stream"]
                 )
-            print("Received", data)
     except WebSocketDisconnect:
         # Remove the connection from the list of active connections
         connection_manager.disconnect(websocket)

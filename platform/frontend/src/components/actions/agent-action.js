@@ -8,12 +8,15 @@ export const agentAction = (dispatch) => ({
         });
     },
     getList: () => {
-        axios.get("/agents").then((response) => {
-            dispatch({
-                type: "agent/list/set",
-                payload: _.get(response, "data.results", []),
-            });
-        });
+        axios
+            .get("/agents")
+            .then((response) => {
+                dispatch({
+                    type: "agent/list/set",
+                    payload: _.get(response, "data.results", []),
+                });
+            })
+            .catch((error) => {});
     },
     searchList: (payload) => {
         const filter = {

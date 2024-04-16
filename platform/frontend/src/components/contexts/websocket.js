@@ -16,7 +16,7 @@ try {
     }
 }
 export const SocketContext = createContext(webSocket);
-export const SocketProvider = (props) => {
+export const SocketProvider = ({ children }) => {
     const [ws, setWs] = useState(webSocket);
     const reconnect = () => {
         setTimeout(() => {
@@ -61,7 +61,7 @@ export const SocketProvider = (props) => {
     }, [ws, setWs]);
     return (
         <SocketContext.Provider value={{ socket: ws, reconnectWs: reconnect }}>
-            {props.children}
+            {children}
         </SocketContext.Provider>
     );
 };
