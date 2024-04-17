@@ -37,6 +37,6 @@ websockets==11.0.3
 yarl==1.9.2
 zipp==3.15.0
 neo4j==5.12.0
-jsonmerge==1.9.0
+jsonmerge==1.9.2
 jsonpath-ng==1.5.3
-jsonschema==4.17.3
+jsonschema==4.21.1
