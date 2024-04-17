@@ -133,10 +133,7 @@ function Designer() {
                 data: data,
             })
         );
-        AppToaster.show({
-            intent: Intent.SUCCESS,
-            message: "Copied message configuration",
-        });
+        AppToaster.show({ message: "Copied message configuration" });
     };
     const handleReset = () => {
         leftPaneRef.current.resize([50, 50]);

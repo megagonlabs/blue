@@ -29,6 +29,7 @@ import {
     faInboxOut,
     faMessages,
     faPlusLarge,
+    faSatelliteDish,
     faSignalStreamSlash,
 } from "@fortawesome/pro-duotone-svg-icons";
 import axios from "axios";
@@ -143,10 +144,20 @@ export default function Sessions() {
             joinAllSessions();
         }
     }, [socket.readyState]);
-    const [isSocketConnected, setIsSocketConnected] = useState(
-        !_.includes([0, 3], socket.readyState)
-    );
-    if (!isSocketConnected && _.isEmpty(sessionIds))
+    const isSocketOpen = appState.session.isSocketOpen;
+    const ReconnectButton = () => {
+        return (
+            <Button
+                icon={faIcon({ icon: faSatelliteDish })}
+                onClick={reconnectWs}
+                intent={Intent.PRIMARY}
+                large
+                loading={_.isEqual(socket.readyState, 0)}
+                text="Reconnect"
+            />
+        );
+    };
+    if (!isSocketOpen && _.isEmpty(sessionIds))
         return (
             <NonIdealState
                 icon={faIcon({ icon: faSignalStreamSlash, size: 50 })}
@@ -155,15 +166,7 @@ export default function Sessions() {
                         ? "Connecting"
                         : "No connection"
                 }
-                action={
-                    <Button
-                        onClick={reconnectWs}
-                        intent={Intent.PRIMARY}
-                        large
-                        loading={_.isEqual(socket.readyState, 0)}
-                        text="Reconnect"
-                    />
-                }
+                action={<ReconnectButton />}
             />
         );
     return (
@@ -338,21 +341,13 @@ export default function Sessions() {
                             }
                         >
                             <Button
-                                disabled={!isSocketConnected}
+                                disabled={!isSocketOpen}
                                 outlined
                                 icon={faIcon({ icon: faCaretDown })}
                             />
                         </Popover>
                     </ButtonGroup>
-                    {!isSocketConnected ? (
-                        <Button
-                            onClick={reconnectWs}
-                            intent={Intent.PRIMARY}
-                            large
-                            loading={_.isEqual(socket.readyState, 0)}
-                            text="Reconnect"
-                        />
-                    ) : null}
+                    {!isSocketOpen ? <ReconnectButton /> : null}
                 </div>
                 {_.isEmpty(appState.session.sessionIds) ? (
                     <Card
@@ -391,23 +386,27 @@ export default function Sessions() {
                         justifyContent: "space-between",
                     }}
                 >
-                    <Tooltip
-                        minimal
-                        content="Get session details"
-                        placement="bottom-start"
-                    >
-                        <Button
-                            large
+                    {!_.isNull(sessionIdFocus) ? (
+                        <Tooltip
                             minimal
-                            onClick={() => {
-                                setIsSessionDetailOpen(true);
-                            }}
-                            rightIcon={faIcon({ icon: faCaretDown })}
-                            text={
-                                <H4 style={{ margin: 0 }}>{sessionIdFocus}</H4>
-                            }
-                        />
-                    </Tooltip>
+                            content="Get session details"
+                            placement="bottom-start"
+                        >
+                            <Button
+                                large
+                                minimal
+                                onClick={() => {
+                                    setIsSessionDetailOpen(true);
+                                }}
+                                rightIcon={faIcon({ icon: faCaretDown })}
+                                text={
+                                    <H4 style={{ margin: 0 }}>
+                                        {sessionIdFocus}
+                                    </H4>
+                                }
+                            />
+                        </Tooltip>
+                    ) : null}
                 </Card>
                 {_.isNull(sessionIdFocus) ? (
                     <NonIdealState
@@ -453,7 +452,7 @@ export default function Sessions() {
                                     }
                                 >
                                     <Button
-                                        disabled={!isSocketConnected}
+                                        disabled={!isSocketOpen}
                                         large
                                         minimal
                                         style={{
@@ -467,7 +466,7 @@ export default function Sessions() {
                                 </Popover>
                             </div>
                             <TextArea
-                                disabled={!isSocketConnected}
+                                disabled={!isSocketOpen}
                                 inputRef={sessionMessageTextArea}
                                 style={{
                                     resize: "none",
@@ -483,7 +482,7 @@ export default function Sessions() {
                                     if (
                                         _.isEqual(event.key, "Enter") &&
                                         !event.shiftKey &&
-                                        !isSocketConnected
+                                        isSocketOpen
                                     ) {
                                         sendSessionMessage(message);
                                         event.preventDefault();

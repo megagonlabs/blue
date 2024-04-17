@@ -1,3 +1,4 @@
+import { AppContext } from "@/components/contexts/app-context";
 import {
     Button,
     Card,
@@ -5,13 +6,61 @@ import {
     FormGroup,
     H4,
     InputGroup,
+    Intent,
 } from "@blueprintjs/core";
+import { faCheck } from "@fortawesome/pro-duotone-svg-icons";
+import axios from "axios";
 import _ from "lodash";
-import { useContext, useState } from "react";
-import { AppContext } from "../contexts/app-context";
+import { useContext, useEffect, useState } from "react";
+import { faIcon } from "../icon";
 export default function SessionDetail({ isOpen, setIsSessionDetailOpen }) {
     const { appState } = useContext(AppContext);
     const sessionIdFocus = appState.session.sessionIdFocus;
+    const [name, setName] = useState(
+        _.get(
+            appState,
+            ["session", "sessionDetail", sessionIdFocus, "name"],
+            ""
+        )
+    );
+    const [description, setDescription] = useState(
+        _.get(
+            appState,
+            ["session", "sessionDetail", sessionIdFocus, "description"],
+            ""
+        )
+    );
+    const [loading, setLoading] = useState(false);
+    const handleSaveMetadata = () => {
+        setLoading(true);
+        axios
+            .put(`/sessions/session/${sessionIdFocus}`, {
+                name: _.trim(name),
+                description: _.trim(description),
+            })
+            .then((response) => {
+                setLoading(false);
+            })
+            .catch((error) => {
+                setLoading(false);
+            });
+    };
+    useEffect(() => {
+        setName(
+            _.get(
+                appState,
+                ["session", "sessionDetail", sessionIdFocus, "name"],
+                ""
+            )
+        );
+        setDescription(
+            _.get(
+                appState,
+                ["session", "sessionDetail", sessionIdFocus, "description"],
+                ""
+            )
+        );
+    }, [appState.session.sessionDetail]);
     const [tab, setTab] = useState("about");
     return (
         <Dialog
@@ -31,40 +80,34 @@ export default function SessionDetail({ isOpen, setIsSessionDetailOpen }) {
                     }}
                     active={_.isEqual(tab, "about")}
                 />
-                <Button
-                    minimal
-                    text="Members"
-                    onClick={() => {
-                        setTab("members");
-                    }}
-                    active={_.isEqual(tab, "members")}
-                />
             </Card>
             <FormGroup label="Name">
                 <InputGroup
                     large
-                    value={_.get(
-                        appState,
-                        ["session", "sessionDetail", sessionIdFocus, "name"],
-                        ""
-                    )}
+                    value={name}
+                    onChange={(event) => {
+                        setName(event.target.value);
+                    }}
                 />
             </FormGroup>
             <FormGroup label="Description">
                 <InputGroup
                     large
-                    value={_.get(
-                        appState,
-                        [
-                            "session",
-                            "sessionDetail",
-                            sessionIdFocus,
-                            "description",
-                        ],
-                        ""
-                    )}
+                    value={description}
+                    onChange={(event) => {
+                        setDescription(event.target.value);
+                    }}
                 />
             </FormGroup>
+            <Button
+                loading={loading}
+                text="Save"
+                large
+                onClick={handleSaveMetadata}
+                style={{ width: 90.96 }}
+                intent={Intent.SUCCESS}
+                icon={faIcon({ icon: faCheck })}
+            />
         </Dialog>
     );
 }

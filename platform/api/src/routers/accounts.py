@@ -27,10 +27,7 @@ def signout(request: Request):
     try:
         decoded_claims = auth.verify_session_cookie(session_cookie)
         auth.revoke_refresh_tokens(decoded_claims["sub"])
-        response = JSONResponse(
-            content={"message": "Success"},
-            status_code=200,
-        )
+        response = JSONResponse(content={"message": "Success"})
         response.set_cookie("session", expires=0, path="/")
         return response
     except auth.InvalidSessionCookieError:
@@ -96,8 +93,7 @@ async def signin(request: Request):
                         "email_domain": email_domain,
                         "exp": decoded_claims["exp"],
                     },
-                },
-                status_code=200,
+                }
             )
             # Set cookie policy for session cookie.
             expires = datetime.datetime.now(datetime.timezone.utc) + expires_in
@@ -127,6 +123,4 @@ async def signin(request: Request):
 
 @router.get("/profile")
 def get_profile(request: Request):
-    return JSONResponse(
-        content={"result": request.state.user, "message": "Success"}, status_code=200
-    )
+    return JSONResponse(content={"result": request.state.user, "message": "Success"})

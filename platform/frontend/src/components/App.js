@@ -1,4 +1,5 @@
 import { AppContext } from "@/components/contexts/app-context";
+import { AuthContext } from "@/components/contexts/auth-context";
 import { faIcon } from "@/components/icon";
 import {
     Alignment,
@@ -28,7 +29,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useContext } from "react";
-import { AuthContext } from "./contexts/auth-context";
 export default function App({ children }) {
     const router = useRouter();
     const { appState } = useContext(AppContext);

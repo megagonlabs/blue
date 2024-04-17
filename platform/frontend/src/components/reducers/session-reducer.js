@@ -1,6 +1,7 @@
 import _ from "lodash";
 export const defaultState = {
     sessions: {},
+    isSocketOpen: false,
     platform: "default",
     sessionIds: [],
     sessionIdFocus: null,

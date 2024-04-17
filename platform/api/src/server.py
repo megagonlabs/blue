@@ -15,7 +15,7 @@ from ConnectionManager import ConnectionManager
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Request
 
 ###### API Routerss
-from constant import EMAIL_DOMAIN_ADDRESS_REGEXP
+from constant import EMAIL_DOMAIN_ADDRESS_REGEXP, InvalidRequestJson
 from routers import agents
 from routers import data
 from routers import sessions
@@ -104,7 +104,7 @@ async def session_verification(request: Request, call_next):
 async def health_check(request: Request, call_next):
     if request.url.path not in ["/health_check"]:
         return await call_next(request)
-    return JSONResponse(content={"message": "Success"}, status_code=200)
+    return JSONResponse(content={"message": "Success"})
 
 
 # middlewares are added in reverse order
@@ -116,6 +116,14 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.exception_handler(InvalidRequestJson)
+async def unicorn_exception_handler(request: Request, exc: InvalidRequestJson):
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"json_errors": exc.errors},
+    )
 
 
 @app.websocket("/sessions/ws")
