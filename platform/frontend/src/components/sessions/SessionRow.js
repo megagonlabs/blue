@@ -70,7 +70,12 @@ export default function SessionRow({ index, style }) {
                     style={{ marginBottom: 5 }}
                     className={Classes.TEXT_OVERFLOW_ELLIPSIS}
                 >
-                    {sessionId}
+                    #&nbsp;
+                    {_.get(
+                        appState,
+                        ["session", "sessionDetail", sessionId, "name"],
+                        sessionId
+                    )}
                 </H5>
                 <div
                     className={`${Classes.TEXT_OVERFLOW_ELLIPSIS} ${Classes.TEXT_MUTED}`}

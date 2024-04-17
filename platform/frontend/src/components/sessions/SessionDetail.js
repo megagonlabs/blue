@@ -14,7 +14,7 @@ import _ from "lodash";
 import { useContext, useEffect, useState } from "react";
 import { faIcon } from "../icon";
 export default function SessionDetail({ isOpen, setIsSessionDetailOpen }) {
-    const { appState } = useContext(AppContext);
+    const { appState, appActions } = useContext(AppContext);
     const sessionIdFocus = appState.session.sessionIdFocus;
     const [name, setName] = useState(
         _.get(
@@ -33,13 +33,20 @@ export default function SessionDetail({ isOpen, setIsSessionDetailOpen }) {
     const [loading, setLoading] = useState(false);
     const handleSaveMetadata = () => {
         setLoading(true);
+        const payload = {
+            name: _.trim(name),
+            description: _.trim(description),
+        };
         axios
-            .put(`/sessions/session/${sessionIdFocus}`, {
-                name: _.trim(name),
-                description: _.trim(description),
-            })
+            .put(`/sessions/session/${sessionIdFocus}`, payload)
             .then((response) => {
                 setLoading(false);
+                appActions.session.setSessionDetail([
+                    {
+                        ...payload,
+                        id: sessionIdFocus,
+                    },
+                ]);
             })
             .catch((error) => {
                 setLoading(false);
@@ -60,12 +67,15 @@ export default function SessionDetail({ isOpen, setIsSessionDetailOpen }) {
                 ""
             )
         );
-    }, [appState.session.sessionDetail]);
+    }, [appState.session.sessionDetail, sessionIdFocus]);
     const [tab, setTab] = useState("about");
     return (
         <Dialog
             style={{ padding: 20 }}
             onClose={() => {
+                if (loading) {
+                    return;
+                }
                 setIsSessionDetailOpen(false);
             }}
             isOpen={isOpen}

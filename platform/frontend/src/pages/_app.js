@@ -1,7 +1,7 @@
 import App from "@/components/App";
 import { AppProvider } from "@/components/contexts/app-context";
 import { AuthProvider } from "@/components/contexts/auth-context";
-import { SocketProvider } from "@/components/contexts/websocket";
+import { SocketProvider } from "@/components/contexts/socket-context";
 import "@/styles/custom.css";
 import "@/styles/docs.css";
 import { FocusStyleManager } from "@blueprintjs/core";

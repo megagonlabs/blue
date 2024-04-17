@@ -157,6 +157,8 @@ export default function Sessions() {
             />
         );
     };
+    const [sessionDetailTooltipOpen, setSessionDetailTooltipOpen] =
+        useState(false);
     if (!isSocketOpen && _.isEmpty(sessionIds))
         return (
             <NonIdealState
@@ -389,10 +391,20 @@ export default function Sessions() {
                     {!_.isNull(sessionIdFocus) ? (
                         <Tooltip
                             minimal
+                            isOpen={sessionDetailTooltipOpen}
                             content="Get session details"
                             placement="bottom-start"
                         >
                             <Button
+                                onMouseEnter={() => {
+                                    setSessionDetailTooltipOpen(true);
+                                }}
+                                onBlur={() => {
+                                    setSessionDetailTooltipOpen(false);
+                                }}
+                                onMouseLeave={() => {
+                                    setSessionDetailTooltipOpen(false);
+                                }}
                                 large
                                 minimal
                                 onClick={() => {
@@ -401,7 +413,17 @@ export default function Sessions() {
                                 rightIcon={faIcon({ icon: faCaretDown })}
                                 text={
                                     <H4 style={{ margin: 0 }}>
-                                        {sessionIdFocus}
+                                        #&nbsp;
+                                        {_.get(
+                                            appState,
+                                            [
+                                                "session",
+                                                "sessionDetail",
+                                                sessionIdFocus,
+                                                "name",
+                                            ],
+                                            sessionIdFocus
+                                        )}
                                     </H4>
                                 }
                             />
