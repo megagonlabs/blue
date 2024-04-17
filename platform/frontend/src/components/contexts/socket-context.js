@@ -3,22 +3,10 @@ import { AppToaster } from "@/components/toaster";
 import { Intent } from "@blueprintjs/core";
 import _ from "lodash";
 import { createContext, useContext, useEffect, useState } from "react";
-let webSocket = null;
-try {
-    webSocket = new WebSocket(
-        `${process.env.NEXT_PUBLIC_WS_API_SERVER}/sessions/ws`
-    );
-} catch (error) {
-    if (AppToaster) {
-        AppToaster.show({
-            intent: Intent.DANGER,
-            message: `Failed to initialize websocket: ${error}`,
-        });
-    }
-}
-export const SocketContext = createContext(webSocket);
+export const SocketContext = createContext();
 export const SocketProvider = ({ children }) => {
-    const [ws, setWs] = useState(webSocket);
+    const [ws, setWs] = useState(null);
+    const wsReadyState = _.get(ws, "readyState", 3);
     const { appActions } = useContext(AppContext);
     const reconnect = () => {
         setTimeout(() => {
@@ -30,7 +18,23 @@ export const SocketProvider = ({ children }) => {
         }, 0);
     };
     useEffect(() => {
-        if (_.isEqual(ws.readyState, 1)) {
+        let webSocket = null;
+        try {
+            webSocket = new WebSocket(
+                `${process.env.NEXT_PUBLIC_WS_API_SERVER}/sessions/ws`
+            );
+        } catch (error) {
+            if (AppToaster) {
+                AppToaster.show({
+                    intent: Intent.DANGER,
+                    message: `Failed to initialize websocket: ${error}`,
+                });
+            }
+        }
+        setWs(webSocket);
+    }, []);
+    useEffect(() => {
+        if (wsReadyState) {
             appActions.session.setState({ key: "isSocketOpen", value: true });
         } else {
             appActions.session.setState({ key: "isSocketOpen", value: false });

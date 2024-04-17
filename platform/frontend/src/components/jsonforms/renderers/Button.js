@@ -5,8 +5,9 @@ import _ from "lodash";
 const { Button } = require("@blueprintjs/core");
 const ButtonRenderer = ({ uischema }) => {
     const { socket } = useSocket();
+    const socketReadyState = _.get(socket, "readyState", 3);
     const onClickHandler = () => {
-        if (!_.isEqual(socket.readyState, 1)) return;
+        if (!_.isEqual(socketReadyState, 1)) return;
         setTimeout(() => {
             socket.send(
                 JSON.stringify({

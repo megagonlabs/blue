@@ -44,8 +44,10 @@ export default function Sessions() {
     const [joinSessionId, setJoinSessionId] = useState("");
     const sessionMessageTextArea = useRef(null);
     const [isSessionDetailOpen, setIsSessionDetailOpen] = useState(false);
+    const { socket, reconnectWs } = useSocket();
+    const socketReadyState = _.get(socket, "readyState", 3);
     const sendSessionMessage = (message) => {
-        if (!_.isEqual(socket.readyState, 1)) return;
+        if (!_.isEqual(socketReadyState, 1)) return;
         setMessage("");
         socket.send(
             JSON.stringify({
@@ -55,7 +57,6 @@ export default function Sessions() {
             })
         );
     };
-    const { socket, reconnectWs } = useSocket();
     const onMessage = useCallback((event) => {
         // Listening to messages from the server
         try {
@@ -84,10 +85,12 @@ export default function Sessions() {
         }
     }, []);
     useEffect(() => {
-        socket.addEventListener("message", onMessage);
-        return () => {
-            socket.removeEventListener("message", onMessage);
-        };
+        if (!_.isNil(socket)) {
+            socket.addEventListener("message", onMessage);
+            return () => {
+                socket.removeEventListener("message", onMessage);
+            };
+        }
     }, [socket, onMessage]);
     useEffect(() => {
         if (sessionMessageTextArea.current) {
@@ -136,14 +139,15 @@ export default function Sessions() {
             })
             .catch((error) => {});
     };
+
     useEffect(() => {
-        if (!_.isEqual(socket.readyState, 1)) return;
+        if (!_.isEqual(socketReadyState, 1)) return;
         if (initialJoinAll.current) {
             initialJoinAll.current = false;
             socket.send(JSON.stringify({ type: "REQUEST_CONNECTION_ID" }));
             joinAllSessions();
         }
-    }, [socket.readyState]);
+    }, [socketReadyState]);
     const isSocketOpen = appState.session.isSocketOpen;
     const ReconnectButton = () => {
         return (
@@ -152,7 +156,7 @@ export default function Sessions() {
                 onClick={reconnectWs}
                 intent={Intent.PRIMARY}
                 large
-                loading={_.isEqual(socket.readyState, 0)}
+                loading={_.isEqual(socketReadyState, 0)}
                 text="Reconnect"
             />
         );
@@ -164,7 +168,7 @@ export default function Sessions() {
             <NonIdealState
                 icon={faIcon({ icon: faSignalStreamSlash, size: 50 })}
                 title={
-                    _.isEqual(socket.readyState, 0)
+                    _.isEqual(socketReadyState, 0)
                         ? "Connecting"
                         : "No connection"
                 }
@@ -197,13 +201,12 @@ export default function Sessions() {
                             content="Start a new session"
                         >
                             <Button
-                                disabled={!_.isEqual(socket.readyState, 1)}
+                                disabled={!_.isEqual(socketReadyState, 1)}
                                 text="New"
                                 outlined
                                 intent={Intent.PRIMARY}
                                 onClick={() => {
-                                    if (!_.isEqual(socket.readyState, 1))
-                                        return;
+                                    if (!_.isEqual(socketReadyState, 1)) return;
                                     appActions.session.createSession({
                                         socket: socket,
                                     });
@@ -247,7 +250,7 @@ export default function Sessions() {
                                                                 joinSessionId
                                                             ) ||
                                                             !_.isEqual(
-                                                                socket.readyState,
+                                                                socketReadyState,
                                                                 1
                                                             ) ||
                                                             _.includes(

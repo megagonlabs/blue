@@ -6,6 +6,7 @@ import { withJsonFormsControlProps } from "@jsonforms/react";
 import _ from "lodash";
 const StringRenderer = ({ uischema, handleChange, path, data, required }) => {
     const { socket } = useSocket();
+    const socketReadyState = _.get(socket, "readyState", 3);
     const multiline = _.get(uischema, "options.multi", false);
     const placeholder = _.get(uischema, "props.placeholder", null);
     const label = _.get(uischema, "label", null);
@@ -19,7 +20,7 @@ const StringRenderer = ({ uischema, handleChange, path, data, required }) => {
     ) : null;
     const handleOnChange = (event) => {
         handleChange(path, event.target.value);
-        if (!_.isEqual(socket.readyState, 1)) return;
+        if (!_.isEqual(socketReadyState, 1)) return;
         setTimeout(() => {
             socket.send(
                 JSON.stringify({

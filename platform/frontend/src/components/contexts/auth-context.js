@@ -65,7 +65,7 @@ const GOOGLE_LOGO_SVG = (
         ></path>
     </svg>
 );
-export const AuthContext = createContext({});
+export const AuthContext = createContext();
 export const useAuthContext = () => useContext(AuthContext);
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
