@@ -6,7 +6,6 @@ import { createContext, useContext, useEffect, useState } from "react";
 export const SocketContext = createContext();
 export const SocketProvider = ({ children }) => {
     const [ws, setWs] = useState(null);
-    const wsReadyState = _.get(ws, "readyState", 3);
     const { appActions } = useContext(AppContext);
     const reconnect = () => {
         setTimeout(() => {
@@ -34,11 +33,6 @@ export const SocketProvider = ({ children }) => {
         setWs(webSocket);
     }, []);
     useEffect(() => {
-        if (wsReadyState) {
-            appActions.session.setState({ key: "isSocketOpen", value: true });
-        } else {
-            appActions.session.setState({ key: "isSocketOpen", value: false });
-        }
         const onClose = () => {
             AppToaster.show({
                 intent: Intent.PRIMARY,
