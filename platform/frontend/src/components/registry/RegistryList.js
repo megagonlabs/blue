@@ -3,8 +3,15 @@ import { AppContext } from "@/components/contexts/app-context";
 import { faIcon } from "@/components/icon";
 import RegistryCard from "@/components/registry/RegistryCard";
 import SearchList from "@/components/registry/SearchList";
-import { Button, Card, Colors, Intent, NonIdealState } from "@blueprintjs/core";
-import { faPlus } from "@fortawesome/pro-duotone-svg-icons";
+import {
+    Button,
+    Card,
+    Classes,
+    Colors,
+    Intent,
+    NonIdealState,
+} from "@blueprintjs/core";
+import { faPlusLarge } from "@fortawesome/pro-duotone-svg-icons";
 import _ from "lodash";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -13,6 +20,7 @@ import { Col, Container, Row } from "react-grid-system";
 export default function RegistryList({ type }) {
     const { appState } = useContext(AppContext);
     const list = appState[type].list;
+    const loading = appState[type].loading;
     const router = useRouter();
     if (_.isEmpty(list))
         return (
@@ -26,10 +34,11 @@ export default function RegistryList({ type }) {
                     _.includes(["agent"], type) ? (
                         <Link href={`${router.asPath}/new`}>
                             <Button
+                                className={loading ? Classes.SKELETON : null}
                                 intent={Intent.PRIMARY}
                                 large
                                 outlined
-                                icon={faIcon({ icon: faPlus })}
+                                icon={faIcon({ icon: faPlusLarge })}
                                 text={`Add ${REGISTRY_TYPE_LOOKUP[type].key}`}
                             />
                         </Link>
@@ -101,7 +110,10 @@ export default function RegistryList({ type }) {
                                     }}
                                 >
                                     <div style={{ marginBottom: 10 }}>
-                                        {faIcon({ icon: faPlus, size: 20 })}
+                                        {faIcon({
+                                            icon: faPlusLarge,
+                                            size: 20,
+                                        })}
                                     </div>
                                     Add {type}
                                 </div>
