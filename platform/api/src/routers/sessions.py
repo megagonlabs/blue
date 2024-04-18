@@ -22,7 +22,8 @@ import re
 import csv
 import json
 from utils import json_utils
-
+from constant import d7validate
+from validations.base import BaseValidation
 
 ###### Blue
 from session import Session
@@ -129,6 +130,27 @@ def add_agent_to_session(
 #     #TODO
 #     result = ""
 #     return JSONResponse(content={"result": result, "message": "Success"})
+
+
+@router.put("/session/{session_id}")
+async def update_session(request: Request, session_id):
+    payload = await request.json()
+    d7validate(
+        {
+            "properties": {
+                "name": BaseValidation.string,
+                "description": BaseValidation.string,
+            }
+        },
+        payload,
+    )
+    platform = Platform(properties=PROPERTIES)
+    session = platform.get_session(session_id)
+    if "name" in payload:
+        session.set_metadata("name", payload["name"])
+    if "description" in payload:
+        session.set_metadata("description", payload["description"])
+    return JSONResponse(content={"message": "Success"})
 
 
 @router.post("/session")

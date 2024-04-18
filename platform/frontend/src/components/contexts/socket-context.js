@@ -1,23 +1,12 @@
+import { AppContext } from "@/components/contexts/app-context";
 import { AppToaster } from "@/components/toaster";
 import { Intent } from "@blueprintjs/core";
 import _ from "lodash";
-import { createContext, useEffect, useState } from "react";
-let webSocket = null;
-try {
-    webSocket = new WebSocket(
-        `${process.env.NEXT_PUBLIC_WS_API_SERVER}/sessions/ws`
-    );
-} catch (error) {
-    if (AppToaster) {
-        AppToaster.show({
-            intent: Intent.DANGER,
-            message: `Failed to initialize websocket: ${error}`,
-        });
-    }
-}
-export const SocketContext = createContext(webSocket);
-export const SocketProvider = (props) => {
-    const [ws, setWs] = useState(webSocket);
+import { createContext, useContext, useEffect, useState } from "react";
+export const SocketContext = createContext();
+export const SocketProvider = ({ children }) => {
+    const [ws, setWs] = useState(null);
+    const { appActions } = useContext(AppContext);
     const reconnect = () => {
         setTimeout(() => {
             setWs(
@@ -28,11 +17,28 @@ export const SocketProvider = (props) => {
         }, 0);
     };
     useEffect(() => {
+        let webSocket = null;
+        try {
+            webSocket = new WebSocket(
+                `${process.env.NEXT_PUBLIC_WS_API_SERVER}/sessions/ws`
+            );
+        } catch (error) {
+            if (AppToaster) {
+                AppToaster.show({
+                    intent: Intent.DANGER,
+                    message: `Failed to initialize websocket: ${error}`,
+                });
+            }
+        }
+        setWs(webSocket);
+    }, []);
+    useEffect(() => {
         const onClose = () => {
             AppToaster.show({
                 intent: Intent.PRIMARY,
                 message: "Connected closed",
             });
+            appActions.session.setState({ key: "isSocketOpen", value: false });
         };
         // Adding an event listener to when the connection is opened
         const onOpen = () => {
@@ -41,6 +47,7 @@ export const SocketProvider = (props) => {
                 message: "Connection established",
                 timeout: 2000,
             });
+            appActions.session.setState({ key: "isSocketOpen", value: true });
         };
         const onError = () => {
             AppToaster.show({
@@ -61,7 +68,7 @@ export const SocketProvider = (props) => {
     }, [ws, setWs]);
     return (
         <SocketContext.Provider value={{ socket: ws, reconnectWs: reconnect }}>
-            {props.children}
+            {children}
         </SocketContext.Provider>
     );
 };

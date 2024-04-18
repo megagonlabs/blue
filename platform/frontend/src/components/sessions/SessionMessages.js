@@ -98,7 +98,8 @@ export default function SessionMessages() {
                 </Callout>
                 {!own ? (
                     <div
-                        className={`${Classes.TEXT_DISABLED} ${Classes.TEXT_SMALL}`}
+                        style={{ maxWidth: "100%" }}
+                        className={`${Classes.TEXT_DISABLED} ${Classes.TEXT_SMALL} ${Classes.TEXT_OVERFLOW_ELLIPSIS}`}
                     >
                         {messages[index].stream}
                     </div>

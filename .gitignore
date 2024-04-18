@@ -1,3 +1,4 @@
+blue-firebase-adminsdk.json
 agents/*/lib
 platform/*/lib
 .DS_Store

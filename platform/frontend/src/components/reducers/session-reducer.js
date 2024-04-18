@@ -1,9 +1,11 @@
 import _ from "lodash";
 export const defaultState = {
     sessions: {},
+    isSocketOpen: false,
     platform: "default",
     sessionIds: [],
     sessionIdFocus: null,
+    sessionDetail: {},
     connectionId: null,
     unreadSessionIds: new Set(),
 };
@@ -36,6 +38,17 @@ export default function sessionReducer(
         }
         case "session/state/set": {
             return { ...state, [payload.key]: payload.value };
+        }
+        case "session/sessions/detail/set": {
+            let nextSessionDetail = { ...state.sessionDetail };
+            for (let i = 0; i < _.size(payload); i++) {
+                const detail = payload[i];
+                _.set(nextSessionDetail, [detail.id], {
+                    name: detail.name,
+                    description: detail.description,
+                });
+            }
+            return { ...state, sessionDetail: nextSessionDetail };
         }
         case "session/sessions/add": {
             if (_.includes(sessionIds, payload)) {

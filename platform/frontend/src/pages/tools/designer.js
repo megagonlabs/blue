@@ -37,7 +37,7 @@ import classNames from "classnames";
 import copy from "copy-to-clipboard";
 import jsonFormatter from "json-string-formatter";
 import _ from "lodash";
-import { createRef, useEffect, useRef, useState } from "react";
+import { createRef, useEffect, useState } from "react";
 import { useErrorBoundary, withErrorBoundary } from "react-use-error-boundary";
 const DEFAULT_SCHEMA = JSON.stringify(
     { type: "object", properties: {} },
@@ -56,9 +56,9 @@ function Designer() {
     const [uiSchemaError, setUiSchemaError] = useState(false);
     const [schemaError, setSchemaError] = useState(false);
     const [uiSchemaLoading, setUiSchemaLoading] = useState(true);
-    const uiSchemaInitialized = useRef(false);
+    const [uiSchemaInitialized, setUiSchemaInitialized] = useState(false);
     const [schemaLoading, setSchemaLoading] = useState(true);
-    const schemaInitialized = useRef(false);
+    const [schemaInitialized, setSchemaInitialized] = useState(false);
     useEffect(() => {
         if (error) {
             setIsDocOpen(false);
@@ -67,19 +67,19 @@ function Designer() {
     useEffect(() => {
         if (!uiSchemaLoading) {
             let uiSchemaCache = sessionStorage.getItem("jsonUiSchema");
-            if (!uiSchemaInitialized.current && uiSchemaCache) {
+            if (!uiSchemaInitialized && uiSchemaCache) {
                 setJsonUiSchema(uiSchemaCache);
             }
-            uiSchemaInitialized.current = true;
+            setUiSchemaInitialized(true);
         }
     }, [uiSchemaLoading]); // eslint-disable-line react-hooks/exhaustive-deps
     useEffect(() => {
         if (!schemaLoading) {
             let schemaCache = sessionStorage.getItem("jsonSchema");
-            if (!schemaInitialized.current && schemaCache) {
+            if (!schemaInitialized && schemaCache) {
                 setJsonSchema(schemaCache);
             }
-            schemaInitialized.current = true;
+            setSchemaInitialized(true);
         }
     }, [schemaLoading]); // eslint-disable-line react-hooks/exhaustive-deps
     useEffect(() => {
@@ -89,7 +89,7 @@ function Designer() {
         try {
             setUiSchema(JSON.parse(jsonUiSchema));
         } catch (error) {}
-        if (uiSchemaInitialized.current) {
+        if (uiSchemaInitialized) {
             sessionStorage.setItem("jsonUiSchema", jsonUiSchema);
         }
     }, [jsonUiSchema]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -97,7 +97,7 @@ function Designer() {
         try {
             setSchema(JSON.parse(jsonSchema));
         } catch (error) {}
-        if (schemaInitialized.current) {
+        if (schemaInitialized) {
             sessionStorage.setItem("jsonSchema", jsonSchema);
         }
     }, [jsonSchema]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -133,10 +133,7 @@ function Designer() {
                 data: data,
             })
         );
-        AppToaster.show({
-            intent: Intent.SUCCESS,
-            message: "Copied message configuration",
-        });
+        AppToaster.show({ message: "Copied message configuration" });
     };
     const handleReset = () => {
         leftPaneRef.current.resize([50, 50]);
@@ -247,7 +244,7 @@ function Designer() {
                                         "full-parent-height": true,
                                         [Classes.SKELETON]:
                                             uiSchemaLoading &&
-                                            !uiSchemaInitialized.current,
+                                            !uiSchemaInitialized,
                                     })}
                                     style={{
                                         overflowY: "auto",
@@ -308,8 +305,7 @@ function Designer() {
                                     className={classNames({
                                         "full-parent-height": true,
                                         [Classes.SKELETON]:
-                                            schemaLoading &&
-                                            !schemaInitialized.current,
+                                            schemaLoading && !schemaInitialized,
                                     })}
                                     style={{
                                         overflowY: "auto",

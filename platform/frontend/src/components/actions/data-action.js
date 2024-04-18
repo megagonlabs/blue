@@ -8,12 +8,15 @@ export const dataAction = (dispatch) => ({
         });
     },
     getList: () => {
-        axios.get("/data").then((response) => {
-            dispatch({
-                type: "data/list/set",
-                payload: _.get(response, "data.results", []),
-            });
-        });
+        axios
+            .get("/data")
+            .then((response) => {
+                dispatch({
+                    type: "data/list/set",
+                    payload: _.get(response, "data.results", []),
+                });
+            })
+            .catch((error) => {});
     },
     searchList: (payload) => {
         const filter = {

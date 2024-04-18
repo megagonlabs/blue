@@ -6,6 +6,12 @@ export const sessionAction = (dispatch) => ({
             payload,
         });
     },
+    setSessionDetail: (payload) => {
+        dispatch({
+            type: "session/sessions/detail/set",
+            payload: payload,
+        });
+    },
     createSession: (payload) => {
         axios.post(`/sessions/session`).then((response) => {
             try {
