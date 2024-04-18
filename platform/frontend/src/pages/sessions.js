@@ -1,3 +1,4 @@
+import AddAgents from "@/components/agents/AddAgents";
 import { AppContext } from "@/components/contexts/app-context";
 import { useSocket } from "@/components/hooks/useSocket";
 import { faIcon } from "@/components/icon";
@@ -11,7 +12,6 @@ import {
     Card,
     Classes,
     H4,
-    H5,
     InputGroup,
     Intent,
     Menu,
@@ -31,6 +31,7 @@ import {
     faPlusLarge,
     faSatelliteDish,
     faSignalStreamSlash,
+    faUserPlus,
 } from "@fortawesome/pro-duotone-svg-icons";
 import axios from "axios";
 import _ from "lodash";
@@ -163,6 +164,7 @@ export default function Sessions() {
     };
     const [sessionDetailTooltipOpen, setSessionDetailTooltipOpen] =
         useState(false);
+    const [isAddAgentsOpen, setIsAddAgentsOpen] = useState(false);
     if (!isSocketOpen && _.isEmpty(sessionIds))
         return (
             <NonIdealState
@@ -223,10 +225,11 @@ export default function Sessions() {
                             }}
                             content={
                                 <div>
-                                    <div style={{ padding: 10 }}>
-                                        <H5>Join an existing session</H5>
+                                    <div style={{ padding: 15 }}>
                                         <InputGroup
+                                            placeholder="Session ID"
                                             large
+                                            autoFocus
                                             fill
                                             value={joinSessionId}
                                             onChange={(event) => {
@@ -276,7 +279,7 @@ export default function Sessions() {
                                     {!_.isEmpty(existingSessions) ? (
                                         <FixedSizeList
                                             className="bp-border-top"
-                                            height={267}
+                                            height={210}
                                             itemCount={_.size(existingSessions)}
                                             itemSize={40}
                                         >
@@ -319,10 +322,10 @@ export default function Sessions() {
                                                             large
                                                             minimal
                                                             style={{
-                                                                margin: 10,
-                                                                width: "calc(100% - 20px)",
+                                                                margin: 15,
+                                                                width: "calc(100% - 30px)",
                                                             }}
-                                                            id={item.id}
+                                                            key={item.id}
                                                         >
                                                             <div
                                                                 className={
@@ -345,11 +348,18 @@ export default function Sessions() {
                                 </div>
                             }
                         >
-                            <Button
-                                disabled={!isSocketOpen}
-                                outlined
-                                icon={faIcon({ icon: faCaretDown })}
-                            />
+                            <Tooltip
+                                minimal
+                                placement="bottom"
+                                content="Join an existing session"
+                            >
+                                <Button
+                                    disabled={!isSocketOpen}
+                                    outlined
+                                    text="Join"
+                                    rightIcon={faIcon({ icon: faUserPlus })}
+                                />
+                            </Tooltip>
                         </Popover>
                     </ButtonGroup>
                     {!isSocketOpen ? <ReconnectButton /> : null}
@@ -468,6 +478,9 @@ export default function Sessions() {
                                     content={
                                         <Menu large>
                                             <MenuItem
+                                                onClick={() => {
+                                                    setIsAddAgentsOpen(true);
+                                                }}
                                                 icon={faIcon({
                                                     icon: faCircleA,
                                                 })}
@@ -522,6 +535,10 @@ export default function Sessions() {
             <SessionDetail
                 setIsSessionDetailOpen={setIsSessionDetailOpen}
                 isOpen={isSessionDetailOpen}
+            />
+            <AddAgents
+                setIsAddAgentsOpen={setIsAddAgentsOpen}
+                isOpen={isAddAgentsOpen}
             />
         </>
     );

@@ -91,7 +91,9 @@ module.exports = {
         (async () => {
             let progress = 0,
                 requestError = false;
-            const key = AppToaster.show(renderProgress(progress));
+            const key = AppToaster.show(
+                renderProgress(_.isEmpty(tasks) ? 100 : progress)
+            );
             const promises = tasks.map((task) => {
                 return task
                     .catch((status) => {

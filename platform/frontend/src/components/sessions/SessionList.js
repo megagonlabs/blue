@@ -1,11 +1,10 @@
+import { CARD_LIST_CLASS_NAMES } from "@/components/constant";
 import { AppContext } from "@/components/contexts/app-context";
 import SessionRow from "@/components/sessions/SessionRow";
-import { Classes } from "@blueprintjs/core";
 import { useContext, useEffect, useRef } from "react";
 import AutoSizer from "react-virtualized-auto-sizer";
 import { FixedSizeList } from "react-window";
 const Row = (props) => <SessionRow {...props} />;
-const cardListClassName = `${Classes.CARD} ${Classes.CARD_LIST} ${Classes.CARD_LIST_BORDERED}`;
 export default function SessionList() {
     const { appState } = useContext(AppContext);
     const fixedSizeListRef = useRef();
@@ -16,8 +15,8 @@ export default function SessionList() {
                 const element = document.querySelectorAll(
                     "div.session-list > div"
                 )[0];
-                if (_.isEqual(element.className, cardListClassName)) return;
-                element.className = cardListClassName;
+                if (_.isEqual(element.className, CARD_LIST_CLASS_NAMES)) return;
+                element.className = CARD_LIST_CLASS_NAMES;
             } catch (error) {
                 // empty
             }
@@ -28,7 +27,7 @@ export default function SessionList() {
             {({ width, height }) => (
                 <FixedSizeList
                     ref={fixedSizeListRef}
-                    className={`session-list ${cardListClassName}`}
+                    className={`session-list ${CARD_LIST_CLASS_NAMES}`}
                     style={{ borderRadius: 0, marginTop: 1 }}
                     height={height - 80}
                     width={width - 1.65}
