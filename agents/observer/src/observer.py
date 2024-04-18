@@ -140,7 +140,7 @@ if __name__ == "__main__":
     if args.serve:
         # launch agent with parameters, start session
         def launch(*args, **kwargs):
-            logging.info("Launching UserAgent...")
+            logging.info("Launching ObserverAgent...")
             logging.info(kwargs)
             agent = ObserverAgent(*args, **kwargs)
             session = agent.start_session()
@@ -150,7 +150,7 @@ if __name__ == "__main__":
 
         # launch agent with parameters, join session in keyword args (session=)
         def join(*args, **kwargs):
-            logging.info("Launching UserAgent...")
+            logging.info("Launching ObserverAgent...")
             logging.info(kwargs)
             agent = ObserverAgent(*args, **kwargs)
             logging.info("Joined session: " + kwargs["session"])
