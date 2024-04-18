@@ -27,6 +27,8 @@ import concurrent.futures
 
 # set log level
 logging.getLogger().setLevel(logging.INFO)
+logging.basicConfig(format="%(asctime)s [%(levelname)s] [%(process)d:%(threadName)s:%(thread)d](%(filename)s:%(lineno)d) %(name)s -  %(message)s", level=logging.ERROR, datefmt="%Y-%m-%d %H:%M:%S")
+
 
 class Producer():
     def __init__(self, name, suffix=None, sid=None, properties={}):

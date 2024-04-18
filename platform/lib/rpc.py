@@ -23,11 +23,14 @@ import rpyc
 from rpyc.utils.server import ThreadedServer
     
 import inspect
+import threading
 from threading import Thread
 
 
 # set log level
 logging.getLogger().setLevel(logging.INFO)
+logging.basicConfig(format="%(asctime)s [%(levelname)s] [%(process)d:%(threadName)s:%(thread)d](%(filename)s:%(lineno)d) %(name)s -  %(message)s", level=logging.ERROR, datefmt="%Y-%m-%d %H:%M:%S")
+
 
 class RPCServer(rpyc.Service):
     def __init__(self, name, properties={}):
@@ -76,7 +79,9 @@ class RPCServer(rpyc.Service):
     def run(self):
         port = self.properties['rpc.port']
         logging.info("Starting RPC Server on port: " + str(port))
-        t = ThreadedServer(self, port=port)
+        server = ThreadedServer(self, port=port, protocol_config={'sync_request_timeout': None})
+        t = threading.Thread(target = server.start)
+        t.daemon = True
         t.start()
 
 
@@ -113,7 +118,7 @@ class RPCClient:
     def connect(self):
         try:
             logging.info("Connecting to " + self.properties['rpc.host'] + ":" + str(self.properties['rpc.port']) + "...")
-            self.connection = rpyc.connect(self.properties['rpc.host'], self.properties['rpc.port'])
+            self.connection = rpyc.connect(self.properties['rpc.host'], self.properties['rpc.port'], config={'sync_request_timeout': None})
             logging.info("Connected.")
         except EOFError as e:
             logging.info(e)

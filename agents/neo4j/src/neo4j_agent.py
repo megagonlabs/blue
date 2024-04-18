@@ -42,6 +42,8 @@ from rpc import RPCServer
 
 # set log level
 logging.getLogger().setLevel(logging.INFO)
+logging.basicConfig(format="%(asctime)s [%(levelname)s] [%(process)d:%(threadName)s:%(thread)d](%(filename)s:%(lineno)d) %(name)s -  %(message)s", level=logging.ERROR, datefmt="%Y-%m-%d %H:%M:%S")
+
 
 class NEO4JAgent(APIAgent):
     def __init__(self, name="NEO4J", session=None, input_stream=None, processor=None, properties={}):
@@ -102,7 +104,7 @@ if __name__ == "__main__":
     if args.serve:
         # launch agent with parameters, start session
         def launch(*args, **kwargs):
-            logging.info("Launching UserAgent...")
+            logging.info("Launching NEO4JAgent...")
             logging.info(kwargs)
             agent = NEO4JAgent(*args, **kwargs)
             session = agent.start_session()
@@ -112,7 +114,7 @@ if __name__ == "__main__":
 
         # launch agent with parameters, join session in keyword args (session=)
         def join(*args, **kwargs):
-            logging.info("Launching UserAgent...")
+            logging.info("Launching NEO4JAgent...")
             logging.info(kwargs)
             agent = NEO4JAgent(*args, **kwargs)
             logging.info("Joined session: " + kwargs['session'])

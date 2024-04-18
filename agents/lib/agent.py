@@ -166,7 +166,9 @@ class Agent():
             tags = data['tags']
 
             # agent define what to listen to using include/exclude expressions
+            logging.info("checking match.")
             matches = self._match_listen_to_tags(tags)
+            logging.info("Done checking match.")
             if len(matches) == 0:
                 logging.info("Not listening to {stream} with {tags}...".format(stream=input_stream, tags=tags))
                 return 
@@ -214,7 +216,9 @@ class Agent():
         includes = self.properties['listens']['includes']
         excludes = self.properties['listens']['excludes']
 
+        logging.info("includes")
         for i in includes:
+            logging.info(i)
             p = None
             if type(i) == str:
                 p = re.compile(i)
@@ -226,6 +230,7 @@ class Agent():
                 m = set()
                 a = True
                 for ii in i:
+                    logging.info(ii)
                     p = re.compile(ii)
                     b = False
                     for tag in tags:
@@ -245,7 +250,9 @@ class Agent():
         if len(matches) == 0:
             return list(matches)
 
+        logging.info("excludes")
         for x in excludes:
+            logging.info(x)
             p = None
             if type(x) == str:
                 p = re.compile(x)
@@ -350,7 +357,7 @@ if __name__ == "__main__":
     if args.serve:
         # launch agent with parameters, start session
         def launch(*args, **kwargs):
-            logging.info("Launching UserAgent...")
+            logging.info("Launching Agent...")
             logging.info(kwargs)
             agent = Agent(*args, **kwargs)
             session = agent.start_session()
@@ -360,7 +367,7 @@ if __name__ == "__main__":
 
         # launch agent with parameters, join session in keyword args (session=)
         def join(*args, **kwargs):
-            logging.info("Launching UserAgent...")
+            logging.info("Launching Agent...")
             logging.info(kwargs)
             agent = Agent(*args, **kwargs)
             logging.info("Joined session: " + kwargs['session'])

@@ -27,6 +27,7 @@ import redis
 from redis.commands.json.path import Path
 
 ###### Blue
+from producer import Producer
 from session import Session
 
 class Platform():
@@ -34,9 +35,14 @@ class Platform():
 
         if name is None:
             name = "default"
+
         self.name = name
 
+        self.id = "PLATFORM::" + self.name + "::0"
+
         self._initialize(properties=properties)
+
+        self.producer = None
 
         self._start()
 
@@ -93,9 +99,21 @@ class Platform():
 
 
     ###### OPERATIONS
+    def _start_producer(self):
+        # start, if not started
+        if self.producer == None:
+            suffix = None
+            
+            producer = Producer(self.name, sid=self.id, suffix=suffix, properties=self.properties)
+            producer.start()
+            self.producer = producer
+
     def _start(self):
         # logging.info('Starting session {name}'.format(name=self.name))
         self._start_connection()
+
+        # start platform communication stream
+        self._start_producer()
 
         logging.info('Started platform {name}'.format(name=self.name))
 
