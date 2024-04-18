@@ -82,6 +82,7 @@ class SessionManager:
         rjson = None
         result = {}
         message = None
+        print(r)
         if r.status_code == 200:
             rjson = r.json()
             result = rjson['result']

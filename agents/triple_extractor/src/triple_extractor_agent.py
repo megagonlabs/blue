@@ -41,6 +41,8 @@ from rpc import RPCServer
 
 # set log level
 logging.getLogger().setLevel(logging.INFO)
+logging.basicConfig(format="%(asctime)s [%(levelname)s] [%(process)d:%(threadName)s:%(thread)d](%(filename)s:%(lineno)d) %(name)s -  %(message)s", level=logging.ERROR, datefmt="%Y-%m-%d %H:%M:%S")
+
 
 
 ## --properties '{"openai.api":"ChatCompletion","openai.model":"gpt-4","output_path":"$.choices[0].message.content","listens":{"includes":["USER"],"excludes":[]},"tags": ["TRIPLE"], "input_json":"[{\"role\":\"user\"}]","input_context":"$[0]","input_context_field":"content","input_field":"messages","input_template":"Given below schema that describe an ontology:\n{schema}\nwhere  {explanation}\n extract one triple from the below sentence in the above format using only above ontology concepts, entities, relations, and properties:\n{input}",  "openai.temperature":0,"openai.max_tokens":256,"openai.top_p":1,"openai.frequency_penalty":0,"openai.presence_penalty":0,"schema":"(PERSON {name,age,id})\n(JOB {from,to,company,title,description})\n(RESUME {date,content,id})\nand relations:\n(PERSON) --[HAS]-> (RESUME)\n(RESUME)--[CONTAINS]->(JOB)\n","explanation":"PERSON, JOB, and RESUME are Concepts,\nHAS is a Relation between PERSON and RESUME,  CONTAINS is a Relation between RESUME and JOB,\nname, age are properties of PERSON and  date, content are properties of RESUME, \n(PERSON {name: \"Michael Gibbons\"})--[HAS]-> (RESUME),\n(RESUME) --[CONTAINS]->(JOB {title:  \"software engineer\"}) are example triples \n"}'
@@ -111,7 +113,7 @@ if __name__ == "__main__":
     if args.serve:
         # launch agent with parameters, start session
         def launch(*args, **kwargs):
-            logging.info("Launching UserAgent...")
+            logging.info("Launching TripleExtractorAgent...")
             logging.info(kwargs)
             agent = TripleExtractorAgent(*args, **kwargs)
             session = agent.start_session()
@@ -121,7 +123,7 @@ if __name__ == "__main__":
 
         # launch agent with parameters, join session in keyword args (session=)
         def join(*args, **kwargs):
-            logging.info("Launching UserAgent...")
+            logging.info("Launching TripleExtractorAgent...")
             logging.info(kwargs)
             agent = TripleExtractorAgent(*args, **kwargs)
             logging.info("Joined session: " + kwargs['session'])

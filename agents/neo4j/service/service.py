@@ -24,6 +24,8 @@ from neo4j_connection import NEO4J_Connection
 
 # set log level
 logging.getLogger().setLevel(logging.INFO)
+logging.basicConfig(format="%(asctime)s [%(levelname)s] [%(process)d:%(threadName)s:%(thread)d](%(filename)s:%(lineno)d) %(name)s -  %(message)s", level=logging.ERROR, datefmt="%Y-%m-%d %H:%M:%S")
+
 
 async def handler(websocket):
     while True:
