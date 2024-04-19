@@ -16,12 +16,10 @@ export const sessionAction = (dispatch) => ({
         axios.post(`/sessions/session`).then((response) => {
             try {
                 const sessionId = _.get(response, "data.result.id");
-                payload.socket.send(
-                    JSON.stringify({
-                        type: "OBSERVE_SESSION",
-                        session_id: sessionId,
-                    })
-                );
+                dispatch({
+                    type: "session/state/set",
+                    payload: { key: "openAgentsDialogTrigger", value: true },
+                });
                 dispatch({
                     type: "session/sessions/add",
                     payload: sessionId,

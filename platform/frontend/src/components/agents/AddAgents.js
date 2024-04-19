@@ -13,8 +13,10 @@ import {
     NonIdealState,
 } from "@blueprintjs/core";
 import {
+    faCheck,
     faCircleA,
     faCircleCheck,
+    faForward,
     faGrid2Plus,
 } from "@fortawesome/pro-duotone-svg-icons";
 import axios from "axios";
@@ -25,6 +27,7 @@ import { FixedSizeList } from "react-window";
 export default function AddAgents({
     isOpen,
     setIsAddAgentsOpen,
+    setSkippable,
     skippable = false,
 }) {
     const { appState } = useContext(AppContext);
@@ -152,7 +155,7 @@ export default function AddAgents({
             }}
         >
             <DialogBody className="padding-0">
-                {_.isNil(agents) ? (
+                {_.isEmpty(agents) ? (
                     <div style={{ padding: "20px 15px" }}>
                         <NonIdealState
                             className={loading ? Classes.SKELETON : null}
@@ -252,12 +255,38 @@ export default function AddAgents({
                 <Button
                     className={_.isNil(agents) ? Classes.SKELETON : null}
                     disabled={!skippable && _.isEqual(selectionSize, 0)}
-                    intent={Intent.PRIMARY}
+                    intent={
+                        skippable &&
+                        _.isEqual(selectionSize, 0) &&
+                        !_.isEmpty(added)
+                            ? Intent.SUCCESS
+                            : Intent.PRIMARY
+                    }
                     loading={selectionSize > 0 && loading}
                     large
-                    icon={faIcon({ icon: faGrid2Plus })}
-                    text="Add"
-                    onClick={handleAddAgents}
+                    icon={faIcon({
+                        icon:
+                            skippable && _.isEqual(selectionSize, 0)
+                                ? !_.isEmpty(added)
+                                    ? faCheck
+                                    : faForward
+                                : faGrid2Plus,
+                    })}
+                    text={
+                        skippable && _.isEqual(selectionSize, 0)
+                            ? !_.isEmpty(added)
+                                ? "Done"
+                                : "Skip"
+                            : "Add"
+                    }
+                    onClick={() => {
+                        if (skippable && _.isEqual(selectionSize, 0)) {
+                            setIsAddAgentsOpen(false);
+                            setSkippable(false);
+                        } else {
+                            handleAddAgents();
+                        }
+                    }}
                 />
                 {selectionSize > 0 ? (
                     <span style={{ marginLeft: 15 }}>
