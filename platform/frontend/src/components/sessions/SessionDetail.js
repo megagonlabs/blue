@@ -93,7 +93,7 @@ export default function SessionDetail({ isOpen, setIsSessionDetailOpen }) {
                         active={_.isEqual(tab, "about")}
                     />
                 </Card>
-                <div style={{ padding: "20px 15px" }}>
+                <div style={{ padding: 15 }}>
                     <FormGroup label="Name">
                         <InputGroup
                             large

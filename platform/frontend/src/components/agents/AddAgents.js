@@ -127,7 +127,7 @@ export default function AddAgents({
         >
             <DialogBody className="padding-0">
                 {_.isEmpty(agents) ? (
-                    <div style={{ padding: "20px 15px" }}>
+                    <div style={{ padding: 15 }}>
                         <NonIdealState
                             className={loading ? Classes.SKELETON : null}
                             title="No Agent"
@@ -137,7 +137,7 @@ export default function AddAgents({
                 ) : (
                     <FixedSizeList
                         itemCount={_.size(agents)}
-                        style={{ padding: "20px 15px 11px", marginTop: 1 }}
+                        style={{ paddingBottom: 20, marginTop: 1 }}
                         itemSize={58.43}
                         height={350.58}
                     >
@@ -157,7 +157,7 @@ export default function AddAgents({
                                         padding: "7px 15px",
                                         display: "flex",
                                         height: 48.43,
-                                        margin: "20px 15px",
+                                        margin: 15,
                                         maxWidth: "calc(100% - 30px)",
                                         alignItems: "center",
                                     }}
