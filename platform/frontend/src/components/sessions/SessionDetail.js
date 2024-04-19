@@ -1,4 +1,5 @@
 import { AppContext } from "@/components/contexts/app-context";
+import { faIcon } from "@/components/icon";
 import {
     Button,
     Card,
@@ -13,7 +14,6 @@ import { faCheck } from "@fortawesome/pro-duotone-svg-icons";
 import axios from "axios";
 import _ from "lodash";
 import { useContext, useEffect, useState } from "react";
-import { faIcon } from "../icon";
 export default function SessionDetail({ isOpen, setIsSessionDetailOpen }) {
     const { appState, appActions } = useContext(AppContext);
     const sessionIdFocus = appState.session.sessionIdFocus;

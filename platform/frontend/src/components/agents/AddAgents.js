@@ -1,3 +1,6 @@
+import { AppContext } from "@/components/contexts/app-context";
+import { faIcon } from "@/components/icon";
+import { AppToaster } from "@/components/toaster";
 import {
     Button,
     Card,
@@ -19,9 +22,6 @@ import classNames from "classnames";
 import _ from "lodash";
 import { useContext, useEffect, useState } from "react";
 import { FixedSizeList } from "react-window";
-import { AppContext } from "../contexts/app-context";
-import { faIcon } from "../icon";
-import { AppToaster } from "../toaster";
 export default function AddAgents({
     isOpen,
     setIsAddAgentsOpen,
@@ -216,6 +216,12 @@ export default function AddAgents({
                                         />
                                     )}
                                     <div
+                                        className={
+                                            loading &&
+                                            _.isEqual(selectionSize, 0)
+                                                ? Classes.SKELETON
+                                                : null
+                                        }
                                         style={{
                                             marginLeft: 5,
                                             maxWidth: "calc(100% - 35px)",
@@ -245,7 +251,7 @@ export default function AddAgents({
             <DialogFooter>
                 <Button
                     className={_.isNil(agents) ? Classes.SKELETON : null}
-                    disabled={!skippable && selectionSize == 0}
+                    disabled={!skippable && _.isEqual(selectionSize, 0)}
                     intent={Intent.PRIMARY}
                     loading={selectionSize > 0 && loading}
                     large

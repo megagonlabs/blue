@@ -57,9 +57,3 @@ table.entity-section-card-table tr td {
 .padding-0 {
     padding: 0px !important;
 }
-.position-relative {
-    position: relative !important;
-}
-.on-hover-z-index-1:hover {
-    z-index: 1;
-}
