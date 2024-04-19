@@ -57,55 +57,26 @@ export default function AddAgents({
             return;
         }
         setLoading(true);
-        const promises = [
-            new Promise((resolve, reject) => {
-                axios
-                    .get("/agents")
-                    .then((response) => {
-                        const list = _.get(response, "data.results", []);
-                        let options = [];
-                        for (let i = 0; i < _.size(list); i++) {
-                            options.push({
-                                name: _.get(list, [i, "name"], ""),
-                                description: _.get(
-                                    list,
-                                    [i, "description"],
-                                    ""
-                                ),
-                            });
-                        }
-                        options.sort(function (a, b) {
-                            return a.name.localeCompare(b.name);
-                        });
-                        resolve({ type: "agents", value: options });
-                    })
-                    .catch((error) => {
-                        reject(false);
+        axios
+            .get("/agents")
+            .then((response) => {
+                const list = _.get(response, "data.results", []);
+                let options = [];
+                for (let i = 0; i < _.size(list); i++) {
+                    options.push({
+                        name: _.get(list, [i, "name"], ""),
+                        description: _.get(list, [i, "description"], ""),
                     });
-            }),
-            new Promise((resolve, reject) => {
-                axios
-                    .get(`/sessions/session/${sessionIdFocus}/agents`)
-                    .then((response) => {
-                        resolve({ type: "added", value: new Set() });
-                    })
-                    .catch((error) => {
-                        reject(false);
-                    });
-            }),
-        ];
-        Promise.allSettled(promises).then((results) => {
-            for (let i = 0; i < _.size(results); i++) {
-                if (!_.isEqual("fulfilled", results[i].status)) continue;
-                const type = _.get(results, [i, "value", "type"], null);
-                if (_.isEqual(type, "agents")) {
-                    setAgents(_.get(results, [i, "value", "value"], []));
-                } else if (_.isEqual(type, "added")) {
-                    setAdded(_.get(results, [i, "value", "value"], new Set()));
                 }
-            }
-            setLoading(false);
-        });
+                options.sort(function (a, b) {
+                    return a.name.localeCompare(b.name);
+                });
+                setAgents(options);
+                setLoading(false);
+            })
+            .catch((error) => {
+                setLoading(false);
+            });
     }, [isOpen]);
     const handleAddAgents = () => {
         let promises = [];
