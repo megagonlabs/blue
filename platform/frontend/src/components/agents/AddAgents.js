@@ -118,7 +118,7 @@ export default function AddAgents({
     return (
         <Dialog
             title="Add Agents"
-            canOutsideClickClose={false}
+            canOutsideClickClose={_.isEqual(selectionSize, 0)}
             isOpen={isOpen}
             onClose={() => {
                 if (loading) return;
