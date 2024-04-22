@@ -44,6 +44,10 @@ def signout(request: Request):
 async def signin(request: Request):
     payload = await request.json()
     id_token = pydash.objects.get(payload, "id_token", "")
+    ERROR_RESPONSE = JSONResponse(
+        content={"message": "Failed to create a session cookie"},
+        status_code=401,
+    )
     if pydash.is_empty(id_token):
         return JSONResponse(
             content={
@@ -107,6 +111,7 @@ async def signin(request: Request):
                 path="/",
             )
             return response
+        return ERROR_RESPONSE
     except auth.InvalidIdTokenError:
         return JSONResponse(
             content={
@@ -115,10 +120,7 @@ async def signin(request: Request):
             status_code=401,
         )
     except exceptions.FirebaseError:
-        return JSONResponse(
-            content={"message": "Failed to create a session cookie"},
-            status_code=401,
-        )
+        return ERROR_RESPONSE
 
 
 @router.get("/profile")
