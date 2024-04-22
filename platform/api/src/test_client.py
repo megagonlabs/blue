@@ -247,7 +247,7 @@ def words(count):
 
 
 session_id = input("session_id: ")
-for _ in range(11):
+for _ in range(3):
     sentence_string = sentence()
     words_string = words(random.randint(4, 11))
     ws.send(
@@ -271,14 +271,27 @@ ws.send(
             "message": {
                 "type": "INTERACTIVE",
                 "content": {
-                    "uischema": {
-                        "type": "Control",
-                        "props": {"placeholder": "name"},
-                        "scope": "#/properties/name",
-                    },
                     "schema": {
                         "type": "object",
-                        "properties": {"name": {"type": "string"}},
+                        "properties": {
+                            "first_name": {"type": "string"},
+                            "last_name": {"type": "string"},
+                        },
+                    },
+                    "uiSchema": {
+                        "type": "HorizontalLayout",
+                        "elements": [
+                            {
+                                "type": "Control",
+                                "label": "First Name",
+                                "scope": "#/properties/first_name",
+                            },
+                            {
+                                "type": "Control",
+                                "label": "Last Name",
+                                "scope": "#/properties/last_name",
+                            },
+                        ],
                     },
                 },
             },

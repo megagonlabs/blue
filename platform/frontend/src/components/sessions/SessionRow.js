@@ -33,7 +33,7 @@ export default function SessionRow({ index, style }) {
             setLastMessage(messageContent);
         } else if (_.isEqual(messageType, "INTERACTIVE")) {
             setLastMessage(
-                <Tag minimal icon={faIcon({ icon: faPenField })}>
+                <Tag large minimal icon={faIcon({ icon: faPenField })}>
                     interactive message
                 </Tag>
             );
@@ -79,7 +79,10 @@ export default function SessionRow({ index, style }) {
                 </H5>
                 <div
                     className={`${Classes.TEXT_OVERFLOW_ELLIPSIS} ${Classes.TEXT_MUTED}`}
-                    style={{ paddingRight: showActions ? 50 : 0 }}
+                    style={{
+                        paddingRight: showActions ? 50 : 0,
+                        lineHeight: "20px",
+                    }}
                 >
                     {_.isEmpty(sessionMessages) ? "-" : lastMessage}
                 </div>
