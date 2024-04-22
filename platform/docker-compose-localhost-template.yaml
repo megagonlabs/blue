@@ -45,6 +45,8 @@ services:
       - blue_${BLUE_DEPLOY_PLATFORM}_data:/blue_data
     environment:
       <<: *blue-common-env
+    env_file:
+      - api/api.env
     restart: always
 
   frontend:
