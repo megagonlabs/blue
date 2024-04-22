@@ -36,8 +36,8 @@ logging.basicConfig(format="%(asctime)s [%(levelname)s] [%(process)d:%(threadNam
 
 #######################
 class TemplateAgent(Agent):
-    def __init__(self, name="SQLFORGE", session=None, input_stream=None, processor=None, properties={}):
-        super().__init__(name, session=session, input_stream=input_stream, processor=processor, properties=properties)
+    def __init__(self, name="TEMPLATE", session=None, input_stream=None, processor=None, properties={}):
+        super().__init__(name=name, session=session, input_stream=input_stream, processor=processor, properties=properties)
 
 
     def default_processor(self, stream, id, label, data, dtype=None, tags=None, properties=None, worker=None):

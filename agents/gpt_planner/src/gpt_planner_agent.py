@@ -76,7 +76,7 @@ Examine the text below and identify a task plan  thatcan be fulfilled by various
 
 class GPTPlannerAgent(OpenAIAgent):
     def __init__(self, name="GPTPLANNER", session=None, input_stream=None, processor=None, properties={}):
-        super().__init__(name, session=session, input_stream=input_stream, processor=processor, properties=properties)
+        super().__init__(name=name, session=session, input_stream=input_stream, processor=processor, properties=properties)
 
     def _initialize(self, properties=None):
         super()._initialize(properties=properties)

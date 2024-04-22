@@ -47,7 +47,7 @@ logging.basicConfig(format="%(asctime)s [%(levelname)s] [%(process)d:%(threadNam
 #######################
 class KnowledgGroundingAgent(Agent):
     def __init__(self, name="KNOWLEDGE",session=None, input_stream=None, processor=None, properties={}):
-        super().__init__(name, session=session, input_stream=input_stream, processor=processor, properties=properties)
+        super().__init__(name=name, session=session, input_stream=input_stream, processor=processor, properties=properties)
 
     def _initialize_properties(self):
         super()._initialize_properties()

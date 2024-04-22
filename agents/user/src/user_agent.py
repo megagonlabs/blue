@@ -25,7 +25,7 @@ import itertools
 from tqdm import tqdm
 
 ###### Blue
-from agent import Agent
+from agent import Agent, AgentFactory
 from session import Session
 from rpc import RPCServer
 
@@ -47,7 +47,7 @@ if __name__ == "__main__":
     parser.add_argument('--interactive', type=bool, default=False, action=argparse.BooleanOptionalAction, help="input text interactively (default False)")
     parser.add_argument('--properties', type=str)
     parser.add_argument('--loglevel', default="INFO", type=str)
-    parser.add_argument('--serve', default=False, action=argparse.BooleanOptionalAction)
+    parser.add_argument('--serve', type=str, default='default:COM')
 
     args = parser.parse_args()
    
@@ -62,44 +62,48 @@ if __name__ == "__main__":
         properties = json.loads(p)
 
     if args.serve:
-        # launch agent with parameters, start session
-        def launch(*args, **kwargs):
-            logging.info("Launching UserAgent...")
-            logging.info(kwargs)
-            input = None
-            if 'input' in kwargs:
-                input = kwargs['input']
-                del kwargs['input']
-            agent = UserAgent(*args, **kwargs)
-            session = agent.start_session()
-            logging.info("Started session: " + session.name)
-            if input:
-                agent.interact(input)
-                logging.info("Interact: " + input)
-            logging.info("Launched.")
-            return session.name
+        stream = args.serve
+        
+        af = AgentFactory(agent="UserAgent", stream=stream, properties=properties)
+        af.wait()
+        # # launch agent with parameters, start session
+        # def launch(*args, **kwargs):
+        #     logging.info("Launching UserAgent...")
+        #     logging.info(kwargs)
+        #     input = None
+        #     if 'input' in kwargs:
+        #         input = kwargs['input']
+        #         del kwargs['input']
+        #     agent = UserAgent(*args, **kwargs)
+        #     session = agent.start_session()
+        #     logging.info("Started session: " + session.name)
+        #     if input:
+        #         agent.interact(input)
+        #         logging.info("Interact: " + input)
+        #     logging.info("Launched.")
+        #     return session.name
 
-        # launch agent with parameters, join session in keyword args (session=)
-        def join(*args, **kwargs):
-            logging.info("Launching UserAgent...")
-            logging.info(kwargs)
-            input = None
-            if 'input' in kwargs:
-                input = kwargs['input']
-                del kwargs['input']
-            agent = UserAgent(*args, **kwargs)
-            logging.info("Joined session: " + kwargs['session'])
-            if input:
-                agent.interact(input)
-                logging.info("Interact: " + input)
-            logging.info("Launched.")
-            return kwargs['session']
+        # # launch agent with parameters, join session in keyword args (session=)
+        # def join(*args, **kwargs):
+        #     logging.info("Launching UserAgent...")
+        #     logging.info(kwargs)
+        #     input = None
+        #     if 'input' in kwargs:
+        #         input = kwargs['input']
+        #         del kwargs['input']
+        #     agent = UserAgent(*args, **kwargs)
+        #     logging.info("Joined session: " + kwargs['session'])
+        #     if input:
+        #         agent.interact(input)
+        #         logging.info("Interact: " + input)
+        #     logging.info("Launched.")
+        #     return kwargs['session']
 
-        # run rpc server
-        rpc = RPCServer(args.name, properties=properties)
-        rpc.register(launch)
-        rpc.register(join)
-        rpc.run()
+        # # run rpc server
+        # rpc = RPCServer(args.name, properties=properties)
+        # rpc.register(launch)
+        # rpc.register(join)
+        # rpc.run()
     else:
         a = None
         session = None

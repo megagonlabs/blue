@@ -32,8 +32,101 @@ from session import Session
 from worker import Worker
 from rpc import RPCServer
 
+class AgentFactory():
+    def __init__(self, agent="Agent", stream="default:COM", properties={}):
+        self.agent = agent
+        self.stream = stream
+
+        self._initialize(properties=properties)
+
+        self.consumer = None
+
+        self._start()
+
+    ###### initialization
+    def _initialize(self, properties=None):
+        self._initialize_properties()
+        self._update_properties(properties=properties)
+
+
+    def _initialize_properties(self):
+        self.properties = {}
+
+        # db connectivity
+        self.properties['db.host'] = 'localhost'
+        self.properties['db.port'] = 6379
+
+
+    def _update_properties(self, properties=None):
+        if properties is None:
+            return
+
+        # override
+        for p in properties:
+            self.properties[p] = properties[p]
+    
+    ###### database, data
+    def _start_connection(self):
+        host = self.properties['db.host']
+        port = self.properties['db.port']
+
+        # db connection
+        logging.info("Starting connection to: " + host + ":" + str(port))
+        self.connection = redis.Redis(host=host, port=port, decode_responses=True)
+
+    ###### factory functions
+    def create(self, **kwargs):
+        klasse = globals()[self.agent]
+        instanz = klasse(**kwargs)
+        return instanz
+    
+    def _start(self):
+        self._start_connection()
+    
+        self._start_consumer()
+
+        logging.info('Started agent factory for {name}'.format(name=self.agent))
+
+    def wait(self):
+        self.consumer.wait()
+
+    def _start_consumer(self):
+        self.consumer = Consumer(self.agent+"Factory", self.stream, listener=lambda id, message : self.platform_listener(id, message), properties=self.properties)
+        self.consumer.start()
+
+    def platform_listener(self, id, message):   
+        # listen to platform stream
+    
+        logging.info("Processing: " + str(message))
+
+        label = message['label']
+       
+        if label == 'INSTRUCTION':
+            data = json.loads(message['data'])
+            print(data)
+
+            code = data['code']
+            params = data['params']
+
+            session = params['session']
+            registry = params['registry']
+            agent = params['agent']
+            properties = params['properties']
+            input = None
+            if 'input' in properties:
+                input = properties['input']
+
+            if agent == agent:
+                logging.info("Launching Agent: " + agent + "...")
+                name = self.platform + ":" + registry + ":" + agent
+                a = self.create(name=name, session=session, properties=properties)
+                logging.info("Joined session: " + session)
+                if input:
+                    a.interact(input)
+                    logging.info("Interact: " + input)
+
 class Agent():
-    def __init__(self, name, session=None, input_stream=None, processor=None, properties={}):
+    def __init__(self, name="agent", session=None, input_stream=None, processor=None, properties={}):
 
         self.name = name
 
@@ -340,7 +433,7 @@ if __name__ == "__main__":
     parser.add_argument('--input_stream', type=str, default='input')
     parser.add_argument('--properties', type=str)
     parser.add_argument('--loglevel', default="INFO", type=str)
-    parser.add_argument('--serve', default=False, action=argparse.BooleanOptionalAction)
+    parser.add_argument('--serve', type=str, default='default:COM')
  
     args = parser.parse_args()
    
@@ -355,30 +448,35 @@ if __name__ == "__main__":
         properties = json.loads(p)
     
     if args.serve:
-        # launch agent with parameters, start session
-        def launch(*args, **kwargs):
-            logging.info("Launching Agent...")
-            logging.info(kwargs)
-            agent = Agent(*args, **kwargs)
-            session = agent.start_session()
-            logging.info("Started session: " + session.name)
-            logging.info("Launched.")
-            return session.name
+        stream = args.serve
+        
+        af = AgentFactory(agent="Agent", stream=stream, properties=properties)
+        af.wait()
 
-        # launch agent with parameters, join session in keyword args (session=)
-        def join(*args, **kwargs):
-            logging.info("Launching Agent...")
-            logging.info(kwargs)
-            agent = Agent(*args, **kwargs)
-            logging.info("Joined session: " + kwargs['session'])
-            logging.info("Launched.")
-            return kwargs['session']
+        # # launch agent with parameters, start session
+        # def launch(*args, **kwargs):
+        #     logging.info("Launching Agent...")
+        #     logging.info(kwargs)
+        #     agent = Agent(*args, **kwargs)
+        #     session = agent.start_session()
+        #     logging.info("Started session: " + session.name)
+        #     logging.info("Launched.")
+        #     return session.name
 
-        # run rpc server
-        rpc = RPCServer(args.name, properties=properties)
-        rpc.register(launch)
-        rpc.register(join)
-        rpc.run()
+        # # launch agent with parameters, join session in keyword args (session=)
+        # def join(*args, **kwargs):
+        #     logging.info("Launching Agent...")
+        #     logging.info(kwargs)
+        #     agent = Agent(*args, **kwargs)
+        #     logging.info("Joined session: " + kwargs['session'])
+        #     logging.info("Launched.")
+        #     return kwargs['session']
+
+        # # run rpc server
+        # rpc = RPCServer(args.name, properties=properties)
+        # rpc.register(launch)
+        # rpc.register(join)
+        # rpc.run()
     else:
         # sample func to process data from 
         # return a value other than None

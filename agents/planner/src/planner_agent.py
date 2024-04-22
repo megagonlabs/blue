@@ -53,7 +53,7 @@ logging.basicConfig(format="%(asctime)s [%(levelname)s] [%(process)d:%(threadNam
 #
 class PlannerAgent(Agent):
     def __init__(self, name="PLANNER", session=None, input_stream=None, processor=None, properties={}):
-        super().__init__(name, session=session, input_stream=input_stream, processor=processor, properties=properties)
+        super().__init__(name=name, session=session, input_stream=input_stream, processor=processor, properties=properties)
 
         self.initialize_plan()
 

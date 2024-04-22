@@ -81,7 +81,6 @@ class RPCServer(rpyc.Service):
         logging.info("Starting RPC Server on port: " + str(port))
         server = ThreadedServer(self, port=port, protocol_config={'sync_request_timeout': None})
         t = threading.Thread(target = server.start)
-        t.daemon = True
         t.start()
 
 
