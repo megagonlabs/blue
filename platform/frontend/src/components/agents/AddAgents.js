@@ -123,6 +123,7 @@ export default function AddAgents({
             onClose={() => {
                 if (loading) return;
                 setIsAddAgentsOpen(false);
+                setSkippable(false);
             }}
         >
             <DialogBody className="padding-0">
