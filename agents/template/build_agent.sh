@@ -1,5 +1,5 @@
 #/bin/bash
-echo 'Building SQLForge Agent...'
+echo 'Building Template Agent...'
 
 echo 'Copying libs...'
 

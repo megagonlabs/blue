@@ -1,10 +1,12 @@
 import { AppContext } from "@/components/contexts/app-context";
+import { faIcon } from "@/components/icon";
 import {
     Button,
     Card,
     Dialog,
+    DialogBody,
+    DialogFooter,
     FormGroup,
-    H4,
     InputGroup,
     Intent,
 } from "@blueprintjs/core";
@@ -12,10 +14,10 @@ import { faCheck } from "@fortawesome/pro-duotone-svg-icons";
 import axios from "axios";
 import _ from "lodash";
 import { useContext, useEffect, useState } from "react";
-import { faIcon } from "../icon";
 export default function SessionDetail({ isOpen, setIsSessionDetailOpen }) {
     const { appState, appActions } = useContext(AppContext);
     const sessionIdFocus = appState.session.sessionIdFocus;
+    const [allowQuickClose, setAllowQuickCloset] = useState(true);
     const [name, setName] = useState(
         _.get(
             appState,
@@ -40,6 +42,7 @@ export default function SessionDetail({ isOpen, setIsSessionDetailOpen }) {
         axios
             .put(`/sessions/session/${sessionIdFocus}`, payload)
             .then((response) => {
+                setAllowQuickCloset(true);
                 setLoading(false);
                 appActions.session.setSessionDetail([
                     {
@@ -49,6 +52,7 @@ export default function SessionDetail({ isOpen, setIsSessionDetailOpen }) {
                 ]);
             })
             .catch((error) => {
+                setAllowQuickCloset(true);
                 setLoading(false);
             });
     };
@@ -67,57 +71,64 @@ export default function SessionDetail({ isOpen, setIsSessionDetailOpen }) {
                 ""
             )
         );
-    }, [appState.session.sessionDetail, sessionIdFocus]);
+    }, [appState.session.sessionDetail, sessionIdFocus, isOpen]);
     const [tab, setTab] = useState("about");
     return (
         <Dialog
-            style={{ padding: 20 }}
+            title={sessionIdFocus}
+            canOutsideClickClose={allowQuickClose}
             onClose={() => {
-                if (loading) {
-                    return;
-                }
+                if (loading) return;
                 setIsSessionDetailOpen(false);
             }}
             isOpen={isOpen}
+            style={{ padding: 0 }}
         >
-            <H4>{sessionIdFocus}</H4>
-            <Card style={{ padding: 5, marginBottom: 20 }}>
+            <DialogBody className="padding-0">
+                <Card style={{ padding: "5px 15px", borderRadius: 0 }}>
+                    <Button
+                        minimal
+                        large
+                        text="About"
+                        onClick={() => {
+                            setTab("about");
+                        }}
+                        active={_.isEqual(tab, "about")}
+                    />
+                </Card>
+                <div style={{ padding: 15 }}>
+                    <FormGroup label="Name">
+                        <InputGroup
+                            large
+                            value={name}
+                            onChange={(event) => {
+                                setName(event.target.value);
+                                setAllowQuickCloset(false);
+                            }}
+                        />
+                    </FormGroup>
+                    <FormGroup label="Description" className="margin-0">
+                        <InputGroup
+                            large
+                            value={description}
+                            onChange={(event) => {
+                                setDescription(event.target.value);
+                                setAllowQuickCloset(false);
+                            }}
+                        />
+                    </FormGroup>
+                </div>
+            </DialogBody>
+            <DialogFooter>
                 <Button
-                    minimal
-                    text="About"
-                    onClick={() => {
-                        setTab("about");
-                    }}
-                    active={_.isEqual(tab, "about")}
-                />
-            </Card>
-            <FormGroup label="Name">
-                <InputGroup
+                    loading={loading}
+                    text="Save"
                     large
-                    value={name}
-                    onChange={(event) => {
-                        setName(event.target.value);
-                    }}
+                    onClick={handleSaveMetadata}
+                    intent={Intent.SUCCESS}
+                    icon={faIcon({ icon: faCheck })}
                 />
-            </FormGroup>
-            <FormGroup label="Description">
-                <InputGroup
-                    large
-                    value={description}
-                    onChange={(event) => {
-                        setDescription(event.target.value);
-                    }}
-                />
-            </FormGroup>
-            <Button
-                loading={loading}
-                text="Save"
-                large
-                onClick={handleSaveMetadata}
-                style={{ width: 90.96 }}
-                intent={Intent.SUCCESS}
-                icon={faIcon({ icon: faCheck })}
-            />
+            </DialogFooter>
         </Dialog>
     );
 }

@@ -23,14 +23,14 @@ table.entity-section-card-table tr td {
     padding-right: 20px;
 }
 .margin-top-5 {
-    margin-top: 5px;
+    margin-top: 5px !important;
 }
 .required:after {
     content: " *";
     color: #cd4246;
 }
 .margin-0 {
-    margin: 0px;
+    margin: 0px !important;
 }
 .bp-border-top {
     border-top: 1px solid rgba(17, 20, 24, 0.15);
@@ -53,4 +53,7 @@ table.entity-section-card-table tr td {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
+}
+.padding-0 {
+    padding: 0px !important;
 }

@@ -24,27 +24,29 @@ export default function RegistryList({ type }) {
     const router = useRouter();
     if (_.isEmpty(list))
         return (
-            <NonIdealState
-                icon={faIcon({
-                    icon: REGISTRY_TYPE_LOOKUP[type].icon,
-                    size: 50,
-                })}
-                title={`No ${_.capitalize(REGISTRY_TYPE_LOOKUP[type].key)}`}
-                action={
-                    _.includes(["agent"], type) ? (
-                        <Link href={`${router.asPath}/new`}>
-                            <Button
-                                className={loading ? Classes.SKELETON : null}
-                                intent={Intent.PRIMARY}
-                                large
-                                outlined
-                                icon={faIcon({ icon: faPlusLarge })}
-                                text={`Add ${REGISTRY_TYPE_LOOKUP[type].key}`}
-                            />
-                        </Link>
-                    ) : null
-                }
-            />
+            <div style={{ padding: "0px 20px 20px", height: "100%" }}>
+                <NonIdealState
+                    className={loading ? Classes.SKELETON : null}
+                    icon={faIcon({
+                        icon: REGISTRY_TYPE_LOOKUP[type].icon,
+                        size: 50,
+                    })}
+                    title={`No ${_.capitalize(REGISTRY_TYPE_LOOKUP[type].key)}`}
+                    action={
+                        _.includes(["agent"], type) ? (
+                            <Link href={`${router.asPath}/new`}>
+                                <Button
+                                    intent={Intent.PRIMARY}
+                                    large
+                                    outlined
+                                    icon={faIcon({ icon: faPlusLarge })}
+                                    text={`Add ${REGISTRY_TYPE_LOOKUP[type].key}`}
+                                />
+                            </Link>
+                        ) : null
+                    }
+                />
+            </div>
         );
     if (appState[type].search) {
         return <SearchList type={type} />;

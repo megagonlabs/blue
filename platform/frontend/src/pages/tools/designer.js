@@ -336,6 +336,12 @@ function Designer() {
                             >
                                 <Button
                                     {...BUTTON_PROPS}
+                                    style={{
+                                        fontWeight: 600,
+                                        backgroundColor: resultPanel
+                                            ? "transparent"
+                                            : null,
+                                    }}
                                     fill={false}
                                     text="Data"
                                     active={!resultPanel}
@@ -346,6 +352,12 @@ function Designer() {
                             </Tooltip>
                             <Button
                                 {...BUTTON_PROPS}
+                                style={{
+                                    fontWeight: 600,
+                                    backgroundColor: !resultPanel
+                                        ? "transparent"
+                                        : null,
+                                }}
                                 fill={false}
                                 text="Result"
                                 active={resultPanel}

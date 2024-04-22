@@ -40,6 +40,7 @@ import StringRenderer, {
 import UnknownRenderer, {
     UnknownTester,
 } from "@/components/jsonforms/renderers/Unknown";
+import { Classes } from "@blueprintjs/core";
 module.exports = {
     REGISTRY_TYPE_LOOKUP: {
         data: { icon: faServer, key: "source" },
@@ -68,4 +69,5 @@ module.exports = {
         { tester: ButtonTester, renderer: ButtonRenderer },
         { tester: UnknownTester, renderer: UnknownRenderer },
     ],
+    CARD_LIST_CLASS_NAMES: `${Classes.CARD} ${Classes.CARD_LIST} ${Classes.CARD_LIST_BORDERED}`,
 };

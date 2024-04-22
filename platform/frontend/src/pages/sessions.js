@@ -1,3 +1,4 @@
+import AddAgents from "@/components/agents/AddAgents";
 import { AppContext } from "@/components/contexts/app-context";
 import { useSocket } from "@/components/hooks/useSocket";
 import { faIcon } from "@/components/icon";
@@ -11,7 +12,6 @@ import {
     Card,
     Classes,
     H4,
-    H5,
     InputGroup,
     Intent,
     Menu,
@@ -31,6 +31,7 @@ import {
     faPlusLarge,
     faSatelliteDish,
     faSignalStreamSlash,
+    faUserPlus,
 } from "@fortawesome/pro-duotone-svg-icons";
 import axios from "axios";
 import _ from "lodash";
@@ -57,33 +58,36 @@ export default function Sessions() {
             })
         );
     };
-    const onMessage = useCallback((event) => {
-        // Listening to messages from the server
-        try {
-            // parse the data from string to JSON object
-            const data = JSON.parse(event.data);
-            // If the data is of type SESSION_MESSAGE
-            if (_.isEqual(data["type"], "SESSION_MESSAGE")) {
-                appActions.session.addSessionMessage(data);
-            } else if (_.isEqual(data["type"], "CONNECTED")) {
-                appActions.session.setState({
-                    key: "connectionId",
-                    value: data.id,
+    const onMessage = useCallback(
+        (event) => {
+            // Listening to messages from the server
+            try {
+                // parse the data from string to JSON object
+                const data = JSON.parse(event.data);
+                // If the data is of type SESSION_MESSAGE
+                if (_.isEqual(data["type"], "SESSION_MESSAGE")) {
+                    appActions.session.addSessionMessage(data);
+                } else if (_.isEqual(data["type"], "CONNECTED")) {
+                    appActions.session.setState({
+                        key: "connectionId",
+                        value: data.id,
+                    });
+                } else if (_.isEqual(data["type"], "NEW_SESSION_BROADCAST")) {
+                    appActions.session.observeSession({
+                        sessionId: data["session_id"],
+                        socket: socket,
+                    });
+                }
+            } catch (e) {
+                AppToaster.show({
+                    intent: Intent.DANGER,
+                    message: event.data,
                 });
-            } else if (_.isEqual(data["type"], "NEW_SESSION_BROADCAST")) {
-                appActions.session.observeSession({
-                    sessionId: data["session_id"],
-                    socket: socket,
-                });
+                console.error(e);
             }
-        } catch (e) {
-            AppToaster.show({
-                intent: Intent.DANGER,
-                message: event.data,
-            });
-            console.error(e);
-        }
-    }, []);
+        },
+        [socket]
+    );
     useEffect(() => {
         if (!_.isNil(socket)) {
             socket.addEventListener("message", onMessage);
@@ -163,6 +167,25 @@ export default function Sessions() {
     };
     const [sessionDetailTooltipOpen, setSessionDetailTooltipOpen] =
         useState(false);
+    const [isAddAgentsOpen, setIsAddAgentsOpen] = useState(false);
+    const [skippable, setSkippable] = useState(false);
+    const sessionName = _.get(
+        appState,
+        ["session", "sessionDetail", sessionIdFocus, "name"],
+        sessionIdFocus
+    );
+    useEffect(() => {
+        if (appState.session.openAgentsDialogTrigger) {
+            setIsCreatingSession(false);
+            setIsAddAgentsOpen(true);
+            setSkippable(true);
+            appActions.session.setState({
+                key: "openAgentsDialogTrigger",
+                value: false,
+            });
+        }
+    }, [appState.session.openAgentsDialogTrigger]);
+    const [isCreatingSession, setIsCreatingSession] = useState(false);
     if (!isSocketOpen && _.isEmpty(sessionIds))
         return (
             <NonIdealState
@@ -204,12 +227,12 @@ export default function Sessions() {
                                 disabled={!_.isEqual(socketReadyState, 1)}
                                 text="New"
                                 outlined
+                                loading={isCreatingSession}
                                 intent={Intent.PRIMARY}
                                 onClick={() => {
                                     if (!_.isEqual(socketReadyState, 1)) return;
-                                    appActions.session.createSession({
-                                        socket: socket,
-                                    });
+                                    setIsCreatingSession(true);
+                                    appActions.session.createSession();
                                 }}
                                 rightIcon={faIcon({ icon: faInboxOut })}
                             />
@@ -223,10 +246,11 @@ export default function Sessions() {
                             }}
                             content={
                                 <div>
-                                    <div style={{ padding: 10 }}>
-                                        <H5>Join an existing session</H5>
+                                    <div style={{ padding: 15 }}>
                                         <InputGroup
+                                            placeholder="Session ID"
                                             large
+                                            autoFocus
                                             fill
                                             value={joinSessionId}
                                             onChange={(event) => {
@@ -276,7 +300,7 @@ export default function Sessions() {
                                     {!_.isEmpty(existingSessions) ? (
                                         <FixedSizeList
                                             className="bp-border-top"
-                                            height={267}
+                                            height={210}
                                             itemCount={_.size(existingSessions)}
                                             itemSize={40}
                                         >
@@ -319,10 +343,10 @@ export default function Sessions() {
                                                             large
                                                             minimal
                                                             style={{
-                                                                margin: 10,
-                                                                width: "calc(100% - 20px)",
+                                                                margin: 15,
+                                                                width: "calc(100% - 30px)",
                                                             }}
-                                                            id={item.id}
+                                                            key={item.id}
                                                         >
                                                             <div
                                                                 className={
@@ -345,11 +369,18 @@ export default function Sessions() {
                                 </div>
                             }
                         >
-                            <Button
-                                disabled={!isSocketOpen}
-                                outlined
-                                icon={faIcon({ icon: faCaretDown })}
-                            />
+                            <Tooltip
+                                minimal
+                                placement="bottom"
+                                content="Join an existing session"
+                            >
+                                <Button
+                                    disabled={!isSocketOpen}
+                                    outlined
+                                    text="Join"
+                                    rightIcon={faIcon({ icon: faUserPlus })}
+                                />
+                            </Tooltip>
                         </Popover>
                     </ButtonGroup>
                     {!isSocketOpen ? <ReconnectButton /> : null}
@@ -416,17 +447,7 @@ export default function Sessions() {
                                 rightIcon={faIcon({ icon: faCaretDown })}
                                 text={
                                     <H4 style={{ margin: 0 }}>
-                                        #&nbsp;
-                                        {_.get(
-                                            appState,
-                                            [
-                                                "session",
-                                                "sessionDetail",
-                                                sessionIdFocus,
-                                                "name",
-                                            ],
-                                            sessionIdFocus
-                                        )}
+                                        #&nbsp;{sessionName}
                                     </H4>
                                 }
                             />
@@ -468,6 +489,9 @@ export default function Sessions() {
                                     content={
                                         <Menu large>
                                             <MenuItem
+                                                onClick={() => {
+                                                    setIsAddAgentsOpen(true);
+                                                }}
                                                 icon={faIcon({
                                                     icon: faCircleA,
                                                 })}
@@ -499,7 +523,7 @@ export default function Sessions() {
                                     paddingLeft: 50,
                                 }}
                                 value={message}
-                                placeholder={`Message @${sessionIdFocus}`}
+                                placeholder={`Message # ${sessionName}`}
                                 onChange={(event) => {
                                     setMessage(event.target.value);
                                 }}
@@ -522,6 +546,12 @@ export default function Sessions() {
             <SessionDetail
                 setIsSessionDetailOpen={setIsSessionDetailOpen}
                 isOpen={isSessionDetailOpen}
+            />
+            <AddAgents
+                skippable={skippable}
+                setSkippable={setSkippable}
+                setIsAddAgentsOpen={setIsAddAgentsOpen}
+                isOpen={isAddAgentsOpen}
             />
         </>
     );
