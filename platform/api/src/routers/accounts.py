@@ -19,6 +19,8 @@ FIREBASE_SERVICE_CRED = os.getenv("FIREBASE_SERVICE_CRED", "{}")
 cert = json.loads(base64.b64decode(FIREBASE_SERVICE_CRED))
 cred = credentials.Certificate(cert)
 firebase_admin.initialize_app(cred)
+EMAIL_DOMAIN_WHITE_LIST = os.getenv("EMAIL_DOMAIN_WHITE_LIST", "megagon.ai")
+allowed_domains = EMAIL_DOMAIN_WHITE_LIST.split(",")
 
 
 @router.post("/signout")
@@ -44,6 +46,10 @@ def signout(request: Request):
 async def signin(request: Request):
     payload = await request.json()
     id_token = pydash.objects.get(payload, "id_token", "")
+    ERROR_RESPONSE = JSONResponse(
+        content={"message": "Failed to create a session cookie"},
+        status_code=401,
+    )
     if pydash.is_empty(id_token):
         return JSONResponse(
             content={
@@ -76,6 +82,11 @@ async def signin(request: Request):
         # }
         email = decoded_claims["email"]
         email_domain = re.search(EMAIL_DOMAIN_ADDRESS_REGEXP, email).group(1)
+        if email_domain not in allowed_domains:
+            return JSONResponse(
+                content={"message": "Invalid email domain"},
+                status_code=401,
+            )
         # Only process if the user signed in within the last 5 minutes.
         if time.time() - decoded_claims["auth_time"] < 5 * 60:
             # Set session expiration to 14 days.
@@ -107,6 +118,7 @@ async def signin(request: Request):
                 path="/",
             )
             return response
+        return ERROR_RESPONSE
     except auth.InvalidIdTokenError:
         return JSONResponse(
             content={
@@ -115,10 +127,7 @@ async def signin(request: Request):
             status_code=401,
         )
     except exceptions.FirebaseError:
-        return JSONResponse(
-            content={"message": "Failed to create a session cookie"},
-            status_code=401,
-        )
+        return ERROR_RESPONSE
 
 
 @router.get("/profile")

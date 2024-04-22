@@ -16,12 +16,18 @@ import {
     Classes,
     Divider,
     Intent,
+    Menu,
+    MenuDivider,
+    MenuItem,
     NonIdealState,
+    Popover,
     Pre,
     Tooltip,
 } from "@blueprintjs/core";
 import {
     faArrowsFromLine,
+    faBinary,
+    faBinarySlash,
     faBookOpenCover,
     faBracketsCurly,
     faCircleXmark,
@@ -96,6 +102,7 @@ function Designer() {
     useEffect(() => {
         try {
             setSchema(JSON.parse(jsonSchema));
+            setData({});
         } catch (error) {}
         if (schemaInitialized) {
             sessionStorage.setItem("jsonSchema", jsonSchema);
@@ -125,14 +132,12 @@ function Designer() {
             }
         } catch (error) {}
     };
-    const handleExportConfig = () => {
-        copy(
-            JSON.stringify({
-                schema: schema,
-                uiSchema: uiSchema,
-                data: data,
-            })
-        );
+    const handleExportConfig = (withData) => {
+        let result = { schema: schema, uiSchema: uiSchema };
+        if (withData) {
+            _.set(result, "data", data);
+        }
+        copy(JSON.stringify(result));
         AppToaster.show({ message: "Copied message configuration" });
     };
     const handleReset = () => {
@@ -167,12 +172,33 @@ function Designer() {
                             onClick={handleFormattingCode}
                         />
                     </Tooltip>
-                    <Tooltip minimal content="Export config.">
-                        <Button
-                            icon={faIcon({ icon: faDownload })}
-                            onClick={handleExportConfig}
-                        />
-                    </Tooltip>
+                    <Popover
+                        minimal
+                        placement="bottom"
+                        content={
+                            <Menu>
+                                <MenuDivider title="Export" />
+                                <MenuItem
+                                    icon={faIcon({ icon: faBinary })}
+                                    text="With data"
+                                    onClick={() => {
+                                        handleExportConfig(true);
+                                    }}
+                                />
+                                <MenuItem
+                                    icon={faIcon({ icon: faBinarySlash })}
+                                    text="Without data"
+                                    onClick={() => {
+                                        handleExportConfig(false);
+                                    }}
+                                />
+                            </Menu>
+                        }
+                    >
+                        <Tooltip minimal content="Export config.">
+                            <Button icon={faIcon({ icon: faDownload })} />
+                        </Tooltip>
+                    </Popover>
                     <Divider />
                     <Button
                         text="Docs."
