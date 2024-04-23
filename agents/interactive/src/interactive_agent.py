@@ -2,6 +2,8 @@
 import os
 import sys
 
+import pydash
+
 ###### Add lib path
 sys.path.append("./lib/")
 sys.path.append("./lib/agent/")
@@ -12,6 +14,7 @@ sys.path.append("./lib/utils/")
 import time
 import argparse
 import logging
+import time
 import uuid
 import random
 
@@ -19,7 +22,6 @@ import random
 import re
 import csv
 import json
-from utils import json_utils
 
 import itertools
 from tqdm import tqdm
@@ -27,8 +29,6 @@ from tqdm import tqdm
 ###### Blue
 from agent import Agent
 from session import Session
-from tqdm import tqdm
-from websocket import create_connection
 from rpc import RPCServer
 
 # set log level
@@ -41,10 +41,10 @@ logging.basicConfig(
 
 
 #######################
-class ObserverAgent(Agent):
+class InteractiveAgent(Agent):
     def __init__(
         self,
-        name="OBSERVER",
+        name="INTERACTIVE",
         session=None,
         input_stream=None,
         processor=None,
@@ -63,7 +63,7 @@ class ObserverAgent(Agent):
         stream,
         id,
         label,
-        value,
+        data,
         dtype=None,
         tags=None,
         properties=None,
@@ -71,38 +71,52 @@ class ObserverAgent(Agent):
     ):
         if label == "EOS":
             # compute stream data
-            l = 0
-            if dtype == "json":
-                pass
-            else:
-                if worker:
-                    data = worker.get_data(stream)
-                    str_data = str(" ".join(data))
-                    if len(str_data.strip()) > 0:
-                        if (
-                            "output" in properties
-                            and properties["output"] == "websocket"
-                        ):
-                            ws = create_connection(properties["websocket"])
-                            ws.send(
-                                json.dumps(
-                                    {
-                                        "type": "OBSERVER_SESSION_MESSAGE",
-                                        "session_id": properties["session_id"],
-                                        "message": {
-                                            "type": "STRING",
-                                            "content": str_data,
-                                        },
-                                        "stream": stream,
-                                    }
-                                )
-                            )
-                            time.sleep(1)
-                            ws.close()
-                        else:
-                            logging.info(
-                                "{} [{}]: {}".format(stream, ",".join(tags), str_data)
-                            )
+            user_signal = ""
+            if worker:
+                user_signal = pydash.to_lower(" ".join(worker.get_data(stream)))
+
+            interactive_form = {
+                "schema": {
+                    "type": "object",
+                    "properties": {"first_name": {"type": "string"}},
+                },
+                "uiSchema": {
+                    "type": "VerticalLayout",
+                    "elements": [
+                        {
+                            "type": "Label",
+                            "label": "Who's there?",
+                            "props": {
+                                "large": True,
+                                "style": {"marginBottom": 15, "fontSize": "15pt"},
+                            },
+                        },
+                        {
+                            "type": "HorizontalLayout",
+                            "elements": [
+                                {
+                                    "type": "Control",
+                                    "label": "First Name",
+                                    "scope": "#/properties/first_name",
+                                }
+                            ],
+                        },
+                        {
+                            "type": "Button",
+                            "label": "Done",
+                            "props": {
+                                "intent": "success",
+                                "nameId": "done",
+                                "large": True,
+                            },
+                        },
+                    ],
+                },
+            }
+
+            # output to stream
+            if pydash.is_equal(user_signal, "knock knock"):
+                return "INTERACTIVE", interactive_form, "json", True
         elif label == "BOS":
             # init stream to empty array
             if worker:
@@ -110,41 +124,21 @@ class ObserverAgent(Agent):
             pass
         elif label == "DATA":
             # store data value
-            if dtype == "json":
-                logging.info("{} [{}]: {}".format(stream, ",".join(tags), value))
-            else:
-                if worker:
-                    worker.append_data(stream, str(value))
-        elif label == "INTERACTIVE":
-            # interactive form
-            if "output" in properties and properties["output"] == "websocket":
-                ws = create_connection(properties["websocket"])
-                ws.send(
-                    json.dumps(
-                        {
-                            "type": "OBSERVER_SESSION_MESSAGE",
-                            "session_id": properties["session_id"],
-                            "message": {
-                                "type": "INTERACTIVE",
-                                "content": value,
-                            },
-                            "stream": stream,
-                        }
-                    )
-                )
-                time.sleep(1)
-                ws.close()
+            logging.info(data)
+
+            if worker:
+                worker.append_data(stream, data)
 
         return None
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--name", default="OBSERVER", type=str)
+    parser.add_argument("--name", default="INTERACTIVE", type=str)
     parser.add_argument("--session", type=str)
     parser.add_argument("--input_stream", type=str)
     parser.add_argument("--properties", type=str)
-    parser.add_argument("--loglevel", default="ERROR", type=str)
+    parser.add_argument("--loglevel", default="INFO", type=str)
     parser.add_argument("--serve", default=False, action=argparse.BooleanOptionalAction)
 
     args = parser.parse_args()
@@ -162,9 +156,9 @@ if __name__ == "__main__":
     if args.serve:
         # launch agent with parameters, start session
         def launch(*args, **kwargs):
-            logging.info("Launching ObserverAgent...")
+            logging.info("Launching InteractiveAgent...")
             logging.info(kwargs)
-            agent = ObserverAgent(*args, **kwargs)
+            agent = InteractiveAgent(*args, **kwargs)
             session = agent.start_session()
             logging.info("Started session: " + session.name)
             logging.info("Launched.")
@@ -172,9 +166,9 @@ if __name__ == "__main__":
 
         # launch agent with parameters, join session in keyword args (session=)
         def join(*args, **kwargs):
-            logging.info("Launching ObserverAgent...")
+            logging.info("Launching InteractiveAgent...")
             logging.info(kwargs)
-            agent = ObserverAgent(*args, **kwargs)
+            agent = InteractiveAgent(*args, **kwargs)
             logging.info("Joined session: " + kwargs["session"])
             logging.info("Launched.")
             return kwargs["session"]
@@ -190,15 +184,15 @@ if __name__ == "__main__":
         if args.session:
             # join an existing session
             session = Session(args.session)
-            a = ObserverAgent(name=args.name, session=session, properties=properties)
+            a = InteractiveAgent(name=args.name, session=session, properties=properties)
         elif args.input_stream:
             # no session, work on a single input stream
-            a = ObserverAgent(
+            a = InteractiveAgent(
                 name=args.name, input_stream=args.input_stream, properties=properties
             )
         else:
             # create a new session
-            a = ObserverAgent(name=args.name, properties=properties)
+            a = InteractiveAgent(name=args.name, properties=properties)
             session = a.start_session()
 
         # wait for session
