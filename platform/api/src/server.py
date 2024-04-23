@@ -60,7 +60,7 @@ async def session_verification(request: Request, call_next):
     if request.method == "OPTIONS" or request.url.path in [
         "/docs",
         "/redoc",
-        "openapi.json",
+        "/openapi.json",
     ]:
         return await call_next(request)
     if not session_cookie:
