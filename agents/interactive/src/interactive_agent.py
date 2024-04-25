@@ -29,6 +29,7 @@ from tqdm import tqdm
 ###### Blue
 from agent import Agent
 from session import Session
+from producer import Producer
 from rpc import RPCServer
 
 # set log level
@@ -70,53 +71,54 @@ class InteractiveAgent(Agent):
         worker=None,
     ):
         if label == "EOS":
-            # compute stream data
             user_signal = ""
             if worker:
                 user_signal = pydash.to_lower(" ".join(worker.get_data(stream)))
-
-            interactive_form = {
-                "schema": {
-                    "type": "object",
-                    "properties": {"first_name": {"type": "string"}},
-                },
-                "uiSchema": {
-                    "type": "VerticalLayout",
-                    "elements": [
-                        {
-                            "type": "Label",
-                            "label": "Who's there?",
-                            "props": {
-                                "large": True,
-                                "style": {"marginBottom": 15, "fontSize": "15pt"},
-                            },
-                        },
-                        {
-                            "type": "HorizontalLayout",
-                            "elements": [
-                                {
-                                    "type": "Control",
-                                    "label": "First Name",
-                                    "scope": "#/properties/first_name",
-                                }
-                            ],
-                        },
-                        {
-                            "type": "Button",
-                            "label": "Done",
-                            "props": {
-                                "intent": "success",
-                                "nameId": "done",
-                                "large": True,
-                            },
-                        },
-                    ],
-                },
-            }
-
-            # output to stream
+            # compute and output to stream
             if pydash.is_equal(user_signal, "knock knock"):
-                return "INTERACTIVE", interactive_form, "json", True
+                interactive_form = {
+                    "schema": {
+                        "type": "object",
+                        "properties": {"first_name": {"type": "string"}},
+                    },
+                    "uischema": {
+                        "type": "VerticalLayout",
+                        "elements": [
+                            {
+                                "type": "Label",
+                                "label": "Who's there?",
+                                "props": {
+                                    "large": True,
+                                    "style": {"marginBottom": 15, "fontSize": "15pt"},
+                                },
+                            },
+                            {
+                                "type": "HorizontalLayout",
+                                "elements": [
+                                    {
+                                        "type": "Control",
+                                        "label": "First Name",
+                                        "scope": "#/properties/first_name",
+                                    }
+                                ],
+                            },
+                            {
+                                "type": "Button",
+                                "label": "Done",
+                                "props": {
+                                    "intent": "success",
+                                    "nameId": "done",
+                                    "large": True,
+                                },
+                            },
+                        ],
+                    },
+                }
+                event_stream = Producer(name="EVENT", properties=self.properties)
+                event_stream.start()
+                self.stream_injection(interactive_form, event_stream.get_stream())
+                logging.info("EVENT_STREAM " + event_stream.get_stream())
+                return "INTERACTIVE", interactive_form, "json", False
         elif label == "BOS":
             # init stream to empty array
             if worker:
@@ -128,8 +130,18 @@ class InteractiveAgent(Agent):
 
             if worker:
                 worker.append_data(stream, data)
-
+            # worker set stream data, key: first_name, value: rafael
         return None
+
+    def stream_injection(self, form_element: dict, stream: str):
+        if "uischema" in form_element:
+            self.stream_injection(form_element["uischema"], stream)
+        else:
+            if "elements" in form_element:
+                for element in form_element["elements"]:
+                    self.stream_injection(element, stream)
+            elif pydash.includes(["Control", "Button"], form_element["type"]):
+                pydash.objects.set_(form_element, "props.streamId", stream)
 
 
 if __name__ == "__main__":

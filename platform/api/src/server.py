@@ -154,10 +154,10 @@ async def websocket_endpoint(websocket: WebSocket):
                 )
             elif json_data["type"] == "INTERACTIVE_EVENT_MESSAGE":
                 connection_manager.interactive_event_message(
-                    connection_id,
                     json_data["stream_id"],
                     json_data["name_id"],
                     json_data["timestamp"],
+                    json_data["message"],
                 )
             elif json_data["type"] == "OBSERVER_SESSION_MESSAGE":
                 await connection_manager.observer_session_message(

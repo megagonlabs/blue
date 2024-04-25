@@ -14,7 +14,7 @@ export default function InteractiveMessage({ content, setHasError }) {
         <JsonForms
             schema={_.get(content, "schema", {})}
             data={data}
-            uischema={_.get(content, "uiSchema", {})}
+            uischema={_.get(content, "uischema", {})}
             renderers={JSONFORMS_RENDERERS}
             cells={vanillaCells}
             onChange={({ data, errors }) => {

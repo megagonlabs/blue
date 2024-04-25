@@ -13,6 +13,7 @@ sys.path.append("./lib/platform/")
 from observer import ObserverAgent
 from session import Session
 from agent import Agent
+from producer import Producer
 
 ###### Properties
 PROPERTIES = os.getenv("BLUE__PROPERTIES")
@@ -69,10 +70,14 @@ class ConnectionManager:
         if user_agent is not None:
             user_agent.interact(message)
 
-    async def interactive_event_message(
-        self, session_id: str, stream_id: str, name_id: str, timestamp: float
+    def interactive_event_message(
+        self, stream_id: str, name_id: str, timestamp: int, message
     ):
-        pass
+        event_stream = Producer(name="EVENT", sid=stream_id)
+        event_stream.start()
+        event_stream.write(
+            data={"message": message, "timestamp": timestamp}, dtype="json"
+        )
 
     async def observer_session_message(
         self, session_id: str, message: str, stream: str

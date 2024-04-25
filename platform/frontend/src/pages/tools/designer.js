@@ -53,7 +53,7 @@ const DEFAULT_SCHEMA = JSON.stringify(
 function Designer() {
     const [error, resetError] = useErrorBoundary();
     const leftPaneRef = createRef();
-    const [uiSchema, setUiSchema] = useState({});
+    const [uischema, setUischema] = useState({});
     const [schema, setSchema] = useState({});
     const ssData = sessionStorage.getItem("data");
     const [data, setData] = useState(_.isNil(ssData) ? {} : JSON.parse(ssData));
@@ -93,7 +93,7 @@ function Designer() {
     }, [data]);
     useEffect(() => {
         try {
-            setUiSchema(JSON.parse(jsonUiSchema));
+            setUischema(JSON.parse(jsonUiSchema));
         } catch (error) {}
         if (uiSchemaInitialized) {
             sessionStorage.setItem("jsonUiSchema", jsonUiSchema);
@@ -133,7 +133,7 @@ function Designer() {
         } catch (error) {}
     };
     const handleExportConfig = (withData) => {
-        let result = { schema: schema, uiSchema: uiSchema };
+        let result = { schema: schema, uischema: uischema };
         if (withData) {
             _.set(result, "data", data);
         }
@@ -401,7 +401,7 @@ function Designer() {
                             }}
                         >
                             {resultPanel ? (
-                                !_.isEmpty(uiSchema) ? (
+                                !_.isEmpty(uischema) ? (
                                     <Callout
                                         icon={null}
                                         intent={error ? Intent.DANGER : null}
@@ -414,7 +414,7 @@ function Designer() {
                                         {!error ? (
                                             <JsonForms
                                                 schema={schema}
-                                                uischema={uiSchema}
+                                                uischema={uischema}
                                                 data={data}
                                                 renderers={JSONFORMS_RENDERERS}
                                                 cells={vanillaCells}

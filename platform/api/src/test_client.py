@@ -278,7 +278,7 @@ ws.send(
                             "last_name": {"type": "string"},
                         },
                     },
-                    "uiSchema": {
+                    "uischema": {
                         "type": "HorizontalLayout",
                         "elements": [
                             {

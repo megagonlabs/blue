@@ -9,11 +9,12 @@ const ButtonRenderer = ({ uischema }) => {
     const onClickHandler = () => {
         if (!_.isEqual(socketReadyState, 1)) return;
         setTimeout(() => {
+            const dataId = _.last(_.split(_.get(uischema, "scope", ""), "/"));
             socket.send(
                 JSON.stringify({
                     type: "INTERACTIVE_EVENT_MESSAGE",
                     stream_id: _.get(uischema, "props.streamId", null),
-                    name_id: _.get(uischema, "props.nameId", null),
+                    name_id: _.get(uischema, "props.nameId", dataId),
                     timestamp: Date.now(),
                 })
             );
