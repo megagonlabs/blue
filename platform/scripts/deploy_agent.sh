@@ -69,16 +69,28 @@ then
    export REGISTRY=default
 fi
 
+export ADDITIONAL_ARGS=${ADDITIONAL_ARGS}
+export POSITIONAL_ARGS=${POSITIONAL_ARGS}
+export IMAGE=${IMAGE}
+export AGENT=${AGENT}
+export AGENT_LOWERCASE=$(echo ${AGENT}| tr '[:upper:]' '[:lower:]')
+
 echo "DEPLOY TARGET  = ${BLUE_DEPLOY_TARGET}"
 echo "DEPLOY PLATFORM = ${BLUE_DEPLOY_PLATFORM}"
 echo "REGISTRY = ${REGISTRY}"
 echo "AGENT = ${AGENT}"
+echo "AGENT_LOWERCASE = ${AGENT_LOWERCASE}"
 echo "IMAGE = ${IMAGE}"
+
 
 if [ $BLUE_DEPLOY_TARGET == swarm ]
 then
-   docker service create --mount type=volume,source=blue_${BLUE_DEPLOY_PLATFORM}_data,destination=/blue_data --network blue_platform_${BLUE_DEPLOY_PLATFORM}_network_overlay --hostname blue_agent_${REGISTRY}_${AGENT} --constraint node.labels.target==agent ${IMAGE} --serve "${BLUE_DEPLOY_PLATFORM}:COM" ${POSITIONAL_ARGS} ${ADDITIONAL_ARGS}
+   envsubst < ${BLUE_INSTALL_DIR}/platform/docker-compose-swarm-agent-template.yaml > ${BLUE_INSTALL_DIR}/platform/docker-compose-swarm-agent-${BLUE_DEPLOY_PLATFORM}-${REGISTRY}-${AGENT}.yaml
+   docker stack deploy -c ${BLUE_INSTALL_DIR}/platform/docker-compose-swarm-agent-${BLUE_DEPLOY_PLATFORM}-${REGISTRY}-${AGENT}.yaml blue_agent_${REGISTRY}_${AGENT_LOWERCASE}
 elif [ $BLUE_DEPLOY_TARGET == localhost ]
 then
-   docker run -d --volume=blue_${BLUE_DEPLOY_PLATFORM}_data:/blue_data --network=blue_platform_${BLUE_DEPLOY_PLATFORM}_network_bridge --hostname blue_agent_${REGISTRY}_${AGENT} ${IMAGE} --serve "${BLUE_DEPLOY_PLATFORM}:COM"  ${POSITIONAL_ARGS} ${ADDITIONAL_ARGS}
+   envsubst < ${BLUE_INSTALL_DIR}/platform/docker-compose-localhost-agent-template.yaml > ${BLUE_INSTALL_DIR}/platform/docker-compose-localhost-agent-${BLUE_DEPLOY_PLATFORM}-${REGISTRY}-${AGENT}.yaml
+   docker compose --project-directory ${BLUE_INSTALL_DIR}/platform -f ${BLUE_INSTALL_DIR}/platform/docker-compose-localhost-agent-${BLUE_DEPLOY_PLATFORM}-${REGISTRY}-${AGENT}.yaml -p blue_agent_${REGISTRY}_${AGENT_LOWERCASE} up -d
 fi
+
+

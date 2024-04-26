@@ -25,7 +25,7 @@ import itertools
 from tqdm import tqdm
 
 ###### Blue
-from agent import Agent
+from agent import Agent, AgentFactory
 from session import Session
 from rpc import RPCServer
 
@@ -88,30 +88,10 @@ if __name__ == "__main__":
         properties = json.loads(p)
     
     if args.serve:
-        # launch agent with parameters, start session
-        def launch(*args, **kwargs):
-            logging.info("Launching TemplateAgent...")
-            logging.info(kwargs)
-            agent = TemplateAgent(*args, **kwargs)
-            session = agent.start_session()
-            logging.info("Started session: " + session.name)
-            logging.info("Launched.")
-            return session.name
-
-        # launch agent with parameters, join session in keyword args (session=)
-        def join(*args, **kwargs):
-            logging.info("Launching TemplateAgent...")
-            logging.info(kwargs)
-            agent = TemplateAgent(*args, **kwargs)
-            logging.info("Joined session: " + kwargs['session'])
-            logging.info("Launched.")
-            return kwargs['session']
-
-        # run rpc server
-        rpc = RPCServer(args.name, properties=properties)
-        rpc.register(launch)
-        rpc.register(join)
-        rpc.run()
+        platform = args.platform
+        
+        af = AgentFactory(agent_class=TemplateAgent, agent_name=args.serve, agent_registry=args.registry, platform=platform, properties=properties)
+        af.wait()
     else:
         a = None
         session = None

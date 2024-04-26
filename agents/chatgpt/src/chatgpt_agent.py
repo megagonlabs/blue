@@ -32,7 +32,7 @@ from websockets.sync.client import connect
 
 
 ###### Blue
-from agent import Agent
+from agent import Agent, AgentFactory
 from api_agent import APIAgent
 from session import Session
 from openai_agent import OpenAIAgent
@@ -80,7 +80,9 @@ if __name__ == "__main__":
     parser.add_argument('--input_stream', type=str)
     parser.add_argument('--properties', type=str)
     parser.add_argument('--loglevel', default="INFO", type=str)
-    parser.add_argument('--serve', default=False, action=argparse.BooleanOptionalAction)
+    parser.add_argument('--serve', type=str, default='CHATGPT')
+    parser.add_argument('--platform', type=str, default='default')
+    parser.add_argument('--registry', type=str, default='default')
 
     args = parser.parse_args()
    
@@ -95,30 +97,10 @@ if __name__ == "__main__":
         properties = json.loads(p)
     
     if args.serve:
-        # launch agent with parameters, start session
-        def launch(*args, **kwargs):
-            logging.info("Launching ChatGPTAgent...")
-            logging.info(kwargs)
-            agent = ChatGPTAgent(*args, **kwargs)
-            session = agent.start_session()
-            logging.info("Started session: " + session.name)
-            logging.info("Launched.")
-            return session.name
-
-        # launch agent with parameters, join session in keyword args (session=)
-        def join(*args, **kwargs):
-            logging.info("Launching ChatGPTAgent...")
-            logging.info(kwargs)
-            agent = ChatGPTAgent(*args, **kwargs)
-            logging.info("Joined session: " + kwargs['session'])
-            logging.info("Launched.")
-            return kwargs['session']
-
-        # run rpc server
-        rpc = RPCServer(args.name, properties=properties)
-        rpc.register(launch)
-        rpc.register(join)
-        rpc.run()
+        platform = args.platform
+        
+        af = AgentFactory(agent_class=ChatGPTAgent, agent_name=args.serve, agent_registry=args.registry, platform=platform, properties=properties)
+        af.wait()
     else:
         a = None
         session = None
