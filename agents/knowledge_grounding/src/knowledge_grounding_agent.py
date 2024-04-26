@@ -34,7 +34,7 @@ from neo4j import GraphDatabase
 
 
 ###### Blue
-from agent import Agent
+from agent import Agent, AgentFactory
 from session import Session
 from data_registry import DataRegistry
 from rpc import RPCServer
@@ -45,7 +45,7 @@ logging.basicConfig(format="%(asctime)s [%(levelname)s] [%(process)d:%(threadNam
 
 
 #######################
-class KnowledgGroundingAgent(Agent):
+class KnowledgeGroundingAgent(Agent):
     def __init__(self, name="KNOWLEDGE",session=None, input_stream=None, processor=None, properties={}):
         super().__init__(name=name, session=session, input_stream=input_stream, processor=processor, properties=properties)
 
@@ -266,7 +266,9 @@ if __name__ == "__main__":
     parser.add_argument('--input_stream', type=str)
     parser.add_argument('--properties', type=str)
     parser.add_argument('--loglevel', default="INFO", type=str)
-    parser.add_argument('--serve', default=False, action=argparse.BooleanOptionalAction)
+    parser.add_argument('--serve', type=str, default='KNOWLEDGE')
+    parser.add_argument('--platform', type=str, default='default')
+    parser.add_argument('--registry', type=str, default='default')
 
     #TODO: temporary, remove
     parser.add_argument('--profile', type=str)
@@ -286,30 +288,10 @@ if __name__ == "__main__":
         properties = json.loads(p)
     
     if args.serve:
-        # launch agent with parameters, start session
-        def launch(*args, **kwargs):
-            logging.info("Launching KnowledgGroundingAgent...")
-            logging.info(kwargs)
-            agent = KnowledgGroundingAgent(*args, **kwargs)
-            session = agent.start_session()
-            logging.info("Started session: " + session.name)
-            logging.info("Launched.")
-            return session.name
-
-        # launch agent with parameters, join session in keyword args (session=)
-        def join(*args, **kwargs):
-            logging.info("Launching KnowledgGroundingAgent...")
-            logging.info(kwargs)
-            agent = KnowledgGroundingAgent(*args, **kwargs)
-            logging.info("Joined session: " + kwargs['session'])
-            logging.info("Launched.")
-            return kwargs['session']
-
-        # run rpc server
-        rpc = RPCServer(args.name, properties=properties)
-        rpc.register(launch)
-        rpc.register(join)
-        rpc.run()
+        platform = args.platform
+        
+        af = AgentFactory(agent_class=KnowledgeGroundingAgent, agent_name=args.serve, agent_registry=args.registry, platform=platform, properties=properties)
+        af.wait()
     else:
 
         # TODO, temporary, remove
@@ -325,13 +307,13 @@ if __name__ == "__main__":
         if args.session:
             # join an existing session
             session = Session(args.session)
-            a = KnowledgGroundingAgent(session=session, properties=properties)
+            a = e(session=session, properties=properties)
         elif args.input_stream:
             # no session, work on a single input stream
-            a = KnowledgGroundingAgent(input_stream=args.input_stream, properties=properties)
+            a = e(input_stream=args.input_stream, properties=properties)
         else:
             # create a new session
-            a = KnowledgGroundingAgent(properties=properties)
+            a = e(properties=properties)
             session = a.start_session()
 
         # wait for session

@@ -93,34 +93,12 @@ def add_agent_to_session(
     p = json_utils.merge_json(p, properties_from_registry)
     p = json_utils.merge_json(p, properties_from_api)
 
-    print(p)
-    print(input)
-    print(type(input))
+    # ASSUMPTION: agent is already deployed
 
-    # assumption: agent is already deployed
-    agent_rpc_host = "blue_agent_" + registry_name + "_" + agent_name
+    ## add agent to session
+    platform.join_session(session, registry, agent_name, properties)
 
-    ## create an rpc connection to launch agent
-    client = RPCClient(
-        registry_name + "_" + agent_name, properties={"rpc.host": agent_rpc_host}
-    )
-    client.connect()
-
-    # execute join method
-    if input:
-        client.executor().join(
-            name=registry_name + "_" + agent_name,
-            session=session_id,
-            input=input,
-            properties=p,
-        )
-    else:
-        client.executor().join(
-            name=registry_name + "_" + agent_name, session=session_id, properties=p
-        )
-
-    result = ""
-    return JSONResponse(content={"result": result, "message": "Success"})
+    return JSONResponse(content={"result": "", "message": "Success"})
 
 
 # @router.delete("/{platform_name}/session/{session_id}/agents/{registry_name}/agent/{agent_name}")
@@ -130,7 +108,6 @@ def add_agent_to_session(
 #     #TODO
 #     result = ""
 #     return JSONResponse(content={"result": result, "message": "Success"})
-
 
 @router.put("/session/{session_id}")
 async def update_session(request: Request, session_id):
@@ -151,7 +128,6 @@ async def update_session(request: Request, session_id):
     if "description" in payload:
         session.set_metadata("description", payload["description"])
     return JSONResponse(content={"message": "Success"})
-
 
 @router.post("/session")
 async def create_session(request: Request):
