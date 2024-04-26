@@ -89,7 +89,7 @@ class Producer:
         # check if stream has BOS in the front
         data = r.xread(streams={s: 0}, count=1)
         has_bos = pydash.is_equal(
-            pydash.objects.get(data, f"0.1.0.1.label", None), "BOS"
+            pydash.objects.get(data, "0.1.0.1.label", None), "BOS"
         )
         if not has_bos:
             # add BOS (begin of stream)

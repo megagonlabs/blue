@@ -30,6 +30,7 @@ from tqdm import tqdm
 from agent import Agent
 from session import Session
 from producer import Producer
+from consumer import Consumer
 from rpc import RPCServer
 
 # set log level
@@ -58,6 +59,7 @@ class InteractiveAgent(Agent):
             processor=processor,
             properties=properties,
         )
+        self.event_stream_consumer = {}
 
     def default_processor(
         self,
@@ -114,10 +116,13 @@ class InteractiveAgent(Agent):
                         ],
                     },
                 }
-                event_stream = Producer(name="EVENT", properties=self.properties)
+                event_stream = Producer(
+                    name="EVENT_MESSAGE", properties=self.properties
+                )
                 event_stream.start()
                 self.stream_injection(interactive_form, event_stream.get_stream())
                 logging.info("EVENT_STREAM " + event_stream.get_stream())
+                self._start_event_stream_consumer(event_stream.get_stream())
                 return "INTERACTIVE", interactive_form, "json", False
         elif label == "BOS":
             # init stream to empty array
@@ -132,6 +137,21 @@ class InteractiveAgent(Agent):
                 worker.append_data(stream, data)
             # worker set stream data, key: first_name, value: rafael
         return None
+
+    def event_stream_listener(self, id, message):
+        # listen to event stream
+        logging.info({"name": "event_stream_listener", "id": id, "message": message})
+
+    def _start_event_stream_consumer(self, stream):
+        # start a consumer to listen to a event stream
+        event_consumer = Consumer(
+            "EVENT_CONSUMER",
+            stream,
+            listener=lambda id, message: self.event_stream_listener(id, message),
+            properties=self.properties,
+        )
+        self.event_stream_consumer[stream] = event_consumer
+        event_consumer.start()
 
     def stream_injection(self, form_element: dict, stream: str):
         if "uischema" in form_element:
