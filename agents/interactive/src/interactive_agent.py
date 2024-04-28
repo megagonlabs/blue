@@ -72,96 +72,81 @@ class InteractiveAgent(Agent):
         properties=None,
         worker=None,
     ):
-        if label == "EOS":
-            user_signal = ""
-            if worker:
-                user_signal = pydash.to_lower(" ".join(worker.get_data(stream)))
-            # compute and output to stream
-            if pydash.is_equal(user_signal, "knock knock"):
-                interactive_form = {
-                    "schema": {
-                        "type": "object",
-                        "properties": {"first_name": {"type": "string"}},
-                    },
-                    "uischema": {
-                        "type": "VerticalLayout",
-                        "elements": [
-                            {
-                                "type": "Label",
-                                "label": "Who's there?",
-                                "props": {
-                                    "large": True,
-                                    "style": {"marginBottom": 15, "fontSize": "15pt"},
-                                },
-                            },
-                            {
-                                "type": "HorizontalLayout",
-                                "elements": [
-                                    {
-                                        "type": "Control",
-                                        "label": "First Name",
-                                        "scope": "#/properties/first_name",
-                                    }
-                                ],
-                            },
-                            {
-                                "type": "Button",
-                                "label": "Done",
-                                "props": {
-                                    "intent": "success",
-                                    "nameId": "done",
-                                    "large": True,
-                                },
-                            },
-                        ],
-                    },
-                }
-                event_stream = Producer(
-                    name="EVENT_MESSAGE", properties=self.properties
-                )
-                event_stream.start()
-                self.stream_injection(interactive_form, event_stream.get_stream())
-                logging.info("EVENT_STREAM " + event_stream.get_stream())
-                self._start_event_stream_consumer(event_stream.get_stream())
-                return "INTERACTIVE", interactive_form, "json", False
-        elif label == "BOS":
-            # init stream to empty array
-            if worker:
-                worker.set_data(stream, [])
-            pass
-        elif label == "DATA":
-            # store data value
-            logging.info(data)
-
-            if worker:
-                worker.append_data(stream, data)
-            # worker set stream data, key: first_name, value: rafael
-        return None
-
-    def event_stream_listener(self, id, message):
-        # listen to event stream
-        logging.info({"name": "event_stream_listener", "id": id, "message": message})
-
-    def _start_event_stream_consumer(self, stream):
-        # start a consumer to listen to a event stream
-        event_consumer = Consumer(
-            "EVENT_CONSUMER",
-            stream,
-            listener=lambda id, message: self.event_stream_listener(id, message),
-            properties=self.properties,
-        )
-        self.event_stream_consumer[stream] = event_consumer
-        event_consumer.start()
-
-    def stream_injection(self, form_element: dict, stream: str):
-        if "uischema" in form_element:
-            self.stream_injection(form_element["uischema"], stream)
+        if stream.startswith("EVENT_MESSAGE:"):
+            if label == "DATA":
+                if worker:
+                    # get INTERACTIVE stream
+                    interactive_stream = stream[stream.rindex("INTERACTIVE") :]
+                    timestamp = worker.get_stream_data(
+                        interactive_stream, f'{data["name_id"]}.timestamp'
+                    )
+                    if timestamp is None or data["timestamp"] > timestamp:
+                        worker.set_stream_data(
+                            data["name_id"],
+                            {"value": data["message"], "timestamp": data["timestamp"]},
+                            interactive_stream,
+                        )
         else:
-            if "elements" in form_element:
-                for element in form_element["elements"]:
-                    self.stream_injection(element, stream)
-            elif pydash.includes(["Control", "Button"], form_element["type"]):
-                pydash.objects.set_(form_element, "props.streamId", stream)
+            if label == "EOS":
+                stream_message = ""
+                if worker:
+                    stream_message = pydash.to_lower(" ".join(worker.get_data(stream)))
+                # compute and output to stream
+                if pydash.is_equal(stream_message, "knock knock"):
+                    interactive_form = {
+                        "schema": {
+                            "type": "object",
+                            "properties": {"first_name": {"type": "string"}},
+                        },
+                        "uischema": {
+                            "type": "VerticalLayout",
+                            "elements": [
+                                {
+                                    "type": "Label",
+                                    "label": "Who's there?",
+                                    "props": {
+                                        "large": True,
+                                        "style": {
+                                            "marginBottom": 15,
+                                            "fontSize": "15pt",
+                                        },
+                                    },
+                                },
+                                {
+                                    "type": "HorizontalLayout",
+                                    "elements": [
+                                        {
+                                            "type": "Control",
+                                            "label": "First Name",
+                                            "scope": "#/properties/first_name",
+                                        }
+                                    ],
+                                },
+                                {
+                                    "type": "Button",
+                                    "label": "Done",
+                                    "props": {
+                                        "intent": "success",
+                                        "nameId": "done",
+                                        "large": True,
+                                    },
+                                },
+                            ],
+                        },
+                    }
+                    return "INTERACTIVE", interactive_form, "json", False
+            elif label == "BOS":
+                # init stream to empty array
+                if worker:
+                    worker.set_data(stream, [])
+                pass
+            elif label == "DATA":
+                # store data value
+                logging.info(data)
+
+                if worker:
+                    worker.append_data(stream, data)
+        return None
 
 
 if __name__ == "__main__":

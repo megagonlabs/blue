@@ -76,7 +76,8 @@ class ConnectionManager:
         event_stream = Producer(name="EVENT", sid=stream_id)
         event_stream.start()
         event_stream.write(
-            data={"message": message, "timestamp": timestamp}, dtype="json"
+            data={"name_id": name_id, "message": message, "timestamp": timestamp},
+            dtype="json",
         )
 
     async def observer_session_message(

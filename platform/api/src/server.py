@@ -9,6 +9,7 @@ import re
 from pathlib import Path
 
 from fastapi.responses import JSONResponse
+import pydash
 
 ##### Web / Sockets
 from ConnectionManager import ConnectionManager
@@ -158,7 +159,7 @@ async def websocket_endpoint(websocket: WebSocket):
                     json_data["stream_id"],
                     json_data["name_id"],
                     json_data["timestamp"],
-                    json_data["message"],
+                    pydash.objects.get(json_data, "message", None),
                 )
             elif json_data["type"] == "OBSERVER_SESSION_MESSAGE":
                 await connection_manager.observer_session_message(
