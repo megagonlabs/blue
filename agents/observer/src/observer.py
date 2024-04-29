@@ -115,7 +115,7 @@ class ObserverAgent(Agent):
             else:
                 if worker:
                     worker.append_data(stream, str(value))
-        elif label.startswith("INTERACTIVE"):
+        elif label == "INTERACTIVE":
             # interactive messages
             if "output" in properties and properties["output"] == "websocket":
                 ws = create_connection(properties["websocket"])

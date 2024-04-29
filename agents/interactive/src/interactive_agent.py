@@ -99,74 +99,78 @@ class InteractiveAgent(Agent):
                         interactive_stream_producer.start()
                         if not first_name_filled:
                             return (
-                                "INTERACTIVE_CALLOUT",
+                                "INTERACTIVE",
                                 {
-                                    "message": "First name cannot be empty.",
-                                    "intent": "warning",
+                                    "type": "CALLOUT",
+                                    "content": {
+                                        "message": "First name cannot be empty.",
+                                        "intent": "warning",
+                                    },
                                 },
                                 "json",
                                 False,
                             )
-                        elif first_name_filled and not last_name_filled:
+                        else:
                             interactive_stream_producer.write(
-                                label="INTERACTIVE_DONE",
-                                data={"form_id": data["form_id"]},
+                                label="INTERACTIVE",
+                                data={"type": "DONE", "form_id": data["form_id"]},
                                 dtype="json",
                             )
-                            interactive_form = {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {"last_name": {"type": "string"}},
-                                },
-                                "uischema": {
-                                    "type": "VerticalLayout",
-                                    "elements": [
-                                        {
-                                            "type": "Label",
-                                            "label": f"{first_name} who?",
-                                            "props": {
-                                                "large": True,
-                                                "style": {
-                                                    "marginBottom": 15,
-                                                    "fontSize": "15pt",
+                            if first_name_filled and not last_name_filled:
+                                interactive_form = {
+                                    "schema": {
+                                        "type": "object",
+                                        "properties": {"last_name": {"type": "string"}},
+                                    },
+                                    "uischema": {
+                                        "type": "VerticalLayout",
+                                        "elements": [
+                                            {
+                                                "type": "Label",
+                                                "label": f"{first_name} who?",
+                                                "props": {
+                                                    "large": True,
+                                                    "style": {
+                                                        "marginBottom": 15,
+                                                        "fontSize": "15pt",
+                                                    },
                                                 },
                                             },
-                                        },
-                                        {
-                                            "type": "HorizontalLayout",
-                                            "elements": [
-                                                {
-                                                    "type": "Control",
-                                                    "label": "Last Name",
-                                                    "scope": "#/properties/last_name",
-                                                }
-                                            ],
-                                        },
-                                        {
-                                            "type": "Button",
-                                            "label": "Done",
-                                            "props": {
-                                                "intent": "success",
-                                                "nameId": "DONE",
-                                                "large": True,
+                                            {
+                                                "type": "HorizontalLayout",
+                                                "elements": [
+                                                    {
+                                                        "type": "Control",
+                                                        "label": "Last Name",
+                                                        "scope": "#/properties/last_name",
+                                                    }
+                                                ],
                                             },
-                                        },
-                                    ],
-                                },
-                            }
-                            return "INTERACTIVE", interactive_form, "json", False
-                        elif first_name_filled and last_name_filled:
-                            interactive_stream_producer.write(
-                                label="INTERACTIVE_DONE",
-                                data={"form_id": data["form_id"]},
-                                dtype="json",
-                            )
-                            return (
-                                "DATA",
-                                f"Hello, {first_name} {last_name}.",
-                                "str",
-                                True,
-                            )
+                                            {
+                                                "type": "Button",
+                                                "label": "Done",
+                                                "props": {
+                                                    "intent": "success",
+                                                    "nameId": "DONE",
+                                                    "large": True,
+                                                },
+                                            },
+                                        ],
+                                    },
+                                }
+                                return (
+                                    "INTERACTIVE",
+                                    {"type": "UI", "content": interactive_form},
+                                    "json",
+                                    False,
+                                )
+                            elif first_name_filled and last_name_filled:
+                                return (
+                                    "DATA",
+                                    f"Hello, {first_name} {last_name}.",
+                                    "str",
+                                    True,
+                                )
                     else:
                         timestamp = worker.get_stream_data(
                             stream=interactive_stream,
@@ -229,7 +233,12 @@ class InteractiveAgent(Agent):
                             ],
                         },
                     }
-                    return "INTERACTIVE", interactive_form, "json", False
+                    return (
+                        "INTERACTIVE",
+                        {"type": "UI", "content": interactive_form},
+                        "json",
+                        False,
+                    )
             elif label == "BOS":
                 # init stream to empty array
                 if worker:

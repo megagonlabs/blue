@@ -89,9 +89,9 @@ export default function SessionMessages() {
                     <div ref={rowRef}>
                         {_.isEqual(messageType, "STRING") ? (
                             messageContent
-                        ) : _.startsWith(messageType, "INTERACTIVE") ? (
+                        ) : _.isEqual(messageType, "INTERACTIVE") ? (
                             <InteractiveMessage
-                                type={messageType}
+                                stream={messages[index].stream}
                                 setHasError={setHasError}
                                 content={messageContent}
                             />
