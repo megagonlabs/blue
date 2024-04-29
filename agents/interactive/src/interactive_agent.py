@@ -77,15 +77,110 @@ class InteractiveAgent(Agent):
                 if worker:
                     # get INTERACTIVE stream
                     interactive_stream = stream[stream.rindex("INTERACTIVE") :]
-                    timestamp = worker.get_stream_data(
-                        interactive_stream, f'{data["name_id"]}.timestamp'
-                    )
-                    if timestamp is None or data["timestamp"] > timestamp:
-                        worker.set_stream_data(
-                            data["name_id"],
-                            {"value": data["message"], "timestamp": data["timestamp"]},
-                            interactive_stream,
+                    # custom logic for when user is "DONE" with a form
+                    if data["name_id"] == "DONE":
+                        # check if first_name is set
+                        first_name = worker.get_stream_data(
+                            stream=interactive_stream, key="first_name.value"
                         )
+                        last_name = worker.get_stream_data(
+                            stream=interactive_stream, key="last_name.value"
+                        )
+                        first_name_filled = not pydash.is_empty(
+                            pydash.strings.trim(first_name)
+                        )
+                        last_name_filled = not pydash.is_empty(
+                            pydash.strings.trim(last_name)
+                        )
+                        # close previous form and send a new one asking for last_name
+                        interactive_stream_producer = Producer(
+                            name="INTERACTIVE", sid=interactive_stream
+                        )
+                        interactive_stream_producer.start()
+                        if not first_name_filled:
+                            return (
+                                "INTERACTIVE_CALLOUT",
+                                {
+                                    "message": "First name cannot be empty.",
+                                    "intent": "warning",
+                                },
+                                "json",
+                                False,
+                            )
+                        elif first_name_filled and not last_name_filled:
+                            interactive_stream_producer.write(
+                                label="INTERACTIVE_DONE",
+                                data={"form_id": data["form_id"]},
+                                dtype="json",
+                            )
+                            interactive_form = {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {"last_name": {"type": "string"}},
+                                },
+                                "uischema": {
+                                    "type": "VerticalLayout",
+                                    "elements": [
+                                        {
+                                            "type": "Label",
+                                            "label": f"{first_name} who?",
+                                            "props": {
+                                                "large": True,
+                                                "style": {
+                                                    "marginBottom": 15,
+                                                    "fontSize": "15pt",
+                                                },
+                                            },
+                                        },
+                                        {
+                                            "type": "HorizontalLayout",
+                                            "elements": [
+                                                {
+                                                    "type": "Control",
+                                                    "label": "Last Name",
+                                                    "scope": "#/properties/last_name",
+                                                }
+                                            ],
+                                        },
+                                        {
+                                            "type": "Button",
+                                            "label": "Done",
+                                            "props": {
+                                                "intent": "success",
+                                                "nameId": "DONE",
+                                                "large": True,
+                                            },
+                                        },
+                                    ],
+                                },
+                            }
+                            return "INTERACTIVE", interactive_form, "json", False
+                        elif first_name_filled and last_name_filled:
+                            interactive_stream_producer.write(
+                                label="INTERACTIVE_DONE",
+                                data={"form_id": data["form_id"]},
+                                dtype="json",
+                            )
+                            return (
+                                "DATA",
+                                f"Hello, {first_name} {last_name}.",
+                                "str",
+                                True,
+                            )
+                    else:
+                        timestamp = worker.get_stream_data(
+                            stream=interactive_stream,
+                            key=f'{data["name_id"]}.timestamp',
+                        )
+                        if timestamp is None or data["timestamp"] > timestamp:
+                            worker.set_stream_data(
+                                key=data["name_id"],
+                                value={
+                                    "value": data["value"],
+                                    "timestamp": data["timestamp"],
+                                },
+                                stream=interactive_stream,
+                            )
         else:
             if label == "EOS":
                 stream_message = ""
@@ -127,7 +222,7 @@ class InteractiveAgent(Agent):
                                     "label": "Done",
                                     "props": {
                                         "intent": "success",
-                                        "nameId": "done",
+                                        "nameId": "DONE",
                                         "large": True,
                                     },
                                 },

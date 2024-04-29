@@ -149,7 +149,8 @@ class Worker:
                     properties=self.properties,
                 )
                 event_stream.start()
-                self._stream_injection(result_data, event_stream.get_stream())
+                form_id = str(uuid.uuid4())
+                self._stream_injection(result_data, event_stream.get_stream(), form_id)
                 # start a consumer to listen to a event stream, using self.processor
                 event_consumer = Consumer(
                     self.name,
@@ -188,15 +189,16 @@ class Worker:
             consumer = self.consumers[stream]
             consumer.stop()
 
-    def _stream_injection(self, form_element: dict, stream: str):
+    def _stream_injection(self, form_element: dict, stream: str, form_id: str):
         if "uischema" in form_element:
-            self._stream_injection(form_element["uischema"], stream)
+            self._stream_injection(form_element["uischema"], stream, form_id)
         else:
             if "elements" in form_element:
                 for element in form_element["elements"]:
-                    self._stream_injection(element, stream)
+                    self._stream_injection(element, stream, form_id)
             elif pydash.includes(["Control", "Button"], form_element["type"]):
                 pydash.objects.set_(form_element, "props.streamId", stream)
+                pydash.objects.set_(form_element, "props.formId", form_id)
 
     def write(self, data, dtype=None, label="DATA", eos=True, split=None):
         # start producer on first write

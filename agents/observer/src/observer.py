@@ -115,8 +115,8 @@ class ObserverAgent(Agent):
             else:
                 if worker:
                     worker.append_data(stream, str(value))
-        elif label == "INTERACTIVE":
-            # interactive form
+        elif label.startswith("INTERACTIVE"):
+            # interactive messages
             if "output" in properties and properties["output"] == "websocket":
                 ws = create_connection(properties["websocket"])
                 ws.send(
@@ -125,7 +125,7 @@ class ObserverAgent(Agent):
                             "type": "OBSERVER_SESSION_MESSAGE",
                             "session_id": properties["session_id"],
                             "message": {
-                                "type": "INTERACTIVE",
+                                "type": label,
                                 "content": value,
                             },
                             "stream": stream,
@@ -161,8 +161,14 @@ if __name__ == "__main__":
 
     if args.serve:
         platform = args.platform
-        
-        af = AgentFactory(agent_class=ObserverAgent, agent_name=args.serve, agent_registry=args.registry, platform=platform, properties=properties)
+
+        af = AgentFactory(
+            agent_class=ObserverAgent,
+            agent_name=args.serve,
+            agent_registry=args.registry,
+            platform=platform,
+            properties=properties,
+        )
         af.wait()
     else:
         a = None

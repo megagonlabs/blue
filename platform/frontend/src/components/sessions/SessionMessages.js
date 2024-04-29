@@ -79,6 +79,7 @@ export default function SessionMessages() {
                     }
                     icon={null}
                     style={{
+                        backgroundColor: "rgba(143, 153, 168, 0.1)",
                         maxWidth: "min(802.2px, 100%)",
                         whiteSpace: "pre-wrap",
                         wordBreak: "break-all",
@@ -88,8 +89,9 @@ export default function SessionMessages() {
                     <div ref={rowRef}>
                         {_.isEqual(messageType, "STRING") ? (
                             messageContent
-                        ) : _.isEqual(messageType, "INTERACTIVE") ? (
+                        ) : _.startsWith(messageType, "INTERACTIVE") ? (
                             <InteractiveMessage
+                                type={messageType}
                                 setHasError={setHasError}
                                 content={messageContent}
                             />

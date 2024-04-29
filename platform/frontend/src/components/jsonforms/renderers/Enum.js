@@ -70,7 +70,8 @@ const EnumRenderer = ({
                                     "props.nameId",
                                     dataId
                                 ),
-                                message: value,
+                                form_id: _.get(uischema, "props.formId", null),
+                                value: value,
                                 timestamp: Date.now(),
                             })
                         );

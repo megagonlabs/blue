@@ -158,8 +158,9 @@ async def websocket_endpoint(websocket: WebSocket):
                 connection_manager.interactive_event_message(
                     json_data["stream_id"],
                     json_data["name_id"],
+                    json_data["form_id"],
                     json_data["timestamp"],
-                    pydash.objects.get(json_data, "message", None),
+                    pydash.objects.get(json_data, "value", None),
                 )
             elif json_data["type"] == "OBSERVER_SESSION_MESSAGE":
                 await connection_manager.observer_session_message(

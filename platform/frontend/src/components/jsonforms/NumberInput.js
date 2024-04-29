@@ -137,7 +137,8 @@ export default function NumberInput({
                     type: "INTERACTIVE_EVENT_MESSAGE",
                     stream_id: _.get(uischema, "props.streamId", null),
                     name_id: _.get(uischema, "props.nameId", dataId),
-                    message: _.toNumber(result),
+                    form_id: _.get(uischema, "props.formId", null),
+                    value: _.toNumber(result),
                     timestamp: Date.now(),
                 })
             );

@@ -28,7 +28,8 @@ const StringRenderer = ({ uischema, handleChange, path, data, required }) => {
                     type: "INTERACTIVE_EVENT_MESSAGE",
                     stream_id: _.get(uischema, "props.streamId", null),
                     name_id: _.get(uischema, "props.nameId", dataId),
-                    message: event.target.value,
+                    form_id: _.get(uischema, "props.formId", null),
+                    value: event.target.value,
                     timestamp: Date.now(),
                 })
             );

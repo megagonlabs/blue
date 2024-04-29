@@ -15,6 +15,7 @@ const ButtonRenderer = ({ uischema }) => {
                     type: "INTERACTIVE_EVENT_MESSAGE",
                     stream_id: _.get(uischema, "props.streamId", null),
                     name_id: _.get(uischema, "props.nameId", dataId),
+                    form_id: _.get(uischema, "props.formId", null),
                     timestamp: Date.now(),
                 })
             );
