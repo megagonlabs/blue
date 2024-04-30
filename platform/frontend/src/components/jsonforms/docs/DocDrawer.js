@@ -80,7 +80,7 @@ const MainMenuPanel = (props) => {
                         text={type.text}
                     />
                 ))}
-                <MenuDivider title="Schema" />
+                <MenuDivider title="Data Schema" />
                 <HTMLTable style={{ width: "100%" }}>
                     <thead>
                         <tr>

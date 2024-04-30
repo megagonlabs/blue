@@ -31,6 +31,7 @@ import {
     faBookOpenCover,
     faBracketsCurly,
     faCircleXmark,
+    faClipboard,
     faDownload,
     faIndent,
     faRotate,
@@ -138,7 +139,10 @@ function Designer() {
             _.set(result, "data", data);
         }
         copy(JSON.stringify(result));
-        AppToaster.show({ message: "Copied message configuration" });
+        AppToaster.show({
+            icon: faIcon({ icon: faClipboard }),
+            message: "Copied interactive message configuration",
+        });
     };
     const handleReset = () => {
         leftPaneRef.current.resize([50, 50]);
@@ -314,7 +318,7 @@ function Designer() {
                                                     : null
                                             }
                                             {...BUTTON_PROPS}
-                                            text="Schema"
+                                            text="Data Schema"
                                             onClick={() => {
                                                 leftPaneRef.current.resize([
                                                     187.5,

@@ -12,6 +12,7 @@ import {
 } from "@blueprintjs/core";
 import {
     faCircleDot,
+    faClipboard,
     faCopy,
     faPenField,
 } from "@fortawesome/pro-duotone-svg-icons";
@@ -106,6 +107,7 @@ export default function SessionRow({ index, style }) {
                         onClick={(event) => {
                             copy(sessionId);
                             AppToaster.show({
+                                icon: faIcon({ icon: faClipboard }),
                                 message: `Copied "${sessionId}"`,
                                 timeout: 2000,
                             });
