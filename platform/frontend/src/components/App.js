@@ -61,7 +61,7 @@ export default function App({ children }) {
                         src="/images/logo.png"
                         alt="Megagon Labs logo"
                     />
-                    <Link href="/">
+                    <Link className="no-link-decoration" href="/">
                         <NavbarHeading style={{ display: "flex" }}>
                             <H3 style={{ margin: "0px 10px 0px" }}>Blue</H3>
                             <Tag minimal intent={Intent.WARNING}>
