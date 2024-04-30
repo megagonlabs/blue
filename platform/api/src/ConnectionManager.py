@@ -107,15 +107,26 @@ class ConnectionManager:
                 print(ex)
 
     def disconnect(self, websocket: WebSocket):
-        id = self.find_connection_id(websocket)
-        del self.active_connections[id]
+        connection_id = self.find_connection_id(websocket)
+        del self.active_connections[connection_id]
         session_id_list = list(self.session_to_client.keys())
         for session_id in session_id_list:
             try:
-                pydash.objects.unset(self.session_to_client, [session_id, id])
+                PATH = [session_id, connection_id]
+                observer_agent = pydash.objects.get(
+                    self.session_to_client, PATH + ["observer"], None
+                )
+                user_agent = pydash.objects.get(
+                    self.session_to_client, PATH + ["user"], None
+                )
+                if observer_agent is not None:
+                    observer_agent.stop()
+                if user_agent is not None:
+                    user_agent.stop()
+                pydash.objects.unset(self.session_to_client, PATH)
             except Exception as ex:
                 print(ex)
-        return id
+        return connection_id
 
     def find_connection_id(self, websocket: WebSocket):
         key_list = list(self.active_connections.keys())
