@@ -2,7 +2,7 @@ import { JSONFORMS_RENDERERS } from "@/components/constant";
 import { AppContext } from "@/components/contexts/app-context";
 import { faIcon } from "@/components/icon";
 import { Callout, Intent, Tag } from "@blueprintjs/core";
-import { faUserCheck } from "@fortawesome/pro-duotone-svg-icons";
+import { faCheck } from "@fortawesome/pro-duotone-svg-icons";
 import { JsonForms } from "@jsonforms/react";
 import { vanillaCells } from "@jsonforms/vanilla-renderers";
 import _ from "lodash";
@@ -25,10 +25,10 @@ export default function InteractiveMessage({ stream, content, setHasError }) {
             <Tag
                 minimal
                 large
-                intent={Intent.PRIMARY}
-                icon={faIcon({ icon: faUserCheck })}
+                intent={Intent.SUCCESS}
+                icon={faIcon({ icon: faCheck })}
             >
-                Interactions terminated.
+                Interactions complete.
             </Tag>
         );
     } else if (_.isEqual(contentType, "CALLOUT")) {
