@@ -110,6 +110,7 @@ export default function App({ children }) {
                                     />
                                     <div style={{ marginTop: 20 }}>
                                         <Button
+                                            intent={Intent.WARNING}
                                             onClick={signOut}
                                             icon={faIcon({
                                                 icon: faArrowRightFromBracket,
@@ -142,6 +143,7 @@ export default function App({ children }) {
                                         width: 40,
                                         height: 40,
                                         marginTop: 4,
+                                        boxShadow: "none",
                                     }}
                                 >
                                     <Image

@@ -4,7 +4,7 @@ import os
 import sys
 
 
-###### 
+######
 import time
 import argparse
 import logging
@@ -32,8 +32,15 @@ from session import Session
 from worker import Worker
 
 
-class Agent():
-    def __init__(self, name="agent", session=None, input_stream=None, processor=None, properties={}):
+class Agent:
+    def __init__(
+        self,
+        name="agent",
+        session=None,
+        input_stream=None,
+        processor=None,
+        properties={},
+    ):
 
         self.name = name
 
@@ -41,12 +48,16 @@ class Agent():
 
         # override, if necessary
         if processor is not None:
-            self.processor = lambda *args, **kwargs: processor(*args, **kwargs, properties=self.properties)
+            self.processor = lambda *args, **kwargs: processor(
+                *args, **kwargs, properties=self.properties
+            )
         else:
-            self.processor = lambda *args, **kwargs: self.default_processor(*args, **kwargs, properties=self.properties)
+            self.processor = lambda *args, **kwargs: self.default_processor(
+                *args, **kwargs, properties=self.properties
+            )
 
         self.input_stream = input_stream
-        
+
         self.join_session(session)
 
         self.aggregate_producer_id = None
@@ -61,28 +72,26 @@ class Agent():
         self._initialize_properties()
         self._update_properties(properties=properties)
 
-
     def _initialize_properties(self):
         self.properties = {}
 
         # db connectivity
-        self.properties['db.host'] = 'localhost'
-        self.properties['db.port'] = 6379
+        self.properties["db.host"] = "localhost"
+        self.properties["db.port"] = 6379
 
         # aggregator (have a single producer for all workers)
-        self.properties['aggregator'] = False
-        self.properties['aggregator.eos'] = 'FIRST'
+        self.properties["aggregator"] = False
+        self.properties["aggregator.eos"] = "FIRST"
 
         ### include/exclude list of rules to listen to agents/tags
         listeners = {}
-        self.properties['listens'] = listeners
-        listeners['includes'] = ['.*']
-        listeners['excludes'] = [self.name]
+        self.properties["listens"] = listeners
+        listeners["includes"] = [".*"]
+        listeners["excludes"] = [self.name]
 
         ### default tags to tag output streams
         tags = []
-        self.properties['tags'] = tags
-
+        self.properties["tags"] = tags
 
     def _update_properties(self, properties=None):
         if properties is None:
@@ -94,8 +103,8 @@ class Agent():
 
     ###### database, data
     def _start_connection(self):
-        host = self.properties['db.host']
-        port = self.properties['db.port']
+        host = self.properties["db.host"]
+        port = self.properties["db.port"]
 
         # db connection
         logging.info("Starting connection to: " + host + ":" + str(port))
@@ -103,21 +112,43 @@ class Agent():
 
     ###### worker
     def create_worker(self, input_stream, tags=None, id=None):
-        if self.properties['aggregator']:
+        if self.properties["aggregator"]:
             # generate unique id for aggregate producer
             if self.aggregate_producer_id is None:
-                self.aggregate_producer_id = self.name + ":" + str(hex(uuid.uuid4().fields[0]))[2:]
+                self.aggregate_producer_id = (
+                    self.name + ":" + str(hex(uuid.uuid4().fields[0]))[2:]
+                )
             # if id not set use aggregate_producer
             if id is None:
                 id = self.aggregate_producer_id
-        
-        worker = Worker(self.name, input_stream, agent=self, id=id, processor=lambda *args, **kwargs: self.processor(*args, **kwargs, tags=tags), session=self.session, properties=self.properties)
-      
+
+        worker = Worker(
+            self.name,
+            input_stream,
+            agent=self,
+            id=id,
+            processor=lambda *args, **kwargs: self.processor(
+                *args, **kwargs, tags=tags
+            ),
+            session=self.session,
+            properties=self.properties,
+        )
+
         return worker
 
     ###### default processor, override
-    def default_processor(self, stream, id, label, data, dtype=None, tags=None, properties=None, worker=None):
-        logging.info('default processor: override')
+    def default_processor(
+        self,
+        stream,
+        id,
+        label,
+        data,
+        dtype=None,
+        tags=None,
+        properties=None,
+        worker=None,
+    ):
+        logging.info("default processor: override")
         logging.info(stream)
         logging.info(tags)
         logging.info(id)
@@ -130,14 +161,13 @@ class Agent():
     def start_session(self):
         # create a new session
         session = Session(properties=self.properties)
-        
+
         # set agent's session, start listening...
         self.join_session(session)
 
         # start consuming session stream
         self._start_session_consumer()
         return session
-
 
     def join_session(self, session):
         if type(session) == str:
@@ -146,42 +176,50 @@ class Agent():
         self.session = session
 
         if self.session:
-           self.session.add_agent(self)
+            self.session.add_agent(self)
 
     def leave_session(self):
         if self.session:
-           self.session.remove_agent(self)
+            self.session.remove_agent(self)
 
-
-
-    def session_listener(self, id, message):   
+    def session_listener(self, id, message):
         # listen to session stream
-       
-        label = message['label']
-       
-        if label == 'ADD':
-            data = json.loads(message['data'])
 
-            input_stream = data['stream']
-            tags = data['tags']
+        label = message["label"]
+
+        if label == "ADD":
+            data = json.loads(message["data"])
+
+            input_stream = data["stream"]
+            tags = data["tags"]
 
             # agent define what to listen to using include/exclude expressions
             logging.info("checking match.")
             matches = self._match_listen_to_tags(tags)
             logging.info("Done checking match.")
             if len(matches) == 0:
-                logging.info("Not listening to {stream} with {tags}...".format(stream=input_stream, tags=tags))
-                return 
+                logging.info(
+                    "Not listening to {stream} with {tags}...".format(
+                        stream=input_stream, tags=tags
+                    )
+                )
+                return
 
-            logging.info("Spawning worker for stream {stream} with matching tags {matches}...".format(stream=input_stream, matches=matches))
+            logging.info(
+                "Spawning worker for stream {stream} with matching tags {matches}...".format(
+                    stream=input_stream, matches=matches
+                )
+            )
             session_stream = self.session.get_stream()
 
             # create and start worker
             # TODO; pass tag to worker, with parameters
             worker = self.create_worker(input_stream, tags=matches)
             self.workers.append(worker)
-            
-            logging.info("Spawned worker for stream {stream}...".format(stream=input_stream))
+
+            logging.info(
+                "Spawned worker for stream {stream}...".format(stream=input_stream)
+            )
 
     # def _match_listen_to_tags(self, tags):
     #     matches = []
@@ -193,7 +231,6 @@ class Agent():
     #             p = re.compile(i)
     #             if p.match(tag):
     #                 matches.append(tag)
-        
 
     #     if len(matches) == 0:
     #         return matches
@@ -207,14 +244,14 @@ class Agent():
     #             if p.match(tag):
     #                 logging.info("Matched exclude rule: {rule}".format(rule=x))
     #                 return []
-       
+
     #     return matches
 
     def _match_listen_to_tags(self, tags):
         matches = set()
 
-        includes = self.properties['listens']['includes']
-        excludes = self.properties['listens']['excludes']
+        includes = self.properties["listens"]["includes"]
+        excludes = self.properties["listens"]["excludes"]
 
         logging.info("includes")
         for i in includes:
@@ -293,20 +330,19 @@ class Agent():
 
     def _start(self):
         self._start_connection()
-        
+
         # logging.info('Starting agent {name}'.format(name=self.name))
 
         # if agent is associated with a session
         if self.session:
             self._start_session_consumer()
-        # else if agent is dedicated to an input stream 
+        # else if agent is dedicated to an input stream
         elif self.input_stream:
             # create and start worker
             worker = self.create_worker(self.input_stream)
             self.workers.append(worker)
 
-        logging.info('Started agent {name}'.format(name=self.name))
-
+        logging.info("Started agent {name}".format(name=self.name))
 
     def _start_session_consumer(self):
         # start a consumer to listen to session stream
@@ -314,13 +350,17 @@ class Agent():
             session_stream = self.session.get_stream()
 
             if session_stream:
-                self.consumer = Consumer(self.name, session_stream, listener=lambda id, message : self.session_listener(id, message), properties=self.properties)
+                self.consumer = Consumer(
+                    self.name,
+                    session_stream,
+                    listener=lambda id, message: self.session_listener(id, message),
+                    properties=self.properties,
+                )
                 self.consumer.start()
 
-
     def stop(self):
-        # leave session 
-        self.leave_session
+        # leave session
+        self.leave_session()
 
         # send stop to each worker
         for w in self.workers:
@@ -332,9 +372,15 @@ class Agent():
             w.wait()
 
 
-
-class AgentFactory():
-    def __init__(self, agent_class=Agent, agent_name="Agent", agent_registry="default", platform="default", properties={}):
+class AgentFactory:
+    def __init__(
+        self,
+        agent_class=Agent,
+        agent_name="Agent",
+        agent_registry="default",
+        platform="default",
+        properties={},
+    ):
         self.agent_class = agent_class
         self.agent_name = agent_name
         self.agent_registry = agent_registry
@@ -352,14 +398,12 @@ class AgentFactory():
         self._initialize_properties()
         self._update_properties(properties=properties)
 
-
     def _initialize_properties(self):
         self.properties = {}
 
         # db connectivity
-        self.properties['db.host'] = 'localhost'
-        self.properties['db.port'] = 6379
-
+        self.properties["db.host"] = "localhost"
+        self.properties["db.port"] = 6379
 
     def _update_properties(self, properties=None):
         if properties is None:
@@ -368,11 +412,11 @@ class AgentFactory():
         # override
         for p in properties:
             self.properties[p] = properties[p]
-    
+
     ###### database, data
     def _start_connection(self):
-        host = self.properties['db.host']
-        port = self.properties['db.port']
+        host = self.properties["db.host"]
+        port = self.properties["db.port"]
 
         # db connection
         logging.info("Starting connection to: " + host + ":" + str(port))
@@ -384,46 +428,57 @@ class AgentFactory():
         klasse = self.agent_class
         instanz = klasse(**kwargs)
         return instanz
-    
+
     def _start(self):
         self._start_connection()
-    
+
         self._start_consumer()
-        logging.info('Started agent factory for agent: {name} in registry: {registry} on platform: {platform} '.format(name=self.agent_name, registry=self.agent_registry, platform=self.platform))
+        logging.info(
+            "Started agent factory for agent: {name} in registry: {registry} on platform: {platform} ".format(
+                name=self.agent_name,
+                registry=self.agent_registry,
+                platform=self.platform,
+            )
+        )
 
     def wait(self):
         self.consumer.wait()
 
     def _start_consumer(self):
         stream = self.platform + ":COM"
-        self.consumer = Consumer(self.agent_name+"Factory", stream, listener=lambda id, message : self.platform_listener(id, message), properties=self.properties)
+        self.consumer = Consumer(
+            self.agent_name + "Factory",
+            stream,
+            listener=lambda id, message: self.platform_listener(id, message),
+            properties=self.properties,
+        )
         self.consumer.start()
 
-    def platform_listener(self, id, message):   
+    def platform_listener(self, id, message):
         # listen to platform stream
-    
+
         logging.info("Processing: " + str(message))
 
-        label = message['label']
-       
-        if label == 'INSTRUCTION':
-            data = json.loads(message['data'])
+        label = message["label"]
 
-            code = data['code']
-            params = data['params']
+        if label == "INSTRUCTION":
+            data = json.loads(message["data"])
 
-            session = params['session']
-            registry = params['registry']
-            agent = params['agent']
-            properties = params['properties']
+            code = data["code"]
+            params = data["params"]
+
+            session = params["session"]
+            registry = params["registry"]
+            agent = params["agent"]
+            properties = params["properties"]
             input = None
 
-            if 'input' in properties:
-                input = properties['input']
+            if "input" in properties:
+                input = properties["input"]
 
             if self.agent_name == agent:
                 logging.info("Launching Agent: " + agent + "...")
-                
+
                 name = self.platform + ":" + registry + ":" + agent
                 a = self.create(name=name, session=session, properties=properties)
 
@@ -432,19 +487,20 @@ class AgentFactory():
                     a.interact(input)
                     logging.info("Interact: " + input)
 
+
 #######################
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--name', type=str, default='AGENT')
-    parser.add_argument('--input_stream', type=str, default='input')
-    parser.add_argument('--properties', type=str)
-    parser.add_argument('--loglevel', default="INFO", type=str)
-    parser.add_argument('--serve', type=str, default='AGENT')
-    parser.add_argument('--platform', type=str, default='default')
-    parser.add_argument('--registry', type=str, default='default')
- 
+    parser.add_argument("--name", type=str, default="AGENT")
+    parser.add_argument("--input_stream", type=str, default="input")
+    parser.add_argument("--properties", type=str)
+    parser.add_argument("--loglevel", default="INFO", type=str)
+    parser.add_argument("--serve", type=str, default="AGENT")
+    parser.add_argument("--platform", type=str, default="default")
+    parser.add_argument("--registry", type=str, default="default")
+
     args = parser.parse_args()
-   
+
     # set logging
     logging.getLogger().setLevel(args.loglevel.upper())
 
@@ -454,25 +510,30 @@ if __name__ == "__main__":
     if p:
         # decode json
         properties = json.loads(p)
-    
+
     if args.serve:
         platform = args.platform
-        
-        af = AgentFactory(agent_class=Agent, agent_name=args.serve, agent_registry=args.registry, platform=platform, properties=properties)
+
+        af = AgentFactory(
+            agent_class=Agent,
+            agent_name=args.serve,
+            agent_registry=args.registry,
+            platform=platform,
+            properties=properties,
+        )
         af.wait()
 
     else:
-        # sample func to process data from 
+        # sample func to process data from
         # return a value other than None
-        # to create a stream 
+        # to create a stream
         def processor(stream, id, label, data, dtype=None):
             logging.into(stream)
             logging.info(id)
             logging.info(label)
             logging.info(data)
-        
-            return None
 
+            return None
 
         # create an agent and then create a session, and add agents
         a = Agent(args.name, processor=processor, session=None, properties=properties)
@@ -480,6 +541,3 @@ if __name__ == "__main__":
 
         # optionally you can create an agent in a session directly
         b = Agent(args.name, processor=processor, session=s, properties=properties)
-
-  
-   
