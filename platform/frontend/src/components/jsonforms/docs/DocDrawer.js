@@ -59,6 +59,7 @@ const MainMenuPanel = (props) => {
         { text: "Number", icon: faInputNumeric },
         { text: "String", icon: faInputText },
     ];
+    const [openingPanel, setOpeningPanel] = useState(false);
     return (
         <div style={{ padding: 20 }}>
             <Menu large style={{ padding: 0 }}>
@@ -72,10 +73,15 @@ const MainMenuPanel = (props) => {
                             style: { marginRight: 10, marginLeft: 4 },
                         })}
                         onClick={() => {
+                            if (openingPanel) return;
+                            setOpeningPanel(true);
                             props.openPanel({
                                 props: { type: _.lowerCase(type.text) },
                                 renderPanel: RendererDetailPanel,
                             });
+                            setTimeout(() => {
+                                setOpeningPanel(false);
+                            }, 500);
                         }}
                         text={type.text}
                     />
