@@ -152,7 +152,7 @@ class Worker:
                 form_id = str(uuid.uuid4())
                 result_data["form_id"] = form_id
                 interactive_result_type = pydash.objects.get(result_data, "type", None)
-                if pydash.is_equal(interactive_result_type, "UI"):
+                if pydash.is_equal(interactive_result_type, "JSONFORM"):
                     self._stream_injection(
                         result_data["content"], event_stream.get_stream(), form_id
                     )

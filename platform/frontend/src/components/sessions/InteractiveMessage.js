@@ -41,7 +41,7 @@ export default function InteractiveMessage({ stream, content, setHasError }) {
             </Callout>
         );
     }
-    // contentType == "UI"
+    // contentType == "JSONFORM"
     return !error ? (
         <JsonForms
             schema={_.get(contentValue, "schema", {})}

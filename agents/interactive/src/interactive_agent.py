@@ -160,7 +160,7 @@ class InteractiveAgent(Agent):
                                 }
                                 return (
                                     "INTERACTIVE",
-                                    {"type": "UI", "content": interactive_form},
+                                    {"type": "JSONFORM", "content": interactive_form},
                                     "json",
                                     False,
                                 )
@@ -235,7 +235,7 @@ class InteractiveAgent(Agent):
                     }
                     return (
                         "INTERACTIVE",
-                        {"type": "UI", "content": interactive_form},
+                        {"type": "JSONFORM", "content": interactive_form},
                         "json",
                         False,
                     )
