@@ -169,6 +169,11 @@ export default function Sessions() {
         useState(false);
     const [isAddAgentsOpen, setIsAddAgentsOpen] = useState(false);
     const [skippable, setSkippable] = useState(false);
+    const sessionName = _.get(
+        appState,
+        ["session", "sessionDetail", sessionIdFocus, "name"],
+        sessionIdFocus
+    );
     useEffect(() => {
         if (appState.session.openAgentsDialogTrigger) {
             setIsCreatingSession(false);
@@ -442,17 +447,7 @@ export default function Sessions() {
                                 rightIcon={faIcon({ icon: faCaretDown })}
                                 text={
                                     <H4 style={{ margin: 0 }}>
-                                        #&nbsp;
-                                        {_.get(
-                                            appState,
-                                            [
-                                                "session",
-                                                "sessionDetail",
-                                                sessionIdFocus,
-                                                "name",
-                                            ],
-                                            sessionIdFocus
-                                        )}
+                                        #&nbsp;{sessionName}
                                     </H4>
                                 }
                             />
@@ -528,7 +523,7 @@ export default function Sessions() {
                                     paddingLeft: 50,
                                 }}
                                 value={message}
-                                placeholder={`Message @${sessionIdFocus}`}
+                                placeholder={`Message # ${sessionName}`}
                                 onChange={(event) => {
                                     setMessage(event.target.value);
                                 }}

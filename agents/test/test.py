@@ -5,7 +5,7 @@ sys.path.append('./lib/agent/')
 sys.path.append('./lib/platform/')
 sys.path.append('./lib/utils/')
 
-from agent import Agent
+from agent import Agent, AgentFactory
 from session import Session
 
 # create a user agent

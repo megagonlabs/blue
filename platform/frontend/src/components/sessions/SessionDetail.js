@@ -17,6 +17,7 @@ import { useContext, useEffect, useState } from "react";
 export default function SessionDetail({ isOpen, setIsSessionDetailOpen }) {
     const { appState, appActions } = useContext(AppContext);
     const sessionIdFocus = appState.session.sessionIdFocus;
+    const [allowQuickClose, setAllowQuickCloset] = useState(true);
     const [name, setName] = useState(
         _.get(
             appState,
@@ -41,6 +42,7 @@ export default function SessionDetail({ isOpen, setIsSessionDetailOpen }) {
         axios
             .put(`/sessions/session/${sessionIdFocus}`, payload)
             .then((response) => {
+                setAllowQuickCloset(true);
                 setLoading(false);
                 appActions.session.setSessionDetail([
                     {
@@ -50,6 +52,7 @@ export default function SessionDetail({ isOpen, setIsSessionDetailOpen }) {
                 ]);
             })
             .catch((error) => {
+                setAllowQuickCloset(true);
                 setLoading(false);
             });
     };
@@ -73,7 +76,7 @@ export default function SessionDetail({ isOpen, setIsSessionDetailOpen }) {
     return (
         <Dialog
             title={sessionIdFocus}
-            canOutsideClickClose={false}
+            canOutsideClickClose={allowQuickClose}
             onClose={() => {
                 if (loading) return;
                 setIsSessionDetailOpen(false);
@@ -93,13 +96,14 @@ export default function SessionDetail({ isOpen, setIsSessionDetailOpen }) {
                         active={_.isEqual(tab, "about")}
                     />
                 </Card>
-                <div style={{ padding: "20px 15px" }}>
+                <div style={{ padding: 15 }}>
                     <FormGroup label="Name">
                         <InputGroup
                             large
                             value={name}
                             onChange={(event) => {
                                 setName(event.target.value);
+                                setAllowQuickCloset(false);
                             }}
                         />
                     </FormGroup>
@@ -109,6 +113,7 @@ export default function SessionDetail({ isOpen, setIsSessionDetailOpen }) {
                             value={description}
                             onChange={(event) => {
                                 setDescription(event.target.value);
+                                setAllowQuickCloset(false);
                             }}
                         />
                     </FormGroup>

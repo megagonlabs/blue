@@ -52,7 +52,7 @@ export default function ButtonDoc({ closePanel }) {
                     </div>
                     {JSON.stringify(
                         {
-                            type: "Control",
+                            type: "Button",
                             label: "",
                             props: {
                                 large: false,
@@ -61,7 +61,6 @@ export default function ButtonDoc({ closePanel }) {
                                 style: {},
                                 nameId: null,
                             },
-                            scope: "",
                         },
                         null,
                         4

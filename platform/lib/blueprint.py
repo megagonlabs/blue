@@ -41,7 +41,7 @@ class Platform:
 
         self.name = name
 
-        self.id = "PLATFORM::" + self.name + "::0"
+        self.id = self.name + ":" + "COM"
 
         self._initialize(properties=properties)
 
@@ -109,6 +109,23 @@ class Platform:
 
         # TOOO: remove, stop all agents
 
+    def _send_message(self, code, params):
+        message = {
+            'code': code,
+            'params': params
+        }
+        self.producer.write(data=message, dtype="json", label="INSTRUCTION")
+        
+    def join_session(self, session, registry, agent, properties):
+        code = "JOIN_SESSION"
+        params = {
+            'session': session,
+            'registry': registry,
+            'agent': agent,
+            'properties': properties
+        }
+        self._send_message(code, params)
+    
     ###### OPERATIONS
     def _start_producer(self):
         # start, if not started

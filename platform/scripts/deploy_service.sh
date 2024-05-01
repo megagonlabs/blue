@@ -1,6 +1,6 @@
 #/bin/bash
 
-# USAGE: deploy_service --target localhost|swarm --platform platform --port_mapping port_mapping --name name --image image <positional arguments for service>
+# USAGE: deploy_service --target localhost|swarm --platform platform --port_mapping port_mapping --name name --image image <positional arguments for service> <additional key=value arguments>
 # if no arguments, use env variable as default
 
 # initialize positional args

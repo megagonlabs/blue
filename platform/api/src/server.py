@@ -42,6 +42,7 @@ allowed_origins = [
     "http://localhost",
     "http://localhost:3000",
     "https://blue.megagon.ai",
+    "https://staging.blue.megagon.ai",
 ]
 
 app = FastAPI()
@@ -57,7 +58,11 @@ app.connection_manager = connection_manager
 @app.middleware("http")
 async def session_verification(request: Request, call_next):
     session_cookie = request.cookies.get("session")
-    if request.method == "OPTIONS":
+    if request.method == "OPTIONS" or request.url.path in [
+        "/docs",
+        "/redoc",
+        "/openapi.json",
+    ]:
         return await call_next(request)
     if not session_cookie:
         if request.url.path not in ["/accounts/signin"]:

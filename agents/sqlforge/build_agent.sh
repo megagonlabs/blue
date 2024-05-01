@@ -15,4 +15,7 @@ mkdir -p lib/platform; cp -r ../../platform/lib/* lib/platform/
 # copy from utils shared lib
 mkdir -p lib/utils; cp -r ../../utils/lib/* lib/utils/
 
+# copy common requirements
+cp ../requirements.common.txt src/
+
 echo 'Done...'

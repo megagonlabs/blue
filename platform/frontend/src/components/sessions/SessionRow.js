@@ -79,7 +79,10 @@ export default function SessionRow({ index, style }) {
                 </H5>
                 <div
                     className={`${Classes.TEXT_OVERFLOW_ELLIPSIS} ${Classes.TEXT_MUTED}`}
-                    style={{ paddingRight: showActions ? 50 : 0 }}
+                    style={{
+                        paddingRight: showActions ? 50 : 0,
+                        lineHeight: "20px",
+                    }}
                 >
                     {_.isEmpty(sessionMessages) ? "-" : lastMessage}
                 </div>
