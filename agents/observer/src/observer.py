@@ -33,15 +33,18 @@ from rpc import RPCServer
 
 # set log level
 logging.getLogger().setLevel(logging.INFO)
-logging.basicConfig(format="%(asctime)s [%(levelname)s] [%(process)d:%(threadName)s:%(thread)d](%(filename)s:%(lineno)d) %(name)s -  %(message)s", level=logging.ERROR, datefmt="%Y-%m-%d %H:%M:%S")
-
+logging.basicConfig(
+    format="%(asctime)s [%(levelname)s] [%(process)d:%(threadName)s:%(thread)d](%(filename)s:%(lineno)d) %(name)s -  %(message)s",
+    level=logging.ERROR,
+    datefmt="%Y-%m-%d %H:%M:%S",
+)
 
 
 #######################
 class ObserverAgent(Agent):
     def __init__(self, **kwargs):
-        if 'name' not in kwargs:
-            kwargs['name'] = "OBSERVER"
+        if "name" not in kwargs:
+            kwargs["name"] = "OBSERVER"
         super().__init__(**kwargs)
 
     def default_processor(
@@ -63,7 +66,9 @@ class ObserverAgent(Agent):
             else:
                 if worker:
                     data = worker.get_data(stream)
-                    str_data = str(" ".join(data))
+                    str_data = ""
+                    if data is not None:
+                        str_data = str(" ".join(data))
                     if len(str_data.strip()) > 0:
                         if (
                             "output" in properties
@@ -110,12 +115,12 @@ class ObserverAgent(Agent):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--name", default="OBSERVER", type=str)
-    parser.add_argument('--session', type=str)
-    parser.add_argument('--properties', type=str)
-    parser.add_argument('--loglevel', default="INFO", type=str)
-    parser.add_argument('--serve', type=str, default='OBSERVER')
-    parser.add_argument('--platform', type=str, default='default')
-    parser.add_argument('--registry', type=str, default='default')
+    parser.add_argument("--session", type=str)
+    parser.add_argument("--properties", type=str)
+    parser.add_argument("--loglevel", default="INFO", type=str)
+    parser.add_argument("--serve", type=str, default="OBSERVER")
+    parser.add_argument("--platform", type=str, default="default")
+    parser.add_argument("--registry", type=str, default="default")
 
     args = parser.parse_args()
 
@@ -131,8 +136,14 @@ if __name__ == "__main__":
 
     if args.serve:
         platform = args.platform
-        
-        af = AgentFactory(agent_class=ObserverAgent, agent_name=args.serve, agent_registry=args.registry, platform=platform, properties=properties)
+
+        af = AgentFactory(
+            agent_class=ObserverAgent,
+            agent_name=args.serve,
+            agent_registry=args.registry,
+            platform=platform,
+            properties=properties,
+        )
         af.wait()
     else:
         a = None
