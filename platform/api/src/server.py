@@ -64,6 +64,7 @@ allowed_origins = [
     "http://localhost",
     "http://localhost:3000",
     "https://blue.megagon.ai",
+    "https://staging.blue.megagon.ai",
 ]
 
 app = FastAPI()
