@@ -3,6 +3,13 @@ from curses import noecho
 import os
 import sys
 
+###### Add lib path
+sys.path.append("./lib/")
+sys.path.append('./lib/agent_registry/')
+sys.path.append('./lib/data_registry/')
+sys.path.append("./lib/platform/")
+
+
 ###### Parsers, Formats, Utils
 import json
 import re
@@ -25,14 +32,29 @@ from firebase_admin import auth
 
 from fastapi.middleware.cors import CORSMiddleware
 
+###### Blue
+from session import Session
+from blueprint import Platform
+from agent_registry import AgentRegistry
+from rpc import RPCClient
+
 _VERSION_PATH = Path(__file__).parent / "version"
 version = Path(_VERSION_PATH).read_text().strip()
 print("blue-platform-api: " + version)
 
+
+
+
 ###### Properties
 PROPERTIES = os.getenv("BLUE__PROPERTIES")
 PROPERTIES = json.loads(PROPERTIES)
+
 print(str(PROPERTIES))
+platform_id=PROPERTIES['platform.name']
+
+## Create Platform
+p = Platform(id=platform_id,properties=PROPERTIES)
+
 
 ###  Get API server address from properties to white list
 api_server = PROPERTIES["api.server"]

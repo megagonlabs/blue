@@ -34,21 +34,38 @@ from session import Session
 
 
 class Platform:
-    def __init__(self, name=None, properties={}):
-
-        if name is None:
-            name = "default"
+    def __init__(self, name="PLATFORM", id=None, sid=None, cid=None, prefix=None, suffix=None, properties={}):
 
         self.name = name
+        if id:
+            self.id = id
+        else:
+            self.id = str(hex(uuid.uuid4().fields[0]))[2:]
 
-        self.id = self.name + ":" + "COM"
+        if sid:
+            self.sid = sid
+        else:
+            self.sid = self.name + ":" + self.id
+
+        self.prefix = prefix
+        self.suffix = suffix
+        self.cid = cid
+
+        if self.cid == None:
+            self.cid = self.sid
+
+            if self.prefix:
+                self.cid = self.prefix + ":" + self.cid
+            if self.suffix:
+                self.cid = self.cid + ":" + self.suffix
 
         self._initialize(properties=properties)
 
+        # platform stream
         self.producer = None
 
         self._start()
-
+    
     ###### INITIALIZATION
     def _initialize(self, properties=None):
         self._initialize_properties()
@@ -57,11 +74,10 @@ class Platform:
     def _initialize_properties(self):
         self.properties = {}
 
-        if "db.host" not in self.properties:
-            self.properties["db.host"] = "localhost"
+        # db connectivity
+        self.properties['db.host'] = 'localhost'
+        self.properties['db.port'] = 6379
 
-        if "db.port" not in self.properties:
-            self.properties["db.port"] = 6379
 
     def _update_properties(self, properties=None):
         if properties is None:
@@ -73,38 +89,45 @@ class Platform:
 
     ###### SESSION
     def get_sessions(self):
-        session_keys = self.connection.keys(pattern="*SESSION:*:DATA")
+        keys = self.connection.keys(pattern=self.cid + ":SESSION:*:DATA")
         result = []
-        for key in session_keys:
-            session_id = key[:-5]
-            session = self.get_session(session_id)
+        for key in keys:
+            session_cid = key[:-5]
+            session_sid = session_cid[len(self.sid)+1:]
+            session = self.get_session(session_sid)
             metadata = session.get_metadata()
             result.append(
                 {
-                    "id": session_id,
-                    "name": pydash.objects.get(metadata, "name", session_id),
+                    "id": session_sid,
+                    "name": pydash.objects.get(metadata, "name", session_sid),
                     "description": pydash.objects.get(metadata, "description", ""),
                 }
             )
         return result
 
-    def get_session(self, session_id):
-        session_keys = self.connection.keys(pattern="*SESSION:*")
-        if session_id in set(session_keys):
-            return Session(name=session_id, properties=self.properties)
+    def get_session(self, session_sid):
+        session_keys = self.connection.keys(pattern=self.cid + ":SESSION:*:DATA")
+        session_cid_data = self.cid + ":" + session_sid + ":" + "DATA"
+        if session_cid_data in set(session_keys):
+            return Session(sid=session_sid, prefix=self.cid, properties=self.properties)
         else:
             return None
 
     def create_session(self):
-        session = Session(properties=self.properties)
-        session_id = session.name
-        return {"id": session_id, "name": session_id, "description": ""}
+        session = Session(prefix=self.cid, properties=self.properties)
 
-    def delete_session(self, session_id):
+        return {"id": session.sid, "name": session.sid, "description": ""}
+
+    def delete_session(self, session_sid):
+        session_cid = self.cid + ":" + session_sid
+
         # delete session stream
-        self.connection.delete(session_id)
-        # delete session data
-        self.connection.delete(session_id + ":DATA")
+        self.connection.delete(session_cid + ":STREAM")
+
+        # delete session data, metadata
+        self.connection.delete(session_cid + ":DATA")
+        self.connection.delete(session_cid + ":METADATA")
+        
         # TODO: delete more
 
         # TOOO: remove, stop all agents
@@ -116,34 +139,76 @@ class Platform:
         }
         self.producer.write(data=message, dtype="json", label="INSTRUCTION")
         
-    def join_session(self, session, registry, agent, properties):
+    def join_session(self, session_sid, registry, agent, properties):
+
+        session_cid = self.cid + ":" + session_sid
         code = "JOIN_SESSION"
         params = {
-            'session': session,
+            'session': session_cid,
             'registry': registry,
             'agent': agent,
             'properties': properties
         }
+        
         self._send_message(code, params)
+    
+    ###### METADATA RELATED
+    def __get_json_value(self, value):
+        if value is None:
+            return None
+        if type(value) is list:
+            if len(value) == 0:
+                return None
+            else:
+                return value[0]
+        else:
+            return value
+        
+    def _init_metadata_namespace(self):
+        # create namespaces for any session common data, and stream-specific data
+        self.connection.json().set(
+            self._get_metadata_namespace(),
+            "$",
+            {
+            },
+            nx=True,
+        )
+
+    def _get_metadata_namespace(self):
+        return self.cid + ":METADATA"
+    
+    def set_metadata(self, key, value):
+        self.connection.json().set(
+            self._get_metadata_namespace(), "$." + key, value
+        )
+
+    def get_metadata(self, key=""):
+        value = self.connection.json().get(
+            self._get_metadata_namespace(),
+            Path("$" + ("" if pydash.is_empty(key) else ".") + key),
+        )
+        return self.__get_json_value(value)
     
     ###### OPERATIONS
     def _start_producer(self):
         # start, if not started
         if self.producer == None:
-            suffix = None
-            
-            producer = Producer(self.name, sid=self.id, suffix=suffix, properties=self.properties)
+            print(self.cid)
+            producer = Producer(sid="STREAM", prefix=self.cid, properties=self.properties)
             producer.start()
             self.producer = producer
 
     def _start(self):
-        # logging.info('Starting session {name}'.format(name=self.name))
+        # logging.info('Starting session {name}'.format(name=self.sid))
         self._start_connection()
+
+        # initialize platform metadata
+        self._init_metadata_namespace()
 
         # start platform communication stream
         self._start_producer()
 
-        logging.info('Started platform {name}'.format(name=self.name))
+        logging.info('Started platform {name}'.format(name=self.sid))
 
     def _start_connection(self):
         host = self.properties["db.host"]

@@ -37,9 +37,31 @@ from sentence_transformers import SentenceTransformer
  
 
 class Registry():
-    def __init__(self, name, properties={}):
+    def __init__(self, name="REGISTRY", id=None, sid=None, cid=None, prefix=None, suffix=None, properties={}):
 
         self.name = name
+        if id:
+            self.id = id
+        else:
+            self.id = str(hex(uuid.uuid4().fields[0]))[2:]
+
+        if sid:
+            self.sid = sid
+        else:
+            self.sid = self.name + ":" + self.id
+
+        self.prefix = prefix
+        self.suffix = suffix
+        self.cid = cid
+
+        if self.cid == None:
+            self.cid = self.sid
+
+            if self.prefix:
+                self.cid = self.prefix + ":" + self.cid
+            if self.suffix:
+                self.cid = self.cid + ":" + self.suffix
+
 
         self._initialize(properties=properties)
 
@@ -53,9 +75,6 @@ class Registry():
 
     def _initialize_properties(self):
         self.properties = {}
-
-        # registry type
-        self.properties['type'] = "default"
         
         # db connectivity
         self.properties['db.host'] = 'localhost'
@@ -84,7 +103,7 @@ class Registry():
         self.connection = redis.Redis(host=host, port=port, decode_responses=True)
 
     def _get_data_namespace(self):
-        return self.properties['type'] + "_REGISTRY" + ":" + self.name + ':DATA'
+        return self.cid + ':DATA'
 
     def __get_json_value(self, value, single=True):
         if value is None:
@@ -105,10 +124,10 @@ class Registry():
         self.connection.json().set(self._get_data_namespace(), '$', {'contents':{}}, nx=True)
 
     def _get_index_name(self):
-        return self.properties['type'] + "_" + self.name
+        return self.cid
 
     def _get_doc_prefix(self):
-        return self.properties['type'] + "_" + 'doc:'
+        return self.cid + ':INDEX'
 
     def _init_search_index(self):
 
@@ -568,7 +587,12 @@ class Registry():
 #######################
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--name', type=str, default='default', help='name of the registry')
+    parser.add_argument('--name', type=str, default='REGISTRY', help='name of the registry')
+    parser.add_argument('--id', type=str, default='default', help='id of the registry')
+    parser.add_argument('--sid', type=str, help='short id (sid) of the registry')
+    parser.add_argument('--cid', type=str, help='canonical id (cid) of the registry')
+    parser.add_argument('--prefix', type=str, help='prefix for the canonical id of the registry')
+    parser.add_argument('--suffix', type=str, help='suffix for the canonical id of the registry')
     parser.add_argument('--properties', type=str, help='properties in json format')
     parser.add_argument('--loglevel', default="INFO", type=str, help='log level')
     parser.add_argument('--add', type=str, default=None, help='json array of records to be add to the registry')
@@ -597,7 +621,7 @@ if __name__ == "__main__":
         properties = json.loads(p)
 
     # create a registry
-    registry = Registry(args.name, properties=properties)
+    registry = Registry(name=args.name, id=args.id, sid=args.sid, cid=args.cid, prefix=args.prefix, suffix=args.suffix, properties=properties)
 
     #### LIST
     if args.list:

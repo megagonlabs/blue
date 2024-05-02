@@ -52,8 +52,10 @@ logging.basicConfig(format="%(asctime)s [%(levelname)s] [%(process)d:%(threadNam
 # and lastly agent d will take results from b and c to produce it's results
 #
 class PlannerAgent(Agent):
-    def __init__(self, name="PLANNER", session=None, input_stream=None, processor=None, properties={}):
-        super().__init__(name=name, session=session, input_stream=input_stream, processor=processor, properties=properties)
+    def __init__(self, **kwargs):
+        if 'name' not in kwargs:
+            kwargs['name'] = "PLANNER"
+        super().__init__(**kwargs)
 
         self.initialize_plan()
 
@@ -219,9 +221,10 @@ class PlannerAgent(Agent):
         return None
 
 class AgentA(Agent):
-    def __init__(self, session=None, input_stream=None, processor=None, properties={}):
-        super().__init__("A", session=session, input_stream=input_stream, processor=processor, properties=properties)
-
+    def __init__(self, **kwargs):
+        if 'name' not in kwargs:
+            kwargs['name'] = "A"
+        super().__init__(**kwargs)
    
     def default_processor(self, stream, id, label, data, dtype=None, properties=None, worker=None):
         if label == 'INSTRUCTION':
@@ -263,9 +266,10 @@ class AgentA(Agent):
 
 
 class AgentB(Agent):
-    def __init__(self, session=None, input_stream=None, processor=None, properties={}):
-        super().__init__("B", session=session, input_stream=input_stream, processor=processor, properties=properties)
-
+    def __init__(self, **kwargs):
+        if 'name' not in kwargs:
+            kwargs['name'] = "B"
+        super().__init__(**kwargs)
    
     def default_processor(self, stream, id, label, data, dtype=None, properties=None, worker=None):
         if label == 'INSTRUCTION':
@@ -309,10 +313,9 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--name', default="PLANNER", type=str)
     parser.add_argument('--session', type=str)
-    parser.add_argument('--input_stream', type=str)
     parser.add_argument('--properties', type=str)
     parser.add_argument('--loglevel', default="INFO", type=str)
-    parser.add_argument('--serve', type=str, default='PLANNER')
+    parser.add_argument('--serve', type=str, default='USER')
     parser.add_argument('--platform', type=str, default='default')
     parser.add_argument('--registry', type=str, default='default')
  
@@ -336,13 +339,11 @@ if __name__ == "__main__":
     else:
         a = None
         session = None
+
         if args.session:
             # join an existing session
             session = Session(args.session)
             a = PlannerAgent(name=args.name, session=session, properties=properties)
-        elif args.input_stream:
-            # no session, work on a single input stream
-            a = PlannerAgent(name=args.name, input_stream=args.input_stream, properties=properties)
         else:
             # create a new session
             a = PlannerAgent(name=args.name, properties=properties)

@@ -41,8 +41,10 @@ logging.basicConfig(format="%(asctime)s [%(levelname)s] [%(process)d:%(threadNam
 
 
 class APIAgent(Agent):
-    def __init__(self, name="API", session=None, input_stream=None, processor=None, properties={}):
-        super().__init__(name=name, session=session, input_stream=input_stream, processor=processor, properties=properties)
+    def __init__(self, **kwargs):
+        if 'name' not in kwargs:
+            kwargs['name'] = "API"
+        super().__init__(**kwargs)
 
     def _initialize_properties(self):
         super()._initialize_properties()
@@ -199,13 +201,12 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--name', default="API", type=str)
     parser.add_argument('--session', type=str)
-    parser.add_argument('--input_stream', type=str)
     parser.add_argument('--properties', type=str)
     parser.add_argument('--loglevel', default="INFO", type=str)
     parser.add_argument('--serve', type=str, default='API')
     parser.add_argument('--platform', type=str, default='default')
     parser.add_argument('--registry', type=str, default='default')
- 
+
     args = parser.parse_args()
    
     # set logging
@@ -226,13 +227,11 @@ if __name__ == "__main__":
     else:
         a = None
         session = None
+
         if args.session:
             # join an existing session
             session = Session(args.session)
             a = APIAgent(name=args.name, session=session, properties=properties)
-        elif args.input_stream:
-            # no session, work on a single input stream
-            a = APIAgent(name=args.name, input_stream=args.input_stream, properties=properties)
         else:
             # create a new session
             a = APIAgent(name=args.name, properties=properties)

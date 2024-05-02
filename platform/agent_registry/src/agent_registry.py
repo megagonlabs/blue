@@ -41,18 +41,15 @@ from registry import Registry
 
 
 class AgentRegistry(Registry):
-    def __init__(self, name, properties={}):
-        super().__init__(name, properties=properties)
-       
+    def __init__(self, name="AGENT_REGISTRY", id=None, sid=None, cid=None, prefix=None, suffix=None, properties={}):
+        super().__init__(name=name, id=id, sid=sid, cid=cid, prefix=prefix, suffix=suffix, properties=properties)
+        
 
     ###### initialization
 
 
     def _initialize_properties(self):
         super()._initialize_properties()
-
-        # registry type
-        self.properties['type'] = "agent"
 
     ######### agent
     def add_agent(self, agent, description="", properties={}, rebuild=False):
@@ -149,7 +146,12 @@ class AgentRegistry(Registry):
 #######################
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--name', type=str, default='default', help='name of the agent registry')
+    parser.add_argument('--name', type=str, default='AGENT_REGISTRY', help='name of the registry')
+    parser.add_argument('--id', type=str, default='default', help='id of the registry')
+    parser.add_argument('--sid', type=str, help='short id (sid) of the registry')
+    parser.add_argument('--cid', type=str, help='canonical id (cid) of the registry')
+    parser.add_argument('--prefix', type=str, help='prefix for the canonical id of the registry')
+    parser.add_argument('--suffix', type=str, help='suffix for the canonical id of the registry')
     parser.add_argument('--properties', type=str, help='properties in json format')
     parser.add_argument('--loglevel', default="INFO", type=str, help='log level')
     parser.add_argument('--add', type=str, default=None, help='json array of agents to be add to the registry')
@@ -178,7 +180,7 @@ if __name__ == "__main__":
         properties = json.loads(p)
 
     # create a registry
-    registry = AgentRegistry(args.name, properties=properties)
+    registry = AgentRegistry(name=args.name, id=args.id, sid=args.sid, cid=args.cid, prefix=args.prefix, suffix=args.suffix, properties=properties)
 
     #### LIST
     if args.list:

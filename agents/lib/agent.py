@@ -33,9 +33,31 @@ from worker import Worker
 
 
 class Agent():
-    def __init__(self, name="agent", session=None, input_stream=None, processor=None, properties={}):
+    def __init__(self, name="AGENT", id=None, sid=None, cid=None, prefix=None, suffix=None, session=None, processor=None, properties={}):
 
         self.name = name
+        if id:
+            self.id = id
+        else:
+            self.id = str(hex(uuid.uuid4().fields[0]))[2:]
+
+        if sid:
+            self.sid = sid
+        else:
+            self.sid = self.name + ":" + self.id
+
+        self.prefix = prefix
+        self.suffix = suffix
+        self.cid = cid
+
+        if self.cid == None:
+            self.cid = self.sid
+
+            if self.prefix:
+                self.cid = self.prefix + ":" + self.cid
+            if self.suffix:
+                self.cid = self.cid + ":" + self.suffix
+
 
         self._initialize(properties=properties)
 
@@ -44,8 +66,6 @@ class Agent():
             self.processor = lambda *args, **kwargs: processor(*args, **kwargs, properties=self.properties)
         else:
             self.processor = lambda *args, **kwargs: self.default_processor(*args, **kwargs, properties=self.properties)
-
-        self.input_stream = input_stream
         
         self.join_session(session)
 
@@ -103,15 +123,16 @@ class Agent():
 
     ###### worker
     def create_worker(self, input_stream, tags=None, id=None):
-        if self.properties['aggregator']:
-            # generate unique id for aggregate producer
-            if self.aggregate_producer_id is None:
-                self.aggregate_producer_id = self.name + ":" + str(hex(uuid.uuid4().fields[0]))[2:]
-            # if id not set use aggregate_producer
-            if id is None:
-                id = self.aggregate_producer_id
+        # TODO: REVISE AS PART OF MI/MO 
+        # if self.properties['aggregator']:
+        #     # generate unique id for aggregate producer
+        #     if self.aggregate_producer_id is None:
+        #         self.aggregate_producer_id = self.name + ":" + str(hex(uuid.uuid4().fields[0]))[2:]
+        #     # if id not set use aggregate_producer
+        #     if id is None:
+        #         id = self.aggregate_producer_id
         
-        worker = Worker(self.name, input_stream, agent=self, id=id, processor=lambda *args, **kwargs: self.processor(*args, **kwargs, tags=tags), session=self.session, properties=self.properties)
+        worker = Worker(input_stream, prefix=self.cid, agent=self, processor=lambda *args, **kwargs: self.processor(*args, **kwargs, tags=tags), session=self.session, properties=self.properties)
       
         return worker
 
@@ -126,22 +147,10 @@ class Agent():
         logging.info(properties)
         logging.info(worker)
 
-    ###### sesion
-    def start_session(self):
-        # create a new session
-        session = Session(properties=self.properties)
-        
-        # set agent's session, start listening...
-        self.join_session(session)
-
-        # start consuming session stream
-        self._start_session_consumer()
-        return session
-
-
+    ###### session
     def join_session(self, session):
         if type(session) == str:
-            session = Session(name=session, properties=self.properties)
+            session = Session(cid=session, properties=self.properties)
 
         self.session = session
 
@@ -183,32 +192,6 @@ class Agent():
             
             logging.info("Spawned worker for stream {stream}...".format(stream=input_stream))
 
-    # def _match_listen_to_tags(self, tags):
-    #     matches = []
-    #     # process includes for each tag
-    #     for tag in tags:
-
-    #         includes = self.properties['listens']['includes']
-    #         for i in includes:
-    #             p = re.compile(i)
-    #             if p.match(tag):
-    #                 matches.append(tag)
-        
-
-    #     if len(matches) == 0:
-    #         return matches
-
-    #     # process excludes for each tag
-    #     for tag in tags:
-
-    #         excludes = self.properties['listens']['excludes']
-    #         for x in excludes:
-    #             p = re.compile(x)
-    #             if p.match(tag):
-    #                 logging.info("Matched exclude rule: {rule}".format(rule=x))
-    #                 return []
-       
-    #     return matches
 
     def _match_listen_to_tags(self, tags):
         matches = set()
@@ -283,7 +266,8 @@ class Agent():
 
     def interact(self, data):
         if self.session is None:
-            self.start_session()
+            logging.error("No current session to interact with.")
+            return
 
         # create worker to emit data for session
         worker = self.create_worker(None)
@@ -299,11 +283,6 @@ class Agent():
         # if agent is associated with a session
         if self.session:
             self._start_session_consumer()
-        # else if agent is dedicated to an input stream 
-        elif self.input_stream:
-            # create and start worker
-            worker = self.create_worker(self.input_stream)
-            self.workers.append(worker)
 
         logging.info('Started agent {name}'.format(name=self.name))
 
@@ -314,7 +293,7 @@ class Agent():
             session_stream = self.session.get_stream()
 
             if session_stream:
-                self.consumer = Consumer(self.name, session_stream, listener=lambda id, message : self.session_listener(id, message), properties=self.properties)
+                self.consumer = Consumer(session_stream, name=self.name, listener=lambda id, message : self.session_listener(id, message), properties=self.properties)
                 self.consumer.start()
 
 
@@ -395,8 +374,9 @@ class AgentFactory():
         self.consumer.wait()
 
     def _start_consumer(self):
-        stream = self.platform + ":COM"
-        self.consumer = Consumer(self.agent_name+"Factory", stream, listener=lambda id, message : self.platform_listener(id, message), properties=self.properties)
+        # platform stream
+        stream = "PLATFORM:" + self.platform + ":STREAM"
+        self.consumer = Consumer(stream, name=self.agent_name+"FACTORY", listener=lambda id, message : self.platform_listener(id, message), properties=self.properties)
         self.consumer.start()
 
     def platform_listener(self, id, message):   
@@ -424,8 +404,9 @@ class AgentFactory():
             if self.agent_name == agent:
                 logging.info("Launching Agent: " + agent + "...")
                 
-                name = self.platform + ":" + registry + ":" + agent
-                a = self.create(name=name, session=session, properties=properties)
+                name = agent
+                prefix = session + ":" + "AGENTS"
+                a = self.create(name=name, prefix=prefix, session=session, properties=properties)
 
                 logging.info("Joined session: " + session)
                 if input:

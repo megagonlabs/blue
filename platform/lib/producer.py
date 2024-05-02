@@ -31,29 +31,47 @@ logging.basicConfig(format="%(asctime)s [%(levelname)s] [%(process)d:%(threadNam
 
 
 class Producer():
-    def __init__(self, name, suffix=None, sid=None, properties={}):
+    def __init__(self, name="STREAM", id=None, sid=None, cid=None, prefix=None, suffix=None,  properties={}):
 
         self.name = name
+        if id:
+            self.id = id
+        else:
+            self.id = str(hex(uuid.uuid4().fields[0]))[2:]
 
+        if sid:
+            self.sid = sid
+        else:
+            self.sid = self.name + ":" + self.id
+
+        self.prefix = prefix
+        self.suffix = suffix
+        self.cid = cid
+
+        if self.cid == None:
+            self.cid = self.sid
+
+            if self.prefix:
+                self.cid = self.prefix + ":" + self.cid
+            if self.suffix:
+                self.cid = self.cid + ":" + self.suffix
+    
         self._initialize(properties=properties)
 
-        if sid is None:
-            self.stream = self.name + ":" + str(hex(uuid.uuid4().fields[0]))[2:]
-        else:
-            self.stream = str(sid)
 
-        if suffix:
-            self.stream += "-" + str(suffix)
+    ###### INITIALIZATION
+    def _initialize(self, properties=None):
+        self._initialize_properties()
+        self._update_properties(properties=properties)
 
-
-
-    ###### initialization
     def _initialize(self, properties=None):
         self._initialize_properties()
         self._update_properties(properties=properties)
 
     def _initialize_properties(self):
         self.properties = {}
+
+        # db connectivity
         self.properties['db.host'] = 'localhost'
         self.properties['db.port'] = 6379
 
@@ -68,23 +86,23 @@ class Producer():
 
     ####### open connection, create group, start threads
     def start(self):
-        # logging.info("Starting producer {p}".format(p=self.name))
+        # logging.info("Starting producer {p}".format(p=self.sid))
         self._start_connection()
 
         self._start_stream()
-        logging.info("Started producer {p}".format(p=self.name))
+        logging.info("Started producer {p}".format(p=self.sid))
 
 
     def _start_connection(self):
         host = self.properties['db.host']
         port = self.properties['db.port']
 
-        logging.info("PRODUCE START....." + host)
+        logging.info("PRODUCER START....." + host)
         self.connection = redis.Redis(host=host, port=port, decode_responses=True)
 
     def _start_stream(self):
-        # start strea by adding BOS 
-        s = self.stream
+        # start stream by adding BOS 
+        s = self.cid
         r = self.connection
 
         # add BOS (begin of stream)
@@ -93,11 +111,11 @@ class Producer():
         self._print_stream_info()
 
     def _print_stream_info(self):
-        s = self.stream
+        s = self.cid
         r = self.connection
 
     def get_stream(self):
-        return self.stream
+        return self.cid
 
     # stream 
     def write(self, data=None, dtype="str", label="DATA", eos=False, split=None):
@@ -159,13 +177,13 @@ class Producer():
             return {"label": label, "data": data, "type": dtype}
 
     def _write_message_to_stream(self, message):
-        # logging.info("Streaming into {s} message {m}".format(s=self.stream, m=str(message)))
-        self.connection.xadd(self.stream, message)
-        logging.info("Streamed into {s} message {m}".format(s=self.stream, m=str(message)))
+        # logging.info("Streaming into {s} message {m}".format(s=self.sid, m=str(message)))
+        self.connection.xadd(self.cid, message)
+        logging.info("Streamed into {s} message {m}".format(s=self.sid, m=str(message)))
 
     def read_all(self):
-        sl = self.connection.xlen(self.stream)
-        m = self.connection.xread(streams={self.stream:'0'}, count=sl, block=200)
+        sl = self.connection.xlen(self.cid)
+        m = self.connection.xread(streams={self.cid:'0'}, count=sl, block=200)
         messages = []
         e = m[0]
         s = e[0]
