@@ -80,6 +80,8 @@ def add_agent_to_session(
     properties: JSONObject,
     input: Union[str, None] = None,
 ):
+    time.sleep(2)
+    return JSONResponse(content={"result": "", "message": "Success"})
     platform = Platform(properties=PROPERTIES)
     session = platform.get_session(session_id)
 
@@ -109,6 +111,7 @@ def add_agent_to_session(
 #     result = ""
 #     return JSONResponse(content={"result": result, "message": "Success"})
 
+
 @router.put("/session/{session_id}")
 async def update_session(request: Request, session_id):
     payload = await request.json()
@@ -128,6 +131,7 @@ async def update_session(request: Request, session_id):
     if "description" in payload:
         session.set_metadata("description", payload["description"])
     return JSONResponse(content={"message": "Success"})
+
 
 @router.post("/session")
 async def create_session(request: Request):

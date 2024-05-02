@@ -130,6 +130,46 @@ async def signin(request: Request):
         return ERROR_RESPONSE
 
 
+@router.post("/signin/cli")
+async def signin_cli(request: Request):
+    payload = await request.json()
+    id_token = pydash.objects.get(payload, "id_token", "")
+    ERROR_RESPONSE = JSONResponse(
+        content={"message": "Failed to create a session cookie"},
+        status_code=401,
+    )
+    if pydash.is_empty(id_token):
+        return JSONResponse(
+            content={
+                "message": "Illegal ID token provided: ID token must be a non-empty string."
+            },
+            status_code=401,
+        )
+    try:
+        decoded_claims = auth.verify_id_token(id_token)
+        email = decoded_claims["email"]
+        email_domain = re.search(EMAIL_DOMAIN_ADDRESS_REGEXP, email).group(1)
+        if email_domain not in allowed_domains:
+            return JSONResponse(
+                content={"message": "Invalid email domain"},
+                status_code=401,
+            )
+        if time.time() - decoded_claims["auth_time"] < 5 * 60:
+            expires_in = datetime.timedelta(days=14)
+            session_cookie = auth.create_session_cookie(id_token, expires_in=expires_in)
+            return JSONResponse(content={"cookie": session_cookie})
+        return ERROR_RESPONSE
+    except auth.InvalidIdTokenError:
+        return JSONResponse(
+            content={
+                "message": "The provided ID token is not a valid Firebase ID token."
+            },
+            status_code=401,
+        )
+    except exceptions.FirebaseError:
+        return ERROR_RESPONSE
+
+
 @router.get("/profile")
 def get_profile(request: Request):
     return JSONResponse(content={"result": request.state.user, "message": "Success"})

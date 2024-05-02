@@ -65,7 +65,7 @@ async def session_verification(request: Request, call_next):
     ]:
         return await call_next(request)
     if not session_cookie:
-        if request.url.path not in ["/accounts/signin"]:
+        if not request.url.path.startswith("/accounts/signin"):
             # Session cookie is unavailable. Force user to login.
             return JSONResponse(
                 status_code=400,

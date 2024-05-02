@@ -69,7 +69,7 @@ export default function Index() {
     const [ws, setWs] = useState(null);
     useEffect(() => {
         setLoading(true);
-        const server = "localhost:52236";
+        const server = "localhost:25831";
         const socket = new WebSocket(`ws://${server}`);
         socket.onopen = () => {
             setLoading(false);
@@ -122,6 +122,7 @@ export default function Index() {
                             id_token: idToken,
                         })
                         .then((response) => {
+                            console.log(response);
                             setPopupOpen(false);
                         })
                         .catch((error) => {
@@ -156,7 +157,7 @@ export default function Index() {
                     enforceFocus
                     style={{ maxWidth: 300, backgroundColor: Colors.WHITE }}
                     isCloseButtonShown={false}
-                    title="Blue"
+                    title="Blue CLI"
                     isOpen
                 >
                     {_.isNil(ws) ? (
