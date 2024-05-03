@@ -22,8 +22,6 @@ class APIRouter(FastAPIRouter):
             add_trailing_slash_path(func)
             return add_nontrailing_slash_path(func)
 
-        return (
-            add_trailing_slash_path
-            if given_path == "/"
-            else add_path_and_trailing_slash
-        )
+        if given_path == "/" and self.prefix == "":
+            return add_trailing_slash_path
+        return add_path_and_trailing_slash
