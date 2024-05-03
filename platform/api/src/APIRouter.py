@@ -7,20 +7,23 @@ class APIRouter(FastAPIRouter):
     def api_route(
         self, path: str, *, include_in_schema: bool = True, **kwargs: Any
     ) -> Callable[[DecoratedCallable], DecoratedCallable]:
-        if path.endswith("/"):
-            path = path[:-1]
+        given_path = path
+        path_no_slash = given_path[:-1] if given_path.endswith("/") else given_path
 
-        add_path = super().api_route(
-            path, include_in_schema=include_in_schema, **kwargs
+        add_nontrailing_slash_path = super().api_route(
+            path_no_slash, include_in_schema=include_in_schema, **kwargs
         )
 
-        alternate_path = path + "/"
-        add_alternate_path = super().api_route(
-            alternate_path, include_in_schema=False, **kwargs
+        add_trailing_slash_path = super().api_route(
+            path_no_slash + "/", include_in_schema=False, **kwargs
         )
 
-        def decorator(func: DecoratedCallable) -> DecoratedCallable:
-            add_alternate_path(func)
-            return add_path(func)
+        def add_path_and_trailing_slash(func: DecoratedCallable) -> DecoratedCallable:
+            add_trailing_slash_path(func)
+            return add_nontrailing_slash_path(func)
 
-        return decorator
+        return (
+            add_trailing_slash_path
+            if given_path == "/"
+            else add_path_and_trailing_slash
+        )
