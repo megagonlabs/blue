@@ -5,8 +5,8 @@ import sys
 
 ###### Add lib path
 sys.path.append("./lib/")
-sys.path.append('./lib/agent_registry/')
-sys.path.append('./lib/data_registry/')
+sys.path.append("./lib/agent_registry/")
+sys.path.append("./lib/data_registry/")
 sys.path.append("./lib/platform/")
 
 
@@ -43,17 +43,15 @@ version = Path(_VERSION_PATH).read_text().strip()
 print("blue-platform-api: " + version)
 
 
-
-
 ###### Properties
 PROPERTIES = os.getenv("BLUE__PROPERTIES")
 PROPERTIES = json.loads(PROPERTIES)
 
 print(str(PROPERTIES))
-platform_id=PROPERTIES['platform.name']
+platform_id = PROPERTIES["platform.name"]
 
 ## Create Platform
-p = Platform(id=platform_id,properties=PROPERTIES)
+p = Platform(id=platform_id, properties=PROPERTIES)
 
 
 ###  Get API server address from properties to white list
@@ -61,7 +59,6 @@ api_server = PROPERTIES["api.server"]
 api_server_host = ":".join(api_server.split(":")[:1])
 
 allowed_origins = [
-    "http://localhost",
     "http://localhost:3000",
     "https://blue.megagon.ai",
     "https://staging.blue.megagon.ai",
@@ -90,7 +87,7 @@ async def session_verification(request: Request, call_next):
         if request.url.path not in ["/accounts/signin"]:
             # Session cookie is unavailable. Force user to login.
             return JSONResponse(
-                status_code=400,
+                status_code=401,
                 content={
                     "message": "Session cookie is unavailable",
                     "error_code": "session_cookie_unavailable",

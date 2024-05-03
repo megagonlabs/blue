@@ -28,7 +28,7 @@ from utils import json_utils
 from agent_registry import AgentRegistry
 
 ###### FastAPI
-from fastapi import APIRouter
+import APIRouter
 from fastapi.responses import JSONResponse
 from typing import Union, Any, Dict, AnyStr, List
 from pydantic import BaseModel, Json
