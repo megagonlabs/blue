@@ -33,7 +33,7 @@ from rpc import RPCClient
 
 ###### FastAPI
 from fastapi import Request
-import APIRouter
+from APIRouter import APIRouter
 from fastapi.responses import JSONResponse
 from typing import Union, Any, Dict, AnyStr, List
 from pydantic import BaseModel

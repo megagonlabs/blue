@@ -7,7 +7,7 @@ import datetime
 import pydash
 from constant import EMAIL_DOMAIN_ADDRESS_REGEXP
 from fastapi import Request
-import APIRouter
+from APIRouter import APIRouter
 from fastapi.responses import JSONResponse
 
 router = APIRouter(prefix="/accounts")

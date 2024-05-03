@@ -34,7 +34,7 @@ from agent_registry import AgentRegistry
 from rpc import RPCClient
 
 ###### FastAPI
-import APIRouter
+from APIRouter import APIRouter
 from fastapi.responses import JSONResponse
 from typing import Union, Any, Dict, AnyStr, List
 from pydantic import BaseModel, Json

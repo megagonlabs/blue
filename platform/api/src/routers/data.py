@@ -29,7 +29,7 @@ from data_registry import DataRegistry
 
 
 ###### FastAPI
-import APIRouter
+from APIRouter import APIRouter
 from fastapi.responses import JSONResponse
 from typing import Union
 from pydantic import BaseModel
