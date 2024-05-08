@@ -29,7 +29,7 @@ from tqdm import tqdm
 ###### Blue
 from agent import Agent, AgentFactory
 from session import Session
-from rpc import RPCServer
+
 
 # set log level
 logging.getLogger().setLevel(logging.INFO)

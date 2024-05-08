@@ -35,7 +35,7 @@ from websockets.sync.client import connect
 from agent import Agent, AgentFactory
 from api_agent import APIAgent
 from session import Session
-from rpc import RPCServer
+
 
 # set log level
 logging.getLogger().setLevel(logging.INFO)

@@ -27,12 +27,6 @@ from utils import json_utils
 ###### Docker
 import docker
 
-###### Blue
-from session import Session
-from blueprint import Platform
-from agent_registry import AgentRegistry
-from rpc import RPCClient
-
 ###### FastAPI
 from APIRouter import APIRouter
 from fastapi.responses import JSONResponse
@@ -41,13 +35,6 @@ from pydantic import BaseModel, Json
 
 router = APIRouter(prefix="/platform")
 
-###### Properties
-PROPERTIES = os.getenv("BLUE__PROPERTIES")
-PROPERTIES = json.loads(PROPERTIES)
-
-print(str(PROPERTIES))
-platform_id = PROPERTIES["platform.name"]
-
 ###### Schema
 JSONObject = Dict[str, Any]
 JSONArray = List[Any]
@@ -55,75 +42,41 @@ JSONStructure = Union[JSONArray, JSONObject, Any]
 ######
 
 
-@router.get("/registry/agents/")
-# get the list of agent registries on platform
-def list_agent_registries():
-    platform = Platform(id=platform_id, properties=PROPERTIES)
-    results = []
-    return JSONResponse(content={"results": results})
+###### Blue
+from session import Session
+from blueprint import Platform
+from agent_registry import AgentRegistry
 
 
-@router.get("/registry/agents/{registry_name}")
-# get agent registry info on platform for registry with name {registry_name}
-def get_agent_registry(registry_name):
-    platform = Platform(id=platform_id, properties=PROPERTIES)
+###### Properties
+PROPERTIES = os.getenv("BLUE__PROPERTIES")
+PROPERTIES = json.loads(PROPERTIES)
+platform_id = PROPERTIES["platform.name"]
+prefix = 'PLATFORM:' + platform_id
+agent_registry_id = PROPERTIES["agent_registry.name"]
+data_registry_id = PROPERTIES["data_registry.name"]
+
+###### Initialization
+p = Platform(id=platform_id, properties=PROPERTIES)
+agent_registry = AgentRegistry(id=agent_registry_id, prefix=prefix, properties=PROPERTIES)
+
+#############
+@router.get("/registry/agents")
+# get agent registry info on platform 
+def get_agent_registry():
     result = ""
     return JSONResponse(content={"result": result, "message": "Success"})
 
 
-@router.post("registry/agents/{registry_name}")
-# create a new agent registry on platform, deploy registry container and start registry
-def create_agent_registry(registry_name, properties: JSONObject):
-    platform = Platform(id=platform_id, properties=PROPERTIES)
+@router.get("/registry/data")
+# get data registry info on platform 
+def get_data_registry():
     result = ""
     return JSONResponse(content={"result": result, "message": "Success"})
-
-
-@router.delete("/registry/agents/{registry_name}")
-# delete agent registry on platform, stop registry container
-def delete_agent_registry():
-    platform = Platform(id=platform_id, properties=PROPERTIES)
-    result = ""
-    return JSONResponse(content={"result": result, "message": "Success"})
-
-
-@router.get("/registry/data/")
-# get the list of data registries on platform
-def list_data_registries():
-    platform = Platform(id=platform_id, properties=PROPERTIES)
-    results = []
-    return JSONResponse(content={"results": results})
-
-
-@router.get("/registry/data/{registry_name}")
-# get data registry info on platform for registry with name {registry_name}
-def get_data_registry(registry_name):
-    platform = Platform(id=platform_id, properties=PROPERTIES)
-    result = ""
-    return JSONResponse(content={"result": result, "message": "Success"})
-
-
-@router.post("registry/data/{registry_name}?properties={}")
-# create a new data registry on platform, deploy registry container and start registry
-def create_data_registry(registry_name, properties: JSONObject):
-    platform = Platform(id=platform_id, properties=PROPERTIES)
-    result = ""
-    return JSONResponse(content={"result": result, "message": "Success"})
-
-
-@router.delete("/registry/data/{registry_name}")
-# delete data registry on platform, stop registry container
-def delete_data_registry():
-    platform = Platform(id=platform_id, properties=PROPERTIES)
-    result = ""
-    return JSONResponse(content={"result": result, "message": "Success"})
-
 
 @router.get("/agents/")
 # get the list of agent running agents on the platform
 def list_agent_containers():
-    platform = Platform(id=platform_id, properties=PROPERTIES)
-
     # connect to docker
     client = docker.from_env()
 
@@ -165,14 +118,11 @@ def list_agent_containers():
     return JSONResponse(content={"results": results})
 
 
-@router.post("/agents/{registry_name}/agent/{agent_name}")
-# deploy an agent container with the name {agent_name} to the agent registry with the name {registry_name}
-def deploy_agent_container(registry_name, agent_name):
-    platform = Platform(id=platform_id, properties=PROPERTIES)
-
-    registry = AgentRegistry(registry_name, properties=PROPERTIES)
-    agent = registry.get_agent_properties(agent_name)
-    properties = registry.get_agent_properties(agent_name)
+@router.post("/agents/agent/{agent_name}")
+# deploy an agent container with the name {agent_name} to the agent registry with the name
+def deploy_agent_container(agent_name):
+    agent = agent_registry.get_agent_properties(agent_name)
+    properties = agent_registry.get_agent_properties(agent_name)
     image = properties["image"]
 
     # connect to docker
@@ -184,7 +134,7 @@ def deploy_agent_container(registry_name, agent_name):
             image,
             "--serve",
             network="blue_platform_" + PROPERTIES["platform.name"] + "_network_bridge",
-            hostname="blue_agent_" + registry_name + "_" + agent_name,
+            hostname="blue_agent_" + agent_registry_id + "_" + agent_name,
             stdout=True,
             stderr=True,
         )
@@ -197,20 +147,17 @@ def deploy_agent_container(registry_name, agent_name):
                 "blue_platform_" + PROPERTIES["platform.name"] + "_network_overlay"
             ],
             constraints=constraints,
-            hostname="blue_agent_" + registry_name + "_" + agent_name,
+            hostname="blue_agent_" + agent_registry_id + "_" + agent_name,
         )
     result = ""
     return JSONResponse(content={"result": result, "message": "Success"})
 
 
-@router.put("/agents/{registry_name}/agent/{agent_name}")
-# update the agent container with the name {agent_name} in the agent registry with the name {registry_name}, pulling in new image
+@router.put("/agents/agent/{agent_name}")
+# update the agent container with the name {agent_name} in the agent registry with the name, pulling in new image
 def update_agent_container(registry_name, agent_name):
-    platform = Platform(id=platform_id, properties=PROPERTIES)
-
-    registry = AgentRegistry(registry_name, properties=PROPERTIES)
-    agent = registry.get_agent_properties(agent_name)
-    properties = registry.get_agent_properties(agent_name)
+    agent = agent_registry.get_agent_properties(agent_name)
+    properties = agent_registry.get_agent_properties(agent_name)
     image = properties["image"]
 
     # connect to docker
@@ -225,8 +172,8 @@ def update_agent_container(registry_name, agent_name):
     return JSONResponse(content={"result": result, "message": "Success"})
 
 
-@router.delete("agents/{registry_name}/agent/{agent_name}")
-# shutdown the agent container with the name {agent_name} from the agent registry with the name {registry_name}
+@router.delete("agents/agent/{agent_name}")
+# shutdown the agent container with the name {agent_name} from the agent registry with the name
 def shutdown_agent_container(registry_name, agent_name):
     platform = Platform(id=platform_id, properties=PROPERTIES)
 

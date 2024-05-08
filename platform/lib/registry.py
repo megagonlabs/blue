@@ -14,6 +14,7 @@ import logging
 import time
 import uuid
 import random
+import copy
 
 ###### Parsers, Formats, Utils
 import re
@@ -537,6 +538,27 @@ class Registry():
             data = self.get_record_data(name, scope, 'contents' + '.' + key)
         return data
 
+    def get_contents(self):
+        data = self.connection.json().get(self._get_data_namespace(), Path('$'))
+        if len(data) > 0:
+            data = data[0]
+        else:
+            data = {}
+        return data
+
+    def get_records(self):
+        contents = self.get_contents()
+        records = []
+        r = json_utils.json_query(contents,"$..contents",single=False)
+        for ri in r:
+            rs = list(ri.values())
+            for rsi in rs:
+                rsic = copy.deepcopy(rsi)
+                del rsic['contents']
+                records.append(rsic)
+
+        return records
+
     def deregister(self, record, rebuild=False):
 
         name = record['name']
@@ -581,7 +603,35 @@ class Registry():
 
         logging.info('Started registry {name}'.format(name=self.name))
 
+    ###### save/load
+    def dumps(self, output_string):
+        records = self.get_records()
+        return str(records)
+    
+    def dump(self, output_file):
+        records = self.get_records()
+        with open(output_file, 'w') as fp:
+            json.dump(records, fp)
 
+    def load(self, input_file):
+        with open(input_file, 'r') as fp:
+            records = json.load(fp)
+
+            self._load_records(records)
+
+    def loads(self, input_string):
+        records = json.loads(input_string)
+
+        self._load_records(records)
+       
+
+    def _load_records(self, records):
+        print(records)
+        for record in records:
+            self.register_record_json(record)
+    
+        # index registry
+        self.build_index()
 
 
 #######################
@@ -631,17 +681,12 @@ if __name__ == "__main__":
 
     #### ADD
     if args.add:
-        records = json.loads(args.add)
-        print(records)
-        for record in records:
-            registry.register_record_json(record)
-    
-        # index registry
-        registry.build_index()
+        registry.loads(args.add)
 
-        # list the registry
+        # list the registryrecords = json
         results = registry.list_records()
         logging.info(results)
+        logging.info(registry.get_contents())
 
     #### UPDATE
     if args.update:

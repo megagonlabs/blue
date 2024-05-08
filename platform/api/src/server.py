@@ -21,7 +21,7 @@ from fastapi.responses import JSONResponse
 from ConnectionManager import ConnectionManager
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Request
 
-###### API Routerss
+###### API Routers
 from constant import EMAIL_DOMAIN_ADDRESS_REGEXP, InvalidRequestJson
 from routers import agents
 from routers import data
@@ -32,36 +32,46 @@ from firebase_admin import auth
 
 from fastapi.middleware.cors import CORSMiddleware
 
-###### Blue
-from session import Session
-from blueprint import Platform
-from agent_registry import AgentRegistry
-from rpc import RPCClient
-
+####### Version
 _VERSION_PATH = Path(__file__).parent / "version"
 version = Path(_VERSION_PATH).read_text().strip()
 print("blue-platform-api: " + version)
 
 
+###### Blue
+from session import Session
+from blueprint import Platform
+from agent_registry import AgentRegistry
+from data_registry import DataRegistry
+
 ###### Properties
 PROPERTIES = os.getenv("BLUE__PROPERTIES")
 PROPERTIES = json.loads(PROPERTIES)
-
-print(str(PROPERTIES))
 platform_id = PROPERTIES["platform.name"]
+prefix = 'PLATFORM:' + platform_id
+agent_registry_id = PROPERTIES["agent_registry.name"]
+data_registry_id = PROPERTIES["data_registry.name"]
 
-## Create Platform
+###### Initialization
 p = Platform(id=platform_id, properties=PROPERTIES)
 
+## Create Registries, Load
+agent_registry = AgentRegistry(id=agent_registry_id, prefix=prefix, properties=PROPERTIES)
+agent_registry.load("/blue_data/config/" + agent_registry_id + ".agents.json")
+
+data_registry = DataRegistry(id=data_registry_id, prefix=prefix, properties=PROPERTIES)
+data_registry.load("/blue_data/config/" + data_registry_id + ".data.json")
 
 ###  Get API server address from properties to white list
 api_server = PROPERTIES["api.server"]
 api_server_host = ":".join(api_server.split(":")[:1])
+api_server_port = ":".join(api_server.split(":")[1:])
 
 allowed_origins = [
-    "http://localhost:3000",
-    "https://blue.megagon.ai",
-    "https://staging.blue.megagon.ai",
+    "http://localhost",
+    "https://localhost",
+    "http://" + api_server_host,
+    "https://" + api_server_host
 ]
 
 app = FastAPI()

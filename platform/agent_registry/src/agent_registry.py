@@ -190,17 +190,12 @@ if __name__ == "__main__":
 
     #### ADD
     if args.add:
-        records = json.loads(args.add)
-        print(records)
-        for record in records:
-            registry.register_record_json(record)
-    
-        # index registry
-        registry.build_index()
+        registry.loads(args.add)
 
-        # list the registry
+        # list the registryrecords = json
         results = registry.list_records()
         logging.info(results)
+        logging.info(registry.get_contents())
 
     #### UPDATE
     if args.update:

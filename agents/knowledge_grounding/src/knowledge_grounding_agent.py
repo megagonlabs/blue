@@ -37,7 +37,7 @@ from neo4j import GraphDatabase
 from agent import Agent, AgentFactory
 from session import Session
 from data_registry import DataRegistry
-from rpc import RPCServer
+
 
 # set log level
 logging.getLogger().setLevel(logging.INFO)

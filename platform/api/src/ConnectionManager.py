@@ -18,6 +18,9 @@ from agent import Agent
 PROPERTIES = os.getenv("BLUE__PROPERTIES")
 PROPERTIES = json.loads(PROPERTIES)
 
+print(str(PROPERTIES))
+platform_id = PROPERTIES["platform.name"]
+prefix = 'PLATFORM:' + platform_id
 
 @dataclass
 class ConnectionManager:
@@ -41,11 +44,12 @@ class ConnectionManager:
             websocket, json.dumps({"type": "CONNECTED", "id": connection_id})
         )
 
-    def observe_session(self, connection_id: str, session_id: str):
-        session = Session(name=session_id, properties=PROPERTIES)
+    def observe_session(self, connection_id: str, session_sid: str):
+
+        session = Session(sid=session_sid, prefix=prefix, properties=PROPERTIES)
         pydash.objects.set_(
             self.session_to_client,
-            [session_id, connection_id],
+            [session_sid, connection_id],
             {
                 "observer": ObserverAgent(
                     session=session,
@@ -53,7 +57,7 @@ class ConnectionManager:
                         **PROPERTIES,
                         "output": "websocket",
                         "websocket": "ws://localhost:5050/sessions/ws",
-                        "session_id": session_id,
+                        "session_id": session_sid,
                     },
                 ),
                 "user": Agent(
