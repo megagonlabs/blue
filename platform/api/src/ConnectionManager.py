@@ -8,8 +8,15 @@ import os
 
 import pydash
 
+
+###### Add lib path
+sys.path.append("./lib/")
 sys.path.append("./lib/agents")
 sys.path.append("./lib/platform/")
+
+###### Blue
+from session import Session
+from blueprint import Platform
 from observer import ObserverAgent
 from session import Session
 from agent import Agent
@@ -17,10 +24,13 @@ from agent import Agent
 ###### Properties
 PROPERTIES = os.getenv("BLUE__PROPERTIES")
 PROPERTIES = json.loads(PROPERTIES)
-
-print(str(PROPERTIES))
 platform_id = PROPERTIES["platform.name"]
 prefix = 'PLATFORM:' + platform_id
+agent_registry_id = PROPERTIES["agent_registry.name"]
+data_registry_id = PROPERTIES["data_registry.name"]
+
+###### Initialization
+p = Platform(id=platform_id, properties=PROPERTIES)
 
 @dataclass
 class ConnectionManager:
@@ -37,7 +47,7 @@ class ConnectionManager:
 
     async def connect(self, websocket: WebSocket, connection_id: str = None):
         if pydash.is_empty(connection_id):
-            connection_id = str(uuid.uuid4())
+            connection_id = str(hex(uuid.uuid4().fields[0]))[2:]
         await websocket.accept()
         self.active_connections[connection_id] = websocket
         await self.send_message_to(
@@ -45,14 +55,15 @@ class ConnectionManager:
         )
 
     def observe_session(self, connection_id: str, session_sid: str):
-
         session = Session(sid=session_sid, prefix=prefix, properties=PROPERTIES)
+        agent_prefix = session.cid + ":" + "AGENT"
         pydash.objects.set_(
             self.session_to_client,
             [session_sid, connection_id],
             {
                 "observer": ObserverAgent(
                     session=session,
+                    prefix=agent_prefix,
                     properties={
                         **PROPERTIES,
                         "output": "websocket",
@@ -61,7 +72,7 @@ class ConnectionManager:
                     },
                 ),
                 "user": Agent(
-                    name=f"USER:{connection_id}", session=session, properties=PROPERTIES
+                    name="USER", id=connection_id, session=session, prefix=agent_prefix, properties=PROPERTIES
                 ),
             },
         )

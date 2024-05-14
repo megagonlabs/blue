@@ -84,26 +84,27 @@ def list_session_agents(session_id):
     return JSONResponse(content={"results": results})
 
 
-@router.post("/session/{session_id}/agents/{agent_name}")
-def add_agent_to_session(session_id, agent_name, properties: JSONObject, input: Union[str, None] = None):
-    session = p.get_session(session_id)
+@router.post("/session/{session_id}/agents/{registry_name}/agent/{agent_name}")
+def add_agent_to_session(session_id, registry_name, agent_name, properties: JSONObject, input: Union[str, None] = None):
+    if registry_name == agent_registry_id:
+        session = p.get_session(session_id)
+        properties_from_registry = agent_registry.get_agent_properties(agent_name)
+       
+        # start with platform properties, merge properties from registry, then merge properties from API call
+        properties_from_api = properties
+        agent_properties = PROPERTIES
+        agent_properties = json_utils.merge_json(agent_properties, properties_from_registry)
+        agent_properties = json_utils.merge_json(agent_properties, properties_from_api)
 
-    properties_from_registry = agent_registry.get_agent_properties(agent_name)
+        # ASSUMPTION: agent is already deployed
 
-    # start with platform properties, merge properties from registry, then merge properties from API call
-    properties_from_api = properties
+        ## add agent to session
+        p.join_session(session_id, registry_name, agent_name, agent_properties)
 
-    p = PROPERTIES
-    p = json_utils.merge_json(p, properties_from_registry)
-    p = json_utils.merge_json(p, properties_from_api)
-
-    # ASSUMPTION: agent is already deployed
-
-    ## add agent to session
-    p.join_session(session, registry, agent_name, properties)
-
-    return JSONResponse(content={"result": "", "message": "Success"})
-
+        return JSONResponse(content={"result": "", "message": "Success"})
+    else:
+        return JSONResponse(content={"message": "Error: Unknown Registry"})
+    
 @router.put("/session/{session_id}")
 async def update_session(request: Request, session_id):
     payload = await request.json()

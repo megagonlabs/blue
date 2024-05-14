@@ -52,10 +52,10 @@ echo "BLUE_INSTALL_DIR = ${BLUE_INSTALL_DIR}"
 
 if test "$BLUE_DEPLOY_TARGET" = "swarm"
 then
-   envsubst < ${BLUE_INSTALL_DIR}/platform/docker-compose-swarm-template.yaml > ${BLUE_INSTALL_DIR}/platform/docker-compose-swarm-${BLUE_DEPLOY_PLATFORM}.yaml
-   docker stack deploy -c ${BLUE_INSTALL_DIR}/platform/docker-compose-swarm-${BLUE_DEPLOY_PLATFORM}.yaml blue_platform_${BLUE_DEPLOY_PLATFORM}
+   envsubst < ${BLUE_INSTALL_DIR}/platform/docker-compose-swarm-platform-template.yaml > ${BLUE_INSTALL_DIR}/platform/docker-compose-swarm-platform-${BLUE_DEPLOY_PLATFORM}.yaml
+   docker stack deploy -c ${BLUE_INSTALL_DIR}/platform/docker-compose-swarm-platform-${BLUE_DEPLOY_PLATFORM}.yaml blue_platform_${BLUE_DEPLOY_PLATFORM}
 elif test "$BLUE_DEPLOY_TARGET" = "localhost"
 then
-   envsubst < ${BLUE_INSTALL_DIR}/platform/docker-compose-localhost-template.yaml > ${BLUE_INSTALL_DIR}/platform/docker-compose-localhost-${BLUE_DEPLOY_PLATFORM}.yaml
-   docker compose --project-directory ${BLUE_INSTALL_DIR}/platform -f ${BLUE_INSTALL_DIR}/platform/docker-compose-localhost-${BLUE_DEPLOY_PLATFORM}.yaml -p blue_platform_${BLUE_DEPLOY_PLATFORM} up -d
+   envsubst < ${BLUE_INSTALL_DIR}/platform/docker-compose-localhost-platform-template.yaml > ${BLUE_INSTALL_DIR}/platform/docker-compose-localhost-platform-${BLUE_DEPLOY_PLATFORM}.yaml
+   docker compose --project-directory ${BLUE_INSTALL_DIR}/platform -f ${BLUE_INSTALL_DIR}/platform/docker-compose-localhost-platform-${BLUE_DEPLOY_PLATFORM}.yaml -p blue_platform_${BLUE_DEPLOY_PLATFORM} up -d
 fi

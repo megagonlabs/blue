@@ -16,6 +16,7 @@ import random
 import re
 import csv
 import json
+from utils import json_utils
 
 
 import itertools
@@ -66,8 +67,9 @@ class Agent():
             self.processor = lambda *args, **kwargs: processor(*args, **kwargs, properties=self.properties)
         else:
             self.processor = lambda *args, **kwargs: self.default_processor(*args, **kwargs, properties=self.properties)
-        
-        self.join_session(session)
+
+        if session:
+            self.join_session(session)
 
         self.aggregate_producer_id = None
         self.consumer = None
@@ -395,18 +397,26 @@ class AgentFactory():
             session = params['session']
             registry = params['registry']
             agent = params['agent']
-            properties = params['properties']
+
+            # start with factory properties, merge properties from API call
+            properties_from_api = params['properties']
+            properties_from_factory = self.properties
+            agent_properties = {}
+            agent_properties = json_utils.merge_json(agent_properties, properties_from_factory)
+            agent_properties = json_utils.merge_json(agent_properties, properties_from_api)
             input = None
 
-            if 'input' in properties:
-                input = properties['input']
+            if 'input' in agent_properties:
+                input = agent_properties['input']
+                del agent_properties['input']
 
             if self.agent_name == agent:
                 logging.info("Launching Agent: " + agent + "...")
-                
+                logging.info("Agent Properties: " + json.dumps(agent_properties) + "...")
+
                 name = agent
-                prefix = session + ":" + "AGENTS"
-                a = self.create(name=name, prefix=prefix, session=session, properties=properties)
+                prefix = session + ":" + "AGENT"
+                a = self.create(name=name, prefix=prefix, session=session, properties=agent_properties)
 
                 logging.info("Joined session: " + session)
                 if input:
@@ -432,6 +442,7 @@ if __name__ == "__main__":
     # set properties
     properties = {}
     p = args.properties
+    
     if p:
         # decode json
         properties = json.loads(p)

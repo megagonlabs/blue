@@ -40,13 +40,13 @@ while [[ $# -gt 0 ]]; do
       shift 
       ;;
     -*|--*)
-      ADDITIONAL_ARGS+="$1=$2"
+      ADDITIONAL_ARGS+="$1 $2"
       shift
       shift
       ;;
     *)
       POSITIONAL_ARGS+="$1 " 
-      exit 1
+      shift
       ;;
   esac
 done
@@ -67,11 +67,12 @@ echo "DEPLOY TARGET   = ${BLUE_DEPLOY_TARGET}"
 echo "DEPLOY PLATFORM = ${BLUE_DEPLOY_PLATFORM}"
 echo "NAME = ${NAME}"
 echo "IMAGE = ${IMAGE}"
+echo "PORT_MAPPING = ${PORT_MAPPING}"
 
 if [ $BLUE_DEPLOY_TARGET == swarm ]
 then
-   docker service create --mount type=volume,source=blue_${BLUE_DEPLOY_PLATFORM}_data,destination=/blue_data --network blue_platform_${BLUE_DEPLOY_PLATFORM}_network_overlay --hostname blue_service_${NAME} --constraint node.labels.target==service ${IMAGE} ${POSITIONAL_ARGS}
+   docker service create --mount type=volume,source=blue_${BLUE_DEPLOY_PLATFORM}_data,destination=/blue_data --network blue_platform_${BLUE_DEPLOY_PLATFORM}_network_overlay --hostname blue_service_${NAME} --constraint node.labels.target==service ${IMAGE} ${POSITIONAL_ARGS} ${ADDITIONAL_ARGS}
 elif [ $BLUE_DEPLOY_TARGET == localhost ]
 then
-   docker run -d --volume=blue_${BLUE_DEPLOY_PLATFORM}_data:/blue_data --network=blue_platform_${BLUE_DEPLOY_PLATFORM}_network_bridge --hostname blue_service_${NAME} -p ${PORT_MAPPING} ${ADDITIONAL_ARGS} ${IMAGE} ${POSITIONAL_ARGS}
+   docker run -d --volume=blue_${BLUE_DEPLOY_PLATFORM}_data:/blue_data --network=blue_platform_${BLUE_DEPLOY_PLATFORM}_network_bridge --hostname blue_service_${NAME} -p ${PORT_MAPPING}  ${IMAGE} ${POSITIONAL_ARGS} ${ADDITIONAL_ARGS}
 fi
