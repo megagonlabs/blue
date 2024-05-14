@@ -11,6 +11,7 @@ import logging
 import time
 import uuid
 import random
+import math
 
 ###### Parsers, Formats, Utils
 import re
@@ -326,6 +327,9 @@ class AgentFactory():
 
         self.consumer = None
 
+        # creation time
+        self.ct = math.floor(time.time_ns()/1000000)
+
         self._start()
 
     ###### initialization
@@ -388,6 +392,11 @@ class AgentFactory():
 
         label = message['label']
        
+        # only process newer instructions
+        mt = int(id.split('-')[0])
+        if mt < self.ct:
+            return
+
         if label == 'INSTRUCTION':
             data = json.loads(message['data'])
 

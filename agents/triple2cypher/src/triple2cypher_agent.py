@@ -72,8 +72,10 @@ Convert below triple into a CYPHER query:
 
 
 class Triple2CypherAgent(OpenAIAgent):
-    def __init__(self, name="TRIPLE2CYPHER", session=None, input_stream=None, processor=None, properties={}):
-        super().__init__(name=name, session=session, input_stream=input_stream, processor=processor, properties=properties)
+    def __init__(self, **kwargs):
+        if 'name' not in kwargs:
+            kwargs['name'] = "TRIPLE2CYPHER"
+        super().__init__(**kwargs)
 
     def _initialize_properties(self):
         super()._initialize_properties()

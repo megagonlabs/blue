@@ -241,7 +241,7 @@ class Session:
         )
 
     def _get_agent_data_namespace(self, agent):
-        return agent.name
+        return agent.sid
 
     def set_agent_data(self, agent, key, value):
         self.connection.json().set(
@@ -340,7 +340,7 @@ class Session:
         )
 
     def _get_stream_agent_data_namespace(self, agent):
-        return agent
+        return agent.sid
 
     def set_stream_agent_data(self, stream, agent, key, value):
         self.connection.json().set(

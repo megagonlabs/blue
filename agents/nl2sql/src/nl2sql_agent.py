@@ -50,6 +50,7 @@ nl2SQLGPT_properties = {
     "openai.model":"text-davinci-003",
     "output_path":"$.choices[0].text",
     "input_field":"prompt",
+    "schema": "",
     "input_template": """
 ### Postgres SQL tables, with their properties:
 #
@@ -73,8 +74,10 @@ SELECT""",
 }
 
 class NL2SQLAgent(OpenAIAgent):
-    def __init__(self, name="NL2SQL", session=None, input_stream=None, processor=None, properties={}):
-        super().__init__(name=name, session=session, input_stream=input_stream, processor=processor, properties=properties)
+    def __init__(self, **kwargs):
+        if 'name' not in kwargs:
+            kwargs['name'] = "NL2SQL"
+        super().__init__(**kwargs)
 
     def _initialize_properties(self):
         super()._initialize_properties()
