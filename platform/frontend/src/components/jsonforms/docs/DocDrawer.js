@@ -163,6 +163,7 @@ const MainMenuPanel = (props) => {
                     an example by&nbsp;
                     <a
                         href="https://github.com/rit-git/blue/issues/new"
+                        rel="noreferrer"
                         target="_blank"
                     >
                         creating an issue on Blue GitHub repository
