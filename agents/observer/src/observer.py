@@ -29,7 +29,7 @@ from agent import Agent, AgentFactory
 from session import Session
 from tqdm import tqdm
 from websocket import create_connection
-from rpc import RPCServer
+
 
 # set log level
 logging.getLogger().setLevel(logging.INFO)
@@ -42,21 +42,10 @@ logging.basicConfig(
 
 #######################
 class ObserverAgent(Agent):
-    def __init__(
-        self,
-        name="OBSERVER",
-        session=None,
-        input_stream=None,
-        processor=None,
-        properties={},
-    ):
-        super().__init__(
-            name,
-            session=session,
-            input_stream=input_stream,
-            processor=processor,
-            properties=properties,
-        )
+    def __init__(self, **kwargs):
+        if "name" not in kwargs:
+            kwargs["name"] = "OBSERVER"
+        super().__init__(**kwargs)
 
     def default_processor(
         self,
@@ -77,7 +66,9 @@ class ObserverAgent(Agent):
             else:
                 if worker:
                     data = worker.get_data(stream)
-                    str_data = str(" ".join(data))
+                    str_data = ""
+                    if data is not None:
+                        str_data = str(" ".join(data))
                     if len(str_data.strip()) > 0:
                         if (
                             "output" in properties
@@ -142,10 +133,11 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--name", default="OBSERVER", type=str)
     parser.add_argument("--session", type=str)
-    parser.add_argument("--input_stream", type=str)
     parser.add_argument("--properties", type=str)
-    parser.add_argument("--loglevel", default="ERROR", type=str)
-    parser.add_argument("--serve", default=False, action=argparse.BooleanOptionalAction)
+    parser.add_argument("--loglevel", default="INFO", type=str)
+    parser.add_argument("--serve", type=str, default="OBSERVER")
+    parser.add_argument("--platform", type=str, default="default")
+    parser.add_argument("--registry", type=str, default="default")
 
     args = parser.parse_args()
 
@@ -173,15 +165,11 @@ if __name__ == "__main__":
     else:
         a = None
         session = None
+
         if args.session:
             # join an existing session
             session = Session(args.session)
             a = ObserverAgent(name=args.name, session=session, properties=properties)
-        elif args.input_stream:
-            # no session, work on a single input stream
-            a = ObserverAgent(
-                name=args.name, input_stream=args.input_stream, properties=properties
-            )
         else:
             # create a new session
             a = ObserverAgent(name=args.name, properties=properties)

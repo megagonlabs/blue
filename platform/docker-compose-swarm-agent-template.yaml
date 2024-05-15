@@ -20,7 +20,7 @@ services:
       - blue_platform_${BLUE_DEPLOY_PLATFORM}_network_bridge
     volumes:
       - blue_${BLUE_DEPLOY_PLATFORM}_data:/blue_data
-    command: --serve ${AGENT} --properties '{"db.host":"blue_db_redis"}' ${POSITIONAL_ARGS} ${ADDITIONAL_ARGS}
+    command: --serve ${AGENT} --properties '''${PROPERTIES}'''
     environment:
       <<: *blue-common-env
     restart: always

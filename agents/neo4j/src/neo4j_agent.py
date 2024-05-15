@@ -35,7 +35,7 @@ from websockets.sync.client import connect
 from agent import Agent, AgentFactory
 from api_agent import APIAgent
 from session import Session
-from rpc import RPCServer
+
 
 ###### Agent Specific
 
@@ -46,8 +46,10 @@ logging.basicConfig(format="%(asctime)s [%(levelname)s] [%(process)d:%(threadNam
 
 
 class NEO4JAgent(APIAgent):
-    def __init__(self, name="NEO4J", session=None, input_stream=None, processor=None, properties={}):
-        super().__init__(name=name, session=session, input_stream=input_stream, processor=processor, properties=properties)
+    def __init__(self, **kwargs):
+        if 'name' not in kwargs:
+            kwargs['name'] = "NEO4J"
+        super().__init__(**kwargs)
 
     def _initialize_properties(self):
         super()._initialize_properties()

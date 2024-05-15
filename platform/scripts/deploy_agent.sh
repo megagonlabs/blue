@@ -1,11 +1,7 @@
 #/bin/bash
 
-# USAGE: deploy_agent --target localhost|swarm --platform platform --registry registry --agent agent --image image <positional arguments for agent> <additional key=value arguments>
+# USAGE: deploy_agent --target localhost|swarm --platform platform --registry registry --agent agent --image image --properties properties
 # if no arguments, use env variable as default
-
-# initialize positional args
-POSITIONAL_ARGS=()
-ADDITIONAL_ARGS=()
 
 while [[ $# -gt 0 ]]; do
   case $1 in
@@ -39,14 +35,11 @@ while [[ $# -gt 0 ]]; do
       shift 
       shift 
       ;;
-    -*|--*)
-      ADDITIONAL_ARGS+="$1=$2"
-      shift
-      shift
-      ;;
-    *)
-      POSITIONAL_ARGS+="$1 " 
-      exit 1
+    --properties)
+      PROPERTIES="$2"
+      # pass argument and value
+      shift 
+      shift 
       ;;
   esac
 done
@@ -69,11 +62,16 @@ then
    export REGISTRY=default
 fi
 
-export ADDITIONAL_ARGS=${ADDITIONAL_ARGS}
-export POSITIONAL_ARGS=${POSITIONAL_ARGS}
+# set propertoes to {}, if not provided
+if [ -z "$PROPERTIES" ]
+then
+   export PROPERTIES='{}'
+fi
+
 export IMAGE=${IMAGE}
 export AGENT=${AGENT}
 export AGENT_LOWERCASE=$(echo ${AGENT}| tr '[:upper:]' '[:lower:]')
+export PROPERTIES=${PROPERTIES}
 
 echo "DEPLOY TARGET  = ${BLUE_DEPLOY_TARGET}"
 echo "DEPLOY PLATFORM = ${BLUE_DEPLOY_PLATFORM}"
@@ -81,14 +79,16 @@ echo "REGISTRY = ${REGISTRY}"
 echo "AGENT = ${AGENT}"
 echo "AGENT_LOWERCASE = ${AGENT_LOWERCASE}"
 echo "IMAGE = ${IMAGE}"
-
+echo "PROPERTIES = ${PROPERTIES}"
 
 if [ $BLUE_DEPLOY_TARGET == swarm ]
 then
+   echo "Deploying to swarm..."
    envsubst < ${BLUE_INSTALL_DIR}/platform/docker-compose-swarm-agent-template.yaml > ${BLUE_INSTALL_DIR}/platform/docker-compose-swarm-agent-${BLUE_DEPLOY_PLATFORM}-${REGISTRY}-${AGENT}.yaml
    docker stack deploy -c ${BLUE_INSTALL_DIR}/platform/docker-compose-swarm-agent-${BLUE_DEPLOY_PLATFORM}-${REGISTRY}-${AGENT}.yaml blue_agent_${REGISTRY}_${AGENT_LOWERCASE}
 elif [ $BLUE_DEPLOY_TARGET == localhost ]
 then
+   echo "Deploying to localhost..."
    envsubst < ${BLUE_INSTALL_DIR}/platform/docker-compose-localhost-agent-template.yaml > ${BLUE_INSTALL_DIR}/platform/docker-compose-localhost-agent-${BLUE_DEPLOY_PLATFORM}-${REGISTRY}-${AGENT}.yaml
    docker compose --project-directory ${BLUE_INSTALL_DIR}/platform -f ${BLUE_INSTALL_DIR}/platform/docker-compose-localhost-agent-${BLUE_DEPLOY_PLATFORM}-${REGISTRY}-${AGENT}.yaml -p blue_agent_${REGISTRY}_${AGENT_LOWERCASE} up -d
 fi

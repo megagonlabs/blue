@@ -35,8 +35,10 @@ logging.basicConfig(format="%(asctime)s [%(levelname)s] [%(process)d:%(threadNam
 
 #######################
 class UserAgent(Agent):
-    def __init__(self, name = "USER", session=None, properties={}):
-        super().__init__(name=name, session=session, input_stream=None, properties=properties)
+    def __init__(self, **kwargs):
+        if 'name' not in kwargs:
+            kwargs['name'] = "USER"
+        super().__init__(**kwargs)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

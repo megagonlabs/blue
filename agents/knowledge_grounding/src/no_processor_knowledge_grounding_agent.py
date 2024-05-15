@@ -27,7 +27,7 @@ import uuid
 import pandas
 
 ###### Blue
-from agent import Agent
+from agent import Agent, AgentFactory
 from data_registry import DataRegistry
 from neo4j import GraphDatabase
 from session import Session
@@ -44,14 +44,10 @@ logging.basicConfig(format="%(asctime)s [%(levelname)s] [%(process)d:%(threadNam
 
 #######################
 class KnowledgGroundingAgent(Agent):
-    def __init__(self, session=None, input_stream=None, processor=None, properties={}):
-        super().__init__(
-            "KNOWLEDGE",
-            session=session,
-            input_stream=input_stream,
-            processor=processor,
-            properties=properties,
-        )
+    def __init__(self, **kwargs):
+        if 'name' not in kwargs:
+            kwargs['name'] = "KNOWLEDGE"
+        super().__init__(**kwargs)
 
     def _initialize_properties(self):
         super()._initialize_properties()
@@ -257,17 +253,22 @@ class KnowledgGroundingAgent(Agent):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--session", type=str)
+    parser.add_argument('--name', default="KNOWLEDGE", type=str)
+    parser.add_argument('--session', type=str)
     parser.add_argument("--profile", type=str)
     parser.add_argument("--title", type=str)
     parser.add_argument("--next_title", type=str)
-    parser.add_argument("--input_stream", type=str)
-    parser.add_argument("--properties", type=str)
+    parser.add_argument('--properties', type=str)
+    parser.add_argument('--loglevel', default="INFO", type=str)
+    parser.add_argument('--serve', type=str, default='KNOWLEDGE')
+    parser.add_argument('--platform', type=str, default='default')
+    parser.add_argument('--registry', type=str, default='default')
+
 
     args = parser.parse_args()
-
-    session = None
-    a = None
+   
+    # set logging
+    logging.getLogger().setLevel(args.loglevel.upper())
 
     # set properties
     properties = {}
@@ -275,7 +276,7 @@ if __name__ == "__main__":
     if p:
         # decode json
         properties = json.loads(p)
-
+    
     if args.profile:
         properties["profile"] = args.profile
 
@@ -285,24 +286,30 @@ if __name__ == "__main__":
     if args.next_title:
         properties["next_title"] = args.next_title
 
-    kg = KnowledgGroundingAgent(properties=properties)
-    ret = kg.data_processing("random")
-    print(ret)
-    logging.info(ret)
 
-    # if args.session:
-    #     # join an existing session
-    #     session = Session(args.session)
-    #     a = KnowledgGroundingAgent(session=session, properties=properties)
-    # elif args.input_stream:
-    #     # no session, work on a single input stream
-    #     a = KnowledgGroundingAgent(
-    #         input_stream=args.input_stream, properties=properties
-    #     )
-    # else:
-    #     # create a new session
-    #     a = KnowledgGroundingAgent(properties=properties)
-    #     session = a.start_session()
+    if args.serve:
+        platform = args.platform
+        
+        af = AgentFactory(agent_class=KnowledgGroundingAgent, agent_name=args.serve, agent_registry=args.registry, platform=platform, properties=properties)
+        af.wait()
+    else:
+        a = None
+        session = None
 
-    # # wait for session
-    # session.wait()
+        if args.session:
+            # join an existing session
+            session = Session(args.session)
+            a = KnowledgGroundingAgent(name=args.name, session=session, properties=properties)
+        else:
+            # create a new session
+            a = KnowledgGroundingAgent(name=args.name, properties=properties)
+            session = a.start_session()
+
+
+        ret = a.data_processing("random")
+        print(ret)
+        logging.info(ret)
+
+        # wait for session
+        if session:
+            session.wait()

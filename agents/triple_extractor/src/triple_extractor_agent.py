@@ -37,7 +37,7 @@ from agent import Agent, AgentFactory
 from api_agent import APIAgent
 from session import Session
 from openai_agent import OpenAIAgent
-from rpc import RPCServer
+
 
 # set log level
 logging.getLogger().setLevel(logging.INFO)
@@ -79,8 +79,10 @@ extract one triple from the below sentence in the above format in a list using o
 
 
 class TripleExtractorAgent(OpenAIAgent):
-    def __init__(self, name="TRIPLEEXTRACTOR", session=None, input_stream=None, processor=None, properties={}):
-        super().__init__(name=name, session=session, input_stream=input_stream, processor=processor, properties=properties)
+    def __init__(self, **kwargs):
+        if 'name' not in kwargs:
+            kwargs['name'] = "TRIPLEEXTRACTOR"
+        super().__init__(**kwargs)
 
     def _initialize_properties(self):
         super()._initialize_properties()

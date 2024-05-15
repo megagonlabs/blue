@@ -3,6 +3,13 @@ from curses import noecho
 import os
 import sys
 
+###### Add lib path
+sys.path.append("./lib/")
+sys.path.append("./lib/agent_registry/")
+sys.path.append("./lib/data_registry/")
+sys.path.append("./lib/platform/")
+
+
 ###### Parsers, Formats, Utils
 import json
 import re
@@ -15,7 +22,7 @@ import pydash
 from ConnectionManager import ConnectionManager
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Request
 
-###### API Routerss
+###### API Routers
 from constant import EMAIL_DOMAIN_ADDRESS_REGEXP, InvalidRequestJson
 from routers import agents
 from routers import data
@@ -26,24 +33,46 @@ from firebase_admin import auth
 
 from fastapi.middleware.cors import CORSMiddleware
 
+####### Version
 _VERSION_PATH = Path(__file__).parent / "version"
 version = Path(_VERSION_PATH).read_text().strip()
 print("blue-platform-api: " + version)
 
+
+###### Blue
+from session import Session
+from blueprint import Platform
+from agent_registry import AgentRegistry
+from data_registry import DataRegistry
+
 ###### Properties
 PROPERTIES = os.getenv("BLUE__PROPERTIES")
 PROPERTIES = json.loads(PROPERTIES)
-print(str(PROPERTIES))
+platform_id = PROPERTIES["platform.name"]
+prefix = 'PLATFORM:' + platform_id
+agent_registry_id = PROPERTIES["agent_registry.name"]
+data_registry_id = PROPERTIES["data_registry.name"]
+
+###### Initialization
+p = Platform(id=platform_id, properties=PROPERTIES)
+
+## Create Registries, Load
+agent_registry = AgentRegistry(id=agent_registry_id, prefix=prefix, properties=PROPERTIES)
+agent_registry.load("/blue_data/config/" + agent_registry_id + ".agents.json")
+
+data_registry = DataRegistry(id=data_registry_id, prefix=prefix, properties=PROPERTIES)
+data_registry.load("/blue_data/config/" + data_registry_id + ".data.json")
 
 ###  Get API server address from properties to white list
 api_server = PROPERTIES["api.server"]
 api_server_host = ":".join(api_server.split(":")[:1])
+api_server_port = ":".join(api_server.split(":")[1:])
 
 allowed_origins = [
     "http://localhost",
-    "http://localhost:3000",
-    "https://blue.megagon.ai",
-    "https://staging.blue.megagon.ai",
+    "https://localhost",
+    "http://" + api_server_host,
+    "https://" + api_server_host
 ]
 
 app = FastAPI()
@@ -69,7 +98,7 @@ async def session_verification(request: Request, call_next):
         if request.url.path not in ["/accounts/signin"]:
             # Session cookie is unavailable. Force user to login.
             return JSONResponse(
-                status_code=400,
+                status_code=401,
                 content={
                     "message": "Session cookie is unavailable",
                     "error_code": "session_cookie_unavailable",

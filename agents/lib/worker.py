@@ -28,17 +28,41 @@ from agent import Session
 class Worker:
     def __init__(
         self,
-        name,
         input_stream,
-        agent=None,
+        name="WORKER",
         id=None,
+        sid=None,
+        cid=None,
+        prefix=None,
+        suffix=None,
+        agent=None,
         processor=None,
         session=None,
         properties={},
     ):
 
         self.name = name
-        self.id = id
+        if id:
+            self.id = id
+        else:
+            self.id = str(hex(uuid.uuid4().fields[0]))[2:]
+
+        if sid:
+            self.sid = sid
+        else:
+            self.sid = self.name + ":" + self.id
+
+        self.prefix = prefix
+        self.suffix = suffix
+        self.cid = cid
+
+        if self.cid == None:
+            self.cid = self.sid
+
+            if self.prefix:
+                self.cid = self.prefix + ":" + self.cid
+            if self.suffix:
+                self.cid = self.cid + ":" + self.suffix
 
         self.session = session
         self.agent = agent
@@ -212,11 +236,11 @@ class Worker:
         self.producer.write(data=data, dtype=dtype, label=label, eos=eos, split=split)
 
     def _start(self):
-        # logging.info('Starting agent worker {name}'.format(name=self.name))
+        # logging.info('Starting agent worker {name}'.format(name=self.sid))
 
         # start consumer only first on initial given input_stream
         self._start_consumers()
-        logging.info("Started agent worker {name}".format(name=self.name))
+        logging.info("Started agent worker {name}".format(name=self.sid))
 
     def _start_consumers(self):
         for input_stream in self.input_streams:
@@ -227,11 +251,12 @@ class Worker:
         if input_stream:
             # create data namespace to share data on stream
             if self.session:
-                self.session._init_stream_agent_data_namespace(input_stream, self.name)
+                self.session._init_stream_agent_data_namespace(input_stream, self.agent)
 
             consumer = Consumer(
-                self.name,
                 input_stream,
+                name=self.name + "WORKER",
+                prefix=self.cid,
                 listener=lambda id, data: self.listener(id, data, input_stream),
                 properties=self.properties,
             )
@@ -242,11 +267,8 @@ class Worker:
     def _start_producer(self):
         # start, if not started
         if self.producer == None:
-            suffix = None
 
-            producer = Producer(
-                self.name, sid=self.id, suffix=suffix, properties=self.properties
-            )
+            producer = Producer(prefix=self.prefix, properties=self.properties)
             producer.start()
             self.producer = producer
 
@@ -257,7 +279,7 @@ class Worker:
 
                 # notify session
                 tags = set()
-                tags.add(self.name)
+                tags.add(self.agent.name)
                 if "tags" in self.properties:
                     tags = tags.union(set(self.properties["tags"]))
                 tags = list(tags)
@@ -324,24 +346,24 @@ class Worker:
     def set_data(self, key, value, stream=None):
         if self.session:
             stream = self._identify_stream(stream=stream)
-            self.session.set_stream_agent_data(stream, self.name, key, value)
+            self.session.set_stream_agent_data(stream, self.agent, key, value)
 
     def append_data(self, key, value, stream=None):
         if self.session:
             stream = self._identify_stream(stream=stream)
-            self.session.append_stream_agent_data(stream, self.name, key, value)
+            self.session.append_stream_agent_data(stream, self.agent, key, value)
 
     def get_data(self, key, stream=None):
         if self.session:
             stream = self._identify_stream(stream=stream)
-            return self.session.get_stream_agent_data(stream, self.name, key)
+            return self.session.get_stream_agent_data(stream, self.agent, key)
 
         return None
 
     def get_data_len(self, key, stream=None):
         if self.session:
             stream = self._identify_stream(stream=stream)
-            return self.session.get_stream_agent_data_len(stream, self.name, key)
+            return self.session.get_stream_agent_data_len(stream, self.agent, key)
 
         return None
 
