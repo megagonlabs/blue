@@ -44,9 +44,10 @@ logging.basicConfig(
 
 #######################
 class TemplateInteractiveAgent(Agent):
-    def __init__(self, name="TEMPLATE_INTERACTIVE", session=None, input_stream=None, processor=None, properties={}):
-        super().__init__(name, session=session, input_stream=input_stream, processor=processor, properties=properties)
-        self.event_stream_consumer = {}
+    def __init__(self, **kwargs):
+        if 'name' not in kwargs:
+            kwargs['name'] = "TEMPLATE_INTERACTIVE"
+        super().__init__(**kwargs)
 
     def default_processor(self, stream, id, label, data, dtype=None, tags=None, properties=None, worker=None):
         if stream.startswith("EVENT_MESSAGE:"):
