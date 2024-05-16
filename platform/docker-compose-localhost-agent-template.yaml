@@ -16,10 +16,6 @@ services:
   ${AGENT_LOWERCASE}:
     image: ${IMAGE}
     hostname: blue_agent_${REGISTRY}_${AGENT}
-    deploy:
-      placement:
-        constraints:
-          - node.labels.target == agent
     networks:
       - blue_platform_${BLUE_DEPLOY_PLATFORM}_network_bridge
     volumes:
