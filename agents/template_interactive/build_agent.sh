@@ -1,5 +1,5 @@
 #/bin/bash
-echo 'Building Interactive Agent...'
+echo 'Building Template Interactive Agent...'
 
 echo 'Copying libs...'
 

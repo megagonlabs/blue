@@ -1,5 +1,5 @@
 #/bin/bash
-echo 'Publishing Interactive Agent...'
+echo 'Publishing Template Interactive Agent...'
 
 # tag and publish
 docker tag blue-agent-template-interactive:latest megagonlabs/blue-agent-template-interactive:latest
