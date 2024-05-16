@@ -75,31 +75,21 @@ class InteractiveAgent(Agent):
         if stream.startswith("EVENT_MESSAGE:"):
             if label == "DATA":
                 if worker:
-                    # get INTERACTIVE stream
-                    interactive_stream = stream[stream.rindex("INTERACTIVE") :]
+                    # get INTERACTION stream
+                    interaction_stream = stream[stream.rindex("INTERACTION") :]
                     # custom logic for when user is "DONE" with a form
                     if data["name_id"] == "DONE":
                         # check if first_name is set
-                        first_name = worker.get_stream_data(
-                            stream=interactive_stream, key="first_name.value"
-                        )
-                        last_name = worker.get_stream_data(
-                            stream=interactive_stream, key="last_name.value"
-                        )
-                        first_name_filled = not pydash.is_empty(
-                            pydash.strings.trim(first_name)
-                        )
-                        last_name_filled = not pydash.is_empty(
-                            pydash.strings.trim(last_name)
-                        )
+                        first_name = worker.get_stream_data(stream=interaction_stream, key="first_name.value")
+                        last_name = worker.get_stream_data(stream=interaction_stream, key="last_name.value")
+                        first_name_filled = not pydash.is_empty(pydash.strings.trim(first_name))
+                        last_name_filled = not pydash.is_empty(pydash.strings.trim(last_name))
                         # close previous form and send a new one asking for last_name
-                        interactive_stream_producer = Producer(
-                            name="INTERACTIVE", sid=interactive_stream
-                        )
+                        interactive_stream_producer = Producer(name="INTERACTION", sid=interaction_stream)
                         interactive_stream_producer.start()
                         if not first_name_filled:
                             return (
-                                "INTERACTIVE",
+                                "INTERACTION",
                                 {
                                     "type": "CALLOUT",
                                     "content": {
@@ -112,7 +102,7 @@ class InteractiveAgent(Agent):
                             )
                         else:
                             interactive_stream_producer.write(
-                                label="INTERACTIVE",
+                                label="INTERACTION",
                                 data={"type": "DONE", "form_id": data["form_id"]},
                                 dtype="json",
                             )
@@ -159,7 +149,7 @@ class InteractiveAgent(Agent):
                                     },
                                 }
                                 return (
-                                    "INTERACTIVE",
+                                    "INTERACTION",
                                     {"type": "JSONFORM", "content": interactive_form},
                                     "json",
                                     False,
@@ -173,7 +163,7 @@ class InteractiveAgent(Agent):
                                 )
                     else:
                         timestamp = worker.get_stream_data(
-                            stream=interactive_stream,
+                            stream=interaction_stream,
                             key=f'{data["name_id"]}.timestamp',
                         )
                         if timestamp is None or data["timestamp"] > timestamp:
@@ -183,7 +173,7 @@ class InteractiveAgent(Agent):
                                     "value": data["value"],
                                     "timestamp": data["timestamp"],
                                 },
-                                stream=interactive_stream,
+                                stream=interaction_stream,
                             )
         else:
             if label == "EOS":
@@ -234,7 +224,7 @@ class InteractiveAgent(Agent):
                         },
                     }
                     return (
-                        "INTERACTIVE",
+                        "INTERACTION",
                         {"type": "JSONFORM", "content": interactive_form},
                         "json",
                         False,
@@ -308,9 +298,7 @@ if __name__ == "__main__":
             a = InteractiveAgent(name=args.name, session=session, properties=properties)
         elif args.input_stream:
             # no session, work on a single input stream
-            a = InteractiveAgent(
-                name=args.name, input_stream=args.input_stream, properties=properties
-            )
+            a = InteractiveAgent(name=args.name, input_stream=args.input_stream, properties=properties)
         else:
             # create a new session
             a = InteractiveAgent(name=args.name, properties=properties)

@@ -75,13 +75,9 @@ class Agent:
 
         # override, if necessary
         if processor is not None:
-            self.processor = lambda *args, **kwargs: processor(
-                *args, **kwargs, properties=self.properties
-            )
+            self.processor = lambda *args, **kwargs: processor(*args, **kwargs, properties=self.properties)
         else:
-            self.processor = lambda *args, **kwargs: self.default_processor(
-                *args, **kwargs, properties=self.properties
-            )
+            self.processor = lambda *args, **kwargs: self.default_processor(*args, **kwargs, properties=self.properties)
 
         if session:
             self.join_session(session)
@@ -151,9 +147,7 @@ class Agent:
             input_stream,
             prefix=self.cid,
             agent=self,
-            processor=lambda *args, **kwargs: self.processor(
-                *args, **kwargs, tags=tags
-            ),
+            processor=lambda *args, **kwargs: self.processor(*args, **kwargs, tags=tags),
             session=self.session,
             properties=self.properties,
         )
@@ -211,11 +205,7 @@ class Agent:
             matches = self._match_listen_to_tags(tags)
             logging.info("Done checking match.")
             if len(matches) == 0:
-                logging.info(
-                    "Not listening to {stream} with {tags}...".format(
-                        stream=input_stream, tags=tags
-                    )
-                )
+                logging.info("Not listening to {stream} with {tags}...".format(stream=input_stream, tags=tags))
                 return
 
             logging.info(
@@ -230,9 +220,7 @@ class Agent:
             worker = self.create_worker(input_stream, tags=matches)
             self.workers.append(worker)
 
-            logging.info(
-                "Spawned worker for stream {stream}...".format(stream=input_stream)
-            )
+            logging.info("Spawned worker for stream {stream}...".format(stream=input_stream))
 
     def _match_listen_to_tags(self, tags):
         matches = set()
@@ -467,12 +455,8 @@ class AgentFactory:
             properties_from_api = params["properties"]
             properties_from_factory = self.properties
             agent_properties = {}
-            agent_properties = json_utils.merge_json(
-                agent_properties, properties_from_factory
-            )
-            agent_properties = json_utils.merge_json(
-                agent_properties, properties_from_api
-            )
+            agent_properties = json_utils.merge_json(agent_properties, properties_from_factory)
+            agent_properties = json_utils.merge_json(agent_properties, properties_from_api)
             input = None
 
             if "input" in agent_properties:
@@ -481,9 +465,7 @@ class AgentFactory:
 
             if self.agent_name == agent:
                 logging.info("Launching Agent: " + agent + "...")
-                logging.info(
-                    "Agent Properties: " + json.dumps(agent_properties) + "..."
-                )
+                logging.info("Agent Properties: " + json.dumps(agent_properties) + "...")
 
                 name = agent
                 prefix = session + ":" + "AGENT"

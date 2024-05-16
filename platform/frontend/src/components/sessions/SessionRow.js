@@ -32,7 +32,7 @@ export default function SessionRow({ index, style }) {
             messageContent = _.get(last, "message.content", null);
         if (_.isEqual(messageType, "STRING")) {
             setLastMessage(messageContent);
-        } else if (_.isEqual(messageType, "INTERACTIVE")) {
+        } else if (_.isEqual(messageType, "INTERACTION")) {
             setLastMessage(
                 <Tag minimal icon={faIcon({ icon: faPenField })}>
                     interactive message

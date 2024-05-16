@@ -23,7 +23,7 @@ export default function sessionReducer(
             const contentType = _.get(payload, "message.content.type", null);
             // non-conversational message; not adding to session messages
             if (
-                _.isEqual(messageType, "INTERACTIVE") &&
+                _.isEqual(messageType, "INTERACTION") &&
                 _.isEqual(contentType, "DONE")
             ) {
                 const stream = _.get(payload, "stream", null);

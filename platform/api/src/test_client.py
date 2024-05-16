@@ -224,10 +224,7 @@ COMMON_WORDS = (
 
 
 def sentence():
-    sections = [
-        " ".join(random.sample(WORDS, random.randint(3, 12)))
-        for i in range(random.randint(2, 5))
-    ]
+    sections = [" ".join(random.sample(WORDS, random.randint(3, 12))) for i in range(random.randint(2, 5))]
     s = ", ".join(sections)
     return "%s%s%s" % (s[0].upper(), s[1:], random.choice("?."))
 
@@ -269,7 +266,7 @@ ws.send(
             "type": "OBSERVER_SESSION_MESSAGE",
             "session_id": session_id,
             "message": {
-                "type": "INTERACTIVE",
+                "type": "INTERACTION",
                 "content": {
                     "schema": {
                         "type": "object",

@@ -70,10 +70,7 @@ class ObserverAgent(Agent):
                     if data is not None:
                         str_data = str(" ".join(data))
                     if len(str_data.strip()) > 0:
-                        if (
-                            "output" in properties
-                            and properties["output"] == "websocket"
-                        ):
+                        if "output" in properties and properties["output"] == "websocket":
                             ws = create_connection(properties["websocket"])
                             ws.send(
                                 json.dumps(
@@ -91,9 +88,7 @@ class ObserverAgent(Agent):
                             time.sleep(1)
                             ws.close()
                         else:
-                            logging.info(
-                                "{} [{}]: {}".format(stream, ",".join(tags), str_data)
-                            )
+                            logging.info("{} [{}]: {}".format(stream, ",".join(tags), str_data))
         elif label == "BOS":
             # init stream to empty array
             if worker:
@@ -106,7 +101,7 @@ class ObserverAgent(Agent):
             else:
                 if worker:
                     worker.append_data(stream, str(value))
-        elif label == "INTERACTIVE":
+        elif label == "INTERACTION":
             # interactive messages
             if "output" in properties and properties["output"] == "websocket":
                 ws = create_connection(properties["websocket"])

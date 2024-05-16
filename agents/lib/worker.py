@@ -74,9 +74,7 @@ class Worker:
 
         self.processor = processor
         if processor is not None:
-            self.processor = lambda *args, **kwargs,: processor(
-                *args, **kwargs, worker=self
-            )
+            self.processor = lambda *args, **kwargs,: processor(*args, **kwargs, worker=self)
 
         self.properties = properties
 
@@ -164,8 +162,8 @@ class Worker:
                 result_eos = False
 
             # result is interactive, create event message stream to track interactions
-            if result_label == "INTERACTIVE":
-                # start INTERACTIVE output stream early
+            if result_label == "INTERACTION":
+                # start INTERACTION output stream early
                 self._start_producer()
                 event_stream = Producer(
                     name="EVENT_MESSAGE",
@@ -177,16 +175,12 @@ class Worker:
                 result_data["form_id"] = form_id
                 interactive_result_type = pydash.objects.get(result_data, "type", None)
                 if pydash.is_equal(interactive_result_type, "JSONFORM"):
-                    self._stream_injection(
-                        result_data["content"], event_stream.get_stream(), form_id
-                    )
+                    self._stream_injection(result_data["content"], event_stream.get_stream(), form_id)
                 # start a consumer to listen to a event stream, using self.processor
                 event_consumer = Consumer(
                     self.name,
                     event_stream.get_stream(),
-                    listener=lambda id, data: self.listener(
-                        id, data, event_stream.get_stream()
-                    ),
+                    listener=lambda id, data: self.listener(id, data, event_stream.get_stream()),
                     properties=self.properties,
                 )
                 event_consumer.start()
@@ -200,18 +194,12 @@ class Worker:
                         eos=(label == "EOS"),
                     )
                 elif self.properties["aggregator.eos"] == "NEVER":
-                    self.write(
-                        result_data, dtype=result_dtype, label=result_label, eos=False
-                    )
+                    self.write(result_data, dtype=result_dtype, label=result_label, eos=False)
                 else:
-                    self.write(
-                        result_data, dtype=result_dtype, label=result_label, eos=False
-                    )
+                    self.write(result_data, dtype=result_dtype, label=result_label, eos=False)
             else:
                 # TODO Implement 'ALL' option
-                self.write(
-                    result_data, dtype=result_dtype, label=result_label, eos=result_eos
-                )
+                self.write(result_data, dtype=result_dtype, label=result_label, eos=result_eos)
 
         if label == "EOS":
             # done, stop listening to input stream
