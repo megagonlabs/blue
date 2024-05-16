@@ -27,7 +27,7 @@ import itertools
 from tqdm import tqdm
 
 ###### Blue
-from agent import Agent
+from agent import Agent, AgentFactory
 from session import Session
 from producer import Producer
 from consumer import Consumer
@@ -43,35 +43,12 @@ logging.basicConfig(
 
 
 #######################
-class InteractiveAgent(Agent):
-    def __init__(
-        self,
-        name="INTERACTIVE",
-        session=None,
-        input_stream=None,
-        processor=None,
-        properties={},
-    ):
-        super().__init__(
-            name,
-            session=session,
-            input_stream=input_stream,
-            processor=processor,
-            properties=properties,
-        )
+class TemplateInteractiveAgent(Agent):
+    def __init__(self, name="TEMPLATE_INTERACTIVE", session=None, input_stream=None, processor=None, properties={}):
+        super().__init__(name, session=session, input_stream=input_stream, processor=processor, properties=properties)
         self.event_stream_consumer = {}
 
-    def default_processor(
-        self,
-        stream,
-        id,
-        label,
-        data,
-        dtype=None,
-        tags=None,
-        properties=None,
-        worker=None,
-    ):
+    def default_processor(self, stream, id, label, data, dtype=None, tags=None, properties=None, worker=None):
         if stream.startswith("EVENT_MESSAGE:"):
             if label == "DATA":
                 if worker:
@@ -103,7 +80,10 @@ class InteractiveAgent(Agent):
                         else:
                             interactive_stream_producer.write(
                                 label="INTERACTION",
-                                data={"type": "DONE", "form_id": data["form_id"]},
+                                data={
+                                    "type": "DONE",
+                                    "form_id": data["form_id"],
+                                },
                                 dtype="json",
                             )
                             if first_name_filled and not last_name_filled:
@@ -150,21 +130,18 @@ class InteractiveAgent(Agent):
                                 }
                                 return (
                                     "INTERACTION",
-                                    {"type": "JSONFORM", "content": interactive_form},
+                                    {
+                                        "type": "JSONFORM",
+                                        "content": interactive_form,
+                                    },
                                     "json",
                                     False,
                                 )
                             elif first_name_filled and last_name_filled:
-                                return (
-                                    "DATA",
-                                    f"Hello, {first_name} {last_name}.",
-                                    "str",
-                                    True,
-                                )
+                                return ("DATA", f"Hello, {first_name} {last_name}.", "str", True)
                     else:
                         timestamp = worker.get_stream_data(
-                            stream=interaction_stream,
-                            key=f'{data["name_id"]}.timestamp',
+                            stream=interaction_stream, key=f'{data["name_id"]}.timestamp'
                         )
                         if timestamp is None or data["timestamp"] > timestamp:
                             worker.set_stream_data(
@@ -223,12 +200,7 @@ class InteractiveAgent(Agent):
                             ],
                         },
                     }
-                    return (
-                        "INTERACTION",
-                        {"type": "JSONFORM", "content": interactive_form},
-                        "json",
-                        False,
-                    )
+                    return ("INTERACTION", {"type": "JSONFORM", "content": interactive_form}, "json", False)
             elif label == "BOS":
                 # init stream to empty array
                 if worker:
@@ -245,12 +217,14 @@ class InteractiveAgent(Agent):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--name", default="INTERACTIVE", type=str)
-    parser.add_argument("--session", type=str)
-    parser.add_argument("--input_stream", type=str)
-    parser.add_argument("--properties", type=str)
-    parser.add_argument("--loglevel", default="INFO", type=str)
-    parser.add_argument("--serve", default=False, action=argparse.BooleanOptionalAction)
+    parser.add_argument('--name', default="TEMPLATE_INTERACTIVE", type=str)
+    parser.add_argument('--session', type=str)
+    parser.add_argument('--input_stream', type=str)
+    parser.add_argument('--properties', type=str)
+    parser.add_argument('--loglevel', default="INFO", type=str)
+    parser.add_argument('--serve', type=str, default='TEMPLATE_INTERACTIVE')
+    parser.add_argument('--platform', type=str, default='default')
+    parser.add_argument('--registry', type=str, default='default')
 
     args = parser.parse_args()
 
@@ -265,43 +239,29 @@ if __name__ == "__main__":
         properties = json.loads(p)
 
     if args.serve:
-        # launch agent with parameters, start session
-        def launch(*args, **kwargs):
-            logging.info("Launching InteractiveAgent...")
-            logging.info(kwargs)
-            agent = InteractiveAgent(*args, **kwargs)
-            session = agent.start_session()
-            logging.info("Started session: " + session.name)
-            logging.info("Launched.")
-            return session.name
+        platform = args.platform
 
-        # launch agent with parameters, join session in keyword args (session=)
-        def join(*args, **kwargs):
-            logging.info("Launching InteractiveAgent...")
-            logging.info(kwargs)
-            agent = InteractiveAgent(*args, **kwargs)
-            logging.info("Joined session: " + kwargs["session"])
-            logging.info("Launched.")
-            return kwargs["session"]
-
-        # run rpc server
-        rpc = RPCServer(args.name, properties=properties)
-        rpc.register(launch)
-        rpc.register(join)
-        rpc.run()
+        af = AgentFactory(
+            agent_class=TemplateInteractiveAgent,
+            agent_name=args.serve,
+            agent_registry=args.registry,
+            platform=platform,
+            properties=properties,
+        )
+        af.wait()
     else:
         a = None
         session = None
         if args.session:
             # join an existing session
             session = Session(args.session)
-            a = InteractiveAgent(name=args.name, session=session, properties=properties)
+            a = TemplateInteractiveAgent(name=args.name, session=session, properties=properties)
         elif args.input_stream:
             # no session, work on a single input stream
-            a = InteractiveAgent(name=args.name, input_stream=args.input_stream, properties=properties)
+            a = TemplateInteractiveAgent(name=args.name, input_stream=args.input_stream, properties=properties)
         else:
             # create a new session
-            a = InteractiveAgent(name=args.name, properties=properties)
+            a = TemplateInteractiveAgent(name=args.name, properties=properties)
             session = a.start_session()
 
         # wait for session

@@ -15,4 +15,4 @@ ADD /lib /app/lib/
 # Copy service files
 ADD /src /app/
 
-ENTRYPOINT ["python", "interactive_agent.py"]
+ENTRYPOINT ["python", "template_interactive_agent.py"]
