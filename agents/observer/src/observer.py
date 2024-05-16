@@ -115,7 +115,6 @@ class ObserverAgent(Agent):
                                 "content": value,
                             },
                             "stream": stream,
-                            "timestamp": time.time(),
                         }
                     )
                 )
