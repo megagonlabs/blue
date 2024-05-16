@@ -32,7 +32,7 @@ from websockets.sync.client import connect
 ###### Blue
 from agent import Agent, AgentFactory
 from session import Session
-from rpc import RPCServer
+
 
 # set log level
 logging.getLogger().setLevel(logging.INFO)
@@ -41,14 +41,15 @@ logging.basicConfig(format="%(asctime)s [%(levelname)s] [%(process)d:%(threadNam
 
 #######################
 class CounterAgent(Agent):
-    def __init__(self, name="WEBSOCKET_COUNTER", session=None, input_stream=None, processor=None, properties={}):
-        super().__init__(name=name, session=session, input_stream=input_stream, processor=processor, properties=properties)
-        
+    def __init__(self, **kwargs):
+        if 'name' not in kwargs:
+            kwargs['name'] = "WEBSOCKET_COUNTER"
+        super().__init__(**kwargs)
         
     def _initialize_properties(self):
         super()._initialize_properties()
 
-        self.properties['counter.service'] = "ws://localhost:8002"
+        self.properties['counter.service'] = "ws://localhost:8001"
 
     def default_processor(self, stream, id, label, data, dtype=None, tags=None, properties=None, worker=None):
         if label == 'EOS':
@@ -74,7 +75,7 @@ class CounterAgent(Agent):
             # create output from response
             output_data = int(response)
             logging.info(output_data)
-            return output_data
+            return "DATA", str(output_data), "str", True
 
         elif label == 'BOS':
             # init stream to empty array
@@ -97,7 +98,7 @@ class CounterAgent(Agent):
 
     def call_service(self, data):
         with connect(self.get_service_address()) as websocket:
-            logging.info("Sending to service: {data}".format(data=data))
+            logging.info("Sending to service {service}: {data}".format(service=self.get_service_address(),data=data))
             websocket.send(data)
             message = websocket.recv()
             logging.info("Received from service: {message}".format(message=message))
@@ -107,7 +108,6 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--name', default="WEBSOCKETCOUNTER", type=str)
     parser.add_argument('--session', type=str)
-    parser.add_argument('--input_stream', type=str)
     parser.add_argument('--properties', type=str)
     parser.add_argument('--loglevel', default="INFO", type=str)
     parser.add_argument('--serve', type=str, default='WEBSOCKETCOUNTER')
@@ -135,13 +135,11 @@ if __name__ == "__main__":
     else:
         a = None
         session = None
+
         if args.session:
             # join an existing session
             session = Session(args.session)
             a = CounterAgent(name=args.name, session=session, properties=properties)
-        elif args.input_stream:
-            # no session, work on a single input stream
-            a = CounterAgent(name=args.name, input_stream=args.input_stream, properties=properties)
         else:
             # create a new session
             a = CounterAgent(name=args.name, properties=properties)

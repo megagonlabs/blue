@@ -32,18 +32,35 @@ logging.basicConfig(format="%(asctime)s [%(levelname)s] [%(process)d:%(threadNam
 
 
 class Consumer():
-    def __init__(self, name, stream, gid=None, listener=None, properties={}):
+    def __init__(self,  stream, name="STREAM", id=None, sid=None, cid=None, prefix=None, suffix=None,  listener=None, properties={}):
+
+        self.stream = stream 
 
         self.name = name
-        self.stream = stream
+        if id:
+            self.id = id
+        else:
+            self.id = str(hex(uuid.uuid4().fields[0]))[2:]
+
+        if sid:
+            self.sid = sid
+        else:
+            self.sid = self.name + ":" + self.id
+
+        self.prefix = prefix
+        self.suffix = suffix
+        self.cid = cid
+
+        if self.cid == None:
+            self.cid = self.sid
+
+            if self.prefix:
+                self.cid = self.prefix + ":" + self.cid
+            if self.suffix:
+                self.cid = self.cid + ":" + self.suffix
+
 
         self._initialize(properties=properties)
-        
-        if gid is None:
-            gid = hex(uuid.uuid4().fields[0])[2:]
-        self.gid = gid 
-
-        self.group = self.name + ":" + str(self.gid)
 
         if listener is None:
             listener = lambda id, message: print("{id}:{message}".format(id=id, message=message))
@@ -76,7 +93,7 @@ class Consumer():
     ####### open connection, create group, start threads
     def start(self):
 
-        # logging.info("Starting consumer {c} for stream {s}".format(c=self.name,s=self.stream))
+        # logging.info("Starting consumer {c} for stream {s}".format(c=self.sid,s=self.stream))
         self.stop_signal = False
 
         self._start_connection()
@@ -85,10 +102,10 @@ class Consumer():
 
         self._start_threads()
 
-        logging.info("Started consumer {c} for stream {s}".format(c=self.name,s=self.stream))
+        logging.info("Started consumer {c} for stream {s}".format(c=self.sid,s=self.stream))
 
     def stop(self):
-        logging.info("Stopping consumer {c} for stream {s}".format(c=self.name,s=self.stream))
+        logging.info("Stopping consumer {c} for stream {s}".format(c=self.sid,s=self.stream))
         self.stop_signal = True
 
     def wait(self):
@@ -104,7 +121,7 @@ class Consumer():
     def _start_group(self):
         # create group if it doesn't exists, print group info 
         s = self.stream
-        g = self.group
+        g = self.cid
         r = self.connection
        
         try:
@@ -117,7 +134,7 @@ class Consumer():
 
     def _print_group_info(self):
         s = self.stream
-        g = self.group
+        g = self.cid
         r = self.connection
 
         logging.info("Group info for stream {s}".format(s=s))
@@ -130,11 +147,11 @@ class Consumer():
         return self.stream
 
     def get_group(self):
-        return self.group
+        return self.cid
 
     def _consume_stream(self, c):
         s = self.stream
-        g = self.group
+        g = self.cid
         r = self.connection
         l = self.listener
 
@@ -196,7 +213,7 @@ class Consumer():
         num_threads = self.properties['num_threads']
         
         for i in range(num_threads):
-            t = threading.Thread(target=lambda : self._consume_stream(self.name + "-" + str(i)), daemon=True)
+            t = threading.Thread(target=lambda : self._consume_stream(self.cid + "-" + str(i)), daemon=True)
             t.start()
             self.threads.append(t)
             
@@ -230,7 +247,7 @@ if __name__ == "__main__":
    def listener(id, message):
        print("hello {message}".format(message=message))
 
-   c = Consumer(args.name, args.stream, listener=listener)
+   c = Consumer(args.stream, name=args.name, listener=listener)
    c.start()
   
 

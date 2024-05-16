@@ -16,17 +16,21 @@ services:
   ${AGENT_LOWERCASE}:
     image: ${IMAGE}
     hostname: blue_agent_${REGISTRY}_${AGENT}
+    deploy:
+      placement:
+        constraints:
+          - node.labels.target == agent
     networks:
-      - blue_platform_${BLUE_DEPLOY_PLATFORM}_network_bridge
+      - blue_platform_${BLUE_DEPLOY_PLATFORM}_network_overlay
     volumes:
       - blue_${BLUE_DEPLOY_PLATFORM}_data:/blue_data
-    command: --serve ${AGENT} --properties '{"db.host":"blue_db_redis"}' ${POSITIONAL_ARGS} ${ADDITIONAL_ARGS}
+    command: --serve ${AGENT} --properties '''${PROPERTIES}'''
     environment:
       <<: *blue-common-env
     restart: always
 
 networks:
-  blue_platform_${BLUE_DEPLOY_PLATFORM}_network_bridge:
+  blue_platform_${BLUE_DEPLOY_PLATFORM}_network_overlay:
       external: true
 
 volumes:

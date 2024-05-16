@@ -27,7 +27,7 @@ from tqdm import tqdm
 ###### Blue
 from agent import Agent, AgentFactory
 from session import Session
-from rpc import RPCServer
+
 
 # set log level
 logging.getLogger().setLevel(logging.INFO)
@@ -36,9 +36,10 @@ logging.basicConfig(format="%(asctime)s [%(levelname)s] [%(process)d:%(threadNam
 
 #######################
 class TemplateAgent(Agent):
-    def __init__(self, name="TEMPLATE", session=None, input_stream=None, processor=None, properties={}):
-        super().__init__(name=name, session=session, input_stream=input_stream, processor=processor, properties=properties)
-
+    def __init__(self, **kwargs):
+        if 'name' not in kwargs:
+            kwargs['name'] = "TEMPLATE"
+        super().__init__(**kwargs)
 
     def default_processor(self, stream, id, label, data, dtype=None, tags=None, properties=None, worker=None):
         if label == 'EOS':
@@ -70,10 +71,13 @@ class TemplateAgent(Agent):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
+    parser.add_argument('--name', default="TEMPLATE", type=str)
     parser.add_argument('--session', type=str)
-    parser.add_argument('--input_stream', type=str)
     parser.add_argument('--properties', type=str)
     parser.add_argument('--loglevel', default="INFO", type=str)
+    parser.add_argument('--serve', type=str, default='TEMPLATE')
+    parser.add_argument('--platform', type=str, default='default')
+    parser.add_argument('--registry', type=str, default='default')
  
     args = parser.parse_args()
    
@@ -99,9 +103,6 @@ if __name__ == "__main__":
             # join an existing session
             session = Session(args.session)
             a = TemplateAgent(name=args.name, session=session, properties=properties)
-        elif args.input_stream:
-            # no session, work on a single input stream
-            a = TemplateAgent(name=args.name, input_stream=args.input_stream, properties=properties)
         else:
             # create a new session
             a = TemplateAgent(name=args.name, properties=properties)

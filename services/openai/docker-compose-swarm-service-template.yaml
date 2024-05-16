@@ -1,0 +1,42 @@
+---
+version: '3.8'
+x-blue-common:
+  &blue-common
+  # build: .
+  image: python:3.9.0
+  environment:
+    &blue-common-env
+    BLUE__PROPERTIES: '{"platform.name":"${BLUE_DEPLOY_PLATFORM}", "platform.deploy.target":"${BLUE_DEPLOY_TARGET}", "api.server":"${BLUE_PUBLIC_API_SERVER}", "db.host":"blue_db_redis",  "agent_registry.name":"${BLUE_AGENT_REGISTRY}", "data_registry.name":"${BLUE_DATA_REGISTRY}", "embeddings_model":"/blue_data/models/paraphrase-MiniLM-L6-v2"}'
+  depends_on:
+    &blue-common-depends-on
+    redis:
+      condition: service_healthy
+
+services:
+  ${SERVICE_LOWERCASE}:
+    image: ${IMAGE}
+    hostname: blue_service_${SERVICE}
+    ports:
+      - ${PORT_MAPPING}
+    deploy:
+      placement:
+        constraints:
+          - node.labels.target == service
+    networks:
+      - blue_platform_${BLUE_DEPLOY_PLATFORM}_network_overlay
+    volumes:
+      - blue_${BLUE_DEPLOY_PLATFORM}_data:/blue_data
+    environment:
+      <<: *blue-common-env
+    env_file:
+      - ${SERVICE_LOWERCASE}.env
+    restart: always
+
+networks:
+  blue_platform_${BLUE_DEPLOY_PLATFORM}_network_overlay:
+      external: true
+
+volumes:
+  blue_${BLUE_DEPLOY_PLATFORM}_data:
+      external: true
+

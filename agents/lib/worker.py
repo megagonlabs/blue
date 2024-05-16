@@ -2,7 +2,7 @@
 import os
 import sys
 
-###### 
+######
 import time
 import argparse
 import logging
@@ -23,11 +23,45 @@ from producer import Producer
 from consumer import Consumer
 from agent import Session
 
-class Worker():
-    def __init__(self, name, input_stream, agent=None, id=None, processor=None, session=None, properties={}):
+
+class Worker:
+    def __init__(
+        self,
+        input_stream,
+        name="WORKER",
+        id=None,
+        sid=None,
+        cid=None,
+        prefix=None,
+        suffix=None,
+        agent=None,
+        processor=None,
+        session=None,
+        properties={},
+    ):
 
         self.name = name
-        self.id = id
+        if id:
+            self.id = id
+        else:
+            self.id = str(hex(uuid.uuid4().fields[0]))[2:]
+
+        if sid:
+            self.sid = sid
+        else:
+            self.sid = self.name + ":" + self.id
+
+        self.prefix = prefix
+        self.suffix = suffix
+        self.cid = cid
+
+        if self.cid == None:
+            self.cid = self.sid
+
+            if self.prefix:
+                self.cid = self.prefix + ":" + self.cid
+            if self.suffix:
+                self.cid = self.cid + ":" + self.suffix
 
         self.session = session
         self.agent = agent
@@ -39,7 +73,9 @@ class Worker():
 
         self.processor = processor
         if processor is not None:
-            self.processor = lambda *args, **kwargs,: processor(*args, **kwargs, worker=self)
+            self.processor = lambda *args, **kwargs,: processor(
+                *args, **kwargs, worker=self
+            )
 
         self.properties = properties
 
@@ -49,7 +85,6 @@ class Worker():
 
         self._start()
 
-
     ###### initialization
     def _initialize(self, properties=None):
         self._initialize_properties()
@@ -57,9 +92,9 @@ class Worker():
 
     def _initialize_properties(self):
         self.properties = {}
-        self.properties['num_threads'] = 1
-        self.properties['db.host'] = 'localhost'
-        self.properties['db.port'] = 6379
+        self.properties["num_threads"] = 1
+        self.properties["db.host"] = "localhost"
+        self.properties["db.port"] = 6379
 
     def _update_properties(self, properties=None):
         if properties is None:
@@ -67,23 +102,23 @@ class Worker():
 
         # override
         for p in properties:
-            self.properties[p] = properties[p]   
+            self.properties[p] = properties[p]
 
     def listener(self, id, message, stream):
         label = None
         data = None
         dtype = None
 
-        if 'label' in message:
-            label = message['label']
-        if 'data' in message:
-            data = message['data']
-        if 'type' in message:
-            dtype = message['type']
+        if "label" in message:
+            label = message["label"]
+        if "data" in message:
+            data = message["data"]
+        if "type" in message:
+            dtype = message["type"]
 
         result = None
 
-        if dtype == 'json':
+        if dtype == "json":
             data = json.loads(data)
 
         if self.processor is not None:
@@ -96,7 +131,7 @@ class Worker():
             result_data = None
             result_dtype = None
             result_eos = None
-            
+
             # processor can return multiple values, and the order is mapped to the following:
             # DATA
             # DATA, DTYPE
@@ -109,8 +144,8 @@ class Worker():
 
             if type(result) == tuple:
                 if len(result) == 2:
-                    result_label = 'DATA'
-                    result_data = result[0] 
+                    result_label = "DATA"
+                    result_data = result[0]
                     result_dtype = result[1]
                 elif len(result) == 3:
                     result_label = result[0]
@@ -122,67 +157,80 @@ class Worker():
                     result_dtype = result[2]
                     result_eos = result[3]
             else:
-                result_label = 'DATA'
-                result_data = result 
+                result_label = "DATA"
+                result_data = result
                 result_dtype = None
                 result_eos = False
-            
 
-            if self.properties['aggregator']: 
-                if self.properties['aggregator.eos'] == 'FIRST':
-                    self.write(result_data, dtype=result_dtype, label=result_label, eos=(label=='EOS'))
-                elif self.properties['aggregator.eos'] == 'NEVER':
-                    self.write(result_data, dtype=result_dtype, label=result_label, eos=False)
+            if self.properties["aggregator"]:
+                if self.properties["aggregator.eos"] == "FIRST":
+                    self.write(
+                        result_data,
+                        dtype=result_dtype,
+                        label=result_label,
+                        eos=(label == "EOS"),
+                    )
+                elif self.properties["aggregator.eos"] == "NEVER":
+                    self.write(
+                        result_data, dtype=result_dtype, label=result_label, eos=False
+                    )
                 else:
-                    self.write(result_data, dtype=result_dtype, label=result_label, eos=False)
+                    self.write(
+                        result_data, dtype=result_dtype, label=result_label, eos=False
+                    )
             else:
                 # TODO Implement 'ALL' option
-                self.write(result_data, dtype=result_dtype, label=result_label, eos=result_eos)
-        
-        if label == 'EOS':
+                self.write(
+                    result_data, dtype=result_dtype, label=result_label, eos=result_eos
+                )
+
+        if label == "EOS":
             # done, stop listening to input stream
             consumer = self.consumers[stream]
             consumer.stop()
 
-
-
-    def write(self, data, dtype=None, label='DATA', eos=True, split=None):
+    def write(self, data, dtype=None, label="DATA", eos=True, split=None):
         # start producer on first write
         self._start_producer()
 
-        self.producer.write(data=data, dtype=dtype,  label=label, eos=eos, split=split)
+        self.producer.write(data=data, dtype=dtype, label=label, eos=eos, split=split)
 
     def _start(self):
-        # logging.info('Starting agent worker {name}'.format(name=self.name))
+        # logging.info('Starting agent worker {name}'.format(name=self.sid))
 
         # start consumer only first on initial given input_stream
         self._start_consumers()
-        logging.info('Started agent worker {name}'.format(name=self.name))
+        logging.info("Started agent worker {name}".format(name=self.sid))
 
     def _start_consumers(self):
         for input_stream in self.input_streams:
             self._start_consumer_on_stream(input_stream)
 
     def _start_consumer_on_stream(self, input_stream):
-         # start a consumer to listen to stream
+        # start a consumer to listen to stream
         if input_stream:
-            # create data namespace to share data on stream 
+            # create data namespace to share data on stream
             if self.session:
-                self.session._init_stream_agent_data_namespace(input_stream, self.name)
+                self.session._init_stream_agent_data_namespace(
+                    input_stream, self.agent
+                )
 
-            consumer = Consumer(self.name, input_stream, listener=lambda id, data : self.listener(id,data,input_stream), properties=self.properties)
+            consumer = Consumer(
+                input_stream,
+                name=self.name + "WORKER",
+                prefix=self.cid,
+                listener=lambda id, data: self.listener(id, data, input_stream),
+                properties=self.properties,
+            )
 
             self.consumers[input_stream] = consumer
             consumer.start()
 
-    
     def _start_producer(self):
         # start, if not started
         if self.producer == None:
-            suffix = None
-            
 
-            producer = Producer(self.name, sid=self.id, suffix=suffix, properties=self.properties)
+            producer = Producer(prefix=self.prefix, properties=self.properties)
             producer.start()
             self.producer = producer
 
@@ -193,14 +241,14 @@ class Worker():
 
                 # notify session
                 tags = set()
-                tags.add(self.name)
-                if 'tags' in self.properties:
-                    tags = tags.union(set(self.properties['tags']))
+                tags.add(self.agent.name)
+                if "tags" in self.properties:
+                    tags = tags.union(set(self.properties["tags"]))
                 tags = list(tags)
-    
+
                 self.session.notify(output_stream, tags)
 
-    ###### DATA RELATED 
+    ###### DATA RELATED
     ## session data
     def set_session_data(self, key, value):
         if self.session:
@@ -213,15 +261,14 @@ class Worker():
     def get_session_data(self, key):
         if self.session:
             return self.session.get_data(key)
-        
+
         return None
 
     def get_session_data_len(self, key):
         if self.session:
             return self.session.get_data_len(key)
-        
-        return None
 
+        return None
 
     ## session stream data
     def _identify_stream(self, stream=None):
@@ -231,7 +278,7 @@ class Worker():
             if len(self.input_streams) == 1:
                 return list(self.input_streams)[0]
             else:
-                return 'UNIDENTIFIED'
+                return "UNIDENTIFIED"
 
     def set_stream_data(self, key, value, stream=None):
         if self.session:
@@ -247,38 +294,38 @@ class Worker():
         if self.session:
             stream = self._identify_stream(stream=stream)
             return self.session.get_stream_data(stream, key)
-        
+
         return None
 
     def get_stream_data_len(self, key, stream=None):
         if self.session:
             stream = self._identify_stream(stream=stream)
             return self.session.get_stream_data_len(stream, key)
-        
+
         return None
 
     ## worker data
     def set_data(self, key, value, stream=None):
         if self.session:
             stream = self._identify_stream(stream=stream)
-            self.session.set_stream_agent_data(stream, self.name, key, value)
+            self.session.set_stream_agent_data(stream, self.agent, key, value)
 
     def append_data(self, key, value, stream=None):
         if self.session:
             stream = self._identify_stream(stream=stream)
-            self.session.append_stream_agent_data(stream, self.name, key, value)
+            self.session.append_stream_agent_data(stream, self.agent, key, value)
 
     def get_data(self, key, stream=None):
         if self.session:
             stream = self._identify_stream(stream=stream)
-            return self.session.get_stream_agent_data(stream, self.name, key)
+            return self.session.get_stream_agent_data(stream, self.agent, key)
 
         return None
 
     def get_data_len(self, key, stream=None):
         if self.session:
             stream = self._identify_stream(stream=stream)
-            return self.session.get_stream_agent_data_len(stream, self.name, key)
+            return self.session.get_stream_agent_data_len(stream, self.agent, key)
 
         return None
 
@@ -301,8 +348,6 @@ class Worker():
             return self.session.get_agent_data_len(self.agent, key)
         return None
 
-
-
     def stop(self):
         # send stop signal to consumer(s)
         for consumer in self.consumers.values():
@@ -314,46 +359,41 @@ class Worker():
             consumer.wait()
 
 
-
 #######################
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--name', type=str, default='processor')
-    parser.add_argument('--input_stream', type=str, default='input')
-    parser.add_argument('--threads', type=int, default=1)
-    parser.add_argument('--loglevel', default="INFO", type=str)
- 
+    parser.add_argument("--name", type=str, default="processor")
+    parser.add_argument("--input_stream", type=str, default="input")
+    parser.add_argument("--threads", type=int, default=1)
+    parser.add_argument("--loglevel", default="INFO", type=str)
+
     args = parser.parse_args()
-   
+
     # set logging
     logging.getLogger().setLevel(args.loglevel.upper())
-
 
     stream_data = []
 
     # sample func to process data
     def processor(id, label, data, dtype=None):
-       
-        if label == 'EOS':
+
+        if label == "EOS":
             # print all data received from stream
             print(stream_data)
 
             # compute stream data
             l = len(stream_data)
             time.sleep(4)
-            
+
             # output to stream
             return l
-           
-        elif label == 'DATA':
+
+        elif label == "DATA":
             # store data value
             stream_data.append(data)
-        
-        return None
 
+        return None
 
     # create a worker
     w = Worker(args.name, args.input_stream, processor=processor)
     w.start()
-  
-   
