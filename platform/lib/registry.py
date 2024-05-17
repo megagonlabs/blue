@@ -269,9 +269,7 @@ class Registry:
             res = pipe.execute()
             print(res)
 
-    def search_records(
-        self, keywords, type=None, scope=None, approximate=False, hybrid=False, page=0, page_size=5, page_limit=10
-    ):
+    def search_records(self, keywords, type=None, scope=None, approximate=False, hybrid=False, page=0, page_size=5, page_limit=10):
 
         index_name = self._get_index_name()
         doc_prefix = self._get_doc_prefix()
@@ -288,58 +286,30 @@ class Registry:
         if hybrid:
             q = "( " + qs + " " + " $kw " + " )" + " => [KNN " + str((page_limit) * page_size) + " @vector $v as score]"
 
-            query = (
-                Query(q)
-                .sort_by("score")
-                .return_fields("id", "name", "type", "scope", "score")
-                .paging(0, page_limit * page_size)
-                .dialect(2)
-            )
+            query = Query(q).sort_by("score").return_fields("id", "name", "type", "scope", "score").paging(0, page_limit * page_size).dialect(2)
 
         else:
             if approximate:
                 if qs == "":
                     qs = "*"
                 q = "( " + qs + " )" + " => [KNN " + str((page_limit) * page_size) + " @vector $v as score]"
-                query = (
-                    Query(q)
-                    .sort_by("score")
-                    .return_fields("id", "name", "type", "scope", "score")
-                    .paging(0, page_limit * page_size)
-                    .dialect(2)
-                )
+                query = Query(q).sort_by("score").return_fields("id", "name", "type", "scope", "score").paging(0, page_limit * page_size).dialect(2)
 
             else:
                 q = "( " + qs + " " + " $kw " + " )"
-                query = (
-                    Query(q).return_fields("id", "name", "type", "scope").paging(0, page_limit * page_size).dialect(2)
-                )
+                query = Query(q).return_fields("id", "name", "type", "scope").paging(0, page_limit * page_size).dialect(2)
 
         query_params = {"kw": keywords, "v": self._compute_embedding_vector(keywords)}
 
-        logging.info(
-            'searching: ' + keywords + ', ' + 'approximate=' + str(approximate) + ', ' + 'hybrid=' + str(hybrid)
-        )
+        logging.info('searching: ' + keywords + ', ' + 'approximate=' + str(approximate) + ', ' + 'hybrid=' + str(hybrid))
         logging.info('using search query: ' + q)
         results = self.connection.ft(index_name).search(query, query_params).docs
 
         # field', 'id', 'name', 'payload', 'score', 'type
         if approximate or hybrid:
-            results = [
-                {
-                    "name": result['name'],
-                    "type": result['type'],
-                    "id": result['id'],
-                    "scope": result['scope'],
-                    "score": result['score'],
-                }
-                for result in results
-            ]
+            results = [{"name": result['name'], "type": result['type'], "id": result['id'], "scope": result['scope'], "score": result['score']} for result in results]
         else:
-            results = [
-                {"name": result['name'], "type": result['type'], "id": result['id'], "scope": result['scope']}
-                for result in results
-            ]
+            results = [{"name": result['name'], "type": result['type'], "id": result['id'], "scope": result['scope']} for result in results]
 
         # do paging
         print(len(results))
@@ -647,23 +617,9 @@ if __name__ == "__main__":
     parser.add_argument('--scope', type=str, default=None, help='limit to record scope')
     parser.add_argument('--page', type=int, default=0, help='search result page, default 0')
     parser.add_argument('--page_size', type=int, default=5, help='search result page size, default 5')
-    parser.add_argument(
-        '--list', type=bool, default=False, action=argparse.BooleanOptionalAction, help='list records in the registry'
-    )
-    parser.add_argument(
-        '--approximate',
-        type=bool,
-        default=False,
-        action=argparse.BooleanOptionalAction,
-        help='use approximate (embeddings) search',
-    )
-    parser.add_argument(
-        '--hybrid',
-        type=bool,
-        default=False,
-        action=argparse.BooleanOptionalAction,
-        help='use hybrid (keyword and approximate) search',
-    )
+    parser.add_argument('--list', type=bool, default=False, action=argparse.BooleanOptionalAction, help='list records in the registry')
+    parser.add_argument('--approximate', type=bool, default=False, action=argparse.BooleanOptionalAction, help='use approximate (embeddings) search')
+    parser.add_argument('--hybrid', type=bool, default=False, action=argparse.BooleanOptionalAction, help='use hybrid (keyword and approximate) search')
 
     args = parser.parse_args()
 
@@ -679,15 +635,7 @@ if __name__ == "__main__":
         properties = json.loads(p)
 
     # create a registry
-    registry = Registry(
-        name=args.name,
-        id=args.id,
-        sid=args.sid,
-        cid=args.cid,
-        prefix=args.prefix,
-        suffix=args.suffix,
-        properties=properties,
-    )
+    registry = Registry(name=args.name, id=args.id, sid=args.sid, cid=args.cid, prefix=args.prefix, suffix=args.suffix, properties=properties)
 
     #### LIST
     if args.list:
@@ -735,14 +683,6 @@ if __name__ == "__main__":
         keywords = args.search
 
         # search the registry
-        results = registry.search_records(
-            keywords,
-            type=args.type,
-            scope=args.scope,
-            approximate=args.approximate,
-            hybrid=args.hybrid,
-            page=args.page,
-            page_size=args.page_size,
-        )
+        results = registry.search_records(keywords, type=args.type, scope=args.scope, approximate=args.approximate, hybrid=args.hybrid, page=args.page, page_size=args.page_size)
 
         logging.info(json.dumps(results, indent=4))
