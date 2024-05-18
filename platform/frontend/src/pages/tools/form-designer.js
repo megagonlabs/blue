@@ -51,7 +51,7 @@ const DEFAULT_SCHEMA = JSON.stringify(
     null,
     4
 );
-function Designer() {
+function FormDesigner() {
     const [error, resetError] = useErrorBoundary();
     const leftPaneRef = createRef();
     const [uischema, setUischema] = useState({});
@@ -141,7 +141,9 @@ function Designer() {
         copy(JSON.stringify(result));
         AppToaster.show({
             icon: faIcon({ icon: faClipboard }),
-            message: "Copied interactive message configuration",
+            message: `Copied interactive message configuration (with${
+                withData ? "" : "out"
+            } data)`,
         });
     };
     const handleReset = () => {
@@ -455,4 +457,4 @@ function Designer() {
         </>
     );
 }
-export default withErrorBoundary(Designer);
+export default withErrorBoundary(FormDesigner);

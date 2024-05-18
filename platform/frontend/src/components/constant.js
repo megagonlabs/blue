@@ -70,4 +70,5 @@ module.exports = {
         { tester: UnknownTester, renderer: UnknownRenderer },
     ],
     CARD_LIST_CLASS_NAMES: `${Classes.CARD} ${Classes.CARD_LIST} ${Classes.CARD_LIST_BORDERED}`,
+    NAVIGATION_MENU_WIDTH: 203,
 };
