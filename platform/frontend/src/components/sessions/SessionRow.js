@@ -43,10 +43,7 @@ export default function SessionRow({ index, style }) {
     return (
         <Card
             interactive
-            style={{
-                ...style,
-                borderRadius: 0,
-            }}
+            style={{ ...style, borderRadius: 0 }}
             onMouseEnter={() => {
                 setShowActions(true);
             }}
