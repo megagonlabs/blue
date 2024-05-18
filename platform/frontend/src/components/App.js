@@ -20,10 +20,10 @@ import {
 import {
     faArrowRightFromBracket,
     faCircleA,
-    faCompassDrafting,
     faDatabase,
     faGear,
     faListUl,
+    faPencilRuler,
 } from "@fortawesome/pro-duotone-svg-icons";
 import classNames from "classnames";
 import _ from "lodash";
@@ -54,7 +54,7 @@ export default function App({ children }) {
         designer: {
             href: "/tools/form-designer",
             text: "Form Designer",
-            icon: faCompassDrafting,
+            icon: faPencilRuler,
         },
     };
     return (

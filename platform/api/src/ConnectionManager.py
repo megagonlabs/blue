@@ -33,6 +33,7 @@ data_registry_id = PROPERTIES["data_registry.name"]
 ###### Initialization
 p = Platform(id=platform_id, properties=PROPERTIES)
 
+
 @dataclass
 class ConnectionManager:
     def __init__(self) -> None:
@@ -51,9 +52,7 @@ class ConnectionManager:
             connection_id = str(hex(uuid.uuid4().fields[0]))[2:]
         await websocket.accept()
         self.active_connections[connection_id] = websocket
-        await self.send_message_to(
-            websocket, json.dumps({"type": "CONNECTED", "id": connection_id})
-        )
+        await self.send_message_to(websocket, json.dumps({"type": "CONNECTED", "id": connection_id}))
 
     def observe_session(self, connection_id: str, session_sid: str):
         session = Session(sid=session_sid, prefix=prefix, properties=PROPERTIES)
@@ -65,58 +64,29 @@ class ConnectionManager:
                 "observer": ObserverAgent(
                     session=session,
                     prefix=agent_prefix,
-                    properties={
-                        **PROPERTIES,
-                        "output": "websocket",
-                        "websocket": "ws://localhost:5050/sessions/ws",
-                        "session_id": session_sid,
-                    },
+                    properties={**PROPERTIES, "output": "websocket", "websocket": "ws://localhost:5050/sessions/ws", "session_id": session_sid},
                 ),
-                "user": Agent(
-                    name="USER", id=connection_id, session=session, prefix=agent_prefix, properties=PROPERTIES
-                ),
+                "user": Agent(name="USER", id=connection_id, session=session, prefix=agent_prefix, properties=PROPERTIES),
             },
         )
 
     def user_session_message(self, connection_id: str, session_id: str, message: str):
-        user_agent = pydash.objects.get(
-            self.session_to_client, [session_id, connection_id, "user"], None
-        )
+        user_agent = pydash.objects.get(self.session_to_client, [session_id, connection_id, "user"], None)
         if user_agent is not None:
             user_agent.interact(message)
 
-    def interactive_event_message(
-        self, stream_id: str, name_id: str, form_id: str, timestamp: int, value
-    ):
+    def interactive_event_message(self, stream_id: str, name_id: str, form_id: str, timestamp: int, value):
         event_stream = Producer(name="EVENT", sid=stream_id)
         event_stream.start()
-        event_stream.write(
-            data={
-                "name_id": name_id,
-                "form_id": form_id,
-                "value": value,
-                "timestamp": timestamp,
-            },
-            dtype="json",
-        )
+        event_stream.write(data={"name_id": name_id, "form_id": form_id, "value": value, "timestamp": timestamp}, dtype="json")
 
-    async def observer_session_message(
-        self, session_id: str, message: str, stream: str
-    ):
+    async def observer_session_message(self, session_id: str, message: str, stream: str, timestamp):
         # stream is an agent identifier
         client_id_list = pydash.objects.get(self.session_to_client, session_id, [])
         for client_id in client_id_list:
             try:
                 await self.send_message_to(
-                    self.active_connections[client_id],
-                    json.dumps(
-                        {
-                            "type": "SESSION_MESSAGE",
-                            "session_id": session_id,
-                            "message": message,
-                            "stream": stream,
-                        }
-                    ),
+                    self.active_connections[client_id], json.dumps({"type": "SESSION_MESSAGE", "session_id": session_id, "message": message, "stream": stream, "timestamp": timestamp})
                 )
             except Exception as ex:
                 print(ex)
@@ -128,12 +98,8 @@ class ConnectionManager:
         for session_id in session_id_list:
             try:
                 PATH = [session_id, connection_id]
-                observer_agent = pydash.objects.get(
-                    self.session_to_client, PATH + ["observer"], None
-                )
-                user_agent = pydash.objects.get(
-                    self.session_to_client, PATH + ["user"], None
-                )
+                observer_agent = pydash.objects.get(self.session_to_client, PATH + ["observer"], None)
+                user_agent = pydash.objects.get(self.session_to_client, PATH + ["user"], None)
                 if observer_agent is not None:
                     observer_agent.stop()
                 if user_agent is not None:

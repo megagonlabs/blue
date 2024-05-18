@@ -41,21 +41,24 @@ export default function sessionReducer(
                 if (!_.includes(state.sessionIds, payload.session_id)) {
                     sessionIds.push(payload.session_id);
                 }
+                const nextMessages = [
+                    ..._.get(state, `sessions.${payload.session_id}`, []),
+                    {
+                        message: payload.message,
+                        stream: payload.stream,
+                        timestamp: payload.timestamp,
+                    },
+                ];
                 return {
                     ...state,
                     sessions: {
                         ...state.sessions,
-                        [payload.session_id]: [
-                            ..._.get(
-                                state,
-                                `sessions.${payload.session_id}`,
-                                []
-                            ),
-                            {
-                                message: payload.message,
-                                stream: payload.stream,
-                            },
-                        ],
+                        [payload.session_id]: _.sortBy(
+                            nextMessages,
+                            function (o) {
+                                return o.timestamp;
+                            }
+                        ),
                     },
                     sessionIds,
                     unreadSessionIds,

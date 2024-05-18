@@ -58,6 +58,13 @@ class ObserverAgent(Agent):
         properties=None,
         worker=None,
     ):
+        base_message = {
+            "type": "OBSERVER_SESSION_MESSAGE",
+            "session_id": properties["session_id"],
+            "message": {"type": label, "content": value},
+            "stream": stream,
+            "timestamp": str(id).split("-")[0],
+        }
         if label == "EOS":
             # compute stream data
             l = 0
@@ -72,19 +79,7 @@ class ObserverAgent(Agent):
                     if len(str_data.strip()) > 0:
                         if "output" in properties and properties["output"] == "websocket":
                             ws = create_connection(properties["websocket"])
-                            ws.send(
-                                json.dumps(
-                                    {
-                                        "type": "OBSERVER_SESSION_MESSAGE",
-                                        "session_id": properties["session_id"],
-                                        "message": {
-                                            "type": "STRING",
-                                            "content": str_data,
-                                        },
-                                        "stream": stream,
-                                    }
-                                )
-                            )
+                            ws.send(json.dumps({**base_message, "message": {"type": "STRING", "content": str_data}}))
                             time.sleep(1)
                             ws.close()
                         else:
@@ -105,19 +100,7 @@ class ObserverAgent(Agent):
             # interactive messages
             if "output" in properties and properties["output"] == "websocket":
                 ws = create_connection(properties["websocket"])
-                ws.send(
-                    json.dumps(
-                        {
-                            "type": "OBSERVER_SESSION_MESSAGE",
-                            "session_id": properties["session_id"],
-                            "message": {
-                                "type": label,
-                                "content": value,
-                            },
-                            "stream": stream,
-                        }
-                    )
-                )
+                ws.send(json.dumps(base_message))
                 time.sleep(1)
                 ws.close()
 
