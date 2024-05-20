@@ -3,7 +3,7 @@ import _ from "lodash";
 import Link from "next/link";
 export default function RegistryCard({ title, description, href, extra }) {
     return (
-        <Link href={href}>
+        <Link className="no-link-decoration" href={href}>
             <Card
                 style={{
                     height: "100%",

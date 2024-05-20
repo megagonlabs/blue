@@ -200,27 +200,7 @@ WORDS = (
     "maxime",
     "corrupti",
 )
-COMMON_WORDS = (
-    "lorem",
-    "ipsum",
-    "dolor",
-    "sit",
-    "amet",
-    "consectetur",
-    "adipisicing",
-    "elit",
-    "sed",
-    "do",
-    "eiusmod",
-    "tempor",
-    "incididunt",
-    "ut",
-    "labore",
-    "et",
-    "dolore",
-    "magna",
-    "aliqua",
-)
+COMMON_WORDS = ("lorem", "ipsum", "dolor", "sit", "amet", "consectetur", "adipisicing", "elit", "sed", "do", "eiusmod", "tempor", "incididunt", "ut", "labore", "et", "dolore", "magna", "aliqua")
 
 
 def sentence():
@@ -257,6 +237,7 @@ for _ in range(3):
                     "content": random.choice([sentence_string, words_string]),
                 },
                 "stream": "local-test-client",
+                "timestamp": time.time(),
             }
         )
     )
@@ -293,6 +274,7 @@ ws.send(
                 },
             },
             "stream": "local-test-client",
+            "timestamp": time.time(),
         }
     )
 )

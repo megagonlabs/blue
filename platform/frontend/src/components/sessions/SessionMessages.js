@@ -12,12 +12,10 @@ export default function SessionMessages() {
     const sessionIdFocus = appState.session.sessionIdFocus;
     const messages = appState.session.sessions[sessionIdFocus];
     function getRowHeight(index) {
-        const own =
-            !_.isEmpty(messages) &&
-            _.startsWith(
-                messages[index].stream,
-                `USER:${appState.session.connectionId}`
-            );
+        const own = _.includes(
+            _.get(messages, [index, "stream"]),
+            `USER:${appState.session.connectionId}`
+        );
         return (
             rowHeights.current[index] +
                 (_.isEqual(index, messages.length - 1) ? 20 : 10) +
@@ -30,8 +28,8 @@ export default function SessionMessages() {
     }
     function Row({ index, style }) {
         const rowRef = useRef({});
-        const own = _.startsWith(
-            messages[index].stream,
+        const own = _.includes(
+            _.get(messages, [index, "stream"]),
             `USER:${appState.session.connectionId}`
         );
         useEffect(() => {
