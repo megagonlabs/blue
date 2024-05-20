@@ -1,7 +1,7 @@
 :root {
     --separator-border: rgba(17, 20, 24, 0.15);
 }
-a:not([class^="bp"]) {
+a.no-link-decoration {
     color: inherit !important;
     text-decoration: none !important;
 }

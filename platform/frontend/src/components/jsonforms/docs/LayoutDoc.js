@@ -10,11 +10,30 @@ import {
     HTMLTable,
     Intent,
     Tag,
-    Tooltip,
 } from "@blueprintjs/core";
-import { faArrowLeft, faCopy } from "@fortawesome/pro-duotone-svg-icons";
+import { faArrowLeft } from "@fortawesome/pro-duotone-svg-icons";
 import classNames from "classnames";
+import CopyDocJsonButton from "./CopyDocJsonButton";
 export default function LayoutDoc({ closePanel }) {
+    const docJsonVertical = JSON.stringify(
+        {
+            type: "VerticalLayout",
+            elements: [],
+        },
+        null,
+        4
+    );
+    const docJSonHorizontal = JSON.stringify(
+        {
+            type: "HorizontalLayout",
+            props: {
+                spaceEvenly: true,
+            },
+            elements: [],
+        },
+        null,
+        4
+    );
     return (
         <>
             <div className="bp-border-bottom" style={{ padding: 10 }}>
@@ -43,44 +62,21 @@ export default function LayoutDoc({ closePanel }) {
                 </div>
                 <pre style={{ position: "relative" }}>
                     <div style={{ position: "absolute", right: 15, top: 13 }}>
-                        <Tooltip minimal placement="bottom-end" content="Copy">
-                            <Button
-                                minimal
-                                large
-                                icon={faIcon({ icon: faCopy })}
-                            />
-                        </Tooltip>
+                        <CopyDocJsonButton
+                            docJson={docJsonVertical}
+                            copyMessage="Copied Layout JSON"
+                        />
                     </div>
-                    {JSON.stringify(
-                        {
-                            type: "VerticalLayout",
-                            elements: [],
-                        },
-                        null,
-                        4
-                    )}
+                    {docJsonVertical}
                 </pre>
                 <pre style={{ position: "relative" }}>
                     <div style={{ position: "absolute", right: 15, top: 13 }}>
-                        <Tooltip minimal placement="bottom-end" content="Copy">
-                            <Button
-                                minimal
-                                large
-                                icon={faIcon({ icon: faCopy })}
-                            />
-                        </Tooltip>
+                        <CopyDocJsonButton
+                            docJson={docJSonHorizontal}
+                            copyMessage="Copied Layout JSON"
+                        />
                     </div>
-                    {JSON.stringify(
-                        {
-                            type: "HorizontalLayout",
-                            props: {
-                                spaceEvenly: true,
-                            },
-                            elements: [],
-                        },
-                        null,
-                        4
-                    )}
+                    {docJSonHorizontal}
                 </pre>
                 <H2>Vertical vs. Horizontal</H2>
                 <Callout

@@ -14,6 +14,7 @@ import random
 import re
 import csv
 import json
+import pydash
 
 import itertools
 from tqdm import tqdm
@@ -73,9 +74,7 @@ class Worker:
 
         self.processor = processor
         if processor is not None:
-            self.processor = lambda *args, **kwargs,: processor(
-                *args, **kwargs, worker=self
-            )
+            self.processor = lambda *args, **kwargs,: processor(*args, **kwargs, worker=self)
 
         self.properties = properties
 
@@ -162,6 +161,37 @@ class Worker:
                 result_dtype = None
                 result_eos = False
 
+            # result is interactive, create event message stream to track interactions
+            if result_label == "INTERACTION":
+                # start INTERACTION output stream early
+                form_id = str(hex(uuid.uuid4().fields[0]))[2:]
+
+                self._start_producer()
+                event_stream = Producer(
+                    name="EVENT_MESSAGE",
+                    id=form_id,
+                    prefix=self.producer.get_stream(),
+                    properties=self.properties,
+                )
+                event_stream.start()
+                
+                # inject stream and form id into ui
+                result_data["form_id"] = form_id
+                interactive_result_type = pydash.objects.get(result_data, "type", None)
+                if pydash.is_equal(interactive_result_type, "JSONFORM"):
+                    self._stream_injection(result_data["content"], event_stream.get_stream(), form_id)
+
+
+                # start a consumer to listen to a event stream, using self.processor
+                event_consumer = Consumer(
+                    event_stream.get_stream(),
+                    name=self.name,
+                    prefix=self.cid,
+                    listener=lambda id, data: self.listener(id, data, event_stream.get_stream()),
+                    properties=self.properties,
+                )
+                event_consumer.start()
+
             if self.properties["aggregator"]:
                 if self.properties["aggregator.eos"] == "FIRST":
                     self.write(
@@ -171,23 +201,28 @@ class Worker:
                         eos=(label == "EOS"),
                     )
                 elif self.properties["aggregator.eos"] == "NEVER":
-                    self.write(
-                        result_data, dtype=result_dtype, label=result_label, eos=False
-                    )
+                    self.write(result_data, dtype=result_dtype, label=result_label, eos=False)
                 else:
-                    self.write(
-                        result_data, dtype=result_dtype, label=result_label, eos=False
-                    )
+                    self.write(result_data, dtype=result_dtype, label=result_label, eos=False)
             else:
                 # TODO Implement 'ALL' option
-                self.write(
-                    result_data, dtype=result_dtype, label=result_label, eos=result_eos
-                )
+                self.write(result_data, dtype=result_dtype, label=result_label, eos=result_eos)
 
         if label == "EOS":
             # done, stop listening to input stream
             consumer = self.consumers[stream]
             consumer.stop()
+
+    def _stream_injection(self, form_element: dict, stream: str, form_id: str):
+        if "uischema" in form_element:
+            self._stream_injection(form_element["uischema"], stream, form_id)
+        else:
+            if "elements" in form_element:
+                for element in form_element["elements"]:
+                    self._stream_injection(element, stream, form_id)
+            elif pydash.includes(["Control", "Button"], form_element["type"]):
+                pydash.objects.set_(form_element, "props.streamId", stream)
+                pydash.objects.set_(form_element, "props.formId", form_id)
 
     def write(self, data, dtype=None, label="DATA", eos=True, split=None):
         # start producer on first write
@@ -211,13 +246,11 @@ class Worker:
         if input_stream:
             # create data namespace to share data on stream
             if self.session:
-                self.session._init_stream_agent_data_namespace(
-                    input_stream, self.agent
-                )
+                self.session._init_stream_agent_data_namespace(input_stream, self.agent)
 
             consumer = Consumer(
                 input_stream,
-                name=self.name + "WORKER",
+                name=self.name,
                 prefix=self.cid,
                 listener=lambda id, data: self.listener(id, data, input_stream),
                 properties=self.properties,

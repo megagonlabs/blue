@@ -9,11 +9,30 @@ import {
     HTMLTable,
     Intent,
     Tag,
-    Tooltip,
 } from "@blueprintjs/core";
-import { faArrowLeft, faCopy } from "@fortawesome/pro-duotone-svg-icons";
+import { faArrowLeft } from "@fortawesome/pro-duotone-svg-icons";
 import classNames from "classnames";
+import CopyDocJsonButton from "./CopyDocJsonButton";
 export default function StringDoc({ closePanel }) {
+    const docJson = JSON.stringify(
+        {
+            type: "Control",
+            options: {
+                multi: false,
+            },
+            props: {
+                inline: false,
+                placeholder: null,
+                helperText: null,
+                style: {},
+                nameId: null,
+            },
+            scope: "",
+            required: false,
+        },
+        null,
+        4
+    );
     return (
         <>
             <div className="bp-border-bottom" style={{ padding: 10 }}>
@@ -50,33 +69,12 @@ export default function StringDoc({ closePanel }) {
                 </div>
                 <pre style={{ position: "relative" }}>
                     <div style={{ position: "absolute", right: 15, top: 13 }}>
-                        <Tooltip minimal placement="bottom-end" content="Copy">
-                            <Button
-                                minimal
-                                large
-                                icon={faIcon({ icon: faCopy })}
-                            />
-                        </Tooltip>
+                        <CopyDocJsonButton
+                            docJson={docJson}
+                            copyMessage="Copied String (Control) JSON"
+                        />
                     </div>
-                    {JSON.stringify(
-                        {
-                            type: "Control",
-                            options: {
-                                multi: false,
-                            },
-                            props: {
-                                inline: false,
-                                placeholder: null,
-                                helperText: null,
-                                style: {},
-                                nameId: null,
-                            },
-                            scope: "",
-                            required: false,
-                        },
-                        null,
-                        4
-                    )}
+                    {docJson}
                 </pre>
                 <H2>Props</H2>
                 <HTMLTable

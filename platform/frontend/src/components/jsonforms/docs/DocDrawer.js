@@ -9,6 +9,7 @@ import LayoutDoc from "@/components/jsonforms/docs/LayoutDoc";
 import NumberDoc from "@/components/jsonforms/docs/NumberDoc";
 import StringDoc from "@/components/jsonforms/docs/StringDoc";
 import {
+    Callout,
     Code,
     Drawer,
     HTMLTable,
@@ -59,6 +60,7 @@ const MainMenuPanel = (props) => {
         { text: "Number", icon: faInputNumeric },
         { text: "String", icon: faInputText },
     ];
+    const [openingPanel, setOpeningPanel] = useState(false);
     return (
         <div style={{ padding: 20 }}>
             <Menu large style={{ padding: 0 }}>
@@ -72,15 +74,20 @@ const MainMenuPanel = (props) => {
                             style: { marginRight: 10, marginLeft: 4 },
                         })}
                         onClick={() => {
+                            if (openingPanel) return;
+                            setOpeningPanel(true);
                             props.openPanel({
                                 props: { type: _.lowerCase(type.text) },
                                 renderPanel: RendererDetailPanel,
                             });
+                            setTimeout(() => {
+                                setOpeningPanel(false);
+                            }, 500);
                         }}
                         text={type.text}
                     />
                 ))}
-                <MenuDivider title="Schema" />
+                <MenuDivider title="Data Schema" />
                 <HTMLTable style={{ width: "100%" }}>
                     <thead>
                         <tr>
@@ -151,6 +158,18 @@ const MainMenuPanel = (props) => {
                     </tbody>
                 </HTMLTable>
                 <MenuDivider title="Examples" />
+                <Callout icon={null} intent={Intent.PRIMARY}>
+                    Didn&apos;t find an useful example here? Please request for
+                    an example by&nbsp;
+                    <a
+                        href="https://github.com/rit-git/blue/issues/new"
+                        rel="noreferrer"
+                        target="_blank"
+                    >
+                        creating an issue on Blue GitHub repository
+                    </a>
+                    .
+                </Callout>
             </Menu>
         </div>
     );

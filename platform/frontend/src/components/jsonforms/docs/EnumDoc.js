@@ -8,10 +8,26 @@ import {
     HTMLTable,
     Intent,
     Tag,
-    Tooltip,
 } from "@blueprintjs/core";
-import { faArrowLeft, faCopy } from "@fortawesome/pro-duotone-svg-icons";
+import { faArrowLeft } from "@fortawesome/pro-duotone-svg-icons";
+import CopyDocJsonButton from "./CopyDocJsonButton";
 export default function EnumDoc({ closePanel }) {
+    const docJson = JSON.stringify(
+        {
+            type: "Control",
+            label: "",
+            props: {
+                inline: false,
+                helperText: null,
+                style: {},
+                nameId: null,
+            },
+            scope: "",
+            required: false,
+        },
+        null,
+        4
+    );
     return (
         <>
             <div className="bp-border-bottom" style={{ padding: 10 }}>
@@ -48,30 +64,12 @@ export default function EnumDoc({ closePanel }) {
                 </div>
                 <pre style={{ position: "relative" }}>
                     <div style={{ position: "absolute", right: 15, top: 13 }}>
-                        <Tooltip minimal placement="bottom-end" content="Copy">
-                            <Button
-                                minimal
-                                large
-                                icon={faIcon({ icon: faCopy })}
-                            />
-                        </Tooltip>
+                        <CopyDocJsonButton
+                            docJson={docJson}
+                            copyMessage="Copied Enum (Control) JSON"
+                        />
                     </div>
-                    {JSON.stringify(
-                        {
-                            type: "Control",
-                            label: "",
-                            props: {
-                                inline: false,
-                                helperText: null,
-                                style: {},
-                                nameId: null,
-                            },
-                            scope: "",
-                            required: false,
-                        },
-                        null,
-                        4
-                    )}
+                    {docJson}
                 </pre>
                 <H2>Props</H2>
                 <HTMLTable

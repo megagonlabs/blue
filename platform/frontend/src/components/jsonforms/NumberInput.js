@@ -131,12 +131,14 @@ export default function NumberInput({
         forceUpdate();
         if (!_.isEqual(socketReadyState, 1)) return;
         setTimeout(() => {
+            const dataId = _.last(_.split(_.get(uischema, "scope", ""), "/"));
             socket.send(
                 JSON.stringify({
                     type: "INTERACTIVE_EVENT_MESSAGE",
                     stream_id: _.get(uischema, "props.streamId", null),
-                    name_id: _.get(uischema, "props.nameId", null),
-                    message: _.toNumber(result),
+                    name_id: _.get(uischema, "props.nameId", dataId),
+                    form_id: _.get(uischema, "props.formId", null),
+                    value: _.toNumber(result),
                     timestamp: Date.now(),
                 })
             );

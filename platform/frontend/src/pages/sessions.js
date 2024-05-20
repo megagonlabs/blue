@@ -1,4 +1,5 @@
 import AddAgents from "@/components/agents/AddAgents";
+import { NAVIGATION_MENU_WIDTH } from "@/components/constant";
 import { AppContext } from "@/components/contexts/app-context";
 import { useSocket } from "@/components/hooks/useSocket";
 import { faIcon } from "@/components/icon";
@@ -409,7 +410,7 @@ export default function Sessions() {
                     height: "calc(100% - 80px)",
                     marginLeft: SESSION_LISTL_PANEL_WIDTH,
                     width: `calc(100vw - ${
-                        SESSION_LISTL_PANEL_WIDTH + 160.55
+                        SESSION_LISTL_PANEL_WIDTH + NAVIGATION_MENU_WIDTH
                     }px)`,
                 }}
             >

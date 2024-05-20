@@ -55,6 +55,7 @@ platform_id = PROPERTIES["platform.name"]
 prefix = 'PLATFORM:' + platform_id
 agent_registry_id = PROPERTIES["agent_registry.name"]
 data_registry_id = PROPERTIES["data_registry.name"]
+db_host = PROPERTIES["db.host"]
 
 ###### Initialization
 p = Platform(id=platform_id, properties=PROPERTIES)
@@ -128,13 +129,19 @@ def deploy_agent_container(agent_name):
     # connect to docker
     client = docker.from_env()
 
+    # agent factory properties
+    agent_factory_properties = {}
+    # start from platform properties
+    agent_factory_properties = json_utils.merge_json(agent_factory_properties, PROPERTIES)
+
     # deploy agent container based on deploy target
     if PROPERTIES["platform.deploy.target"] == "localhost":
         client.containers.run(
             image,
-            "--serve",
+            "--serve " + agent_name + " " + "--properties " + "'" + json.dumps(agent_factory_properties) + "'",
             network="blue_platform_" + PROPERTIES["platform.name"] + "_network_bridge",
             hostname="blue_agent_" + agent_registry_id + "_" + agent_name,
+            volumes=["blue_" + platform_id + "_data:/blue_data"],
             stdout=True,
             stderr=True,
         )
@@ -142,12 +149,13 @@ def deploy_agent_container(agent_name):
         constraints = ["node.labels.target==agent"]
         client.services.create(
             image,
-            args=["--serve"],
+            args=["--serve " + agent_name + " " + "--properties " + "'" + json.dumps(agent_factory_properties) + "'"],
             networks=[
                 "blue_platform_" + PROPERTIES["platform.name"] + "_network_overlay"
             ],
             constraints=constraints,
             hostname="blue_agent_" + agent_registry_id + "_" + agent_name,
+            volumes=["blue_" + platform_id + "_data:/blue_data"]
         )
     result = ""
     return JSONResponse(content={"result": result, "message": "Success"})

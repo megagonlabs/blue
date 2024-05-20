@@ -58,6 +58,13 @@ class ObserverAgent(Agent):
         properties=None,
         worker=None,
     ):
+        base_message = {
+            "type": "OBSERVER_SESSION_MESSAGE",
+            "session_id": properties["session_id"],
+            "message": {"type": label, "content": value},
+            "stream": stream,
+            "timestamp": str(id).split("-")[0],
+        }
         if label == "EOS":
             # compute stream data
             l = 0
@@ -70,31 +77,13 @@ class ObserverAgent(Agent):
                     if data is not None:
                         str_data = str(" ".join(data))
                     if len(str_data.strip()) > 0:
-                        if (
-                            "output" in properties
-                            and properties["output"] == "websocket"
-                        ):
+                        if "output" in properties and properties["output"] == "websocket":
                             ws = create_connection(properties["websocket"])
-                            ws.send(
-                                json.dumps(
-                                    {
-                                        "type": "OBSERVER_SESSION_MESSAGE",
-                                        "session_id": properties["session_id"],
-                                        "message": {
-                                            "type": "STRING",
-                                            "content": str_data,
-                                        },
-                                        "stream": stream,
-                                    }
-                                )
-                            )
+                            ws.send(json.dumps({**base_message, "message": {"type": "STRING", "content": str_data}}))
                             time.sleep(1)
                             ws.close()
                         else:
-                            logging.error(
-                                "{} [{}]: {}".format(stream, ",".join(tags), str_data)
-                            )
-
+                            logging.info("{} [{}]: {}".format(stream, ",".join(tags), str_data))
         elif label == "BOS":
             # init stream to empty array
             if worker:
@@ -102,12 +91,18 @@ class ObserverAgent(Agent):
             pass
         elif label == "DATA":
             # store data value
-            # logging.error(value)
             if dtype == "json":
-                logging.error("{} [{}]: {}".format(stream, ",".join(tags), value))
+                logging.info("{} [{}]: {}".format(stream, ",".join(tags), value))
             else:
                 if worker:
                     worker.append_data(stream, str(value))
+        elif label == "INTERACTION":
+            # interactive messages
+            if "output" in properties and properties["output"] == "websocket":
+                ws = create_connection(properties["websocket"])
+                ws.send(json.dumps(base_message))
+                time.sleep(1)
+                ws.close()
 
         return None
 

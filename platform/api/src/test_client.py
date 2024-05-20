@@ -200,34 +200,11 @@ WORDS = (
     "maxime",
     "corrupti",
 )
-COMMON_WORDS = (
-    "lorem",
-    "ipsum",
-    "dolor",
-    "sit",
-    "amet",
-    "consectetur",
-    "adipisicing",
-    "elit",
-    "sed",
-    "do",
-    "eiusmod",
-    "tempor",
-    "incididunt",
-    "ut",
-    "labore",
-    "et",
-    "dolore",
-    "magna",
-    "aliqua",
-)
+COMMON_WORDS = ("lorem", "ipsum", "dolor", "sit", "amet", "consectetur", "adipisicing", "elit", "sed", "do", "eiusmod", "tempor", "incididunt", "ut", "labore", "et", "dolore", "magna", "aliqua")
 
 
 def sentence():
-    sections = [
-        " ".join(random.sample(WORDS, random.randint(3, 12)))
-        for i in range(random.randint(2, 5))
-    ]
+    sections = [" ".join(random.sample(WORDS, random.randint(3, 12))) for i in range(random.randint(2, 5))]
     s = ", ".join(sections)
     return "%s%s%s" % (s[0].upper(), s[1:], random.choice("?."))
 
@@ -260,6 +237,7 @@ for _ in range(3):
                     "content": random.choice([sentence_string, words_string]),
                 },
                 "stream": "local-test-client",
+                "timestamp": time.time(),
             }
         )
     )
@@ -269,7 +247,7 @@ ws.send(
             "type": "OBSERVER_SESSION_MESSAGE",
             "session_id": session_id,
             "message": {
-                "type": "INTERACTIVE",
+                "type": "INTERACTION",
                 "content": {
                     "schema": {
                         "type": "object",
@@ -278,7 +256,7 @@ ws.send(
                             "last_name": {"type": "string"},
                         },
                     },
-                    "uiSchema": {
+                    "uischema": {
                         "type": "HorizontalLayout",
                         "elements": [
                             {
@@ -296,6 +274,7 @@ ws.send(
                 },
             },
             "stream": "local-test-client",
+            "timestamp": time.time(),
         }
     )
 )

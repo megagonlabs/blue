@@ -31,6 +31,7 @@ import {
     faBookOpenCover,
     faBracketsCurly,
     faCircleXmark,
+    faClipboard,
     faDownload,
     faIndent,
     faRotate,
@@ -50,10 +51,10 @@ const DEFAULT_SCHEMA = JSON.stringify(
     null,
     4
 );
-function Designer() {
+function FormDesigner() {
     const [error, resetError] = useErrorBoundary();
     const leftPaneRef = createRef();
-    const [uiSchema, setUiSchema] = useState({});
+    const [uischema, setUischema] = useState({});
     const [schema, setSchema] = useState({});
     const ssData = sessionStorage.getItem("data");
     const [data, setData] = useState(_.isNil(ssData) ? {} : JSON.parse(ssData));
@@ -93,7 +94,7 @@ function Designer() {
     }, [data]);
     useEffect(() => {
         try {
-            setUiSchema(JSON.parse(jsonUiSchema));
+            setUischema(JSON.parse(jsonUiSchema));
         } catch (error) {}
         if (uiSchemaInitialized) {
             sessionStorage.setItem("jsonUiSchema", jsonUiSchema);
@@ -133,12 +134,17 @@ function Designer() {
         } catch (error) {}
     };
     const handleExportConfig = (withData) => {
-        let result = { schema: schema, uiSchema: uiSchema };
+        let result = { schema: schema, uischema: uischema };
         if (withData) {
             _.set(result, "data", data);
         }
         copy(JSON.stringify(result));
-        AppToaster.show({ message: "Copied message configuration" });
+        AppToaster.show({
+            icon: faIcon({ icon: faClipboard }),
+            message: `Copied interactive message configuration (with${
+                withData ? "" : "out"
+            } data)`,
+        });
     };
     const handleReset = () => {
         leftPaneRef.current.resize([50, 50]);
@@ -314,7 +320,7 @@ function Designer() {
                                                     : null
                                             }
                                             {...BUTTON_PROPS}
-                                            text="Schema"
+                                            text="Data Schema"
                                             onClick={() => {
                                                 leftPaneRef.current.resize([
                                                     187.5,
@@ -401,7 +407,7 @@ function Designer() {
                             }}
                         >
                             {resultPanel ? (
-                                !_.isEmpty(uiSchema) ? (
+                                !_.isEmpty(uischema) ? (
                                     <Callout
                                         icon={null}
                                         intent={error ? Intent.DANGER : null}
@@ -414,7 +420,7 @@ function Designer() {
                                         {!error ? (
                                             <JsonForms
                                                 schema={schema}
-                                                uischema={uiSchema}
+                                                uischema={uischema}
                                                 data={data}
                                                 renderers={JSONFORMS_RENDERERS}
                                                 cells={vanillaCells}
@@ -451,4 +457,4 @@ function Designer() {
         </>
     );
 }
-export default withErrorBoundary(Designer);
+export default withErrorBoundary(FormDesigner);
