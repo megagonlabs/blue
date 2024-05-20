@@ -164,22 +164,29 @@ class Worker:
             # result is interactive, create event message stream to track interactions
             if result_label == "INTERACTION":
                 # start INTERACTION output stream early
+                form_id = str(hex(uuid.uuid4().fields[0]))[2:]
+
                 self._start_producer()
                 event_stream = Producer(
                     name="EVENT_MESSAGE",
-                    suffix=self.producer.get_stream(),
+                    id=form_id,
+                    prefix=self.producer.get_stream(),
                     properties=self.properties,
                 )
                 event_stream.start()
-                form_id = str(uuid.uuid4())
+                
+                # inject stream and form id into ui
                 result_data["form_id"] = form_id
                 interactive_result_type = pydash.objects.get(result_data, "type", None)
                 if pydash.is_equal(interactive_result_type, "JSONFORM"):
                     self._stream_injection(result_data["content"], event_stream.get_stream(), form_id)
+
+
                 # start a consumer to listen to a event stream, using self.processor
                 event_consumer = Consumer(
-                    self.name,
                     event_stream.get_stream(),
+                    name=self.name,
+                    prefix=self.cid,
                     listener=lambda id, data: self.listener(id, data, event_stream.get_stream()),
                     properties=self.properties,
                 )
@@ -243,7 +250,7 @@ class Worker:
 
             consumer = Consumer(
                 input_stream,
-                name=self.name + "WORKER",
+                name=self.name,
                 prefix=self.cid,
                 listener=lambda id, data: self.listener(id, data, input_stream),
                 properties=self.properties,

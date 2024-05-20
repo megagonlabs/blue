@@ -76,7 +76,7 @@ class ConnectionManager:
             user_agent.interact(message)
 
     def interactive_event_message(self, stream_id: str, name_id: str, form_id: str, timestamp: int, value):
-        event_stream = Producer(name="EVENT", sid=stream_id)
+        event_stream = Producer(cid=stream_id, properties=PROPERTIES)
         event_stream.start()
         event_stream.write(data={"name_id": name_id, "form_id": form_id, "value": value, "timestamp": timestamp}, dtype="json")
 

@@ -50,21 +50,26 @@ class TemplateInteractiveAgent(Agent):
         super().__init__(**kwargs)
 
     def default_processor(self, stream, id, label, data, dtype=None, tags=None, properties=None, worker=None):
-        if stream.startswith("EVENT_MESSAGE:"):
+        if ":EVENT_MESSAGE:" in stream:
             if label == "DATA":
                 if worker:
                     # get INTERACTION stream
-                    interaction_stream = stream[stream.rindex("INTERACTION") :]
-                    # custom logic for when user is "DONE" with a form
+                    # TODO: Instead of figuring out the stream where the ui resided, it should be in the message..
+
+                    interaction_stream = stream[:stream.rindex("EVENT_MESSAGE")-1] 
+
+                    # when the user clicked DONE
                     if data["name_id"] == "DONE":
-                        # check if first_name is set
+                        # gather all data, check if first_name is set
                         first_name = worker.get_stream_data(stream=interaction_stream, key="first_name.value")
                         last_name = worker.get_stream_data(stream=interaction_stream, key="last_name.value")
                         first_name_filled = not pydash.is_empty(pydash.strings.trim(first_name))
                         last_name_filled = not pydash.is_empty(pydash.strings.trim(last_name))
-                        # close previous form and send a new one asking for last_name
-                        interactive_stream_producer = Producer(name="INTERACTION", sid=interaction_stream)
+                        
+                        # close previous form and send a new one asking for last_name, in a new form
+                        interactive_stream_producer = Producer(cid=interaction_stream, properties=properties)
                         interactive_stream_producer.start()
+
                         if not first_name_filled:
                             return (
                                 "INTERACTION",
