@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from fastapi import WebSocket
 import sys
 import os
-
+import datetime
 import pydash
 
 
@@ -47,12 +47,23 @@ class ConnectionManager:
         #     }
         # }
 
+        self.authorization_tickets: dict = {}
+
     async def connect(self, websocket: WebSocket, connection_id: str = None):
         if pydash.is_empty(connection_id):
             connection_id = str(hex(uuid.uuid4().fields[0]))[2:]
         await websocket.accept()
         self.active_connections[connection_id] = websocket
         await self.send_message_to(websocket, json.dumps({"type": "CONNECTED", "id": connection_id}))
+
+    def set_authorization_ticket(self, ticket: str, user: dict):
+        # set ticket is key and metadata information as value
+        # override cookie exp with WS ticket exp (5 minutes from now)
+        pydash.objects.set_(
+            self.authorization_tickets,
+            ticket,
+            {**user, "exp": datetime.datetime.now(datetime.timezone.utc).timestamp() + (5 * 60)},
+        )
 
     def observe_session(self, connection_id: str, session_sid: str):
         session = Session(sid=session_sid, prefix=prefix, properties=PROPERTIES)
