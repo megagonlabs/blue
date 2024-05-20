@@ -574,8 +574,9 @@ class Registry:
 
     def dump(self, output_file):
         records = self.get_records()
-        with open(output_file, 'w') as fp:
-            json.dump(records, fp)
+        if os.path.exists(output_file):
+            with open(output_file, 'w') as fp:
+                json.dump(records, fp)
 
     def load(self, input_file):
         if os.path.exists(input_file):
