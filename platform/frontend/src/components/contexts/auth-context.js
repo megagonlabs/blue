@@ -72,7 +72,7 @@ export const AuthProvider = ({ children }) => {
     const [popupOpen, setPopupOpen] = useState(false);
     const [authInitialized, setAuthInitialized] = useState(false);
     const signOut = () => {
-        axios.post("/accounts/signout").then((response) => {
+        axios.post("/accounts/sign-out").then((response) => {
             setUser(null);
         });
     };
@@ -82,9 +82,7 @@ export const AuthProvider = ({ children }) => {
             .then((result) => {
                 result.user.getIdToken().then((idToken) => {
                     axios
-                        .post("/accounts/signin", {
-                            id_token: idToken,
-                        })
+                        .post("/accounts/sign-in", { id_token: idToken })
                         .then((response) => {
                             setPopupOpen(false);
                             setUser(_.get(response, "data.result", null));

@@ -133,9 +133,9 @@ async def unicorn_exception_handler(request: Request, exc: InvalidRequestJson):
 
 
 @app.websocket("/sessions/ws")
-async def websocket_endpoint(websocket: WebSocket):
+async def websocket_endpoint(websocket: WebSocket, ticket: str = None):
     # Accept the connection from the client
-    await connection_manager.connect(websocket)
+    await connection_manager.connect(websocket, ticket)
     try:
         while True:
             # Receive the message from the client
@@ -151,7 +151,7 @@ async def websocket_endpoint(websocket: WebSocket):
             elif json_data["type"] == "INTERACTIVE_EVENT_MESSAGE":
                 connection_manager.interactive_event_message(json_data["stream_id"], json_data["name_id"], json_data["form_id"], json_data["timestamp"], pydash.objects.get(json_data, "value", None))
             elif json_data["type"] == "OBSERVER_SESSION_MESSAGE":
-                await connection_manager.observer_session_message(json_data["session_id"], json_data["message"], json_data["stream"], json_data['timestamp'])
+                await connection_manager.observer_session_message(json_data["connection_id"], json_data["session_id"], json_data["message"], json_data["stream"], json_data['timestamp'])
     except WebSocketDisconnect:
         # Remove the connection from the list of active connections
         connection_manager.disconnect(websocket)

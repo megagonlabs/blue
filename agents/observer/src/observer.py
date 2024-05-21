@@ -47,20 +47,11 @@ class ObserverAgent(Agent):
             kwargs["name"] = "OBSERVER"
         super().__init__(**kwargs)
 
-    def default_processor(
-        self,
-        stream,
-        id,
-        label,
-        value,
-        dtype=None,
-        tags=None,
-        properties=None,
-        worker=None,
-    ):
+    def default_processor(self, stream, id, label, value, dtype=None, tags=None, properties=None, worker=None):
         base_message = {
             "type": "OBSERVER_SESSION_MESSAGE",
             "session_id": properties["session_id"],
+            "connection_id": properties["connection_id"],
             "message": {"type": label, "content": value},
             "stream": stream,
             "timestamp": str(id).split("-")[0],
