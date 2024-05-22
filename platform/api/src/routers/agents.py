@@ -42,7 +42,7 @@ class Parameter(BaseModel):
     description: Union[str, None] = None
 
 
-JSONObject = Dict[AnyStr, Any]
+JSONObject = Dict[str, Any]
 JSONArray = List[Any]
 JSONStructure = Union[JSONArray, JSONObject, Any]
 ######

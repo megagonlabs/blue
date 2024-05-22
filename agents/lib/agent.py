@@ -423,7 +423,7 @@ class AgentFactory:
         stream = "PLATFORM:" + self.platform + ":STREAM"
         self.consumer = Consumer(
             stream,
-            name=self.agent_name + "FACTORY",
+            name=self.agent_name + "_FACTORY",
             listener=lambda id, message: self.platform_listener(id, message),
             properties=self.properties,
         )
@@ -463,11 +463,22 @@ class AgentFactory:
                 input = agent_properties["input"]
                 del agent_properties["input"]
 
-            if self.agent_name == agent:
-                logging.info("Launching Agent: " + agent + "...")
+            # check match in canonical name space, i.e.
+            # <agent_name> or <agent_name>.<derivative_agent_name>
+            ca = agent.split("_")
+            parent_agent_name = ca[0]
+            child_agent_name = ca[0]
+
+            # if derivative_agent_name 
+            if len(ca) > 1:
+                child_agent_name = ca[1]
+
+            if self.agent_name == ca[0]:
+                name = agent
+
+                logging.info("Launching Agent: " + name + "...")
                 logging.info("Agent Properties: " + json.dumps(agent_properties) + "...")
 
-                name = agent
                 prefix = session + ":" + "AGENT"
                 a = self.create(
                     name=name,
