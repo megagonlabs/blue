@@ -92,11 +92,12 @@ def list_agent_containers():
             c["created_date"] = container.attrs["Created"]
             c["image"] = container.attrs["Config"]["Image"]
             c["status"] = container.attrs["State"]["Status"]
-            if c["hostname"].find("blue_agent") < 0:
-                continue
-            hs = c["hostname"].split("_")
-            c["agent"] = hs[3]
-            c["registry"] = hs[2]
+            labels = container.attrs["Config"]["Labels"]
+            if 'blue.agent' in labels:
+                l = labels['blue.agent']
+                la = l.split(".")
+                c["agent"] = la[2]
+                c["registry"] = la[1]
             results.append(c)
     elif PROPERTIES["platform.deploy.target"] == "swarm":
         services = client.services.list()
@@ -109,11 +110,12 @@ def list_agent_containers():
             ]
             c["created_date"] = service.attrs["CreatedAt"]
             c["image"] = service.attrs["Spec"]["TaskTemplate"]["ContainerSpec"]["Image"]
-            if c["hostname"].find("blue_agent") < 0:
-                continue
-            hs = c["hostname"].split("_")
-            c["agent"] = hs[3]
-            c["registry"] = hs[2]
+            labels = container.attrs["Spec"]["TaskTemplate"]["ContainerSpec"]["Labels"]
+            if 'blue.agent' in labels:
+                l = labels['blue.agent']
+                la = l.split(".")
+                c["agent"] = la[2]
+                c["registry"] = la[1]
             results.append(c)
 
     return JSONResponse(content={"results": results})

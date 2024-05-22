@@ -21,6 +21,8 @@ services:
     volumes:
       - blue_${BLUE_DEPLOY_PLATFORM}_data:/blue_data
     command: --serve ${AGENT} --properties '''${PROPERTIES}'''
+    labels:
+      blue.agent: "${BLUE_DEPLOY_PLATFORM}.${REGISTRY}.${AGENT}"
     environment:
       <<: *blue-common-env
     restart: always
