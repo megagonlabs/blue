@@ -4,7 +4,7 @@ import _ from "lodash";
 import { useContext, useEffect, useState } from "react";
 import { AppContext } from "../contexts/app-context";
 export default function SessionAgentsList() {
-    const { appState, appActions } = useContext(AppContext);
+    const { appState } = useContext(AppContext);
     const sessionIdFocus = appState.session.sessionIdFocus;
     const [agents, setAgents] = useState([]);
     const [loading, setLoading] = useState(false);
