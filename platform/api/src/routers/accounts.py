@@ -26,8 +26,7 @@ allowed_domains = EMAIL_DOMAIN_WHITE_LIST.split(",")
 
 @router.get('/websocket-ticket')
 def ws_ticket(request: Request):
-    ticket = request.app.connection_manager.create_ticket()
-    request.app.connection_manager.set_ticket(ticket=ticket, user=request.state.user)
+    ticket = request.app.connection_manager.get_ticket(user=request.state.user)
     return JSONResponse(content={"ticket": ticket})
 
 

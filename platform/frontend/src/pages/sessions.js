@@ -150,7 +150,7 @@ export default function Sessions() {
         if (!_.isEqual(socketReadyState, 1)) return;
         if (initialJoinAll.current) {
             initialJoinAll.current = false;
-            socket.send(JSON.stringify({ type: "REQUEST_CONNECTION_ID" }));
+            socket.send(JSON.stringify({ type: "REQUEST_USER_AGENT_ID" }));
             joinAllSessions();
         }
     }, [socketReadyState]);

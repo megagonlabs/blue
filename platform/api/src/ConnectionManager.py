@@ -1,12 +1,12 @@
 import json
 import secrets
+import time
 import uuid
 from dataclasses import dataclass
 
 from fastapi import WebSocket
 import sys
 import os
-import datetime
 import pydash
 
 
@@ -57,18 +57,27 @@ class ConnectionManager:
         self.tickets: dict = {}
 
     async def connect(self, websocket: WebSocket, ticket):
-        # validate ticket
-        connection_id = str(hex(uuid.uuid4().fields[0]))[2:]
         await websocket.accept()
-        pydash.objects.set_(self.active_connections, connection_id, {'websocket': websocket, 'user': pydash.objects.get(self.tickets, ticket, {})})
-        await self.send_message_to(websocket, json.dumps({"type": "CONNECTED", "id": connection_id}))
+        # validate ticket
+        set_on = pydash.objects.get(self.tickets, [ticket, 'set_on'], None)
+        single_use = pydash.objects.get(self.tickets, [ticket, 'single_use'], True)
+        if (not pydash.is_none(set_on) and time.time() - set_on < 5 * 60) or (not single_use):
+            connection_id = str(hex(uuid.uuid4().fields[0]))[2:]
+            pydash.objects.set_(self.active_connections, connection_id, {'websocket': websocket, 'user': pydash.objects.get(self.tickets, ticket, {})})
+            await self.send_message_to(
+                websocket,
+                json.dumps({"type": "CONNECTED", "id": redisReplace(pydash.objects.get(self.tickets, [ticket, 'email'], connection_id))}),
+            )
+        else:
+            await websocket.close()
+        # delete ticket if single_use = True
+        if single_use:
+            pydash.objects.unset(self.tickets, ticket)
 
     def observe_session(self, connection_id: str, session_sid: str):
         session = Session(sid=session_sid, prefix=prefix, properties=PROPERTIES)
         agent_prefix = session.cid + ":" + "AGENT"
-        ticket = self.create_ticket()
-        self.set_ticket(ticket)
-        user_agent_id = redisReplace(pydash.objects.get(self.active_connections, [connection_id, "user", 'email'], connection_id))
+        ticket = self.get_ticket(single_use=False)
         pydash.objects.set_(
             self.session_to_client,
             [session_sid, connection_id],
@@ -84,7 +93,7 @@ class ConnectionManager:
                         "connection_id": connection_id,
                     },
                 ),
-                "user": Agent(name="USER", id=user_agent_id, session=session, prefix=agent_prefix, properties=PROPERTIES),
+                "user": Agent(name="USER", id=self.get_user_agent_id(connection_id), session=session, prefix=agent_prefix, properties=PROPERTIES),
             },
         )
 
@@ -125,15 +134,15 @@ class ConnectionManager:
                 print(ex)
         return connection_id
 
-    def create_ticket(self):
+    def get_ticket(self, user: dict = {}, single_use: bool = True):
         # default 32 nbytes ~ 43 chars
-        return secrets.token_urlsafe()
+        ticket = secrets.token_urlsafe()
+        # ticket is key and metadata information as value
+        pydash.objects.set_(self.tickets, ticket, {**user, "set_on": time.time(), "single_use": single_use})
+        return ticket
 
-    def set_ticket(self, ticket: str, user: dict = {}):
-        # set ticket is key and metadata information as value
-        # override cookie exp with WS ticket exp (5 minutes from now)
-        exp = datetime.datetime.now(datetime.timezone.utc).timestamp() + (5 * 60)
-        pydash.objects.set_(self.tickets, ticket, {**user, "exp": exp})
+    def get_user_agent_id(self, connection_id: str):
+        return redisReplace(pydash.objects.get(self.active_connections, [connection_id, "user", 'email'], connection_id))
 
     def find_connection_id(self, websocket: WebSocket):
         key_list = list(self.active_connections.keys())
