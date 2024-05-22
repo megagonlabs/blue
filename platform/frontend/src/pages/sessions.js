@@ -12,6 +12,7 @@ import {
     ButtonGroup,
     Card,
     Classes,
+    ControlGroup,
     H4,
     InputGroup,
     Intent,
@@ -466,27 +467,18 @@ export default function Sessions() {
                             <SessionMessages />
                         </div>
                         <div
+                            className="bp-border-top"
                             style={{
                                 padding: 20,
                                 position: "relative",
-                                height: "calc(100% - 772px",
-                                borderTop: "1px solid rgba(17, 20, 24, 0.15)",
+                                height: 131,
                             }}
                         >
-                            <div
-                                style={{
-                                    position: "absolute",
-                                    height: "calc(100% - 40px)",
-                                    top: "50%",
-                                    transform: "translateY(-50%)",
-                                    msTransform: "translateY(-50%)",
-                                    left: 20,
-                                }}
-                            >
+                            <ControlGroup fill style={{ height: "100%" }}>
                                 <Popover
                                     minimal
                                     placement="top-start"
-                                    targetProps={{ style: { height: "100%" } }}
+                                    targetProps={{ style: { maxWidth: 40 } }}
                                     content={
                                         <Menu large>
                                             <MenuItem
@@ -505,41 +497,31 @@ export default function Sessions() {
                                         disabled={!isSocketOpen}
                                         large
                                         minimal
-                                        style={{
-                                            borderTopRightRadius: 0,
-                                            borderBottomRightRadius: 0,
-                                            paddingBottom: 62,
-                                            paddingTop: 12,
-                                        }}
+                                        style={{ maxWidth: 40, height: 91 }}
                                         icon={faIcon({ icon: faPlusLarge })}
                                     />
                                 </Popover>
-                            </div>
-                            <TextArea
-                                disabled={!isSocketOpen}
-                                inputRef={sessionMessageTextArea}
-                                style={{
-                                    resize: "none",
-                                    minHeight: "100%",
-                                    paddingLeft: 50,
-                                }}
-                                value={message}
-                                placeholder={`Message # ${sessionName}`}
-                                onChange={(event) => {
-                                    setMessage(event.target.value);
-                                }}
-                                onKeyDown={(event) => {
-                                    if (
-                                        _.isEqual(event.key, "Enter") &&
-                                        !event.shiftKey &&
-                                        isSocketOpen
-                                    ) {
-                                        sendSessionMessage(message);
-                                        event.preventDefault();
-                                    }
-                                }}
-                                fill
-                            />
+                                <TextArea
+                                    disabled={!isSocketOpen}
+                                    inputRef={sessionMessageTextArea}
+                                    style={{ resize: "none", height: 91 }}
+                                    value={message}
+                                    placeholder={`Message # ${sessionName}`}
+                                    onChange={(event) => {
+                                        setMessage(event.target.value);
+                                    }}
+                                    onKeyDown={(event) => {
+                                        if (
+                                            _.isEqual(event.key, "Enter") &&
+                                            !event.shiftKey &&
+                                            isSocketOpen
+                                        ) {
+                                            sendSessionMessage(message);
+                                            event.preventDefault();
+                                        }
+                                    }}
+                                />
+                            </ControlGroup>
                         </div>
                     </>
                 )}
