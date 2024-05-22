@@ -83,7 +83,9 @@ export default function Agents() {
         <>
             <div style={{ padding: "20px 20px 10px 20px", display: "flex" }}>
                 <H4 style={{ margin: "0px 10px 0px 0px" }}>Agents Registry</H4>
-                <Tag intent={Intent.PRIMARY}>{agentRegistryName}</Tag>
+                <Tag minimal intent={Intent.PRIMARY}>
+                    {agentRegistryName}
+                </Tag>
             </div>
             <div
                 style={{

@@ -57,3 +57,6 @@ table.entity-section-card-table tr td {
 .padding-0 {
     padding: 0px !important;
 }
+.on-hover-background-color-bp-gray-3:hover {
+    background-color: #e5e8eb;
+}

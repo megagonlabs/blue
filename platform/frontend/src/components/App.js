@@ -70,8 +70,8 @@ export default function App({ children }) {
                     <Link className="no-link-decoration" href="/">
                         <NavbarHeading style={{ display: "flex" }}>
                             <H3 style={{ margin: "0px 10px 0px" }}>Blue</H3>
-                            <Tag minimal intent={Intent.WARNING}>
-                                Demo
+                            <Tag minimal intent={Intent.PRIMARY}>
+                                {process.env.NEXT_PUBLIC_PLATFORM_NAME}
                             </Tag>
                         </NavbarHeading>
                     </Link>
@@ -149,7 +149,6 @@ export default function App({ children }) {
                                         width: 40,
                                         height: 40,
                                         marginTop: 4,
-                                        boxShadow: "none",
                                     }}
                                 >
                                     <Image
