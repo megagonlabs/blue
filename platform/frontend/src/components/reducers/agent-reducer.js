@@ -1,5 +1,5 @@
 export const defaultState = {
-    registryName: "default",
+    registryName: process.env.NEXT_PUBLIC_AGENT_REGISTRY_NAME,
     list: [],
     search: false,
     loading: true,
