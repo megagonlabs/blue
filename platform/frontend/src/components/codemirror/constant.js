@@ -61,6 +61,7 @@ module.exports = {
                 },
                 additionalProperties: false,
             },
+            options: { type: "object" },
             scope: { type: "string", minLength: 1 },
             required: { type: "boolean" },
             elements: { type: "array", items: { $ref: "#" } },

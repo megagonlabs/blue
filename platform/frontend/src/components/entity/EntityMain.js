@@ -6,6 +6,7 @@ import {
     Classes,
     Intent,
     Menu,
+    MenuDivider,
     MenuItem,
     Popover,
     Section,
@@ -154,6 +155,7 @@ export default function EntityMain({
                                                 }}
                                             />
                                         ) : null}
+                                        <MenuDivider />
                                         <MenuItem
                                             intent={Intent.DANGER}
                                             icon={faIcon({ icon: faTrash })}

@@ -144,8 +144,8 @@ async def websocket_endpoint(websocket: WebSocket, ticket: str = None):
             connection_id = connection_manager.find_connection_id(websocket)
             if json_data["type"] == "OBSERVE_SESSION":
                 connection_manager.observe_session(connection_id, json_data["session_id"])
-            elif json_data["type"] == "REQUEST_CONNECTION_ID":
-                await connection_manager.send_message_to(websocket, json.dumps({"type": "CONNECTED", "id": connection_id}))
+            elif json_data["type"] == "REQUEST_USER_AGENT_ID":
+                await connection_manager.send_message_to(websocket, json.dumps({"type": "CONNECTED", "id": connection_manager.get_user_agent_id(connection_id)}))
             elif json_data["type"] == "USER_SESSION_MESSAGE":
                 connection_manager.user_session_message(connection_id, json_data["session_id"], json_data["message"])
             elif json_data["type"] == "INTERACTIVE_EVENT_MESSAGE":

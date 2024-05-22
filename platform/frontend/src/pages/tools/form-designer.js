@@ -143,7 +143,7 @@ function FormDesigner() {
             icon: faIcon({ icon: faClipboard }),
             message: `Copied interactive message configuration (with${
                 withData ? "" : "out"
-            } data)`,
+            } default data)`,
         });
     };
     const handleReset = () => {
@@ -186,14 +186,14 @@ function FormDesigner() {
                                 <MenuDivider title="Export" />
                                 <MenuItem
                                     icon={faIcon({ icon: faBinary })}
-                                    text="With data"
+                                    text="With default data"
                                     onClick={() => {
                                         handleExportConfig(true);
                                     }}
                                 />
                                 <MenuItem
                                     icon={faIcon({ icon: faBinarySlash })}
-                                    text="Without data"
+                                    text="Without default data"
                                     onClick={() => {
                                         handleExportConfig(false);
                                     }}
