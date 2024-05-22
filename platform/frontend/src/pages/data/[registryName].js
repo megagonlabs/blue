@@ -83,7 +83,9 @@ export default function Data() {
         <>
             <div style={{ padding: "20px 20px 10px 20px", display: "flex" }}>
                 <H4 style={{ margin: "0px 10px 0px 0px" }}>Data Registry</H4>
-                <Tag intent={Intent.PRIMARY}>{appState.data.registryName}</Tag>
+                <Tag minimal intent={Intent.PRIMARY}>
+                    {appState.data.registryName}
+                </Tag>
             </div>
             <div
                 style={{
