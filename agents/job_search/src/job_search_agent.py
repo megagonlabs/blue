@@ -56,6 +56,61 @@ class JobSearchAgent(Agent):
         tags = []
         self.properties['tags'] = ['JSON']
 
+    def create_jobs_list(self, jobs):
+        
+        top_elements = []
+        jobs_list_ui = {
+            "type": "VerticalLayout",
+            "elements": top_elements
+        }
+
+        jobs_form = {
+            "schema": {},
+            "uischema": jobs_list_ui,
+        }
+        
+        # Add title
+        top_elements.append({
+            "type": "Label",
+            "label": "Jobs",
+            "props": {
+                "large": True
+            }
+        })
+
+        for job in jobs:
+            job_details = []
+
+            job_element = {
+                "type": "HorizontalLayout",
+                "elements": job_details
+            }
+
+            # add job title
+            job_details.append({
+                "type": "Label",
+                "label": job['title']
+            })
+            # add company
+            job_details.append({
+                "type": "Label",
+                "label": job['company']
+            })
+            # add apply button
+            job_details.append({
+                "type": "Button",
+                "label": "Apply",
+                "props": {
+                    "nameId": "apply",
+                    "large": False
+                }
+            })
+
+            # add to list
+            top_elements.append(job_element)
+            
+        return jobs_form
+
 
     def default_processor(self, stream, id, label, data, dtype=None, tags=None, properties=None, worker=None):
 
@@ -72,13 +127,16 @@ class JobSearchAgent(Agent):
                     logging.info("recommended jobs with name: {name}".format(name=name))
                 
                     # do job search
-                    results = [
+                    jobs = [
                         {'title': 'Sr. Research Engineer', 'company': 'Megagon Labs', 'link': 'https://megagon.ai/jobs/research-engineer/'},
                         {'title': 'Research Scientist', 'company': 'Megagon Labs', 'link': 'https://megagon.ai/jobs/research-scientist/'},
                     ]
                     
+                    jobs_form = self.create_jobs_list(jobs)
+                    return ("INTERACTION", {"type": "JSONFORM", "content": jobs_form}, "json", False)
+                    
                     # output to stream
-                    return "DATA", json.dumps({ "jobs": results }, indent=3), "str", True
+                    # return "DATA", json.dumps({ "jobs": results }, indent=3), "str", True
                     # return "DATA", { "jobs": results }, "json", True
         
         return None
