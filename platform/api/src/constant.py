@@ -32,6 +32,6 @@ def d7validate(validations, payload):
 
 
 def redisReplace(value):
-    replacements = {'@': '_', '.': '_'}
+    replacements = {'@': '_AT_', '.': '_DOT_'}
     pattern = '|'.join(sorted(re.escape(char) for char in replacements))
     return re.sub(pattern, lambda m: replacements.get(m.group(0).upper()), value, flags=re.IGNORECASE)
