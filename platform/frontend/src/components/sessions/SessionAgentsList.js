@@ -1,6 +1,7 @@
 import { Card, Classes, FormGroup } from "@blueprintjs/core";
 import { faCircleA } from "@fortawesome/pro-duotone-svg-icons";
 import axios from "axios";
+import classNames from "classnames";
 import _ from "lodash";
 import { useContext, useEffect, useState } from "react";
 import { AppContext } from "../contexts/app-context";
@@ -42,11 +43,13 @@ export default function SessionAgentsList() {
                     justifyContent: "center",
                 }}
             />
-            <div className={Classes.SKELETON} style={{ width: 143.84 }}>
+            <div className={Classes.SKELETON} style={{ width: 163.56 }}>
                 &nbsp;
             </div>
         </div>
     );
+    const REPLACEMENTS = { _AT_: "@", _DOT_: "." };
+    const re = new RegExp(Object.keys(REPLACEMENTS).join("|"), "g");
     return (
         <div style={{ minHeight: 202 }}>
             <FormGroup label="In this session" style={{ marginBottom: 0 }}>
@@ -54,37 +57,62 @@ export default function SessionAgentsList() {
                     <>
                         {LOADING_PLACEHOLDER}
                         {LOADING_PLACEHOLDER}
+                        {LOADING_PLACEHOLDER}
                     </>
                 ) : null}
-                {agents.map((agent) => (
-                    <div
-                        className="on-hover-background-color-bp-gray-3"
-                        style={{
-                            cursor: "pointer",
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 15,
-                            padding: "7.5px 15px",
-                            borderRadius: 2,
-                        }}
-                    >
-                        <Card
+                {agents.map((agent) => {
+                    const agentName = _.get(
+                        agent,
+                        "sid",
+                        _.get(agent, "name", "-")
+                    );
+                    return (
+                        <div
+                            className="on-hover-background-color-bp-gray-3"
                             style={{
-                                borderRadius: "50%",
-                                padding: 0,
-                                overflow: "hidden",
-                                width: 40,
-                                height: 40,
                                 display: "flex",
                                 alignItems: "center",
-                                justifyContent: "center",
+                                gap: 15,
+                                padding: "7.5px 15px",
+                                borderRadius: 2,
                             }}
                         >
-                            {faIcon({ icon: faCircleA })}
-                        </Card>
-                        {agent}
-                    </div>
-                ))}
+                            <Card
+                                style={{
+                                    borderRadius: "50%",
+                                    padding: 0,
+                                    overflow: "hidden",
+                                    width: 40,
+                                    height: 40,
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                }}
+                            >
+                                {faIcon({
+                                    icon: faCircleA,
+                                    style: { color: "#5f6b7c" },
+                                })}
+                            </Card>
+                            <div>
+                                <div style={{ fontWeight: 600 }}>
+                                    {agentName.replace(
+                                        re,
+                                        (m) => REPLACEMENTS[m]
+                                    )}
+                                </div>
+                                <div
+                                    className={classNames(
+                                        Classes.TEXT_DISABLED,
+                                        Classes.TEXT_SMALL
+                                    )}
+                                >
+                                    {agentName}
+                                </div>
+                            </div>
+                        </div>
+                    );
+                })}
             </FormGroup>
         </div>
     );

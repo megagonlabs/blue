@@ -415,6 +415,7 @@ function FormDesigner() {
                                             maxWidth: "min(802.2px, 100%)",
                                             whiteSpace: "pre-wrap",
                                             width: "fit-content",
+                                            overflow: "hidden",
                                         }}
                                     >
                                         {!error ? (
