@@ -60,7 +60,7 @@ export default function SessionAgentsList() {
                         {LOADING_PLACEHOLDER}
                     </>
                 ) : null}
-                {agents.map((agent) => {
+                {agents.map((agent, index) => {
                     const agentName = _.get(
                         agent,
                         "sid",
@@ -68,6 +68,7 @@ export default function SessionAgentsList() {
                     );
                     return (
                         <div
+                            key={`session-agents-list-agent-${index}`}
                             className="on-hover-background-color-bp-gray-3"
                             style={{
                                 display: "flex",
