@@ -23,6 +23,9 @@ import csv
 import json
 from utils import json_utils
 
+###### Docker
+import docker
+
 ###### FastAPI
 from APIRouter import APIRouter
 from fastapi.responses import JSONResponse
@@ -64,17 +67,101 @@ agent_registry_id = PROPERTIES["agent_registry.name"]
 p = Platform(id=platform_id, properties=PROPERTIES)
 agent_registry = AgentRegistry(id=agent_registry_id, prefix=prefix, properties=PROPERTIES)
 
+
+###### Utility functions
+def list_agent_containers():
+    # connect to docker
+    client = docker.from_env()
+
+    # get list of containers based on deploy target
+    if PROPERTIES["platform.deploy.target"] == "localhost":
+        containers = client.containers.list()
+        results = []
+        for container in containers:
+            c = {}
+            c["id"] = container.attrs["Id"]
+            c["hostname"] = container.attrs["Config"]["Hostname"]
+            c["created_date"] = container.attrs["Created"]
+            c["image"] = container.attrs["Config"]["Image"]
+            c["status"] = container.attrs["State"]["Status"]
+            labels = container.attrs["Config"]["Labels"]
+            if 'blue.agent' in labels:
+                l = labels['blue.agent']
+                la = l.split(".")
+                c["agent"] = la[2]
+                c["registry"] = la[1]
+            results.append(c)
+    elif PROPERTIES["platform.deploy.target"] == "swarm":
+        services = client.services.list()
+        results = []
+        for service in services:
+            c = {}
+            c["id"] = service.attrs["ID"]
+            c["hostname"] = service.attrs["Spec"]["TaskTemplate"]["ContainerSpec"][
+                "Hostname"
+            ]
+            c["created_date"] = service.attrs["CreatedAt"]
+            c["image"] = service.attrs["Spec"]["TaskTemplate"]["ContainerSpec"]["Image"]
+            labels = container.attrs["Spec"]["TaskTemplate"]["ContainerSpec"]["Labels"]
+            if 'blue.agent' in labels:
+                l = labels['blue.agent']
+                la = l.split(".")
+                c["agent"] = la[2]
+                c["registry"] = la[1]
+            results.append(c)
+    return results
+
+def merge_container_results(registry_results, container_results):
+    # build dictionary of container results <registry_name>.<agent_name>
+    containers = {}
+    for container_result in container_results:
+        if 'agent' in container_result:
+            agent = container_result['agent']
+            registry = None
+            if 'registry' in container_result:
+                registry = container_result['registry']
+            
+            if registry == None:
+                continue 
+            if registry == agent_registry_id:
+                containers[agent] = container_result
+    
+    logging.info(json.dumps(containers, indent=3))
+
+    # run through registry contents
+    for registry_result in registry_results:
+        t = registry_result['type']
+        if t == 'agent':
+            name = registry_result['name']
+
+            if name in containers:
+                registry_result['container'] = containers[name]
+            else:
+                registry_result['container'] = {"status": "not exist"}
+        
+    return registry_results
+
 #############
 @router.get("/")
 def get_agents():
-    results = agent_registry.list_records()
-    return JSONResponse(content={"results": list(results.values())})
+    container_results = list_agent_containers()
+    logging.info(json.dumps(container_results, indent=3))
+
+    registry_results = agent_registry.list_records()
+    registry_results = list(registry_results.values())
+    merged_results = merge_container_results(registry_results, container_results)
+    return JSONResponse(content={"results": merged_results})
 
 @router.get("/{registry_name}")
 def get_agents_from(registry_name):
+    container_results = list_agent_containers()
+    logging.info(json.dumps(container_results, indent=3))
+
     if registry_name == agent_registry_id:
-        results = agent_registry.list_records()
-        return JSONResponse(content={"results": list(results.values())})
+        registry_results = agent_registry.list_records()
+        registry_results = list(registry_results.values())
+        merged_results = merge_container_results(registry_results, container_results)
+        return JSONResponse(content={"results": merged_results})
     else:
         return JSONResponse(content={"message": "Error: Unknown Registry"})
     
@@ -258,3 +345,5 @@ def search_agents(registry_name, keywords, approximate: bool = False, hybrid: bo
         return JSONResponse(content={"results": results})
     else:
         return JSONResponse(content={"message": "Error: Unknown Registry"})
+    
+
