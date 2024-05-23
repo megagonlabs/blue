@@ -98,9 +98,13 @@ class Session:
         self.agents[agent.name] = agent
 
         # add join message
+        label = "INSTRUCTION"
         data = {}
-        data["agent"] = agent.name
-        label = "JOIN"
+        data["code"] = "ADD_AGENT"
+        data["params"] = {}
+        data["params"] ["name"] = agent.name
+        data["params"] ["sid"] = agent.sid
+  
         self.producer.write(data=data, dtype="json", label=label, eos=False)
 
     def remove_agent(self, agent):
@@ -110,29 +114,46 @@ class Session:
             del self.agents[agent.name]
 
         # add leave message
+        label = "INSTRUCTION"
         data = {}
-        data["agent"] = agent.name
-        label = "LEAVE"
+        data["code"] = "REMOVE_AGENT"
+        data["params"] = {}
+        data["params"] ["name"] = agent.name
+        data["params"] ["sid"] = agent.sid
+        data["params"] ["cid"] = agent.cid
+
+
         self.producer.write(data=data, dtype="json", label=label, eos=False)
 
     def list_agents(self):
         ## read stream in producer, scan join/leave events
-        agents = set()
+        agents = {}
 
         m = self.producer.read_all()
         for message in m:
             label = message["label"]
-            if label == "JOIN":
-                data = message["data"]
-                data = json.loads(data)
-                agent = data["agent"]
-                agents.add(agent)
-            if label == "LEAVE":
-                data = message["data"]
-                data = json.loads(data)
-                agent = data["agent"]
-                agents.remove(agent)
-        return list(agents)
+            if label == "INSTRUCTION":
+                data = json.loads(message["data"])
+                code = data["code"]
+
+                if code == "ADD_AGENT":
+                    params = data["params"]
+                    name = params["name"]
+                    sid = params["sid"]
+                    cid = params["cid"]
+                    agents[sid] = {
+                        "name": name,
+                        "sid": sid,
+                        "cid": cid
+                    }
+                if code == "REMOVE_AGENT":
+                    params = data["params"]
+                    name = params["name"]
+                    sid = params["sid"]
+                    if sid in agents:
+                        del agents[sid]
+
+        return list(agents.values())
 
     def notify(self, worker_stream, tags):
         # # start producer on first write
@@ -146,10 +167,13 @@ class Session:
 
         # add to stream to notify others, unless it exists
         if success:
+            label = "INSTRUCTION"
             data = {}
-            data["stream"] = worker_stream
-            data["tags"] = tags
-            label = "ADD"
+            data["code"] = "ADD_STREAM"
+            data["params"] = {}
+            data["params"]["cid"] = worker_stream
+            data["params"]["tags"] = tags
+           
             self.producer.write(data=data, dtype="json", label=label, eos=False)
 
     ###### DATA/METADATA RELATED

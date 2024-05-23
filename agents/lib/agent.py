@@ -194,33 +194,39 @@ class Agent:
 
         label = message["label"]
 
-        if label == "ADD":
+        if label == "INSTRUCTION":
             data = json.loads(message["data"])
 
-            input_stream = data["stream"]
-            tags = data["tags"]
+            code = data["code"]
 
-            # agent define what to listen to using include/exclude expressions
-            logging.info("checking match.")
-            matches = self._match_listen_to_tags(tags)
-            logging.info("Done checking match.")
-            if len(matches) == 0:
-                logging.info("Not listening to {stream} with {tags}...".format(stream=input_stream, tags=tags))
-                return
+            if code == "ADD_STREAM":
+                params = data["params"]
 
-            logging.info(
-                "Spawning worker for stream {stream} with matching tags {matches}...".format(
-                    stream=input_stream, matches=matches
+                input_stream = params["cid"]
+                tags = params["tags"]
+               
+
+                # agent define what to listen to using include/exclude expressions
+                logging.info("checking match.")
+                matches = self._match_listen_to_tags(tags)
+                logging.info("Done checking match.")
+                if len(matches) == 0:
+                    logging.info("Not listening to {stream} with {tags}...".format(stream=input_stream, tags=tags))
+                    return
+
+                logging.info(
+                    "Spawning worker for stream {stream} with matching tags {matches}...".format(
+                        stream=input_stream, matches=matches
+                    )
                 )
-            )
-            session_stream = self.session.get_stream()
+                session_stream = self.session.get_stream()
 
-            # create and start worker
-            # TODO; pass tag to worker, with parameters
-            worker = self.create_worker(input_stream, tags=matches)
-            self.workers.append(worker)
+                # create and start worker
+                # TODO; pass tag to worker, with parameters
+                worker = self.create_worker(input_stream, tags=matches)
+                self.workers.append(worker)
 
-            logging.info("Spawned worker for stream {stream}...".format(stream=input_stream))
+                logging.info("Spawned worker for stream {stream}...".format(stream=input_stream))
 
     def _match_listen_to_tags(self, tags):
         matches = set()
