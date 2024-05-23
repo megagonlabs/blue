@@ -69,7 +69,7 @@ agent_registry = AgentRegistry(id=agent_registry_id, prefix=prefix, properties=P
 
 
 ###### Utility functions
-def list_agent_containers():
+def get_agent_containers():
     # connect to docker
     client = docker.from_env()
 
@@ -109,24 +109,26 @@ def list_agent_containers():
                 c["agent"] = la[2]
                 c["registry"] = la[1]
             results.append(c)
-    return results
 
-def merge_container_results(registry_results, container_results):
     # build dictionary of container results <registry_name>.<agent_name>
     containers = {}
-    for container_result in container_results:
-        if 'agent' in container_result:
-            agent = container_result['agent']
+    for result in results:
+        if 'agent' in result:
+            agent = result['agent']
             registry = None
-            if 'registry' in container_result:
-                registry = container_result['registry']
+            if 'registry' in result:
+                registry = result['registry']
             
             if registry == None:
                 continue 
             if registry == agent_registry_id:
-                containers[agent] = container_result
-    
-    logging.info(json.dumps(containers, indent=3))
+                containers[agent] = result
+
+    return containers
+
+def merge_container_results(registry_results):
+    containers = get_agent_containers()
+    #logging.info(json.dumps(containers, indent=3))
 
     # run through registry contents
     for registry_result in registry_results:
@@ -144,23 +146,17 @@ def merge_container_results(registry_results, container_results):
 #############
 @router.get("/")
 def get_agents():
-    container_results = list_agent_containers()
-    logging.info(json.dumps(container_results, indent=3))
-
     registry_results = agent_registry.list_records()
     registry_results = list(registry_results.values())
-    merged_results = merge_container_results(registry_results, container_results)
+    merged_results = merge_container_results(registry_results)
     return JSONResponse(content={"results": merged_results})
 
 @router.get("/{registry_name}")
 def get_agents_from(registry_name):
-    container_results = list_agent_containers()
-    logging.info(json.dumps(container_results, indent=3))
-
     if registry_name == agent_registry_id:
         registry_results = agent_registry.list_records()
         registry_results = list(registry_results.values())
-        merged_results = merge_container_results(registry_results, container_results)
+        merged_results = merge_container_results(registry_results)
         return JSONResponse(content={"results": merged_results})
     else:
         return JSONResponse(content={"message": "Error: Unknown Registry"})
@@ -169,7 +165,8 @@ def get_agents_from(registry_name):
 def get_agent(registry_name, agent_name):
     if registry_name == agent_registry_id:
         result = agent_registry.get_agent(agent_name)
-        return JSONResponse(content={"result": result})
+        merged_results = merge_container_results([result])
+        return JSONResponse(content={"result": merged_results[0]})
     else:
         return JSONResponse(content={"message": "Error: Unknown Registry"})
 
