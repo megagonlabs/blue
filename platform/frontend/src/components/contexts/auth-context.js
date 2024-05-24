@@ -72,7 +72,7 @@ export const AuthProvider = ({ children }) => {
     const [popupOpen, setPopupOpen] = useState(false);
     const [authInitialized, setAuthInitialized] = useState(false);
     const signOut = () => {
-        axios.post("/accounts/sign-out").then((response) => {
+        axios.post("/accounts/sign-out").then(() => {
             setUser(null);
         });
     };
@@ -87,12 +87,12 @@ export const AuthProvider = ({ children }) => {
                             setPopupOpen(false);
                             setUser(_.get(response, "data.result", null));
                         })
-                        .catch((error) => {
+                        .catch(() => {
                             setPopupOpen(false);
                         });
                 });
             })
-            .catch((error) => {
+            .catch(() => {
                 setPopupOpen(false);
             });
     };
@@ -103,7 +103,7 @@ export const AuthProvider = ({ children }) => {
                 setUser(_.get(response, "data.result", null));
                 setAuthInitialized(true);
             })
-            .catch((error) => {
+            .catch(() => {
                 setAuthInitialized(true);
             });
     }, []);

@@ -12,7 +12,7 @@ export const sessionAction = (dispatch) => ({
             payload: payload,
         });
     },
-    createSession: (payload) => {
+    createSession: () => {
         axios.post(`/sessions/session`).then((response) => {
             try {
                 const sessionId = _.get(response, "data.result.id");

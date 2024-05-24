@@ -7,7 +7,6 @@ export const defaultState = {
     sessionIdFocus: null,
     sessionDetail: {},
     connectionId: null,
-    streamIds: new Set(),
     unreadSessionIds: new Set(),
     terminatedInteraction: new Set(),
 };
@@ -16,7 +15,6 @@ export default function sessionReducer(
     { type, payload }
 ) {
     let unreadSessionIds = state.unreadSessionIds;
-    let streamIds = state.streamIds;
     let sessionIds = state.sessionIds;
     let terminatedInteraction = state.terminatedInteraction;
     switch (type) {

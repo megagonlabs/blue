@@ -124,7 +124,7 @@ export default function Sessions() {
                     })
                 );
             })
-            .catch((error) => {});
+            .catch(() => {});
     };
     const initialJoinAll = useRef(true);
     const joinAllSessions = () => {
@@ -142,7 +142,7 @@ export default function Sessions() {
                     });
                 }
             })
-            .catch((error) => {});
+            .catch(() => {});
     };
 
     useEffect(() => {

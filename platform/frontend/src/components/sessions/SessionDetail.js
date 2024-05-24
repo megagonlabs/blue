@@ -48,7 +48,7 @@ export default function SessionDetail({ isOpen, setIsSessionDetailOpen }) {
                     { ...payload, id: sessionIdFocus },
                 ]);
             })
-            .catch((error) => {
+            .catch(() => {
                 setAllowQuickCloset(true);
                 setLoading(false);
             });

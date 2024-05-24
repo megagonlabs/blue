@@ -74,7 +74,7 @@ export default function AddAgents({
                 setAgents(options);
                 setLoading(false);
             })
-            .catch((error) => {
+            .catch(() => {
                 setLoading(false);
             });
     }, [isOpen]);
