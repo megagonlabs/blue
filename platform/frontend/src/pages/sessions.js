@@ -136,7 +136,6 @@ export default function Sessions() {
                 appActions.session.setSessionDetail(sessions);
                 for (let i = 0; i < sessions.length; i++) {
                     const sessionId = sessions[i].id;
-                    if (_.includes(sessionIds, sessionId)) continue;
                     appActions.session.observeSession({
                         sessionId: sessionId,
                         socket: socket,
@@ -152,6 +151,13 @@ export default function Sessions() {
             initialJoinAll.current = false;
             socket.send(JSON.stringify({ type: "REQUEST_USER_AGENT_ID" }));
             joinAllSessions();
+        } else {
+            for (let i = 0; i < sessionIds.length; i++) {
+                appActions.session.observeSession({
+                    sessionId: sessionIds[i],
+                    socket: socket,
+                });
+            }
         }
     }, [socketReadyState]);
     const isSocketOpen = appState.session.isSocketOpen;

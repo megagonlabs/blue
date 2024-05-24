@@ -1,5 +1,5 @@
-import { Card, Classes, FormGroup } from "@blueprintjs/core";
-import { faCircleA } from "@fortawesome/pro-duotone-svg-icons";
+import { Card, Classes, FormGroup, NonIdealState } from "@blueprintjs/core";
+import { faCircleA, faScreenUsers } from "@fortawesome/pro-duotone-svg-icons";
 import axios from "axios";
 import classNames from "classnames";
 import _ from "lodash";
@@ -59,61 +59,64 @@ export default function SessionAgentsList() {
                         {LOADING_PLACEHOLDER}
                         {LOADING_PLACEHOLDER}
                     </>
-                ) : null}
-                {agents.map((agent, index) => {
-                    const agentName = _.get(
-                        agent,
-                        "sid",
-                        _.get(agent, "name", "-")
-                    );
-                    return (
-                        <div
-                            key={`session-agents-list-agent-${index}`}
-                            className="on-hover-background-color-bp-gray-3"
-                            style={{
-                                display: "flex",
-                                alignItems: "center",
-                                gap: 15,
-                                padding: "7.5px 15px",
-                                borderRadius: 2,
-                            }}
-                        >
-                            <Card
+                ) : _.isEmpty(agents) ? (
+                    <NonIdealState icon={faIcon({ icon: faScreenUsers })} />
+                ) : (
+                    agents.map((agent, index) => {
+                        const agentName = _.get(
+                            agent,
+                            "sid",
+                            _.get(agent, "name", "-")
+                        );
+                        return (
+                            <div
+                                key={`session-agents-list-agent-${index}`}
+                                className="on-hover-background-color-bp-gray-3"
                                 style={{
-                                    borderRadius: "50%",
-                                    padding: 0,
-                                    overflow: "hidden",
-                                    width: 40,
-                                    height: 40,
                                     display: "flex",
                                     alignItems: "center",
-                                    justifyContent: "center",
+                                    gap: 15,
+                                    padding: "7.5px 15px",
+                                    borderRadius: 2,
                                 }}
                             >
-                                {faIcon({
-                                    icon: faCircleA,
-                                    style: { color: "#5f6b7c" },
-                                })}
-                            </Card>
-                            <div>
-                                <div style={{ fontWeight: 600 }}>
-                                    {agentName.replace(
-                                        re,
-                                        (m) => REPLACEMENTS[m]
-                                    )}
-                                </div>
-                                <div
-                                    className={classNames(
-                                        Classes.TEXT_DISABLED,
-                                        Classes.TEXT_SMALL
-                                    )}
+                                <Card
+                                    style={{
+                                        borderRadius: "50%",
+                                        padding: 0,
+                                        overflow: "hidden",
+                                        width: 40,
+                                        height: 40,
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                    }}
                                 >
-                                    {agentName}
+                                    {faIcon({
+                                        icon: faCircleA,
+                                        style: { color: "#5f6b7c" },
+                                    })}
+                                </Card>
+                                <div>
+                                    <div style={{ fontWeight: 600 }}>
+                                        {agentName.replace(
+                                            re,
+                                            (m) => REPLACEMENTS[m]
+                                        )}
+                                    </div>
+                                    <div
+                                        className={classNames(
+                                            Classes.TEXT_DISABLED,
+                                            Classes.TEXT_SMALL
+                                        )}
+                                    >
+                                        {agentName}
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    );
-                })}
+                        );
+                    })
+                )}
             </FormGroup>
         </div>
     );

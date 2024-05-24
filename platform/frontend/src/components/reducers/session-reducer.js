@@ -7,6 +7,7 @@ export const defaultState = {
     sessionIdFocus: null,
     sessionDetail: {},
     connectionId: null,
+    streamIds: new Set(),
     unreadSessionIds: new Set(),
     terminatedInteraction: new Set(),
 };
@@ -15,6 +16,7 @@ export default function sessionReducer(
     { type, payload }
 ) {
     let unreadSessionIds = state.unreadSessionIds;
+    let streamIds = state.streamIds;
     let sessionIds = state.sessionIds;
     let terminatedInteraction = state.terminatedInteraction;
     switch (type) {
@@ -41,14 +43,17 @@ export default function sessionReducer(
                 if (!_.includes(state.sessionIds, payload.session_id)) {
                     sessionIds.push(payload.session_id);
                 }
-                const nextMessages = [
-                    ..._.get(state, `sessions.${payload.session_id}`, []),
-                    {
-                        message: payload.message,
-                        stream: payload.stream,
-                        timestamp: payload.timestamp,
-                    },
-                ];
+                let nextMessages = _.unionBy(
+                    [
+                        ..._.get(state, `sessions.${payload.session_id}`, []),
+                        {
+                            message: payload.message,
+                            stream: payload.stream,
+                            timestamp: payload.timestamp,
+                        },
+                    ],
+                    (element) => element.stream
+                );
                 return {
                     ...state,
                     sessions: {

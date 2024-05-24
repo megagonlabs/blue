@@ -95,7 +95,7 @@ export default function SessionDetail({ isOpen, setIsSessionDetailOpen }) {
                     <Button
                         minimal
                         large
-                        text="Members"
+                        text="Participants"
                         onClick={() => {
                             setTab("members");
                         }}

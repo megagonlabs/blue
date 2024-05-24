@@ -11,11 +11,12 @@ export const SocketProvider = ({ children }) => {
     const reconnect = () => {
         // get WS auth ticket
         axios.get("/accounts/websocket-ticket").then((response) => {
-            let webSocket = null;
             try {
+                let webSocket = null;
                 webSocket = new WebSocket(
                     `${process.env.NEXT_PUBLIC_WS_API_SERVER}/sessions/ws?ticket=${response.data.ticket}`
                 );
+                setWs(webSocket);
             } catch (error) {
                 if (AppToaster) {
                     AppToaster.show({
@@ -24,7 +25,6 @@ export const SocketProvider = ({ children }) => {
                     });
                 }
             }
-            setWs(webSocket);
         });
     };
     useEffect(() => {

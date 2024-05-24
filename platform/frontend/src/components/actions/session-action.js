@@ -30,13 +30,13 @@ export const sessionAction = (dispatch) => ({
         });
     },
     observeSession: (payload) => {
+        dispatch({ type: "session/sessions/add", payload: payload.sessionId });
         payload.socket.send(
             JSON.stringify({
                 type: "OBSERVE_SESSION",
                 session_id: payload.sessionId,
             })
         );
-        dispatch({ type: "session/sessions/add", payload: payload.sessionId });
     },
     addSessionMessage: (payload) =>
         dispatch({ type: "session/sessions/message/add", payload }),
