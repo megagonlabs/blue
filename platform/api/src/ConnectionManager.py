@@ -9,6 +9,7 @@ import sys
 import os
 import pydash
 
+from server import IS_DEVELOPMENT
 
 ###### Add lib path
 sys.path.append("./lib/")
@@ -61,12 +62,12 @@ class ConnectionManager:
         # validate ticket
         set_on = pydash.objects.get(self.tickets, [ticket, 'set_on'], None)
         single_use = pydash.objects.get(self.tickets, [ticket, 'single_use'], True)
-        if (not pydash.is_none(set_on) and time.time() - set_on < 5 * 60) or (not single_use):
+        if (not pydash.is_none(set_on) and time.time() - set_on < 5 * 60) or (not single_use) or (IS_DEVELOPMENT):
             connection_id = str(hex(uuid.uuid4().fields[0]))[2:]
             pydash.objects.set_(self.active_connections, connection_id, {'websocket': websocket, 'user': pydash.objects.get(self.tickets, ticket, {})})
             await self.send_message_to(
                 websocket,
-                json.dumps({"type": "CONNECTED", "id": redisReplace(pydash.objects.get(self.tickets, [ticket, 'email'], connection_id))}),
+                json.dumps({"type": "CONNECTED", "id": redisReplace(pydash.objects.get(self.tickets, [ticket, 'email'], connection_id)), 'connection_id': connection_id}),
             )
         else:
             await websocket.close()

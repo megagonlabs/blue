@@ -3,6 +3,7 @@ from curses import noecho
 import os
 import sys
 
+IS_DEVELOPMENT = os.getenv("DEVELOPMENT", "False").lower() == "true"
 ###### Add lib path
 sys.path.append("./lib/")
 sys.path.append("./lib/agent_registry/")

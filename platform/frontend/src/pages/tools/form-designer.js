@@ -414,6 +414,7 @@ function FormDesigner() {
                                         style={{
                                             maxWidth: "min(802.2px, 100%)",
                                             whiteSpace: "pre-wrap",
+                                            wordBreak: "break-all",
                                             width: "fit-content",
                                             overflow: "hidden",
                                         }}

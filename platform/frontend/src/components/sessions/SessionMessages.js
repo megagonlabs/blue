@@ -82,6 +82,7 @@ export default function SessionMessages() {
                         whiteSpace: "pre-wrap",
                         wordBreak: "break-all",
                         width: "fit-content",
+                        overflow: "hidden",
                     }}
                 >
                     <div ref={rowRef}>

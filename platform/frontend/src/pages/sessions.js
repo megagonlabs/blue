@@ -144,7 +144,6 @@ export default function Sessions() {
             })
             .catch(() => {});
     };
-
     useEffect(() => {
         if (!_.isEqual(socketReadyState, 1)) return;
         if (initialJoinAll.current) {

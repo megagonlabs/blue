@@ -54,7 +54,7 @@ class ObserverAgent(Agent):
             "connection_id": properties["connection_id"],
             "message": {"type": label, "content": value},
             "stream": stream,
-            "timestamp": str(id).split("-")[0],
+            "timestamp": int(str(id).split("-")[0]),
         }
         if label == "EOS":
             # compute stream data

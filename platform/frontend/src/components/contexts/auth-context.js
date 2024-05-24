@@ -113,7 +113,7 @@ export const AuthProvider = ({ children }) => {
                 size={DrawerSize.SMALL}
                 portalClassName="z-index-36"
                 position="bottom"
-                backdropClassName="glassmorphism"
+                backdropClassName="glassmorphism-5"
                 isOpen={_.isNil(user) && authInitialized}
             >
                 <div style={{ margin: "auto" }}>
