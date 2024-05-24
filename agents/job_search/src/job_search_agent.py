@@ -78,6 +78,19 @@ class JobSearchAgent(Agent):
             }
         })
 
+        top_elements.append({
+            "type": "Label",
+            "label": " ",
+            "props": {
+                "large": True,
+                "style": {
+                    "marginBottom": 15,
+                    "fontSize": "12pt",
+                    "border-bottom": "thin solid gray"
+                    }
+                }
+        })
+
         for job in jobs:
             job_details = []
 
@@ -89,12 +102,28 @@ class JobSearchAgent(Agent):
             # add job title
             job_details.append({
                 "type": "Label",
-                "label": job['title']
+                "label": job['title'],
+                "props": {
+                    "style": {
+                        "width": "200px",
+                        "white-space": "nowrap",
+                        "overflow": "hidden",
+                        "text-overflow": "ellipsis"
+                    }
+                }
             })
             # add company
             job_details.append({
                 "type": "Label",
-                "label": job['company']
+                "label": job['company'],
+                "props": {
+                    "style": {
+                        "width": "200px",
+                        "white-space": "nowrap",
+                        "overflow": "hidden",
+                        "text-overflow": "ellipsis"
+                    }
+                }
             })
             # add apply button
             job_details.append({
