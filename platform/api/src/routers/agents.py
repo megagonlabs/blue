@@ -136,6 +136,9 @@ def merge_container_results(registry_results):
         if t == 'agent':
             name = registry_result['name']
 
+            # TODO: REVISIT AFTE #186
+            name = name.split("_")[0]
+            
             if name in containers:
                 registry_result['container'] = containers[name]
             else:
