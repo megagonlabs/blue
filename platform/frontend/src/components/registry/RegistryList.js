@@ -78,6 +78,7 @@ export default function RegistryList({ type }) {
                                 description={element.description}
                                 extra={extra}
                                 href={`${router.asPath}/${key}/${element.name}`}
+                                container={element.container}
                             />
                         </Col>
                     );
