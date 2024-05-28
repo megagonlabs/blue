@@ -58,7 +58,7 @@ function FormDesigner() {
     const [schema, setSchema] = useState({});
     const ssData = sessionStorage.getItem("data");
     const [data, setData] = useState(_.isNil(ssData) ? {} : JSON.parse(ssData));
-    const [jsonUiSchema, setJsonUiSchema] = useState("{}");
+    const [jsonUischema, setJsonUischema] = useState("{}");
     const [jsonSchema, setJsonSchema] = useState(DEFAULT_SCHEMA);
     const [uiSchemaError, setUiSchemaError] = useState(false);
     const [schemaError, setSchemaError] = useState(false);
@@ -73,9 +73,9 @@ function FormDesigner() {
     }, [error]);
     useEffect(() => {
         if (!uiSchemaLoading) {
-            let uiSchemaCache = sessionStorage.getItem("jsonUiSchema");
+            let uiSchemaCache = sessionStorage.getItem("jsonUischema");
             if (!uiSchemaInitialized && uiSchemaCache) {
-                setJsonUiSchema(uiSchemaCache);
+                setJsonUischema(uiSchemaCache);
             }
             setUiSchemaInitialized(true);
         }
@@ -94,12 +94,12 @@ function FormDesigner() {
     }, [data]);
     useEffect(() => {
         try {
-            setUischema(JSON.parse(jsonUiSchema));
+            setUischema(JSON.parse(jsonUischema));
         } catch (error) {}
         if (uiSchemaInitialized) {
-            sessionStorage.setItem("jsonUiSchema", jsonUiSchema);
+            sessionStorage.setItem("jsonUischema", jsonUischema);
         }
-    }, [jsonUiSchema]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [jsonUischema]); // eslint-disable-line react-hooks/exhaustive-deps
     useEffect(() => {
         try {
             setSchema(JSON.parse(jsonSchema));
@@ -119,10 +119,10 @@ function FormDesigner() {
     };
     const handleFormattingCode = () => {
         try {
-            if (_.isEqual(jsonUiSchema.replace(/\s/g, ""), "{}")) {
-                setJsonUiSchema("{}");
+            if (_.isEqual(jsonUischema.replace(/\s/g, ""), "{}")) {
+                setJsonUischema("{}");
             } else {
-                setJsonUiSchema(jsonFormatter.format(jsonUiSchema, "    "));
+                setJsonUischema(jsonFormatter.format(jsonUischema, "    "));
             }
         } catch (error) {}
         try {
@@ -150,10 +150,10 @@ function FormDesigner() {
         leftPaneRef.current.resize([50, 50]);
         setUiSchemaError(false);
         setSchemaError(false);
-        setJsonUiSchema("{}");
+        setJsonUischema("{}");
         setJsonSchema(DEFAULT_SCHEMA);
         setResultPanel(true);
-        sessionStorage.removeItem("jsonUiSchema");
+        sessionStorage.removeItem("jsonUischema");
         sessionStorage.removeItem("jsonSchema");
     };
     const [isDocOpen, setIsDocOpen] = useState(
@@ -287,8 +287,8 @@ function FormDesigner() {
                                         schema={UI_JSON_SCHEMA}
                                         setLoading={setUiSchemaLoading}
                                         allowSaveWithError
-                                        code={jsonUiSchema}
-                                        setCode={setJsonUiSchema}
+                                        code={jsonUischema}
+                                        setCode={setJsonUischema}
                                         setError={setUiSchemaError}
                                     />
                                 </div>
