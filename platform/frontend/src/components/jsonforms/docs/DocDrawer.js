@@ -131,7 +131,7 @@ const MainMenuPanel = (props) => {
                             <td>
                                 <div>
                                     Enables for a variable to be a set of
-                                    predefined constants.
+                                    pre-defined constants.
                                 </div>
                                 <Tag
                                     minimal

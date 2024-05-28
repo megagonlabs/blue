@@ -17,6 +17,7 @@ import {
     faClone,
     faListDropdown,
     faPen,
+    faPlay,
     faTrash,
 } from "@fortawesome/pro-duotone-svg-icons";
 import axios from "axios";
@@ -31,6 +32,23 @@ export default function EntityMain({
     jsonError,
 }) {
     const router = useRouter();
+    const deployAgent = () => {
+        if (!router.isReady) return;
+        axios
+            .post(`/platform/agents/agent/${entity.name}`)
+            .then(() => {
+                AppToaster.show({
+                    intent: Intent.SUCCESS,
+                    message: `${entity.name} ${entity.type} deployed`,
+                });
+            })
+            .catch((error) => {
+                AppToaster.show({
+                    intent: Intent.DANGER,
+                    message: `${error.name}: ${error.message}`,
+                });
+            });
+    };
     const deleteEntity = () => {
         if (!router.isReady) return;
         axios
@@ -57,15 +75,15 @@ export default function EntityMain({
                 <div style={{ display: "flex" }}>
                     <div
                         className={Classes.TEXT_MUTED}
-                        style={{ width: 52.7, margin: "20px 0px 0px 20px" }}
+                        style={{ width: 52.7, margin: "15px 0px 0px 15px" }}
                     >
                         Name
                     </div>
                     <div
                         className={Classes.TEXT_OVERFLOW_ELLIPSIS}
                         style={{
-                            width: "calc(100% - 110.16px - 87.7px)",
-                            padding: "20px 10px 10px 10px",
+                            width: "calc(100% - 112.16px - 82.7px)",
+                            padding: "15px 20px 10px 10px",
                         }}
                     >
                         {entity.name}
@@ -74,15 +92,15 @@ export default function EntityMain({
                 <div style={{ display: "flex" }}>
                     <div
                         className={Classes.TEXT_MUTED}
-                        style={{ width: 52.7, margin: "0px 0px 20px 20px" }}
+                        style={{ width: 52.7, margin: "0px 0px 15px 15px" }}
                     >
                         Type
                     </div>
                     <div
                         className={Classes.TEXT_OVERFLOW_ELLIPSIS}
                         style={{
-                            width: "calc(100% - 110.16px - 87.7px)",
-                            padding: "0px 10px 20px 10px",
+                            width: "calc(100% - 112.16px - 82.7px)",
+                            padding: "0px 20px 10px 10px",
                         }}
                     >
                         {entity.type}
@@ -124,13 +142,17 @@ export default function EntityMain({
                                                     setEdit(true);
                                                 }}
                                                 intent={Intent.PRIMARY}
-                                                icon={faIcon({ icon: faPen })}
+                                                icon={faIcon({
+                                                    icon: faPen,
+                                                })}
                                                 text="Edit"
                                             />
                                         ) : null}
                                         {_.isEqual(entity.type, "agent") ? (
                                             <MenuItem
-                                                icon={faIcon({ icon: faClone })}
+                                                icon={faIcon({
+                                                    icon: faClone,
+                                                })}
                                                 text="Duplicate"
                                                 onClick={() => {
                                                     if (!router.isReady) return;
@@ -154,6 +176,21 @@ export default function EntityMain({
                                                     );
                                                 }}
                                             />
+                                        ) : null}
+                                        {_.isEqual(entity.type, "agent") ? (
+                                            <MenuItem
+                                                intent={Intent.SUCCESS}
+                                                icon={faIcon({
+                                                    icon: faPlay,
+                                                })}
+                                                text="Deploy"
+                                            >
+                                                <MenuItem
+                                                    intent={Intent.SUCCESS}
+                                                    text="Confirm"
+                                                    onClick={deployAgent}
+                                                />
+                                            </MenuItem>
                                         ) : null}
                                         <MenuDivider />
                                         <MenuItem

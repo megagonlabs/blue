@@ -35,7 +35,12 @@ export default function RegistryCard({
                 </div>
                 {!_.isEmpty(extra) ? (
                     <Tag
-                        style={{ marginTop: 10 }}
+                        style={{
+                            marginTop: 10,
+                            maxWidth: `calc(100% - ${
+                                _.isEqual(containerStatus, "not exist") ? 0 : 36
+                            }px)`,
+                        }}
                         large
                         minimal
                         intent={Intent.PRIMARY}
