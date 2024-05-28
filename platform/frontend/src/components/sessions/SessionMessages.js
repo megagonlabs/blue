@@ -17,9 +17,8 @@ export default function SessionMessages() {
             `USER:${appState.session.connectionId}`
         );
         return (
-            rowHeights.current[index] +
-                (_.isEqual(index, messages.length - 1) ? 20 : 10) +
-                (_.isEqual(index, 0) ? 20 : 0) || 51 + (!own ? 15.43 : 0)
+            rowHeights.current[index] + 20 + (_.isEqual(index, 0) ? 20 : 0) ||
+            51 + (!own ? 15.43 : 0)
         );
     }
     function setRowHeight(index, size, shouldForceUpdate = true) {
@@ -66,9 +65,7 @@ export default function SessionMessages() {
                     display: "flex",
                     flexDirection: "column",
                     alignItems: `flex-${own ? "end" : "start"}`,
-                    padding: `${_.isEqual(index, 0) ? 20 : 0}px 20px ${
-                        _.isEqual(index, messages.length - 1) ? 20 : 10
-                    }px`,
+                    padding: `${_.isEqual(index, 0) ? 20 : 0}px 20px 20px`,
                 }}
             >
                 <Callout
