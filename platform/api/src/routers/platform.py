@@ -144,6 +144,7 @@ def deploy_agent_container(agent_name):
             network="blue_platform_" + PROPERTIES["platform.name"] + "_network_bridge",
             hostname="blue_agent_" + agent_registry_id + "_" + agent_name,
             volumes=["blue_" + platform_id + "_data:/blue_data"],
+            labels={"blue.agent": PROPERTIES["platform.name"] + "." + agent_registry_id + "." + agent_name},
             stdout=True,
             stderr=True,
         )
@@ -157,7 +158,8 @@ def deploy_agent_container(agent_name):
             ],
             constraints=constraints,
             hostname="blue_agent_" + agent_registry_id + "_" + agent_name,
-            volumes=["blue_" + platform_id + "_data:/blue_data"]
+            volumes=["blue_" + platform_id + "_data:/blue_data"],
+            labels={"blue.agent": PROPERTIES["platform.name"] + "." + agent_registry_id + "." + agent_name},
         )
     result = ""
     return JSONResponse(content={"result": result, "message": "Success"})
