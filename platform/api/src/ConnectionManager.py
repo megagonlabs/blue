@@ -79,24 +79,26 @@ class ConnectionManager:
         session = Session(sid=session_sid, prefix=prefix, properties=PROPERTIES)
         agent_prefix = session.cid + ":" + "AGENT"
         ticket = self.get_ticket(single_use=False)
-        pydash.objects.set_(
-            self.session_to_client,
-            [session_sid, connection_id],
-            {
-                "observer": ObserverAgent(
-                    session=session,
-                    prefix=agent_prefix,
-                    properties={
-                        **PROPERTIES,
-                        "output": "websocket",
-                        "websocket": f"ws://localhost:5050/sessions/ws?ticket={ticket}",
-                        "session_id": session_sid,
-                        "connection_id": connection_id,
-                    },
-                ),
-                "user": Agent(name="USER", id=self.get_user_agent_id(connection_id), session=session, prefix=agent_prefix, properties=PROPERTIES),
-            },
-        )
+        # check if they are already initialized
+        if not pydash.objects.has(self.session_to_client, [session_sid, connection_id]):
+            pydash.objects.set_(
+                self.session_to_client,
+                [session_sid, connection_id],
+                {
+                    "observer": ObserverAgent(
+                        session=session,
+                        prefix=agent_prefix,
+                        properties={
+                            **PROPERTIES,
+                            "output": "websocket",
+                            "websocket": f"ws://localhost:5050/sessions/ws?ticket={ticket}",
+                            "session_id": session_sid,
+                            "connection_id": connection_id,
+                        },
+                    ),
+                    "user": Agent(name="USER", id=self.get_user_agent_id(connection_id), session=session, prefix=agent_prefix, properties=PROPERTIES),
+                },
+            )
 
     def user_session_message(self, connection_id: str, session_id: str, message: str):
         user_agent = pydash.objects.get(self.session_to_client, [session_id, connection_id, "user"], None)
