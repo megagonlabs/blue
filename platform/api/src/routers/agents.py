@@ -124,6 +124,9 @@ def get_agent_containers():
             if registry == agent_registry_id:
                 containers[agent] = result
 
+    # close connection
+    client.close()
+    
     return containers
 
 def merge_container_results(registry_results):

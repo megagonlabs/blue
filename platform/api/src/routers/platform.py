@@ -118,6 +118,9 @@ def list_agent_containers():
                 c["registry"] = la[1]
             results.append(c)
 
+    # close connection
+    client.close()
+
     return JSONResponse(content={"results": results})
 
 
@@ -162,6 +165,10 @@ def deploy_agent_container(agent_name):
             labels={"blue.agent": PROPERTIES["platform.name"] + "." + agent_registry_id + "." + agent_name},
         )
     result = ""
+
+    # close connection
+    client.close()
+
     return JSONResponse(content={"result": result, "message": "Success"})
 
 
@@ -181,6 +188,10 @@ def update_agent_container(registry_name, agent_name):
         # TODO: pull image on all nodes where label.target==agent
         pass
     result = ""
+
+    # close connection
+    client.close()
+
     return JSONResponse(content={"result": result, "message": "Success"})
 
 
@@ -211,4 +222,8 @@ def shutdown_agent_container(registry_name, agent_name):
             # service.remove()
 
     result = ""
+
+    # close connection
+    client.close()
+
     return JSONResponse(content={"result": result, "message": "Success"})
