@@ -26,6 +26,9 @@ import json
 import itertools
 from tqdm import tqdm
 
+###### Postgres
+import psycopg2
+
 ###### Blue
 from agent import Agent, AgentFactory
 from session import Session
@@ -141,6 +144,23 @@ class JobSearchAgent(Agent):
         return jobs_form
 
 
+    def search_jobs(self, title):
+        user = self.properties['job_search.db.user']
+        password = self.properties['job_search.db.pwd']
+        host = self.properties['job_search.db.host']
+        connection = psycopg2.connect(user='postgres',password=password,host=host)
+        cursor = connection.cursor()
+        cursor.execute("SELECT title, company FROM JOBS where lower(title) LIKE '%%" + title.lower() + "%%';")
+        data = cursor.fetchall()
+        results = []
+        for datum in data:
+            results.append({
+                'title': datum[0],
+                'company': datum[1],
+                'link': 'http'
+            })
+        return results
+
     def default_processor(self, stream, id, label, data, dtype=None, tags=None, properties=None, worker=None):
 
         if label == 'DATA':
@@ -148,18 +168,20 @@ class JobSearchAgent(Agent):
             variables = data
             variables = set(variables) 
 
-            if 'name' in variables:
+            if 'desired_title' in variables:
                 if worker:
-                    name = worker.get_session_data('name')
+                    title = worker.get_session_data('desired_title')
 
 
-                    logging.info("recommended jobs with name: {name}".format(name=name))
+                    logging.info("recommended jobs with title: {title}".format(title=title))
                 
                     # do job search
-                    jobs = [
-                        {'title': 'Sr. Research Engineer', 'company': 'Megagon Labs', 'link': 'https://megagon.ai/jobs/research-engineer/'},
-                        {'title': 'Research Scientist', 'company': 'Megagon Labs', 'link': 'https://megagon.ai/jobs/research-scientist/'},
-                    ]
+                    # jobs = [
+                    #     {'title': 'Sr. Research Engineer', 'company': 'Megagon Labs', 'link': 'https://megagon.ai/jobs/research-engineer/'},
+                    #     {'title': 'Research Scientist', 'company': 'Megagon Labs', 'link': 'https://megagon.ai/jobs/research-scientist/'},
+                    # ]
+                    
+                    jobs = self.search_jobs(title)
                     
                     jobs_form = self.create_jobs_list(jobs)
                     return ("INTERACTION", {"type": "JSONFORM", "content": jobs_form}, "json", False)
