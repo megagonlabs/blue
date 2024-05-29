@@ -41,6 +41,7 @@ export default function sessionReducer(
                 if (!_.includes(state.sessionIds, payload.session_id)) {
                     sessionIds.push(payload.session_id);
                 }
+                // timestamp is unique redis stream entry id
                 let nextMessages = _.unionBy(
                     [
                         ..._.get(state, `sessions.${payload.session_id}`, []),
@@ -50,7 +51,7 @@ export default function sessionReducer(
                             timestamp: payload.timestamp,
                         },
                     ],
-                    (element) => element.stream
+                    (element) => element.timestamp
                 );
                 return {
                     ...state,

@@ -32,6 +32,7 @@ export default function EntityMain({
     jsonError,
 }) {
     const router = useRouter();
+    const containerStatus = _.get(entity, "container.status", "not exist");
     const deployAgent = () => {
         if (!router.isReady) return;
         axios
@@ -183,6 +184,10 @@ export default function EntityMain({
                                                 icon={faIcon({
                                                     icon: faPlay,
                                                 })}
+                                                disabled={_.isEqual(
+                                                    containerStatus,
+                                                    "running"
+                                                )}
                                                 text="Deploy"
                                             >
                                                 <MenuItem
