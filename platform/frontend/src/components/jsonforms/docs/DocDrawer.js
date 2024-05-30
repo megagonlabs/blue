@@ -9,6 +9,7 @@ import LayoutDoc from "@/components/jsonforms/docs/LayoutDoc";
 import NumberDoc from "@/components/jsonforms/docs/NumberDoc";
 import StringDoc from "@/components/jsonforms/docs/StringDoc";
 import {
+    Button,
     Callout,
     Code,
     Drawer,
@@ -31,6 +32,7 @@ import {
     faPlay,
     faRectanglesMixed,
     faSquareCheck,
+    faTimes,
 } from "@fortawesome/pro-duotone-svg-icons";
 import _ from "lodash";
 import { useCallback, useState } from "react";
@@ -63,6 +65,13 @@ const MainMenuPanel = (props) => {
     const [openingPanel, setOpeningPanel] = useState(false);
     return (
         <div style={{ padding: 20 }}>
+            <Button
+                large
+                minimal
+                icon={faIcon({ icon: faTimes })}
+                onClick={() => props.setIsDocOpen(false)}
+                style={{ position: "absolute", top: 13.25, right: 20 }}
+            />
             <Menu large style={{ padding: 0 }}>
                 <MenuDivider title="UI Schema" />
                 {TYPES.map((type, index) => (
@@ -175,7 +184,10 @@ const MainMenuPanel = (props) => {
     );
 };
 export default function DocDrawer({ isOpen, setIsDocOpen }) {
-    const initialPanel = { renderPanel: MainMenuPanel };
+    const initialPanel = {
+        renderPanel: MainMenuPanel,
+        props: { setIsDocOpen },
+    };
     const [currentPanelStack, setCurrentPanelStack] = useState([initialPanel]);
     const addToPanelStack = useCallback((newPanel) => {
         setCurrentPanelStack((stack) => [...stack, newPanel]);
