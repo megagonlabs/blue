@@ -107,7 +107,8 @@ async def signin(request: Request):
             )
             # Set cookie policy for session cookie.
             expires = datetime.datetime.now(datetime.timezone.utc) + expires_in
-            response.set_cookie("session", session_cookie, expires=expires, httponly=True, secure=True, samesite="strict", path="/")
+            # samesite - lax: allow GET requests across origin
+            response.set_cookie("session", session_cookie, expires=expires, httponly=True, secure=True, samesite="lax", path="/")
             return response
         return ERROR_RESPONSE
     except auth.InvalidIdTokenError:

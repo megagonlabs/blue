@@ -56,6 +56,16 @@ export default function App({ children }) {
             text: "Form Designer",
             icon: faPencilRuler,
         },
+        admin_agents: {
+            href: `/admin/agents`,
+            text: "Agents",
+            icon: faCircleA,
+        },
+        admin_services: {
+            href: `/admin/services`,
+            text: "Services",
+            icon: faGear,
+        },
     };
     return (
         <div>
@@ -309,18 +319,39 @@ export default function App({ children }) {
                         large
                         className="full-parent-width"
                     >
-                        <Button
-                            disabled
-                            style={{ backgroundColor: "transparent" }}
-                            text="Agents"
-                            icon={faIcon({ icon: faCircleA })}
-                        />
-                        <Button
-                            disabled
-                            style={{ backgroundColor: "transparent" }}
-                            text="Services"
-                            icon={faIcon({ icon: faGear })}
-                        />
+                        {["admin_agents", "admin_services"].map(
+                            (key, index) => {
+                                const { href, icon, text } = _.get(
+                                    MENU_ITEMS,
+                                    key,
+                                    {}
+                                );
+                                const active = _.startsWith(
+                                    router.asPath,
+                                    href
+                                );
+                                return (
+                                    <Link
+                                        href={href}
+                                        key={`app-card-button-group-link-${index}`}
+                                    >
+                                        <Button
+                                            style={
+                                                !active
+                                                    ? {
+                                                          backgroundColor:
+                                                              "transparent",
+                                                      }
+                                                    : null
+                                            }
+                                            active={active}
+                                            text={text}
+                                            icon={faIcon({ icon: icon })}
+                                        />
+                                    </Link>
+                                );
+                            }
+                        )}
                     </ButtonGroup>
                 </div>
             </Card>
