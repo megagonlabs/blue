@@ -74,7 +74,7 @@ export default function AddAgents({
                 setAgents(options);
                 setLoading(false);
             })
-            .catch((error) => {
+            .catch(() => {
                 setLoading(false);
             });
     }, [isOpen]);
@@ -224,47 +224,49 @@ export default function AddAgents({
                 )}
             </DialogBody>
             <DialogFooter>
-                <Button
-                    className={_.isNil(agents) ? Classes.SKELETON : null}
-                    disabled={!skippable && _.isEqual(selectionSize, 0)}
-                    intent={
-                        skippable &&
-                        _.isEqual(selectionSize, 0) &&
-                        !_.isEmpty(added)
-                            ? Intent.SUCCESS
-                            : Intent.PRIMARY
-                    }
-                    loading={selectionSize > 0 && loading}
-                    large
-                    icon={faIcon({
-                        icon:
+                <div style={{ display: "flex", alignItems: "center" }}>
+                    <Button
+                        className={_.isNil(agents) ? Classes.SKELETON : null}
+                        disabled={!skippable && _.isEqual(selectionSize, 0)}
+                        intent={
+                            skippable &&
+                            _.isEqual(selectionSize, 0) &&
+                            !_.isEmpty(added)
+                                ? Intent.SUCCESS
+                                : Intent.PRIMARY
+                        }
+                        loading={selectionSize > 0 && loading}
+                        large
+                        icon={faIcon({
+                            icon:
+                                skippable && _.isEqual(selectionSize, 0)
+                                    ? !_.isEmpty(added)
+                                        ? faCheck
+                                        : faForward
+                                    : faGrid2Plus,
+                        })}
+                        text={
                             skippable && _.isEqual(selectionSize, 0)
                                 ? !_.isEmpty(added)
-                                    ? faCheck
-                                    : faForward
-                                : faGrid2Plus,
-                    })}
-                    text={
-                        skippable && _.isEqual(selectionSize, 0)
-                            ? !_.isEmpty(added)
-                                ? "Done"
-                                : "Skip"
-                            : "Add"
-                    }
-                    onClick={() => {
-                        if (skippable && _.isEqual(selectionSize, 0)) {
-                            setIsAddAgentsOpen(false);
-                            setSkippable(false);
-                        } else {
-                            handleAddAgents();
+                                    ? "Done"
+                                    : "Skip"
+                                : "Add"
                         }
-                    }}
-                />
-                {selectionSize > 0 ? (
-                    <span style={{ marginLeft: 15 }}>
-                        {selectionSize} selected
-                    </span>
-                ) : null}
+                        onClick={() => {
+                            if (skippable && _.isEqual(selectionSize, 0)) {
+                                setIsAddAgentsOpen(false);
+                                setSkippable(false);
+                            } else {
+                                handleAddAgents();
+                            }
+                        }}
+                    />
+                    {selectionSize > 0 ? (
+                        <span style={{ marginLeft: 15 }}>
+                            {selectionSize} selected
+                        </span>
+                    ) : null}
+                </div>
             </DialogFooter>
         </Dialog>
     );

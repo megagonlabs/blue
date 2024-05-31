@@ -31,6 +31,7 @@ import {
     faBookOpenCover,
     faBracketsCurly,
     faCircleXmark,
+    faClipboard,
     faDownload,
     faIndent,
     faRotate,
@@ -50,14 +51,14 @@ const DEFAULT_SCHEMA = JSON.stringify(
     null,
     4
 );
-function Designer() {
+function FormDesigner() {
     const [error, resetError] = useErrorBoundary();
     const leftPaneRef = createRef();
-    const [uiSchema, setUiSchema] = useState({});
+    const [uischema, setUischema] = useState({});
     const [schema, setSchema] = useState({});
     const ssData = sessionStorage.getItem("data");
     const [data, setData] = useState(_.isNil(ssData) ? {} : JSON.parse(ssData));
-    const [jsonUiSchema, setJsonUiSchema] = useState("{}");
+    const [jsonUischema, setJsonUischema] = useState("{}");
     const [jsonSchema, setJsonSchema] = useState(DEFAULT_SCHEMA);
     const [uiSchemaError, setUiSchemaError] = useState(false);
     const [schemaError, setSchemaError] = useState(false);
@@ -72,9 +73,9 @@ function Designer() {
     }, [error]);
     useEffect(() => {
         if (!uiSchemaLoading) {
-            let uiSchemaCache = sessionStorage.getItem("jsonUiSchema");
+            let uiSchemaCache = sessionStorage.getItem("jsonUischema");
             if (!uiSchemaInitialized && uiSchemaCache) {
-                setJsonUiSchema(uiSchemaCache);
+                setJsonUischema(uiSchemaCache);
             }
             setUiSchemaInitialized(true);
         }
@@ -93,12 +94,12 @@ function Designer() {
     }, [data]);
     useEffect(() => {
         try {
-            setUiSchema(JSON.parse(jsonUiSchema));
+            setUischema(JSON.parse(jsonUischema));
         } catch (error) {}
         if (uiSchemaInitialized) {
-            sessionStorage.setItem("jsonUiSchema", jsonUiSchema);
+            sessionStorage.setItem("jsonUischema", jsonUischema);
         }
-    }, [jsonUiSchema]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [jsonUischema]); // eslint-disable-line react-hooks/exhaustive-deps
     useEffect(() => {
         try {
             setSchema(JSON.parse(jsonSchema));
@@ -118,10 +119,10 @@ function Designer() {
     };
     const handleFormattingCode = () => {
         try {
-            if (_.isEqual(jsonUiSchema.replace(/\s/g, ""), "{}")) {
-                setJsonUiSchema("{}");
+            if (_.isEqual(jsonUischema.replace(/\s/g, ""), "{}")) {
+                setJsonUischema("{}");
             } else {
-                setJsonUiSchema(jsonFormatter.format(jsonUiSchema, "    "));
+                setJsonUischema(jsonFormatter.format(jsonUischema, "    "));
             }
         } catch (error) {}
         try {
@@ -133,21 +134,26 @@ function Designer() {
         } catch (error) {}
     };
     const handleExportConfig = (withData) => {
-        let result = { schema: schema, uiSchema: uiSchema };
+        let result = { schema: schema, uischema: uischema };
         if (withData) {
             _.set(result, "data", data);
         }
         copy(JSON.stringify(result));
-        AppToaster.show({ message: "Copied message configuration" });
+        AppToaster.show({
+            icon: faIcon({ icon: faClipboard }),
+            message: `Copied interactive message configuration (with${
+                withData ? "" : "out"
+            } default data)`,
+        });
     };
     const handleReset = () => {
         leftPaneRef.current.resize([50, 50]);
         setUiSchemaError(false);
         setSchemaError(false);
-        setJsonUiSchema("{}");
+        setJsonUischema("{}");
         setJsonSchema(DEFAULT_SCHEMA);
         setResultPanel(true);
-        sessionStorage.removeItem("jsonUiSchema");
+        sessionStorage.removeItem("jsonUischema");
         sessionStorage.removeItem("jsonSchema");
     };
     const [isDocOpen, setIsDocOpen] = useState(
@@ -180,14 +186,14 @@ function Designer() {
                                 <MenuDivider title="Export" />
                                 <MenuItem
                                     icon={faIcon({ icon: faBinary })}
-                                    text="With data"
+                                    text="With default data"
                                     onClick={() => {
                                         handleExportConfig(true);
                                     }}
                                 />
                                 <MenuItem
                                     icon={faIcon({ icon: faBinarySlash })}
-                                    text="Without data"
+                                    text="Without default data"
                                     onClick={() => {
                                         handleExportConfig(false);
                                     }}
@@ -281,8 +287,8 @@ function Designer() {
                                         schema={UI_JSON_SCHEMA}
                                         setLoading={setUiSchemaLoading}
                                         allowSaveWithError
-                                        code={jsonUiSchema}
-                                        setCode={setJsonUiSchema}
+                                        code={jsonUischema}
+                                        setCode={setJsonUischema}
                                         setError={setUiSchemaError}
                                     />
                                 </div>
@@ -314,7 +320,7 @@ function Designer() {
                                                     : null
                                             }
                                             {...BUTTON_PROPS}
-                                            text="Schema"
+                                            text="Data Schema"
                                             onClick={() => {
                                                 leftPaneRef.current.resize([
                                                     187.5,
@@ -401,20 +407,22 @@ function Designer() {
                             }}
                         >
                             {resultPanel ? (
-                                !_.isEmpty(uiSchema) ? (
+                                !_.isEmpty(uischema) ? (
                                     <Callout
                                         icon={null}
                                         intent={error ? Intent.DANGER : null}
                                         style={{
                                             maxWidth: "min(802.2px, 100%)",
                                             whiteSpace: "pre-wrap",
+                                            wordBreak: "break-all",
                                             width: "fit-content",
+                                            overflow: "hidden",
                                         }}
                                     >
                                         {!error ? (
                                             <JsonForms
                                                 schema={schema}
-                                                uischema={uiSchema}
+                                                uischema={uischema}
                                                 data={data}
                                                 renderers={JSONFORMS_RENDERERS}
                                                 cells={vanillaCells}
@@ -451,4 +459,4 @@ function Designer() {
         </>
     );
 }
-export default withErrorBoundary(Designer);
+export default withErrorBoundary(FormDesigner);

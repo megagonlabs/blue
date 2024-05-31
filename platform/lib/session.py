@@ -59,7 +59,6 @@ class Session:
             if self.suffix:
                 self.cid = self.cid + ":" + self.suffix
 
-
         # session stream
         self.producer = None
 
@@ -98,9 +97,13 @@ class Session:
         self.agents[agent.name] = agent
 
         # add join message
+        label = "INSTRUCTION"
         data = {}
-        data["agent"] = agent.name
-        label = "JOIN"
+        data["code"] = "ADD_AGENT"
+        data["params"] = {}
+        data["params"]["name"] = agent.name
+        data["params"]["sid"] = agent.sid
+
         self.producer.write(data=data, dtype="json", label=label, eos=False)
 
     def remove_agent(self, agent):
@@ -110,29 +113,40 @@ class Session:
             del self.agents[agent.name]
 
         # add leave message
+        label = "INSTRUCTION"
         data = {}
-        data["agent"] = agent.name
-        label = "LEAVE"
+        data["code"] = "REMOVE_AGENT"
+        data["params"] = {}
+        data["params"]["name"] = agent.name
+        data["params"]["sid"] = agent.sid
+        data["params"]["cid"] = agent.cid
+
         self.producer.write(data=data, dtype="json", label=label, eos=False)
 
     def list_agents(self):
         ## read stream in producer, scan join/leave events
-        agents = set()
+        agents = {}
 
         m = self.producer.read_all()
         for message in m:
             label = message["label"]
-            if label == "JOIN":
-                data = message["data"]
-                data = json.loads(data)
-                agent = data["agent"]
-                agents.add(agent)
-            if label == "LEAVE":
-                data = message["data"]
-                data = json.loads(data)
-                agent = data["agent"]
-                agents.remove(agent)
-        return list(agents)
+            if label == "INSTRUCTION":
+                data = json.loads(message["data"])
+                code = data["code"]
+
+                if code == "ADD_AGENT":
+                    params = data["params"]
+                    name = params.get('name', None)
+                    sid = params.get('sid', None)
+                    cid = params.get('cid', None)
+                    agents[sid] = {"name": name, "sid": sid, "cid": cid}
+                if code == "REMOVE_AGENT":
+                    params = data["params"]
+                    sid = params["sid"]
+                    if sid in agents:
+                        del agents[sid]
+
+        return list(agents.values())
 
     def notify(self, worker_stream, tags):
         # # start producer on first write
@@ -140,16 +154,17 @@ class Session:
 
         # create data namespace to share data on stream, success = True, if not existing
         success = self._init_stream_data_namespace(worker_stream)
-        logging.info(
-            "inited stream data namespace {} {}".format(worker_stream, success)
-        )
+        logging.info("inited stream data namespace {} {}".format(worker_stream, success))
 
         # add to stream to notify others, unless it exists
         if success:
+            label = "INSTRUCTION"
             data = {}
-            data["stream"] = worker_stream
-            data["tags"] = tags
-            label = "ADD"
+            data["code"] = "ADD_STREAM"
+            data["params"] = {}
+            data["params"]["cid"] = worker_stream
+            data["params"]["tags"] = tags
+
             self.producer.write(data=data, dtype="json", label=label, eos=False)
 
     ###### DATA/METADATA RELATED
@@ -170,8 +185,7 @@ class Session:
         self.connection.json().set(
             self._get_metadata_namespace(),
             "$",
-            {
-            },
+            {},
             nx=True,
         )
 
@@ -180,21 +194,15 @@ class Session:
         self.connection.json().set(
             self._get_data_namespace(),
             "$",
-            {
-                "common": {}, 
-                "stream": {}, 
-                "agent": {}
-            },
+            {"common": {}, "stream": {}, "agent": {}},
             nx=True,
         )
 
     def _get_metadata_namespace(self):
         return self.cid + ":METADATA"
-    
+
     def set_metadata(self, key, value):
-        self.connection.json().set(
-            self._get_metadata_namespace(), "$." + key, value
-        )
+        self.connection.json().set(self._get_metadata_namespace(), "$." + key, value)
 
     def get_metadata(self, key=""):
         value = self.connection.json().get(
@@ -202,33 +210,22 @@ class Session:
             Path("$" + ("" if pydash.is_empty(key) else ".") + key),
         )
         return self.__get_json_value(value)
-    
+
     def _get_data_namespace(self):
         return self.cid + ":DATA"
 
-
     def set_data(self, key, value):
-        self.connection.json().set(
-            self._get_data_namespace(), "$.common." + key, value
-        )
+        self.connection.json().set(self._get_data_namespace(), "$.common." + key, value)
 
     def get_data(self, key):
-        value = self.connection.json().get(
-            self._get_data_namespace(), Path("$.common." + key)
-        )
+        value = self.connection.json().get(self._get_data_namespace(), Path("$.common." + key))
         return self.__get_json_value(value)
 
-
-
     def append_data(self, key, value):
-        self.connection.json().arrappend(
-            self._get_data_namespace(), "$.common." + key, value
-        )
+        self.connection.json().arrappend(self._get_data_namespace(), "$.common." + key, value)
 
     def get_data_len(self, key):
-        return self.connection.json().arrlen(
-            self._get_data_namespace(), "$.common." + key
-        )
+        return self.connection.json().arrlen(self._get_data_namespace(), "$.common." + key)
 
     ## session agent data (among agent workers)
     def _init_agent_data_namespace(self, agent):
@@ -286,44 +283,28 @@ class Session:
     def set_stream_data(self, stream, key, value):
         self.connection.json().set(
             self._get_data_namespace(),
-            "$.stream."
-            + self._get_stream_data_namespace(stream)
-            + ".common."
-            + key,
+            "$.stream." + self._get_stream_data_namespace(stream) + ".common." + key,
             value,
         )
 
     def get_stream_data(self, stream, key):
         value = self.connection.json().get(
             self._get_data_namespace(),
-            Path(
-                "$.stream."
-                + self._get_stream_data_namespace(stream)
-                + ".common."
-                + key
-            ),
+            Path("$.stream." + self._get_stream_data_namespace(stream) + ".common." + key),
         )
         return self.__get_json_value(value)
 
     def append_stream_data(self, stream, key, value):
         self.connection.json().arrappend(
             self._get_data_namespace(),
-            "$.stream."
-            + self._get_stream_data_namespace(stream)
-            + ".common."
-            + key,
+            "$.stream." + self._get_stream_data_namespace(stream) + ".common." + key,
             value,
         )
 
     def get_stream_data_len(self, stream, key):
         return self.connection.json().arrlen(
             self._get_data_namespace(),
-            Path(
-                "$.stream."
-                + self._get_stream_data_namespace(stream)
-                + ".common."
-                + key
-            ),
+            Path("$.stream." + self._get_stream_data_namespace(stream) + ".common." + key),
         )
 
     ## session stream worker data
@@ -331,10 +312,7 @@ class Session:
         # create namespaces for stream-specific data
         return self.connection.json().set(
             self._get_data_namespace(),
-            "$.stream."
-            + self._get_stream_data_namespace(stream)
-            + ".agent."
-            + self._get_stream_agent_data_namespace(agent),
+            "$.stream." + self._get_stream_data_namespace(stream) + ".agent." + self._get_stream_agent_data_namespace(agent),
             {},
             nx=True,
         )
@@ -345,52 +323,28 @@ class Session:
     def set_stream_agent_data(self, stream, agent, key, value):
         self.connection.json().set(
             self._get_data_namespace(),
-            "$.stream."
-            + self._get_stream_data_namespace(stream)
-            + ".agent."
-            + self._get_stream_agent_data_namespace(agent)
-            + "."
-            + key,
+            "$.stream." + self._get_stream_data_namespace(stream) + ".agent." + self._get_stream_agent_data_namespace(agent) + "." + key,
             value,
         )
 
     def get_stream_agent_data(self, stream, agent, key):
         value = self.connection.json().get(
             self._get_data_namespace(),
-            Path(
-                "$.stream."
-                + self._get_stream_data_namespace(stream)
-                + ".agent."
-                + self._get_stream_agent_data_namespace(agent)
-                + "."
-                + key
-            ),
+            Path("$.stream." + self._get_stream_data_namespace(stream) + ".agent." + self._get_stream_agent_data_namespace(agent) + "." + key),
         )
         return self.__get_json_value(value)
 
     def append_stream_agent_data(self, stream, agent, key, value):
         self.connection.json().arrappend(
             self._get_data_namespace(),
-            "$.stream."
-            + self._get_stream_data_namespace(stream)
-            + ".agent."
-            + self._get_stream_agent_data_namespace(agent)
-            + "."
-            + key,
+            "$.stream." + self._get_stream_data_namespace(stream) + ".agent." + self._get_stream_agent_data_namespace(agent) + "." + key,
             value,
         )
 
     def get_stream_agent_data_len(self, stream, agent, key):
         return self.connection.json().arrlen(
             self._get_data_namespace(),
-            Path(
-                "$.stream."
-                + self._get_stream_data_namespace(stream)
-                + ".agent."
-                + self._get_stream_agent_data_namespace(agent)
-                + "."
-                + key
-            ),
+            Path("$.stream." + self._get_stream_data_namespace(stream) + ".agent." + self._get_stream_agent_data_namespace(agent) + "." + key),
         )
 
     ###### OPERATIONS
@@ -418,7 +372,7 @@ class Session:
     def _start_producer(self):
         # start, if not started
         if self.producer == None:
-            
+
             producer = Producer(sid="STREAM", prefix=self.cid, properties=self.properties)
             producer.start()
             self.producer = producer

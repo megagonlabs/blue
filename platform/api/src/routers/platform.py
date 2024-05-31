@@ -55,6 +55,7 @@ platform_id = PROPERTIES["platform.name"]
 prefix = 'PLATFORM:' + platform_id
 agent_registry_id = PROPERTIES["agent_registry.name"]
 data_registry_id = PROPERTIES["data_registry.name"]
+db_host = PROPERTIES["db.host"]
 
 ###### Initialization
 p = Platform(id=platform_id, properties=PROPERTIES)
@@ -91,11 +92,12 @@ def list_agent_containers():
             c["created_date"] = container.attrs["Created"]
             c["image"] = container.attrs["Config"]["Image"]
             c["status"] = container.attrs["State"]["Status"]
-            if c["hostname"].find("blue_agent") < 0:
-                continue
-            hs = c["hostname"].split("_")
-            c["agent"] = hs[3]
-            c["registry"] = hs[2]
+            labels = container.attrs["Config"]["Labels"]
+            if 'blue.agent' in labels:
+                l = labels['blue.agent']
+                la = l.split(".")
+                c["agent"] = la[2]
+                c["registry"] = la[1]
             results.append(c)
     elif PROPERTIES["platform.deploy.target"] == "swarm":
         services = client.services.list()
@@ -108,12 +110,16 @@ def list_agent_containers():
             ]
             c["created_date"] = service.attrs["CreatedAt"]
             c["image"] = service.attrs["Spec"]["TaskTemplate"]["ContainerSpec"]["Image"]
-            if c["hostname"].find("blue_agent") < 0:
-                continue
-            hs = c["hostname"].split("_")
-            c["agent"] = hs[3]
-            c["registry"] = hs[2]
+            labels = container.attrs["Spec"]["TaskTemplate"]["ContainerSpec"]["Labels"]
+            if 'blue.agent' in labels:
+                l = labels['blue.agent']
+                la = l.split(".")
+                c["agent"] = la[2]
+                c["registry"] = la[1]
             results.append(c)
+
+    # close connection
+    client.close()
 
     return JSONResponse(content={"results": results})
 
@@ -128,13 +134,20 @@ def deploy_agent_container(agent_name):
     # connect to docker
     client = docker.from_env()
 
+    # agent factory properties
+    agent_factory_properties = {}
+    # start from platform properties
+    agent_factory_properties = json_utils.merge_json(agent_factory_properties, PROPERTIES)
+
     # deploy agent container based on deploy target
     if PROPERTIES["platform.deploy.target"] == "localhost":
         client.containers.run(
             image,
-            "--serve",
+            "--serve " + agent_name + " " + "--properties " + "'" + json.dumps(agent_factory_properties) + "'",
             network="blue_platform_" + PROPERTIES["platform.name"] + "_network_bridge",
             hostname="blue_agent_" + agent_registry_id + "_" + agent_name,
+            volumes=["blue_" + platform_id + "_data:/blue_data"],
+            labels={"blue.agent": PROPERTIES["platform.name"] + "." + agent_registry_id + "." + agent_name},
             stdout=True,
             stderr=True,
         )
@@ -142,14 +155,20 @@ def deploy_agent_container(agent_name):
         constraints = ["node.labels.target==agent"]
         client.services.create(
             image,
-            args=["--serve"],
+            args=["--serve " + agent_name + " " + "--properties " + "'" + json.dumps(agent_factory_properties) + "'"],
             networks=[
                 "blue_platform_" + PROPERTIES["platform.name"] + "_network_overlay"
             ],
             constraints=constraints,
             hostname="blue_agent_" + agent_registry_id + "_" + agent_name,
+            volumes=["blue_" + platform_id + "_data:/blue_data"],
+            labels={"blue.agent": PROPERTIES["platform.name"] + "." + agent_registry_id + "." + agent_name},
         )
     result = ""
+
+    # close connection
+    client.close()
+
     return JSONResponse(content={"result": result, "message": "Success"})
 
 
@@ -169,6 +188,10 @@ def update_agent_container(registry_name, agent_name):
         # TODO: pull image on all nodes where label.target==agent
         pass
     result = ""
+
+    # close connection
+    client.close()
+
     return JSONResponse(content={"result": result, "message": "Success"})
 
 
@@ -199,4 +222,8 @@ def shutdown_agent_container(registry_name, agent_name):
             # service.remove()
 
     result = ""
+
+    # close connection
+    client.close()
+
     return JSONResponse(content={"result": result, "message": "Success"})

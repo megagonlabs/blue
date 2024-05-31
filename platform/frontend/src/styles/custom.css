@@ -1,7 +1,7 @@
 :root {
     --separator-border: rgba(17, 20, 24, 0.15);
 }
-a:not([class^="bp"]) {
+a.no-link-decoration {
     color: inherit !important;
     text-decoration: none !important;
 }
@@ -19,8 +19,8 @@ a:not([class^="bp"]) {
 }
 table.entity-section-card-table tr th,
 table.entity-section-card-table tr td {
-    padding-left: 20px;
-    padding-right: 20px;
+    padding-left: 15px;
+    padding-right: 15px;
 }
 .margin-top-5 {
     margin-top: 5px !important;
@@ -41,7 +41,7 @@ table.entity-section-card-table tr td {
 .z-index-36 {
     z-index: 36;
 }
-.glassmorphism {
+.glassmorphism-5 {
     /* From https://css.glass */
     background: rgba(255, 255, 255, 0.2);
     box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
@@ -56,4 +56,7 @@ table.entity-section-card-table tr td {
 }
 .padding-0 {
     padding: 0px !important;
+}
+.on-hover-background-color-bp-gray-3:hover {
+    background-color: #e5e8eb;
 }

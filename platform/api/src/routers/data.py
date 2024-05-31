@@ -26,8 +26,8 @@ from utils import json_utils
 ###### FastAPI
 from APIRouter import APIRouter
 from fastapi.responses import JSONResponse
-from typing import Union
-from pydantic import BaseModel
+from typing import Union, Any, Dict, AnyStr, List
+from pydantic import BaseModel, Json
 
 router = APIRouter(prefix="/data")
 
@@ -36,6 +36,11 @@ router = APIRouter(prefix="/data")
 class Data(BaseModel):
     name: str
     description: Union[str, None] = None
+
+
+JSONObject = Dict[str, Any]
+JSONArray = List[Any]
+JSONStructure = Union[JSONArray, JSONObject, Any]
 ######
 
 

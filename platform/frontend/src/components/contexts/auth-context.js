@@ -72,7 +72,7 @@ export const AuthProvider = ({ children }) => {
     const [popupOpen, setPopupOpen] = useState(false);
     const [authInitialized, setAuthInitialized] = useState(false);
     const signOut = () => {
-        axios.post("/accounts/signout").then((response) => {
+        axios.post("/accounts/sign-out").then(() => {
             setUser(null);
         });
     };
@@ -82,19 +82,17 @@ export const AuthProvider = ({ children }) => {
             .then((result) => {
                 result.user.getIdToken().then((idToken) => {
                     axios
-                        .post("/accounts/signin", {
-                            id_token: idToken,
-                        })
+                        .post("/accounts/sign-in", { id_token: idToken })
                         .then((response) => {
                             setPopupOpen(false);
                             setUser(_.get(response, "data.result", null));
                         })
-                        .catch((error) => {
+                        .catch(() => {
                             setPopupOpen(false);
                         });
                 });
             })
-            .catch((error) => {
+            .catch(() => {
                 setPopupOpen(false);
             });
     };
@@ -105,7 +103,7 @@ export const AuthProvider = ({ children }) => {
                 setUser(_.get(response, "data.result", null));
                 setAuthInitialized(true);
             })
-            .catch((error) => {
+            .catch(() => {
                 setAuthInitialized(true);
             });
     }, []);
@@ -115,7 +113,7 @@ export const AuthProvider = ({ children }) => {
                 size={DrawerSize.SMALL}
                 portalClassName="z-index-36"
                 position="bottom"
-                backdropClassName="glassmorphism"
+                backdropClassName="glassmorphism-5"
                 isOpen={_.isNil(user) && authInitialized}
             >
                 <div style={{ margin: "auto" }}>

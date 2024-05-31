@@ -92,8 +92,12 @@ def add_agent_to_session(session_id, registry_name, agent_name, properties: JSON
 
         # start with platform properties, merge properties from registry, then merge properties from API call
         properties_from_api = properties
-        agent_properties = PROPERTIES
+        agent_properties = {}
+        # start from platform properties
+        agent_properties = json_utils.merge_json(agent_properties, PROPERTIES)
+        # merge in registry properties
         agent_properties = json_utils.merge_json(agent_properties, properties_from_registry)
+        # merge in properties from the api
         agent_properties = json_utils.merge_json(agent_properties, properties_from_api)
 
         # ASSUMPTION: agent is already deployed

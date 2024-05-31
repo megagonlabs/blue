@@ -6,7 +6,6 @@ from websocket import create_connection
 
 ws = create_connection("ws://localhost:5050/sessions/ws")
 result = ws.recv()
-client_id = json.loads(result)["id"]
 COMMON_P = (
     "Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod "
     "tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim "
@@ -200,34 +199,11 @@ WORDS = (
     "maxime",
     "corrupti",
 )
-COMMON_WORDS = (
-    "lorem",
-    "ipsum",
-    "dolor",
-    "sit",
-    "amet",
-    "consectetur",
-    "adipisicing",
-    "elit",
-    "sed",
-    "do",
-    "eiusmod",
-    "tempor",
-    "incididunt",
-    "ut",
-    "labore",
-    "et",
-    "dolore",
-    "magna",
-    "aliqua",
-)
+COMMON_WORDS = ("lorem", "ipsum", "dolor", "sit", "amet", "consectetur", "adipisicing", "elit", "sed", "do", "eiusmod", "tempor", "incididunt", "ut", "labore", "et", "dolore", "magna", "aliqua")
 
 
 def sentence():
-    sections = [
-        " ".join(random.sample(WORDS, random.randint(3, 12)))
-        for i in range(random.randint(2, 5))
-    ]
+    sections = [" ".join(random.sample(WORDS, random.randint(3, 12))) for i in range(random.randint(2, 5))]
     s = ", ".join(sections)
     return "%s%s%s" % (s[0].upper(), s[1:], random.choice("?."))
 
@@ -247,55 +223,82 @@ def words(count):
 
 
 session_id = input("session_id: ")
-for _ in range(3):
+connection_id = input("connection_id: ")
+for _ in range(1):
     sentence_string = sentence()
     words_string = words(random.randint(4, 11))
     ws.send(
         json.dumps(
             {
                 "type": "OBSERVER_SESSION_MESSAGE",
+                "connection_id": connection_id,
                 "session_id": session_id,
                 "message": {
                     "type": "STRING",
                     "content": random.choice([sentence_string, words_string]),
                 },
-                "stream": "local-test-client",
+                "stream": f"local-test-client-{int(time.time() * 1000)}",
+                "timestamp": int(time.time() * 1000),
             }
         )
     )
+time.sleep(2)
+stream_id = f"local-test-client-{int(time.time() * 1000)}"
 ws.send(
     json.dumps(
         {
             "type": "OBSERVER_SESSION_MESSAGE",
             "session_id": session_id,
+            "connection_id": connection_id,
             "message": {
-                "type": "INTERACTIVE",
+                "type": "INTERACTION",
                 "content": {
-                    "schema": {
-                        "type": "object",
-                        "properties": {
-                            "first_name": {"type": "string"},
-                            "last_name": {"type": "string"},
+                    "type": "JSONFORM",
+                    "form_id": 'local-test-client-form-1',
+                    "content": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "first_name": {"type": "string"},
+                                "last_name": {"type": "string"},
+                            },
                         },
-                    },
-                    "uiSchema": {
-                        "type": "HorizontalLayout",
-                        "elements": [
-                            {
-                                "type": "Control",
-                                "label": "First Name",
-                                "scope": "#/properties/first_name",
-                            },
-                            {
-                                "type": "Control",
-                                "label": "Last Name",
-                                "scope": "#/properties/last_name",
-                            },
-                        ],
+                        "uischema": {
+                            "type": "HorizontalLayout",
+                            "elements": [
+                                {
+                                    "type": "Control",
+                                    "label": "First Name",
+                                    "scope": "#/properties/first_name",
+                                },
+                                {
+                                    "type": "Control",
+                                    "label": "Last Name",
+                                    "scope": "#/properties/last_name",
+                                },
+                            ],
+                        },
                     },
                 },
             },
-            "stream": "local-test-client",
+            "stream": stream_id,
+            "timestamp": int(time.time() * 1000),
+        }
+    )
+)
+time.sleep(2)
+ws.send(
+    json.dumps(
+        {
+            "type": "OBSERVER_SESSION_MESSAGE",
+            "session_id": session_id,
+            "connection_id": connection_id,
+            "message": {
+                "type": "INTERACTION",
+                "content": {"type": "DONE", "form_id": 'local-test-client-form-1'},
+            },
+            "stream": stream_id,
+            "timestamp": int(time.time() * 1000),
         }
     )
 )

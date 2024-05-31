@@ -10,9 +10,11 @@ import {
     Divider,
     H4,
     InputGroup,
+    Intent,
     Popover,
     Radio,
     RadioGroup,
+    Tag,
 } from "@blueprintjs/core";
 import {
     faBarsFilter,
@@ -31,6 +33,7 @@ export default function Data() {
     const [keywords, setKeywords] = useState(appState.data.filter.keywords);
     const [page, setPage] = useState(appState.data.filter.page);
     const [pageSize, setPageSize] = useState(appState.data.filter.page_size);
+    const dataRegistryName = appState.data.registryName;
     useEffect(() => {
         if (appState.data.search) return;
         appActions.data.getList();
@@ -67,7 +70,7 @@ export default function Data() {
     );
     useEffect(() => {
         debounceOnKeywordsChange({
-            registryName: appState.data.registryName,
+            registryName: dataRegistryName,
             hybrid,
             approximate,
             keywords,
@@ -78,8 +81,11 @@ export default function Data() {
     }, [hybrid, approximate, type, page, pageSize]); // eslint-disable-line react-hooks/exhaustive-deps
     return (
         <>
-            <div style={{ padding: "20px 20px 10px 20px" }}>
-                <H4 style={{ margin: "0px 20px 0px 0px" }}>Data Registry</H4>
+            <div style={{ padding: "20px 20px 10px 20px", display: "flex" }}>
+                <H4 style={{ margin: "0px 10px 0px 0px" }}>Data Registry</H4>
+                <Tag minimal intent={Intent.PRIMARY}>
+                    {appState.data.registryName}
+                </Tag>
             </div>
             <div
                 style={{
@@ -130,8 +136,7 @@ export default function Data() {
                             onKeyDown={(event) => {
                                 if (_.isEqual(event.key, "Enter")) {
                                     debounceOnKeywordsChange({
-                                        registryName:
-                                            appState.data.registryName,
+                                        registryName: dataRegistryName,
                                         hybrid,
                                         approximate,
                                         keywords: event.target.value,

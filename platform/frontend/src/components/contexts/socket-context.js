@@ -1,6 +1,7 @@
 import { AppContext } from "@/components/contexts/app-context";
 import { AppToaster } from "@/components/toaster";
 import { Intent } from "@blueprintjs/core";
+import axios from "axios";
 import _ from "lodash";
 import { createContext, useContext, useEffect, useState } from "react";
 export const SocketContext = createContext();
@@ -8,29 +9,26 @@ export const SocketProvider = ({ children }) => {
     const [ws, setWs] = useState(null);
     const { appActions } = useContext(AppContext);
     const reconnect = () => {
-        setTimeout(() => {
-            setWs(
-                new WebSocket(
-                    `${process.env.NEXT_PUBLIC_WS_API_SERVER}/sessions/ws`
-                )
-            );
-        }, 0);
+        // get WS auth ticket
+        axios.get("/accounts/websocket-ticket").then((response) => {
+            try {
+                let webSocket = null;
+                webSocket = new WebSocket(
+                    `${process.env.NEXT_PUBLIC_WS_API_SERVER}/sessions/ws?ticket=${response.data.ticket}`
+                );
+                setWs(webSocket);
+            } catch (error) {
+                if (AppToaster) {
+                    AppToaster.show({
+                        intent: Intent.DANGER,
+                        message: `Failed to initialize websocket: ${error}`,
+                    });
+                }
+            }
+        });
     };
     useEffect(() => {
-        let webSocket = null;
-        try {
-            webSocket = new WebSocket(
-                `${process.env.NEXT_PUBLIC_WS_API_SERVER}/sessions/ws`
-            );
-        } catch (error) {
-            if (AppToaster) {
-                AppToaster.show({
-                    intent: Intent.DANGER,
-                    message: `Failed to initialize websocket: ${error}`,
-                });
-            }
-        }
-        setWs(webSocket);
+        reconnect();
     }, []);
     useEffect(() => {
         const onClose = () => {

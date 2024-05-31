@@ -8,6 +8,7 @@ export const defaultState = {
     sessionDetail: {},
     connectionId: null,
     unreadSessionIds: new Set(),
+    terminatedInteraction: new Set(),
 };
 export default function sessionReducer(
     state = defaultState,
@@ -15,26 +16,58 @@ export default function sessionReducer(
 ) {
     let unreadSessionIds = state.unreadSessionIds;
     let sessionIds = state.sessionIds;
+    let terminatedInteraction = state.terminatedInteraction;
     switch (type) {
         case "session/sessions/message/add": {
-            if (!_.startsWith(payload.stream, `USER:${state.connectionId}`)) {
-                unreadSessionIds.add(payload.session_id);
-            }
-            if (!_.includes(state.sessionIds, payload.session_id)) {
-                sessionIds.push(payload.session_id);
-            }
-            return {
-                ...state,
-                sessions: {
-                    ...state.sessions,
-                    [payload.session_id]: [
+            const messageType = _.get(payload, "message.type", null);
+            const contentType = _.get(payload, "message.content.type", null);
+            // non-conversational message; not adding to session messages
+            if (
+                _.isEqual(messageType, "INTERACTION") &&
+                _.isEqual(contentType, "DONE")
+            ) {
+                const stream = _.get(payload, "stream", null);
+                const formId = _.get(payload, "message.content.form_id", null);
+                if (!_.isEmpty(stream) && !_.isEmpty(formId)) {
+                    terminatedInteraction.add(`${stream},${formId}`);
+                }
+                return { ...state, terminatedInteraction };
+            } else {
+                if (
+                    !_.startsWith(payload.stream, `USER:${state.connectionId}`)
+                ) {
+                    unreadSessionIds.add(payload.session_id);
+                }
+                if (!_.includes(state.sessionIds, payload.session_id)) {
+                    sessionIds.push(payload.session_id);
+                }
+                // timestamp is unique redis stream entry id
+                let nextMessages = _.unionBy(
+                    [
                         ..._.get(state, `sessions.${payload.session_id}`, []),
-                        { message: payload.message, stream: payload.stream },
+                        {
+                            message: payload.message,
+                            stream: payload.stream,
+                            timestamp: payload.timestamp,
+                        },
                     ],
-                },
-                sessionIds: sessionIds,
-                unreadSessionIds: unreadSessionIds,
-            };
+                    (element) => element.timestamp
+                );
+                return {
+                    ...state,
+                    sessions: {
+                        ...state.sessions,
+                        [payload.session_id]: _.sortBy(
+                            nextMessages,
+                            function (o) {
+                                return o.timestamp;
+                            }
+                        ),
+                    },
+                    sessionIds,
+                    unreadSessionIds,
+                };
+            }
         }
         case "session/state/set": {
             return { ...state, [payload.key]: payload.value };

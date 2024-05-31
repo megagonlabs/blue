@@ -2,7 +2,7 @@
 import os
 import sys
 
-###### 
+######
 import time
 import argparse
 import logging
@@ -16,6 +16,7 @@ import csv
 import json
 
 import itertools
+import pydash
 from tqdm import tqdm
 
 ###### Backend, Databases
@@ -27,11 +28,24 @@ import concurrent.futures
 
 # set log level
 logging.getLogger().setLevel(logging.INFO)
-logging.basicConfig(format="%(asctime)s [%(levelname)s] [%(process)d:%(threadName)s:%(thread)d](%(filename)s:%(lineno)d) %(name)s -  %(message)s", level=logging.ERROR, datefmt="%Y-%m-%d %H:%M:%S")
+logging.basicConfig(
+    format="%(asctime)s [%(levelname)s] [%(process)d:%(threadName)s:%(thread)d](%(filename)s:%(lineno)d) %(name)s -  %(message)s",
+    level=logging.ERROR,
+    datefmt="%Y-%m-%d %H:%M:%S",
+)
 
 
-class Producer():
-    def __init__(self, name="STREAM", id=None, sid=None, cid=None, prefix=None, suffix=None,  properties={}):
+class Producer:
+    def __init__(
+        self,
+        name="STREAM",
+        id=None,
+        sid=None,
+        cid=None,
+        prefix=None,
+        suffix=None,
+        properties={},
+    ):
 
         self.name = name
         if id:
@@ -55,15 +69,10 @@ class Producer():
                 self.cid = self.prefix + ":" + self.cid
             if self.suffix:
                 self.cid = self.cid + ":" + self.suffix
-    
+
         self._initialize(properties=properties)
 
-
     ###### INITIALIZATION
-    def _initialize(self, properties=None):
-        self._initialize_properties()
-        self._update_properties(properties=properties)
-
     def _initialize(self, properties=None):
         self._initialize_properties()
         self._update_properties(properties=properties)
@@ -72,8 +81,8 @@ class Producer():
         self.properties = {}
 
         # db connectivity
-        self.properties['db.host'] = 'localhost'
-        self.properties['db.port'] = 6379
+        self.properties["db.host"] = "localhost"
+        self.properties["db.port"] = 6379
 
     def _update_properties(self, properties=None):
         if properties is None:
@@ -83,7 +92,6 @@ class Producer():
         for p in properties:
             self.properties[p] = properties[p]
 
-
     ####### open connection, create group, start threads
     def start(self):
         # logging.info("Starting producer {p}".format(p=self.sid))
@@ -92,22 +100,26 @@ class Producer():
         self._start_stream()
         logging.info("Started producer {p}".format(p=self.sid))
 
-
     def _start_connection(self):
-        host = self.properties['db.host']
-        port = self.properties['db.port']
+        host = self.properties["db.host"]
+        port = self.properties["db.port"]
 
         logging.info("PRODUCER START....." + host)
         self.connection = redis.Redis(host=host, port=port, decode_responses=True)
 
     def _start_stream(self):
-        # start stream by adding BOS 
+        # start stream by adding BOS
         s = self.cid
         r = self.connection
+        # check if stream has BOS in the front
+        data = r.xread(streams={s: 0}, count=1)
+        has_bos = pydash.is_equal(
+            pydash.objects.get(data, "0.1.0.1.label", None), "BOS"
+        )
+        if not has_bos:
+            # add BOS (begin of stream)
+            self.write(label="BOS")
 
-        # add BOS (begin of stream)
-        self.write(label="BOS")
-       
         self._print_stream_info()
 
     def _print_stream_info(self):
@@ -117,7 +129,7 @@ class Producer():
     def get_stream(self):
         return self.cid
 
-    # stream 
+    # stream
     def write(self, data=None, dtype="str", label="DATA", eos=False, split=None):
         # logging.info("producer write {label} {data} {dtype} {eos}".format(label=label,data=data,dtype=dtype,eos=eos))
 
@@ -125,20 +137,19 @@ class Producer():
         # print("type {type}".format(type=type))
         if dtype == None:
             if isinstance(data, int):
-                dtype = 'int'
+                dtype = "int"
             elif isinstance(data, float):
-                dtype = 'float'
+                dtype = "float"
             elif isinstance(data, str):
-                dtype = 'str'
+                dtype = "str"
             elif isinstance(data, dict) or isinstance(data, list):
-                dtype = 'json'
+                dtype = "json"
             else:
                 # convert everything else to string
                 data = str(data)
-                dtype = 'str'
+                dtype = "str"
 
-
-        if dtype == 'json':
+        if dtype == "json":
             data = json.dumps(data)
 
         if label == "DATA":
@@ -156,7 +167,7 @@ class Producer():
             for token in tokens:
                 message = self._prepare_message(data=token, label=label, dtype=dtype)
                 self._write_message_to_stream(message)
-                
+
             # logging.info(eos)
             if eos:
                 message = self._prepare_message(label="EOS")
@@ -169,7 +180,6 @@ class Producer():
             message = self._prepare_message(data=data, label=label, dtype=dtype)
             self._write_message_to_stream(message)
 
-             
     def _prepare_message(self, label=None, data=None, dtype=None):
         if data is None:
             return {"label": label}
@@ -183,7 +193,7 @@ class Producer():
 
     def read_all(self):
         sl = self.connection.xlen(self.cid)
-        m = self.connection.xread(streams={self.cid:'0'}, count=sl, block=200)
+        m = self.connection.xread(streams={self.cid: "0"}, count=sl, block=200)
         messages = []
         e = m[0]
         s = e[0]
@@ -194,25 +204,21 @@ class Producer():
             messages.append(message)
 
         return messages
-                
+
 
 #######################
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--name', type=str, default='USER')
-    parser.add_argument('--text', type=str, default='hello world!')
-    parser.add_argument('--loglevel', default="INFO", type=str)
- 
+    parser.add_argument("--name", type=str, default="USER")
+    parser.add_argument("--text", type=str, default="hello world!")
+    parser.add_argument("--loglevel", default="INFO", type=str)
+
     args = parser.parse_args()
-   
+
     # set logging
     logging.getLogger().setLevel(args.loglevel.upper())
-
 
     p = Producer(args.name)
     p.start()
 
     p.write(args.text, dtype="str")
-
-
-

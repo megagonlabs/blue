@@ -12,16 +12,13 @@ export default function SessionMessages() {
     const sessionIdFocus = appState.session.sessionIdFocus;
     const messages = appState.session.sessions[sessionIdFocus];
     function getRowHeight(index) {
-        const own =
-            !_.isEmpty(messages) &&
-            _.startsWith(
-                messages[index].stream,
-                `USER:${appState.session.connectionId}`
-            );
+        const own = _.includes(
+            _.get(messages, [index, "stream"]),
+            `USER:${appState.session.connectionId}`
+        );
         return (
-            rowHeights.current[index] +
-                (_.isEqual(index, messages.length - 1) ? 20 : 10) +
-                (_.isEqual(index, 0) ? 20 : 0) || 51 + (!own ? 15.43 : 0)
+            rowHeights.current[index] + 20 + (_.isEqual(index, 0) ? 20 : 0) ||
+            51 + (!own ? 15.43 : 0)
         );
     }
     function setRowHeight(index, size, shouldForceUpdate = true) {
@@ -30,8 +27,8 @@ export default function SessionMessages() {
     }
     function Row({ index, style }) {
         const rowRef = useRef({});
-        const own = _.startsWith(
-            messages[index].stream,
+        const own = _.includes(
+            _.get(messages, [index, "stream"]),
             `USER:${appState.session.connectionId}`
         );
         useEffect(() => {
@@ -68,9 +65,7 @@ export default function SessionMessages() {
                     display: "flex",
                     flexDirection: "column",
                     alignItems: `flex-${own ? "end" : "start"}`,
-                    padding: `${_.isEqual(index, 0) ? 20 : 0}px 20px ${
-                        _.isEqual(index, messages.length - 1) ? 20 : 10
-                    }px`,
+                    padding: `${_.isEqual(index, 0) ? 20 : 0}px 20px 20px`,
                 }}
             >
                 <Callout
@@ -79,17 +74,20 @@ export default function SessionMessages() {
                     }
                     icon={null}
                     style={{
+                        backgroundColor: "rgba(143, 153, 168, 0.1)",
                         maxWidth: "min(802.2px, 100%)",
                         whiteSpace: "pre-wrap",
                         wordBreak: "break-all",
                         width: "fit-content",
+                        overflow: "hidden",
                     }}
                 >
                     <div ref={rowRef}>
                         {_.isEqual(messageType, "STRING") ? (
                             messageContent
-                        ) : _.isEqual(messageType, "INTERACTIVE") ? (
+                        ) : _.isEqual(messageType, "INTERACTION") ? (
                             <InteractiveMessage
+                                stream={messages[index].stream}
                                 setHasError={setHasError}
                                 content={messageContent}
                             />

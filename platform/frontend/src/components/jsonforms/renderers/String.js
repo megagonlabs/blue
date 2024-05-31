@@ -22,12 +22,14 @@ const StringRenderer = ({ uischema, handleChange, path, data, required }) => {
         handleChange(path, event.target.value);
         if (!_.isEqual(socketReadyState, 1)) return;
         setTimeout(() => {
+            const dataId = _.last(_.split(_.get(uischema, "scope", ""), "/"));
             socket.send(
                 JSON.stringify({
                     type: "INTERACTIVE_EVENT_MESSAGE",
                     stream_id: _.get(uischema, "props.streamId", null),
-                    name_id: _.get(uischema, "props.nameId", null),
-                    message: event.target.value,
+                    name_id: _.get(uischema, "props.nameId", dataId),
+                    form_id: _.get(uischema, "props.formId", null),
+                    value: event.target.value,
                     timestamp: Date.now(),
                 })
             );

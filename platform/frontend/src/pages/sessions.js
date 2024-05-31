@@ -1,7 +1,8 @@
-import AddAgents from "@/components/agents/AddAgents";
+import { NAVIGATION_MENU_WIDTH } from "@/components/constant";
 import { AppContext } from "@/components/contexts/app-context";
 import { useSocket } from "@/components/hooks/useSocket";
 import { faIcon } from "@/components/icon";
+import AddAgents from "@/components/sessions/AddAgents";
 import SessionDetail from "@/components/sessions/SessionDetail";
 import SessionList from "@/components/sessions/SessionList";
 import SessionMessages from "@/components/sessions/SessionMessages";
@@ -11,6 +12,7 @@ import {
     ButtonGroup,
     Card,
     Classes,
+    ControlGroup,
     H4,
     InputGroup,
     Intent,
@@ -122,7 +124,7 @@ export default function Sessions() {
                     })
                 );
             })
-            .catch((error) => {});
+            .catch(() => {});
     };
     const initialJoinAll = useRef(true);
     const joinAllSessions = () => {
@@ -134,22 +136,27 @@ export default function Sessions() {
                 appActions.session.setSessionDetail(sessions);
                 for (let i = 0; i < sessions.length; i++) {
                     const sessionId = sessions[i].id;
-                    if (_.includes(sessionIds, sessionId)) continue;
                     appActions.session.observeSession({
                         sessionId: sessionId,
                         socket: socket,
                     });
                 }
             })
-            .catch((error) => {});
+            .catch(() => {});
     };
-
     useEffect(() => {
         if (!_.isEqual(socketReadyState, 1)) return;
         if (initialJoinAll.current) {
             initialJoinAll.current = false;
-            socket.send(JSON.stringify({ type: "REQUEST_CONNECTION_ID" }));
+            socket.send(JSON.stringify({ type: "REQUEST_USER_AGENT_ID" }));
             joinAllSessions();
+        } else {
+            for (let i = 0; i < sessionIds.length; i++) {
+                appActions.session.observeSession({
+                    sessionId: sessionIds[i],
+                    socket: socket,
+                });
+            }
         }
     }, [socketReadyState]);
     const isSocketOpen = appState.session.isSocketOpen;
@@ -409,7 +416,7 @@ export default function Sessions() {
                     height: "calc(100% - 80px)",
                     marginLeft: SESSION_LISTL_PANEL_WIDTH,
                     width: `calc(100vw - ${
-                        SESSION_LISTL_PANEL_WIDTH + 160.55
+                        SESSION_LISTL_PANEL_WIDTH + NAVIGATION_MENU_WIDTH
                     }px)`,
                 }}
             >
@@ -465,27 +472,18 @@ export default function Sessions() {
                             <SessionMessages />
                         </div>
                         <div
+                            className="bp-border-top"
                             style={{
                                 padding: 20,
                                 position: "relative",
-                                height: "calc(100% - 772px",
-                                borderTop: "1px solid rgba(17, 20, 24, 0.15)",
+                                height: 131,
                             }}
                         >
-                            <div
-                                style={{
-                                    position: "absolute",
-                                    height: "calc(100% - 40px)",
-                                    top: "50%",
-                                    transform: "translateY(-50%)",
-                                    msTransform: "translateY(-50%)",
-                                    left: 20,
-                                }}
-                            >
+                            <ControlGroup fill style={{ height: "100%" }}>
                                 <Popover
                                     minimal
                                     placement="top-start"
-                                    targetProps={{ style: { height: "100%" } }}
+                                    targetProps={{ style: { maxWidth: 40 } }}
                                     content={
                                         <Menu large>
                                             <MenuItem
@@ -504,41 +502,31 @@ export default function Sessions() {
                                         disabled={!isSocketOpen}
                                         large
                                         minimal
-                                        style={{
-                                            borderTopRightRadius: 0,
-                                            borderBottomRightRadius: 0,
-                                            paddingBottom: 62,
-                                            paddingTop: 12,
-                                        }}
+                                        style={{ maxWidth: 40, height: 91 }}
                                         icon={faIcon({ icon: faPlusLarge })}
                                     />
                                 </Popover>
-                            </div>
-                            <TextArea
-                                disabled={!isSocketOpen}
-                                inputRef={sessionMessageTextArea}
-                                style={{
-                                    resize: "none",
-                                    minHeight: "100%",
-                                    paddingLeft: 50,
-                                }}
-                                value={message}
-                                placeholder={`Message # ${sessionName}`}
-                                onChange={(event) => {
-                                    setMessage(event.target.value);
-                                }}
-                                onKeyDown={(event) => {
-                                    if (
-                                        _.isEqual(event.key, "Enter") &&
-                                        !event.shiftKey &&
-                                        isSocketOpen
-                                    ) {
-                                        sendSessionMessage(message);
-                                        event.preventDefault();
-                                    }
-                                }}
-                                fill
-                            />
+                                <TextArea
+                                    disabled={!isSocketOpen}
+                                    inputRef={sessionMessageTextArea}
+                                    style={{ resize: "none", height: 91 }}
+                                    value={message}
+                                    placeholder={`Message # ${sessionName}`}
+                                    onChange={(event) => {
+                                        setMessage(event.target.value);
+                                    }}
+                                    onKeyDown={(event) => {
+                                        if (
+                                            _.isEqual(event.key, "Enter") &&
+                                            !event.shiftKey &&
+                                            isSocketOpen
+                                        ) {
+                                            sendSessionMessage(message);
+                                            event.preventDefault();
+                                        }
+                                    }}
+                                />
+                            </ControlGroup>
                         </div>
                     </>
                 )}

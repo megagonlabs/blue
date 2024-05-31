@@ -12,7 +12,7 @@ export const sessionAction = (dispatch) => ({
             payload: payload,
         });
     },
-    createSession: (payload) => {
+    createSession: () => {
         axios.post(`/sessions/session`).then((response) => {
             try {
                 const sessionId = _.get(response, "data.result.id");
@@ -30,13 +30,13 @@ export const sessionAction = (dispatch) => ({
         });
     },
     observeSession: (payload) => {
+        dispatch({ type: "session/sessions/add", payload: payload.sessionId });
         payload.socket.send(
             JSON.stringify({
                 type: "OBSERVE_SESSION",
                 session_id: payload.sessionId,
             })
         );
-        dispatch({ type: "session/sessions/add", payload: payload.sessionId });
     },
     addSessionMessage: (payload) =>
         dispatch({ type: "session/sessions/message/add", payload }),

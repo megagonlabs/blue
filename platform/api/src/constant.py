@@ -1,3 +1,4 @@
+import re
 from jsonschema.validators import Draft7Validator
 import pydash
 
@@ -17,9 +18,7 @@ class InvalidRequestJson(Exception):
 def d7validate(validations, payload):
     errors = {}
     for error in sorted(
-        Draft7Validator(
-            {"type": "object", "additionalProperties": False, **validations}
-        ).iter_errors(payload),
+        Draft7Validator({"type": "object", "additionalProperties": False, **validations}).iter_errors(payload),
         key=str,
     ):
         abs_path = list(error.absolute_path)
@@ -30,3 +29,9 @@ def d7validate(validations, payload):
         pydash.objects.set_(errors, abs_path, messages)
     if len(errors) > 0:
         raise InvalidRequestJson(errors)
+
+
+def redisReplace(value):
+    replacements = {'@': '_AT_', '.': '_DOT_'}
+    pattern = '|'.join(sorted(re.escape(char) for char in replacements))
+    return re.sub(pattern, lambda m: replacements.get(m.group(0).upper()), value, flags=re.IGNORECASE)

@@ -59,6 +59,9 @@ services:
     environment:
       <<: *blue-common-env
       BLUE_PUBLIC_API_SERVER: "${BLUE_PUBLIC_API_SERVER}"
+      BLUE_AGENT_REGISTRY: "${BLUE_AGENT_REGISTRY}"
+      BLUE_DATA_REGISTRY: "${BLUE_DATA_REGISTRY}"
+      BLUE_DEPLOY_PLATFORM: "${BLUE_DEPLOY_PLATFORM}"
     restart: always
 
 networks:

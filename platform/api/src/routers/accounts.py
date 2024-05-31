@@ -24,7 +24,13 @@ EMAIL_DOMAIN_WHITE_LIST = os.getenv("EMAIL_DOMAIN_WHITE_LIST", "megagon.ai")
 allowed_domains = EMAIL_DOMAIN_WHITE_LIST.split(",")
 
 
-@router.post("/signout")
+@router.get('/websocket-ticket')
+def ws_ticket(request: Request):
+    ticket = request.app.connection_manager.get_ticket(user=request.state.user)
+    return JSONResponse(content={"ticket": ticket})
+
+
+@router.post("/sign-out")
 def signout(request: Request):
     session_cookie = request.cookies.get("session")
     try:
@@ -43,7 +49,7 @@ def signout(request: Request):
         )
 
 
-@router.post("/signin")
+@router.post("/sign-in")
 async def signin(request: Request):
     payload = await request.json()
     id_token = pydash.objects.get(payload, "id_token", "")
@@ -52,12 +58,7 @@ async def signin(request: Request):
         status_code=401,
     )
     if pydash.is_empty(id_token):
-        return JSONResponse(
-            content={
-                "message": "Illegal ID token provided: ID token must be a non-empty string."
-            },
-            status_code=401,
-        )
+        return JSONResponse(content={"message": "Illegal ID token provided: ID token must be a non-empty string."}, status_code=401)
     try:
         decoded_claims = auth.verify_id_token(id_token)
         # {
@@ -84,10 +85,7 @@ async def signin(request: Request):
         email = decoded_claims["email"]
         email_domain = re.search(EMAIL_DOMAIN_ADDRESS_REGEXP, email).group(1)
         if email_domain not in allowed_domains:
-            return JSONResponse(
-                content={"message": "Invalid email domain"},
-                status_code=401,
-            )
+            return JSONResponse(content={"message": "Invalid email domain"}, status_code=401)
         # Only process if the user signed in within the last 5 minutes.
         if time.time() - decoded_claims["auth_time"] < 5 * 60:
             # Set session expiration to 14 days.
@@ -104,29 +102,17 @@ async def signin(request: Request):
                         "email": email,
                         "email_domain": email_domain,
                         "exp": decoded_claims["exp"],
-                    },
+                    }
                 }
             )
             # Set cookie policy for session cookie.
             expires = datetime.datetime.now(datetime.timezone.utc) + expires_in
-            response.set_cookie(
-                "session",
-                session_cookie,
-                expires=expires,
-                httponly=True,
-                secure=True,
-                samesite="strict",
-                path="/",
-            )
+            # samesite - lax: allow GET requests across origin
+            response.set_cookie("session", session_cookie, expires=expires, httponly=True, secure=True, samesite="lax", path="/")
             return response
         return ERROR_RESPONSE
     except auth.InvalidIdTokenError:
-        return JSONResponse(
-            content={
-                "message": "The provided ID token is not a valid Firebase ID token."
-            },
-            status_code=401,
-        )
+        return JSONResponse(content={"message": "The provided ID token is not a valid Firebase ID token."}, status_code=401)
     except exceptions.FirebaseError:
         return ERROR_RESPONSE
 

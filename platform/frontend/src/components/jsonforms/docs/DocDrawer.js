@@ -9,6 +9,8 @@ import LayoutDoc from "@/components/jsonforms/docs/LayoutDoc";
 import NumberDoc from "@/components/jsonforms/docs/NumberDoc";
 import StringDoc from "@/components/jsonforms/docs/StringDoc";
 import {
+    Button,
+    Callout,
     Code,
     Drawer,
     HTMLTable,
@@ -30,6 +32,7 @@ import {
     faPlay,
     faRectanglesMixed,
     faSquareCheck,
+    faTimes,
 } from "@fortawesome/pro-duotone-svg-icons";
 import _ from "lodash";
 import { useCallback, useState } from "react";
@@ -59,8 +62,16 @@ const MainMenuPanel = (props) => {
         { text: "Number", icon: faInputNumeric },
         { text: "String", icon: faInputText },
     ];
+    const [openingPanel, setOpeningPanel] = useState(false);
     return (
         <div style={{ padding: 20 }}>
+            <Button
+                large
+                minimal
+                icon={faIcon({ icon: faTimes })}
+                onClick={() => props.setIsDocOpen(false)}
+                style={{ position: "absolute", top: 13.25, right: 20 }}
+            />
             <Menu large style={{ padding: 0 }}>
                 <MenuDivider title="UI Schema" />
                 {TYPES.map((type, index) => (
@@ -72,15 +83,20 @@ const MainMenuPanel = (props) => {
                             style: { marginRight: 10, marginLeft: 4 },
                         })}
                         onClick={() => {
+                            if (openingPanel) return;
+                            setOpeningPanel(true);
                             props.openPanel({
                                 props: { type: _.lowerCase(type.text) },
                                 renderPanel: RendererDetailPanel,
                             });
+                            setTimeout(() => {
+                                setOpeningPanel(false);
+                            }, 500);
                         }}
                         text={type.text}
                     />
                 ))}
-                <MenuDivider title="Schema" />
+                <MenuDivider title="Data Schema" />
                 <HTMLTable style={{ width: "100%" }}>
                     <thead>
                         <tr>
@@ -124,7 +140,7 @@ const MainMenuPanel = (props) => {
                             <td>
                                 <div>
                                     Enables for a variable to be a set of
-                                    predefined constants.
+                                    pre-defined constants.
                                 </div>
                                 <Tag
                                     minimal
@@ -151,12 +167,27 @@ const MainMenuPanel = (props) => {
                     </tbody>
                 </HTMLTable>
                 <MenuDivider title="Examples" />
+                <Callout icon={null} intent={Intent.PRIMARY}>
+                    Didn&apos;t find an useful example here? Please request for
+                    an example by&nbsp;
+                    <a
+                        href="https://github.com/rit-git/blue/issues/new"
+                        rel="noreferrer"
+                        target="_blank"
+                    >
+                        creating an issue on Blue GitHub repository
+                    </a>
+                    .
+                </Callout>
             </Menu>
         </div>
     );
 };
 export default function DocDrawer({ isOpen, setIsDocOpen }) {
-    const initialPanel = { renderPanel: MainMenuPanel };
+    const initialPanel = {
+        renderPanel: MainMenuPanel,
+        props: { setIsDocOpen },
+    };
     const [currentPanelStack, setCurrentPanelStack] = useState([initialPanel]);
     const addToPanelStack = useCallback((newPanel) => {
         setCurrentPanelStack((stack) => [...stack, newPanel]);

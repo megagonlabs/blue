@@ -16,7 +16,7 @@ export const dataAction = (dispatch) => ({
                     payload: _.get(response, "data.results", []),
                 });
             })
-            .catch((error) => {});
+            .catch(() => {});
     },
     searchList: (payload) => {
         const filter = {

@@ -12,6 +12,7 @@ import {
 } from "@blueprintjs/core";
 import {
     faCircleDot,
+    faClipboard,
     faCopy,
     faPenField,
 } from "@fortawesome/pro-duotone-svg-icons";
@@ -31,7 +32,7 @@ export default function SessionRow({ index, style }) {
             messageContent = _.get(last, "message.content", null);
         if (_.isEqual(messageType, "STRING")) {
             setLastMessage(messageContent);
-        } else if (_.isEqual(messageType, "INTERACTIVE")) {
+        } else if (_.isEqual(messageType, "INTERACTION")) {
             setLastMessage(
                 <Tag minimal icon={faIcon({ icon: faPenField })}>
                     interactive message
@@ -42,10 +43,7 @@ export default function SessionRow({ index, style }) {
     return (
         <Card
             interactive
-            style={{
-                ...style,
-                borderRadius: 0,
-            }}
+            style={{ ...style, borderRadius: 0 }}
             onMouseEnter={() => {
                 setShowActions(true);
             }}
@@ -106,6 +104,7 @@ export default function SessionRow({ index, style }) {
                         onClick={(event) => {
                             copy(sessionId);
                             AppToaster.show({
+                                icon: faIcon({ icon: faClipboard }),
                                 message: `Copied "${sessionId}"`,
                                 timeout: 2000,
                             });

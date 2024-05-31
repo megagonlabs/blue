@@ -3,6 +3,7 @@ import { faIcon } from "@/components/icon";
 import {
     Button,
     Card,
+    Classes,
     Dialog,
     DialogBody,
     DialogFooter,
@@ -14,24 +15,23 @@ import { faCheck } from "@fortawesome/pro-duotone-svg-icons";
 import axios from "axios";
 import _ from "lodash";
 import { useContext, useEffect, useState } from "react";
+import SessionAgentsList from "./SessionAgentsList";
 export default function SessionDetail({ isOpen, setIsSessionDetailOpen }) {
     const { appState, appActions } = useContext(AppContext);
     const sessionIdFocus = appState.session.sessionIdFocus;
     const [allowQuickClose, setAllowQuickCloset] = useState(true);
-    const [name, setName] = useState(
-        _.get(
-            appState,
-            ["session", "sessionDetail", sessionIdFocus, "name"],
-            ""
-        )
+    const sessionName = _.get(
+        appState,
+        ["session", "sessionDetail", sessionIdFocus, "name"],
+        ""
     );
-    const [description, setDescription] = useState(
-        _.get(
-            appState,
-            ["session", "sessionDetail", sessionIdFocus, "description"],
-            ""
-        )
+    const sessionDetail = _.get(
+        appState,
+        ["session", "sessionDetail", sessionIdFocus, "description"],
+        ""
     );
+    const [name, setName] = useState(sessionName);
+    const [description, setDescription] = useState(sessionDetail);
     const [loading, setLoading] = useState(false);
     const handleSaveMetadata = () => {
         setLoading(true);
@@ -41,41 +41,38 @@ export default function SessionDetail({ isOpen, setIsSessionDetailOpen }) {
         };
         axios
             .put(`/sessions/session/${sessionIdFocus}`, payload)
-            .then((response) => {
+            .then(() => {
                 setAllowQuickCloset(true);
                 setLoading(false);
                 appActions.session.setSessionDetail([
-                    {
-                        ...payload,
-                        id: sessionIdFocus,
-                    },
+                    { ...payload, id: sessionIdFocus },
                 ]);
             })
-            .catch((error) => {
+            .catch(() => {
                 setAllowQuickCloset(true);
                 setLoading(false);
             });
     };
     useEffect(() => {
-        setName(
-            _.get(
-                appState,
-                ["session", "sessionDetail", sessionIdFocus, "name"],
-                ""
-            )
-        );
-        setDescription(
-            _.get(
-                appState,
-                ["session", "sessionDetail", sessionIdFocus, "description"],
-                ""
-            )
-        );
-    }, [appState.session.sessionDetail, sessionIdFocus, isOpen]);
+        setName(sessionName);
+        setDescription(sessionDetail);
+    }, [sessionIdFocus, isOpen]);
     const [tab, setTab] = useState("about");
     return (
         <Dialog
-            title={sessionIdFocus}
+            title={
+                _.isEmpty(_.trim(sessionName)) ||
+                _.isEqual(sessionName, sessionIdFocus) ? (
+                    sessionIdFocus
+                ) : (
+                    <div>
+                        {sessionName}&nbsp;
+                        <span className={Classes.TEXT_MUTED}>
+                            ({sessionIdFocus})
+                        </span>
+                    </div>
+                )
+            }
             canOutsideClickClose={allowQuickClose}
             onClose={() => {
                 if (loading) return;
@@ -95,40 +92,57 @@ export default function SessionDetail({ isOpen, setIsSessionDetailOpen }) {
                         }}
                         active={_.isEqual(tab, "about")}
                     />
+                    <Button
+                        minimal
+                        large
+                        text="Participants"
+                        onClick={() => {
+                            setTab("members");
+                        }}
+                        active={_.isEqual(tab, "members")}
+                    />
                 </Card>
                 <div style={{ padding: 15 }}>
-                    <FormGroup label="Name">
-                        <InputGroup
-                            large
-                            value={name}
-                            onChange={(event) => {
-                                setName(event.target.value);
-                                setAllowQuickCloset(false);
-                            }}
-                        />
-                    </FormGroup>
-                    <FormGroup label="Description" className="margin-0">
-                        <InputGroup
-                            large
-                            value={description}
-                            onChange={(event) => {
-                                setDescription(event.target.value);
-                                setAllowQuickCloset(false);
-                            }}
-                        />
-                    </FormGroup>
+                    {_.isEqual(tab, "about") ? (
+                        <>
+                            <FormGroup label="Name">
+                                <InputGroup
+                                    large
+                                    value={name}
+                                    onChange={(event) => {
+                                        setName(event.target.value);
+                                        setAllowQuickCloset(false);
+                                    }}
+                                />
+                            </FormGroup>
+                            <FormGroup label="Description" className="margin-0">
+                                <InputGroup
+                                    large
+                                    value={description}
+                                    onChange={(event) => {
+                                        setDescription(event.target.value);
+                                        setAllowQuickCloset(false);
+                                    }}
+                                />
+                            </FormGroup>
+                        </>
+                    ) : null}
+                    {_.isEqual(tab, "members") ? <SessionAgentsList /> : null}
                 </div>
             </DialogBody>
-            <DialogFooter>
-                <Button
-                    loading={loading}
-                    text="Save"
-                    large
-                    onClick={handleSaveMetadata}
-                    intent={Intent.SUCCESS}
-                    icon={faIcon({ icon: faCheck })}
-                />
-            </DialogFooter>
+            {_.isEqual(tab, "about") ? (
+                <DialogFooter>
+                    <Button
+                        disabled={_.isEmpty(_.trim(name))}
+                        loading={loading}
+                        text="Save"
+                        large
+                        onClick={handleSaveMetadata}
+                        intent={Intent.SUCCESS}
+                        icon={faIcon({ icon: faCheck })}
+                    />
+                </DialogFooter>
+            ) : null}
         </Dialog>
     );
 }
