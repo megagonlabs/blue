@@ -1,6 +1,6 @@
 import click
 
-from .commands.profile import profile
+from .commands.profile import ProfileManager, profile
 from .commands.session import session
 from .commands.authentication import Authentication
 import nest_asyncio
@@ -17,7 +17,8 @@ def cli():
 def login():
     auth = Authentication()
     cookie = auth.get_cookie()
-    print(cookie)
+    # save cookie under current blue user profile
+    ProfileManager().set_selected_profile_attribute('COOKIE', cookie)
 
 
 cli.add_command(profile)

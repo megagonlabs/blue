@@ -1,4 +1,5 @@
 import os
+from blue.commands.profile import ProfileManager
 import websockets
 from websockets import exceptions as ws_exceptions
 import asyncio
@@ -52,15 +53,18 @@ class Authentication:
                     try:
                         data = await websocket.recv()
                         json_data = json.loads(data)
-                        print(json_data)
-                        await websocket.send(json.dumps("done"))
+                        if json_data == "REQUEST_CONNECTION_INFO":
+                            current_profile = ProfileManager().get_selected_profile()
+                            await websocket.send(json.dumps({"type": "REQUEST_CONNECTION_INFO", "message": dict(current_profile)}))
+                        else:
+                            await websocket.send(json.dumps("done"))
                     except ws_exceptions.ConnectionClosedOK:
                         break
                     except ws_exceptions.ConnectionClosedError:
                         break
                     except Exception as ex:
                         await websocket.send(json.dumps({"error": str(ex)}))
-                self.stop.set_result(data)
+                self.stop.set_result(json_data)
 
             async def main():
                 async with websockets.serve(handler, "", self.__SOCKET_PORT):

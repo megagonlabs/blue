@@ -117,7 +117,7 @@ async def signin(request: Request):
         return ERROR_RESPONSE
 
 
-@router.post("/signin/cli")
+@router.post("/sign-in/cli")
 async def signin_cli(request: Request):
     payload = await request.json()
     id_token = pydash.objects.get(payload, "id_token", "")
@@ -127,9 +127,7 @@ async def signin_cli(request: Request):
     )
     if pydash.is_empty(id_token):
         return JSONResponse(
-            content={
-                "message": "Illegal ID token provided: ID token must be a non-empty string."
-            },
+            content={"message": "Illegal ID token provided: ID token must be a non-empty string."},
             status_code=401,
         )
     try:
@@ -148,9 +146,7 @@ async def signin_cli(request: Request):
         return ERROR_RESPONSE
     except auth.InvalidIdTokenError:
         return JSONResponse(
-            content={
-                "message": "The provided ID token is not a valid Firebase ID token."
-            },
+            content={"message": "The provided ID token is not a valid Firebase ID token."},
             status_code=401,
         )
     except exceptions.FirebaseError:

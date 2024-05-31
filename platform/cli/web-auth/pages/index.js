@@ -66,12 +66,14 @@ const GOOGLE_LOGO_SVG = (
 export default function Index() {
     const [loading, setLoading] = useState(true);
     const [done, setDone] = useState(false);
+    const [profile, setProfile] = useState(null);
     const [ws, setWs] = useState(null);
     useEffect(() => {
         setLoading(true);
         const server = "localhost:25831";
         const socket = new WebSocket(`ws://${server}`);
         socket.onopen = () => {
+            socket.send(JSON.stringify("REQUEST_CONNECTION_INFO"));
             setLoading(false);
             AppToaster.show({
                 intent: Intent.SUCCESS,
@@ -82,7 +84,11 @@ export default function Index() {
             try {
                 // parse the data from string to JSON object
                 const data = JSON.parse(event.data);
-                if (_.has(data, "error")) {
+                const type = _.get(data, "type", null);
+                const message = _.get(data, "message", null);
+                if (_.isEqual(type, "REQUEST_CONNECTION_INFO")) {
+                    setProfile(message);
+                } else if (_.has(data, "error")) {
                     AppToaster.show({
                         intent: Intent.DANGER,
                         message: data.error,
@@ -112,25 +118,34 @@ export default function Index() {
     }, []);
     const [popupOpen, setPopupOpen] = useState(false);
     const signInWithGoogle = () => {
+        const protocol = _.get(
+            profile,
+            "BLUE_PUBLIC_API_SERVER_PROTOCOL",
+            "https://"
+        );
+        const server = _.get(profile, "BLUE_PUBLIC_API_SERVER", null);
         setPopupOpen(true);
         signInWithPopup(auth, provider)
             .then((result) => {
                 result.user.getIdToken().then((idToken) => {
-                    console.log(idToken);
                     axios
-                        .post("/accounts/signin/cli", {
+                        .post(`${protocol}://${server}/accounts/sign-in/cli`, {
                             id_token: idToken,
                         })
                         .then((response) => {
-                            console.log(response);
+                            ws.send(
+                                JSON.stringify(
+                                    _.get(response, "data.cookie", null)
+                                )
+                            );
                             setPopupOpen(false);
                         })
-                        .catch((error) => {
+                        .catch(() => {
                             setPopupOpen(false);
                         });
                 });
             })
-            .catch((error) => {
+            .catch(() => {
                 setPopupOpen(false);
             });
     };
