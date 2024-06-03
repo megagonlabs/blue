@@ -17,8 +17,7 @@ def cli():
 def login():
     auth = Authentication()
     cookie = auth.get_cookie()
-    # save cookie under current blue user profile
-    ProfileManager().set_selected_profile_attribute('COOKIE', cookie)
+    print(cookie)
 
 
 cli.add_command(profile)
