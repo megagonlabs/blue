@@ -14,6 +14,8 @@ import webbrowser
 class Authentication:
     def __init__(self) -> None:
         self.__WEB_PORT = 25830
+        self.process = None
+        self.stop = None
         self.__SOCKET_PORT = 25831
         self.cookie = None
         self.__start_servers()
@@ -78,4 +80,10 @@ class Authentication:
                 self.process.terminate()
             raise Exception(ex)
         except KeyboardInterrupt as ex:
+            self.stop.set_result(None)
+
+    def __del__(self):
+        if self.process is not None:
+            self.process.terminate()
+        if self.stop is not None and not self.stop.done():
             self.stop.set_result(None)
