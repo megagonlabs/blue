@@ -40,7 +40,7 @@ import StringRenderer, {
 import UnknownRenderer, {
     UnknownTester,
 } from "@/components/jsonforms/renderers/Unknown";
-import { Classes } from "@blueprintjs/core";
+import { Classes, Colors, Intent } from "@blueprintjs/core";
 module.exports = {
     REGISTRY_TYPE_LOOKUP: {
         data: { icon: faServer, key: "source" },
@@ -71,6 +71,18 @@ module.exports = {
     ],
     CARD_LIST_CLASS_NAMES: `${Classes.CARD} ${Classes.CARD_LIST} ${Classes.CARD_LIST_BORDERED}`,
     NAVIGATION_MENU_WIDTH: 203,
+    CONTAINER_STATUS_INDICATOR: {
+        created: { style: { color: Colors.ORANGE5 }, intent: Intent.WARNING },
+        running: { style: { color: Colors.GREEN3 }, intent: Intent.SUCCESS },
+        paused: { style: { color: Colors.RED3 }, intent: Intent.DANGER },
+        restarting: {
+            style: { color: Colors.ORANGE5 },
+            intent: Intent.WARNING,
+        },
+        exited: { style: { color: Colors.RED3 }, intent: Intent.DANGER },
+        removing: { style: { color: Colors.RED3 }, intent: Intent.DANGER },
+        dead: { style: { color: Colors.RED3 }, intent: Intent.DANGER },
+    },
     HEX_TRANSPARENCY: {
         100: "FF",
         99: "FC",

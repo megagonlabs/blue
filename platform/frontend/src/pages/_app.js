@@ -7,6 +7,7 @@ import "@/styles/docs.css";
 import { FocusStyleManager } from "@blueprintjs/core";
 import "@blueprintjs/core/lib/css/blueprint.css";
 import "@blueprintjs/icons/lib/css/blueprint-icons.css";
+import "@blueprintjs/table/lib/css/table.css";
 import "allotment/dist/style.css";
 import axios from "axios";
 import _ from "lodash";

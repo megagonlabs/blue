@@ -1,8 +1,9 @@
+import { CONTAINER_STATUS_INDICATOR } from "@/components/constant";
+import { faIcon } from "@/components/icon";
 import { Card, Colors, H5, Intent, Tag, Tooltip } from "@blueprintjs/core";
 import { faCircleDot } from "@fortawesome/pro-duotone-svg-icons";
 import _ from "lodash";
 import Link from "next/link";
-import { faIcon } from "../icon";
 export default function RegistryCard({
     title,
     description,
@@ -11,15 +12,6 @@ export default function RegistryCard({
     container,
 }) {
     const containerStatus = _.get(container, "status", "not exist");
-    const CONTAINER_STATUS_INDICATOR = {
-        created: { style: { color: Colors.GOLD4 } },
-        running: { style: { color: Colors.GREEN4 } },
-        paused: { style: { color: Colors.RED4 } },
-        restarting: { style: { color: Colors.GOLD4 } },
-        exited: { style: { color: Colors.RED4 } },
-        removing: { style: { color: Colors.RED4 } },
-        dead: { style: { color: Colors.RED4 } },
-    };
     return (
         <Link className="no-link-decoration" href={href}>
             <Card
@@ -41,7 +33,6 @@ export default function RegistryCard({
                                 _.isEqual(containerStatus, "not exist") ? 0 : 36
                             }px)`,
                         }}
-                        large
                         minimal
                         intent={Intent.PRIMARY}
                     >
@@ -50,7 +41,7 @@ export default function RegistryCard({
                 ) : null}
                 {!_.isEqual(containerStatus, "not exist") ? (
                     <div
-                        style={{ position: "absolute", bottom: 27, right: 20 }}
+                        style={{ position: "absolute", bottom: 21, right: 20 }}
                     >
                         <Tooltip
                             minimal
@@ -59,7 +50,11 @@ export default function RegistryCard({
                         >
                             {faIcon({
                                 icon: faCircleDot,
-                                ...CONTAINER_STATUS_INDICATOR[containerStatus],
+                                style: _.get(
+                                    CONTAINER_STATUS_INDICATOR,
+                                    [containerStatus, "style"],
+                                    null
+                                ),
                             })}
                         </Tooltip>
                     </div>
