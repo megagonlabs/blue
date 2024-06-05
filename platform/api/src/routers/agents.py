@@ -31,8 +31,9 @@ from APIRouter import APIRouter
 from fastapi.responses import JSONResponse
 from typing import Union, Any, Dict, AnyStr, List
 from pydantic import BaseModel, Json
+from server import PLATFORM_PREFIX
 
-router = APIRouter(prefix="/agents")
+router = APIRouter(prefix=f"{PLATFORM_PREFIX}/agents")
 
 ###### Schema
 class Agent(BaseModel):

@@ -14,7 +14,7 @@ export const SocketProvider = ({ children }) => {
             try {
                 let webSocket = null;
                 webSocket = new WebSocket(
-                    `${process.env.NEXT_PUBLIC_WS_API_SERVER}/sessions/ws?ticket=${response.data.ticket}`
+                    `${process.env.NEXT_PUBLIC_WS_API_SERVER}/blue/platform/${process.env.NEXT_PUBLIC_PLATFORM_NAME}/sessions/ws?ticket=${response.data.ticket}`
                 );
                 setWs(webSocket);
             } catch (error) {

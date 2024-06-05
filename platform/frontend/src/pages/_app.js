@@ -15,7 +15,7 @@ import dynamic from "next/dynamic";
 import Head from "next/head";
 import "normalize.css/normalize.css";
 axios.defaults.withCredentials = true;
-axios.defaults.baseURL = process.env.NEXT_PUBLIC_REST_API_SERVER;
+axios.defaults.baseURL = `${process.env.NEXT_PUBLIC_REST_API_SERVER}/blue/platform/${process.env.NEXT_PUBLIC_PLATFORM_NAME}`;
 FocusStyleManager.onlyShowFocusOnTabs();
 const Blue = ({ Component, pageProps }) => {
     if (_.isEqual(typeof window, "object"))

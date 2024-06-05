@@ -61,19 +61,21 @@ db_host = PROPERTIES["db.host"]
 p = Platform(id=platform_id, properties=PROPERTIES)
 agent_registry = AgentRegistry(id=agent_registry_id, prefix=prefix, properties=PROPERTIES)
 
+
 #############
 @router.get("/registry/agents")
-# get agent registry info on platform 
+# get agent registry info on platform
 def get_agent_registry():
     result = ""
     return JSONResponse(content={"result": result, "message": "Success"})
 
 
 @router.get("/registry/data")
-# get data registry info on platform 
+# get data registry info on platform
 def get_data_registry():
     result = ""
     return JSONResponse(content={"result": result, "message": "Success"})
+
 
 @router.get("/agents/")
 # get the list of agent running agents on the platform
@@ -105,9 +107,7 @@ def list_agent_containers():
         for service in services:
             c = {}
             c["id"] = service.attrs["ID"]
-            c["hostname"] = service.attrs["Spec"]["TaskTemplate"]["ContainerSpec"][
-                "Hostname"
-            ]
+            c["hostname"] = service.attrs["Spec"]["TaskTemplate"]["ContainerSpec"]["Hostname"]
             c["created_date"] = service.attrs["CreatedAt"]
             c["image"] = service.attrs["Spec"]["TaskTemplate"]["ContainerSpec"]["Image"]
             labels = container.attrs["Spec"]["TaskTemplate"]["ContainerSpec"]["Labels"]
@@ -156,9 +156,7 @@ def deploy_agent_container(agent_name):
         client.services.create(
             image,
             args=["--serve " + agent_name + " " + "--properties " + "'" + json.dumps(agent_factory_properties) + "'"],
-            networks=[
-                "blue_platform_" + PROPERTIES["platform.name"] + "_network_overlay"
-            ],
+            networks=["blue_platform_" + PROPERTIES["platform.name"] + "_network_overlay"],
             constraints=constraints,
             hostname="blue_agent_" + agent_registry_id + "_" + agent_name,
             volumes=["blue_" + platform_id + "_data:/blue_data"],

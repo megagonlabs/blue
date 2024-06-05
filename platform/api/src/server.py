@@ -23,6 +23,15 @@ import pydash
 from ConnectionManager import ConnectionManager
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Request
 
+###### Properties
+PROPERTIES = os.getenv("BLUE__PROPERTIES")
+PROPERTIES = json.loads(PROPERTIES)
+platform_id = PROPERTIES["platform.name"]
+prefix = 'PLATFORM:' + platform_id
+agent_registry_id = PROPERTIES["agent_registry.name"]
+data_registry_id = PROPERTIES["data_registry.name"]
+PLATFORM_PREFIX = f'/blue/platform/{platform_id}'
+
 ###### API Routers
 from constant import EMAIL_DOMAIN_ADDRESS_REGEXP, InvalidRequestJson
 from routers import agents
@@ -39,20 +48,11 @@ _VERSION_PATH = Path(__file__).parent / "version"
 version = Path(_VERSION_PATH).read_text().strip()
 print("blue-platform-api: " + version)
 
-
 ###### Blue
 from session import Session
 from blueprint import Platform
 from agent_registry import AgentRegistry
 from data_registry import DataRegistry
-
-###### Properties
-PROPERTIES = os.getenv("BLUE__PROPERTIES")
-PROPERTIES = json.loads(PROPERTIES)
-platform_id = PROPERTIES["platform.name"]
-prefix = 'PLATFORM:' + platform_id
-agent_registry_id = PROPERTIES["agent_registry.name"]
-data_registry_id = PROPERTIES["data_registry.name"]
 
 ###### Initialization
 p = Platform(id=platform_id, properties=PROPERTIES)
@@ -133,7 +133,7 @@ async def unicorn_exception_handler(request: Request, exc: InvalidRequestJson):
     return JSONResponse(status_code=exc.status_code, content={"json_errors": exc.errors})
 
 
-@app.websocket("/sessions/ws")
+@app.websocket(f"{PLATFORM_PREFIX}/sessions/ws")
 async def websocket_endpoint(websocket: WebSocket, ticket: str = None):
     # Accept the connection from the client
     await connection_manager.connect(websocket, ticket)

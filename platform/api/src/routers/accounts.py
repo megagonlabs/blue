@@ -9,8 +9,9 @@ from constant import EMAIL_DOMAIN_ADDRESS_REGEXP
 from fastapi import Request
 from APIRouter import APIRouter
 from fastapi.responses import JSONResponse
+from server import PLATFORM_PREFIX
 
-router = APIRouter(prefix="/accounts")
+router = APIRouter(prefix=f"{PLATFORM_PREFIX}/accounts")
 import os
 
 import firebase_admin
