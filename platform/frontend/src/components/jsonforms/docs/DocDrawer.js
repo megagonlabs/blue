@@ -22,6 +22,7 @@ import {
     Position,
     Pre,
     Tag,
+    Tooltip,
 } from "@blueprintjs/core";
 import {
     faInputNumeric,
@@ -65,13 +66,21 @@ const MainMenuPanel = (props) => {
     const [openingPanel, setOpeningPanel] = useState(false);
     return (
         <div style={{ padding: 20 }}>
-            <Button
-                large
-                minimal
-                icon={faIcon({ icon: faTimes })}
-                onClick={() => props.setIsDocOpen(false)}
-                style={{ position: "absolute", top: 13.25, right: 20 }}
-            />
+            <div style={{ position: "absolute", top: 13.25, right: 20 }}>
+                <Tooltip
+                    usePortal={false}
+                    minimal
+                    placement="bottom-end"
+                    content="Close"
+                >
+                    <Button
+                        large
+                        minimal
+                        icon={faIcon({ icon: faTimes })}
+                        onClick={() => props.setIsDocOpen(false)}
+                    />
+                </Tooltip>
+            </div>
             <Menu large style={{ padding: 0 }}>
                 <MenuDivider title="UI Schema" />
                 {TYPES.map((type, index) => (

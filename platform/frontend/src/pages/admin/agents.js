@@ -10,8 +10,10 @@ import {
 } from "@blueprintjs/core";
 import { Cell, Column, ColumnHeaderCell, Table2 } from "@blueprintjs/table";
 import { faStop } from "@fortawesome/pro-duotone-svg-icons";
+import axios from "axios";
 import _ from "lodash";
 import { useEffect, useState } from "react";
+import ReactTimeAgo from "react-time-ago";
 export default function Agents() {
     const [tableKey, setTableKey] = useState(Date.now());
     const array = [
@@ -163,10 +165,15 @@ export default function Agents() {
     useEffect(() => {
         setTableKey(Date.now());
     }, [data]);
+    useEffect(() => {
+        axios.get("/platform/agents").then((response) => {
+            setData(_.get(response, "data.results", []));
+        });
+    }, []);
     const TABLE_CELL_HEIGHT = 40;
     const columns = [
         {
-            name: "",
+            name: <span>&nbsp;</span>,
             key: "checkbox",
             cellRenderer: () => (
                 <Cell style={{ lineHeight: `${TABLE_CELL_HEIGHT - 2}px` }}>
@@ -176,7 +183,23 @@ export default function Agents() {
         },
         { name: "ID", key: "id" },
         { name: "Hostname", key: "hostname" },
-        { name: "Created At", key: "created_date" },
+        {
+            name: "Created At",
+            key: "created_date",
+            cellRenderer: (rowIndex) => {
+                const timestamp = _.get(data, [rowIndex, "created_date"], null);
+                return (
+                    <Cell style={{ lineHeight: `${TABLE_CELL_HEIGHT - 1}px` }}>
+                        {!_.isEmpty(timestamp) ? (
+                            <ReactTimeAgo
+                                date={new Date(timestamp)}
+                                locale="en-US"
+                            />
+                        ) : null}
+                    </Cell>
+                );
+            },
+        },
         {
             name: "Image",
             key: "image",
@@ -251,6 +274,7 @@ export default function Agents() {
                 <Table2
                     key={tableKey}
                     enableRowResizing={false}
+                    enableColumnReordering
                     numRows={data.length}
                     defaultRowHeight={TABLE_CELL_HEIGHT}
                 >
