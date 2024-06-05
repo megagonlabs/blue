@@ -1,6 +1,15 @@
 import { CONTAINER_STATUS_INDICATOR } from "@/components/constant";
-import { Checkbox, Intent, Tag } from "@blueprintjs/core";
+import { faIcon } from "@/components/icon";
+import {
+    Button,
+    ButtonGroup,
+    Checkbox,
+    Intent,
+    Tag,
+    Tooltip,
+} from "@blueprintjs/core";
 import { Cell, Column, ColumnHeaderCell, Table2 } from "@blueprintjs/table";
+import { faStop } from "@fortawesome/pro-duotone-svg-icons";
 import _ from "lodash";
 import { useEffect, useState } from "react";
 export default function Agents() {
@@ -154,13 +163,13 @@ export default function Agents() {
     useEffect(() => {
         setTableKey(Date.now());
     }, [data]);
-    const TABLE_CELL_LINE_HEIGHT = "29px";
+    const TABLE_CELL_HEIGHT = 40;
     const columns = [
         {
             name: "",
             key: "checkbox",
-            cellRenderer: (rowIndex) => (
-                <Cell style={{ lineHeight: "28px" }}>
+            cellRenderer: () => (
+                <Cell style={{ lineHeight: `${TABLE_CELL_HEIGHT - 2}px` }}>
                     <Checkbox large />
                 </Cell>
             ),
@@ -172,7 +181,7 @@ export default function Agents() {
             name: "Image",
             key: "image",
             cellRenderer: (rowIndex) => (
-                <Cell style={{ lineHeight: TABLE_CELL_LINE_HEIGHT }}>
+                <Cell style={{ lineHeight: `${TABLE_CELL_HEIGHT - 1}px` }}>
                     <Tag intent={Intent.PRIMARY} minimal>
                         {_.get(data, [rowIndex, "image"], "-")}
                     </Tag>
@@ -185,7 +194,7 @@ export default function Agents() {
             cellRenderer: (rowIndex) => {
                 const status = _.get(data, [rowIndex, "status"], "-");
                 return (
-                    <Cell style={{ lineHeight: TABLE_CELL_LINE_HEIGHT }}>
+                    <Cell style={{ lineHeight: `${TABLE_CELL_HEIGHT - 1}px` }}>
                         <Tag
                             intent={_.get(
                                 CONTAINER_STATUS_INDICATOR,
@@ -205,7 +214,7 @@ export default function Agents() {
     ].map((col, index) => {
         const { name, key, cellRenderer } = col;
         const defaultCellRenderer = (rowIndex) => (
-            <Cell style={{ lineHeight: TABLE_CELL_LINE_HEIGHT }}>
+            <Cell style={{ lineHeight: `${TABLE_CELL_HEIGHT - 1}px` }}>
                 {_.get(data, [rowIndex, key], "-")}
             </Cell>
         );
@@ -224,21 +233,30 @@ export default function Agents() {
                         : defaultCellRenderer
                 }
                 columnHeaderCellRenderer={columnHeaderCellRenderer}
-                key={key}
+                key={`${key}-${index}`}
                 name={name}
             />
         );
     });
     return (
-        <div className="full-parent-width full-parent-height">
-            <Table2
-                key={tableKey}
-                enableRowResizing={false}
-                numRows={data.length}
-                defaultRowHeight={30}
-            >
-                {columns}
-            </Table2>
-        </div>
+        <>
+            <div style={{ padding: 5, height: 50 }}>
+                <ButtonGroup large minimal>
+                    <Tooltip placement="bottom-start" minimal content="Stop">
+                        <Button disabled icon={faIcon({ icon: faStop })} />
+                    </Tooltip>
+                </ButtonGroup>
+            </div>
+            <div style={{ height: "calc(100% - 50px)" }}>
+                <Table2
+                    key={tableKey}
+                    enableRowResizing={false}
+                    numRows={data.length}
+                    defaultRowHeight={TABLE_CELL_HEIGHT}
+                >
+                    {columns}
+                </Table2>
+            </div>
+        </>
     );
 }

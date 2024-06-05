@@ -79,7 +79,7 @@ function FormDesigner() {
             }
             setUiSchemaInitialized(true);
         }
-    }, [uiSchemaLoading]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [uiSchemaLoading]);
     useEffect(() => {
         if (!schemaLoading) {
             let schemaCache = sessionStorage.getItem("jsonSchema");
@@ -88,7 +88,7 @@ function FormDesigner() {
             }
             setSchemaInitialized(true);
         }
-    }, [schemaLoading]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [schemaLoading]);
     useEffect(() => {
         sessionStorage.setItem("data", JSON.stringify(data));
     }, [data]);
@@ -99,7 +99,7 @@ function FormDesigner() {
         if (uiSchemaInitialized) {
             sessionStorage.setItem("jsonUischema", jsonUischema);
         }
-    }, [jsonUischema]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [jsonUischema]);
     useEffect(() => {
         try {
             setSchema(JSON.parse(jsonSchema));
@@ -108,7 +108,7 @@ function FormDesigner() {
         if (schemaInitialized) {
             sessionStorage.setItem("jsonSchema", jsonSchema);
         }
-    }, [jsonSchema]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [jsonSchema]);
     const [resultPanel, setResultPanel] = useState(true);
     const BUTTON_PROPS = {
         large: true,
@@ -172,7 +172,7 @@ function FormDesigner() {
                             icon={faIcon({ icon: faRotate })}
                         />
                     </Tooltip>
-                    <Tooltip minimal content="Format JSON">
+                    <Tooltip placement="bottom" minimal content="Format">
                         <Button
                             icon={faIcon({ icon: faIndent })}
                             onClick={handleFormattingCode}
@@ -201,7 +201,7 @@ function FormDesigner() {
                             </Menu>
                         }
                     >
-                        <Tooltip minimal content="Export config.">
+                        <Tooltip placement="bottom" minimal content="Export">
                             <Button icon={faIcon({ icon: faDownload })} />
                         </Tooltip>
                     </Popover>

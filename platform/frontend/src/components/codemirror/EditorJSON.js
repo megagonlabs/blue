@@ -55,7 +55,7 @@ export default function EditorJSON({
         codeEditorView.dispatch({
             changes: { from: 0, to: doc.length, insert: code },
         });
-    }, [code]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [code]);
     useEffect(() => {
         let extensionList = [
             minimalSetup,
@@ -84,6 +84,6 @@ export default function EditorJSON({
         return () => {
             view.destroy();
         };
-    }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    }, []);
     return <div ref={editor} />;
 }

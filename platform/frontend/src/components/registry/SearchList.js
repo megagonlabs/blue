@@ -40,7 +40,13 @@ export default function SearchList({ type }) {
                         link += `/${item.type}/${item.name}`;
                         return (
                             <div style={style}>
-                                <Link href={link}>
+                                <Link
+                                    href={link}
+                                    style={{
+                                        textDecoration: "none",
+                                        color: "initial",
+                                    }}
+                                >
                                     <Card
                                         style={{
                                             display: "flex",
@@ -58,7 +64,7 @@ export default function SearchList({ type }) {
                                         >
                                             <div
                                                 className={Classes.TEXT_MUTED}
-                                                style={{ marginRight: 10 }}
+                                                style={{ marginRight: 20 }}
                                             >
                                                 {faIcon({
                                                     icon: SEARCH_LIST_TYPE_LOOKUP[
