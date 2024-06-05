@@ -254,6 +254,8 @@ function FormDesigner() {
                                                 uiSchemaError
                                                     ? faIcon({
                                                           icon: faCircleXmark,
+                                                          className:
+                                                              "fa-beat-fade",
                                                       })
                                                     : null
                                             }
@@ -316,6 +318,8 @@ function FormDesigner() {
                                                 schemaError
                                                     ? faIcon({
                                                           icon: faCircleXmark,
+                                                          className:
+                                                              "fa-beat-fade",
                                                       })
                                                     : null
                                             }

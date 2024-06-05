@@ -6,7 +6,12 @@ module.exports = {
                 type: "string",
                 enum: ["object", "boolean", "integer", "number", "string"],
             },
-            enum: { type: "array", minItems: 1 },
+            enum: {
+                type: "array",
+                minItems: 1,
+                uniqueItems: true,
+                items: { type: "string" },
+            },
         },
         properties: {
             type: { $ref: "#/definitions/type" },
