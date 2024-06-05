@@ -72,7 +72,7 @@ api_server_port = ":".join(api_server.split(":")[1:])
 # only allow https or localhost connection; port must be specified
 # 1: local frontend
 # 2: cloud frontend
-allowed_origins = ["http://localhost:3000", "https://" + api_server_host]
+allowed_origins = ["http://localhost:3000", "http://localhost:25830", "https://" + api_server_host]
 
 app = FastAPI()
 app.include_router(agents.router)
@@ -90,7 +90,7 @@ async def session_verification(request: Request, call_next):
     if request.method == "OPTIONS" or request.url.path in ["/docs", "/redoc", "/openapi.json"]:
         return await call_next(request)
     if not session_cookie:
-        if request.url.path not in ["/accounts/sign-in"]:
+        if not request.url.path.startswith("/accounts/sign-in"):
             # Session cookie is unavailable. Force user to login.
             return JSONResponse(status_code=401, content={"message": "Session cookie is unavailable", "error_code": "session_cookie_unavailable"})
     # Verify the session cookie. In this case an additional check is added to detect

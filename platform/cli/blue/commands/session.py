@@ -24,11 +24,11 @@ import json
 import pandas as pd
 
 
-def show_output(data, ctx, **options):    
+def show_output(data, ctx, **options):
     output = ctx.obj["output"]
     query = ctx.obj["query"]
 
-    single =  True
+    single = True
     if 'single' in options:
         single = options['single']
         del options['single']
@@ -38,12 +38,12 @@ def show_output(data, ctx, **options):
     if output == "table":
         print(tabulate.tabulate(results, **options))
     elif output == "json":
-       
+
         print(json.dumps(results, indent=3))
     elif output == "csv":
         if type(results) == dict:
             results = [results]
-            
+
         df = pd.DataFrame(results)
         print(df.to_csv())
     else:
@@ -61,7 +61,7 @@ class SessionManager:
         profile = ProfileManager().get_selected_profile()
         api_server = os.environ['BLUE_PUBLIC_API_SERVER']
 
-        r = requests.post('http://' + api_server + '/sessions/session')
+        r = requests.post('http://' + api_server + '/sessions/session', cookies=ProfileManager().get_selected_profile_cookie())
         rjson = None
         result = {}
         message = None
@@ -73,12 +73,15 @@ class SessionManager:
 
         return result, message
 
-    def join_session(self, session_id, REGISTRY='default', AGENT=None, AGENT_PROPERTIES="{}", AGENT_INPUT=None): 
+    def join_session(self, session_id, REGISTRY='default', AGENT=None, AGENT_PROPERTIES="{}", AGENT_INPUT=None):
         profile = ProfileManager().get_selected_profile()
         api_server = os.environ['BLUE_PUBLIC_API_SERVER']
 
-
-        r = requests.post('http://' + api_server + '/sessions/session/' + session_id + "/agents/" + REGISTRY + "/agent/" + AGENT + ("?input=" + AGENT_INPUT if AGENT_INPUT else ""), data=AGENT_PROPERTIES)
+        r = requests.post(
+            'http://' + api_server + '/sessions/session/' + session_id + "/agents/" + REGISTRY + "/agent/" + AGENT + ("?input=" + AGENT_INPUT if AGENT_INPUT else ""),
+            data=AGENT_PROPERTIES,
+            cookies=ProfileManager().get_selected_profile_cookie(),
+        )
         rjson = None
         result = {}
         message = None
@@ -94,21 +97,20 @@ class SessionManager:
     def get_session_list(self):
         profile = ProfileManager().get_selected_profile()
         api_server = os.environ['BLUE_PUBLIC_API_SERVER']
-        
-        r = requests.get('http://' + api_server + '/sessions')
+
+        r = requests.get('http://' + api_server + '/sessions', cookies=ProfileManager().get_selected_profile_cookie())
         rjson = None
         results = {}
         message = None
         if r.status_code == 200:
             rjson = r.json()
-            
+
             for result in rjson['results']:
                 results[result['id']] = result
         else:
             message = r.json()
 
         return results, message
-
 
     def parse_ctx_args(self, ctx: Context) -> dict:
         options = {}
@@ -131,6 +133,7 @@ class SessionManager:
             index = end
         return options
 
+
 class SessionID(click.Group):
     def parse_args(self, ctx, args):
         if len(args) > 0 and args[0] in self.commands:
@@ -138,10 +141,11 @@ class SessionID(click.Group):
                 args.insert(0, "")
         super(SessionID, self).parse_args(ctx, args)
 
+
 @click.group(help="command group to interact with blue sessions")
 @click.option("--session-id", default=None, required=False, help="id of the session")
 @click.option("--output", default='table', required=False, type=str, help="output format (table|json|csv)")
-@click.option("--query", default="$",  required=False, type=str, help="query on output results")
+@click.option("--query", default="$", required=False, type=str, help="query on output results")
 @click.pass_context
 def session(ctx: Context, session_id, output, query):
     global session_mgr
@@ -153,7 +157,9 @@ def session(ctx: Context, session_id, output, query):
 
 
 # session commands
-@session.command(help="create a new session",)
+@session.command(
+    help="create a new session",
+)
 @click.option(
     "--NAME",
     required=False,
@@ -183,6 +189,7 @@ def create(name, description):
     else:
         print(message)
 
+
 @session.command(help="list sessions")
 def ls():
     ctx = click.get_current_context()
@@ -204,7 +211,9 @@ def ls():
         print(message)
 
 
-@session.command(help="add an agent to a session",)
+@session.command(
+    help="add an agent to a session",
+)
 @click.option(
     "--REGISTRY",
     required=False,
@@ -239,9 +248,7 @@ def join(registry, agent, agent_properties, agent_input):
     if message is None:
         if session_id not in sessions:
             raise Exception(f"session {session_id} does not exist")
-        
+
         session_mgr.join_session(session_id, REGISTRY=registry, AGENT=agent, AGENT_PROPERTIES=agent_properties, AGENT_INPUT=agent_input)
     else:
         print(message)
-   
-    

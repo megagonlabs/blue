@@ -16,12 +16,11 @@ import pandas as pd
 tabulate.PRESERVE_WHITESPACE = True
 
 
-
-def show_output(data, ctx, **options):    
+def show_output(data, ctx, **options):
     output = ctx.obj["output"]
     query = ctx.obj["query"]
 
-    single =  True
+    single = True
     if 'single' in options:
         single = options['single']
         del options['single']
@@ -35,11 +34,12 @@ def show_output(data, ctx, **options):
     elif output == "csv":
         if type(results) == dict:
             results = [results]
-            
+
         df = pd.DataFrame(results)
         print(df.to_csv())
     else:
         print('Unknown output format: ' + output)
+
 
 class ProfileManager:
     def __init__(self):
@@ -104,7 +104,6 @@ class ProfileManager:
             os.environ[key] = value
         # os.system("bash -c $BLUE_INSTALL_DIR/platform/scripts/show_vars.sh")
 
-
     def get_default_profile(self):
         default_profile_name = self.get_default_profile_name()
         return self.get_profile(default_profile_name)
@@ -163,7 +162,16 @@ class ProfileManager:
         else:
             return None
 
-    def create_profile(self, profile_name, AWS_PROFILE='default', BLUE_INSTALL_DIR="~/blue",BLUE_DEPLOY_TARGET="localhost",BLUE_DEPLOY_PLATFORM="default",BLUE_PUBLIC_API_SERVER="localhost:5050",BLUE_DATA_DIR="~/.blue/data"):
+    def create_profile(
+        self,
+        profile_name,
+        AWS_PROFILE='default',
+        BLUE_INSTALL_DIR="~/blue",
+        BLUE_DEPLOY_TARGET="localhost",
+        BLUE_DEPLOY_PLATFORM="default",
+        BLUE_PUBLIC_API_SERVER="localhost:5050",
+        BLUE_DATA_DIR="~/.blue/data",
+    ):
         # read profiles file
         self.__read_profiles()
 
@@ -228,6 +236,9 @@ class ProfileManager:
     def set_profile_attribute(self, profile_name, attribute_name, attribute_value):
         self.update_profile(profile_name, **{attribute_name: attribute_value})
 
+    def get_selected_profile_cookie(self):
+        return {'session': self.get_selected_profile_attribute('BLUE_COOKIE')}
+
 
 class ProfileName(click.Group):
     def parse_args(self, ctx, args):
@@ -240,7 +251,7 @@ class ProfileName(click.Group):
 @click.group(help="command group to interact with blue profiles")
 @click.option("--profile-name", default=None, required=False, help="name of the profile, default is selected profile")
 @click.option("--output", default='table', required=False, type=str, help="output format (table|json|csv)")
-@click.option("--query", default="$",  required=False, type=str, help="query on output results")
+@click.option("--query", default="$", required=False, type=str, help="query on output results")
 @click.pass_context
 @click.version_option()
 def profile(ctx: Context, profile_name, output, query):
@@ -261,7 +272,7 @@ def ls():
     selected_profile = profile_mgr.get_selected_profile_name()
     data = []
     for profile in profiles:
-        if output ==  "table":
+        if output == "table":
             prefix = "*" if selected_profile == profile else " "
             cells = [f"{prefix} {profile}"]
             if output == "table":
@@ -271,8 +282,7 @@ def ls():
         else:
             data.append({"name": profile, "selected": (selected_profile == profile)})
 
-    show_output(data, ctx, single=True,  headers=["name", "selected"], tablefmt="plain")
-    
+    show_output(data, ctx, single=True, headers=["name", "selected"], tablefmt="plain")
 
 
 @profile.command(help="show profile values")
@@ -342,16 +352,23 @@ def create(aws_profile, blue_install_dir, blue_deploy_target, blue_deploy_platfo
     ctx = click.get_current_context()
     profile_name = ctx.obj["profile_name"]
     output = ctx.obj["output"]
-    allowed_characters = set(
-        string.ascii_lowercase + string.ascii_uppercase + string.digits + "_"
-    )
+    allowed_characters = set(string.ascii_lowercase + string.ascii_uppercase + string.digits + "_")
     if profile_name is None:
         profile_name = 'default'
-   
+
     if profile_name in profile_mgr.get_profile_list():
         raise Exception(f"profile {profile_name} exists")
-    
-    profile_mgr.create_profile(profile_name, AWS_PROFILE=aws_profile, BLUE_INSTALL_DIR=blue_install_dir,BLUE_DEPLOY_TARGET=blue_deploy_target,BLUE_DEPLOY_PLATFORM=blue_deploy_platform,BLUE_PUBLIC_API_SERVER=blue_public_api_server,BLUE_DATA_DIR=blue_data_dir)
+
+    profile_mgr.create_profile(
+        profile_name,
+        AWS_PROFILE=aws_profile,
+        BLUE_INSTALL_DIR=blue_install_dir,
+        BLUE_DEPLOY_TARGET=blue_deploy_target,
+        BLUE_DEPLOY_PLATFORM=blue_deploy_platform,
+        BLUE_PUBLIC_API_SERVER=blue_public_api_server,
+        BLUE_DATA_DIR=blue_data_dir,
+    )
+
 
 @profile.command(short_help="select a blue profile")
 def select():
@@ -359,7 +376,7 @@ def select():
     profile_name = ctx.obj["profile_name"]
     if profile_name is None:
         raise Exception(f"profile name cannot be empty")
-    
+
     profile_mgr.select_profile(profile_name)
 
 
@@ -395,7 +412,7 @@ def config(key: str, value):
             attribute_name=key,
             attribute_value=value,
         )
-        
+
 
 if __name__ == "__main__":
     profile()
