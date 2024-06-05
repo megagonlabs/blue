@@ -89,7 +89,7 @@ def add_agent_to_session(session_id, registry_name, agent_name, properties: JSON
     if registry_name == agent_registry_id:
         session = p.get_session(session_id)
         properties_from_registry = agent_registry.get_agent_properties(agent_name)
-       
+
         # start with platform properties, merge properties from registry, then merge properties from API call
         properties_from_api = properties
         agent_properties = {}
@@ -108,7 +108,8 @@ def add_agent_to_session(session_id, registry_name, agent_name, properties: JSON
         return JSONResponse(content={"result": "", "message": "Success"})
     else:
         return JSONResponse(content={"message": "Error: Unknown Registry"})
-    
+
+
 @router.put("/session/{session_id}")
 async def update_session(request: Request, session_id):
     payload = await request.json()
@@ -134,7 +135,7 @@ async def update_session(request: Request, session_id):
 @router.post("/session")
 async def create_session(request: Request):
     result = p.create_session()
-    
+
     await request.app.connection_manager.broadcast(
         json.dumps({"type": "NEW_SESSION_BROADCAST", "session_id": result["id"]})
     )

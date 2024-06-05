@@ -1,0 +1,1 @@
+nest_asyncio==1.6.0
