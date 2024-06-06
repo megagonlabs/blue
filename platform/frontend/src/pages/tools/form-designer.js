@@ -207,6 +207,7 @@ function FormDesigner() {
                     </Popover>
                     <Divider />
                     <Button
+                        intent={Intent.PRIMARY}
                         text="Docs."
                         active={isDocOpen}
                         icon={faIcon({ icon: faBookOpenCover })}
@@ -254,8 +255,7 @@ function FormDesigner() {
                                                 uiSchemaError
                                                     ? faIcon({
                                                           icon: faCircleXmark,
-                                                          className:
-                                                              "fa-beat-fade",
+                                                          className: "fa-fade",
                                                       })
                                                     : null
                                             }
@@ -318,8 +318,7 @@ function FormDesigner() {
                                                 schemaError
                                                     ? faIcon({
                                                           icon: faCircleXmark,
-                                                          className:
-                                                              "fa-beat-fade",
+                                                          className: "fa-fade",
                                                       })
                                                     : null
                                             }

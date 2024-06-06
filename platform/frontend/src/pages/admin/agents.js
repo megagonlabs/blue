@@ -4,180 +4,49 @@ import {
     Button,
     ButtonGroup,
     Checkbox,
+    Divider,
     Intent,
     Tag,
     Tooltip,
 } from "@blueprintjs/core";
-import { Cell, Column, ColumnHeaderCell, Table2 } from "@blueprintjs/table";
-import { faStop } from "@fortawesome/pro-duotone-svg-icons";
+import {
+    Cell,
+    Column,
+    ColumnHeaderCell,
+    RowHeaderCell,
+    Table2,
+    TableLoadingOption,
+} from "@blueprintjs/table";
+import { faRefresh, faStop } from "@fortawesome/pro-duotone-svg-icons";
 import axios from "axios";
 import _ from "lodash";
 import { useEffect, useState } from "react";
 import ReactTimeAgo from "react-time-ago";
 export default function Agents() {
     const [tableKey, setTableKey] = useState(Date.now());
-    const array = [
-        "created",
-        "running",
-        "paused",
-        "restarting",
-        "exited",
-        "removing",
-        "dead",
-    ];
-    const [data, setData] = useState([
-        {
-            id: Date.now(),
-            hostname: Date.now(),
-            created_date: Date.now(),
-            image: Date.now(),
-            status: array[Math.floor(Math.random() * array.length)],
-            agent: Date.now(),
-            registry: Date.now(),
-        },
-        {
-            id: Date.now(),
-            hostname: Date.now(),
-            created_date: Date.now(),
-            image: Date.now(),
-            status: array[Math.floor(Math.random() * array.length)],
-            agent: Date.now(),
-            registry: Date.now(),
-        },
-        {
-            id: Date.now(),
-            hostname: Date.now(),
-            created_date: Date.now(),
-            image: Date.now(),
-            status: array[Math.floor(Math.random() * array.length)],
-            agent: Date.now(),
-            registry: Date.now(),
-        },
-        {
-            id: Date.now(),
-            hostname: Date.now(),
-            created_date: Date.now(),
-            image: Date.now(),
-            status: array[Math.floor(Math.random() * array.length)],
-            agent: Date.now(),
-            registry: Date.now(),
-        },
-        {
-            id: Date.now(),
-            hostname: Date.now(),
-            created_date: Date.now(),
-            image: Date.now(),
-            status: array[Math.floor(Math.random() * array.length)],
-            agent: Date.now(),
-            registry: Date.now(),
-        },
-        {
-            id: Date.now(),
-            hostname: Date.now(),
-            created_date: Date.now(),
-            image: Date.now(),
-            status: array[Math.floor(Math.random() * array.length)],
-            agent: Date.now(),
-            registry: Date.now(),
-        },
-        {
-            id: Date.now(),
-            hostname: Date.now(),
-            created_date: Date.now(),
-            image: Date.now(),
-            status: array[Math.floor(Math.random() * array.length)],
-            agent: Date.now(),
-            registry: Date.now(),
-        },
-        {
-            id: Date.now(),
-            hostname: Date.now(),
-            created_date: Date.now(),
-            image: Date.now(),
-            status: array[Math.floor(Math.random() * array.length)],
-            agent: Date.now(),
-            registry: Date.now(),
-        },
-        {
-            id: Date.now(),
-            hostname: Date.now(),
-            created_date: Date.now(),
-            image: Date.now(),
-            status: array[Math.floor(Math.random() * array.length)],
-            agent: Date.now(),
-            registry: Date.now(),
-        },
-        {
-            id: Date.now(),
-            hostname: Date.now(),
-            created_date: Date.now(),
-            image: Date.now(),
-            status: array[Math.floor(Math.random() * array.length)],
-            agent: Date.now(),
-            registry: Date.now(),
-        },
-        {
-            id: Date.now(),
-            hostname: Date.now(),
-            created_date: Date.now(),
-            image: Date.now(),
-            status: array[Math.floor(Math.random() * array.length)],
-            agent: Date.now(),
-            registry: Date.now(),
-        },
-        {
-            id: Date.now(),
-            hostname: Date.now(),
-            created_date: Date.now(),
-            image: Date.now(),
-            status: array[Math.floor(Math.random() * array.length)],
-            agent: Date.now(),
-            registry: Date.now(),
-        },
-        {
-            id: Date.now(),
-            hostname: Date.now(),
-            created_date: Date.now(),
-            image: Date.now(),
-            status: array[Math.floor(Math.random() * array.length)],
-            agent: Date.now(),
-            registry: Date.now(),
-        },
-        {
-            id: Date.now(),
-            hostname: Date.now(),
-            created_date: Date.now(),
-            image: Date.now(),
-            status: array[Math.floor(Math.random() * array.length)],
-            agent: Date.now(),
-            registry: Date.now(),
-        },
-        {
-            id: Date.now(),
-            hostname: Date.now(),
-            created_date: Date.now(),
-            image: Date.now(),
-            status: array[Math.floor(Math.random() * array.length)],
-            agent: Date.now(),
-            registry: Date.now(),
-        },
-    ]);
+    const [loading, setLoading] = useState(false);
+    const [data, setData] = useState([]);
     useEffect(() => {
         setTableKey(Date.now());
     }, [data]);
-    useEffect(() => {
+    const fetchContainerList = () => {
+        setLoading(true);
         axios.get("/platform/agents").then((response) => {
             setData(_.get(response, "data.results", []));
+            setLoading(false);
         });
+    };
+    useEffect(() => {
+        fetchContainerList();
     }, []);
     const TABLE_CELL_HEIGHT = 40;
     const columns = [
         {
-            name: <span>&nbsp;</span>,
+            name: "",
             key: "checkbox",
             cellRenderer: () => (
-                <Cell style={{ lineHeight: `${TABLE_CELL_HEIGHT - 2}px` }}>
-                    <Checkbox large />
+                <Cell style={{ lineHeight: `${TABLE_CELL_HEIGHT - 1}px` }}>
+                    <Checkbox large className="margin-0" />
                 </Cell>
             ),
         },
@@ -268,14 +137,45 @@ export default function Agents() {
                     <Tooltip placement="bottom-start" minimal content="Stop">
                         <Button disabled icon={faIcon({ icon: faStop })} />
                     </Tooltip>
+                    <Divider />
+                    <Tooltip placement="bottom" minimal content="Refresh">
+                        <Button
+                            intent={Intent.PRIMARY}
+                            onClick={fetchContainerList}
+                            icon={faIcon({ icon: faRefresh })}
+                        />
+                    </Tooltip>
                 </ButtonGroup>
             </div>
             <div style={{ height: "calc(100% - 50px)" }}>
                 <Table2
+                    loadingOptions={
+                        loading
+                            ? [
+                                  TableLoadingOption.CELLS,
+                                  TableLoadingOption.ROW_HEADERS,
+                              ]
+                            : []
+                    }
                     key={tableKey}
                     enableRowResizing={false}
-                    enableColumnReordering
                     numRows={data.length}
+                    rowHeaderCellRenderer={(rowIndex) => (
+                        <RowHeaderCell
+                            name={
+                                <div
+                                    style={{
+                                        textAlign: "center",
+                                        lineHeight: `${TABLE_CELL_HEIGHT}px`,
+                                        paddingLeft: 5,
+                                        paddingRight: 5,
+                                    }}
+                                >
+                                    {rowIndex + 1}
+                                </div>
+                            }
+                        />
+                    )}
                     defaultRowHeight={TABLE_CELL_HEIGHT}
                 >
                     {columns}
