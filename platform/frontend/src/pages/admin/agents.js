@@ -16,6 +16,7 @@ import {
     RowHeaderCell,
     Table2,
     TableLoadingOption,
+    Utils,
 } from "@blueprintjs/table";
 import { faRefresh, faStop } from "@fortawesome/pro-duotone-svg-icons";
 import axios from "axios";
@@ -26,9 +27,7 @@ export default function Agents() {
     const [tableKey, setTableKey] = useState(Date.now());
     const [loading, setLoading] = useState(false);
     const [data, setData] = useState([]);
-    useEffect(() => {
-        setTableKey(Date.now());
-    }, [data]);
+
     const fetchContainerList = () => {
         setLoading(true);
         axios.get("/platform/agents").then((response) => {
@@ -40,9 +39,9 @@ export default function Agents() {
         fetchContainerList();
     }, []);
     const TABLE_CELL_HEIGHT = 40;
-    const columns = [
+    const INIT_COLUMNS = [
         {
-            name: "",
+            name: <div>&nbsp;</div>,
             key: "checkbox",
             cellRenderer: () => (
                 <Cell style={{ lineHeight: `${TABLE_CELL_HEIGHT - 1}px` }}>
@@ -55,7 +54,7 @@ export default function Agents() {
         {
             name: "Created At",
             key: "created_date",
-            cellRenderer: (rowIndex) => {
+            cellRenderer: ({ rowIndex, data }) => {
                 const timestamp = _.get(data, [rowIndex, "created_date"], null);
                 return (
                     <Cell style={{ lineHeight: `${TABLE_CELL_HEIGHT - 1}px` }}>
@@ -64,7 +63,9 @@ export default function Agents() {
                                 date={new Date(timestamp)}
                                 locale="en-US"
                             />
-                        ) : null}
+                        ) : (
+                            "-"
+                        )}
                     </Cell>
                 );
             },
@@ -72,7 +73,7 @@ export default function Agents() {
         {
             name: "Image",
             key: "image",
-            cellRenderer: (rowIndex) => (
+            cellRenderer: ({ rowIndex, data }) => (
                 <Cell style={{ lineHeight: `${TABLE_CELL_HEIGHT - 1}px` }}>
                     <Tag intent={Intent.PRIMARY} minimal>
                         {_.get(data, [rowIndex, "image"], "-")}
@@ -83,7 +84,7 @@ export default function Agents() {
         {
             name: "Status",
             key: "status",
-            cellRenderer: (rowIndex) => {
+            cellRenderer: ({ rowIndex, data }) => {
                 const status = _.get(data, [rowIndex, "status"], "-");
                 return (
                     <Cell style={{ lineHeight: `${TABLE_CELL_HEIGHT - 1}px` }}>
@@ -103,33 +104,23 @@ export default function Agents() {
         },
         { name: "Agent", key: "agent" },
         { name: "Registry", key: "registry" },
-    ].map((col, index) => {
-        const { name, key, cellRenderer } = col;
-        const defaultCellRenderer = (rowIndex) => (
-            <Cell style={{ lineHeight: `${TABLE_CELL_HEIGHT - 1}px` }}>
-                {_.get(data, [rowIndex, key], "-")}
-            </Cell>
+    ];
+    const [columns, setColumns] = useState(INIT_COLUMNS);
+    useEffect(() => {
+        setTableKey(Date.now());
+    }, [data, columns]);
+    const handleColumnsReordered = (oldIndex, newIndex, length) => {
+        if (_.isEqual(oldIndex, newIndex)) {
+            return;
+        }
+        const nextChildren = Utils.reorderArray(
+            columns,
+            oldIndex,
+            newIndex,
+            length
         );
-        const menuRenderer = null;
-        const columnHeaderCellRenderer = () => (
-            <ColumnHeaderCell
-                name={<span style={{ fontWeight: 600 }}>{name}</span>}
-                menuRenderer={menuRenderer}
-            />
-        );
-        return (
-            <Column
-                cellRenderer={
-                    _.isFunction(cellRenderer)
-                        ? cellRenderer
-                        : defaultCellRenderer
-                }
-                columnHeaderCellRenderer={columnHeaderCellRenderer}
-                key={`${key}-${index}`}
-                name={name}
-            />
-        );
-    });
+        setColumns(nextChildren);
+    };
     return (
         <>
             <div style={{ padding: 5, height: 50 }}>
@@ -160,6 +151,8 @@ export default function Agents() {
                     key={tableKey}
                     enableRowResizing={false}
                     numRows={data.length}
+                    enableColumnReordering
+                    onColumnsReordered={handleColumnsReordered}
                     rowHeaderCellRenderer={(rowIndex) => (
                         <RowHeaderCell
                             name={
@@ -178,7 +171,53 @@ export default function Agents() {
                     )}
                     defaultRowHeight={TABLE_CELL_HEIGHT}
                 >
-                    {columns}
+                    {columns.map((col, index) => {
+                        const { name, key, cellRenderer } = col;
+                        const defaultCellRenderer = (rowIndex) => {
+                            return (
+                                <Cell
+                                    style={{
+                                        lineHeight: `${
+                                            TABLE_CELL_HEIGHT - 1
+                                        }px`,
+                                    }}
+                                >
+                                    {_.get(data, [rowIndex, key], "-")}
+                                </Cell>
+                            );
+                        };
+                        const menuRenderer = null;
+                        const columnHeaderCellRenderer = () => (
+                            <ColumnHeaderCell
+                                name={
+                                    <span style={{ fontWeight: 600 }}>
+                                        {name}
+                                    </span>
+                                }
+                                menuRenderer={menuRenderer}
+                            />
+                        );
+                        return (
+                            <Column
+                                cellRenderer={(rowIndex) =>
+                                    _.isFunction(cellRenderer)
+                                        ? cellRenderer.call(null, {
+                                              rowIndex,
+                                              data,
+                                          })
+                                        : defaultCellRenderer.call(
+                                              null,
+                                              rowIndex
+                                          )
+                                }
+                                columnHeaderCellRenderer={
+                                    columnHeaderCellRenderer
+                                }
+                                key={`${key}-${index}`}
+                                name={name}
+                            />
+                        );
+                    })}
                 </Table2>
             </div>
         </>
