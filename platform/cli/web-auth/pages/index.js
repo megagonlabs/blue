@@ -118,18 +118,13 @@ export default function Index() {
     }, []);
     const [popupOpen, setPopupOpen] = useState(false);
     const signInWithGoogle = () => {
-        const protocol = _.get(
-            profile,
-            "BLUE_PUBLIC_API_SERVER_PROTOCOL",
-            "https://"
-        );
         const server = _.get(profile, "BLUE_PUBLIC_API_SERVER", null);
         setPopupOpen(true);
         signInWithPopup(auth, provider)
             .then((result) => {
                 result.user.getIdToken().then((idToken) => {
                     axios
-                        .post(`${protocol}://${server}/accounts/sign-in/cli`, {
+                        .post(`${server}/accounts/sign-in/cli`, {
                             id_token: idToken,
                         })
                         .then((response) => {
