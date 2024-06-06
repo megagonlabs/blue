@@ -58,10 +58,11 @@ class SessionManager:
         pass
 
     def create_session(self, NAME=None, DESCRIPTION=None):
-        profile = ProfileManager().get_selected_profile()
-        api_server = os.environ['BLUE_PUBLIC_API_SERVER']
+        profile = ProfileManager()
+        cookies = profile.get_selected_profile_cookie()
+        base_api_path = profile.get_selected_profile_base_api_path()
 
-        r = requests.post('http://' + api_server + '/sessions/session', cookies=ProfileManager().get_selected_profile_cookie())
+        r = requests.post(base_api_path + '/sessions/session', cookies=cookies)
         rjson = None
         result = {}
         message = None
@@ -74,13 +75,11 @@ class SessionManager:
         return result, message
 
     def join_session(self, session_id, REGISTRY='default', AGENT=None, AGENT_PROPERTIES="{}", AGENT_INPUT=None):
-        profile = ProfileManager().get_selected_profile()
-        api_server = os.environ['BLUE_PUBLIC_API_SERVER']
-
+        profile = ProfileManager()
+        cookies = profile.get_selected_profile_cookie()
+        base_api_path = profile.get_selected_profile_base_api_path()
         r = requests.post(
-            'http://' + api_server + '/sessions/session/' + session_id + "/agents/" + REGISTRY + "/agent/" + AGENT + ("?input=" + AGENT_INPUT if AGENT_INPUT else ""),
-            data=AGENT_PROPERTIES,
-            cookies=ProfileManager().get_selected_profile_cookie(),
+            base_api_path + '/sessions/session/' + session_id + "/agents/" + REGISTRY + "/agent/" + AGENT + ("?input=" + AGENT_INPUT if AGENT_INPUT else ""), data=AGENT_PROPERTIES, cookies=cookies
         )
         rjson = None
         result = {}
@@ -95,10 +94,10 @@ class SessionManager:
         return result, message
 
     def get_session_list(self):
-        profile = ProfileManager().get_selected_profile()
-        api_server = os.environ['BLUE_PUBLIC_API_SERVER']
-
-        r = requests.get('http://' + api_server + '/sessions', cookies=ProfileManager().get_selected_profile_cookie())
+        profile = ProfileManager()
+        cookies = profile.get_selected_profile_cookie()
+        base_api_path = profile.get_selected_profile_base_api_path()
+        r = requests.get(base_api_path + '/sessions', cookies=cookies)
         rjson = None
         results = {}
         message = None

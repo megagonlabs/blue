@@ -119,14 +119,16 @@ export default function Index() {
     const [popupOpen, setPopupOpen] = useState(false);
     const signInWithGoogle = () => {
         const server = _.get(profile, "BLUE_PUBLIC_API_SERVER", null);
+        const platformName = _.get(profile, "BLUE_DEPLOY_PLATFORM", null);
         setPopupOpen(true);
         signInWithPopup(auth, provider)
             .then((result) => {
                 result.user.getIdToken().then((idToken) => {
                     axios
-                        .post(`${server}/accounts/sign-in/cli`, {
-                            id_token: idToken,
-                        })
+                        .post(
+                            `${server}/blue/platform/${platformName}/accounts/sign-in/cli`,
+                            { id_token: idToken }
+                        )
                         .then((response) => {
                             ws.send(
                                 JSON.stringify(

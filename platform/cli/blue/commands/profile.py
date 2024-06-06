@@ -239,6 +239,11 @@ class ProfileManager:
     def get_selected_profile_cookie(self):
         return {'session': self.get_selected_profile_attribute('BLUE_COOKIE')}
 
+    def get_selected_profile_base_api_path(self):
+        api_server = self.get_selected_profile_attribute('BLUE_PUBLIC_API_SERVER')
+        platform_name = self.get_selected_profile_attribute('BLUE_DEPLOY_PLATFORM')
+        return f'{api_server}/blue/platform/{platform_name}'
+
 
 class ProfileName(click.Group):
     def parse_args(self, ctx, args):
