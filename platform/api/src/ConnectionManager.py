@@ -9,7 +9,7 @@ import sys
 import os
 import pydash
 
-from server import IS_DEVELOPMENT
+from server import IS_DEVELOPMENT, PLATFORM_PREFIX
 
 ###### Add lib path
 sys.path.append("./lib/")
@@ -91,7 +91,7 @@ class ConnectionManager:
                         properties={
                             **PROPERTIES,
                             "output": "websocket",
-                            "websocket": f"ws://localhost:5050/sessions/ws?ticket={ticket}",
+                            "websocket": f"ws://localhost:5050{PLATFORM_PREFIX}/sessions/ws?ticket={ticket}",
                             "session_id": session_sid,
                             "connection_id": connection_id,
                         },

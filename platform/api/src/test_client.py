@@ -4,7 +4,7 @@ import time
 
 from websocket import create_connection
 
-ws = create_connection("ws://localhost:5050/sessions/ws")
+ws = create_connection("ws://localhost:5050/blue/platform/default/sessions/ws")
 result = ws.recv()
 COMMON_P = (
     "Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod "

@@ -19,10 +19,6 @@ from pathlib import Path
 from fastapi.responses import JSONResponse
 import pydash
 
-##### Web / Sockets
-from ConnectionManager import ConnectionManager
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Request
-
 ###### Properties
 PROPERTIES = os.getenv("BLUE__PROPERTIES")
 PROPERTIES = json.loads(PROPERTIES)
@@ -31,6 +27,10 @@ prefix = 'PLATFORM:' + platform_id
 agent_registry_id = PROPERTIES["agent_registry.name"]
 data_registry_id = PROPERTIES["data_registry.name"]
 PLATFORM_PREFIX = f'/blue/platform/{platform_id}'
+
+##### Web / Sockets
+from ConnectionManager import ConnectionManager
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Request
 
 ###### API Routers
 from constant import EMAIL_DOMAIN_ADDRESS_REGEXP, InvalidRequestJson
@@ -146,7 +146,7 @@ async def websocket_endpoint(websocket: WebSocket, ticket: str = None):
             if json_data["type"] == "OBSERVE_SESSION":
                 connection_manager.observe_session(connection_id, json_data["session_id"])
             elif json_data["type"] == "REQUEST_USER_AGENT_ID":
-                await connection_manager.send_message_to(websocket, json.dumps({"type": "CONNECTED", "id": connection_manager.get_user_agent_id(connection_id)}))
+                await connection_manager.send_message_to(websocket, json.dumps({"type": "CONNECTED", "id": connection_manager.get_user_agent_id(connection_id), 'connection_id': connection_id}))
             elif json_data["type"] == "USER_SESSION_MESSAGE":
                 connection_manager.user_session_message(connection_id, json_data["session_id"], json_data["message"])
             elif json_data["type"] == "INTERACTIVE_EVENT_MESSAGE":
