@@ -7,9 +7,9 @@ export const agentAction = (dispatch) => ({
             payload,
         });
     },
-    getList: () => {
+    getList: (payload) => {
         axios
-            .get("/agents")
+            .get(`/registry/${payload}/agents`)
             .then((response) => {
                 dispatch({
                     type: "agent/list/set",
