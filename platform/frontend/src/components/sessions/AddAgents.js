@@ -58,7 +58,7 @@ export default function AddAgents({
         }
         setLoading(true);
         axios
-            .get("/agents")
+            .get(`/registry/${registryName}/agents`)
             .then((response) => {
                 const list = _.get(response, "data.results", []);
                 let options = [];
