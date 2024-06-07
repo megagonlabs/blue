@@ -6,6 +6,7 @@ import {
     Checkbox,
     Divider,
     Intent,
+    NonIdealState,
     Tag,
     Tooltip,
 } from "@blueprintjs/core";
@@ -18,7 +19,11 @@ import {
     TableLoadingOption,
     Utils,
 } from "@blueprintjs/table";
-import { faRefresh, faStop } from "@fortawesome/pro-duotone-svg-icons";
+import {
+    faCircleA,
+    faRefresh,
+    faStop,
+} from "@fortawesome/pro-duotone-svg-icons";
 import axios from "axios";
 import _ from "lodash";
 import { useEffect, useState } from "react";
@@ -27,7 +32,6 @@ export default function Agents() {
     const [tableKey, setTableKey] = useState(Date.now());
     const [loading, setLoading] = useState(false);
     const [data, setData] = useState([]);
-
     const fetchContainerList = () => {
         setLoading(true);
         axios.get("/containers/agents").then((response) => {
@@ -123,6 +127,23 @@ export default function Agents() {
     };
     return (
         <>
+            {_.isEmpty(data) ? (
+                <div
+                    className="full-parent-width"
+                    style={{
+                        position: "absolute",
+                        bottom: 0,
+                        right: 0,
+                        zIndex: 1,
+                        height: "calc(100% - 50px)",
+                    }}
+                >
+                    <NonIdealState
+                        title="No Agent"
+                        icon={faIcon({ icon: faCircleA, size: 50 })}
+                    />
+                </div>
+            ) : null}
             <div style={{ padding: 5, height: 50 }}>
                 <ButtonGroup large minimal>
                     <Tooltip placement="bottom-start" minimal content="Stop">
@@ -133,6 +154,7 @@ export default function Agents() {
                         <Button
                             intent={Intent.PRIMARY}
                             onClick={fetchContainerList}
+                            loading={loading}
                             icon={faIcon({ icon: faRefresh })}
                         />
                     </Tooltip>
