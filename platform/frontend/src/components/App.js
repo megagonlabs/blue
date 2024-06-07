@@ -42,12 +42,12 @@ export default function App({ children }) {
             icon: faListUl,
         },
         data: {
-            href: `/data/${appState.data.registryName}`,
+            href: `/registry/${appState.data.registryName}/data`,
             text: "Data",
             icon: faDatabase,
         },
         agents: {
-            href: `/agents/${appState.agent.registryName}`,
+            href: `/registry/${appState.agent.registryName}/agents`,
             text: "Agents",
             icon: faCircleA,
         },

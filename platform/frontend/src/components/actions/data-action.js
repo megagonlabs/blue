@@ -7,9 +7,9 @@ export const dataAction = (dispatch) => ({
             payload,
         });
     },
-    getList: () => {
+    getList: (payload) => {
         axios
-            .get("/data")
+            .get(`/registry/${payload}/data`)
             .then((response) => {
                 dispatch({
                     type: "data/list/set",
@@ -28,7 +28,7 @@ export const dataAction = (dispatch) => ({
             page_size: payload.pageSize,
         };
         axios
-            .get(`/data/${payload.registryName}/search`, {
+            .get(`/registry/${payload.registryName}/data/search`, {
                 params: filter,
             })
             .then((response) => {

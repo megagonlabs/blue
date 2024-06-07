@@ -23,20 +23,20 @@ import {
 } from "@fortawesome/pro-duotone-svg-icons";
 import _ from "lodash";
 import { useCallback, useContext, useEffect, useState } from "react";
-export default function Agents() {
+export default function Data() {
     const { appState, appActions } = useContext(AppContext);
-    const [hybrid, setHybrid] = useState(appState.agent.filter.hybrid);
+    const [hybrid, setHybrid] = useState(appState.data.filter.hybrid);
     const [approximate, setApproximate] = useState(
-        appState.agent.filter.approximate
+        appState.data.filter.approximate
     );
-    const [type, setType] = useState(appState.agent.filter.type);
-    const [keywords, setKeywords] = useState(appState.agent.filter.keywords);
-    const [page, setPage] = useState(appState.agent.filter.page);
-    const [pageSize, setPageSize] = useState(appState.agent.filter.page_size);
-    const agentRegistryName = appState.agent.registryName;
+    const [type, setType] = useState(appState.data.filter.type);
+    const [keywords, setKeywords] = useState(appState.data.filter.keywords);
+    const [page, setPage] = useState(appState.data.filter.page);
+    const [pageSize, setPageSize] = useState(appState.data.filter.page_size);
+    const dataRegistryName = appState.data.registryName;
     useEffect(() => {
-        if (appState.agent.search) return;
-        appActions.agent.getList();
+        if (appState.data.search) return;
+        appActions.data.getList(dataRegistryName);
     }, []);
     const debounceOnKeywordsChange = useCallback(
         _.debounce(
@@ -49,11 +49,11 @@ export default function Agents() {
                 page,
                 pageSize,
             }) => {
-                appActions.agent.setState({ key: "loading", value: true });
+                appActions.data.setState({ key: "loading", value: true });
                 if (_.isEmpty(keywords)) {
-                    appActions.agent.getList();
+                    appActions.data.getList(dataRegistryName);
                 } else {
-                    appActions.agent.searchList({
+                    appActions.data.searchList({
                         registryName: registryName,
                         hybrid: hybrid,
                         approximate: approximate,
@@ -70,7 +70,7 @@ export default function Agents() {
     );
     useEffect(() => {
         debounceOnKeywordsChange({
-            registryName: agentRegistryName,
+            registryName: dataRegistryName,
             hybrid,
             approximate,
             keywords,
@@ -82,9 +82,9 @@ export default function Agents() {
     return (
         <>
             <div style={{ padding: "20px 20px 10px 20px", display: "flex" }}>
-                <H4 style={{ margin: "0px 10px 0px 0px" }}>Agents Registry</H4>
+                <H4 style={{ margin: "0px 10px 0px 0px" }}>Data Registry</H4>
                 <Tag minimal intent={Intent.PRIMARY}>
-                    {agentRegistryName}
+                    {dataRegistryName}
                 </Tag>
             </div>
             <div
@@ -105,30 +105,31 @@ export default function Agents() {
                     <ControlGroup fill>
                         <InputGroup
                             placeholder="Search"
-                            className={
-                                appState.agent.loading ? Classes.SKELETON : null
-                            }
                             large
                             fill
+                            className={
+                                appState.data.loading ? Classes.SKELETON : null
+                            }
                             value={keywords}
                             leftIcon={faIcon({ icon: faSearch })}
                             onChange={(event) => {
                                 setKeywords(event.target.value);
                             }}
                             rightElement={
-                                !_.isEmpty(keywords) &&
-                                appState.agent.search ? (
+                                !_.isEmpty(keywords) && appState.data.search ? (
                                     <Button
                                         minimal
                                         onClick={() => {
                                             setKeywords("");
                                             setPage(0);
                                             setPageSize(10);
-                                            appActions.agent.setState({
+                                            appActions.data.setState({
                                                 key: "loading",
                                                 value: true,
                                             });
-                                            appActions.agent.getList();
+                                            appActions.data.getList(
+                                                dataRegistryName
+                                            );
                                         }}
                                         icon={faIcon({ icon: faTimes })}
                                     />
@@ -137,7 +138,7 @@ export default function Agents() {
                             onKeyDown={(event) => {
                                 if (_.isEqual(event.key, "Enter")) {
                                     debounceOnKeywordsChange({
-                                        registryName: agentRegistryName,
+                                        registryName: dataRegistryName,
                                         hybrid,
                                         approximate,
                                         keywords: event.target.value,
@@ -160,7 +161,7 @@ export default function Agents() {
                                 >
                                     <Checkbox
                                         className={
-                                            appState.agent.loading
+                                            appState.data.loading
                                                 ? Classes.SKELETON
                                                 : null
                                         }
@@ -177,7 +178,7 @@ export default function Agents() {
                                     />
                                     <Checkbox
                                         className={
-                                            appState.agent.loading
+                                            appState.data.loading
                                                 ? Classes.SKELETON
                                                 : null
                                         }
@@ -205,15 +206,29 @@ export default function Agents() {
                                     >
                                         {[
                                             { value: "", text: "All" },
-                                            { value: "agent", text: "Agent" },
-                                            { value: "input", text: "Input" },
-                                            { value: "output", text: "Output" },
+                                            { value: "source", text: "Source" },
+                                            {
+                                                value: "database",
+                                                text: "Database",
+                                            },
+                                            {
+                                                value: "collection",
+                                                text: "Collection",
+                                            },
+                                            {
+                                                value: "entity",
+                                                text: "Entity",
+                                            },
+                                            {
+                                                value: "relation",
+                                                text: "Relation",
+                                            },
                                         ].map(({ value, text }, index) => {
                                             return (
                                                 <Radio
-                                                    key={`agent-registry-filter-type-${index}`}
+                                                    key={`data-registry-filter-type-${index}`}
                                                     className={
-                                                        appState.agent.loading
+                                                        appState.data.loading
                                                             ? Classes.SKELETON
                                                             : null
                                                     }
@@ -229,7 +244,7 @@ export default function Agents() {
                         >
                             <Button
                                 className={
-                                    appState.agent.loading
+                                    appState.data.loading
                                         ? Classes.SKELETON
                                         : null
                                 }
@@ -241,22 +256,22 @@ export default function Agents() {
                         </Popover>
                     </ControlGroup>
                 </div>
-                {appState.agent.search ? (
+                {appState.data.search ? (
                     <Pagination
                         page={page}
                         setPage={setPage}
                         pageSize={pageSize}
                         setPageSize={setPageSize}
-                        type="agent"
+                        type="data"
                     />
                 ) : null}
             </div>
             <div style={{ height: "calc(100% - 101px)" }}>
                 <H4 style={{ margin: "0px 0px 10px 20px" }}>
-                    {appState.agent.search ? "Search Results" : "Contents"}
+                    {appState.data.search ? "Search Results" : "Contents"}
                 </H4>
                 <div style={{ height: "calc(100% - 31px)", overflowY: "auto" }}>
-                    <RegistryList type="agent" />
+                    <RegistryList type="data" />
                 </div>
             </div>
         </>
