@@ -30,8 +30,6 @@ from typing import Union, Any, Dict, AnyStr, List
 from pydantic import BaseModel, Json
 from server import PLATFORM_PREFIX
 
-router = APIRouter(prefix=f"{PLATFORM_PREFIX}/data")
-
 
 ###### Schema
 class Data(BaseModel):
@@ -61,6 +59,8 @@ data_registry_id = PROPERTIES["data_registry.name"]
 p = Platform(id=platform_id, properties=PROPERTIES)
 data_registry = DataRegistry(id=data_registry_id, prefix=prefix, properties=PROPERTIES)
 
+##### ROUTER
+router = APIRouter(prefix=f"{PLATFORM_PREFIX}/registry/{data_registry_id}/data")
 
 #############
 @router.get("/")
@@ -69,16 +69,7 @@ def get_data():
     return JSONResponse(content={"results": list(results.values())})
 
 
-@router.get("/{registry_name}")
-def get_data_from(registry_name):
-    if registry_name == data_registry_id:
-        results = data_registry.list_records()
-        return JSONResponse(content={"results": list(results.values())})
-    else:
-        return JSONResponse(content={"message": "Error: Unknown Registry"})
-
-
-@router.get("/{registry_name}/sources")
+@router.get("/sources")
 def get_data_sources(registry_name):
     if registry_name == data_registry_id:
         results = data_registry.get_sources()
@@ -87,7 +78,7 @@ def get_data_sources(registry_name):
         return JSONResponse(content={"message": "Error: Unknown Registry"})
 
 
-@router.get("/{registry_name}/source/{source_name}")
+@router.get("/source/{source_name}")
 def get_data_source(registry_name, source_name):
     if registry_name == data_registry_id:
         result = data_registry.get_source(source_name)
@@ -96,7 +87,7 @@ def get_data_source(registry_name, source_name):
         return JSONResponse(content={"message": "Error: Unknown Registry"})
 
 
-@router.post("/{registry_name}/source/{source_name}")
+@router.post("/source/{source_name}")
 def add_source(registry_name, source_name, data: Data):
     if registry_name == data_registry_id:
         # TODO: properties
@@ -108,7 +99,7 @@ def add_source(registry_name, source_name, data: Data):
         return JSONResponse(content={"message": "Error: Unknown Registry"})
 
 
-@router.put("/{registry_name}/source/{source_name}")
+@router.put("/source/{source_name}")
 def update_source(registry_name, source_name, data: Data, sync: bool = False, recursive: bool = False):
     if registry_name == data_registry_id:
         # TODO: properties
@@ -123,7 +114,7 @@ def update_source(registry_name, source_name, data: Data, sync: bool = False, re
         return JSONResponse(content={"message": "Error: Unknown Registry"})
 
 
-@router.delete("/{registry_name}/source/{source_name}")
+@router.delete("/source/{source_name}")
 def delete_source(registry_name, source_name):
     if registry_name == data_registry_id:
         data_registry.deregister_source(source_name, rebuild=True)
@@ -134,7 +125,7 @@ def delete_source(registry_name, source_name):
         return JSONResponse(content={"message": "Error: Unknown Registry"})
 
 
-@router.get("/{registry_name}/source/{source_name}/databases")
+@router.get("/source/{source_name}/databases")
 def get_data_source_databases(registry_name, source_name):
     if registry_name == data_registry_id:
         results = data_registry.get_source_databases(source_name)
@@ -143,7 +134,7 @@ def get_data_source_databases(registry_name, source_name):
         return JSONResponse(content={"message": "Error: Unknown Registry"})
 
 
-@router.get("/{registry_name}/source/{source_name}/database/{database_name}")
+@router.get("/source/{source_name}/database/{database_name}")
 def get_data_source_database(registry_name, source_name, database_name):
     if registry_name == data_registry_id:
         result = data_registry.get_source_database(source_name, database_name)
@@ -152,7 +143,7 @@ def get_data_source_database(registry_name, source_name, database_name):
         return JSONResponse(content={"message": "Error: Unknown Registry"})
 
 
-@router.post("/{registry_name}/source/{source_name}/database/{database_name}")
+@router.post("/source/{source_name}/database/{database_name}")
 def add_data_source_database(registry_name, source_name, database_name, data: Data):
     if registry_name == data_registry_id:
         # TODO: properties
@@ -164,7 +155,7 @@ def add_data_source_database(registry_name, source_name, database_name, data: Da
         return JSONResponse(content={"message": "Error: Unknown Registry"})
 
 
-@router.put("/{registry_name}/source/{source_name}/database/{database_name}")
+@router.put("/source/{source_name}/database/{database_name}")
 def update_source_database(registry_name, source_name, database_name, data: Data, sync: bool = False, recursive: bool = False):
     if registry_name == data_registry_id:
         # TODO: properties
@@ -178,7 +169,7 @@ def update_source_database(registry_name, source_name, database_name, data: Data
         return JSONResponse(content={"message": "Error: Unknown Registry"})
 
 
-@router.delete("/{registry_name}/source/{source_name}/database/{database_name}")
+@router.delete("/source/{source_name}/database/{database_name}")
 def delete_source_database(registry_name, source_name, database_name):
     if registry_name == data_registry_id:
         data_registry.deregister_source_database(source_name, database_name, rebuild=True)
@@ -189,7 +180,7 @@ def delete_source_database(registry_name, source_name, database_name):
         return JSONResponse(content={"message": "Error: Unknown Registry"})
 
 
-@router.get("/{registry_name}/source/{source_name}/database/{database_name}/collections")
+@router.get("/source/{source_name}/database/{database_name}/collections")
 def get_data_source_database_collections(registry_name, source_name, database_name):
     if registry_name == data_registry_id:
         results = data_registry.get_source_database_collections(source_name, database_name)
@@ -198,7 +189,7 @@ def get_data_source_database_collections(registry_name, source_name, database_na
         return JSONResponse(content={"message": "Error: Unknown Registry"})
 
 
-@router.get("/{registry_name}/source/{source_name}/database/{database_name}/collection/{collection_name}")
+@router.get("/source/{source_name}/database/{database_name}/collection/{collection_name}")
 def get_data_source_database_collection(registry_name, source_name, database_name, collection_name):
     if registry_name == data_registry_id:
         result = data_registry.get_source_database_collection(source_name, database_name, collection_name)
@@ -207,7 +198,7 @@ def get_data_source_database_collection(registry_name, source_name, database_nam
         return JSONResponse(content={"message": "Error: Unknown Registry"})
 
 
-@router.post("/{registry_name}/source/{source_name}/database/{database_name}/collection/{collection_name}")
+@router.post("/source/{source_name}/database/{database_name}/collection/{collection_name}")
 def add_data_source_database_collection(registry_name, source_name, database_name, collection_name, data: Data):
     if registry_name == data_registry_id:
         # TODO: properties
@@ -219,7 +210,7 @@ def add_data_source_database_collection(registry_name, source_name, database_nam
         return JSONResponse(content={"message": "Error: Unknown Registry"})
 
 
-@router.put("/{registry_name}/source/{source_name}/database/{database_name}/collection/{collection_name}")
+@router.put("/source/{source_name}/database/{database_name}/collection/{collection_name}")
 def update_source_database_collection(registry_name, source_name, database_name, collection_name, data: Data, sync: bool = False, recursive: bool = False):
     if registry_name == data_registry_id:
         # TODO: properties
@@ -233,7 +224,7 @@ def update_source_database_collection(registry_name, source_name, database_name,
         return JSONResponse(content={"message": "Error: Unknown Registry"})
 
 
-@router.delete("/{registry_name}/source/{source_name}/database/{database_name}/collection/{collection_name}")
+@router.delete("/source/{source_name}/database/{database_name}/collection/{collection_name}")
 def delete_source_database_collection(registry_name, source_name, database_name, collection_name):
     if registry_name == data_registry_id:
         data_registry.deregister_source_database_collection(source_name, database_name, collection_name, rebuild=True)
@@ -244,7 +235,7 @@ def delete_source_database_collection(registry_name, source_name, database_name,
         return JSONResponse(content={"message": "Error: Unknown Registry"})
 
 
-@router.get("/{registry_name}/search")
+@router.get("/search")
 def search_data(registry_name, keywords, approximate: bool = False, hybrid: bool = False, type: str = None, scope: str = None, page: int = 0, page_size: int = 10):
     if registry_name == data_registry_id:
         results = data_registry.search_records(keywords, type=type, scope=scope, approximate=approximate, hybrid=hybrid, page=page, page_size=page_size)

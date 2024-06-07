@@ -34,8 +34,6 @@ from typing import Union, Any, Dict, AnyStr, List
 from pydantic import BaseModel, Json
 from server import PLATFORM_PREFIX
 
-router = APIRouter(prefix=f"{PLATFORM_PREFIX}/platform")
-
 ###### Schema
 JSONObject = Dict[str, Any]
 JSONArray = List[Any]
@@ -63,19 +61,8 @@ p = Platform(id=platform_id, properties=PROPERTIES)
 agent_registry = AgentRegistry(id=agent_registry_id, prefix=prefix, properties=PROPERTIES)
 
 
-#############
-@router.get("/registry/agents")
-# get agent registry info on platform
-def get_agent_registry():
-    result = ""
-    return JSONResponse(content={"result": result, "message": "Success"})
-
-
-@router.get("/registry/data")
-# get data registry info on platform
-def get_data_registry():
-    result = ""
-    return JSONResponse(content={"result": result, "message": "Success"})
+##### ROUTER
+router = APIRouter(prefix=f"{PLATFORM_PREFIX}/containers")
 
 
 @router.get("/agents/")
@@ -194,7 +181,7 @@ def update_agent_container(registry_name, agent_name):
     return JSONResponse(content={"result": result, "message": "Success"})
 
 
-@router.delete("agents/agent/{agent_name}")
+@router.delete("/agents/agent/{agent_name}")
 # shutdown the agent container with the name {agent_name} from the agent registry with the name
 def shutdown_agent_container(registry_name, agent_name):
     platform = Platform(id=platform_id, properties=PROPERTIES)
