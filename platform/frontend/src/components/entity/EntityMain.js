@@ -56,7 +56,8 @@ export default function EntityMain({
             .delete(router.asPath)
             .then(() => {
                 let params = _.cloneDeep(_.get(router, "query.params", []));
-                params.splice(params.length - 2, 2);
+                // keep /agents, /data
+                params.pop();
                 AppToaster.show({
                     intent: Intent.SUCCESS,
                     message: `${entity.name} ${entity.type} deleted`,

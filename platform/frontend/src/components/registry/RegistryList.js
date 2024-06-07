@@ -56,9 +56,7 @@ export default function RegistryList({ type }) {
             <Row gutterWidth={20} align="stretch" style={{ paddingTop: 1 }}>
                 {list.map((element) => {
                     const properties = element.properties;
-                    let extra = null,
-                        key = REGISTRY_TYPE_LOOKUP[type].key;
-                    _.if;
+                    let extra = null;
                     if (_.isEqual(type, "agent")) {
                         extra = properties.image;
                     } else if (_.isEqual(type, "data")) {
@@ -77,7 +75,7 @@ export default function RegistryList({ type }) {
                                 title={element.name}
                                 description={element.description}
                                 extra={extra}
-                                href={`${router.asPath}/${key}/${element.name}`}
+                                href={`${router.asPath}/${element.name}`}
                                 container={element.container}
                             />
                         </Col>

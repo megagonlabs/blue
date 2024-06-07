@@ -57,7 +57,7 @@ export default function NewEntity({ type }) {
         if (!router.isReady) return;
         setLoading(true);
         axios[created ? "put" : "post"](
-            `/agents/${appState[type].registryName}/${type}/${entity.name}`,
+            `/registry/${appState[type].registryName}/agents/${entity.name}`,
             {
                 name: entity.name,
                 description: entity.description,
@@ -80,12 +80,8 @@ export default function NewEntity({ type }) {
                     }),
                     (error) => {
                         if (!error) {
-                            let params = _.cloneDeep(
-                                _.get(router, "query.params", [])
-                            );
-                            params.splice(params.length - 1, 1);
                             router.push(
-                                `/${params.join("/")}/agent/${entity.name}`
+                                `/registry/${appState[type].registryName}/agents/${entity.name}`
                             );
                         }
                         setLoading(false);

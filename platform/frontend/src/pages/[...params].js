@@ -8,7 +8,6 @@ import EntityEntity from "@/components/data/EntityEntity";
 import RelationEntity from "@/components/data/RelationEntity";
 import SourceEntity from "@/components/data/SourceEntity";
 import Breadcrumbs from "@/components/entity/Breadcrumbs";
-import NewEntity from "@/components/entity/NewEntity";
 import _ from "lodash";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
@@ -46,13 +45,14 @@ export default function RegistryEntity() {
             _.set(crumbs, "0.href", null);
         }
         setEntityType(type);
+        const crumb0 = _.get(crumbs, 0, {});
+        _.set(crumbs, 0, { ...crumb0, href: crumb0.href + type });
         setBreadcrumbs(crumbs);
     }, [router]);
     const ENTITY_TYPE_TO_COMPONENT = {
-        "/new": <NewEntity type="agent" />,
-        "/agent": <AgentEntity />,
-        "/agent/input": <InputEntity />,
-        "/agent/output": <OutputEntity />,
+        "/agents": <AgentEntity />,
+        "/agents/input": <InputEntity />,
+        "/agents/output": <OutputEntity />,
         "/source": <SourceEntity />,
         "/source/database": <DatabaseEntity />,
         "/source/database/collection": <CollectionEntity />,
