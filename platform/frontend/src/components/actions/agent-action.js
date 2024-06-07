@@ -28,7 +28,7 @@ export const agentAction = (dispatch) => ({
             page_size: payload.pageSize,
         };
         axios
-            .get(`/agents/${payload.registryName}/search`, {
+            .get(`/registry/${payload.registryName}/agents/search`, {
                 params: filter,
             })
             .then((response) => {

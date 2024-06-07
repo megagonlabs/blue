@@ -56,8 +56,12 @@ export default function EntityMain({
             .delete(router.asPath)
             .then(() => {
                 let params = _.cloneDeep(_.get(router, "query.params", []));
-                // keep /agents, /data
-                params.pop();
+                if (["agents", "data"].includes(_.nth(params, -2))) {
+                    // keep /agents, /data
+                    params.pop();
+                } else {
+                    params.splice(params.length - 2, 2);
+                }
                 AppToaster.show({
                     intent: Intent.SUCCESS,
                     message: `${entity.name} ${entity.type} deleted`,
@@ -198,7 +202,10 @@ export default function EntityMain({
                                                 />
                                             </MenuItem>
                                         ) : null}
-                                        <MenuDivider />
+                                        {_.isFunction(setEdit) ||
+                                        _.isEqual(entity.type, "agent") ? (
+                                            <MenuDivider />
+                                        ) : null}
                                         <MenuItem
                                             intent={Intent.DANGER}
                                             icon={faIcon({ icon: faTrash })}

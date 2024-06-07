@@ -70,6 +70,7 @@ agent_registry = AgentRegistry(id=agent_registry_id, prefix=prefix, properties=P
 ##### ROUTER
 router = APIRouter(prefix=f"{PLATFORM_PREFIX}/registry/{agent_registry_id}/agents")
 
+
 ###### Utility functions
 def get_agent_containers():
     # connect to docker
@@ -99,9 +100,7 @@ def get_agent_containers():
         for service in services:
             c = {}
             c["id"] = service.attrs["ID"]
-            c["hostname"] = service.attrs["Spec"]["TaskTemplate"]["ContainerSpec"][
-                "Hostname"
-            ]
+            c["hostname"] = service.attrs["Spec"]["TaskTemplate"]["ContainerSpec"]["Hostname"]
             c["created_date"] = service.attrs["CreatedAt"]
             c["image"] = service.attrs["Spec"]["TaskTemplate"]["ContainerSpec"]["Image"]
             labels = container.attrs["Spec"]["TaskTemplate"]["ContainerSpec"]["Labels"]
@@ -120,20 +119,21 @@ def get_agent_containers():
             registry = None
             if 'registry' in result:
                 registry = result['registry']
-            
+
             if registry == None:
-                continue 
+                continue
             if registry == agent_registry_id:
                 containers[agent] = result
 
     # close connection
     client.close()
-    
+
     return containers
+
 
 def merge_container_results(registry_results):
     containers = get_agent_containers()
-    #logging.info(json.dumps(containers, indent=3))
+    # logging.info(json.dumps(containers, indent=3))
 
     # run through registry contents
     for registry_result in registry_results:
@@ -143,13 +143,14 @@ def merge_container_results(registry_results):
 
             # TODO: REVISIT AFTE #186
             name = name.split("_")[0]
-            
+
             if name in containers:
                 registry_result['container'] = containers[name]
             else:
                 registry_result['container'] = {"status": "not exist"}
-        
+
     return registry_results
+
 
 #############
 @router.get("/")
@@ -158,187 +159,147 @@ def get_agents():
     registry_results = list(registry_results.values())
     merged_results = merge_container_results(registry_results)
     return JSONResponse(content={"results": merged_results})
-    
-@router.get("/agent/{agent_name}")
-def get_agent(registry_name, agent_name):
-    if registry_name == agent_registry_id:
-        result = agent_registry.get_agent(agent_name)
-        merged_results = merge_container_results([result])
-        return JSONResponse(content={"result": merged_results[0]})
-    else:
-        return JSONResponse(content={"message": "Error: Unknown Registry"})
 
-@router.post("/agent/{agent_name}")
-def add_agent(registry_name, agent_name, agent: Agent):
-    if registry_name == agent_registry_id:
-        # TODO: properties
-        agent_registry.add_agent(agent_name, description=agent.description, properties={}, rebuild=True)
-        # save
-        agent_registry.dump("/blue_data/config/" + agent_registry_id + ".agents.json")
-        return JSONResponse(content={"message": "Success"})
-    else:
-        return JSONResponse(content={"message": "Error: Unknown Registry"})
 
-@router.put("/agent/{agent_name}")
-def update_agent(registry_name, agent_name, agent: Agent):
-    if registry_name == agent_registry_id:
-        # TODO: properties
-        agent_registry.update_agent(agent_name, description=agent.description, properties={}, rebuild=True)
-        # save
-        agent_registry.dump("/blue_data/config/" + agent_registry_id + ".agents.json")
-        return JSONResponse(content={"message": "Success"})
-    else:
-        return JSONResponse(content={"message": "Error: Unknown Registry"})
+@router.get("/{agent_name}")
+def get_agent(agent_name):
+    result = agent_registry.get_agent(agent_name)
+    merged_results = merge_container_results([result])
+    return JSONResponse(content={"result": merged_results[0]})
 
-@router.delete("/agent/{agent_name}")
-def delete_agent(registry_name, agent_name):
-    if registry_name == agent_registry_id:
-        agent_registry.remove_agent(agent_name, rebuild=True)
-        # save
-        agent_registry.dump("/blue_data/config/" + agent_registry_id + ".agents.json")
-        return JSONResponse(content={"message": "Success"})
-    else:
-        return JSONResponse(content={"message": "Error: Unknown Registry"})
+
+@router.post("/{agent_name}")
+def add_agent(agent_name, agent: Agent):
+    # TODO: properties
+    agent_registry.add_agent(agent_name, description=agent.description, properties={}, rebuild=True)
+    # save
+    agent_registry.dump("/blue_data/config/" + agent_registry_id + ".agents.json")
+    return JSONResponse(content={"message": "Success"})
+
+
+@router.put("/{agent_name}")
+def update_agent(agent_name, agent: Agent):
+    # TODO: properties
+    agent_registry.update_agent(agent_name, description=agent.description, properties={}, rebuild=True)
+    # save
+    agent_registry.dump("/blue_data/config/" + agent_registry_id + ".agents.json")
+    return JSONResponse(content={"message": "Success"})
+
+
+@router.delete("/{agent_name}")
+def delete_agent(agent_name):
+    agent_registry.remove_agent(agent_name, rebuild=True)
+    # save
+    agent_registry.dump("/blue_data/config/" + agent_registry_id + ".agents.json")
+    return JSONResponse(content={"message": "Success"})
+
 
 ##### properties
-@router.get("/agent/{agent_name}/properties")
-def get_agent_properties(registry_name, agent_name):
-    if registry_name == agent_registry_id:
-        results = agent_registry.get_agent_properties(agent_name)
-        return JSONResponse(content={"results": results})
-    else:
-        return JSONResponse(content={"message": "Error: Unknown Registry"})
+@router.get("/{agent_name}/properties")
+def get_agent_properties(agent_name):
+    results = agent_registry.get_agent_properties(agent_name)
+    return JSONResponse(content={"results": results})
 
-@router.get("/agent/{agent_name}/property/{property_name}")
-def get_agent_property(registry_name, agent_name, property_name):
-    if registry_name == agent_registry_id:
-        result = agent_registry.get_agent_property(agent_name, property_name)
-        return JSONResponse(content={"result": result})
-    else:
-        return JSONResponse(content={"message": "Error: Unknown Registry"})
 
-@router.post("/agent/{agent_name}/property/{property_name}")
-def set_agent_property(registry_name, agent_name, property_name, property: JSONStructure):
-    if registry_name == agent_registry_id:
-        agent_registry.set_agent_property(agent_name, property_name, property, rebuild=True)
-        # save
-        agent_registry.dump("/blue_data/config/" + agent_registry_id + ".agents.json")
-        return JSONResponse(content={"message": "Success"})
-    else:
-        return JSONResponse(content={"message": "Error: Unknown Registry"})
+@router.get("/{agent_name}/property/{property_name}")
+def get_agent_property(agent_name, property_name):
+    result = agent_registry.get_agent_property(agent_name, property_name)
+    return JSONResponse(content={"result": result})
 
-@router.delete("/agent/{agent_name}/property/{property_name}")
-def delete_agent_property(registry_name, agent_name, property_name):
-    if registry_name == agent_registry_id:
-        agent_registry.delete_agent_property(agent_name, property_name, rebuild=True)
-        # save
-        agent_registry.dump("/blue_data/config/" + agent_registry_id + ".agents.json")
-        return JSONResponse(content={"message": "Success"})
-    else:
-        return JSONResponse(content={"message": "Error: Unknown Registry"})
+
+@router.post("/{agent_name}/property/{property_name}")
+def set_agent_property(agent_name, property_name, property: JSONStructure):
+    agent_registry.set_agent_property(agent_name, property_name, property, rebuild=True)
+    # save
+    agent_registry.dump("/blue_data/config/" + agent_registry_id + ".agents.json")
+    return JSONResponse(content={"message": "Success"})
+
+
+@router.delete("/{agent_name}/property/{property_name}")
+def delete_agent_property(agent_name, property_name):
+    agent_registry.delete_agent_property(agent_name, property_name, rebuild=True)
+    # save
+    agent_registry.dump("/blue_data/config/" + agent_registry_id + ".agents.json")
+    return JSONResponse(content={"message": "Success"})
+
 
 ##### inputs
-@router.get("/agent/{agent_name}/inputs")
-def get_agent_inputs(registry_name, agent_name):
-    if registry_name == agent_registry_id:
-        results = agent_registry.get_agent_inputs(agent_name)
-        return JSONResponse(content={"results": results})
-    else:
-        return JSONResponse(content={"message": "Error: Unknown Registry"})
+@router.get("/{agent_name}/inputs")
+def get_agent_inputs(agent_name):
+    results = agent_registry.get_agent_inputs(agent_name)
+    return JSONResponse(content={"results": results})
 
-@router.get("/agent/{agent_name}/input/{param_name}")
-def get_agent_input(registry_name, agent_name, param_name):
-    if registry_name == agent_registry_id:
-        result = agent_registry.get_agent_input(agent_name, param_name)
-        return JSONResponse(content={"result": result})
-    else:
-        return JSONResponse(content={"message": "Error: Unknown Registry"})
 
-@router.post("/agent/{agent_name}/input/{param_name}")
-def add_agent_input(registry_name, agent_name, param_name, parameter: Parameter):
-    if registry_name == agent_registry_id:
-        # TODO: properties
-        agent_registry.add_agent_input(agent_name, param_name, description=parameter.description, properties={},rebuild=True)
-        # save
-        agent_registry.dump("/blue_data/config/" + agent_registry_id + ".agents.json")
-        return JSONResponse(content={"message": "Success"})
-    else:
-        return JSONResponse(content={"message": "Error: Unknown Registry"})
+@router.get("/{agent_name}/input/{param_name}")
+def get_agent_input(agent_name, param_name):
+    result = agent_registry.get_agent_input(agent_name, param_name)
+    return JSONResponse(content={"result": result})
 
-@router.put("/agent/{agent_name}/input/{param_name}")
-def update_agent_input(registry_name, agent_name, param_name, parameter: Parameter):
-    if registry_name == agent_registry_id:
-        # TODO: properties
-        agent_registry.update_agent_input(agent_name, param_name, description=parameter.description, properties={},rebuild=True)
-        # save
-        agent_registry.dump("/blue_data/config/" + agent_registry_id + ".agents.json")
-        return JSONResponse(content={"message": "Success"})
-    else:
-        return JSONResponse(content={"message": "Error: Unknown Registry"})
 
-@router.delete("/agent/{agent_name}/input/{param_name}")
-def delete_agent_input(registry_name, agent_name, param_name):
-    if registry_name == agent_registry_id:
-        agent_registry.del_agent_input(agent_name, param_name, rebuild=True)
-        # save
-        agent_registry.dump("/blue_data/config/" + agent_registry_id + ".agents.json")
-        return JSONResponse(content={"message": "Success"})
-    else:
-        return JSONResponse(content={"message": "Error: Unknown Registry"})
+@router.post("/{agent_name}/input/{param_name}")
+def add_agent_input(agent_name, param_name, parameter: Parameter):
+    # TODO: properties
+    agent_registry.add_agent_input(agent_name, param_name, description=parameter.description, properties={}, rebuild=True)
+    # save
+    agent_registry.dump("/blue_data/config/" + agent_registry_id + ".agents.json")
+    return JSONResponse(content={"message": "Success"})
+
+
+@router.put("/{agent_name}/input/{param_name}")
+def update_agent_input(agent_name, param_name, parameter: Parameter):
+    # TODO: properties
+    agent_registry.update_agent_input(agent_name, param_name, description=parameter.description, properties={}, rebuild=True)
+    # save
+    agent_registry.dump("/blue_data/config/" + agent_registry_id + ".agents.json")
+    return JSONResponse(content={"message": "Success"})
+
+
+@router.delete("/{agent_name}/input/{param_name}")
+def delete_agent_input(agent_name, param_name):
+    agent_registry.del_agent_input(agent_name, param_name, rebuild=True)
+    # save
+    agent_registry.dump("/blue_data/config/" + agent_registry_id + ".agents.json")
+    return JSONResponse(content={"message": "Success"})
+
 
 ##### outputs
-@router.get("/agent/{agent_name}/outputs")
-def get_agent_outputs(registry_name, agent_name):
-    if registry_name == agent_registry_id:
-        results = agent_registry.get_agent_outputs(agent_name)
-        return JSONResponse(content={"results": results})
-    else:
-        return JSONResponse(content={"message": "Error: Unknown Registry"})
+@router.get("/{agent_name}/outputs")
+def get_agent_outputs(agent_name):
+    results = agent_registry.get_agent_outputs(agent_name)
+    return JSONResponse(content={"results": results})
 
-@router.get("/agent/{agent_name}/output/{param_name}")
-def get_agent_output(registry_name, agent_name, param_name):
-    if registry_name == agent_registry_id:
-        result = agent_registry.get_agent_output(agent_name, param_name)
-        return JSONResponse(content={"result": result})
-    else:
-        return JSONResponse(content={"message": "Error: Unknown Registry"})
 
-@router.post("/agent/{agent_name}/output/{param_name}")
-def add_agent_output(registry_name, agent_name, param_name, parameter: Parameter):
-    if registry_name == agent_registry_id:
-        # TODO: properties
-        agent_registry.add_agent_output(agent_name, param_name, description=parameter.description, properties={}, rebuild=True)
-        return JSONResponse(content={"message": "Success"})
-    else:
-        return JSONResponse(content={"message": "Error: Unknown Registry"})
+@router.get("/{agent_name}/output/{param_name}")
+def get_agent_output(agent_name, param_name):
+    result = agent_registry.get_agent_output(agent_name, param_name)
+    return JSONResponse(content={"result": result})
 
-@router.put("/agent/{agent_name}/output/{param_name}")
-def update_agent_output(registry_name, agent_name, param_name, parameter: Parameter):
-    if registry_name == agent_registry_id:
-        # TODO: properties
-        agent_registry.update_agent_output(agent_name, param_name, description=parameter.description, properties={}, rebuild=True)
-        # save
-        agent_registry.dump("/blue_data/config/" + agent_registry_id + ".agents.json")
-        return JSONResponse(content={"message": "Success"})
-    else:
-        return JSONResponse(content={"message": "Error: Unknown Registry"})
 
-@router.delete("/agent/{agent_name}/output/{param_name}")
-def delete_agent_output(registry_name, agent_name, param_name):
-    if registry_name == agent_registry_id:
-        agent_registry.del_agent_output(agent_name, param_name, rebuild=True)
-        # save
-        agent_registry.dump("/blue_data/config/" + agent_registry_id + ".agents.json")
-        return JSONResponse(content={"message": "Success"})
-    else:
-        return JSONResponse(content={"message": "Error: Unknown Registry"})
+@router.post("/{agent_name}/output/{param_name}")
+def add_agent_output(agent_name, param_name, parameter: Parameter):
+    # TODO: properties
+    agent_registry.add_agent_output(agent_name, param_name, description=parameter.description, properties={}, rebuild=True)
+    return JSONResponse(content={"message": "Success"})
+
+
+@router.put("/{agent_name}/output/{param_name}")
+def update_agent_output(agent_name, param_name, parameter: Parameter):
+    # TODO: properties
+    agent_registry.update_agent_output(agent_name, param_name, description=parameter.description, properties={}, rebuild=True)
+    # save
+    agent_registry.dump("/blue_data/config/" + agent_registry_id + ".agents.json")
+    return JSONResponse(content={"message": "Success"})
+
+
+@router.delete("/{agent_name}/output/{param_name}")
+def delete_agent_output(agent_name, param_name):
+    agent_registry.del_agent_output(agent_name, param_name, rebuild=True)
+    # save
+    agent_registry.dump("/blue_data/config/" + agent_registry_id + ".agents.json")
+    return JSONResponse(content={"message": "Success"})
+
 
 @router.get("/search")
-def search_agents(registry_name, keywords, approximate: bool = False, hybrid: bool = False, type: str = None, scope: str = None, page: int = 0, page_size: int = 10):
-    if registry_name == agent_registry_id:
-        results = agent_registry.search_records(keywords, type=type, scope=scope, approximate=approximate, hybrid=hybrid, page=page, page_size=page_size)
-        return JSONResponse(content={"results": results})
-    else:
-        return JSONResponse(content={"message": "Error: Unknown Registry"})
-    
-
+def search_agents(keywords, approximate: bool = False, hybrid: bool = False, type: str = None, scope: str = None, page: int = 0, page_size: int = 10):
+    results = agent_registry.search_records(keywords, type=type, scope=scope, approximate=approximate, hybrid=hybrid, page=page, page_size=page_size)
+    return JSONResponse(content={"results": results})

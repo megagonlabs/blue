@@ -48,16 +48,17 @@ export default function RegistryEntity() {
         const crumb0 = _.get(crumbs, 0, {});
         _.set(crumbs, 0, { ...crumb0, href: crumb0.href + type });
         setBreadcrumbs(crumbs);
+        console.log(type);
     }, [router]);
     const ENTITY_TYPE_TO_COMPONENT = {
         "/agents": <AgentEntity />,
         "/agents/input": <InputEntity />,
         "/agents/output": <OutputEntity />,
-        "/source": <SourceEntity />,
-        "/source/database": <DatabaseEntity />,
-        "/source/database/collection": <CollectionEntity />,
-        "/source/database/collection/entity": <EntityEntity />,
-        "/source/database/collection/relation": <RelationEntity />,
+        "/data": <SourceEntity />,
+        "/data/database": <DatabaseEntity />,
+        "/data/database/collection": <CollectionEntity />,
+        "/data/database/collection/entity": <EntityEntity />,
+        "/data/database/collection/relation": <RelationEntity />,
     };
     return (
         <div style={{ height: "100%", overflowY: "auto" }}>
