@@ -14,6 +14,8 @@ package = {
         "click==8.1.7",
         "tabulate==0.9.0",
         "requests==2.31.0",
+        "websockets==11.0.3",
+        "nest_asyncio",
         "pandas"
     ],
     "python_requires": ">=3.9",  
