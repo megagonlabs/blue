@@ -48,7 +48,7 @@ export default function AgentEntity() {
             new Promise((resolve, reject) => {
                 axios
                     .put(
-                        `/agents/${appState.agent.registryName}/agent/${entity.name}`,
+                        `/registry/${appState.agent.registryName}/agents/${entity.name}`,
                         {
                             name: entity.name,
                             description: editEntity.description,
