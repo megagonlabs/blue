@@ -36,7 +36,7 @@ export default function EntityMain({
     const deployAgent = () => {
         if (!router.isReady) return;
         axios
-            .post(`/platform/agents/agent/${entity.name}`)
+            .post(`/containers/agents/agent/${entity.name}`)
             .then(() => {
                 AppToaster.show({
                     intent: Intent.SUCCESS,

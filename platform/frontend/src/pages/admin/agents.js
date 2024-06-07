@@ -30,7 +30,7 @@ export default function Agents() {
 
     const fetchContainerList = () => {
         setLoading(true);
-        axios.get("/platform/agents").then((response) => {
+        axios.get("/containers/agents").then((response) => {
             setData(_.get(response, "data.results", []));
             setLoading(false);
         });
