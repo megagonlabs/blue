@@ -40,11 +40,12 @@ export default function NewEntity({ type }) {
     };
     useEffect(() => {
         if (!router.isReady) return;
-        if (!_.includes(router.asPath, "/default/new?entity=")) return;
-        let params = [..._.get(router, "query.params", [])];
-        params.splice(params.length - 1, 1);
+        const entity = _.cloneDeep(_.get(router, "query.entity", null));
+        if (_.isEmpty(entity)) {
+            return;
+        }
         axios
-            .get(`/${params.join("/")}/${type}/${router.query.entity}`)
+            .get(`/registry/${appState[type].registryName}/agents/${entity}`)
             .then((response) => {
                 let result = _.get(response, "data.result", {});
                 _.set(result, "name", "");

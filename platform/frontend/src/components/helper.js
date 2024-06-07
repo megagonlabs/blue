@@ -3,7 +3,7 @@ const { faIcon } = require("@/components/icon");
 const { ProgressBar, Classes, Intent } = require("@blueprintjs/core");
 const classNames = require("classnames");
 const _ = require("lodash");
-const { AppToaster } = require("@/components/toaster");
+const { AppToaster, ProgressToaster } = require("@/components/toaster");
 const renderProgress = (progress, requestError = false) => {
     return {
         icon: faIcon({ icon: faPenSwirl }),
@@ -43,7 +43,7 @@ module.exports = {
                         new Promise((resolve, reject) => {
                             axios
                                 .delete(
-                                    `/agents/${appState.agent.registryName}/agent/${entity.name}/property/${path}`
+                                    `/registry/${appState.agent.registryName}/agents/${entity.name}/property/${path}`
                                 )
                                 .then(() => {
                                     resolve(true);
@@ -62,7 +62,7 @@ module.exports = {
                         new Promise((resolve, reject) => {
                             axios
                                 .post(
-                                    `/agents/${appState.agent.registryName}/agent/${entity.name}/property/${path}`,
+                                    `/registry/${appState.agent.registryName}/agents/${entity.name}/property/${path}`,
                                     editEntity.properties[path],
                                     {
                                         headers: {
@@ -91,7 +91,7 @@ module.exports = {
         (async () => {
             let progress = 0,
                 requestError = false;
-            const key = AppToaster.show(
+            const key = ProgressToaster.show(
                 renderProgress(_.isEmpty(tasks) ? 100 : progress)
             );
             const promises = tasks.map((task) => {
@@ -103,7 +103,7 @@ module.exports = {
                     })
                     .finally(() => {
                         progress += 100 / tasks.length;
-                        AppToaster.show(
+                        ProgressToaster.show(
                             renderProgress(progress, requestError),
                             key
                         );

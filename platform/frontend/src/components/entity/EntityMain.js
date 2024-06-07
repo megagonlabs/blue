@@ -50,12 +50,18 @@ export default function EntityMain({
                 });
             });
     };
+    const duplicateEntity = () => {
+        if (!router.isReady) return;
+        let params = _.cloneDeep(_.get(router, "query.pathParams", []));
+        params.pop();
+        router.push(`/${params.join("/")}/new?entity=${entity.name}`);
+    };
     const deleteEntity = () => {
         if (!router.isReady) return;
         axios
             .delete(router.asPath)
             .then(() => {
-                let params = _.cloneDeep(_.get(router, "query.params", []));
+                let params = _.cloneDeep(_.get(router, "query.pathParams", []));
                 if (["agents", "data"].includes(_.nth(params, -2))) {
                     // keep /agents, /data
                     params.pop();
@@ -160,27 +166,7 @@ export default function EntityMain({
                                                     icon: faClone,
                                                 })}
                                                 text="Duplicate"
-                                                onClick={() => {
-                                                    if (!router.isReady) return;
-                                                    let params = _.cloneDeep(
-                                                        _.get(
-                                                            router,
-                                                            "query.params",
-                                                            []
-                                                        )
-                                                    );
-                                                    params.splice(
-                                                        params.length - 2,
-                                                        2
-                                                    );
-                                                    router.push(
-                                                        `/${params.join(
-                                                            "/"
-                                                        )}/new?entity=${
-                                                            entity.name
-                                                        }`
-                                                    );
-                                                }}
+                                                onClick={duplicateEntity}
                                             />
                                         ) : null}
                                         {_.isEqual(entity.type, "agent") ? (

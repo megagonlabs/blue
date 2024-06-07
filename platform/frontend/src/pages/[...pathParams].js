@@ -17,15 +17,15 @@ export default function RegistryEntity() {
     const [entityType, setEntityType] = useState(null);
     useEffect(() => {
         if (_.isEmpty(router.query)) return;
-        let { params } = router.query;
+        let { pathParams } = router.query;
         let crumbs = [],
             basePath = "",
             key = null,
             value = null,
             type = "";
-        for (var i = 0; i < params.length; i += 2) {
-            key = params[i];
-            value = params[i + 1];
+        for (var i = 0; i < pathParams.length; i += 2) {
+            key = pathParams[i];
+            value = pathParams[i + 1];
             basePath += `/${key}/${value}`;
             if (i > 0) {
                 type += `/${key}`;
@@ -37,7 +37,7 @@ export default function RegistryEntity() {
                     ? SEARCH_LIST_TYPE_LOOKUP[key].icon
                     : null,
                 start: _.isEqual(i, 0),
-                end: i + 2 >= params.length,
+                end: i + 2 >= pathParams.length,
             });
         }
         if (_.isEqual(type, "/new")) {
@@ -48,7 +48,6 @@ export default function RegistryEntity() {
         const crumb0 = _.get(crumbs, 0, {});
         _.set(crumbs, 0, { ...crumb0, href: crumb0.href + type });
         setBreadcrumbs(crumbs);
-        console.log(type);
     }, [router]);
     const ENTITY_TYPE_TO_COMPONENT = {
         "/agents": <AgentEntity />,
