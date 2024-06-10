@@ -189,6 +189,9 @@ class Session:
             nx=True,
         )
 
+        # add created
+        self.set_metadata("created_date", int(time.time()))
+
     def _get_metadata_namespace(self):
         return self.cid + ":METADATA"
 
