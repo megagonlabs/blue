@@ -88,12 +88,23 @@ class Platform:
             self.properties[p] = properties[p]
 
     ###### SESSION
-    def get_sessions(self):
+    def get_session_sids(self):
         keys = self.connection.keys(pattern=self.cid + ":SESSION:*:DATA")
+        keys = "\n".join(keys)
         result = []
-        for key in keys:
-            session_cid = key[:-5]
-            session_sid = session_cid[len(self.sid)+1:]
+
+        # further apply re to match
+        regex = r"SESSION:[^:]*:DATA"
+
+        matches = re.finditer(regex, keys)
+        session_sids = [match.group()[:-5] for match in matches]
+        return session_sids
+    
+    def get_sessions(self):
+        session_sids = self.get_session_sids()
+
+        result = []
+        for session_sid in session_sids:
             session = self.get_session(session_sid)
             metadata = session.get_metadata()
             result.append(
@@ -106,9 +117,9 @@ class Platform:
         return result
 
     def get_session(self, session_sid):
-        session_keys = self.connection.keys(pattern=self.cid + ":SESSION:*:DATA")
-        session_cid_data = self.cid + ":" + session_sid + ":" + "DATA"
-        if session_cid_data in set(session_keys):
+        session_sids = self.get_session_sids()
+
+        if session_sid in set(session_sids):
             return Session(sid=session_sid, prefix=self.cid, properties=self.properties)
         else:
             return None

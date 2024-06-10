@@ -272,7 +272,7 @@ class Session:
 
     ## session stream data
     def _get_stream_data_namespace(self, stream):
-        return stream.cid + ":DATA"
+        return stream + ":DATA"
     
     def _init_stream_data_namespace(self, stream):
         # create namespaces for stream-specific data
