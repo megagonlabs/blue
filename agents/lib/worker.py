@@ -245,8 +245,8 @@ class Worker:
         # start a consumer to listen to stream
         if input_stream:
             # create data namespace to share data on stream
-            if self.session:
-                self.session._init_stream_agent_data_namespace(input_stream, self.agent)
+            # if self.session:
+            #     self.session._init_stream_agent_data_namespace(input_stream, self.agent)
 
             consumer = Consumer(
                 input_stream,
