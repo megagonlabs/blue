@@ -51,10 +51,10 @@ logging.basicConfig(format="%(asctime)s [%(levelname)s] [%(process)d:%(threadNam
 # next, agent a's result is then passed on to agents b and c,
 # and lastly agent d will take results from b and c to produce it's results
 #
-class PlannerAgent(Agent):
+class CoordinatorAgent(Agent):
     def __init__(self, **kwargs):
         if 'name' not in kwargs:
-            kwargs['name'] = "PLANNER"
+            kwargs['name'] = "COORDINATOR"
         super().__init__(**kwargs)
 
         self.initialize_plan()
@@ -311,11 +311,11 @@ class AgentB(Agent):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--name', default="PLANNER", type=str)
+    parser.add_argument('--name', default="COORDINATOR", type=str)
     parser.add_argument('--session', type=str)
     parser.add_argument('--properties', type=str)
     parser.add_argument('--loglevel', default="INFO", type=str)
-    parser.add_argument('--serve', type=str, default='USER')
+    parser.add_argument('--serve', type=str, default='COORDINATOR')
     parser.add_argument('--platform', type=str, default='default')
     parser.add_argument('--registry', type=str, default='default')
  
@@ -334,7 +334,7 @@ if __name__ == "__main__":
     if args.serve:
         platform = args.platform
         
-        af = AgentFactory(agent_class=PlannerAgent, agent_name=args.serve, agent_registry=args.registry, platform=platform, properties=properties)
+        af = AgentFactory(agent_class=CoordinatorAgent, agent_name=args.serve, agent_registry=args.registry, platform=platform, properties=properties)
         af.wait()
     else:
         a = None
@@ -343,10 +343,10 @@ if __name__ == "__main__":
         if args.session:
             # join an existing session
             session = Session(args.session)
-            a = PlannerAgent(name=args.name, session=session, properties=properties)
+            a = CoordinatorAgent(name=args.name, session=session, properties=properties)
         else:
             # create a new session
-            a = PlannerAgent(name=args.name, properties=properties)
+            a = CoordinatorAgent(name=args.name, properties=properties)
             session = a.start_session()
 
         # wait for session
