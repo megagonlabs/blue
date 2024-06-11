@@ -137,7 +137,7 @@ def merge_container_results(registry_results):
 
     # run through registry contents
     for registry_result in registry_results:
-        t = registry_result['type']
+        t = registry_result.get('type', None)
         if t == 'agent':
             name = registry_result['name']
 

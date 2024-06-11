@@ -53,6 +53,7 @@ export default function Breadcrumbs({ breadcrumbs }) {
                                     return (
                                         <Link
                                             href={href}
+                                            className="no-link-decoration"
                                             key={`registry-breadcrumb-overflow-menu-item-${index}`}
                                         >
                                             <MenuItem

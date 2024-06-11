@@ -42,10 +42,8 @@ export default function SearchList({ type }) {
                             <div style={style}>
                                 <Link
                                     href={link}
-                                    style={{
-                                        textDecoration: "none",
-                                        color: "initial",
-                                    }}
+                                    className="no-link-decoration"
+                                    style={{ color: "initial" }}
                                 >
                                     <Card
                                         style={{
