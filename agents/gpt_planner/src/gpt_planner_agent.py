@@ -11,7 +11,7 @@ sys.path.append('./lib/platform/')
 sys.path.append('./lib/agent_registry')
 sys.path.append('./lib/utils/')
 
-###### 
+######
 import time
 import argparse
 import logging
@@ -24,7 +24,7 @@ import re
 import csv
 import json
 from utils import json_utils
-import copy 
+import copy
 
 import itertools
 from tqdm import tqdm
@@ -47,39 +47,35 @@ logging.getLogger().setLevel(logging.INFO)
 logging.basicConfig(format="%(asctime)s [%(levelname)s] [%(process)d:%(threadName)s:%(thread)d](%(filename)s:%(lineno)d) %(name)s -  %(message)s", level=logging.ERROR, datefmt="%Y-%m-%d %H:%M:%S")
 
 
-
 ## --properties '{"openai.api":"ChatCompletion","openai.model":"gpt-4","output_path":"$.choices[0].message.content","listens":{"includes":["USER"],"excludes":[]},"tags": ["TRIPLE"], "input_json":"[{\"role\":\"user\"}]","input_context":"$[0]","input_context_field":"content","input_field":"messages","input_template":"Examine the text below and identify a task plan  thatcan be fulfilled by various agents. Specify plan in JSON format, where each agent has attributes of name, description, input and output parameters with names and descriptions:\n{input}",  "openai.temperature":0,"openai.max_tokens":256,"openai.top_p":1,"openai.frequency_penalty":0,"openai.presence_penalty":0}'
 plannerGPT_properties = {
-    "openai.api":"ChatCompletion",
-    "openai.model":"gpt-4",
-    "output_path":"$.choices[0].message.content",
-    "input_json":"[{\"role\":\"user\"}]",
-    "input_context":"$[0]",
-    "input_context_field":"content",
-    "input_field":"messages",
+    "openai.api": "ChatCompletion",
+    "openai.model": "gpt-4",
+    "output_path": "$.choices[0].message.content",
+    "input_json": "[{\"role\":\"user\"}]",
+    "input_context": "$[0]",
+    "input_context_field": "content",
+    "input_field": "messages",
     "input_template": """
 Examine the text below and identify a task plan  thatcan be fulfilled by various agents. Specify plan in JSON format, where each agent has attributes of name, description, input and output parameters with names and descriptions:
 {input}
 """,
-    "openai.temperature":0,
-    "openai.max_tokens":1024,
-    "openai.top_p":1,
-    "openai.frequency_penalty":0,
-    "openai.presence_penalty":0,
+    "openai.temperature": 0,
+    "openai.max_tokens": 1024,
+    "openai.top_p": 1,
+    "openai.frequency_penalty": 0,
+    "openai.presence_penalty": 0,
     "registry.name": "default",
-    "listens": {
-        "includes": ["USER"],
-        "excludes": []
-    },
+    "listens": {"includes": ["USER"], "excludes": []},
     "tags": ["PLAN"],
 }
+
 
 class GPTPlannerAgent(OpenAIAgent):
     def __init__(self, **kwargs):
         if 'name' not in kwargs:
             kwargs['name'] = "GPTPLANNER"
         super().__init__(**kwargs)
-
 
     def _initialize(self, properties=None):
         super()._initialize(properties=properties)
@@ -104,7 +100,7 @@ class GPTPlannerAgent(OpenAIAgent):
         # get gpt plan as json
         gpt_plan = json.loads(output_data)
         logging.info('GPT Initial Plan:')
-        logging.info(json.dumps(gpt_plan, indent = 4))
+        logging.info(json.dumps(gpt_plan, indent=4))
         logging.info('========================================================================================================')
 
         # extract, standardize json plan
@@ -113,7 +109,7 @@ class GPTPlannerAgent(OpenAIAgent):
         # search, find related agents
         searched_plan = self.search_plan(extracted_plan)
         logging.info('Plan Plan Search Results:')
-        logging.info(json.dumps(searched_plan, indent = 4))
+        logging.info(json.dumps(searched_plan, indent=4))
         logging.info('========================================================================================================')
 
         # rank matched agents, return plan
@@ -125,12 +121,12 @@ class GPTPlannerAgent(OpenAIAgent):
         # finalize plan
         final_plan = self.finalize_plan(ranked_plan)
         logging.info('Final Plan:')
-        logging.info(json.dumps(final_plan, indent = 4))
+        logging.info(json.dumps(final_plan, indent=4))
 
         human_readable_plan = self.present_plan(final_plan)
-        
+
         return human_readable_plan
-            
+
     def present_plan(self, plan):
         plan_text = "<b>PROPOSED PLAN</b>\n"
         plan_text = plan_text + "<i>Review the proposed plan below and if necessary make appropriate adjustments.</i><p/>"
@@ -143,7 +139,7 @@ class GPTPlannerAgent(OpenAIAgent):
             if match:
                 match_name = match['name']
                 match_description = match['description']
-                select_agent =  "<select><option value=\"" + match_name + "\">" + match_name + "</option></select>"
+                select_agent = "<select><option value=\"" + match_name + "\">" + match_name + "</option></select>"
                 plan_text = plan_text + select_agent + " <i>" + match_description + "</i>\n"
                 match_contents = match['contents'].values()
                 for match_content in match_contents:
@@ -151,16 +147,14 @@ class GPTPlannerAgent(OpenAIAgent):
                     param_type = match_content['type']
                     param_description = match_content['description']
                     param_data = match_content['matches'][0]['description']
-                    select_param =  "<select><option value=\"" + param_name + "\">" + param_name + "</option></select>"
-        
+                    select_param = "<select><option value=\"" + param_name + "\">" + param_name + "</option></select>"
+
                     # plan_text = plan_text + param_type.upper() + " " + param_name + ":" + param_description + " [" + param_data + "]" + "\n"
                     plan_text = plan_text + param_type.upper() + " " + select_param + " " + " [" + param_data + " ]" + "\n"
             else:
                 plan_text = plan_text + "No Matching Agent Found"
         plan_text = plan_text + "<p><button type=\"button\">Execute</button></p>"
         return plan_text
-           
-
 
     def finalize_plan(self, plan):
         agents = plan['agent'].values()
@@ -171,14 +165,14 @@ class GPTPlannerAgent(OpenAIAgent):
             # delete matches, filtered matches
             del agent['matches']
             del agent['filtered_matches']
-            
+
             # assign match to top matched agent
             top_match = {}
             if 'top_match' in agent:
                 top_match = agent['top_match']
                 del agent['top_match']
 
-                 # copy metadata
+                # copy metadata
                 match_info = top_match['info']
                 for key in match_info:
                     top_match[key] = match_info[key]
@@ -186,11 +180,11 @@ class GPTPlannerAgent(OpenAIAgent):
 
             # assing top match as the match
             agent['match'] = top_match
-            
+
             # clean up input/output parameters
             matched_agent_scope = ''
             if len(top_match) > 0:
-                matched_agent_scope = '/'+top_match['name']
+                matched_agent_scope = '/' + top_match['name']
 
             for ii in inputs:
                 input = inputs[ii]
@@ -199,7 +193,7 @@ class GPTPlannerAgent(OpenAIAgent):
                 for input_match in input_matches:
                     if input_match['scope'] == matched_agent_scope:
                         filtered_input_matches.append(input_match)
-                input['matches'] =  filtered_input_matches
+                input['matches'] = filtered_input_matches
             for oi in outputs:
                 output = outputs[oi]
                 output_matches = output['matches']
@@ -207,7 +201,7 @@ class GPTPlannerAgent(OpenAIAgent):
                 for output_match in output_matches:
                     if output_match['scope'] == matched_agent_scope:
                         filtered_output_matches.append(output_match)
-                output['matches'] =  filtered_output_matches
+                output['matches'] = filtered_output_matches
         return plan
 
     def rank_plan(self, plan):
@@ -221,9 +215,9 @@ class GPTPlannerAgent(OpenAIAgent):
                 if 'name' in agent_dict:
                     continue
                 agent_info = self.registry.get_agent(name)
-                agent_dict[name] = agent_info 
+                agent_dict[name] = agent_info
         ### rank each agent in the plan by score of agents, inputs, outputs
-        # verify input/outputs 
+        # verify input/outputs
         for agent in agents:
             matches = agent['matches']
             inputs = agent['input']
@@ -253,7 +247,7 @@ class GPTPlannerAgent(OpenAIAgent):
                     if len(inputs) != len(agent_inputs):
                         continue
                     if len(outputs) != len(agent_outputs):
-                        continue 
+                        continue
                     # check agent has a matching parameter in search results for each input in planned agent
                     all_matched = True
                     for ii in inputs:
@@ -267,7 +261,7 @@ class GPTPlannerAgent(OpenAIAgent):
                                 del input_copy['matches']
                                 input_copy['score'] = input_match['score']
                                 contents[input_match['name']]['matches'].append(input_copy)
-                                matched = True 
+                                matched = True
                         if not matched:
                             all_matched = False
                             break
@@ -287,7 +281,7 @@ class GPTPlannerAgent(OpenAIAgent):
                                 del output_copy['matches']
                                 output_copy['score'] = output_match['score']
                                 contents[output_match['name']]['matches'].append(output_copy)
-                                matched = True 
+                                matched = True
                         if not matched:
                             all_matched = False
                             break
@@ -302,7 +296,7 @@ class GPTPlannerAgent(OpenAIAgent):
                         if len(content['matches']) == 0:
                             all_matched = False
                     if not all_matched:
-                        continue 
+                        continue
 
                     # Determine a greedy mapping between planned agent parameters and registry agent parameters
                     mappings = {}
@@ -313,18 +307,18 @@ class GPTPlannerAgent(OpenAIAgent):
                         for content_match in content_matches:
                             target = content_match['name']
                             score = content_match['score']
-                            mapping = { 'source': source, 'target': target, 'score': score}
+                            mapping = {'source': source, 'target': target, 'score': score}
 
                             source_mappings = {}
                             if source in mappings:
                                 source_mappings = mappings[source]
                             else:
-                                mappings[source] = source_mappings 
+                                mappings[source] = source_mappings
 
-                            source_mappings[target] = mapping 
+                            source_mappings[target] = mapping
 
                     # logging.info(mappings)
-            
+
                     solved_mappings = self.greedy_search(mappings)
                     # logging.info(solved_mappings)
 
@@ -342,12 +336,12 @@ class GPTPlannerAgent(OpenAIAgent):
                         content['matches'] = solved_matches
 
                     # logging.info(contents)
-                    # compute total score 
+                    # compute total score
                     total_score = float(match['score'])
-                    
+
                     for pi in contents:
                         content = contents[pi]
-                        # After optimization only one match left 
+                        # After optimization only one match left
                         total_score = total_score * float(content['matches'][0]['score'])
                     match['total_score'] = total_score
                 # add to filtered matches
@@ -375,14 +369,14 @@ class GPTPlannerAgent(OpenAIAgent):
 
         # search
         optimal_mappings = self._greedy_search(mappings, mappings_list)
-        
-        return optimal_mappings 
+
+        return optimal_mappings
 
     def _greedy_search(self, mappings, sorted_mappings):
         # pick top from sorted mappings
         if len(sorted_mappings) == 0:
             return {}
-        
+
         top = sorted_mappings[0]
         top_source = top['source']
         top_target = top['target']
@@ -400,7 +394,7 @@ class GPTPlannerAgent(OpenAIAgent):
             if sorted_mapping['target'] == top_target:
                 continue
             filtered_sorted_mappings.append(sorted_mapping)
-        
+
         # solve recursively
         remaining_mappings = copy.deepcopy(mappings)
         del remaining_mappings[top_source]
@@ -408,7 +402,7 @@ class GPTPlannerAgent(OpenAIAgent):
 
         # add top to solved mappings
         solved_mappings[top_source] = top_source_mapping
-        
+
         # check if solution is valid
         valid = True
         for source in solved_mappings:
@@ -427,7 +421,7 @@ class GPTPlannerAgent(OpenAIAgent):
     def search_plan(self, plan):
         agents = plan['agent'].values()
         for agent in agents:
-            # search registry 
+            # search registry
             name = agent['name']
             description = agent['description']
 
@@ -447,7 +441,6 @@ class GPTPlannerAgent(OpenAIAgent):
                 matches = self.registry.search_records(keywords, type='input', approximate=True, page_size=15)
                 input['matches'] = matches
 
-
             # outputs
             outputs = agent['output'].values()
             for output in outputs:
@@ -465,7 +458,7 @@ class GPTPlannerAgent(OpenAIAgent):
         plan = {}
         self._extract_plan(data, plan)
         self._clean_plan(plan)
-        return(plan)
+        return plan
 
     def _extract_plan(self, data, plan, prefix=""):
         if type(data) == list:
@@ -503,18 +496,17 @@ class GPTPlannerAgent(OpenAIAgent):
                 if len(scope) > 0:
                     indices.append(spi)
         path = ''
-        for s,i in zip(scope, indices[:-1]):
-            path = path + str(s) + '['+ str(i)+ ']' + '.'
+        for s, i in zip(scope, indices[:-1]):
+            path = path + str(s) + '[' + str(i) + ']' + '.'
         if len(indices) > 0:
             path = path + indices[-1]
         return path
-          
-      
+
     def _set_plan_data(self, path, value, plan):
         p = path.split('.')
         scope = plan
         for pi in p[:-1]:
-            s = pi.replace(']','').replace('[','.').split('.')
+            s = pi.replace(']', '').replace('[', '.').split('.')
             ss = s[0]
             si = s[1]
             if ss in scope:
@@ -536,7 +528,7 @@ class GPTPlannerAgent(OpenAIAgent):
                     scope['_ndx2p'] = ndx2p
                 npp = str(p[:-1])
                 ndx = len(scope)
-                if npp in ndx2p: 
+                if npp in ndx2p:
                     ndx = ndx2p[npp]
                 else:
                     ndx2p[npp] = ndx
@@ -547,9 +539,8 @@ class GPTPlannerAgent(OpenAIAgent):
                 scope = scope[ndx]
                 if is_number is None:
                     scope['name'] = si
-        key = p[-1]   
+        key = p[-1]
         scope[key] = value
-       
 
     def _clean_plan(self, data):
         if type(data) == list:
@@ -573,11 +564,11 @@ if __name__ == "__main__":
     parser.add_argument('--serve', type=str)
     parser.add_argument('--platform', type=str, default='default')
     parser.add_argument('--registry', type=str, default='default')
- 
+
     args = parser.parse_args()
-   
+
     # set logging
-    logging.getLogger().setLevel(args.loglevel.upper()
+    logging.getLogger().setLevel(args.loglevel.upper())
 
     # set properties
     properties = {}
@@ -588,7 +579,7 @@ if __name__ == "__main__":
 
     if args.serve:
         platform = args.platform
-        
+
         af = AgentFactory(agent_class=GPTPlannerAgent, agent_name=args.serve, agent_registry=args.registry, platform=platform, properties=properties)
         af.wait()
     else:
