@@ -287,6 +287,8 @@ ws.send(
     )
 )
 time.sleep(2)
+sentence_string = sentence()
+words_string = words(random.randint(4, 11))
 ws.send(
     json.dumps(
         {
@@ -296,6 +298,25 @@ ws.send(
             "message": {
                 "type": "INTERACTION",
                 "content": {"type": "DONE", "form_id": 'local-test-client-form-1'},
+            },
+            "stream": stream_id,
+            "timestamp": int(time.time() * 1000),
+        }
+    )
+)
+time.sleep(1)
+ws.send(
+    json.dumps(
+        {
+            "type": "OBSERVER_SESSION_MESSAGE",
+            "session_id": session_id,
+            "connection_id": connection_id,
+            "message": {
+                "type": "JSON",
+                "content": {
+                    "type": "DONE",
+                    "form_id": (random.choice([sentence_string, words_string]) + " ") * 3,
+                },
             },
             "stream": stream_id,
             "timestamp": int(time.time() * 1000),

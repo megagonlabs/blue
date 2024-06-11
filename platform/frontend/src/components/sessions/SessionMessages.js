@@ -85,6 +85,13 @@ export default function SessionMessages() {
                     <div ref={rowRef}>
                         {_.isEqual(messageType, "STRING") ? (
                             messageContent
+                        ) : _.isEqual(messageType, "JSON") ? (
+                            <pre
+                                className="margin-0"
+                                style={{ overflowX: "auto" }}
+                            >
+                                {JSON.stringify(messageContent, null, 4)}
+                            </pre>
                         ) : _.isEqual(messageType, "INTERACTION") ? (
                             <InteractiveMessage
                                 stream={messages[index].stream}

@@ -58,12 +58,24 @@ class ObserverAgent(Agent):
         }
         if label == "EOS":
             # compute stream data
-            l = 0
-            if dtype == "json":
-                pass
-            else:
-                if worker:
-                    data = worker.get_data(stream)
+            if worker:
+                data = worker.get_data(stream)
+                if dtype == "json":
+                    json_data = ""
+                    if data is not None:
+                        json_data = json.loads("".join(data))
+                    if len(str_data.strip()) > 0:
+                        try:
+                            if "output" in properties and properties["output"] == "websocket":
+                                ws = create_connection(properties["websocket"])
+                                ws.send(json.dumps({**base_message, "message": {"type": "JSON", "content": json.loads(json_data)}}))
+                                time.sleep(1)
+                                ws.close()
+                            else:
+                                logging.info("{} [{}]: {}".format(stream, ",".join(tags), json_data))
+                        except Exception as exception:
+                            logging.error("{} [{}]: {}".format(stream, ",".join(tags), exception))
+                else:
                     str_data = ""
                     if data is not None:
                         str_data = str(" ".join(data))
@@ -82,11 +94,8 @@ class ObserverAgent(Agent):
             pass
         elif label == "DATA":
             # store data value
-            if dtype == "json":
-                logging.info("{} [{}]: {}".format(stream, ",".join(tags), value))
-            else:
-                if worker:
-                    worker.append_data(stream, str(value))
+            if worker:
+                worker.append_data(stream, str(value))
         elif label == "INTERACTION":
             # interactive messages
             if "output" in properties and properties["output"] == "websocket":
