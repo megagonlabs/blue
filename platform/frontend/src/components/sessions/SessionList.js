@@ -34,7 +34,7 @@ export default function SessionList() {
                     className={`session-list ${CARD_LIST_CLASS_NAMES}`}
                     style={{ borderRadius: 0, marginTop: 1 }}
                     height={height - 80}
-                    width={width - 1.65}
+                    width={width - 1}
                     itemCount={appState.session.sessionIds.length}
                     itemSize={82}
                 >

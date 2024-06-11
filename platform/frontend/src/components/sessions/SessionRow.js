@@ -21,6 +21,7 @@ import _ from "lodash";
 import { useContext, useEffect, useState } from "react";
 export default function SessionRow({ index, style }) {
     const { appState, appActions } = useContext(AppContext);
+    const sessionIdFocus = appState.session.sessionIdFocus;
     const sessionId = appState.session.sessionIds[index];
     const unreadSessionIds = appState.session.unreadSessionIds;
     const sessionMessages = appState.session.sessions[sessionId];
@@ -40,6 +41,11 @@ export default function SessionRow({ index, style }) {
             );
         }
     }, [sessionMessages]);
+    const handleSetSessionIdFocus = () => {
+        if (!_.isEqual(sessionId, sessionIdFocus)) {
+            appActions.session.setSessionIdFocus(sessionId);
+        }
+    };
     return (
         <Card
             interactive
@@ -50,7 +56,7 @@ export default function SessionRow({ index, style }) {
             onMouseLeave={() => {
                 setShowActions(false);
             }}
-            onClick={() => appActions.session.setSessionIdFocus(sessionId)}
+            onClick={handleSetSessionIdFocus}
         >
             <div style={{ width: 31 }}>
                 {unreadSessionIds.has(sessionId)
