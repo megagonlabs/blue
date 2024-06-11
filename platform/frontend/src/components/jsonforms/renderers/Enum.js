@@ -52,7 +52,9 @@ const EnumRenderer = ({
                         value = null;
                     }
                     handleChange(path, value);
-                    if (!_.isEqual(socketReadyState, 1)) return;
+                    if (!_.isEqual(socketReadyState, 1)) {
+                        return;
+                    }
                     setTimeout(() => {
                         const dataId = _.last(
                             _.split(_.get(uischema, "scope", ""), "/")

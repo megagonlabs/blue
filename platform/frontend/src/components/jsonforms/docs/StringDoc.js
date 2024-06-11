@@ -67,7 +67,7 @@ export default function StringDoc({ closePanel }) {
                         Control
                     </Tag>
                 </div>
-                <pre style={{ position: "relative" }}>
+                <pre style={{ position: "relative", overflow: "hidden" }}>
                     <div style={{ position: "absolute", right: 15, top: 13 }}>
                         <CopyDocJsonButton
                             docJson={docJson}

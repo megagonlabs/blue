@@ -20,7 +20,9 @@ const StringRenderer = ({ uischema, handleChange, path, data, required }) => {
     ) : null;
     const handleOnChange = (event) => {
         handleChange(path, event.target.value);
-        if (!_.isEqual(socketReadyState, 1)) return;
+        if (!_.isEqual(socketReadyState, 1)) {
+            return;
+        }
         setTimeout(() => {
             const dataId = _.last(_.split(_.get(uischema, "scope", ""), "/"));
             socket.send(

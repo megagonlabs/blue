@@ -7,7 +7,9 @@ const ButtonRenderer = ({ uischema }) => {
     const { socket } = useSocket();
     const socketReadyState = _.get(socket, "readyState", 3);
     const onClickHandler = () => {
-        if (!_.isEqual(socketReadyState, 1)) return;
+        if (!_.isEqual(socketReadyState, 1)) {
+            return;
+        }
         setTimeout(() => {
             const dataId = _.last(_.split(_.get(uischema, "scope", ""), "/"));
             socket.send(

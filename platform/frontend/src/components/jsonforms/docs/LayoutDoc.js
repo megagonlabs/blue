@@ -60,7 +60,7 @@ export default function LayoutDoc({ closePanel }) {
                 >
                     <H1 style={{ margin: 0 }}>Layout</H1>
                 </div>
-                <pre style={{ position: "relative" }}>
+                <pre style={{ position: "relative", overflow: "hidden" }}>
                     <div style={{ position: "absolute", right: 15, top: 13 }}>
                         <CopyDocJsonButton
                             docJson={docJsonVertical}
@@ -69,7 +69,7 @@ export default function LayoutDoc({ closePanel }) {
                     </div>
                     {docJsonVertical}
                 </pre>
-                <pre style={{ position: "relative" }}>
+                <pre style={{ position: "relative", overflow: "hidden" }}>
                     <div style={{ position: "absolute", right: 15, top: 13 }}>
                         <CopyDocJsonButton
                             docJson={docJSonHorizontal}

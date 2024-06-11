@@ -129,7 +129,9 @@ export default function NumberInput({
         // the same value. force the update to ensure a render triggers even if
         // this is the case.
         forceUpdate();
-        if (!_.isEqual(socketReadyState, 1)) return;
+        if (!_.isEqual(socketReadyState, 1)) {
+            return;
+        }
         setTimeout(() => {
             const dataId = _.last(_.split(_.get(uischema, "scope", ""), "/"));
             socket.send(
