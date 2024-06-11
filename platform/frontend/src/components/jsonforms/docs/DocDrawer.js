@@ -222,7 +222,8 @@ export default function DocDrawer({ isOpen, setIsDocOpen }) {
             size={"min(40%, 716.8px)"}
         >
             <PanelStack2
-                className="full-parent-height"
+                renderActivePanelOnly={false}
+                className="full-parent-height transition-none"
                 onOpen={addToPanelStack}
                 onClose={removeFromPanelStack}
                 showPanelHeader={false}

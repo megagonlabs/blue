@@ -63,3 +63,9 @@ table.entity-section-card-table tr td {
 .position-relative {
     position: relative;
 }
+.transition-none * {
+    -webkit-transition: none !important;
+    -moz-transition: none !important;
+    -o-transition: none !important;
+    transition: none !important;
+}
