@@ -86,10 +86,9 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--name', default="NEO4J", type=str)
     parser.add_argument('--session', type=str)
-    parser.add_argument('--input_stream', type=str)
     parser.add_argument('--properties', type=str)
     parser.add_argument('--loglevel', default="INFO", type=str)
-    parser.add_argument('--serve', type=str, default='NEO4J')
+    parser.add_argument('--serve', type=str)
     parser.add_argument('--platform', type=str, default='default')
     parser.add_argument('--registry', type=str, default='default')
  
@@ -115,15 +114,12 @@ if __name__ == "__main__":
         session = None
         if args.session:
             # join an existing session
-            session = Session(args.session)
-            a = NEO4JAgent(session=session, properties=properties)
-        elif args.input_stream:
-            # no session, work on a single input stream
-            a = NEO4JAgent(input_stream=args.input_stream, properties=properties)
+            session = Session(cid=args.session)
+            a = NEO4JAgent(name=args.name, session=session, properties=properties)
         else:
             # create a new session
-            a = NEO4JAgent(properties=properties)
-            session = a.start_session()
+            session = Session()
+            a = NEO4JAgent(name=args.name, session=session, properties=properties)
 
         # wait for session
         if session:

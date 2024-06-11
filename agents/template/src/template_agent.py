@@ -75,7 +75,7 @@ if __name__ == "__main__":
     parser.add_argument('--session', type=str)
     parser.add_argument('--properties', type=str)
     parser.add_argument('--loglevel', default="INFO", type=str)
-    parser.add_argument('--serve', type=str, default='TEMPLATE')
+    parser.add_argument('--serve', type=str)
     parser.add_argument('--platform', type=str, default='default')
     parser.add_argument('--registry', type=str, default='default')
  
@@ -101,12 +101,12 @@ if __name__ == "__main__":
         session = None
         if args.session:
             # join an existing session
-            session = Session(args.session)
+            session = Session(cid=args.session)
             a = TemplateAgent(name=args.name, session=session, properties=properties)
         else:
             # create a new session
-            a = TemplateAgent(name=args.name, properties=properties)
-            session = a.start_session()
+            session = Session()
+            a = TemplateAgent(name=args.name, session=session, properties=properties)
 
         # wait for session
         if session:
