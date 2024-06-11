@@ -48,7 +48,7 @@ if __name__ == "__main__":
     parser.add_argument('--interactive', type=bool, default=False, action=argparse.BooleanOptionalAction, help="input text interactively (default False)")
     parser.add_argument('--properties', type=str)
     parser.add_argument('--loglevel', default="INFO", type=str)
-    parser.add_argument('--serve', type=str, default='USER')
+    parser.add_argument('--serve', type=str)
     parser.add_argument('--platform', type=str, default='default')
     parser.add_argument('--registry', type=str, default='default')
  
@@ -75,12 +75,12 @@ if __name__ == "__main__":
 
         if args.session:
             # join an existing session
-            session = Session(args.session)
+            session = Session(cid=args.session)
             a = UserAgent(name=args.name, session=session, properties=properties)
         else:
             # create a new session
-            a = UserAgent(name=args.name, properties=properties)
-            session = a.start_session()
+            session = Session()
+            a = UserAgent(name=args.name, session=session, properties=properties)
 
 
         # write to user stream

@@ -79,6 +79,7 @@ class Agent:
         else:
             self.processor = lambda *args, **kwargs: self.default_processor(*args, **kwargs, properties=self.properties)
 
+        self.session = None
         if session:
             self.join_session(session)
 

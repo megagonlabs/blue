@@ -367,7 +367,7 @@ class Session:
         # start  producer to emit session events
         self._start_producer()
 
-        logging.info("Started session {name}".format(name=self.name))
+        logging.info("Started session {cid}".format(cid=self.cid))
 
     def _start_connection(self):
         host = self.properties["db.host"]

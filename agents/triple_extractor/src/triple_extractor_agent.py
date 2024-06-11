@@ -95,10 +95,9 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--name', default="TRIPLEEXTRACTOR", type=str)
     parser.add_argument('--session', type=str)
-    parser.add_argument('--input_stream', type=str)
     parser.add_argument('--properties', type=str)
     parser.add_argument('--loglevel', default="INFO", type=str)
-    parser.add_argument('--serve', type=str, default='TRIPLEEXTRACTOR')
+    parser.add_argument('--serve', type=str)
     parser.add_argument('--platform', type=str, default='default')
     parser.add_argument('--registry', type=str, default='default')
  
@@ -124,15 +123,12 @@ if __name__ == "__main__":
         session = None
         if args.session:
             # join an existing session
-            session = Session(args.session)
+            session = Session(cid=args.session)
             a = TripleExtractorAgent(name=args.name, session=session, properties=properties)
-        elif args.input_stream:
-            # no session, work on a single input stream
-            a = TripleExtractorAgent(name=args.name, input_stream=args.input_stream, properties=properties)
         else:
             # create a new session
-            a = TripleExtractorAgent(name=args.name, properties=properties)
-            session = a.start_session()
+            session = Session()
+            a = TripleExtractorAgent(name=args.name, session=session, properties=properties)
 
         # wait for session
         if session:

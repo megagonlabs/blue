@@ -267,7 +267,7 @@ if __name__ == "__main__":
     parser.add_argument('--session', type=str)
     parser.add_argument('--properties', type=str)
     parser.add_argument('--loglevel', default="INFO", type=str)
-    parser.add_argument('--serve', type=str, default='KNOWLEDGE')
+    parser.add_argument('--serve', type=str)
     parser.add_argument('--platform', type=str, default='default')
     parser.add_argument('--registry', type=str, default='default')
 
@@ -309,12 +309,13 @@ if __name__ == "__main__":
 
         if args.session:
             # join an existing session
-            session = Session(args.session)
-            a = e(session=session, properties=properties)
+            session = Session(cid=args.session)
+            a = KnowledgeGroundingAgent(name=args.name, session=session, properties=properties)
         else:
             # create a new session
-            a = e(properties=properties)
-            session = a.start_session()
+            session = Session()
+            a = KnowledgeGroundingAgent(name=args.name, session=session, properties=properties)
+
 
         # wait for session
         if session:
