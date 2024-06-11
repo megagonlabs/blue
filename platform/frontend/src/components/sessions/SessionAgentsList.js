@@ -51,73 +51,79 @@ export default function SessionAgentsList() {
     const REPLACEMENTS = { _AT_: "@", _DOT_: "." };
     const re = new RegExp(Object.keys(REPLACEMENTS).join("|"), "g");
     return (
-        <div style={{ minHeight: 202 }}>
-            <FormGroup label="In this session" style={{ marginBottom: 0 }}>
-                {loading ? (
-                    <>
-                        {LOADING_PLACEHOLDER}
-                        {LOADING_PLACEHOLDER}
-                        {LOADING_PLACEHOLDER}
-                    </>
-                ) : _.isEmpty(agents) ? (
-                    <NonIdealState icon={faIcon({ icon: faScreenUsers })} />
-                ) : (
-                    agents.map((agent, index) => {
-                        const agentName = _.get(
-                            agent,
-                            "sid",
-                            _.get(agent, "name", "-")
-                        );
-                        return (
-                            <div
-                                key={`session-agents-list-agent-${index}`}
-                                className="on-hover-background-color-bp-gray-3"
-                                style={{
-                                    display: "flex",
-                                    alignItems: "center",
-                                    gap: 15,
-                                    padding: "7.5px 15px",
-                                    borderRadius: 2,
-                                }}
-                            >
-                                <Card
+        <div style={{ minHeight: 202, height: _.isEmpty(agents) ? 202 : null }}>
+            {_.isEmpty(agents) ? (
+                <NonIdealState
+                    className="full-parent-height"
+                    icon={faIcon({ icon: faScreenUsers, size: 50 })}
+                    title="No Participant"
+                />
+            ) : (
+                <FormGroup label="In this session" style={{ marginBottom: 0 }}>
+                    {loading ? (
+                        <>
+                            {LOADING_PLACEHOLDER}
+                            {LOADING_PLACEHOLDER}
+                            {LOADING_PLACEHOLDER}
+                        </>
+                    ) : (
+                        agents.map((agent, index) => {
+                            const agentName = _.get(
+                                agent,
+                                "sid",
+                                _.get(agent, "name", "-")
+                            );
+                            return (
+                                <div
+                                    key={`session-agents-list-agent-${index}`}
+                                    className="on-hover-background-color-bp-gray-3"
                                     style={{
-                                        borderRadius: "50%",
-                                        padding: 0,
-                                        overflow: "hidden",
-                                        width: 40,
-                                        height: 40,
                                         display: "flex",
                                         alignItems: "center",
-                                        justifyContent: "center",
+                                        gap: 15,
+                                        padding: "7.5px 15px",
+                                        borderRadius: 2,
                                     }}
                                 >
-                                    {faIcon({
-                                        icon: faCircleA,
-                                        style: { color: "#5f6b7c" },
-                                    })}
-                                </Card>
-                                <div>
-                                    <div style={{ fontWeight: 600 }}>
-                                        {agentName.replace(
-                                            re,
-                                            (m) => REPLACEMENTS[m]
-                                        )}
-                                    </div>
-                                    <div
-                                        className={classNames(
-                                            Classes.TEXT_DISABLED,
-                                            Classes.TEXT_SMALL
-                                        )}
+                                    <Card
+                                        style={{
+                                            borderRadius: "50%",
+                                            padding: 0,
+                                            overflow: "hidden",
+                                            width: 40,
+                                            height: 40,
+                                            display: "flex",
+                                            alignItems: "center",
+                                            justifyContent: "center",
+                                        }}
                                     >
-                                        {agentName}
+                                        {faIcon({
+                                            icon: faCircleA,
+                                            style: { color: "#5f6b7c" },
+                                        })}
+                                    </Card>
+                                    <div>
+                                        <div style={{ fontWeight: 600 }}>
+                                            {agentName.replace(
+                                                re,
+                                                (m) => REPLACEMENTS[m]
+                                            )}
+                                        </div>
+                                        <div
+                                            className={classNames(
+                                                Classes.TEXT_DISABLED,
+                                                Classes.TEXT_SMALL
+                                            )}
+                                        >
+                                            {agentName}
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        );
-                    })
-                )}
-            </FormGroup>
+                            );
+                        })
+                    )}
+                </FormGroup>
+            )}
         </div>
     );
 }
