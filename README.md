@@ -100,6 +100,8 @@ Most of blue scripts require a number of parameters. While you can use the defau
 - `BLUE_DEPLOY_PLATFORM`, platform name, `default` (default)
 - `BLUE_PUBLIC_API_SERVER`, server address for the API , for example, `localhost:5050`
 - `BLUE_DATA_DIR`, directory hosting daa for blue services, for example `${BLUE_INSTALL_DIR}/data`
+- `BLUE_AGENT_REGISTRY`, agent registry name, `default` (default)
+- `BLUE_DATA_REGISTRY`, data registry name, `default` (default)
 
 Use of utilities such as [direnv](https://direnv.net/) is strongly encouraged to help management environment variables.
 
@@ -146,6 +148,21 @@ Or if you can also build images for certain agents, you can do so by first chang
 $ cd agents/user
 $ ./docker_build_agent.sh
 ```
+
+### building services 
+
+To build docker images for all services that agents use, run:
+```
+$ cd services
+$ ./docker_build_all_services.sh.
+```
+
+Or if you can also build images for certain servoces, you can do so by first changing to the directory for the servoce, for example, to build openai service only:
+```
+$ cd services/openai
+$ ./docker_build_service.sh
+```
+
 
 ### building platform components
 
@@ -195,7 +212,14 @@ If you want to see it in action on the web, you can bring up the frontend by bro
 ---
 # hello world example
 
-Let's try running a very basic example. In this example, a user agent emits some text and a counter agent simply listens to the user agent and returns the number of words.
+Let's try running a very basic example. In this example, a user agent emits some text and a counter agent simply listens to the user agent and returns the number of words in the text from the user agent.
+
+Note: Before proceeding forward, we should let you know that you would rarely run agents through python scripts as below. It is more preferrable that you build docker images and deploy them either through the web interface or command-line interface. 
+
+Note: Prerequisites. Make sure to run `build_agent.sh` under `agents/user` and `agents/counter`, and then install the requirements.txt through `pip install -r src/requirements.txt` in both of these directories.
+
+Now we can go back to the `hello world` example...
+
 
 To input some text through the user agent, run:
 ```
@@ -222,14 +246,14 @@ Now let's do a more sophisticted 'hello world!'
 A more sophisticated example would be where the agent doesn't do the heavy work itself (counting is hard!) but merely makes a call to a service over websockets. To run an example like that you first need to bring up a web service and then run the agent that talks to the service. Let's first build the service as a docker image:
 
 ```
-$ cd agents/websocket_counter
+$ cd services/websocket_counter
 $ ./docker_build_service.sh
 ```
 
 Then deploy the service:
 ```
 $ cd platform/scripts
-$ ./deploy_service.sh --name websocket_counter --port_mapping 8001:8001 --image blue-service-websocket_counter:latest
+$ ./deploy_service.sh --service websocket_counter --port_mapping 8001:8001 --image blue-service-websocket_counter:latest
 ```
 
 And lastly run the agent:
@@ -256,13 +280,13 @@ To learn more about developing agents yourself please go to [agents](agents) for
 
 # demos
 
-There are more demos in the [demos](demos) folder. Please try them on your own following the respective documentation in the folders.
+There are more demos in the [demos](demos) folder. Please try them on your own following the documentation in the respective folders.
 
 </br>
 
 # generic agents
 
-There are a number of generic multi-purpose agents we developed which you can either use as templates or find direct use of them in your applications. To learn more about them follow the README under [agents](agents) directory. 
+There are a number of generic multi-purpose agents which you can either use as templates or find direct use of them in your applications. To learn more about them follow the README under [agents](agents) directory. 
 
 
 </br>
