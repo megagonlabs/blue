@@ -60,3 +60,6 @@ table.entity-section-card-table tr td {
 .on-hover-background-color-bp-gray-3:hover {
     background-color: #e5e8eb;
 }
+.position-relative {
+    position: relative;
+}

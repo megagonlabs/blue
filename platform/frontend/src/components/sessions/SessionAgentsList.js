@@ -10,14 +10,14 @@ export default function SessionAgentsList() {
     const { appState } = useContext(AppContext);
     const sessionIdFocus = appState.session.sessionIdFocus;
     const [agents, setAgents] = useState([]);
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(true);
     useEffect(() => {
         setLoading(true);
         axios
             .get(`/sessions/session/${sessionIdFocus}/agents`)
             .then((response) => {
-                setLoading(false);
                 setAgents(_.get(response, "data.results", []));
+                setLoading(false);
             });
     }, []);
     const LOADING_PLACEHOLDER = (
@@ -52,7 +52,7 @@ export default function SessionAgentsList() {
     const re = new RegExp(Object.keys(REPLACEMENTS).join("|"), "g");
     return (
         <div style={{ minHeight: 202, height: _.isEmpty(agents) ? 202 : null }}>
-            {_.isEmpty(agents) ? (
+            {_.isEmpty(agents) && !loading ? (
                 <NonIdealState
                     className="full-parent-height"
                     icon={faIcon({ icon: faScreenUsers, size: 50 })}

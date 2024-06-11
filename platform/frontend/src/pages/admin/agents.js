@@ -30,7 +30,7 @@ import { useEffect, useState } from "react";
 import ReactTimeAgo from "react-time-ago";
 export default function Agents() {
     const [tableKey, setTableKey] = useState(Date.now());
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(true);
     const [data, setData] = useState([]);
     const fetchContainerList = () => {
         setLoading(true);

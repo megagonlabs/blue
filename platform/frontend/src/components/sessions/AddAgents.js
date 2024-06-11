@@ -34,7 +34,7 @@ export default function AddAgents({
     const { appState } = useContext(AppContext);
     const sessionIdFocus = appState.session.sessionIdFocus;
     const registryName = appState.agent.registryName;
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(true);
     const [agents, setAgents] = useState(null);
     const [unavailableAgents, setUnavailableAgents] = useState(null);
     const [selected, setSelected] = useState(new Set());
