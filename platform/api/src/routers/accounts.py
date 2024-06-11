@@ -141,7 +141,7 @@ async def signin_cli(request: Request):
                 status_code=401,
             )
         if time.time() - decoded_claims["auth_time"] < 5 * 60:
-            expires_in = datetime.timedelta(days=14)
+            expires_in = datetime.timedelta(days=1)
             session_cookie = auth.create_session_cookie(id_token, expires_in=expires_in)
             return JSONResponse(content={"cookie": session_cookie})
         return ERROR_RESPONSE
