@@ -1,8 +1,9 @@
 import { AppContext } from "@/components/contexts/app-context";
 import InteractiveMessage from "@/components/sessions/InteractiveMessage";
-import { Callout, Classes, Intent } from "@blueprintjs/core";
+import { Callout, Classes, Intent, Tooltip } from "@blueprintjs/core";
 import _ from "lodash";
 import { useContext, useEffect, useRef, useState } from "react";
+import ReactTimeAgo from "react-time-ago";
 import AutoSizer from "react-virtualized-auto-sizer";
 import { VariableSizeList } from "react-window";
 export default function SessionMessages() {
@@ -35,7 +36,7 @@ export default function SessionMessages() {
             if (rowRef.current) {
                 setRowHeight(
                     index,
-                    rowRef.current.clientHeight + 30 + (!own ? 15.43 : 0)
+                    rowRef.current.clientHeight + 30 + (!own ? 20.43 : 0)
                 );
             }
         }, [rowRef]);
@@ -45,7 +46,7 @@ export default function SessionMessages() {
                 if (rowRef.current) {
                     setRowHeight(
                         index,
-                        rowRef.current.clientHeight + 30 + (!own ? 15.43 : 0),
+                        rowRef.current.clientHeight + 30 + (!own ? 20.43 : 0),
                         false
                     );
                 }
@@ -103,10 +104,35 @@ export default function SessionMessages() {
                 </Callout>
                 {!own ? (
                     <div
-                        style={{ maxWidth: "100%" }}
+                        style={{ maxWidth: "100%", marginTop: 5 }}
                         className={`${Classes.TEXT_DISABLED} ${Classes.TEXT_SMALL} ${Classes.TEXT_OVERFLOW_ELLIPSIS}`}
                     >
-                        {messages[index].stream}
+                        <Tooltip
+                            minimal
+                            placement="bottom-start"
+                            content={
+                                <>
+                                    <ReactTimeAgo
+                                        date={
+                                            new Date(messages[index].timestamp)
+                                        }
+                                        locale="en-US"
+                                    />
+                                    <br />
+                                    <span className={Classes.TEXT_MUTED}>
+                                        {new Date(
+                                            messages[index].timestamp
+                                        ).toLocaleDateString()}
+                                        &nbsp;at&nbsp;
+                                        {new Date(
+                                            messages[index].timestamp
+                                        ).toLocaleTimeString()}
+                                    </span>
+                                </>
+                            }
+                        >
+                            {messages[index].stream}
+                        </Tooltip>
                     </div>
                 ) : null}
             </div>
