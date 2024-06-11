@@ -149,6 +149,21 @@ $ cd agents/user
 $ ./docker_build_agent.sh
 ```
 
+### building services 
+
+To build docker images for all services that agents use, run:
+```
+$ cd services
+$ ./docker_build_all_services.sh.
+```
+
+Or if you can also build images for certain servoces, you can do so by first changing to the directory for the servoce, for example, to build openai service only:
+```
+$ cd services/openai
+$ ./docker_build_service.sh
+```
+
+
 ### building platform components
 
 The key components in platform that require building are the API and the frontend.
