@@ -17,17 +17,15 @@ Use below links for quick accces:
 
 Let's dive into a bit of development of the agents. 
 
-The `agents/lib` contains an Agent class that can be used as a base class for developing new agents. However, you do not necessarily need to extend the base class as you can simply use the Agent class directly. 
+The `agents/lib` contains an Agent class that can be used as a base class for developing new agents. While it is often the practice to use Agent class as the base class, however, you do not necessarily need to extend the base class as you can simply use the Agent class directly, and pass in different parameters (e.g. processor).
 
-Let's go through an example that basically uses base class. You can find this example in `agents/test` directory. To setup for this example:
+Let's go through an example that basically uses Agent class directly. You can find this example in `agents/test` directory. To setup for this example:
 
 ```
 $ cd agents/python
 $ pip install -r requirements.txt
 $ ./build_agent.sh
 ```
-
-[Developers Note: Use above approach until we have released a blue python library]. 
 
 Then, invoke a python interpreter (in `agents/test`):
 ```
@@ -46,11 +44,13 @@ from agent import Agent
 from session import Session
 ```
 
-In this example, let's first create a USER agent by simply using the existing Agent class, then start a session, and input some text using the `interact` function of the Agent class.
+In this example, let's first create a session, then have a USER agent, simply using the existing Agent class,  input some text using the `interact` function of the Agent class.
 ```
+# create a session
+session = Session()
+
 # create a user agent
-user_agent = Agent("USER")
-session = user_agent.start_session()
+user_agent = Agent(name="USER", session=session)
 
 # user initiates an interaction
 user_agent.interact("hello world!")
@@ -65,7 +65,7 @@ INFO:root:Streamed into USER:275e2d0b message {'label': 'DATA', 'data': 'world!'
 INFO:root:Streamed into USER:275e2d0b message {'label': 'EOS'}
 ```
 
-Now, let's create a COUNTER agent, again using the base Agent class. The counter agent will listen to the streams in the same session as the USER agent (Note session=session in the initializer of the agent, where session is created above by the USER agent). Then we define a `processor` function to process stream data.
+Now, let's create a COUNTER agent, again using the base Agent class. The counter agent will listen to the streams in the same session as the USER agent. Then, we define a `processor` function to process stream data.
 
 The signature of the `processor` function is `stream`, `id`, `label`, and `data`. `stream` is the input stream to process, `id` is the data id assigned stream. `label` is the label of message in the stream, for example `BOS` for begin-of-stream, `EOS` for end-of-stream, `DATA` for a data in stream. Essentially, above `processor` function adds new data to `stream_data` when it receives new data (e.g. on `DATA` label) and returns count when all data is received (e.g. on `EOS` label). The base class `Agent` automatically creates a new stream in the session and adds the returned value from the processor function.
 
@@ -101,18 +101,15 @@ INFO:root:Streamed into COUNTER:5f1fa5a5 message {'label': 'DATA', 'data': 2, 't
 In addition if you examine the session stream, you will see:
 
 ```
-| SESSION:5db16fd4                                                                   |
-| -----------------------------------------------------------------------------------|
-| label: BOS                                                                         | 
-| label: JOIN, data: {"agent": "USER"}, type: JSON                                   | 
-| label: ADD, data: {"stream": "USER:8d29992c", "tags": ["USER"]}, type: JSON        |
-| label: JOIN, data: {"agent": "COUNTER"}, type: JSON                                | 
-| label: ADD, data: {"stream": "COUNTER:5f1fa5a5", "tags": ["COUNTER"]}, type: JSON  |
+label: INSTRUCTION, data: {"code": "ADD_STREAM", "params": {"cid": "COUNTER:b55fdf56:STREAM:c80f0769", "tags": ["COUNTER"]}}, type: JSON
+label: INSTRUCTION, data: {"code": "ADD_AGENT", "params": {"name": "COUNTER", "sid": "COUNTER:b55fdf56"}}, type: JSON
+label: INSTRUCTION, data: {"code": "ADD_STREAM", "params": {"cid": "USER:9ccad900:STREAM:b15675db", "tags": ["USER"]}}, type: JSON
+label: INSTRUCTION, data: {"code": "ADD_AGENT", "params": {"name": "USER", "sid": "USER:9ccad900"}}, type: JSON
 ```
 
-This basically illustrates the session mechanism. When an agents starts a session, a new session stream (`SESSION:5db16fd4`) is started. Then we see a `JOIN` event and agent `USER` joined the session, and it created a new stream `USER:8d29992c`. In a way the session stream announced that there is new data in the session, produced by the `USER` agent. Then, later we see another `JOIN` event and agent `COUNTER` joined the session, and it later created a new stream `COUNTER:5f1fa5a5` upon listening and processing data from the `USER` agent in `USER:8d29992c` stream.
+This basically illustrates the session mechanism. When an session is created, a new session stream (`SESSION:5db16fd4`) is started. Then we see a `ADD_AGENT` instruction and agent `USER` joined the session, and it created a new stream `USER:8d29992c` and announced via the `ADD_STREAM` instruction, etc. In a way the session stream announced that there is new agent and new data in the session, produced by the `USER` agent. Then, later we see similar instructions for the `COUNTER` agent.
 
-So, you might ask how did the `COUNTER` agent listened to `USER` agent. Each agent joining the session listens to all events in the session stream, and start keeping track of `ADD` events where new data is introduced into the session. As you see above along with each stream there are `tags`, for example stream `USER:8d29992c` is tagged as `USER`.
+So, you might ask how did the `COUNTER` agent listened to `USER` agent. Each agent joining the session listens to all events in the session stream, and start monitoring `ADD_STREAM` instructions where new data is introduced into the session. As you see above along with each stream there are `tags`, for example stream `USER:9ccad900:STREAM:b15675db` is tagged as `USER`.
 
 To decide which agents to listen to agents (actually more like streams), each agent defines a `listens` property and `includes` and `excludes` list. 
 
@@ -131,11 +128,9 @@ and use the following worker functions to write data:
 
 For private worker/stream you can call the following functions on the keyword parameter `worker`, `set_data(key, value)`, `append_data(key, value)`, `get_data(key)`, and `get_data_len(key)`. For example, worker.set_data('a', 3), and worker.get_data('a'). The value can be any JSON value. 
 
-To share data among workers from the same agent, you can use `set_agent_data(key, value)`, `append_agent_data(key, value)`, `get_agent_data(key)`, and `get_agent_data_len(key)`.
-
 To share data among workers processing data from the same stream, you can use `set_stream_data(key, value)`, `append_stream_data(key, value)`, `get_stream_data(key)`, and `get_stream_data_len(key)`.
 
-To share data among all agent works in the session, you can use `set_session_data(key, value)`, `append_session_data(key, value)`, `get_session_data(key)`, and `get_session_data_len(key)`.
+To share data among all agent workers in the session, you can use `set_session_data(key, value)`, `append_session_data(key, value)`, `get_session_data(key)`, and `get_session_data_len(key)`.
 
 
 </br>
