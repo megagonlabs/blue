@@ -133,6 +133,18 @@ To share data among workers processing data from the same stream, you can use `s
 To share data among all agent workers in the session, you can use `set_session_data(key, value)`, `append_session_data(key, value)`, `get_session_data(key)`, and `get_session_data_len(key)`.
 
 
+## interactive agents
+Building interactive agents, i.e. agents that present the user an interface, for example a form to fill out, is possible through a declarative UI specification. In blue we use [JSONForms](https://jsonforms.io/) to facilitate that. Essentially the agent in its reponses sends back a form that describes the ui layout and data schema.  The web interface renders it accordingly. Along with the form, and event stream is created, where the `processor` of the agent can start consuming event from the web interface. The interactive agent then can send more messages, new user interfaces, or other events that changes the UI, accordingly. 
+
+To support interactive agent development in the web interface there is a Form Designer tool that allows you to design ui and data schemas in an interactive manner, along with the documentation. 
+
+Assuming you now have worked out the uischema (e.g. form design) and schema (e.g. data structure), the main difference of an interactive widget is what is returned from the `processor` function. To return a UI, simply return:
+`("INTERACTION", {"type": "JSONFORM", "content": form}, "json", False)` where form is a JSON object with `uischema` and `schema` as its contents (from the Form Designer).
+
+To process events from the web interface, as the user interacts, you can check the `stream` parameter of the `processor` function. Event messages come from a stream with `<prefix>:EVENT_MESSAGE:<form>`, where `<prefix>` is the output stream of the interactive agent, and `<form>` is the form id of the form events are received from. Typically, events as `DATA` with the contents describing the target widget and values, e.g.:
+`{"name_id": "desired_location", "form_id": "90d46b5e", "value": "mountain view, ca", "timestamp": 1718124950421}`, where
+`name_id` is the name of the widget, `form_id` is the id of the form, and `value` is the current value of the widget. The processor, then does whathever is necessary to handle the event, as this part is application logic dependent. The widget can be disabled by sending `("INTERACTION",{"type": "DONE", "form_id": <form_id>}, "json")`.
+
 </br>
 </br>
 
