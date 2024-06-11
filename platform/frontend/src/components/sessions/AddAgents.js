@@ -41,7 +41,9 @@ export default function AddAgents({
         _.size(selected) -
         _.size(_.intersection(Array.from(selected), Array.from(added)));
     const toggleSelectedAgent = (name) => {
-        if (_.isEmpty(name)) return;
+        if (_.isEmpty(name)) {
+            return;
+        }
         let nextSelected = _.clone(selected);
         if (nextSelected.has(name)) {
             nextSelected.delete(name);
@@ -63,6 +65,14 @@ export default function AddAgents({
                 const list = _.get(response, "data.results", []);
                 let options = [];
                 for (let i = 0; i < _.size(list); i++) {
+                    let containerStatus = _.get(
+                        list,
+                        [i, "container", "status"],
+                        null
+                    );
+                    if (!_.isEqual(containerStatus, "running")) {
+                        continue;
+                    }
                     options.push({
                         name: _.get(list, [i, "name"], ""),
                         description: _.get(list, [i, "description"], ""),
@@ -121,7 +131,9 @@ export default function AddAgents({
             canOutsideClickClose={_.isEqual(selectionSize, 0)}
             isOpen={isOpen}
             onClose={() => {
-                if (loading) return;
+                if (loading) {
+                    return;
+                }
                 setIsAddAgentsOpen(false);
                 setSkippable(false);
             }}
@@ -147,7 +159,9 @@ export default function AddAgents({
                             return (
                                 <Card
                                     onClick={() => {
-                                        if (loading) return;
+                                        if (loading) {
+                                            return;
+                                        }
                                         toggleSelectedAgent(name);
                                     }}
                                     style={{
