@@ -145,7 +145,7 @@ To share data among all agent works in the session, you can use `set_session_dat
 
 ## template agent
 
-Key functionality of the agent is defined in the `processor` function, the rest is template. To help develop agents you can use the `agents/template` code as starter code.
+Key functionality of the agent is defined in the `processor` function, the rest is template. To help develop agents you can use the [template agent](template) code as starter code.
 </br>
 </br>
 
@@ -153,7 +153,7 @@ Key functionality of the agent is defined in the `processor` function, the rest 
 
 ## template interactive agent
 
-See the `processor` function in the template interactive agent to see how to send interactive forms to render on the web application. To help develop interactive agents you can use the `agents/template-interactive` code as starter code.
+See the `processor` function in the template interactive agent to see how to send interactive forms to render on the web application. To help develop interactive agents you can use the [template-interactive agent](template-interactive) code as starter code.
 </br>
 </br>
 
