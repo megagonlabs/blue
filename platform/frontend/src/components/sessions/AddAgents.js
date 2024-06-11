@@ -11,6 +11,7 @@ import {
     DialogFooter,
     Intent,
     NonIdealState,
+    Tag,
 } from "@blueprintjs/core";
 import {
     faCheck,
@@ -35,6 +36,7 @@ export default function AddAgents({
     const registryName = appState.agent.registryName;
     const [loading, setLoading] = useState(false);
     const [agents, setAgents] = useState(null);
+    const [unavailableAgents, setUnavailableAgents] = useState(null);
     const [selected, setSelected] = useState(new Set());
     const [added, setAdded] = useState(new Set());
     const selectionSize =
@@ -64,6 +66,7 @@ export default function AddAgents({
             .then((response) => {
                 const list = _.get(response, "data.results", []);
                 let options = [];
+                let unavailable = [];
                 for (let i = 0; i < _.size(list); i++) {
                     let containerStatus = _.get(
                         list,
@@ -71,17 +74,25 @@ export default function AddAgents({
                         null
                     );
                     if (!_.isEqual(containerStatus, "running")) {
-                        continue;
+                        unavailable.push({
+                            name: _.get(list, [i, "name"], ""),
+                            description: _.get(list, [i, "description"], ""),
+                        });
+                    } else {
+                        options.push({
+                            name: _.get(list, [i, "name"], ""),
+                            description: _.get(list, [i, "description"], ""),
+                        });
                     }
-                    options.push({
-                        name: _.get(list, [i, "name"], ""),
-                        description: _.get(list, [i, "description"], ""),
-                    });
                 }
                 options.sort(function (a, b) {
                     return a.name.localeCompare(b.name);
                 });
+                unavailable.sort(function (a, b) {
+                    return a.name.localeCompare(b.name);
+                });
                 setAgents(options);
+                setUnavailableAgents(unavailable);
                 setLoading(false);
             })
             .catch(() => {
@@ -237,7 +248,7 @@ export default function AddAgents({
                     </FixedSizeList>
                 )}
             </DialogBody>
-            <DialogFooter>
+            <DialogFooter className="position-relative">
                 <div style={{ display: "flex", alignItems: "center" }}>
                     <Button
                         className={_.isNil(agents) ? Classes.SKELETON : null}
@@ -280,6 +291,11 @@ export default function AddAgents({
                             {selectionSize} selected
                         </span>
                     ) : null}
+                </div>
+                <div style={{ position: "absolute", right: 15, top: 15 }}>
+                    <Tag intent={Intent.WARNING} minimal large>
+                        {_.size(unavailableAgents)} agents unavailable
+                    </Tag>
                 </div>
             </DialogFooter>
         </Dialog>
