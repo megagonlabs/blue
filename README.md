@@ -100,6 +100,8 @@ Most of blue scripts require a number of parameters. While you can use the defau
 - `BLUE_DEPLOY_PLATFORM`, platform name, `default` (default)
 - `BLUE_PUBLIC_API_SERVER`, server address for the API , for example, `localhost:5050`
 - `BLUE_DATA_DIR`, directory hosting daa for blue services, for example `${BLUE_INSTALL_DIR}/data`
+- `BLUE_AGENT_REGISTRY`, agent registry name, `default` (default)
+- `BLUE_DATA_REGISTRY`, data registry name, `default` (default)
 
 Use of utilities such as [direnv](https://direnv.net/) is strongly encouraged to help management environment variables.
 
@@ -146,6 +148,21 @@ Or if you can also build images for certain agents, you can do so by first chang
 $ cd agents/user
 $ ./docker_build_agent.sh
 ```
+
+### building services 
+
+To build docker images for all services that agents use, run:
+```
+$ cd services
+$ ./docker_build_all_services.sh.
+```
+
+Or if you can also build images for certain servoces, you can do so by first changing to the directory for the servoce, for example, to build openai service only:
+```
+$ cd services/openai
+$ ./docker_build_service.sh
+```
+
 
 ### building platform components
 
