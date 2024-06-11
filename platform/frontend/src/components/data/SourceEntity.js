@@ -17,7 +17,9 @@ export default function SourceEntity() {
     const router = useRouter();
     const [entity, setEntity] = useState({});
     useEffect(() => {
-        if (!router.isReady) return;
+        if (!router.isReady) {
+            return;
+        }
         axios.get(router.asPath).then((response) => {
             setEntity(_.get(response, "data.result", {}));
         });

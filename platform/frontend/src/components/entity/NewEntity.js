@@ -39,7 +39,9 @@ export default function NewEntity({ type }) {
         setEntity(newEntity);
     };
     useEffect(() => {
-        if (!router.isReady) return;
+        if (!router.isReady) {
+            return;
+        }
         const entity = _.cloneDeep(_.get(router, "query.entity", null));
         if (_.isEmpty(entity)) {
             return;
@@ -55,7 +57,9 @@ export default function NewEntity({ type }) {
             });
     }, [router]);
     const saveEntity = () => {
-        if (!router.isReady) return;
+        if (!router.isReady) {
+            return;
+        }
         setLoading(true);
         axios[created ? "put" : "post"](
             `/registry/${appState[type].registryName}/agents/${entity.name}`,

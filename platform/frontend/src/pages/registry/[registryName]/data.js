@@ -35,7 +35,9 @@ export default function Data() {
     const [pageSize, setPageSize] = useState(appState.data.filter.page_size);
     const dataRegistryName = appState.data.registryName;
     useEffect(() => {
-        if (appState.data.search) return;
+        if (appState.data.search) {
+            return;
+        }
         appActions.data.getList(dataRegistryName);
     }, []);
     const debounceOnKeywordsChange = useCallback(

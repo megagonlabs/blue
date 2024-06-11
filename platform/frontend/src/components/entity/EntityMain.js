@@ -34,7 +34,9 @@ export default function EntityMain({
     const router = useRouter();
     const containerStatus = _.get(entity, "container.status", "not exist");
     const deployAgent = () => {
-        if (!router.isReady) return;
+        if (!router.isReady) {
+            return;
+        }
         axios
             .post(`/containers/agents/agent/${entity.name}`)
             .then(() => {
@@ -51,13 +53,17 @@ export default function EntityMain({
             });
     };
     const duplicateEntity = () => {
-        if (!router.isReady) return;
+        if (!router.isReady) {
+            return;
+        }
         let params = _.cloneDeep(_.get(router, "query.pathParams", []));
         params.pop();
         router.push(`/${params.join("/")}/new?entity=${entity.name}`);
     };
     const deleteEntity = () => {
-        if (!router.isReady) return;
+        if (!router.isReady) {
+            return;
+        }
         axios
             .delete(router.asPath)
             .then(() => {

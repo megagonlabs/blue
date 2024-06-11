@@ -16,7 +16,9 @@ export default function RegistryEntity() {
     const [breadcrumbs, setBreadcrumbs] = useState([]);
     const [entityType, setEntityType] = useState(null);
     useEffect(() => {
-        if (_.isEmpty(router.query)) return;
+        if (_.isEmpty(router.query)) {
+            return;
+        }
         let { pathParams } = router.query;
         let crumbs = [],
             basePath = "",

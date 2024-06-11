@@ -50,7 +50,9 @@ export default function Sessions() {
     const { socket, reconnectWs } = useSocket();
     const socketReadyState = _.get(socket, "readyState", 3);
     const sendSessionMessage = (message) => {
-        if (!_.isEqual(socketReadyState, 1)) return;
+        if (!_.isEqual(socketReadyState, 1)) {
+            return;
+        }
         setMessage("");
         socket.send(
             JSON.stringify({
@@ -145,7 +147,9 @@ export default function Sessions() {
             .catch(() => {});
     };
     useEffect(() => {
-        if (!_.isEqual(socketReadyState, 1)) return;
+        if (!_.isEqual(socketReadyState, 1)) {
+            return;
+        }
         if (initialJoinAll.current) {
             initialJoinAll.current = false;
             socket.send(JSON.stringify({ type: "REQUEST_USER_AGENT_ID" }));
@@ -237,7 +241,9 @@ export default function Sessions() {
                                 loading={isCreatingSession}
                                 intent={Intent.PRIMARY}
                                 onClick={() => {
-                                    if (!_.isEqual(socketReadyState, 1)) return;
+                                    if (!_.isEqual(socketReadyState, 1)) {
+                                        return;
+                                    }
                                     setIsCreatingSession(true);
                                     appActions.session.createSession();
                                 }}

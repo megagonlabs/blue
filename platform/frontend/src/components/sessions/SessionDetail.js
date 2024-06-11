@@ -75,7 +75,9 @@ export default function SessionDetail({ isOpen, setIsSessionDetailOpen }) {
             }
             canOutsideClickClose={allowQuickClose}
             onClose={() => {
-                if (loading) return;
+                if (loading) {
+                    return;
+                }
                 setIsSessionDetailOpen(false);
             }}
             isOpen={isOpen}
