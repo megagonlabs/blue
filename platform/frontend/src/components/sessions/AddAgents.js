@@ -294,7 +294,7 @@ export default function AddAgents({
                 </div>
                 <div style={{ position: "absolute", right: 15, top: 15 }}>
                     <Tag intent={Intent.WARNING} minimal large>
-                        {_.size(unavailableAgents)} agents unavailable
+                        {_.size(unavailableAgents)} unavailable
                     </Tag>
                 </div>
             </DialogFooter>
