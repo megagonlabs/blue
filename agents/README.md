@@ -5,6 +5,7 @@ Below you will find more information on developing your own agents as well as a 
 Use below links for quick accces:
 * [agent development](#agent-development)
 * [template agent](#template-agent)
+* [template interactive agent](#template-interactive-agent)
 * [generic agents](#generic-agents)
 
 </br>
@@ -145,6 +146,14 @@ To share data among all agent works in the session, you can use `set_session_dat
 ## template agent
 
 Key functionality of the agent is defined in the `processor` function, the rest is template. To help develop agents you can use the `agents/template` code as starter code.
+</br>
+</br>
+
+---
+
+## template interactive agent
+
+See the `processor` function in the template interactive agent to see how to send interactive forms to render on the web application. To help develop interactive agents you can use the `agents/template-interactive` code as starter code.
 </br>
 </br>
 
