@@ -26,6 +26,8 @@ services:
       - blue_platform_${BLUE_DEPLOY_PLATFORM}_network_overlay
     volumes:
       - blue_${BLUE_DEPLOY_PLATFORM}_data:/blue_data
+    labels:
+      blue.service: "${BLUE_DEPLOY_PLATFORM}.${SERVICE_LOWERCASE}"
     environment:
       <<: *blue-common-env
     env_file:

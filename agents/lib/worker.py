@@ -245,8 +245,8 @@ class Worker:
         # start a consumer to listen to stream
         if input_stream:
             # create data namespace to share data on stream
-            if self.session:
-                self.session._init_stream_agent_data_namespace(input_stream, self.agent)
+            # if self.session:
+            #     self.session._init_stream_agent_data_namespace(input_stream, self.agent)
 
             consumer = Consumer(
                 input_stream,
@@ -338,45 +338,45 @@ class Worker:
         return None
 
     ## worker data
-    def set_data(self, key, value, stream=None):
-        if self.session:
-            stream = self._identify_stream(stream=stream)
-            self.session.set_stream_agent_data(stream, self.agent, key, value)
+    # def set_data(self, key, value, stream=None):
+    #     if self.session:
+    #         stream = self._identify_stream(stream=stream)
+    #         self.session.set_stream_agent_data(stream, self.agent, key, value)
 
-    def append_data(self, key, value, stream=None):
-        if self.session:
-            stream = self._identify_stream(stream=stream)
-            self.session.append_stream_agent_data(stream, self.agent, key, value)
+    # def append_data(self, key, value, stream=None):
+    #     if self.session:
+    #         stream = self._identify_stream(stream=stream)
+    #         self.session.append_stream_agent_data(stream, self.agent, key, value)
 
-    def get_data(self, key, stream=None):
-        if self.session:
-            stream = self._identify_stream(stream=stream)
-            return self.session.get_stream_agent_data(stream, self.agent, key)
+    # def get_data(self, key, stream=None):
+    #     if self.session:
+    #         stream = self._identify_stream(stream=stream)
+    #         return self.session.get_stream_agent_data(stream, self.agent, key)
 
-        return None
+    #     return None
 
-    def get_data_len(self, key, stream=None):
-        if self.session:
-            stream = self._identify_stream(stream=stream)
-            return self.session.get_stream_agent_data_len(stream, self.agent, key)
+    # def get_data_len(self, key, stream=None):
+    #     if self.session:
+    #         stream = self._identify_stream(stream=stream)
+    #         return self.session.get_stream_agent_data_len(stream, self.agent, key)
 
-        return None
+    #     return None
 
     ## agent data
-    def set_agent_data(self, key, value):
+    def set_data(self, key, value):
         if self.session:
             self.session.set_agent_data(self.agent, key, value)
 
-    def append_agent_data(self, key, value):
+    def append_data(self, key, value):
         if self.session:
             self.session.append_agent_data(self.agent, key, value)
 
-    def get_agent_data(self, key):
+    def get_data(self, key):
         if self.session:
             return self.session.get_agent_data(self.agent, key)
         return None
 
-    def get_agent_data_len(self, key):
+    def get_data_len(self, key):
         if self.session:
             return self.session.get_agent_data_len(self.agent, key)
         return None

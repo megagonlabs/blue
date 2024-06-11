@@ -1,5 +1,5 @@
 #/bin/bash
-echo 'Building Planner Agent...'
+echo 'Building Coordinator Agent...'
 
 echo 'Copying libs...'
 
