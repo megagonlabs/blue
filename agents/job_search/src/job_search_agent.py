@@ -198,7 +198,7 @@ if __name__ == "__main__":
     parser.add_argument('--session', type=str)
     parser.add_argument('--properties', type=str)
     parser.add_argument('--loglevel', default="INFO", type=str)
-    parser.add_argument('--serve', type=str
+    parser.add_argument('--serve', type=str)
     parser.add_argument('--platform', type=str, default='default')
     parser.add_argument('--registry', type=str, default='default')
  
