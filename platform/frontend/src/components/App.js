@@ -1,4 +1,7 @@
-import { NAVIGATION_MENU_WIDTH } from "@/components/constant";
+import {
+    NAVIGATION_MENU_WIDTH,
+    PROFILE_PICTURE_40,
+} from "@/components/constant";
 import { AppContext } from "@/components/contexts/app-context";
 import { AuthContext } from "@/components/contexts/auth-context";
 import { faIcon } from "@/components/icon";
@@ -150,17 +153,7 @@ export default function App({ children }) {
                                     </div>
                                 }
                             >
-                                <Card
-                                    interactive
-                                    style={{
-                                        borderRadius: "50%",
-                                        padding: 0,
-                                        overflow: "hidden",
-                                        width: 40,
-                                        height: 40,
-                                        marginTop: 4,
-                                    }}
-                                >
+                                <Card interactive style={PROFILE_PICTURE_40}>
                                     <Image
                                         alt=""
                                         src={_.get(user, "picture", "")}

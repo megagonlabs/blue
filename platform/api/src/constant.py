@@ -31,7 +31,9 @@ def d7validate(validations, payload):
         raise InvalidRequestJson(errors)
 
 
-def redisReplace(value):
+def redisReplace(value, reverse=False):
     replacements = {'@': '_AT_', '.': '_DOT_'}
+    if reverse:
+        replacements = {'_AT_': '@', '_DOT_': '.'}
     pattern = '|'.join(sorted(re.escape(char) for char in replacements))
     return re.sub(pattern, lambda m: replacements.get(m.group(0).upper()), value, flags=re.IGNORECASE)

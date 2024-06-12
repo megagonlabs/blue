@@ -57,7 +57,7 @@ export default function Sessions() {
         socket.send(
             JSON.stringify({
                 type: "USER_SESSION_MESSAGE",
-                session_id: appState.session.sessionIdFocus,
+                session_id: sessionIdFocus,
                 message: message,
             })
         );
@@ -105,7 +105,7 @@ export default function Sessions() {
             sessionMessageTextArea.current.focus();
         }
     }, [sessionIdFocus]);
-    const SESSION_LISTL_PANEL_WIDTH = 451.65;
+    const SESSION_LISTL_PANEL_WIDTH = 376.02;
     const [getSessionsRequest, setGetSessionsRequest] = useState(null);
     const [existingSessions, setExistingSessions] = useState(null);
     const fetchExistingSessions = () => {
@@ -172,7 +172,7 @@ export default function Sessions() {
                 intent={Intent.PRIMARY}
                 large
                 loading={_.isEqual(socketReadyState, 0)}
-                text="Reconnect"
+                text="Connect"
             />
         );
     };

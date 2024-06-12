@@ -100,7 +100,7 @@ export const AuthProvider = ({ children }) => {
         axios
             .get("/accounts/profile")
             .then((response) => {
-                setUser(_.get(response, "data.result", null));
+                setUser(_.get(response, "data.profile", null));
                 setAuthInitialized(true);
             })
             .catch(() => {
