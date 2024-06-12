@@ -1,6 +1,6 @@
 #/bin/bash
 
-# USAGE: deploy_agent --target localhost|swarm --platform platform --registry registry --agent agent --image image --properties properties
+# USAGE: deploy_agent --target localhost|swarm --platform platform --registry registry --agent agent --image image --properties properties --version version
 # if no arguments, use env variable as default
 
 while [[ $# -gt 0 ]]; do
@@ -13,6 +13,12 @@ while [[ $# -gt 0 ]]; do
       ;;
     -p|--platform)
       BLUE_DEPLOY_PLATFORM="$2"
+      # pass argument and value
+      shift 
+      shift 
+      ;;
+    -v|--version)
+      BLUE_DEPLOY_VERSION="$2"
       # pass argument and value
       shift 
       shift 
@@ -62,19 +68,27 @@ then
    export REGISTRY=default
 fi
 
-# set propertoes to {}, if not provided
+# set properties to {}, if not provided
 if [ -z "$PROPERTIES" ]
 then
    export PROPERTIES='{}'
 fi
 
-export IMAGE=${IMAGE}
 export AGENT=${AGENT}
 export AGENT_LOWERCASE=$(echo ${AGENT}| tr '[:upper:]' '[:lower:]')
 export PROPERTIES=${PROPERTIES}
 
+# set image, if not provided
+if [ -z "$IMAGE" ]
+then
+   export IMAGE=blue-agent-${AGENT_LOWERCASE}:${BLUE_DEPLOY_VERSION}
+fi
+
+export IMAGE=${IMAGE}
+
 echo "DEPLOY TARGET  = ${BLUE_DEPLOY_TARGET}"
 echo "DEPLOY PLATFORM = ${BLUE_DEPLOY_PLATFORM}"
+echo "DEPLOY VERSION  = ${BLUE_DEPLOY_VERSION}"
 echo "REGISTRY = ${REGISTRY}"
 echo "AGENT = ${AGENT}"
 echo "AGENT_LOWERCASE = ${AGENT_LOWERCASE}"

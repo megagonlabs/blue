@@ -1,6 +1,6 @@
 #/bin/bash
 
-# USAGE: deploy_platform --target localhost|swarm --platform platform --api_server address:port
+# USAGE: deploy_platform --target localhost|swarm --platform platform --api_server address:port --version version
 # if no arguments, use env variable as default
 
 while [[ $# -gt 0 ]]; do
@@ -19,6 +19,12 @@ while [[ $# -gt 0 ]]; do
       ;;
     -a|--api_server)
       BLUE_PUBLIC_API_SERVER="$2"
+      # pass argument and value
+      shift
+      shift
+      ;;
+    -v|--version)
+      BLUE_DEPLOY_VERSION="$2"
       # pass argument and value
       shift
       shift
@@ -46,9 +52,16 @@ then
    export BLUE_DEPLOY_PLATFORM=default
 fi
 
+# set version to latest, if not provided
+if [ -z "$BLUE_DEPLOY_VERSION" ]
+then
+   export BLUE_DEPLOY_VERSION=latest
+fi
+
 echo "DEPLOY TARGET   = ${BLUE_DEPLOY_TARGET}"
 echo "DEPLOY PLATFORM = ${BLUE_DEPLOY_PLATFORM}"
 echo "BLUE_INSTALL_DIR = ${BLUE_INSTALL_DIR}"
+echo "BLUE_DEPLOY_VERSION = ${BLUE_DEPLOY_VERSION}"
 
 if test "$BLUE_DEPLOY_TARGET" = "swarm"
 then
