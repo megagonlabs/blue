@@ -1,8 +1,44 @@
 # agent registry
 
-Agent registry is a repository of agents that captures metadata about agents, including name, description, properties, input and output parameters, and image (docker) at a minimum. Agent registry defines a scope of agents that can be put to work on specific deployments. As such in a deployment there could be many agent registries where different set of agents can be used for different use cases. To facilitate this agent registry has a `name` that can be coupled with a user session to limit the agents. 
+Agent registry is a repository of agents that captures metadata about agents, including name, description, properties, input and output parameters, and image (docker) at a minimum. 
 
-It is also expected that agent registry can be utilized by a planner agent to find suitable agents. To facilitate that agent registry supports parameteric (embeddings) search as well as keyword based search. 
+An example agent entry in the repository looks like this:
+```
+{
+    "name": "Neo4J",
+    "type": "agent",
+    "scope": "/",
+    "description": "Execute graph database queries against neo4j graph database",
+    "properties": {
+        "image": "blue-agent-neo4j:latest",
+        "neo4j.user": "$NEO4J_USER",
+        "neo4j.password": "$NEO4J_PWD",
+        "neo4j.host": "$NEO4J_HOST"
+    },
+    "contents": {
+        "query": {
+            "name": "query",
+            "type": "input",
+            "scope": "/Neo4J",
+            "description": "neo4j cypher query",
+            "properties": {},
+            "contents": {}
+        },
+        "result": {
+            "name": "result",
+            "type": "output",
+            "scope": "/Neo4J",
+            "description": "query results from executing the input query in JSON",
+            "properties": {},
+            "contents": {}
+        }
+    }
+}
+```
+
+Agent registry defines the set of agents that can be put to utilized on specific deployments. When deployed each deployment (platform) is paired with a specific agent registry. Each agent registry has a `name` that is used in configuring a platform. 
+
+Agent registry can be utilized by a planner agent to find suitable agents. To facilitate that agent registry supports parameteric (embeddings) search as well as keyword based search. 
 
 ## build
 
@@ -14,11 +50,7 @@ $  ./docker_build_agentregistry.sh
 
 ### run
 
-To run agent registry, as a prerequisite you need to have the platform up and running:
-```
-$ cd platform
-$ ./start.sh
-```
+To run agent registry, as a prerequisite you need to have the platform up and running.
 
 Then, you can run agent registry either as a python function:
 ```
@@ -26,25 +58,28 @@ $ cd platform/agent_registry
 $ python src/agent_registry.py --list
 ```
 
-Or as a docker container:
-```
-$ docker run -e parameters='--search title' --network="host" blue-agentregistry
-```
+Note in the above case the properties of the agent registry may have to be additional set (for example `db.host`) to allow connections to database to store registry entiries. Note above name of the agent registry is not provided as such `default` is used.
 
-Note above name of the agent registry is not provided as such `default` is used as the name
+Agent registry is also available on the web interface. 
+
 
 ### properties
 
 Agent registry has a number of properties that can be configured when a registry is created:
 
-* host: host of the Redis database backend, default 'localhost'
-* port: port address of the Redis database backend, default 6379
-* embeddings_model: name of the embeddings model from huggingface, sentence transformer library, default `paraphrase-MiniLM-L6-v2`
+* `db.host`: host of the Redis database backend, default 'localhost'
+* `db.port`: port address of the Redis database backend, default 6379
+* `embeddings_model`: name of the embeddings model from huggingface, sentence transformer library, default `paraphrase-MiniLM-L6-v2`
 
 ### command line parameters
 
 ```
---name: type=str, default='default', help='name of the agent registry'
+--name', type=str, default='AGENT_REGISTRY', help='name of the registry'
+--id', type=str, default='default', help='id of the registry'
+--sid', type=str, help='short id (sid) of the registry'
+--cid', type=str, help='canonical id (cid) of the registry'
+--prefix', type=str, help='prefix for the canonical id of the registry'
+--suffix', type=str, help='suffix for the canonical id of the registry'
 --properties', type=str, help='properties in json format'
 --loglevel', default="INFO", type=str, help='log level'
 --add', type=str, default=None, help='json array of agents to be add to the registry'
@@ -59,13 +94,15 @@ Agent registry has a number of properties that can be configured when a registry
 --approximate', type=bool, default=False, help='use approximate (embeddings) search'
 --hybrid', type=bool, default=False, help='use hybrid (keyword and approximate) search'
 ```
-
+    
 #### add agents
+
 ```
 $ python src/agent_registry.py --add "`cat data/sample_agents.json`"
 ```
 
 #### search agents
+
 Approximate agent search using only agent metadata:
 ```
 $ python src/agent_registry.py --search "`cat data/query2.txt`" --approximate --type agent
