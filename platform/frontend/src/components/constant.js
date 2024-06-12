@@ -83,6 +83,14 @@ module.exports = {
         removing: { style: { color: Colors.RED3 }, intent: Intent.DANGER },
         dead: { style: { color: Colors.RED3 }, intent: Intent.DANGER },
     },
+    PROFILE_PICTURE_40: {
+        borderRadius: "50%",
+        padding: 0,
+        overflow: "hidden",
+        width: 40,
+        height: 40,
+        marginTop: 4,
+    },
     HEX_TRANSPARENCY: {
         100: "FF",
         99: "FC",

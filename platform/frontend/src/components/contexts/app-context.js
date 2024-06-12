@@ -7,7 +7,7 @@ import { defaultState as agentDefaultState } from "@/components/reducers/agent-r
 import { defaultState as appDefaultState } from "@/components/reducers/app-reducer";
 import { defaultState as dataDefaultState } from "@/components/reducers/data-reducer";
 import { defaultState as sessionDefaultState } from "@/components/reducers/session-reducer";
-import { createContext, useReducer } from "react";
+import { createContext, useMemo, useReducer } from "react";
 const AppContext = createContext();
 const AppProvider = ({ children }) => {
     const [appState, dispatch] = useReducer(rootReducer, {
@@ -22,10 +22,10 @@ const AppProvider = ({ children }) => {
         agent: { ...agentAction(dispatch) },
         data: { ...dataAction(dispatch) },
     };
-    return (
-        <AppContext.Provider value={{ appState, appActions: actions }}>
-            {children}
-        </AppContext.Provider>
+    const store = useMemo(
+        () => ({ appState, appActions: actions }),
+        [appState]
     );
+    return <AppContext.Provider value={store}>{children}</AppContext.Provider>;
 };
 export { AppContext, AppProvider };

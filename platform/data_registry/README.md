@@ -1,10 +1,13 @@
 # data registry
 
-Data registry is a repository of data elements that captures metadata about data elements that blue agents can connect to, search, and get data. Each data element is described with metadata such as name, type, description, properties, and contents. Data elements are nested. At the top is a data lake, which the registry describes its contents. A data lake consists of a number of data sources (e.g. postgress dbms, mongo server, etc.), data sources contain databases (e.g. postgres db, mondo db), and databases contain collections (e.g. postgress table, mongo collection, etc.). 
+Data registry is a repository of metadata about data elements that blue agents can connect to, search, and browse. Each data element is described with metadata such as name, type, description, properties, and contents. 
 
-While a data registry describes only a single data lake, a blue deploment can contain multiple registries and as such can work with multiple data lakes.  As such in a deployment there could be many data registries where different set of data sources can be used for different use cases. To facilitate this data registry has a `name` that can be coupled with a user session to limit the data to a subset of available data. 
+Data elements in the registry are nested. At the top is a data lake. A data lake consists of a number of data sources (e.g. postgress dbms, mongo server, etc.). Data sources contain databases (e.g. postgres db, mongo db). Databases contain collections (e.g. postgress table, mongo collection, etc.). 
 
-It is also expected that data registry can be utilized by a various agents (including planner) to find suitable data. To facilitate that data registry supports parameteric (embeddings) search as well as keyword based search. 
+Data registry defines the set of data that can be put to utilized on specific deployments by the agents in that deployment. When deployed each deployment (platform) is paired with a specific data registry. Each data registry has a `name` that is used in configuring a platform.
+
+
+Data registry can be utilized by a various agents (including planner) to find suitable data. To facilitate that data registry supports parameteric (embeddings) search as well as keyword based search. 
 
 ## contents
 Below is an example content of a data registry. At the top level a data element `indeed_mongodb` of type `source` is defined. It's scope is `/` meaning that it is a top level data element. It's properties contains a `connection` object that is used to sync its metadata and contents (e.g. databases) by connecting to a running instance. Databases under `indeed_mongodb` such as `indeed_dev` are listed in `contents`, and as such their scope is set as `/indeed_mongodb`.  Collections under `indeed_dev` such as `resume` collection are listed similarly in a nested manner, and their scope is set to `/indeed_mongodb/indeed_dev`. Each of these data elements can have other metadata and schema and their are listed in `properties`. Schema is a list of `entities` and `relations` as below, and it automatically fetched from the source connection. 
@@ -80,6 +83,7 @@ Below is an example content of a data registry. At the top level a data element 
     },
     }
 }
+
 ```
 ## build
 
@@ -91,11 +95,7 @@ $  ./docker_build_dataregistry.sh
 
 ### run
 
-To run data registry, as a prerequisite you need to have the platform up and running:
-```
-$ cd platform
-$ ./start.sh
-```
+To run data registry, as a prerequisite you need to have the platform up and running.
 
 Then, you can run data registry either as a python function:
 ```
@@ -103,25 +103,28 @@ $ cd platform/data_registry
 $ python src/data_registry.py --list
 ```
 
-Or as a docker container:
-```
-$ docker run -e parameters='--search title' --network="host" blue-dataregistry
-```
+Note in the above case the properties of the agent registry may have to be additionally set (for example `db.host`) to allow connections to database to store registry entiries. Note above `id` of the agent registry is not provided as such default is used.
 
-Note above name of the data registry is not provided as such `default` is used as the name
+Data registry is also available on the web interface.
+
 
 ### properties
 
 Data registry has a number of properties that can be configured when a registry is created:
 
-* host: host of the Redis database backend, default 'localhost'
-* port: port address of the Redis database backend, default 6379
+* `db.host`: host of the Redis database backend, default 'localhost'
+* `db.port`: port address of the Redis database backend, default 6379
 * embeddings_model: name of the embeddings model from huggingface, sentence transformer library, default `paraphrase-MiniLM-L6-v2`
 
 ### command line parameters
 
 ```
---name: type=str, default='default', help='name of the data registry'
+--name', type=str, default='DATA_REGISTRY', help='name of the registry'
+--id', type=str, default='default', help='id of the registry'
+--sid', type=str, help='short id (sid) of the registry'
+--cid', type=str, help='canonical id (cid) of the registry'
+--prefix', type=str, help='prefix for the canonical id of the registry'
+--suffix', type=str, help='suffix for the canonical id of the registry'
 --properties: type=str, help='properties in json format'
 --loglevel: default="INFO", type=str, help='log level'
 --add: type=str, default=None, help='json array of data elements to be add to the registry'
@@ -142,6 +145,7 @@ Data registry has a number of properties that can be configured when a registry 
 --collection: type=str, default=None, help='collection'
 ```
 
+    
 #### add data elements
 Data elements is an json array of data elements that can be in any scope and of type. See `data/sample_data.json`.
 

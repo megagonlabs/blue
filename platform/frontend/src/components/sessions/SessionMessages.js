@@ -3,9 +3,9 @@ import InteractiveMessage from "@/components/sessions/InteractiveMessage";
 import { Callout, Classes, Intent, Tooltip } from "@blueprintjs/core";
 import _ from "lodash";
 import { useContext, useEffect, useRef, useState } from "react";
-import ReactTimeAgo from "react-time-ago";
 import AutoSizer from "react-virtualized-auto-sizer";
 import { VariableSizeList } from "react-window";
+import MessageMetadata from "./MessageMetadata";
 export default function SessionMessages() {
     const variableSizeListRef = useRef();
     const rowHeights = useRef({});
@@ -59,8 +59,11 @@ export default function SessionMessages() {
         const messageType = _.get(messages[index].message, "type", "STRING"),
             messageContent = _.get(messages[index].message, "content", null);
         const [hasError, setHasError] = useState(false);
+        const timestamp = messages[index].timestamp;
+        const stream = messages[index].stream;
         return (
             <div
+                key={`session-message-${index}`}
                 style={{
                     ...style,
                     display: "flex",
@@ -95,7 +98,7 @@ export default function SessionMessages() {
                             </pre>
                         ) : _.isEqual(messageType, "INTERACTION") ? (
                             <InteractiveMessage
-                                stream={messages[index].stream}
+                                stream={stream}
                                 setHasError={setHasError}
                                 content={messageContent}
                             />
@@ -108,30 +111,17 @@ export default function SessionMessages() {
                         className={`${Classes.TEXT_DISABLED} ${Classes.TEXT_SMALL} ${Classes.TEXT_OVERFLOW_ELLIPSIS}`}
                     >
                         <Tooltip
+                            targetProps={{ className: "full-parent-width" }}
                             minimal
                             placement="bottom-start"
                             content={
-                                <>
-                                    <ReactTimeAgo
-                                        date={
-                                            new Date(messages[index].timestamp)
-                                        }
-                                        locale="en-US"
-                                    />
-                                    <br />
-                                    <span className={Classes.TEXT_MUTED}>
-                                        {new Date(
-                                            messages[index].timestamp
-                                        ).toLocaleDateString()}
-                                        &nbsp;at&nbsp;
-                                        {new Date(
-                                            messages[index].timestamp
-                                        ).toLocaleTimeString()}
-                                    </span>
-                                </>
+                                <MessageMetadata
+                                    timestamp={timestamp}
+                                    stream={stream}
+                                />
                             }
                         >
-                            {messages[index].stream}
+                            {stream}
                         </Tooltip>
                     </div>
                 ) : null}

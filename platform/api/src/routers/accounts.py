@@ -5,7 +5,7 @@ import time
 import datetime
 
 import pydash
-from constant import EMAIL_DOMAIN_ADDRESS_REGEXP
+from constant import EMAIL_DOMAIN_ADDRESS_REGEXP, redisReplace
 from fastapi import Request
 from APIRouter import APIRouter
 from fastapi.responses import JSONResponse
@@ -141,7 +141,7 @@ async def signin_cli(request: Request):
                 status_code=401,
             )
         if time.time() - decoded_claims["auth_time"] < 5 * 60:
-            expires_in = datetime.timedelta(days=1)
+            expires_in = datetime.timedelta(hours=10)
             session_cookie = auth.create_session_cookie(id_token, expires_in=expires_in)
             return JSONResponse(content={"cookie": session_cookie})
         return ERROR_RESPONSE
@@ -156,4 +156,15 @@ async def signin_cli(request: Request):
 
 @router.get("/profile")
 def get_profile(request: Request):
-    return JSONResponse(content={"result": request.state.user, "message": "Success"})
+    return JSONResponse(content={"profile": request.state.user})
+
+
+@router.get("/profile/email/{email}")
+def get_profil_by_email(email):
+    user = {'id': email}
+    try:
+        user_record = auth.get_user_by_email(redisReplace(email, reverse=True))
+        user.update({'uid': user_record.uid, 'email': user_record.email, 'picture': user_record.photo_url, 'display_name': user_record.display_name})
+    except ValueError as ex:
+        print(ex)
+    return JSONResponse(content={"user": user})
