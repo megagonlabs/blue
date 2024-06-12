@@ -165,7 +165,7 @@ Key functionality of the agent is defined in the `processor` function, the rest 
 
 See the `processor` function in the template interactive agent to see how to send interactive forms to render on the web application. To help develop interactive agents you can use the [template-interactive agent](template-interactive) code as starter code.
 
-Build interactive forms using "Form Designer" in the "Dev. Tools" section of the navigation menu. Instructions on the form elements are available within the interface. If you need further assistance, submit a support ticket.
+Build interactive forms using "Form Designer" in the "Dev. Tools" section of the navigation menu. Instructions on the form elements are available within the interface.
 </br>
 </br>
 
