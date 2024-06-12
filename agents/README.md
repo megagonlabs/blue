@@ -170,5 +170,6 @@ See the `processor` function in the template interactive agent to see how to sen
 
 Below is a list of agents that you can directly use as they are generic. Also look for other agents in `agents` directory to use them as examples.
 
-* [API Caller Agent](apicaller)
-* [OpenAI Agent](openai)
+* [API Caller Agent](apicaller) - call any API
+* [Form Agent](form) - present form to collect structured data
+* [OpenAI Agent](openai) - call OpenAI 
