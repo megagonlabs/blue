@@ -22,7 +22,7 @@ $ ./deploy_platform.sh
 Frontend is developed using [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
 ## Getting Started
-Create `src/.env.development`:
+Create `src/.env.development` and specify correct values (if needed):
 ```
 NEXT_PUBLIC_REST_API_SERVER=http://localhost:5050
 NEXT_PUBLIC_WS_API_SERVER=ws://localhost:5050
