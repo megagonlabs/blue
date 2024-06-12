@@ -1,36 +1,34 @@
-## Run API server
-Under `platform/api/`
-- Install dependencies: `pip install -r src/requirements.txt`
-- Run script (copy libs): `./docker_build_api.sh`
-- Start server: `uvicorn server:app --app-dir src --port 5050 --reload`
-  - To set environment variables inside `.env` : `set -a; source .env; set +a`
+# API 
 
-## API Documentation
+Many of the blue platform is available through a REST API. 
 
-Check out [SwaggerUI](http://localhost:5050/docs)
+## build
 
-## Add routes
-> For more detailed documentation, check out [APIRouter](https://fastapi.tiangolo.com/reference/apirouter/) class.
-> 
-Import router files inside `server.py` file
-```py
-# platform/api/server.py
-from routers import agents
+To build the API:
 ```
-Under `platform/api/routers`
-```py
-# <name>.py
-from fastapi import APIRouter
-from fastapi.responses import JSONResponse
+$ cd platform/api
+$  ./docker_build_api.sh
+```
+## deploy
 
-router = APIRouter(prefix='<name>')
-
-
-@router.get("/")
-def get_example():
-    return JSONResponse(content={})
+API is deployed as part of the overall platform.
+```
+$ cd platform/scripts
+$ ./deploy_platform.sh
 ```
 
-## Send websocket message
-Under `platform/api/`
-- `python test_client.py`
+## run
+
+To run it locally during development:
+
+First, install the dependencies by running:  `pip install -r src/requirements.txt`
+Then, copy build, `./build_api.sh`
+
+Finally, you can start the server by running: `uvicorn server:app --app-dir src --port 5050 --reload`
+
+To set environment variables, `api.env` file, and run:  `set -a; source api.env; set +a`
+
+## documentation
+
+Documentation is available via a web browser when deployed. Locallly it is available at [SwaggerUI](http://localhost:5050/docs)
+
