@@ -150,7 +150,7 @@ Data registry has a number of properties that can be configured when a registry 
 Data elements is an json array of data elements that can be in any scope and of type. See `data/sample_data.json`.
 
 ```
-$ python src/data_registry.py --add "`cat data/sample_data.json`"
+$ python src/data_registry.py --add "`cat data/sample_data.json`" --prefix PLATFORM:default
 ```
 
 #### search data elements

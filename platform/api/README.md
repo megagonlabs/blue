@@ -21,14 +21,25 @@ $ ./deploy_platform.sh
 
 To run it locally during development:
 
-First, install the dependencies by running:  `pip install -r src/requirements.txt`
-Then, copy build, `./build_api.sh`
+First, install the dependencies by running:
+```sh
+pip install -r src/requirements.txt
 
-Finally, you can start the server by running: `uvicorn server:app --app-dir src --port 5050 --reload`
+# then, copy and build
+./build_api.sh
+```
 
-To set environment variables, `api.env` file, and run:  `set -a; source api.env; set +a`
+To set environment variables, `api.env` file, and run:
+```
+set -a; source api.env; set +a;
+```
+
+Finally, you can start the server by running:
+```
+uvicorn server:app --app-dir src --port 5050 --reload;
+```
 
 ## documentation
 
-Documentation is available via a web browser when deployed. Locallly it is available at [SwaggerUI](http://localhost:5050/docs)
+Documentation is available via a web browser when deployed. Locallly it is available at [SwaggerUI](http://localhost:5050/docs).
 
