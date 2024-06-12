@@ -98,7 +98,7 @@ Agent registry has a number of properties that can be configured when a registry
 #### add agents
 
 ```
-$ python src/agent_registry.py --add "`cat data/sample_agents.json`"
+$ python src/agent_registry.py --add "`cat data/sample_agents.json`" --prefix PLATFORM:default
 ```
 
 #### search agents
