@@ -27,13 +27,15 @@ import {
     faGear,
     faListUl,
     faPencilRuler,
+    faQuestion,
 } from "@fortawesome/pro-duotone-svg-icons";
 import classNames from "classnames";
 import _ from "lodash";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useContext } from "react";
+import { useContext, useState } from "react";
+import SupportDialog from "./SupportDialog";
 export default function App({ children }) {
     const router = useRouter();
     const { appState } = useContext(AppContext);
@@ -70,8 +72,16 @@ export default function App({ children }) {
             icon: faGear,
         },
     };
+    const [isSupportDialogOpen, setIsSupportDialogOpen] = useState(false);
+    const openSupportDialog = () => {
+        setIsSupportDialogOpen(true);
+    };
     return (
         <div>
+            <SupportDialog
+                isOpen={isSupportDialogOpen}
+                setIsSupportDialogOpen={setIsSupportDialogOpen}
+            />
             <Navbar style={{ paddingLeft: 20, paddingRight: 20 }}>
                 <Navbar.Group align={Alignment.LEFT}>
                     <Image
@@ -91,6 +101,14 @@ export default function App({ children }) {
                 </Navbar.Group>
                 {!_.isEmpty(user) ? (
                     <Navbar.Group align={Alignment.RIGHT}>
+                        <Tooltip placement="bottom" minimal content="Support">
+                            <Button
+                                minimal
+                                large
+                                onClick={openSupportDialog}
+                                icon={faIcon({ icon: faQuestion })}
+                            />
+                        </Tooltip>
                         <Popover
                             minimal
                             placement="bottom-end"
@@ -153,7 +171,13 @@ export default function App({ children }) {
                                     </div>
                                 }
                             >
-                                <Card interactive style={PROFILE_PICTURE_40}>
+                                <Card
+                                    interactive
+                                    style={{
+                                        ...PROFILE_PICTURE_40,
+                                        marginLeft: 10,
+                                    }}
+                                >
                                     <Image
                                         alt=""
                                         src={_.get(user, "picture", "")}
