@@ -189,8 +189,9 @@ class Session:
             nx=True,
         )
 
-        # add created
-        self.set_metadata("created_date", int(time.time()))
+        if self.get_metadata("created_date") is None:
+            # add created
+            self.set_metadata("created_date", int(time.time()))
 
     def _get_metadata_namespace(self):
         return self.cid + ":METADATA"
@@ -204,9 +205,8 @@ class Session:
             Path("$" + ("" if pydash.is_empty(key) else ".") + key),
         )
         return self.__get_json_value(value)
-    
 
-     ## session data (shared by all agents)
+    ## session data (shared by all agents)
     def _init_data_namespace(self):
         # create namespaces for any session common data, and stream-specific data
         self.connection.json().set(
@@ -232,11 +232,10 @@ class Session:
     def get_data_len(self, key):
         return self.connection.json().arrlen(self._get_data_namespace(), "$." + key)
 
-
     ## session agent data (shared by all workers of an agent)
     def _get_agent_data_namespace(self, agent):
         return agent.cid + ":DATA"
-    
+
     def _init_agent_data_namespace(self, agent):
         # create namespaces for stream-specific data
         return self.connection.json().set(
@@ -276,7 +275,7 @@ class Session:
     ## session stream data
     def _get_stream_data_namespace(self, stream):
         return stream + ":DATA"
-    
+
     def _init_stream_data_namespace(self, stream):
         # create namespaces for stream-specific data
         return self.connection.json().set(

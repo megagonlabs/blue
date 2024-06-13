@@ -65,7 +65,7 @@ class Platform:
         self.producer = None
 
         self._start()
-    
+
     ###### INITIALIZATION
     def _initialize(self, properties=None):
         self._initialize_properties()
@@ -77,7 +77,6 @@ class Platform:
         # db connectivity
         self.properties['db.host'] = 'localhost'
         self.properties['db.port'] = 6379
-
 
     def _update_properties(self, properties=None):
         if properties is None:
@@ -99,7 +98,7 @@ class Platform:
         matches = re.finditer(regex, keys)
         session_sids = [match.group()[:-5] for match in matches]
         return session_sids
-    
+
     def get_sessions(self):
         session_sids = self.get_session_sids()
 
@@ -112,6 +111,7 @@ class Platform:
                     "id": session_sid,
                     "name": pydash.objects.get(metadata, "name", session_sid),
                     "description": pydash.objects.get(metadata, "description", ""),
+                    "created_date": pydash.objects.get(metadata, "created_date", None),
                 }
             )
         return result
@@ -138,31 +138,23 @@ class Platform:
         # delete session data, metadata
         self.connection.delete(session_cid + ":DATA")
         self.connection.delete(session_cid + ":METADATA")
-        
+
         # TODO: delete more
 
         # TOOO: remove, stop all agents
 
     def _send_message(self, code, params):
-        message = {
-            'code': code,
-            'params': params
-        }
+        message = {'code': code, 'params': params}
         self.producer.write(data=message, dtype="json", label="INSTRUCTION")
-        
+
     def join_session(self, session_sid, registry, agent, properties):
 
         session_cid = self.cid + ":" + session_sid
         code = "JOIN_SESSION"
-        params = {
-            'session': session_cid,
-            'registry': registry,
-            'agent': agent,
-            'properties': properties
-        }
-        
+        params = {'session': session_cid, 'registry': registry, 'agent': agent, 'properties': properties}
+
         self._send_message(code, params)
-    
+
     ###### METADATA RELATED
     def __get_json_value(self, value):
         if value is None:
@@ -174,24 +166,21 @@ class Platform:
                 return value[0]
         else:
             return value
-        
+
     def _init_metadata_namespace(self):
         # create namespaces for any session common data, and stream-specific data
         self.connection.json().set(
             self._get_metadata_namespace(),
             "$",
-            {
-            },
+            {},
             nx=True,
         )
 
     def _get_metadata_namespace(self):
         return self.cid + ":METADATA"
-    
+
     def set_metadata(self, key, value):
-        self.connection.json().set(
-            self._get_metadata_namespace(), "$." + key, value
-        )
+        self.connection.json().set(self._get_metadata_namespace(), "$." + key, value)
 
     def get_metadata(self, key=""):
         value = self.connection.json().get(
@@ -199,7 +188,7 @@ class Platform:
             Path("$" + ("" if pydash.is_empty(key) else ".") + key),
         )
         return self.__get_json_value(value)
-    
+
     ###### OPERATIONS
     def _start_producer(self):
         # start, if not started
