@@ -25,6 +25,7 @@ import {
     faCircleA,
     faDatabase,
     faGear,
+    faHashtag,
     faListUl,
     faPencilRuler,
     faQuestion,
@@ -34,11 +35,21 @@ import _ from "lodash";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useContext, useState } from "react";
+import { useContext, useMemo, useState } from "react";
 import SupportDialog from "./SupportDialog";
 export default function App({ children }) {
     const router = useRouter();
-    const { appState } = useContext(AppContext);
+    const { appState, appActions } = useContext(AppContext);
+    const sessionDetail = appState.session.sessionDetail;
+    const sessionIdFocus = appState.session.sessionIdFocus;
+    const pinnedSessionIds = useMemo(
+        () =>
+            Object.values(sessionDetail)
+                .sort((a, b) => b.created_date - a.created_date)
+                .slice(0, 5)
+                .map((session) => session.id),
+        [sessionDetail]
+    );
     const { user, signOut } = useContext(AuthContext);
     const MENU_ITEMS = {
         sessions: {
@@ -218,10 +229,42 @@ export default function App({ children }) {
                         alignText={Alignment.LEFT}
                         vertical
                         minimal
-                        large
                         className="full-parent-width"
                         style={{ marginBottom: 20 }}
                     >
+                        {pinnedSessionIds.map((sessionId) => (
+                            <Button
+                                active={
+                                    _.isEqual(sessionIdFocus, sessionId) &&
+                                    _.startsWith(router.asPath, "/sessions")
+                                }
+                                style={{ padding: "5px 15px" }}
+                                icon={faIcon({
+                                    icon: faHashtag,
+                                    style: { marginRight: 10 },
+                                })}
+                                onClick={() => {
+                                    appActions.session.setSessionIdFocus(
+                                        sessionId
+                                    );
+                                    router.push("/sessions");
+                                }}
+                                text={
+                                    <div
+                                        style={{ width: 107 }}
+                                        className={
+                                            Classes.TEXT_OVERFLOW_ELLIPSIS
+                                        }
+                                    >
+                                        {_.get(
+                                            sessionDetail,
+                                            [sessionId, "name"],
+                                            sessionId
+                                        )}
+                                    </div>
+                                }
+                            />
+                        ))}
                         {["sessions"].map((key, index) => {
                             const { href, icon, text } = _.get(
                                 MENU_ITEMS,
@@ -235,6 +278,7 @@ export default function App({ children }) {
                                     key={`app-card-button-group-link-${index}`}
                                 >
                                     <Button
+                                        large
                                         style={
                                             !active
                                                 ? {
@@ -243,7 +287,12 @@ export default function App({ children }) {
                                                   }
                                                 : null
                                         }
-                                        active={active}
+                                        active={
+                                            active &&
+                                            !pinnedSessionIds.includes(
+                                                sessionIdFocus
+                                            )
+                                        }
                                         text={text}
                                         icon={faIcon({ icon: icon })}
                                     />

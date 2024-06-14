@@ -76,10 +76,9 @@ export default function sessionReducer(
             let nextSessionDetail = { ...state.sessionDetail };
             for (let i = 0; i < _.size(payload); i++) {
                 const detail = payload[i];
-                _.set(nextSessionDetail, [detail.id], {
-                    name: detail.name,
-                    description: detail.description,
-                });
+                if (!_.isNil(detail.id)) {
+                    _.set(nextSessionDetail, [detail.id], detail);
+                }
             }
             return { ...state, sessionDetail: nextSessionDetail };
         }

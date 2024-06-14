@@ -15,14 +15,18 @@ export const sessionAction = (dispatch) => ({
     createSession: () => {
         axios.post(`/sessions/session`).then((response) => {
             try {
-                const sessionId = _.get(response, "data.result.id");
+                const session = _.get(response, "data.result", {});
                 dispatch({
-                    type: "session/state/set",
-                    payload: { key: "openAgentsDialogTrigger", value: true },
+                    type: "session/sessions/detail/set",
+                    payload: [session],
                 });
                 dispatch({
                     type: "session/sessions/add",
-                    payload: sessionId,
+                    payload: session.id,
+                });
+                dispatch({
+                    type: "session/state/set",
+                    payload: { key: "openAgentsDialogTrigger", value: true },
                 });
             } catch (error) {
                 console.log(error);

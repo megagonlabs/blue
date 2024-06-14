@@ -78,9 +78,10 @@ export default function Sessions() {
                     });
                 } else if (_.isEqual(data["type"], "NEW_SESSION_BROADCAST")) {
                     appActions.session.observeSession({
-                        sessionId: data["session_id"],
+                        sessionId: _.get(data, "session.id"),
                         socket: socket,
                     });
+                    appActions.session.setSessionDetail([data["session"]]);
                 }
             } catch (e) {
                 AppToaster.show({

@@ -20,18 +20,15 @@ export default function SessionDetail({ isOpen, setIsSessionDetailOpen }) {
     const { appState, appActions } = useContext(AppContext);
     const sessionIdFocus = appState.session.sessionIdFocus;
     const [allowQuickClose, setAllowQuickCloset] = useState(true);
-    const sessionName = _.get(
-        appState,
-        ["session", "sessionDetail", sessionIdFocus, "name"],
-        ""
-    );
     const sessionDetail = _.get(
         appState,
-        ["session", "sessionDetail", sessionIdFocus, "description"],
-        ""
+        ["session", "sessionDetail", sessionIdFocus],
+        {}
     );
+    const sessionName = _.get(sessionDetail, "name", "");
+    const sessionDescription = _.get(sessionDetail, "description", "");
     const [name, setName] = useState(sessionName);
-    const [description, setDescription] = useState(sessionDetail);
+    const [description, setDescription] = useState(sessionDescription);
     const [loading, setLoading] = useState(false);
     const handleSaveMetadata = () => {
         setLoading(true);
@@ -45,7 +42,7 @@ export default function SessionDetail({ isOpen, setIsSessionDetailOpen }) {
                 setAllowQuickCloset(true);
                 setLoading(false);
                 appActions.session.setSessionDetail([
-                    { ...payload, id: sessionIdFocus },
+                    { ...sessionDetail, ...payload, id: sessionIdFocus },
                 ]);
             })
             .catch(() => {
@@ -55,7 +52,7 @@ export default function SessionDetail({ isOpen, setIsSessionDetailOpen }) {
     };
     useEffect(() => {
         setName(sessionName);
-        setDescription(sessionDetail);
+        setDescription(sessionDescription);
     }, [sessionIdFocus, isOpen]);
     const [tab, setTab] = useState("about");
     return (

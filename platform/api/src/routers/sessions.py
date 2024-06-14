@@ -138,7 +138,7 @@ async def update_session(request: Request, session_id):
 async def create_session(request: Request):
     result = p.create_session()
 
-    await request.app.connection_manager.broadcast(json.dumps({"type": "NEW_SESSION_BROADCAST", "session_id": result["id"]}))
+    await request.app.connection_manager.broadcast(json.dumps({"type": "NEW_SESSION_BROADCAST", "session": result}))
     return JSONResponse(content={"result": result, "message": "Success"})
 
 

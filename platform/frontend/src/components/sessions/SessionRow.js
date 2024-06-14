@@ -42,14 +42,18 @@ export default function SessionRow({ index, style }) {
         }
     }, [sessionMessages]);
     const handleSetSessionIdFocus = () => {
-        if (!_.isEqual(sessionId, sessionIdFocus)) {
-            appActions.session.setSessionIdFocus(sessionId);
-        }
+        appActions.session.setSessionIdFocus(sessionId);
     };
     return (
         <Card
             interactive
-            style={{ ...style, borderRadius: 0 }}
+            style={{
+                ...style,
+                borderRadius: 0,
+                backgroundColor: _.isEqual(sessionIdFocus, sessionId)
+                    ? "#F6F7F9"
+                    : null,
+            }}
             onMouseEnter={() => {
                 setShowActions(true);
             }}

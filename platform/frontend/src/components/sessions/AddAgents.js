@@ -292,11 +292,13 @@ export default function AddAgents({
                         </span>
                     ) : null}
                 </div>
-                <div style={{ position: "absolute", right: 15, top: 15 }}>
-                    <Tag intent={Intent.WARNING} minimal large>
-                        {_.size(unavailableAgents)} unavailable
-                    </Tag>
-                </div>
+                {!_.isEmpty(unavailableAgents) ? (
+                    <div style={{ position: "absolute", right: 15, top: 15 }}>
+                        <Tag intent={Intent.WARNING} minimal large>
+                            {_.size(unavailableAgents)} unavailable
+                        </Tag>
+                    </div>
+                ) : null}
             </DialogFooter>
         </Dialog>
     );
