@@ -1,9 +1,7 @@
-const createNextPluginPreval = require("next-plugin-preval/config");
-const withNextPluginPreval = createNextPluginPreval();
-module.exports = withNextPluginPreval({
+module.exports = {
     reactStrictMode: true,
     transpilePackages: ["codemirror-json-schema", "json-schema-library"],
     images: {
         remotePatterns: [{ hostname: "lh3.googleusercontent.com" }],
     },
-});
+};

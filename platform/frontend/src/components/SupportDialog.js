@@ -1,4 +1,4 @@
-import build from "@/build.preval";
+import { faIcon } from "@/components/icon";
 import {
     Classes,
     Dialog,
@@ -8,9 +8,7 @@ import {
     Tooltip,
 } from "@blueprintjs/core";
 import { faCopyright } from "@fortawesome/pro-duotone-svg-icons";
-import { faIcon } from "./icon";
 export default function SupportDialog({ isOpen, setIsSupportDialogOpen }) {
-    const { short, long, branch } = build;
     return (
         <Dialog onClose={() => setIsSupportDialogOpen(false)} isOpen={isOpen}>
             <DialogBody>
@@ -21,9 +19,13 @@ export default function SupportDialog({ isOpen, setIsSupportDialogOpen }) {
                 >
                     Orchestrating data & tasks for smarter insights.
                 </div>
-                <Tooltip placement="right" content={long}>
+                <Tooltip
+                    placement="right"
+                    content={process.env.NEXT_PUBLIC_GIT_LONG}
+                >
                     <Tag large>
-                        {branch} / {short}
+                        {process.env.NEXT_PUBLIC_GIT_BRANCH}-
+                        {process.env.NEXT_PUBLIC_GIT_SHORT}
                     </Tag>
                 </Tooltip>
                 <div style={{ marginTop: 10 }}>
