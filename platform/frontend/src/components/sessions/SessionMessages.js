@@ -1,10 +1,19 @@
 import { AppContext } from "@/components/contexts/app-context";
 import InteractiveMessage from "@/components/sessions/InteractiveMessage";
-import { Callout, Classes, Intent, Tooltip } from "@blueprintjs/core";
+import {
+    Button,
+    ButtonGroup,
+    Callout,
+    Classes,
+    Intent,
+    Tooltip,
+} from "@blueprintjs/core";
+import { faThumbtack } from "@fortawesome/pro-duotone-svg-icons";
 import _ from "lodash";
 import { useContext, useEffect, useRef, useState } from "react";
 import AutoSizer from "react-virtualized-auto-sizer";
 import { VariableSizeList } from "react-window";
+import { faIcon } from "../icon";
 import MessageMetadata from "./MessageMetadata";
 export default function SessionMessages() {
     const variableSizeListRef = useRef();
@@ -61,6 +70,7 @@ export default function SessionMessages() {
         const [hasError, setHasError] = useState(false);
         const timestamp = messages[index].timestamp;
         const stream = messages[index].stream;
+        const [showActions, setShowActions] = useState(false);
         return (
             <div
                 key={`session-message-${index}`}
@@ -68,7 +78,7 @@ export default function SessionMessages() {
                     ...style,
                     display: "flex",
                     flexDirection: "column",
-                    alignItems: `flex-${own ? "end" : "start"}`,
+                    alignItems: "flex-start",
                     padding: `${_.isEqual(index, 0) ? 20 : 0}px 20px 20px`,
                 }}
             >
@@ -77,16 +87,49 @@ export default function SessionMessages() {
                         hasError ? Intent.DANGER : own ? Intent.PRIMARY : null
                     }
                     icon={null}
+                    onMouseEnter={() => {
+                        setShowActions(true);
+                    }}
+                    onMouseLeave={() => {
+                        setShowActions(false);
+                    }}
                     style={{
                         backgroundColor: "rgba(143, 153, 168, 0.1)",
+                        position: "relative",
                         maxWidth: "min(802.2px, 100%)",
-                        whiteSpace: "pre-wrap",
-                        wordBreak: "break-all",
+                        minWidth: 50,
                         width: "fit-content",
-                        overflow: "hidden",
                     }}
                 >
-                    <div ref={rowRef}>
+                    <div
+                        style={{
+                            position: "absolute",
+                            left: 0,
+                            top: 0,
+                            display: showActions ? null : "none",
+                        }}
+                    >
+                        <ButtonGroup large>
+                            <Tooltip
+                                content="Pin to this session"
+                                minimal
+                                placement="bottom-start"
+                            >
+                                <Button icon={faIcon({ icon: faThumbtack })} />
+                            </Tooltip>
+                        </ButtonGroup>
+                    </div>
+                    <div
+                        ref={rowRef}
+                        style={{
+                            maxWidth: "min(802.2px, 100%)",
+                            minWidth: 50,
+                            whiteSpace: "pre-wrap",
+                            wordBreak: "break-all",
+                            width: "fit-content",
+                            overflow: "hidden",
+                        }}
+                    >
                         {_.isEqual(messageType, "STRING") ? (
                             messageContent
                         ) : _.isEqual(messageType, "JSON") ? (

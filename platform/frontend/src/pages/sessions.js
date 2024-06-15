@@ -33,6 +33,7 @@ import {
     faPlusLarge,
     faSatelliteDish,
     faSignalStreamSlash,
+    faThumbtack,
     faUserPlus,
 } from "@fortawesome/pro-duotone-svg-icons";
 import axios from "axios";
@@ -467,6 +468,21 @@ export default function Sessions() {
                             />
                         </Tooltip>
                     ) : null}
+                    <Popover
+                        placement="bottom"
+                        content={<div style={{ padding: 20 }}></div>}
+                    >
+                        <Button
+                            icon={faIcon({
+                                icon: faThumbtack,
+                                className: "fa-rotate-by",
+                                style: { "--fa-rotate-angle": "-45deg" },
+                            })}
+                            large
+                            minimal
+                            text={"0 Pinned"}
+                        />
+                    </Popover>
                 </Card>
                 {_.isNull(sessionIdFocus) ? (
                     <NonIdealState
