@@ -25,7 +25,6 @@ import {
     faCircleA,
     faDatabase,
     faGear,
-    faHashtag,
     faListUl,
     faPencilRuler,
     faQuestion,
@@ -234,15 +233,12 @@ export default function App({ children }) {
                     >
                         {pinnedSessionIds.map((sessionId) => (
                             <Button
+                                key={`app-pinned-session-id-${sessionId}`}
                                 active={
                                     _.isEqual(sessionIdFocus, sessionId) &&
                                     _.startsWith(router.asPath, "/sessions")
                                 }
                                 style={{ padding: "5px 15px" }}
-                                icon={faIcon({
-                                    icon: faHashtag,
-                                    style: { marginRight: 10 },
-                                })}
                                 onClick={() => {
                                     appActions.session.setSessionIdFocus(
                                         sessionId
@@ -251,11 +247,12 @@ export default function App({ children }) {
                                 }}
                                 text={
                                     <div
-                                        style={{ width: 107 }}
+                                        style={{ width: 133 }}
                                         className={
                                             Classes.TEXT_OVERFLOW_ELLIPSIS
                                         }
                                     >
+                                        #{" "}
                                         {_.get(
                                             sessionDetail,
                                             [sessionId, "name"],
