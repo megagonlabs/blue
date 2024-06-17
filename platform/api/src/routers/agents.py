@@ -103,7 +103,7 @@ def get_agent_containers():
             c["hostname"] = service.attrs["Spec"]["TaskTemplate"]["ContainerSpec"]["Hostname"]
             c["created_date"] = service.attrs["CreatedAt"]
             c["image"] = service.attrs["Spec"]["TaskTemplate"]["ContainerSpec"]["Image"]
-            labels = container.attrs["Spec"]["TaskTemplate"]["ContainerSpec"]["Labels"]
+            labels = service.attrs["Spec"]["TaskTemplate"]["ContainerSpec"]["Labels"]
             if 'blue.agent' in labels:
                 l = labels['blue.agent']
                 la = l.split(".")
