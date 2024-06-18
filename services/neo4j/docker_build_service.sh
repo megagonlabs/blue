@@ -9,6 +9,6 @@ echo 'Building docker image...'
 docker build -t blue-service-neo4j:latest -f Dockerfile.service .
 
 # tag image
-docker tag blue-service-neo4j:latest blue-service-neo4j:$(git rev-parse --abbrev-ref HEAD).$(git rev-parse --short HEAD)
+docker tag blue-service-neo4j:latest blue-service-neo4j:$(git rev-parse --abbrev-ref HEAD)-$(git rev-parse --short HEAD)
 
 echo 'Done...'
