@@ -4,7 +4,9 @@ import sys
 
 ###### Add lib path
 sys.path.append('./lib/')
-sys.path.append('./lib/shared/')
+sys.path.append('./lib/agent/')
+sys.path.append('./lib/platform/')
+sys.path.append('./lib/utils/')
 
 ###### 
 import time
@@ -28,22 +30,26 @@ from websockets.sync.client import connect
 
 
 ###### Blue
-from agent import Agent
+from agent import Agent, AgentFactory
 from session import Session
+
 
 # set log level
 logging.getLogger().setLevel(logging.INFO)
+logging.basicConfig(format="%(asctime)s [%(levelname)s] [%(process)d:%(threadName)s:%(thread)d](%(filename)s:%(lineno)d) %(name)s -  %(message)s", level=logging.ERROR, datefmt="%Y-%m-%d %H:%M:%S")
+
 
 #######################
 class CounterAgent(Agent):
-    def __init__(self, session=None, input_stream=None, processor=None, properties={}):
-        super().__init__("COUNTER", session=session, input_stream=input_stream, processor=processor, properties=properties)
-        
+    def __init__(self, **kwargs):
+        if 'name' not in kwargs:
+            kwargs['name'] = "WEBSOCKET_COUNTER"
+        super().__init__(**kwargs)
         
     def _initialize_properties(self):
         super()._initialize_properties()
 
-        self.properties['counter.service'] = "ws://localhost:8002"
+        self.properties['counter.service'] = "ws://localhost:8001"
 
     def default_processor(self, stream, id, label, data, dtype=None, tags=None, properties=None, worker=None):
         if label == 'EOS':
@@ -69,7 +75,7 @@ class CounterAgent(Agent):
             # create output from response
             output_data = int(response)
             logging.info(output_data)
-            return output_data
+            return "DATA", str(output_data), "str", True
 
         elif label == 'BOS':
             # init stream to empty array
@@ -78,7 +84,7 @@ class CounterAgent(Agent):
             pass
         elif label == 'DATA':
             # store data value
-            logging.info(value)
+            logging.info(data)
             
             if worker:
                 worker.append_data('stream',data)
@@ -92,7 +98,7 @@ class CounterAgent(Agent):
 
     def call_service(self, data):
         with connect(self.get_service_address()) as websocket:
-            logging.info("Sending to service: {data}".format(data=data))
+            logging.info("Sending to service {service}: {data}".format(service=self.get_service_address(),data=data))
             websocket.send(data)
             message = websocket.recv()
             logging.info("Received from service: {message}".format(message=message))
@@ -100,10 +106,13 @@ class CounterAgent(Agent):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
+    parser.add_argument('--name', default="WEBSOCKETCOUNTER", type=str)
     parser.add_argument('--session', type=str)
-    parser.add_argument('--input_stream', type=str)
     parser.add_argument('--properties', type=str)
     parser.add_argument('--loglevel', default="INFO", type=str)
+    parser.add_argument('--serve', type=str, default='WEBSOCKETCOUNTER')
+    parser.add_argument('--platform', type=str, default='default')
+    parser.add_argument('--registry', type=str, default='default')
  
     args = parser.parse_args()
    
@@ -111,28 +120,33 @@ if __name__ == "__main__":
     logging.getLogger().setLevel(args.loglevel.upper())
 
 
-    session = None
-    a = None
-
     # set properties
     properties = {}
     p = args.properties
     if p:
         # decode json
         properties = json.loads(p)
-
-    if args.session:
-        # join an existing session
-        session = Session(args.session)
-        a = CounterAgent(session=session, properties=properties)
-    elif args.input_stream:
-        # no session, work on a single input stream
-        a = CounterAgent(input_stream=args.input_stream, properties=properties)
+    
+    if args.serve:
+        platform = args.platform
+        
+        af = AgentFactory(agent_class=CounterAgent, agent_name=args.serve, agent_registry=args.registry, platform=platform, properties=properties)
+        af.wait()
     else:
-        # create a new session
-        a = CounterAgent(properties=properties)
-        a.start_session()
+        a = None
+        session = None
+
+        if args.session:
+            # join an existing session
+            session = Session(args.session)
+            a = CounterAgent(name=args.name, session=session, properties=properties)
+        else:
+            # create a new session
+            a = CounterAgent(name=args.name, properties=properties)
+            session = a.start_session()
+
+        # wait for session
+        if session:
+            session.wait()
 
 
-    # wait for session
-    session.wait()

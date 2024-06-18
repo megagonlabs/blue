@@ -1,0 +1,1274 @@
+ntities: 
+key: <>
+  name: <>
+  index: <>
+  properties: 
+    _id: ObjectId
+    accountId: int
+    ctk: NoneType
+    profileId: str
+    id: str
+    resumeType: str
+    state: NoneType
+    locale: str
+    ipCountry: str
+    geoCountry: str
+    createdDate: Int64
+    modifiedDate: Int64
+    city: str
+    country: str
+    postal: NoneType
+    admin1: str
+    admin2: str
+    admin3: NoneType
+    admin4: NoneType
+    employmentEligibility: list
+    title: str
+    normTitle: str
+    company: str
+    companyFccId: int
+    fromDate: str
+    toDate: str
+    description: str
+    fccompanyId: int
+    headcount: str
+    legal_name: str
+    revenue_currency: str
+    revenue_range: str
+    sectors: list
+    workExperience: list
+    experience: int
+    timeUnit: str
+    text: str
+    skills: list
+    languageSkills: NoneType
+    school: str
+    field: str
+    name: str
+    degree: list
+    education: list
+    tags: NoneType
+    resumes: list
+    schemaRevision: int
+    status: str
+    ATS: int
+    Research: int
+    Student support: int
+    Crisis intervention: int
+    Psychotherapy: int
+    Experience working with students: int
+    Child & family counseling: int
+    Child & family counselling: int
+    Medical documentation: int
+    Care documentation: int
+    Accounting: int
+    Transportation planning: int
+    Care plans: int
+key: resumes
+  name: resumes
+  index: resumes
+  properties: 
+    _id: ObjectId
+    accountId: int
+    ctk: NoneType
+    profileId: str
+    id: str
+    resumeType: str
+    state: NoneType
+    locale: str
+    ipCountry: str
+    geoCountry: str
+    createdDate: Int64
+    modifiedDate: Int64
+    city: str
+    country: str
+    postal: NoneType
+    admin1: str
+    admin2: str
+    admin3: NoneType
+    admin4: NoneType
+    employmentEligibility: list
+    title: str
+    normTitle: str
+    company: str
+    companyFccId: int
+    fromDate: str
+    toDate: str
+    description: str
+    fccompanyId: int
+    headcount: str
+    legal_name: str
+    revenue_currency: str
+    revenue_range: str
+    sectors: list
+    workExperience: list
+    experience: int
+    timeUnit: str
+    text: str
+    skills: list
+    languageSkills: NoneType
+    school: str
+    field: str
+    name: str
+    degree: list
+    education: list
+    tags: NoneType
+    resumes: list
+    schemaRevision: int
+    status: str
+    ATS: int
+    Research: int
+    Student support: int
+    Crisis intervention: int
+    Psychotherapy: int
+    Experience working with students: int
+    Child & family counseling: int
+    Child & family counselling: int
+    Medical documentation: int
+    Care documentation: int
+    Accounting: int
+    Transportation planning: int
+    Care plans: int
+key: location
+  name: location
+  index: location
+  properties: 
+    _id: ObjectId
+    accountId: int
+    ctk: NoneType
+    profileId: str
+    id: str
+    resumeType: str
+    state: NoneType
+    locale: str
+    ipCountry: str
+    geoCountry: str
+    createdDate: Int64
+    modifiedDate: Int64
+    city: str
+    country: str
+    postal: NoneType
+    admin1: str
+    admin2: str
+    admin3: NoneType
+    admin4: NoneType
+    employmentEligibility: list
+    title: str
+    normTitle: str
+    company: str
+    companyFccId: int
+    fromDate: str
+    toDate: str
+    description: str
+    fccompanyId: int
+    headcount: str
+    legal_name: str
+    revenue_currency: str
+    revenue_range: str
+    sectors: list
+    workExperience: list
+    experience: int
+    timeUnit: str
+    text: str
+    skills: list
+    languageSkills: NoneType
+    school: str
+    field: str
+    name: str
+    degree: list
+    education: list
+    tags: NoneType
+    resumes: list
+    schemaRevision: int
+    status: str
+    ATS: int
+    Research: int
+    Student support: int
+    Crisis intervention: int
+    Psychotherapy: int
+    Experience working with students: int
+    Child & family counseling: int
+    Child & family counselling: int
+    Medical documentation: int
+    Care documentation: int
+    Accounting: int
+    Transportation planning: int
+    Care plans: int
+key: employmentEligibility
+  name: employmentEligibility
+  index: employmentEligibility
+  properties: 
+    _id: ObjectId
+    accountId: int
+    ctk: NoneType
+    profileId: str
+    id: str
+    resumeType: str
+    state: NoneType
+    locale: str
+    ipCountry: str
+    geoCountry: str
+    createdDate: Int64
+    modifiedDate: Int64
+    city: str
+    country: str
+    postal: NoneType
+    admin1: str
+    admin2: str
+    admin3: NoneType
+    admin4: NoneType
+    employmentEligibility: list
+    title: str
+    normTitle: str
+    company: str
+    companyFccId: int
+    fromDate: str
+    toDate: str
+    description: str
+    fccompanyId: int
+    headcount: str
+    legal_name: str
+    revenue_currency: str
+    revenue_range: str
+    sectors: list
+    workExperience: list
+    experience: int
+    timeUnit: str
+    text: str
+    skills: list
+    languageSkills: NoneType
+    school: str
+    field: str
+    name: str
+    degree: list
+    education: list
+    tags: NoneType
+    resumes: list
+    schemaRevision: int
+    status: str
+    ATS: int
+    Research: int
+    Student support: int
+    Crisis intervention: int
+    Psychotherapy: int
+    Experience working with students: int
+    Child & family counseling: int
+    Child & family counselling: int
+    Medical documentation: int
+    Care documentation: int
+    Accounting: int
+    Transportation planning: int
+    Care plans: int
+key: workExperience
+  name: workExperience
+  index: workExperience
+  properties: 
+    _id: ObjectId
+    accountId: int
+    ctk: NoneType
+    profileId: str
+    id: str
+    resumeType: str
+    state: NoneType
+    locale: str
+    ipCountry: str
+    geoCountry: str
+    createdDate: Int64
+    modifiedDate: Int64
+    city: str
+    country: str
+    postal: NoneType
+    admin1: str
+    admin2: str
+    admin3: NoneType
+    admin4: NoneType
+    employmentEligibility: list
+    title: str
+    normTitle: str
+    company: str
+    companyFccId: int
+    fromDate: str
+    toDate: str
+    description: str
+    fccompanyId: int
+    headcount: str
+    legal_name: str
+    revenue_currency: str
+    revenue_range: str
+    sectors: list
+    workExperience: list
+    experience: int
+    timeUnit: str
+    text: str
+    skills: list
+    languageSkills: NoneType
+    school: str
+    field: str
+    name: str
+    degree: list
+    education: list
+    tags: NoneType
+    resumes: list
+    schemaRevision: int
+    status: str
+    ATS: int
+    Research: int
+    Student support: int
+    Crisis intervention: int
+    Psychotherapy: int
+    Experience working with students: int
+    Child & family counseling: int
+    Child & family counselling: int
+    Medical documentation: int
+    Care documentation: int
+    Accounting: int
+    Transportation planning: int
+    Care plans: int
+key: dateRange
+  name: dateRange
+  index: dateRange
+  properties: 
+    _id: ObjectId
+    accountId: int
+    ctk: NoneType
+    profileId: str
+    id: str
+    resumeType: str
+    state: NoneType
+    locale: str
+    ipCountry: str
+    geoCountry: str
+    createdDate: Int64
+    modifiedDate: Int64
+    city: str
+    country: str
+    postal: NoneType
+    admin1: str
+    admin2: str
+    admin3: NoneType
+    admin4: NoneType
+    employmentEligibility: list
+    title: str
+    normTitle: str
+    company: str
+    companyFccId: int
+    fromDate: str
+    toDate: str
+    description: str
+    fccompanyId: int
+    headcount: str
+    legal_name: str
+    revenue_currency: str
+    revenue_range: str
+    sectors: list
+    workExperience: list
+    experience: int
+    timeUnit: str
+    text: str
+    skills: list
+    languageSkills: NoneType
+    school: str
+    field: str
+    name: str
+    degree: list
+    education: list
+    tags: NoneType
+    resumes: list
+    schemaRevision: int
+    status: str
+    ATS: int
+    Research: int
+    Student support: int
+    Crisis intervention: int
+    Psychotherapy: int
+    Experience working with students: int
+    Child & family counseling: int
+    Child & family counselling: int
+    Medical documentation: int
+    Care documentation: int
+    Accounting: int
+    Transportation planning: int
+    Care plans: int
+key: location__1
+  name: location
+  index: location
+  properties: 
+    _id: ObjectId
+    accountId: int
+    ctk: NoneType
+    profileId: str
+    id: str
+    resumeType: str
+    state: NoneType
+    locale: str
+    ipCountry: str
+    geoCountry: str
+    createdDate: Int64
+    modifiedDate: Int64
+    city: str
+    country: str
+    postal: NoneType
+    admin1: str
+    admin2: str
+    admin3: NoneType
+    admin4: NoneType
+    employmentEligibility: list
+    title: str
+    normTitle: str
+    company: str
+    companyFccId: int
+    fromDate: str
+    toDate: str
+    description: str
+    fccompanyId: int
+    headcount: str
+    legal_name: str
+    revenue_currency: str
+    revenue_range: str
+    sectors: list
+    workExperience: list
+    experience: int
+    timeUnit: str
+    text: str
+    skills: list
+    languageSkills: NoneType
+    school: str
+    field: str
+    name: str
+    degree: list
+    education: list
+    tags: NoneType
+    resumes: list
+    schemaRevision: int
+    status: str
+    ATS: int
+    Research: int
+    Student support: int
+    Crisis intervention: int
+    Psychotherapy: int
+    Experience working with students: int
+    Child & family counseling: int
+    Child & family counselling: int
+    Medical documentation: int
+    Care documentation: int
+    Accounting: int
+    Transportation planning: int
+    Care plans: int
+key: extractions
+  name: extractions
+  index: extractions
+  properties: 
+    _id: ObjectId
+    accountId: int
+    ctk: NoneType
+    profileId: str
+    id: str
+    resumeType: str
+    state: NoneType
+    locale: str
+    ipCountry: str
+    geoCountry: str
+    createdDate: Int64
+    modifiedDate: Int64
+    city: str
+    country: str
+    postal: NoneType
+    admin1: str
+    admin2: str
+    admin3: NoneType
+    admin4: NoneType
+    employmentEligibility: list
+    title: str
+    normTitle: str
+    company: str
+    companyFccId: int
+    fromDate: str
+    toDate: str
+    description: str
+    fccompanyId: int
+    headcount: str
+    legal_name: str
+    revenue_currency: str
+    revenue_range: str
+    sectors: list
+    workExperience: list
+    experience: int
+    timeUnit: str
+    text: str
+    skills: list
+    languageSkills: NoneType
+    school: str
+    field: str
+    name: str
+    degree: list
+    education: list
+    tags: NoneType
+    resumes: list
+    schemaRevision: int
+    status: str
+    ATS: int
+    Research: int
+    Student support: int
+    Crisis intervention: int
+    Psychotherapy: int
+    Experience working with students: int
+    Child & family counseling: int
+    Child & family counselling: int
+    Medical documentation: int
+    Care documentation: int
+    Accounting: int
+    Transportation planning: int
+    Care plans: int
+key: company
+  name: company
+  index: company
+  properties: 
+    _id: ObjectId
+    accountId: int
+    ctk: NoneType
+    profileId: str
+    id: str
+    resumeType: str
+    state: NoneType
+    locale: str
+    ipCountry: str
+    geoCountry: str
+    createdDate: Int64
+    modifiedDate: Int64
+    city: str
+    country: str
+    postal: NoneType
+    admin1: str
+    admin2: str
+    admin3: NoneType
+    admin4: NoneType
+    employmentEligibility: list
+    title: str
+    normTitle: str
+    company: str
+    companyFccId: int
+    fromDate: str
+    toDate: str
+    description: str
+    fccompanyId: int
+    headcount: str
+    legal_name: str
+    revenue_currency: str
+    revenue_range: str
+    sectors: list
+    workExperience: list
+    experience: int
+    timeUnit: str
+    text: str
+    skills: list
+    languageSkills: NoneType
+    school: str
+    field: str
+    name: str
+    degree: list
+    education: list
+    tags: NoneType
+    resumes: list
+    schemaRevision: int
+    status: str
+    ATS: int
+    Research: int
+    Student support: int
+    Crisis intervention: int
+    Psychotherapy: int
+    Experience working with students: int
+    Child & family counseling: int
+    Child & family counselling: int
+    Medical documentation: int
+    Care documentation: int
+    Accounting: int
+    Transportation planning: int
+    Care plans: int
+key: sectors
+  name: sectors
+  index: sectors
+  properties: 
+    _id: ObjectId
+    accountId: int
+    ctk: NoneType
+    profileId: str
+    id: str
+    resumeType: str
+    state: NoneType
+    locale: str
+    ipCountry: str
+    geoCountry: str
+    createdDate: Int64
+    modifiedDate: Int64
+    city: str
+    country: str
+    postal: NoneType
+    admin1: str
+    admin2: str
+    admin3: NoneType
+    admin4: NoneType
+    employmentEligibility: list
+    title: str
+    normTitle: str
+    company: str
+    companyFccId: int
+    fromDate: str
+    toDate: str
+    description: str
+    fccompanyId: int
+    headcount: str
+    legal_name: str
+    revenue_currency: str
+    revenue_range: str
+    sectors: list
+    workExperience: list
+    experience: int
+    timeUnit: str
+    text: str
+    skills: list
+    languageSkills: NoneType
+    school: str
+    field: str
+    name: str
+    degree: list
+    education: list
+    tags: NoneType
+    resumes: list
+    schemaRevision: int
+    status: str
+    ATS: int
+    Research: int
+    Student support: int
+    Crisis intervention: int
+    Psychotherapy: int
+    Experience working with students: int
+    Child & family counseling: int
+    Child & family counselling: int
+    Medical documentation: int
+    Care documentation: int
+    Accounting: int
+    Transportation planning: int
+    Care plans: int
+key: skill
+  name: skill
+  index: skill
+  properties: 
+    _id: ObjectId
+    accountId: int
+    ctk: NoneType
+    profileId: str
+    id: str
+    resumeType: str
+    state: NoneType
+    locale: str
+    ipCountry: str
+    geoCountry: str
+    createdDate: Int64
+    modifiedDate: Int64
+    city: str
+    country: str
+    postal: NoneType
+    admin1: str
+    admin2: str
+    admin3: NoneType
+    admin4: NoneType
+    employmentEligibility: list
+    title: str
+    normTitle: str
+    company: str
+    companyFccId: int
+    fromDate: str
+    toDate: str
+    description: str
+    fccompanyId: int
+    headcount: str
+    legal_name: str
+    revenue_currency: str
+    revenue_range: str
+    sectors: list
+    workExperience: list
+    experience: int
+    timeUnit: str
+    text: str
+    skills: list
+    languageSkills: NoneType
+    school: str
+    field: str
+    name: str
+    degree: list
+    education: list
+    tags: NoneType
+    resumes: list
+    schemaRevision: int
+    status: str
+    ATS: int
+    Research: int
+    Student support: int
+    Crisis intervention: int
+    Psychotherapy: int
+    Experience working with students: int
+    Child & family counseling: int
+    Child & family counselling: int
+    Medical documentation: int
+    Care documentation: int
+    Accounting: int
+    Transportation planning: int
+    Care plans: int
+key: duration
+  name: duration
+  index: duration
+  properties: 
+    _id: ObjectId
+    accountId: int
+    ctk: NoneType
+    profileId: str
+    id: str
+    resumeType: str
+    state: NoneType
+    locale: str
+    ipCountry: str
+    geoCountry: str
+    createdDate: Int64
+    modifiedDate: Int64
+    city: str
+    country: str
+    postal: NoneType
+    admin1: str
+    admin2: str
+    admin3: NoneType
+    admin4: NoneType
+    employmentEligibility: list
+    title: str
+    normTitle: str
+    company: str
+    companyFccId: int
+    fromDate: str
+    toDate: str
+    description: str
+    fccompanyId: int
+    headcount: str
+    legal_name: str
+    revenue_currency: str
+    revenue_range: str
+    sectors: list
+    workExperience: list
+    experience: int
+    timeUnit: str
+    text: str
+    skills: list
+    languageSkills: NoneType
+    school: str
+    field: str
+    name: str
+    degree: list
+    education: list
+    tags: NoneType
+    resumes: list
+    schemaRevision: int
+    status: str
+    ATS: int
+    Research: int
+    Student support: int
+    Crisis intervention: int
+    Psychotherapy: int
+    Experience working with students: int
+    Child & family counseling: int
+    Child & family counselling: int
+    Medical documentation: int
+    Care documentation: int
+    Accounting: int
+    Transportation planning: int
+    Care plans: int
+key: skills
+  name: skills
+  index: skills
+  properties: 
+    _id: ObjectId
+    accountId: int
+    ctk: NoneType
+    profileId: str
+    id: str
+    resumeType: str
+    state: NoneType
+    locale: str
+    ipCountry: str
+    geoCountry: str
+    createdDate: Int64
+    modifiedDate: Int64
+    city: str
+    country: str
+    postal: NoneType
+    admin1: str
+    admin2: str
+    admin3: NoneType
+    admin4: NoneType
+    employmentEligibility: list
+    title: str
+    normTitle: str
+    company: str
+    companyFccId: int
+    fromDate: str
+    toDate: str
+    description: str
+    fccompanyId: int
+    headcount: str
+    legal_name: str
+    revenue_currency: str
+    revenue_range: str
+    sectors: list
+    workExperience: list
+    experience: int
+    timeUnit: str
+    text: str
+    skills: list
+    languageSkills: NoneType
+    school: str
+    field: str
+    name: str
+    degree: list
+    education: list
+    tags: NoneType
+    resumes: list
+    schemaRevision: int
+    status: str
+    ATS: int
+    Research: int
+    Student support: int
+    Crisis intervention: int
+    Psychotherapy: int
+    Experience working with students: int
+    Child & family counseling: int
+    Child & family counselling: int
+    Medical documentation: int
+    Care documentation: int
+    Accounting: int
+    Transportation planning: int
+    Care plans: int
+key: education
+  name: education
+  index: education
+  properties: 
+    _id: ObjectId
+    accountId: int
+    ctk: NoneType
+    profileId: str
+    id: str
+    resumeType: str
+    state: NoneType
+    locale: str
+    ipCountry: str
+    geoCountry: str
+    createdDate: Int64
+    modifiedDate: Int64
+    city: str
+    country: str
+    postal: NoneType
+    admin1: str
+    admin2: str
+    admin3: NoneType
+    admin4: NoneType
+    employmentEligibility: list
+    title: str
+    normTitle: str
+    company: str
+    companyFccId: int
+    fromDate: str
+    toDate: str
+    description: str
+    fccompanyId: int
+    headcount: str
+    legal_name: str
+    revenue_currency: str
+    revenue_range: str
+    sectors: list
+    workExperience: list
+    experience: int
+    timeUnit: str
+    text: str
+    skills: list
+    languageSkills: NoneType
+    school: str
+    field: str
+    name: str
+    degree: list
+    education: list
+    tags: NoneType
+    resumes: list
+    schemaRevision: int
+    status: str
+    ATS: int
+    Research: int
+    Student support: int
+    Crisis intervention: int
+    Psychotherapy: int
+    Experience working with students: int
+    Child & family counseling: int
+    Child & family counselling: int
+    Medical documentation: int
+    Care documentation: int
+    Accounting: int
+    Transportation planning: int
+    Care plans: int
+key: degree
+  name: degree
+  index: degree
+  properties: 
+    _id: ObjectId
+    accountId: int
+    ctk: NoneType
+    profileId: str
+    id: str
+    resumeType: str
+    state: NoneType
+    locale: str
+    ipCountry: str
+    geoCountry: str
+    createdDate: Int64
+    modifiedDate: Int64
+    city: str
+    country: str
+    postal: NoneType
+    admin1: str
+    admin2: str
+    admin3: NoneType
+    admin4: NoneType
+    employmentEligibility: list
+    title: str
+    normTitle: str
+    company: str
+    companyFccId: int
+    fromDate: str
+    toDate: str
+    description: str
+    fccompanyId: int
+    headcount: str
+    legal_name: str
+    revenue_currency: str
+    revenue_range: str
+    sectors: list
+    workExperience: list
+    experience: int
+    timeUnit: str
+    text: str
+    skills: list
+    languageSkills: NoneType
+    school: str
+    field: str
+    name: str
+    degree: list
+    education: list
+    tags: NoneType
+    resumes: list
+    schemaRevision: int
+    status: str
+    ATS: int
+    Research: int
+    Student support: int
+    Crisis intervention: int
+    Psychotherapy: int
+    Experience working with students: int
+    Child & family counseling: int
+    Child & family counselling: int
+    Medical documentation: int
+    Care documentation: int
+    Accounting: int
+    Transportation planning: int
+    Care plans: int
+key: extractions__1
+  name: extractions
+  index: extractions
+  properties: 
+    _id: ObjectId
+    accountId: int
+    ctk: NoneType
+    profileId: str
+    id: str
+    resumeType: str
+    state: NoneType
+    locale: str
+    ipCountry: str
+    geoCountry: str
+    createdDate: Int64
+    modifiedDate: Int64
+    city: str
+    country: str
+    postal: NoneType
+    admin1: str
+    admin2: str
+    admin3: NoneType
+    admin4: NoneType
+    employmentEligibility: list
+    title: str
+    normTitle: str
+    company: str
+    companyFccId: int
+    fromDate: str
+    toDate: str
+    description: str
+    fccompanyId: int
+    headcount: str
+    legal_name: str
+    revenue_currency: str
+    revenue_range: str
+    sectors: list
+    workExperience: list
+    experience: int
+    timeUnit: str
+    text: str
+    skills: list
+    languageSkills: NoneType
+    school: str
+    field: str
+    name: str
+    degree: list
+    education: list
+    tags: NoneType
+    resumes: list
+    schemaRevision: int
+    status: str
+    ATS: int
+    Research: int
+    Student support: int
+    Crisis intervention: int
+    Psychotherapy: int
+    Experience working with students: int
+    Child & family counseling: int
+    Child & family counselling: int
+    Medical documentation: int
+    Care documentation: int
+    Accounting: int
+    Transportation planning: int
+    Care plans: int
+key: skill__1
+  name: skill
+  index: skill
+  properties: 
+    _id: ObjectId
+    accountId: int
+    ctk: NoneType
+    profileId: str
+    id: str
+    resumeType: str
+    state: NoneType
+    locale: str
+    ipCountry: str
+    geoCountry: str
+    createdDate: Int64
+    modifiedDate: Int64
+    city: str
+    country: str
+    postal: NoneType
+    admin1: str
+    admin2: str
+    admin3: NoneType
+    admin4: NoneType
+    employmentEligibility: list
+    title: str
+    normTitle: str
+    company: str
+    companyFccId: int
+    fromDate: str
+    toDate: str
+    description: str
+    fccompanyId: int
+    headcount: str
+    legal_name: str
+    revenue_currency: str
+    revenue_range: str
+    sectors: list
+    workExperience: list
+    experience: int
+    timeUnit: str
+    text: str
+    skills: list
+    languageSkills: NoneType
+    school: str
+    field: str
+    name: str
+    degree: list
+    education: list
+    tags: NoneType
+    resumes: list
+    schemaRevision: int
+    status: str
+    ATS: int
+    Research: int
+    Student support: int
+    Crisis intervention: int
+    Psychotherapy: int
+    Experience working with students: int
+    Child & family counseling: int
+    Child & family counselling: int
+    Medical documentation: int
+    Care documentation: int
+    Accounting: int
+    Transportation planning: int
+    Care plans: int
+key: duration__1
+  name: duration
+  index: duration
+  properties: 
+    _id: ObjectId
+    accountId: int
+    ctk: NoneType
+    profileId: str
+    id: str
+    resumeType: str
+    state: NoneType
+    locale: str
+    ipCountry: str
+    geoCountry: str
+    createdDate: Int64
+    modifiedDate: Int64
+    city: str
+    country: str
+    postal: NoneType
+    admin1: str
+    admin2: str
+    admin3: NoneType
+    admin4: NoneType
+    employmentEligibility: list
+    title: str
+    normTitle: str
+    company: str
+    companyFccId: int
+    fromDate: str
+    toDate: str
+    description: str
+    fccompanyId: int
+    headcount: str
+    legal_name: str
+    revenue_currency: str
+    revenue_range: str
+    sectors: list
+    workExperience: list
+    experience: int
+    timeUnit: str
+    text: str
+    skills: list
+    languageSkills: NoneType
+    school: str
+    field: str
+    name: str
+    degree: list
+    education: list
+    tags: NoneType
+    resumes: list
+    schemaRevision: int
+    status: str
+    ATS: int
+    Research: int
+    Student support: int
+    Crisis intervention: int
+    Psychotherapy: int
+    Experience working with students: int
+    Child & family counseling: int
+    Child & family counselling: int
+    Medical documentation: int
+    Care documentation: int
+    Accounting: int
+    Transportation planning: int
+    Care plans: int
+Relations: 
+key: (<>)-<>:resumes->(resumes)
+  name: <>:resumes
+  index: <>:resumes
+  source: <>
+  target: resumes
+  properties: 
+key: (resumes)-resumes:location->(location)
+  name: resumes:location
+  index: resumes:location
+  source: resumes
+  target: location
+  properties: 
+key: (resumes)-resumes:employmentEligibility->(employmentEligibility)
+  name: resumes:employmentEligibility
+  index: resumes:employmentEligibility
+  source: resumes
+  target: employmentEligibility
+  properties: 
+key: (resumes)-resumes:workExperience->(workExperience)
+  name: resumes:workExperience
+  index: resumes:workExperience
+  source: resumes
+  target: workExperience
+  properties: 
+key: (workExperience)-workExperience:dateRange->(dateRange)
+  name: workExperience:dateRange
+  index: workExperience:dateRange
+  source: workExperience
+  target: dateRange
+  properties: 
+key: (workExperience)-workExperience:location->(location)
+  name: workExperience:location
+  index: workExperience:location
+  source: workExperience
+  target: location
+  properties: 
+key: (workExperience)-workExperience:extractions->(extractions)
+  name: workExperience:extractions
+  index: workExperience:extractions
+  source: workExperience
+  target: extractions
+  properties: 
+key: (extractions)-extractions:company->(company)
+  name: extractions:company
+  index: extractions:company
+  source: extractions
+  target: company
+  properties: 
+key: (company)-company:sectors->(sectors)
+  name: company:sectors
+  index: company:sectors
+  source: company
+  target: sectors
+  properties: 
+key: (extractions)-extractions:skill->(skill)
+  name: extractions:skill
+  index: extractions:skill
+  source: extractions
+  target: skill
+  properties: 
+key: (skill)-skill:duration->(duration)
+  name: skill:duration
+  index: skill:duration
+  source: skill
+  target: duration
+  properties: 
+key: (resumes)-resumes:skills->(skills)
+  name: resumes:skills
+  index: resumes:skills
+  source: resumes
+  target: skills
+  properties: 
+key: (resumes)-resumes:education->(education)
+  name: resumes:education
+  index: resumes:education
+  source: resumes
+  target: education
+  properties: 
+key: (education)-education:degree->(degree)
+  name: education:degree
+  index: education:degree
+  source: education
+  target: degree
+  properties: 
+key: (<>)-<>:extractions->(extractions)
+  name: <>:extractions
+  index: <>:extractions
+  source: <>
+  target: extractions
+  properties: 
+key: (extractions)-extractions:skill->(skill)__1
+  name: extractions:skill
+  index: extractions:skill
+  source: extractions
+  target: skill
+  properties: 
+key: (skill)-skill:duration->(duration)__1
+  name: skill:duration
+  index: skill:duration
+  source: skill
+  target: duration
+  properties: 

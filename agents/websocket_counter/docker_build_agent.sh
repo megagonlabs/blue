@@ -1,9 +1,12 @@
 #/bin/bash
-echo 'Building...'
+source $(dirname $0)/build_agent.sh
 
-# copy from shared lib
-mkdir -p lib/shared & cp -r ../shared_lib/* lib/shared/
+echo 'Building docker image...'
 
 # build docker
 docker build -t blue-agent-websocket_counter:latest -f Dockerfile.agent .
+
+# tag image
+docker tag blue-agent-websocker_counter:latest blue-agent-websocker_counter:$(git rev-parse --abbrev-ref HEAD).$(git rev-parse --short HEAD)
+
 echo 'Done...'

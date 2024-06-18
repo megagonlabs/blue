@@ -1,5 +1,6 @@
 # Blue Demos
 
 Below is a list of demos for blue:
-* Title Recommendation Scenario: Given an input from the user on recommending a title for a person the agents work to fetch the resume, extract pieces, recommend a title, and rationalize the results [9/25]
-* ...
+* [Knock Knock](knock_knock): A simple demo that illustrates interactive agents.
+* [Job Search](job_search): Collect user profile through a UI and do a job search.
+* [Text to SQL](text_to_sql): Convert user question into a SQL query using GPT.

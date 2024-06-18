@@ -4,7 +4,11 @@ import sys
 
 ###### Add lib path
 sys.path.append('./lib/')
-sys.path.append('./lib/shared/')
+sys.path.append('./lib/agent/')
+sys.path.append('./lib/apicaller/')
+sys.path.append('./lib/openai/')
+sys.path.append('./lib/platform/')
+sys.path.append('./lib/utils/')
 
 ###### 
 import time
@@ -13,7 +17,6 @@ import logging
 import time
 import uuid
 import random
-# import openai
 
 ###### Parsers, Formats, Utils
 import re
@@ -24,24 +27,28 @@ import itertools
 from tqdm import tqdm
 
 ###### Blue
-from agent import Agent
+from agent import Agent, AgentFactory
 from api_agent import APIAgent
 from session import Session
+from openai_agent import OpenAIAgent
+
 
 # set log level
 logging.getLogger().setLevel(logging.INFO)
+logging.basicConfig(format="%(asctime)s [%(levelname)s] [%(process)d:%(threadName)s:%(thread)d](%(filename)s:%(lineno)d) %(name)s -  %(message)s", level=logging.ERROR, datefmt="%Y-%m-%d %H:%M:%S")
+
 
 #######################
-class RationalizerAgent(APIAgent):
-    def __init__(self, session=None, input_stream=None, processor=None, properties={}):
-        super().__init__("OPENAI", session=session, input_stream=input_stream, processor=processor, properties=properties)
+class RationalizerAgent(OpenAIAgent):
+    def __init__(self, **kwargs):
+        if 'name' not in kwargs:
+            kwargs['name'] = "RATIONALIZER"
+        super().__init__(**kwargs)
 
     def _initialize_properties(self):
         super()._initialize_properties()
 
         # default properties
-        self.properties['openai.service'] = "ws://localhost:8003"
-
         self.properties['openai.api'] = 'ChatCompletion'
         self.properties['openai.model'] = "gpt-3.5-turbo"
         self.properties['input_json'] = None 
@@ -59,10 +66,10 @@ class RationalizerAgent(APIAgent):
         self.properties["input_field"] = "messages"
         self.properties["input_template"] = '''Let's assume a recommender system which recommends the next job position a candidate may pursue as their next job based on the candidate's current skill set and years of experience with each skill. 
 
-                Consider a candidate with the current job position:\n{title} \nand current skills with years of experience: {resume_skills}
+                Consider a candidate with the current job position:\n{title} \nand current skills with months of experience: {resume_skills}
 
                 Following is the recommended next job position: \n{top_title_recommendation}
-                \nThis job requires the following skills with a corresponding average years of experience: {top_title_skills}
+                \nThis job requires the following skills with a corresponding average months of experience: {top_title_skills}
 
                 Now provide rationale for why "{top_title_recommendation}" has been recommended as the next position the candidate should pursue.
                 '''
@@ -114,6 +121,8 @@ class RationalizerAgent(APIAgent):
 
                     message = self.create_message("", properties=properties)
 
+                    logging.info("::::: Message :::::")
+                    logging.info(self.properties["input_template"])
                     # serialize message, call service
                     m = json.dumps(message)
                     r = self.call_service(m)
@@ -128,20 +137,24 @@ class RationalizerAgent(APIAgent):
                     worker.set_agent_data('processed', True)
 
                     # output to stream
-                    return "DATA", output_data, "json", True
+                    return "DATA", output_data, "str", True
     
         return None
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
+    parser.add_argument('--name', default="RATIONALIZER", type=str)
     parser.add_argument('--session', type=str)
-    parser.add_argument('--input_stream', type=str)
     parser.add_argument('--properties', type=str)
+    parser.add_argument('--loglevel', default="INFO", type=str)
+    parser.add_argument('--serve', type=str)
+    parser.add_argument('--platform', type=str, default='default')
+    parser.add_argument('--registry', type=str, default='default')
  
     args = parser.parse_args()
 
-    session = None
-    a = None
+    # set logging
+    logging.getLogger().setLevel(args.loglevel.upper())
 
     # set properties
     properties = {}
@@ -149,21 +162,27 @@ if __name__ == "__main__":
     if p:
         # decode json
         properties = json.loads(p)
-
-    if args.session:
-        # join an existing session
-        session = Session(args.session)
-        a = RationalizerAgent(session=session, properties=properties)
-    elif args.input_stream:
-        # no session, work on a single input stream
-        a = RationalizerAgent(input_stream=args.input_stream, properties=properties)
+    
+    if args.serve:
+        platform = args.platform
+        
+        af = AgentFactory(agent_class=RationalizerAgent, agent_name=args.serve, agent_registry=args.registry, platform=platform, properties=properties)
+        af.wait()
     else:
-        # create a new session
-        a = RationalizerAgent(properties=properties)
-        a.start_session()
+        a = None
+        session = None
+        if args.session:
+            # join an existing session
+            session = Session(cid=args.session)
+            a = RationalizerAgent(name=args.name, session=session, properties=properties)
+        else:
+            # create a new session
+            session = Session()
+            a = RationalizerAgent(name=args.name, session=session, properties=properties)
 
-    # wait for session
-    session.wait()
+        # wait for session
+        if session:
+            session.wait()
 
 
 

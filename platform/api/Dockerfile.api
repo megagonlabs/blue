@@ -1,0 +1,28 @@
+FROM python:3.9
+
+# Set workdir
+WORKDIR /app
+
+# Install ping
+RUN apt-get update
+RUN apt-get install iputils-ping -y
+
+# Update pip
+RUN pip install --upgrade pip
+
+# Build requirements first
+ADD src/requirements.txt /app/requirements.txt
+RUN pip install -r requirements.txt
+
+# Copy libs 
+ADD /lib /app/lib/
+
+# Copy service files
+ADD /src /app/
+
+# Environment variables
+ENV parameters '--list'
+ENV host '0.0.0.0'
+ENV port '5050'
+
+CMD ["sh", "-c", "uvicorn server:app --host ${host} --port ${port}"]

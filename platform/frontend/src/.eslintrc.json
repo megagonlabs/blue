@@ -1,0 +1,25 @@
+{
+    "extends": [
+        "next/core-web-vitals",
+        "eslint:recommended",
+        "plugin:react/recommended"
+    ],
+    "globals": {
+        "_": true
+    },
+    "env": {
+        "browser": true,
+        "es6": true
+    },
+    "rules": {
+        "react/react-in-jsx-scope": "off",
+        "react/prop-types": "off",
+        "no-unused-vars": "warn",
+        "no-empty": ["error", { "allowEmptyCatch": true }]
+    },
+    "settings": {
+        "react": {
+            "version": "detect"
+        }
+    }
+}

@@ -4,7 +4,9 @@ import sys
 
 ###### Add lib path
 sys.path.append('./lib/')
-sys.path.append('./lib/shared/')
+sys.path.append('./lib/agent/')
+sys.path.append('./lib/platform/')
+sys.path.append('./lib/utils/')
 
 ###### 
 import time
@@ -24,18 +26,23 @@ import itertools
 from tqdm import tqdm
 
 ###### Blue
-from agent import Agent
+from agent import Agent, AgentFactory
 from session import Session
+
 
 import ast
 
 # set log level
 logging.getLogger().setLevel(logging.INFO)
+logging.basicConfig(format="%(asctime)s [%(levelname)s] [%(process)d:%(threadName)s:%(thread)d](%(filename)s:%(lineno)d) %(name)s -  %(message)s", level=logging.ERROR, datefmt="%Y-%m-%d %H:%M:%S")
+
 
 #######################
 class RecorderAgent(Agent):
-    def __init__(self, session=None, input_stream=None, processor=None, properties={}):
-        super().__init__("RECORDER", session=session, input_stream=input_stream, processor=processor, properties=properties)
+    def __init__(self, **kwargs):
+        if 'name' not in kwargs:
+            kwargs['name'] = "RECORDER"
+        super().__init__(**kwargs)
 
     def _initialize_properties(self):
         super()._initialize_properties()
@@ -107,42 +114,47 @@ class RecorderAgent(Agent):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
+    parser.add_argument('--name', default="RECORDER", type=str)
     parser.add_argument('--session', type=str)
-    parser.add_argument('--input_stream', type=str)
     parser.add_argument('--properties', type=str)
     parser.add_argument('--loglevel', default="INFO", type=str)
+    parser.add_argument('--serve', type=str)
+    parser.add_argument('--platform', type=str, default='default')
+    parser.add_argument('--registry', type=str, default='default')
  
     args = parser.parse_args()
 
-     # set logging
+    # set logging
     logging.getLogger().setLevel(args.loglevel.upper())
-
-    session = None
-    a = None
 
     # set properties
     properties = {}
     p = args.properties
-
-
     if p:
         # decode json
         properties = json.loads(p)
-
-    if args.session:
-        # join an existing session
-        session = Session(args.session)
-        a = RecorderAgent(session=session, properties=properties)
-    elif args.input_stream:
-        # no session, work on a single input stream
-        a = RecorderAgent(input_stream=args.input_stream, properties=properties)
+    
+    if args.serve:
+        platform = args.platform
+        
+        af = AgentFactory(agent_class=RecorderAgent, agent_name=args.serve, agent_registry=args.registry, platform=platform, properties=properties)
+        af.wait()
     else:
-        # create a new session
-        a = RecorderAgent(properties=properties)
-        a.start_session()
+        a = None
+        session = None
 
-    # wait for session
-    session.wait()
+        if args.session:
+            # join an existing session
+            session = Session(cid=args.session)
+            a = RecorderAgent(name=args.name, session=session, properties=properties)
+        else:
+            # create a new session
+            session = Session()
+            a = RecorderAgent(name=args.name, session=session, properties=properties)
+
+        # wait for session
+        if session:
+            session.wait()
 
 
 

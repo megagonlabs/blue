@@ -1,0 +1,92 @@
+---
+version: '3.8'
+x-blue-common:
+  &blue-common
+  # build: .
+  image: python:3.9.0
+  environment:
+    &blue-common-env
+    BLUE__PROPERTIES: '{"platform.name":"${BLUE_DEPLOY_PLATFORM}", "platform.version":"${BLUE_DEPLOY_VERSION}", "platform.deploy.target":"${BLUE_DEPLOY_TARGET}", "api.server":"${BLUE_PUBLIC_API_SERVER}", "db.host":"blue_db_redis",  "agent_registry.name":"${BLUE_AGENT_REGISTRY}", "data_registry.name":"${BLUE_DATA_REGISTRY}", "embeddings_model":"/blue_data/models/paraphrase-MiniLM-L6-v2"}'
+  depends_on:
+    &blue-common-depends-on
+    redis:
+      condition: service_healthy
+
+services:
+  redis:
+    image: redis/redis-stack:latest
+    hostname: blue_db_redis
+    deploy:
+      placement:
+        constraints:
+          - node.labels.target == db
+    ports:
+      - "8000:8000"
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 30s
+      retries: 50
+      start_period: 30s
+    networks:
+      - network_overlay
+    volumes:
+      - blue_${BLUE_DEPLOY_PLATFORM}_data:/blue_data
+    labels:
+      blue.platform: "${BLUE_DEPLOY_PLATFORM}.redis"
+    environment:
+      <<: *blue-common-env
+    restart: always
+
+  api:
+    image: megagonlabs/blue-platform-api:${BLUE_DEPLOY_VERSION}
+    hostname: blue_platform_api:${BLUE_DEPLOY_VERSION}
+    deploy:
+      placement:
+        constraints:
+          - node.labels.target == platform
+    ports:
+      - "5050:5050"
+    networks:
+      - network_overlay
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - blue_${BLUE_DEPLOY_PLATFORM}_data:/blue_data
+    labels:
+      blue.platform: "${BLUE_DEPLOY_PLATFORM}.api"
+    environment:
+      <<: *blue-common-env
+    env_file:
+      - api/api.env
+    restart: always
+
+  frontend:
+    image: megagonlabs/blue-platform-frontend:${BLUE_DEPLOY_VERSION}
+    hostname: blue_platform_frontend:${BLUE_DEPLOY_VERSION}
+    deploy:
+      placement:
+        constraints:
+          - node.labels.target == platform
+    ports:
+      - "3000:3000"
+    networks:
+      - network_overlay
+    labels:
+      blue.platform: "${BLUE_DEPLOY_PLATFORM}.frontend"
+    environment:
+      <<: *blue-common-env
+      BLUE_PUBLIC_API_SERVER: "${BLUE_PUBLIC_API_SERVER}"
+      BLUE_AGENT_REGISTRY: "${BLUE_AGENT_REGISTRY}"
+      BLUE_DATA_REGISTRY: "${BLUE_DATA_REGISTRY}"
+      BLUE_DEPLOY_PLATFORM: "${BLUE_DEPLOY_PLATFORM}"
+    restart: always
+
+networks:
+  network_overlay:
+      driver: overlay
+      attachable: true
+
+volumes:
+  blue_${BLUE_DEPLOY_PLATFORM}_data:
+      external: true

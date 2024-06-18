@@ -1,0 +1,71 @@
+:root {
+    --separator-border: rgba(17, 20, 24, 0.15);
+}
+a.no-link-decoration {
+    color: inherit !important;
+    text-decoration: none !important;
+}
+.full-parent-height {
+    height: 100%;
+}
+.full-parent-width {
+    width: 100%;
+}
+.multiline-ellipsis {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+table.entity-section-card-table tr th,
+table.entity-section-card-table tr td {
+    padding-left: 15px;
+    padding-right: 15px;
+}
+.margin-top-5 {
+    margin-top: 5px !important;
+}
+.required:after {
+    content: " *";
+    color: #cd4246;
+}
+.margin-0 {
+    margin: 0px !important;
+}
+.bp-border-top {
+    border-top: 1px solid rgba(17, 20, 24, 0.15);
+}
+.bp-border-bottom {
+    border-bottom: 1px solid rgba(17, 20, 24, 0.15);
+}
+.z-index-36 {
+    z-index: 36;
+}
+.glassmorphism-5 {
+    /* From https://css.glass */
+    background: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+}
+.center-center {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+.padding-0 {
+    padding: 0px !important;
+}
+.on-hover-background-color-bp-gray-3:hover {
+    background-color: #e5e8eb;
+}
+.position-relative {
+    position: relative;
+}
+.transition-none * {
+    -webkit-transition: none !important;
+    -moz-transition: none !important;
+    -o-transition: none !important;
+    transition: none !important;
+}

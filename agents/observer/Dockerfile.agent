@@ -13,7 +13,4 @@ ADD /lib /app/lib/
 # Copy service files
 ADD /src /app/
 
-# Environment variables
-ENV session=
-
-CMD ["sh", "-c", "python observer.py --session ${session}"]
+ENTRYPOINT ["python", "observer.py"]
