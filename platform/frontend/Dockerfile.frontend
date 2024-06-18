@@ -2,9 +2,16 @@ FROM node:18-alpine
 WORKDIR /src
 RUN npm config set "@fortawesome:registry" https://npm.fontawesome.com/
 ARG fa_token
+ARG git_short
+ARG git_long
+ARG git_branch
 RUN npm config set "//npm.fontawesome.com/:_authToken" ${fa_token}
 ENV PORT 3000
 COPY launch.sh launch.sh
 COPY ./src /src
+RUN cat > .env.production
+RUN echo "NEXT_PUBLIC_GIT_SHORT=${git_short}" >> .env.production
+RUN echo "NEXT_PUBLIC_GIT_LONG=${git_long}" >> .env.production
+RUN echo "NEXT_PUBLIC_GIT_BRANCH=${git_branch}" >> .env.production
 RUN npm install
 CMD ["sh", "-c", "./launch.sh"]

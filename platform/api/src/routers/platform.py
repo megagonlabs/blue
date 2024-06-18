@@ -64,6 +64,8 @@ agent_registry = AgentRegistry(id=agent_registry_id, prefix=prefix, properties=P
 ##### ROUTER
 router = APIRouter(prefix=f"{PLATFORM_PREFIX}/containers")
 
+# set logging
+logging.getLogger().setLevel("INFO")
 
 @router.get("/agents/")
 # get the list of agent running agents on the platform
@@ -98,7 +100,12 @@ def list_agent_containers():
             c["hostname"] = service.attrs["Spec"]["TaskTemplate"]["ContainerSpec"]["Hostname"]
             c["created_date"] = service.attrs["CreatedAt"]
             c["image"] = service.attrs["Spec"]["TaskTemplate"]["ContainerSpec"]["Image"]
-            labels = container.attrs["Spec"]["TaskTemplate"]["ContainerSpec"]["Labels"]
+            tasks = service.tasks()
+            status = []
+            for task in tasks:
+                status.append(task["Status"]["State"])
+            c["status"] = ",".join(status)
+            labels = service.attrs["Spec"]["TaskTemplate"]["ContainerSpec"]["Labels"]
             if 'blue.agent' in labels:
                 l = labels['blue.agent']
                 la = l.split(".")
@@ -115,23 +122,27 @@ def list_agent_containers():
 @router.post("/agents/agent/{agent_name}")
 # deploy an agent container with the name {agent_name} to the agent registry with the name
 def deploy_agent_container(agent_name):
-    agent = agent_registry.get_agent_properties(agent_name)
-    properties = agent_registry.get_agent_properties(agent_name)
-    image = properties["image"]
+   
+    agent_registry_properties = agent_registry.get_agent_properties(agent_name)
+    image = agent_registry_properties["image"]
 
     # connect to docker
     client = docker.from_env()
 
     # agent factory properties
-    agent_factory_properties = {}
+    agent_properties = {}
+
     # start from platform properties
-    agent_factory_properties = json_utils.merge_json(agent_factory_properties, PROPERTIES)
+    agent_properties = json_utils.merge_json(agent_properties, PROPERTIES)
+
+    # override with registry properties
+    agent_properties = json_utils.merge_json(agent_properties, agent_registry_properties)
 
     # deploy agent container based on deploy target
     if PROPERTIES["platform.deploy.target"] == "localhost":
         client.containers.run(
             image,
-            "--serve " + agent_name + " " + "--properties " + "'" + json.dumps(agent_factory_properties) + "'",
+            "--serve " + agent_name + " " + "--properties " + "'" + json.dumps(agent_properties) + "'",
             network="blue_platform_" + PROPERTIES["platform.name"] + "_network_bridge",
             hostname="blue_agent_" + agent_registry_id + "_" + agent_name,
             volumes=["blue_" + platform_id + "_data:/blue_data"],
@@ -143,12 +154,12 @@ def deploy_agent_container(agent_name):
         constraints = ["node.labels.target==agent"]
         client.services.create(
             image,
-            args=["--serve " + agent_name + " " + "--properties " + "'" + json.dumps(agent_factory_properties) + "'"],
+            args=["--serve", agent_name, "--properties", json.dumps(agent_properties)],
             networks=["blue_platform_" + PROPERTIES["platform.name"] + "_network_overlay"],
             constraints=constraints,
             hostname="blue_agent_" + agent_registry_id + "_" + agent_name,
-            volumes=["blue_" + platform_id + "_data:/blue_data"],
-            labels={"blue.agent": PROPERTIES["platform.name"] + "." + agent_registry_id + "." + agent_name},
+            mounts=["blue_" + platform_id + "_data:/blue_data"],
+            container_labels={"blue.agent": PROPERTIES["platform.name"] + "." + agent_registry_id + "." + agent_name},
         )
     result = ""
 
@@ -204,6 +215,7 @@ def shutdown_agent_container(registry_name, agent_name):
     elif PROPERTIES["platform.deploy.target"] == "swarm":
         services = client.services.list()
         for service in services:
+            # TODO:
             print(service)
             # service.remove()
 

@@ -9,9 +9,13 @@ if [ -z "$fa_token" ]
 fi
 
 # build docker
-docker build -t blue-platform-frontend:latest -f Dockerfile.frontend --build-arg fa_token=$fa_token .
+docker build -t blue-platform-frontend:latest -f Dockerfile.frontend \
+    --build-arg git_short=$(git rev-parse --short HEAD) \
+    --build-arg git_long=$(git rev-parse HEAD) \
+    --build-arg git_branch=$(git rev-parse --abbrev-ref HEAD) \
+    --build-arg fa_token=$fa_token .
 
 # tag image
-docker tag blue-platform-frontend:latest blue-platform-frontend:$(git rev-parse --abbrev-ref HEAD).$(git rev-parse --short HEAD)
+docker tag blue-platform-frontend:latest blue-platform-frontend:$(git rev-parse --abbrev-ref HEAD)-$(git rev-parse --short HEAD)
 
 echo 'Done...'
