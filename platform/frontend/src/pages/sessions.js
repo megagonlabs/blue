@@ -435,6 +435,8 @@ export default function Sessions() {
                         alignItems: "center",
                         height: 80,
                         justifyContent: "space-between",
+                        position: "relative",
+                        zIndex: 1,
                     }}
                 >
                     {!_.isNull(sessionIdFocus) ? (

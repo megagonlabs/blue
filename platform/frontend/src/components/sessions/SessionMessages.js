@@ -5,6 +5,7 @@ import {
     ButtonGroup,
     Callout,
     Classes,
+    Colors,
     Intent,
     Tooltip,
 } from "@blueprintjs/core";
@@ -74,12 +75,19 @@ export default function SessionMessages() {
         return (
             <div
                 key={`session-message-${index}`}
+                onMouseEnter={() => {
+                    setShowActions(true);
+                }}
+                onMouseLeave={() => {
+                    setShowActions(false);
+                }}
                 style={{
                     ...style,
                     display: "flex",
                     flexDirection: "column",
                     alignItems: "flex-start",
                     padding: `${_.isEqual(index, 0) ? 20 : 0}px 20px 20px`,
+                    backgroundColor: showActions ? Colors.LIGHT_GRAY5 : null,
                 }}
             >
                 <Callout
@@ -87,14 +95,7 @@ export default function SessionMessages() {
                         hasError ? Intent.DANGER : own ? Intent.PRIMARY : null
                     }
                     icon={null}
-                    onMouseEnter={() => {
-                        setShowActions(true);
-                    }}
-                    onMouseLeave={() => {
-                        setShowActions(false);
-                    }}
                     style={{
-                        backgroundColor: "rgba(143, 153, 168, 0.1)",
                         position: "relative",
                         maxWidth: "min(802.2px, 100%)",
                         minWidth: 50,
@@ -105,7 +106,7 @@ export default function SessionMessages() {
                         style={{
                             position: "absolute",
                             left: 0,
-                            top: 0,
+                            top: -10,
                             display: showActions ? null : "none",
                         }}
                     >
