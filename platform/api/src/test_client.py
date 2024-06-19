@@ -234,10 +234,11 @@ for _ in range(1):
                 "connection_id": connection_id,
                 "session_id": session_id,
                 "message": {
-                    "type": "STRING",
+                    "label": "TEXT",
                     "content": random.choice([sentence_string, words_string]),
                 },
                 "stream": f"local-test-client-{int(time.time() * 1000)}",
+                "mode": "batch",
                 "timestamp": int(time.time() * 1000),
             }
         )
@@ -251,7 +252,7 @@ ws.send(
             "session_id": session_id,
             "connection_id": connection_id,
             "message": {
-                "type": "INTERACTION",
+                "label": "INTERACTION",
                 "content": {
                     "type": "JSONFORM",
                     "form_id": 'local-test-client-form-1',
@@ -282,6 +283,7 @@ ws.send(
                 },
             },
             "stream": stream_id,
+            "mode": "batch",
             "timestamp": int(time.time() * 1000),
         }
     )
@@ -296,10 +298,11 @@ ws.send(
             "session_id": session_id,
             "connection_id": connection_id,
             "message": {
-                "type": "INTERACTION",
+                "label": "INTERACTION",
                 "content": {"type": "DONE", "form_id": 'local-test-client-form-1'},
             },
             "stream": stream_id,
+            "mode": "batch",
             "timestamp": int(time.time() * 1000),
         }
     )
@@ -312,13 +315,14 @@ ws.send(
             "session_id": session_id,
             "connection_id": connection_id,
             "message": {
-                "type": "JSON",
+                "label": "JSON",
                 "content": {
                     "type": "DONE",
                     "form_id": (random.choice([sentence_string, words_string]) + " ") * 3,
                 },
             },
             "stream": stream_id,
+            "mode": "batch",
             "timestamp": int(time.time() * 1000),
         }
     )

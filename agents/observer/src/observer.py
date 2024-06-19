@@ -47,10 +47,13 @@ class ObserverAgent(Agent):
             kwargs["name"] = "OBSERVER"
         super().__init__(**kwargs)
 
-    def ws_handler(self, stream, tags=None, properties=None, message={}):
+    def response_handler(self, stream, tags=None, properties=None, message={}):
         try:
-            if "output" in properties and properties["output"] == "websocket":
-                ws = create_connection(properties["websocket"])
+            output = {}
+            if "output" in properties:
+                output = properties["output"]
+            if output.get('type') == "websocket":
+                ws = create_connection(output.get("websocket"))
                 ws.send(json.dumps(message))
                 ws.close()
             else:
@@ -59,9 +62,9 @@ class ObserverAgent(Agent):
             logging.error("{} [{}]: {}".format(stream, ",".join(tags), exception))
 
     def default_processor(self, stream, id, label, value, dtype=None, tags=None, properties=None, worker=None):
-        mode = 'batch'
-        if 'mode' in properties:
-            mode = properties['mode']
+        mode = None
+        if 'output' in properties:
+            mode = properties['output'].get('mode', 'batch')
         base_message = {
             "type": "OBSERVER_SESSION_MESSAGE",
             "session_id": properties["session_id"],
@@ -83,7 +86,7 @@ class ObserverAgent(Agent):
                             json_data = "".join(data)
                         if len(json_data.strip()) > 0:
                             try:
-                                self.ws_handler(
+                                self.response_handler(
                                     stream=stream,
                                     tags=tags,
                                     properties=properties,
@@ -96,21 +99,21 @@ class ObserverAgent(Agent):
                         if data is not None:
                             str_data = str(" ".join(data))
                         if len(str_data.strip()) > 0:
-                            self.ws_handler(
+                            self.response_handler(
                                 stream=stream,
                                 tags=tags,
                                 properties=properties,
                                 message={**base_message, "message": {**base_message['message'], "label": "TEXT", "content": str_data}},
                             )
                 elif mode == 'streaming':
-                    self.ws_handler(stream=stream, tags=tags, properties=properties, message=base_message)
+                    self.response_handler(stream=stream, tags=tags, properties=properties, message=base_message)
         elif label == "BOS":
             # init stream to empty array
             if worker:
                 if mode == 'batch':
                     worker.set_data(stream, [])
                 elif mode == 'streaming':
-                    self.ws_handler(stream=stream, tags=tags, properties=properties, message=base_message)
+                    self.response_handler(stream=stream, tags=tags, properties=properties, message=base_message)
         elif label == "DATA":
             # store data value
             if worker:
@@ -118,10 +121,10 @@ class ObserverAgent(Agent):
                     worker.set_data(f'{stream}:dtype', dtype)
                     worker.append_data(stream, str(value))
                 elif mode == 'streaming':
-                    self.ws_handler(stream=stream, tags=tags, properties=properties, message=base_message)
+                    self.response_handler(stream=stream, tags=tags, properties=properties, message=base_message)
         elif label == "INTERACTION":
             # interactive messages
-            self.ws_handler(stream=stream, tags=tags, properties=properties, message=base_message)
+            self.response_handler(stream=stream, tags=tags, properties=properties, message=base_message)
 
         return None
 

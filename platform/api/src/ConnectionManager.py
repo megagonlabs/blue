@@ -90,9 +90,11 @@ class ConnectionManager:
                         prefix=agent_prefix,
                         properties={
                             **PROPERTIES,
-                            # "mode": "streaming",
-                            "output": "websocket",
-                            "websocket": f"ws://localhost:5050{PLATFORM_PREFIX}/sessions/ws?ticket={ticket}",
+                            "output": {
+                                'type': "websocket",
+                                # "mode": "streaming",
+                                "websocket": f"ws://localhost:5050{PLATFORM_PREFIX}/sessions/ws?ticket={ticket}",
+                            },
                             "session_id": session_sid,
                             "connection_id": connection_id,
                         },

@@ -53,7 +53,7 @@ export default function SessionMessages() {
                 window.removeEventListener("resize", handleResize);
             };
         }, []);
-        const messageLabel = _.get(messages[index].message, "label", "STRING"),
+        const messageLabel = _.get(messages[index].message, "label", "TEXT"),
             messageContent = _.get(messages[index].message, "content", null);
         const [hasError, setHasError] = useState(false);
         const timestamp = messages[index].timestamp;
