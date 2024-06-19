@@ -33,7 +33,6 @@ import {
     faPlusLarge,
     faSatelliteDish,
     faSignalStreamSlash,
-    faThumbtack,
     faUserPlus,
 } from "@fortawesome/pro-duotone-svg-icons";
 import axios from "axios";
@@ -470,8 +469,8 @@ export default function Sessions() {
                             />
                         </Tooltip>
                     ) : null}
-                    <Popover
-                        placement="bottom"
+                    {/* <Popover
+                        placement="bottom-end"
                         content={<div style={{ padding: 20 }}></div>}
                     >
                         <Button
@@ -484,7 +483,7 @@ export default function Sessions() {
                             minimal
                             text={"0 Pinned"}
                         />
-                    </Popover>
+                    </Popover> */}
                 </Card>
                 {_.isNull(sessionIdFocus) ? (
                     <NonIdealState

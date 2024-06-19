@@ -1,20 +1,10 @@
 import { AppContext } from "@/components/contexts/app-context";
 import InteractiveMessage from "@/components/sessions/InteractiveMessage";
-import {
-    Button,
-    ButtonGroup,
-    Callout,
-    Classes,
-    Colors,
-    Intent,
-    Tooltip,
-} from "@blueprintjs/core";
-import { faThumbtack } from "@fortawesome/pro-duotone-svg-icons";
+import { Callout, Classes, Colors, Intent, Tooltip } from "@blueprintjs/core";
 import _ from "lodash";
 import { useContext, useEffect, useRef, useState } from "react";
 import AutoSizer from "react-virtualized-auto-sizer";
 import { VariableSizeList } from "react-window";
-import { faIcon } from "../icon";
 import MessageMetadata from "./MessageMetadata";
 export default function SessionMessages() {
     const variableSizeListRef = useRef();
@@ -63,7 +53,7 @@ export default function SessionMessages() {
                 window.removeEventListener("resize", handleResize);
             };
         }, []);
-        const messageType = _.get(messages[index].message, "type", "STRING"),
+        const messageLabel = _.get(messages[index].message, "label", "STRING"),
             messageContent = _.get(messages[index].message, "content", null);
         const [hasError, setHasError] = useState(false);
         const timestamp = messages[index].timestamp;
@@ -108,7 +98,7 @@ export default function SessionMessages() {
                             display: showActions ? null : "none",
                         }}
                     >
-                        <ButtonGroup large>
+                        {/* <ButtonGroup large>
                             <Tooltip
                                 content="Pin to this session"
                                 minimal
@@ -116,7 +106,7 @@ export default function SessionMessages() {
                             >
                                 <Button icon={faIcon({ icon: faThumbtack })} />
                             </Tooltip>
-                        </ButtonGroup>
+                        </ButtonGroup> */}
                     </div>
                     <div
                         ref={rowRef}
@@ -129,16 +119,16 @@ export default function SessionMessages() {
                             overflow: "hidden",
                         }}
                     >
-                        {_.isEqual(messageType, "STRING") ? (
+                        {_.isEqual(messageLabel, "TEXT") ? (
                             messageContent
-                        ) : _.isEqual(messageType, "JSON") ? (
+                        ) : _.isEqual(messageLabel, "JSON") ? (
                             <pre
                                 className="margin-0"
                                 style={{ overflowX: "auto" }}
                             >
                                 {JSON.stringify(messageContent, null, 4)}
                             </pre>
-                        ) : _.isEqual(messageType, "INTERACTION") ? (
+                        ) : _.isEqual(messageLabel, "INTERACTION") ? (
                             <InteractiveMessage
                                 stream={stream}
                                 setHasError={setHasError}
