@@ -142,8 +142,14 @@ export default function Index() {
                         });
                 });
             })
-            .catch(() => {
+            .catch((error) => {
                 setPopupOpen(false);
+                AppToaster.show({
+                    intent: Intent.DANGER,
+                    message: `${error.code ? `[${error.code}]` : ""} ${
+                        error.message
+                    }`,
+                });
             });
     };
     return (
