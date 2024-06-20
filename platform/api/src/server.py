@@ -66,13 +66,15 @@ data_registry.load("/blue_data/config/" + data_registry_id + ".data.json")
 
 ###  Get API server address from properties to white list
 api_server = PROPERTIES["api.server"]
-api_server_host = ":".join(api_server.split(":")[:1])
-api_server_port = ":".join(api_server.split(":")[1:])
+api_server_port = PROPERTIES["api.server.port"]
+
+web_server = PROPERTIES["web.server"]
+web_server_port = PROPERTIES["web.server.port"]
 
 # only allow https or localhost connection; port must be specified
 # 1: local frontend
 # 2: cloud frontend
-allowed_origins = ["http://localhost:3000", "http://localhost:25830", "https://" + api_server_host]
+allowed_origins = ["http://localhost:3000", "http://localhost:25830", "https://" + web_server, "http://" + web_server + ":" + web_server_port]
 
 app = FastAPI()
 app.include_router(agents.router)
