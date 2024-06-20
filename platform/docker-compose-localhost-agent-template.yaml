@@ -6,7 +6,17 @@ x-blue-common:
   image: python:3.9.0
   environment:
     &blue-common-env
-    BLUE__PROPERTIES: '{"platform.name":"${BLUE_DEPLOY_PLATFORM}", "platform.deploy.target":"${BLUE_DEPLOY_TARGET}", "api.server":"${BLUE_PUBLIC_API_SERVER}", "db.host":"blue_db_redis",  "agent_registry.name":"${BLUE_AGENT_REGISTRY}", "data_registry.name":"${BLUE_DATA_REGISTRY}", "embeddings_model":"/blue_data/models/paraphrase-MiniLM-L6-v2"}'
+    BLUE_DEPLOY_PLATFORM: "${BLUE_DEPLOY_PLATFORM}"
+    BLUE_DEPLOY_VERSION: "${BLUE_DEPLOY_VERSION}"
+    BLUE_DEPLOY_TARGET: "${BLUE_DEPLOY_TARGET}"
+    BLUE_PUBLIC_API_SERVER: "${BLUE_PUBLIC_API_SERVER}"
+    BLUE_PUBLIC_API_SERVER_PORT: "${BLUE_PUBLIC_API_SERVER_PORT}"
+    BLUE_PUBLIC_API_SERVER_PROTOCOL: "${BLUE_PUBLIC_API_SERVER_PROTOCOL}"
+    BLUE_PUBLIC_WEB_SERVER: "${BLUE_PUBLIC_WEB_SERVER}"
+    BLUE_PUBLIC_WEB_SERVER_PORT: "${BLUE_PUBLIC_WEB_SERVER_PORT}"
+    BLUE_AGENT_REGISTRY: "${BLUE_AGENT_REGISTRY}"
+    BLUE_DATA_REGISTRY: "${BLUE_DATA_REGISTRY}"
+    BLUE_AGENT_REGISTRY_MODEL: "${BLUE_AGENT_REGISTRY_MODEL}"
   depends_on:
     &blue-common-depends-on
     redis:

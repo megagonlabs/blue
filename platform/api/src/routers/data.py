@@ -9,26 +9,21 @@ sys.path.append("./lib/data_registry/")
 sys.path.append("./lib/platform/")
 
 
-######
-import time
-import argparse
-import logging
-import time
-import uuid
-import random
 
 ###### Parsers, Formats, Utils
 import re
 import csv
 import json
+import time
 from utils import json_utils
+
+##### Typing
+from pydantic import BaseModel, Json
+from typing import Union, Any, Dict, AnyStr, List
 
 ###### FastAPI
 from APIRouter import APIRouter
 from fastapi.responses import JSONResponse
-from typing import Union, Any, Dict, AnyStr, List
-from pydantic import BaseModel, Json
-from server import PLATFORM_PREFIX
 
 
 ###### Schema
@@ -49,11 +44,13 @@ from blueprint import Platform
 from data_registry import DataRegistry
 
 ###### Properties
-PROPERTIES = os.getenv("BLUE__PROPERTIES")
-PROPERTIES = json.loads(PROPERTIES)
+from .settings import PROPERTIES
+
+### Assign from platform properties
 platform_id = PROPERTIES["platform.name"]
 prefix = 'PLATFORM:' + platform_id
 data_registry_id = PROPERTIES["data_registry.name"]
+PLATFORM_PREFIX = f'/blue/platform/{platform_id}'
 
 ###### Initialization
 p = Platform(id=platform_id, properties=PROPERTIES)

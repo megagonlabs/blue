@@ -1,21 +1,54 @@
-import base64
-import json
+###### OS / Systems
+import os
+import sys
+
+###### Add lib path
+sys.path.append("./lib/")
+sys.path.append("./lib/agent_registry/")
+sys.path.append("./lib/data_registry/")
+sys.path.append("./lib/platform/")
+
+
+###### Parsers, Formats, Utils
 import re
+import json
+import base64
 import time
 import datetime
-
 import pydash
+
+##### Typing
+from pydantic import BaseModel, Json
+from typing import Union, Any, Dict, AnyStr, List
+
+
+###### FastAPI, Auth, Web
+from APIRouter import APIRouter
+from fastapi.responses import JSONResponse
+import firebase_admin
+from firebase_admin import auth, credentials, exceptions
+
+
+
+
+
+
 from constant import EMAIL_DOMAIN_ADDRESS_REGEXP, redisReplace
 from fastapi import Request
 from APIRouter import APIRouter
 from fastapi.responses import JSONResponse
-from server import PLATFORM_PREFIX, SECURE_COOKIE
 
+###### Settings
+from .settings import PROPERTIES, SECURE_COOKIE
+
+### Assign from platform properties
+platform_id = PROPERTIES["platform.name"]
+PLATFORM_PREFIX = f'/blue/platform/{platform_id}'
+
+##### ROUTER
 router = APIRouter(prefix=f"{PLATFORM_PREFIX}/accounts")
-import os
 
-import firebase_admin
-from firebase_admin import auth, credentials, exceptions
+
 
 FIREBASE_SERVICE_CRED = os.getenv("FIREBASE_SERVICE_CRED", "{}")
 cert = json.loads(base64.b64decode(FIREBASE_SERVICE_CRED))
