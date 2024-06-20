@@ -9,7 +9,7 @@ from constant import EMAIL_DOMAIN_ADDRESS_REGEXP, redisReplace
 from fastapi import Request
 from APIRouter import APIRouter
 from fastapi.responses import JSONResponse
-from server import PLATFORM_PREFIX
+from server import PLATFORM_PREFIX, SECURE_COOKIE
 
 router = APIRouter(prefix=f"{PLATFORM_PREFIX}/accounts")
 import os
@@ -109,7 +109,7 @@ async def signin(request: Request):
             # Set cookie policy for session cookie.
             expires = datetime.datetime.now(datetime.timezone.utc) + expires_in
             # samesite - lax: allow GET requests across origin
-            response.set_cookie("session", session_cookie, expires=expires, httponly=True, secure=True, samesite="lax", path="/")
+            response.set_cookie("session", session_cookie, expires=expires, httponly=True, secure=SECURE_COOKIE, samesite="lax", path="/")
             return response
         return ERROR_RESPONSE
     except auth.InvalidIdTokenError:
