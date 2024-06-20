@@ -11,6 +11,7 @@ import {
     Tooltip,
 } from "@blueprintjs/core";
 import {
+    faBracketsCurly,
     faCircleDot,
     faClipboard,
     faCopy,
@@ -29,16 +30,24 @@ export default function SessionRow({ index, style }) {
     const [lastMessage, setLastMessage] = useState("-");
     useEffect(() => {
         const last = _.last(sessionMessages),
-            messageType = _.get(last, "message.type", "STRING"),
+            messageLabel = _.get(last, "message.label", "TEXT"),
             messageContent = _.get(last, "message.content", null);
-        if (_.isEqual(messageType, "STRING")) {
+        if (_.isEqual(messageLabel, "TEXT")) {
             setLastMessage(messageContent);
-        } else if (_.isEqual(messageType, "INTERACTION")) {
+        } else if (_.isEqual(messageLabel, "INTERACTION")) {
             setLastMessage(
                 <Tag minimal icon={faIcon({ icon: faPenField })}>
                     interactive message
                 </Tag>
             );
+        } else if (_.isEqual(messageLabel, "JSON")) {
+            setLastMessage(
+                <Tag minimal icon={faIcon({ icon: faBracketsCurly })}>
+                    json message
+                </Tag>
+            );
+        } else {
+            setLastMessage("-");
         }
     }, [sessionMessages]);
     const handleSetSessionIdFocus = () => {
@@ -89,6 +98,7 @@ export default function SessionRow({ index, style }) {
                     className={`${Classes.TEXT_OVERFLOW_ELLIPSIS} ${Classes.TEXT_MUTED}`}
                     style={{
                         paddingRight: showActions ? 50 : 0,
+                        height: 20,
                         lineHeight: "20px",
                     }}
                 >

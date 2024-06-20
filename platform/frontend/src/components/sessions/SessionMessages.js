@@ -1,19 +1,10 @@
 import { AppContext } from "@/components/contexts/app-context";
 import InteractiveMessage from "@/components/sessions/InteractiveMessage";
-import {
-    Button,
-    ButtonGroup,
-    Callout,
-    Classes,
-    Intent,
-    Tooltip,
-} from "@blueprintjs/core";
-import { faThumbtack } from "@fortawesome/pro-duotone-svg-icons";
+import { Callout, Classes, Colors, Intent, Tooltip } from "@blueprintjs/core";
 import _ from "lodash";
 import { useContext, useEffect, useRef, useState } from "react";
 import AutoSizer from "react-virtualized-auto-sizer";
 import { VariableSizeList } from "react-window";
-import { faIcon } from "../icon";
 import MessageMetadata from "./MessageMetadata";
 export default function SessionMessages() {
     const variableSizeListRef = useRef();
@@ -26,10 +17,7 @@ export default function SessionMessages() {
             _.get(messages, [index, "stream"]),
             `USER:${appState.session.connectionId}`
         );
-        return (
-            rowHeights.current[index] + 20 + (_.isEqual(index, 0) ? 20 : 0) ||
-            51 + (!own ? 15.43 : 0)
-        );
+        return rowHeights.current[index] + 20 || 51 + (!own ? 15.43 : 0);
     }
     function setRowHeight(index, size, shouldForceUpdate = true) {
         variableSizeListRef.current.resetAfterIndex(0, shouldForceUpdate);
@@ -65,7 +53,7 @@ export default function SessionMessages() {
                 window.removeEventListener("resize", handleResize);
             };
         }, []);
-        const messageType = _.get(messages[index].message, "type", "STRING"),
+        const messageLabel = _.get(messages[index].message, "label", "TEXT"),
             messageContent = _.get(messages[index].message, "content", null);
         const [hasError, setHasError] = useState(false);
         const timestamp = messages[index].timestamp;
@@ -74,12 +62,20 @@ export default function SessionMessages() {
         return (
             <div
                 key={`session-message-${index}`}
+                onMouseEnter={() => {
+                    setShowActions(true);
+                }}
+                onMouseLeave={() => {
+                    setShowActions(false);
+                }}
                 style={{
                     ...style,
                     display: "flex",
                     flexDirection: "column",
                     alignItems: "flex-start",
-                    padding: `${_.isEqual(index, 0) ? 20 : 0}px 20px 20px`,
+                    padding: "10px 20px",
+                    marginTop: 10,
+                    backgroundColor: showActions ? Colors.LIGHT_GRAY5 : null,
                 }}
             >
                 <Callout
@@ -87,14 +83,7 @@ export default function SessionMessages() {
                         hasError ? Intent.DANGER : own ? Intent.PRIMARY : null
                     }
                     icon={null}
-                    onMouseEnter={() => {
-                        setShowActions(true);
-                    }}
-                    onMouseLeave={() => {
-                        setShowActions(false);
-                    }}
                     style={{
-                        backgroundColor: "rgba(143, 153, 168, 0.1)",
                         position: "relative",
                         maxWidth: "min(802.2px, 100%)",
                         minWidth: 50,
@@ -105,11 +94,11 @@ export default function SessionMessages() {
                         style={{
                             position: "absolute",
                             left: 0,
-                            top: 0,
+                            top: -10,
                             display: showActions ? null : "none",
                         }}
                     >
-                        <ButtonGroup large>
+                        {/* <ButtonGroup large>
                             <Tooltip
                                 content="Pin to this session"
                                 minimal
@@ -117,7 +106,7 @@ export default function SessionMessages() {
                             >
                                 <Button icon={faIcon({ icon: faThumbtack })} />
                             </Tooltip>
-                        </ButtonGroup>
+                        </ButtonGroup> */}
                     </div>
                     <div
                         ref={rowRef}
@@ -130,16 +119,16 @@ export default function SessionMessages() {
                             overflow: "hidden",
                         }}
                     >
-                        {_.isEqual(messageType, "STRING") ? (
+                        {_.isEqual(messageLabel, "TEXT") ? (
                             messageContent
-                        ) : _.isEqual(messageType, "JSON") ? (
+                        ) : _.isEqual(messageLabel, "JSON") ? (
                             <pre
                                 className="margin-0"
                                 style={{ overflowX: "auto" }}
                             >
                                 {JSON.stringify(messageContent, null, 4)}
                             </pre>
-                        ) : _.isEqual(messageType, "INTERACTION") ? (
+                        ) : _.isEqual(messageLabel, "INTERACTION") ? (
                             <InteractiveMessage
                                 stream={stream}
                                 setHasError={setHasError}

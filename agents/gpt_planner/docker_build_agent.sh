@@ -7,6 +7,6 @@ echo 'Building docker image...'
 docker build -t blue-agent-gpt_planner:latest -f Dockerfile.agent .
 
 # tag image
-docker tag blue-agent-gpt_planner:latest blue-agent-gpt_planner:$(git rev-parse --abbrev-ref HEAD).$(git rev-parse --short HEAD)
+docker tag blue-agent-gpt_planner:latest blue-agent-gpt_planner:$(git rev-parse --abbrev-ref HEAD)-$(git rev-parse --short HEAD)
 
 echo 'Done...'

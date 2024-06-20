@@ -47,62 +47,84 @@ class ObserverAgent(Agent):
             kwargs["name"] = "OBSERVER"
         super().__init__(**kwargs)
 
+    def response_handler(self, stream, tags=None, properties=None, message={}):
+        try:
+            output = {}
+            if "output" in properties:
+                output = properties["output"]
+            if output.get('type') == "websocket":
+                ws = create_connection(output.get("websocket"))
+                ws.send(json.dumps(message))
+                ws.close()
+            else:
+                logging.info("{} [{}]: {}".format(stream, ",".join(tags), message))
+        except Exception as exception:
+            logging.error("{} [{}]: {}".format(stream, ",".join(tags), exception))
+
     def default_processor(self, stream, id, label, value, dtype=None, tags=None, properties=None, worker=None):
+        mode = None
+        if 'output' in properties:
+            mode = properties['output'].get('mode', 'batch')
         base_message = {
             "type": "OBSERVER_SESSION_MESSAGE",
             "session_id": properties["session_id"],
             "connection_id": properties["connection_id"],
-            "message": {"type": label, "content": value},
+            "message": {"label": label, "content": value, "dtype": dtype},
             "stream": stream,
+            "mode": mode,
             "timestamp": int(str(id).split("-")[0]),
         }
         if label == "EOS":
             # compute stream data
             if worker:
-                data = worker.get_data(stream)
-                if dtype == "json":
-                    json_data = ""
-                    if data is not None:
-                        json_data = json.loads("".join(data))
-                    if len(str_data.strip()) > 0:
-                        try:
-                            if "output" in properties and properties["output"] == "websocket":
-                                ws = create_connection(properties["websocket"])
-                                ws.send(json.dumps({**base_message, "message": {"type": "JSON", "content": json.loads(json_data)}}))
-                                time.sleep(1)
-                                ws.close()
-                            else:
-                                logging.info("{} [{}]: {}".format(stream, ",".join(tags), json_data))
-                        except Exception as exception:
-                            logging.error("{} [{}]: {}".format(stream, ",".join(tags), exception))
-                else:
-                    str_data = ""
-                    if data is not None:
-                        str_data = str(" ".join(data))
-                    if len(str_data.strip()) > 0:
-                        if "output" in properties and properties["output"] == "websocket":
-                            ws = create_connection(properties["websocket"])
-                            ws.send(json.dumps({**base_message, "message": {"type": "STRING", "content": str_data}}))
-                            time.sleep(1)
-                            ws.close()
-                        else:
-                            logging.info("{} [{}]: {}".format(stream, ",".join(tags), str_data))
+                if mode == 'batch':
+                    data = worker.get_data(stream)
+                    stream_dtype = worker.get_data(f'{stream}:dtype')
+                    if stream_dtype == 'json':
+                        json_data = ""
+                        if data is not None:
+                            json_data = "".join(data)
+                        if len(json_data.strip()) > 0:
+                            try:
+                                self.response_handler(
+                                    stream=stream,
+                                    tags=tags,
+                                    properties=properties,
+                                    message={**base_message, "message": {**base_message['message'], "label": "JSON", "content": json.loads(json_data)}},
+                                )
+                            except Exception as exception:
+                                logging.error("{} [{}]: {}".format(stream, ",".join(tags), exception))
+                    else:
+                        str_data = ""
+                        if data is not None:
+                            str_data = str(" ".join(data))
+                        if len(str_data.strip()) > 0:
+                            self.response_handler(
+                                stream=stream,
+                                tags=tags,
+                                properties=properties,
+                                message={**base_message, "message": {**base_message['message'], "label": "TEXT", "content": str_data}},
+                            )
+                elif mode == 'streaming':
+                    self.response_handler(stream=stream, tags=tags, properties=properties, message=base_message)
         elif label == "BOS":
             # init stream to empty array
             if worker:
-                worker.set_data(stream, [])
-            pass
+                if mode == 'batch':
+                    worker.set_data(stream, [])
+                elif mode == 'streaming':
+                    self.response_handler(stream=stream, tags=tags, properties=properties, message=base_message)
         elif label == "DATA":
             # store data value
             if worker:
-                worker.append_data(stream, str(value))
+                if mode == 'batch':
+                    worker.set_data(f'{stream}:dtype', dtype)
+                    worker.append_data(stream, str(value))
+                elif mode == 'streaming':
+                    self.response_handler(stream=stream, tags=tags, properties=properties, message=base_message)
         elif label == "INTERACTION":
             # interactive messages
-            if "output" in properties and properties["output"] == "websocket":
-                ws = create_connection(properties["websocket"])
-                ws.send(json.dumps(base_message))
-                time.sleep(1)
-                ws.close()
+            self.response_handler(stream=stream, tags=tags, properties=properties, message=base_message)
 
         return None
 

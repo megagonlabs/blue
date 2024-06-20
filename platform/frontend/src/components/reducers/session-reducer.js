@@ -19,54 +19,77 @@ export default function sessionReducer(
     let terminatedInteraction = state.terminatedInteraction;
     switch (type) {
         case "session/sessions/message/add": {
-            const messageType = _.get(payload, "message.type", null);
+            const messageLabel = _.get(payload, "message.label", null);
             const contentType = _.get(payload, "message.content.type", null);
-            // non-conversational message; not adding to session messages
+            const mode = _.get(payload, "mode", "batch");
             if (
-                _.isEqual(messageType, "INTERACTION") &&
-                _.isEqual(contentType, "DONE")
+                _.isEqual(mode, "batch") ||
+                _.isEqual(messageLabel, "INTERACTION")
             ) {
-                const stream = _.get(payload, "stream", null);
-                const formId = _.get(payload, "message.content.form_id", null);
-                if (!_.isEmpty(stream) && !_.isEmpty(formId)) {
-                    terminatedInteraction.add(`${stream},${formId}`);
-                }
-                return { ...state, terminatedInteraction };
-            } else {
                 if (
-                    !_.startsWith(payload.stream, `USER:${state.connectionId}`)
+                    _.isEqual(messageLabel, "INTERACTION") &&
+                    _.isEqual(contentType, "DONE")
                 ) {
-                    unreadSessionIds.add(payload.session_id);
-                }
-                if (!_.includes(state.sessionIds, payload.session_id)) {
-                    sessionIds.push(payload.session_id);
-                }
-                // timestamp is unique redis stream entry id
-                let nextMessages = _.unionBy(
-                    [
-                        ..._.get(state, `sessions.${payload.session_id}`, []),
-                        {
-                            message: payload.message,
-                            stream: payload.stream,
-                            timestamp: payload.timestamp,
+                    // non-conversational message; not adding to session messages
+                    const stream = _.get(payload, "stream", null);
+                    const formId = _.get(
+                        payload,
+                        "message.content.form_id",
+                        null
+                    );
+                    if (!_.isEmpty(stream) && !_.isEmpty(formId)) {
+                        terminatedInteraction.add(`${stream},${formId}`);
+                    }
+                    return { ...state, terminatedInteraction };
+                } else {
+                    if (
+                        !_.startsWith(
+                            payload.stream,
+                            `USER:${state.connectionId}`
+                        )
+                    ) {
+                        unreadSessionIds.add(payload.session_id);
+                    }
+                    if (!_.includes(state.sessionIds, payload.session_id)) {
+                        sessionIds.push(payload.session_id);
+                    }
+                    // timestamp is unique redis stream entry id
+                    let nextMessages = _.unionBy(
+                        [
+                            ..._.get(
+                                state,
+                                `sessions.${payload.session_id}`,
+                                []
+                            ),
+                            {
+                                message: payload.message,
+                                stream: payload.stream,
+                                timestamp: payload.timestamp,
+                            },
+                        ],
+                        (element) => element.timestamp
+                    );
+                    return {
+                        ...state,
+                        sessions: {
+                            ...state.sessions,
+                            [payload.session_id]: _.sortBy(
+                                nextMessages,
+                                function (o) {
+                                    return o.timestamp;
+                                }
+                            ),
                         },
-                    ],
-                    (element) => element.timestamp
-                );
-                return {
-                    ...state,
-                    sessions: {
-                        ...state.sessions,
-                        [payload.session_id]: _.sortBy(
-                            nextMessages,
-                            function (o) {
-                                return o.timestamp;
-                            }
-                        ),
-                    },
-                    sessionIds,
-                    unreadSessionIds,
-                };
+                        sessionIds,
+                        unreadSessionIds,
+                    };
+                }
+            } else if (_.isEqual(mode, "streaming")) {
+                console.log(payload);
+                if (_.isEqual(messageLabel, "BOS")) {
+                } else if (_.isEqual(messageLabel, "DATA")) {
+                } else if (_.isEqual(messageLabel, "EOS")) {
+                }
             }
         }
         case "session/state/set": {
