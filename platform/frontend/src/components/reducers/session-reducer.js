@@ -54,7 +54,7 @@ export default function sessionReducer(
                         sessionIds.push(payload.session_id);
                     }
                     // timestamp is unique redis stream entry id
-                    let nextMessages = _.unionBy(
+                    let nextMessages = _.uniqBy(
                         [
                             ..._.get(
                                 state,
@@ -87,10 +87,14 @@ export default function sessionReducer(
             } else if (_.isEqual(mode, "streaming")) {
                 console.log(payload);
                 if (_.isEqual(messageLabel, "BOS")) {
+                    // TODO
                 } else if (_.isEqual(messageLabel, "DATA")) {
+                    // TODO
                 } else if (_.isEqual(messageLabel, "EOS")) {
+                    // TODO
                 }
             }
+            return { ...state };
         }
         case "session/state/set": {
             return { ...state, [payload.key]: payload.value };

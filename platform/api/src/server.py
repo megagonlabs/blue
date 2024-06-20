@@ -72,8 +72,7 @@ web_server = PROPERTIES["web.server"]
 web_server_port = PROPERTIES["web.server.port"]
 
 # only allow https or localhost connection; port must be specified
-# 1: local frontend
-# 2: cloud frontend
+# local & cloud frontend
 allowed_origins = ["http://localhost:3000", "http://localhost:25830", "https://" + web_server, "http://" + web_server + ":" + web_server_port]
 
 app = FastAPI()
