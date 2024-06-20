@@ -92,7 +92,7 @@ class ConnectionManager:
                             **PROPERTIES,
                             "output": {
                                 'type': "websocket",
-                                # "mode": "streaming",
+                                "mode": "streaming",
                                 "websocket": f"ws://localhost:5050{PLATFORM_PREFIX}/sessions/ws?ticket={ticket}",
                             },
                             "session_id": session_sid,
