@@ -146,7 +146,7 @@ def deploy_agent_container(agent_name):
     if PROPERTIES["platform.deploy.target"] == "localhost":
         client.containers.run(
             image,
-            "--serve " + agent_name + " " + "--properties " + "'" + json.dumps(agent_properties) + "'",
+            "--serve " + agent_name + " " + "--platform " + platform_id +  " " + + "--registry " + agent_registry_id + " " + "--properties " + "'" + json.dumps(agent_properties) + "'",
             network="blue_platform_" + PROPERTIES["platform.name"] + "_network_bridge",
             hostname="blue_agent_" + agent_registry_id + "_" + agent_name,
             volumes=["blue_" + platform_id + "_data:/blue_data"],
@@ -158,7 +158,7 @@ def deploy_agent_container(agent_name):
         constraints = ["node.labels.target==agent"]
         client.services.create(
             image,
-            args=["--serve", agent_name, "--properties", json.dumps(agent_properties)],
+            args=["--serve", agent_name, "--platform", platform_id, "--registry", agent_registry_id, "--properties", json.dumps(agent_properties)],
             networks=["blue_platform_" + PROPERTIES["platform.name"] + "_network_overlay"],
             constraints=constraints,
             hostname="blue_agent_" + agent_registry_id + "_" + agent_name,
