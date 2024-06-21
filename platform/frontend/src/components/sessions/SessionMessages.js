@@ -1,22 +1,19 @@
 import { AppContext } from "@/components/contexts/app-context";
-import InteractiveMessage from "@/components/sessions/InteractiveMessage";
 import { Callout, Classes, Colors, Intent, Tooltip } from "@blueprintjs/core";
+import { faEllipsisH } from "@fortawesome/pro-duotone-svg-icons";
 import _ from "lodash";
 import { useContext, useEffect, useRef, useState } from "react";
 import AutoSizer from "react-virtualized-auto-sizer";
 import { VariableSizeList } from "react-window";
+import { faIcon } from "../icon";
 import MessageMetadata from "./MessageMetadata";
 export default function SessionMessages() {
     const variableSizeListRef = useRef();
     const rowHeights = useRef({});
     const { appState } = useContext(AppContext);
     const sessionIdFocus = appState.session.sessionIdFocus;
-    const messages = _.get(appState, [
-        "session",
-        "sessions",
-        sessionIdFocus,
-        "messages",
-    ]);
+    const messages = appState.session.sessions[sessionIdFocus].messages;
+    const streams = appState.session.sessions[sessionIdFocus].streams;
     function getRowHeight(index) {
         const own = _.includes(
             _.get(messages, [index, "stream"]),
@@ -58,8 +55,12 @@ export default function SessionMessages() {
                 window.removeEventListener("resize", handleResize);
             };
         }, []);
-        const messageLabel = _.get(messages[index].message, "label", "TEXT"),
-            messageContent = _.get(messages[index].message, "content", null);
+        const data = _.get(streams, [messages[index].stream, "data"], []);
+        const complete = _.get(
+            streams,
+            [messages[index].stream, "complete"],
+            false
+        );
         const [hasError, setHasError] = useState(false);
         const timestamp = messages[index].timestamp;
         const stream = messages[index].stream;
@@ -122,9 +123,25 @@ export default function SessionMessages() {
                             wordBreak: "break-all",
                             width: "fit-content",
                             overflow: "hidden",
+                            minHeight: 21,
                         }}
                     >
-                        {_.isEqual(messageLabel, "TEXT") ? (
+                        {data.map((e, index) => (
+                            <span key={e.id}>
+                                {(index ? " " : "") + e.content}
+                            </span>
+                        ))}
+                        {!complete ? (
+                            <>
+                                &nbsp;
+                                {faIcon({
+                                    icon: faEllipsisH,
+                                    size: 16.5,
+                                    style: { color: Colors.BLACK },
+                                })}
+                            </>
+                        ) : null}
+                        {/* {_.isEqual(messageLabel, "TEXT") ? (
                             messageContent
                         ) : _.isEqual(messageLabel, "JSON") ? (
                             <pre
@@ -139,7 +156,7 @@ export default function SessionMessages() {
                                 setHasError={setHasError}
                                 content={messageContent}
                             />
-                        ) : null}
+                        ) : null} */}
                     </div>
                 </Callout>
                 {!own ? (

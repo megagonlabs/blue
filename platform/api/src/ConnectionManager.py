@@ -113,12 +113,12 @@ class ConnectionManager:
         event_stream.start()
         event_stream.write(data={"name_id": name_id, "form_id": form_id, "value": value, "timestamp": timestamp}, dtype="json")
 
-    async def observer_session_message(self, connection_id: str, session_id: str, message: str, stream: str, timestamp, mode):
+    async def observer_session_message(self, connection_id: str, message):
         # stream is an agent identifier
         try:
             await self.send_message_to(
                 self.active_connections[connection_id]['websocket'],
-                json.dumps({"type": "SESSION_MESSAGE", "session_id": session_id, "message": message, "stream": stream, "timestamp": timestamp, 'mode': mode}),
+                json.dumps({**message, "type": "SESSION_MESSAGE"}),
             )
         except Exception as ex:
             print(ex)

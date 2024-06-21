@@ -17,7 +17,7 @@ export default function sessionReducer(
     let unreadSessionIds = state.unreadSessionIds;
     let sessionIds = state.sessionIds;
     let terminatedInteraction = state.terminatedInteraction;
-    let sessions = state.sessions;
+    let sessions = _.cloneDeep(state.sessions);
     switch (type) {
         case "session/sessions/message/add": {
             const messageLabel = _.get(payload, "message.label", null);
@@ -27,35 +27,59 @@ export default function sessionReducer(
                     if (!_.includes(state.sessionIds, payload.session_id)) {
                         sessionIds.push(payload.session_id);
                     }
-                    console.log(sessions);
-                    if (_.has(sessions, payload.session_id)) {
-                    } else {
-                        _.set(sessions, payload.session_id, {
-                            messages: [
-                                {
-                                    stream: payload.stream,
-                                    timestamp: payload.timestamp,
-                                },
-                            ],
-                            streams: {
-                                [payload.stream]: {
-                                    data: [],
-                                    dtype: _.get(
-                                        payload,
-                                        "message.dtype",
-                                        null
-                                    ),
-                                    complete: false,
-                                },
-                            },
-                        });
-                    }
-                    return {
-                        ...state,
+                    let messages = _.get(
                         sessions,
-                        sessionIds,
-                    };
+                        [payload.session_id, "messages"],
+                        []
+                    );
+                    let streams = _.get(
+                        sessions,
+                        [payload.session_id, "streams"],
+                        {}
+                    );
+                    messages.push({
+                        stream: payload.stream,
+                        timestamp: payload.timestamp,
+                    });
+                    _.set(streams, payload.stream, {
+                        data: [],
+                        dtype: _.get(payload, "message.dtype", null),
+                        complete: false,
+                    });
+                    _.set(sessions, payload.session_id, {
+                        messages: _.sortBy(
+                            _.uniqBy(messages, "stream"),
+                            "timestamp"
+                        ),
+                        streams,
+                    });
                 } else if (_.isEqual(messageLabel, "DATA")) {
+                    _.set(
+                        sessions,
+                        [
+                            payload.session_id,
+                            "streams",
+                            payload.stream,
+                            "dtype",
+                        ],
+                        _.get(payload, "message.dtype", null)
+                    );
+                    let data = _.get(
+                        sessions,
+                        [payload.session_id, "streams", payload.stream, "data"],
+                        []
+                    );
+                    data.push({
+                        timestamp: payload.timestamp,
+                        content: _.get(payload, "message.content", null),
+                        order: payload.order,
+                        id: payload.id,
+                    });
+                    _.set(
+                        sessions,
+                        [payload.session_id, "streams", payload.stream, "data"],
+                        _.sortBy(_.uniqBy(data, "id"), ["timestamp", "order"])
+                    );
                 } else if (_.isEqual(messageLabel, "EOS")) {
                     if (
                         !_.startsWith(
@@ -65,13 +89,24 @@ export default function sessionReducer(
                     ) {
                         unreadSessionIds.add(payload.session_id);
                     }
-                    return {
-                        ...state,
-                        unreadSessionIds,
-                    };
+                    _.set(
+                        sessions,
+                        [
+                            payload.session_id,
+                            "streams",
+                            payload.stream,
+                            "complete",
+                        ],
+                        true
+                    );
                 }
             }
-            return { ...state };
+            return {
+                ...state,
+                sessions,
+                sessionIds,
+                unreadSessionIds,
+            };
         }
         case "session/state/set": {
             return { ...state, [payload.key]: payload.value };

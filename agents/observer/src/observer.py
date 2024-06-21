@@ -72,7 +72,9 @@ class ObserverAgent(Agent):
             "message": {"label": label, "content": value, "dtype": dtype},
             "stream": stream,
             "mode": mode,
-            "timestamp": int(str(id).split("-")[0]),
+            "timestamp": int(id.split("-")[0]),
+            "order": int(id.split("-")[1]),
+            "id": id,
         }
         if label == "EOS":
             # compute stream data
