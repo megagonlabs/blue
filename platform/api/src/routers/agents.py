@@ -91,7 +91,9 @@ def get_agent_containers():
                 la = l.split(".")
                 c["agent"] = la[2]
                 c["registry"] = la[1]
-            results.append(c)
+                c["platform"] = la[0]
+                if c["platform"] == platform_id:
+                    results.append(c)
     elif PROPERTIES["platform.deploy.target"] == "swarm":
         services = client.services.list()
         results = []
@@ -112,8 +114,10 @@ def get_agent_containers():
                 la = l.split(".")
                 c["agent"] = la[2]
                 c["registry"] = la[1]
-            results.append(c)
-
+                c["platform"] = la[0]
+                if c["platform"] == platform_id:
+                    results.append(c)
+        
     # build dictionary of container results <registry_name>.<agent_name>
     containers = {}
     for result in results:

@@ -90,7 +90,9 @@ def list_agent_containers():
                 la = l.split(".")
                 c["agent"] = la[2]
                 c["registry"] = la[1]
-                results.append(c)
+                c["platform"] = la[0]
+                if c["platform"] == platform_id:
+                    results.append(c)
     elif PROPERTIES["platform.deploy.target"] == "swarm":
         services = client.services.list()
         results = []
@@ -111,7 +113,9 @@ def list_agent_containers():
                 la = l.split(".")
                 c["agent"] = la[2]
                 c["registry"] = la[1]
-                results.append(c)
+                c["platform"] = la[0]
+                if c["platform"] == platform_id:
+                    results.append(c)
 
     # close connection
     client.close()
