@@ -29,25 +29,27 @@ export default function SessionRow({ index, style }) {
     const [showActions, setShowActions] = useState(false);
     const [lastMessage, setLastMessage] = useState("-");
     useEffect(() => {
-        const last = _.last(sessionMessages),
-            messageLabel = _.get(last, "message.label", "TEXT"),
-            messageContent = _.get(last, "message.content", null);
-        if (_.isEqual(messageLabel, "TEXT")) {
-            setLastMessage(messageContent);
-        } else if (_.isEqual(messageLabel, "INTERACTION")) {
-            setLastMessage(
-                <Tag minimal icon={faIcon({ icon: faPenField })}>
-                    interactive message
-                </Tag>
-            );
-        } else if (_.isEqual(messageLabel, "JSON")) {
-            setLastMessage(
-                <Tag minimal icon={faIcon({ icon: faBracketsCurly })}>
-                    json message
-                </Tag>
-            );
-        } else {
+        const last = _.last(sessionMessages);
+        if (_.isEmpty(last)) {
             setLastMessage("-");
+        } else {
+            const messageLabel = _.get(last, "message.label", "TEXT");
+            const messageContent = _.get(last, "message.content", null);
+            if (_.isEqual(messageLabel, "TEXT")) {
+                setLastMessage(messageContent);
+            } else if (_.isEqual(messageLabel, "INTERACTION")) {
+                setLastMessage(
+                    <Tag minimal icon={faIcon({ icon: faPenField })}>
+                        interactive message
+                    </Tag>
+                );
+            } else if (_.isEqual(messageLabel, "JSON")) {
+                setLastMessage(
+                    <Tag minimal icon={faIcon({ icon: faBracketsCurly })}>
+                        json message
+                    </Tag>
+                );
+            }
         }
     }, [sessionMessages]);
     const handleSetSessionIdFocus = () => {
@@ -102,7 +104,7 @@ export default function SessionRow({ index, style }) {
                         lineHeight: "20px",
                     }}
                 >
-                    {_.isEmpty(sessionMessages) ? "-" : lastMessage}
+                    {lastMessage}
                 </div>
             </div>
             <div

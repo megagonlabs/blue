@@ -36,12 +36,6 @@ from server import PLATFORM_PREFIX
 
 router = APIRouter(prefix=f"{PLATFORM_PREFIX}/sessions")
 
-###### Properties
-PROPERTIES = os.getenv("BLUE__PROPERTIES")
-PROPERTIES = json.loads(PROPERTIES)
-platform_id = PROPERTIES["platform.name"]
-prefix = 'PLATFORM:' + platform_id
-
 ###### Schema
 JSONObject = Dict[str, Any]
 JSONArray = List[Any]

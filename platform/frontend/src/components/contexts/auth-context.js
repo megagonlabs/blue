@@ -13,6 +13,7 @@ import { initializeApp } from "firebase/app";
 import { GoogleAuthProvider, getAuth, signInWithPopup } from "firebase/auth";
 import _ from "lodash";
 import { createContext, useContext, useEffect, useState } from "react";
+import { AppToaster } from "../toaster";
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -92,8 +93,14 @@ export const AuthProvider = ({ children }) => {
                         });
                 });
             })
-            .catch(() => {
+            .catch((error) => {
                 setPopupOpen(false);
+                AppToaster.show({
+                    intent: Intent.DANGER,
+                    message: `${error.code ? `[${error.code}]` : ""} ${
+                        error.message
+                    }`,
+                });
             });
     };
     useEffect(() => {

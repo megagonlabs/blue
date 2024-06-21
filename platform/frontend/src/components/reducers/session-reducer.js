@@ -17,36 +17,42 @@ export default function sessionReducer(
     let unreadSessionIds = state.unreadSessionIds;
     let sessionIds = state.sessionIds;
     let terminatedInteraction = state.terminatedInteraction;
+    let sessions = state.sessions;
     switch (type) {
         case "session/sessions/message/add": {
             const messageLabel = _.get(payload, "message.label", null);
-            const contentType = _.get(payload, "message.content.type", null);
             const mode = _.get(payload, "mode", "batch");
             if (_.isEqual(mode, "streaming")) {
-                console.log(payload);
                 if (_.isEqual(messageLabel, "BOS")) {
                     if (!_.includes(state.sessionIds, payload.session_id)) {
                         sessionIds.push(payload.session_id);
                     }
-                    // message: payload.message,
-                    // stream: payload.stream,
-                    // timestamp: payload.timestamp,
-                    return {
-                        ...state,
-                        sessions: {
-                            ...state.sessions,
-                            [payload.session_id]: {
-                                messages: [
-                                    {
-                                        stream: payload.stream,
-                                        timestamp: payload.timestamp,
-                                    },
-                                ],
-                                streams: {
-                                    [payload.stream]: [],
+                    console.log(sessions);
+                    if (_.has(sessions, payload.session_id)) {
+                    } else {
+                        _.set(sessions, payload.session_id, {
+                            messages: [
+                                {
+                                    stream: payload.stream,
+                                    timestamp: payload.timestamp,
+                                },
+                            ],
+                            streams: {
+                                [payload.stream]: {
+                                    data: [],
+                                    dtype: _.get(
+                                        payload,
+                                        "message.dtype",
+                                        null
+                                    ),
+                                    complete: false,
                                 },
                             },
-                        },
+                        });
+                    }
+                    return {
+                        ...state,
+                        sessions,
                         sessionIds,
                     };
                 } else if (_.isEqual(messageLabel, "DATA")) {
@@ -63,64 +69,9 @@ export default function sessionReducer(
                         ...state,
                         unreadSessionIds,
                     };
-                } else if (_.isEqual(messageLabel, "INTERACTION")) {
-                    if (_.isEqual(contentType, "DONE")) {
-                        // non-conversational message; not adding to session messages
-                        const stream = _.get(payload, "stream", null);
-                        const formId = _.get(
-                            payload,
-                            "message.content.form_id",
-                            null
-                        );
-                        if (!_.isEmpty(stream) && !_.isEmpty(formId)) {
-                            terminatedInteraction.add(`${stream},${formId}`);
-                        }
-                        return { ...state, terminatedInteraction };
-                    } else {
-                        if (
-                            !_.startsWith(
-                                payload.stream,
-                                `USER:${state.connectionId}`
-                            )
-                        ) {
-                            unreadSessionIds.add(payload.session_id);
-                        }
-                        if (!_.includes(state.sessionIds, payload.session_id)) {
-                            sessionIds.push(payload.session_id);
-                        }
-                        // timestamp is unique redis stream entry id
-                        let nextMessages = _.uniqBy(
-                            [
-                                ..._.get(
-                                    state,
-                                    `sessions.${payload.session_id}.message`,
-                                    []
-                                ),
-                                {
-                                    message: payload.message,
-                                    stream: payload.stream,
-                                    timestamp: payload.timestamp,
-                                },
-                            ],
-                            "timestamp"
-                        );
-                        return {
-                            ...state,
-                            sessions: {
-                                ...state.sessions,
-                                [payload.session_id]: _.sortBy(
-                                    nextMessages,
-                                    function (o) {
-                                        return o.timestamp;
-                                    }
-                                ),
-                            },
-                            sessionIds,
-                            unreadSessionIds,
-                        };
-                    }
                 }
             }
+            return { ...state };
         }
         case "session/state/set": {
             return { ...state, [payload.key]: payload.value };
@@ -143,7 +94,10 @@ export default function sessionReducer(
                 ...state,
                 sessions: {
                     ...state.sessions,
-                    [payload]: [],
+                    [payload]: {
+                        messages: [],
+                        streams: {},
+                    },
                 },
                 sessionIdFocus: payload,
                 sessionIds: [payload, ...state.sessionIds],

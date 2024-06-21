@@ -11,7 +11,12 @@ export default function SessionMessages() {
     const rowHeights = useRef({});
     const { appState } = useContext(AppContext);
     const sessionIdFocus = appState.session.sessionIdFocus;
-    const messages = appState.session.sessions[sessionIdFocus];
+    const messages = _.get(appState, [
+        "session",
+        "sessions",
+        sessionIdFocus,
+        "messages",
+    ]);
     function getRowHeight(index) {
         const own = _.includes(
             _.get(messages, [index, "stream"]),

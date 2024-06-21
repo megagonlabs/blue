@@ -54,7 +54,6 @@ platform_id = PROPERTIES["platform.name"]
 prefix = 'PLATFORM:' + platform_id
 agent_registry_id = PROPERTIES["agent_registry.name"]
 data_registry_id = PROPERTIES["data_registry.name"]
-db_host = PROPERTIES["db.host"]
 
 ###### Initialization
 p = Platform(id=platform_id, properties=PROPERTIES)
