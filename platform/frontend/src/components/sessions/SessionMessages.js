@@ -128,7 +128,9 @@ export default function SessionMessages() {
                     >
                         {data.map((e, index) => (
                             <span key={e.id}>
-                                {(index ? " " : "") + e.content}
+                                {(index && _.isEqual(e.dtype, "str")
+                                    ? " "
+                                    : "") + e.content}
                             </span>
                         ))}
                         {!complete ? (
@@ -137,6 +139,7 @@ export default function SessionMessages() {
                                 {faIcon({
                                     icon: faEllipsisH,
                                     size: 16.5,
+                                    className: "fa-fade",
                                     style: { color: Colors.BLACK },
                                 })}
                             </>

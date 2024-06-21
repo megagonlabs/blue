@@ -54,6 +54,7 @@ export default function sessionReducer(
                         streams,
                     });
                 } else if (_.isEqual(messageLabel, "DATA")) {
+                    const dtype = _.get(payload, "message.dtype", null);
                     _.set(
                         sessions,
                         [
@@ -62,7 +63,7 @@ export default function sessionReducer(
                             payload.stream,
                             "dtype",
                         ],
-                        _.get(payload, "message.dtype", null)
+                        dtype
                     );
                     let data = _.get(
                         sessions,
@@ -74,6 +75,7 @@ export default function sessionReducer(
                         content: _.get(payload, "message.content", null),
                         order: payload.order,
                         id: payload.id,
+                        dtype: dtype,
                     });
                     _.set(
                         sessions,
@@ -99,6 +101,46 @@ export default function sessionReducer(
                         ],
                         true
                     );
+                    const dtype = _.get(
+                        sessions,
+                        [
+                            payload.session_id,
+                            "streams",
+                            payload.stream,
+                            "dtype",
+                        ],
+                        null
+                    );
+                    let messages = _.get(
+                        sessions,
+                        [payload.session_id, "messages"],
+                        []
+                    );
+                    const data = _.get(
+                        sessions,
+                        [payload.session_id, "streams", payload.stream, "data"],
+                        []
+                    );
+                    for (let i = _.size(messages) - 1; i >= 0; i--) {
+                        if (!_.isEqual(messages[i].stream, payload.stream)) {
+                            continue;
+                        }
+                        if (_.isEqual(dtype, "str")) {
+                            messages[i].label = "TEXT";
+                            messages[i].result = _.join(
+                                _.map(data, "content"),
+                                " "
+                            );
+                        }
+                        if (_.isEqual(dtype, "json")) {
+                            messages[i].label = "JSON";
+                            messages[i].result = JSON.parse(
+                                _.join(_.map(data, "content"), "")
+                            );
+                        }
+                    }
+                    _.set(sessions, [payload.session_id, "messages"], messages);
+                } else if (_.isEqual(messageLabel, "INTERACTION")) {
                 }
             }
             return {

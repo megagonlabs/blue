@@ -1,12 +1,22 @@
 import { AppContext } from "@/components/contexts/app-context";
 import { faIcon } from "@/components/icon";
 import { AppToaster } from "@/components/toaster";
-import { Button, Card, Classes, Colors, H5, Tooltip } from "@blueprintjs/core";
 import {
+    Button,
+    Card,
+    Classes,
+    Colors,
+    H5,
+    Tag,
+    Tooltip,
+} from "@blueprintjs/core";
+import {
+    faBracketsCurly,
     faCircleDot,
     faClipboard,
     faCopy,
     faEllipsisH,
+    faPenLine,
 } from "@fortawesome/pro-duotone-svg-icons";
 import copy from "copy-to-clipboard";
 import _ from "lodash";
@@ -30,27 +40,28 @@ export default function SessionRow({ index, style }) {
                 setLastMessage(
                     faIcon({
                         icon: faEllipsisH,
+                        className: "fa-fade",
                         style: { color: Colors.BLACK },
                     })
                 );
+            } else {
+                const messageLabel = _.get(last, "label", null);
+                if (_.isEqual(messageLabel, "TEXT")) {
+                    setLastMessage(last.result);
+                } else if (_.isEqual(messageLabel, "JSON")) {
+                    setLastMessage(
+                        <Tag minimal icon={faIcon({ icon: faBracketsCurly })}>
+                            JSON message
+                        </Tag>
+                    );
+                } else if (_.isEqual(messageLabel, "INTERACTION")) {
+                    setLastMessage(
+                        <Tag minimal icon={faIcon({ icon: faPenLine })}>
+                            Interactive
+                        </Tag>
+                    );
+                }
             }
-            // const messageLabel = _.get(last, "message.label", "TEXT");
-            // const messageContent = _.get(last, "message.content", null);
-            // if (_.isEqual(messageLabel, "TEXT")) {
-            //     setLastMessage(messageContent);
-            // } else if (_.isEqual(messageLabel, "INTERACTION")) {
-            //     setLastMessage(
-            //         <Tag minimal icon={faIcon({ icon: faPenField })}>
-            //             interactive message
-            //         </Tag>
-            //     );
-            // } else if (_.isEqual(messageLabel, "JSON")) {
-            //     setLastMessage(
-            //         <Tag minimal icon={faIcon({ icon: faBracketsCurly })}>
-            //             json message
-            //         </Tag>
-            //     );
-            // }
         }
     }, [messages, streams]);
     const handleSetSessionIdFocus = () => {
