@@ -9,6 +9,8 @@ x-blue-common:
     BLUE_DEPLOY_PLATFORM: "${BLUE_DEPLOY_PLATFORM}"
     BLUE_DEPLOY_VERSION: "${BLUE_DEPLOY_VERSION}"
     BLUE_DEPLOY_TARGET: "${BLUE_DEPLOY_TARGET}"
+    BLUE_DEPLOY_SECURE: "${BLUE_DEPLOY_SECURE}"
+    BLUE_DEPLOY_DEVELOPMENT: "${BLUE_DEPLOY_DEVELOPMENT}"
     BLUE_PUBLIC_API_SERVER: "${BLUE_PUBLIC_API_SERVER}"
     BLUE_PUBLIC_API_SERVER_PORT: "${BLUE_PUBLIC_API_SERVER_PORT}"
     BLUE_PUBLIC_API_SERVER_PROTOCOL: "${BLUE_PUBLIC_API_SERVER_PROTOCOL}"
@@ -47,6 +49,9 @@ services:
   api:
     image: blue-platform-api:${BLUE_DEPLOY_VERSION}
     hostname: blue_platform_api
+    depends_on:
+      redis:
+        condition: service_started
     ports:
       - "${BLUE_PUBLIC_API_SERVER_PORT}:5050"
     networks:
