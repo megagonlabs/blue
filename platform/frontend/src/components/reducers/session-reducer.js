@@ -176,7 +176,6 @@ export default function sessionReducer(
                         streams: {},
                     },
                 },
-                sessionIdFocus: payload,
                 sessionIds: [payload, ...state.sessionIds],
             };
         }

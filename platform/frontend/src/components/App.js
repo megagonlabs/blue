@@ -1,9 +1,11 @@
+import SupportDialog from "@/components/SupportDialog";
 import {
     NAVIGATION_MENU_WIDTH,
     PROFILE_PICTURE_40,
 } from "@/components/constant";
 import { AppContext } from "@/components/contexts/app-context";
 import { AuthContext } from "@/components/contexts/auth-context";
+import { useSocket } from "@/components/hooks/useSocket";
 import { faIcon } from "@/components/icon";
 import {
     Alignment,
@@ -35,12 +37,12 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useContext, useMemo, useState } from "react";
-import SupportDialog from "./SupportDialog";
 export default function App({ children }) {
     const router = useRouter();
     const { appState, appActions } = useContext(AppContext);
     const sessionDetail = appState.session.sessionDetail;
     const sessionIdFocus = appState.session.sessionIdFocus;
+    const { socket } = useSocket();
     const pinnedSessionIds = useMemo(
         () =>
             Object.values(sessionDetail)
@@ -243,6 +245,10 @@ export default function App({ children }) {
                                     appActions.session.setSessionIdFocus(
                                         sessionId
                                     );
+                                    appActions.session.observeSession({
+                                        sessionId,
+                                        socket,
+                                    });
                                     router.push("/sessions");
                                 }}
                                 text={

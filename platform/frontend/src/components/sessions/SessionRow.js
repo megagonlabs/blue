@@ -21,6 +21,7 @@ import {
 import copy from "copy-to-clipboard";
 import _ from "lodash";
 import { useContext, useEffect, useState } from "react";
+import { useSocket } from "../hooks/useSocket";
 export default function SessionRow({ index, style }) {
     const { appState, appActions } = useContext(AppContext);
     const sessionIdFocus = appState.session.sessionIdFocus;
@@ -51,7 +52,7 @@ export default function SessionRow({ index, style }) {
                 } else if (_.isEqual(messageLabel, "JSON")) {
                     setLastMessage(
                         <Tag minimal icon={faIcon({ icon: faBracketsCurly })}>
-                            JSON message
+                            JSON
                         </Tag>
                     );
                 } else if (_.isEqual(messageLabel, "INTERACTION")) {
@@ -64,7 +65,12 @@ export default function SessionRow({ index, style }) {
             }
         }
     }, [messages, streams]);
+    const { socket } = useSocket();
     const handleSetSessionIdFocus = () => {
+        appActions.session.observeSession({
+            sessionId,
+            socket,
+        });
         appActions.session.setSessionIdFocus(sessionId);
     };
     return (
