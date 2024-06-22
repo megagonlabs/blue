@@ -226,10 +226,7 @@ export default function sessionReducer(
                 ...state,
                 sessions: {
                     ...state.sessions,
-                    [payload]: {
-                        messages: [],
-                        streams: {},
-                    },
+                    [payload]: { messages: [], streams: {} },
                 },
                 sessionIds: [payload, ...state.sessionIds],
             };
