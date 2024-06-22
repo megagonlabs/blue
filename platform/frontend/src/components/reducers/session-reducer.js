@@ -177,7 +177,10 @@ export default function sessionReducer(
                         []
                     );
                     for (let i = _.size(messages) - 1; i >= 0; i--) {
-                        if (!_.isEqual(messages[i].stream, payload.stream)) {
+                        if (
+                            !_.isEqual(messages[i].stream, payload.stream) ||
+                            _.isEqual(messages[i].label, "INTERACTION")
+                        ) {
                             continue;
                         }
                         if (_.isEqual(dtype, "str")) {
