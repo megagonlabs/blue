@@ -15,7 +15,7 @@ import {
     faCircleDot,
     faClipboard,
     faCopy,
-    faEllipsisH,
+    faMessageDots,
     faPenLine,
 } from "@fortawesome/pro-duotone-svg-icons";
 import copy from "copy-to-clipboard";
@@ -40,7 +40,7 @@ export default function SessionRow({ index, style }) {
             if (!complete) {
                 setLastMessage(
                     faIcon({
-                        icon: faEllipsisH,
+                        icon: faMessageDots,
                         className: "fa-fade",
                         style: { color: Colors.BLACK },
                     })
