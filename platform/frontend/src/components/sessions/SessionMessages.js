@@ -6,6 +6,7 @@ import { useContext, useEffect, useRef, useState } from "react";
 import AutoSizer from "react-virtualized-auto-sizer";
 import { VariableSizeList } from "react-window";
 import { faIcon } from "../icon";
+import InteractiveMessage from "./InteractiveMessage";
 import MessageMetadata from "./MessageMetadata";
 export default function SessionMessages() {
     const variableSizeListRef = useRef();
@@ -56,6 +57,8 @@ export default function SessionMessages() {
             };
         }, []);
         const data = _.get(streams, [messages[index].stream, "data"], []);
+        const messageLabel = _.get(messages, [index, "label"], null);
+        const result = _.get(messages, [index, "result"], null);
         const complete = _.get(
             streams,
             [messages[index].stream, "complete"],
@@ -96,7 +99,7 @@ export default function SessionMessages() {
                         width: "fit-content",
                     }}
                 >
-                    <div
+                    {/* <div
                         style={{
                             position: "absolute",
                             left: 0,
@@ -104,7 +107,7 @@ export default function SessionMessages() {
                             display: showActions ? null : "none",
                         }}
                     >
-                        {/* <ButtonGroup large>
+                        <ButtonGroup large>
                             <Tooltip
                                 content="Pin to this session"
                                 minimal
@@ -112,8 +115,8 @@ export default function SessionMessages() {
                             >
                                 <Button icon={faIcon({ icon: faThumbtack })} />
                             </Tooltip>
-                        </ButtonGroup> */}
-                    </div>
+                        </ButtonGroup>
+                    </div> */}
                     <div
                         ref={rowRef}
                         style={{
@@ -126,13 +129,30 @@ export default function SessionMessages() {
                             minHeight: 21,
                         }}
                     >
-                        {data.map((e, index) => (
-                            <span key={e.id}>
-                                {(index && _.isEqual(e.dtype, "str")
-                                    ? " "
-                                    : "") + e.content}
-                            </span>
-                        ))}
+                        {_.isEqual(messageLabel, "INTERACTION") ? (
+                            <InteractiveMessage
+                                stream={stream}
+                                content={_.last(data).content}
+                                setHasError={setHasError}
+                            />
+                        ) : !complete ? (
+                            data.map((e, index) => (
+                                <span key={e.id}>
+                                    {(index && _.isEqual(e.dtype, "str")
+                                        ? " "
+                                        : "") + e.content}
+                                </span>
+                            ))
+                        ) : _.isEqual(messageLabel, "TEXT") ? (
+                            result
+                        ) : _.isEqual(messageLabel, "JSON") ? (
+                            <pre
+                                className="margin-0"
+                                style={{ overflowX: "auto" }}
+                            >
+                                {JSON.stringify(result, null, 4)}
+                            </pre>
+                        ) : null}
                         {!complete ? (
                             <>
                                 &nbsp;
@@ -144,22 +164,6 @@ export default function SessionMessages() {
                                 })}
                             </>
                         ) : null}
-                        {/* {_.isEqual(messageLabel, "TEXT") ? (
-                            messageContent
-                        ) : _.isEqual(messageLabel, "JSON") ? (
-                            <pre
-                                className="margin-0"
-                                style={{ overflowX: "auto" }}
-                            >
-                                {JSON.stringify(messageContent, null, 4)}
-                            </pre>
-                        ) : _.isEqual(messageLabel, "INTERACTION") ? (
-                            <InteractiveMessage
-                                stream={stream}
-                                setHasError={setHasError}
-                                content={messageContent}
-                            />
-                        ) : null} */}
                     </div>
                 </Callout>
                 {!own ? (
