@@ -14,10 +14,8 @@ function MessageMetadata({ timestamp, stream }) {
     const hasUserProfile = _.has(appState, ["app", "users", agentId]);
     const user = _.get(appState, ["app", "users", agentId], {});
     useEffect(() => {
-        if (!hasUserProfile) {
-            if (_.isEqual(agentType, "USER")) {
-                appActions.app.getUserProfile(agentId);
-            }
+        if (!hasUserProfile && _.isEqual(agentType, "USER")) {
+            appActions.app.getUserProfile(agentId);
         }
     }, []);
     return (
@@ -28,25 +26,32 @@ function MessageMetadata({ timestamp, stream }) {
                 &nbsp;at&nbsp;
                 {new Date(timestamp).toLocaleTimeString()}
             </div>
-            <br />
-            <div
-                className={!hasUserProfile ? Classes.SKELETON : null}
-                style={{ display: "flex", alignItems: "center" }}
-            >
-                <Card className="margin-0" style={PROFILE_PICTURE_40}>
-                    <Image
-                        alt=""
-                        src={_.get(user, "picture", "")}
-                        width={40}
-                        height={40}
-                    />
-                </Card>
-                <div className={Classes.TEXT_MUTED} style={{ marginLeft: 12 }}>
-                    {_.get(user, "display_name", "-")}
+            {_.isEqual(agentType, "USER") ? (
+                <>
                     <br />
-                    {_.get(user, "email", "-")}
-                </div>
-            </div>
+                    <div
+                        className={!hasUserProfile ? Classes.SKELETON : null}
+                        style={{ display: "flex", alignItems: "center" }}
+                    >
+                        <Card className="margin-0" style={PROFILE_PICTURE_40}>
+                            <Image
+                                alt=""
+                                src={_.get(user, "picture", "")}
+                                width={40}
+                                height={40}
+                            />
+                        </Card>
+                        <div
+                            className={Classes.TEXT_MUTED}
+                            style={{ marginLeft: 12 }}
+                        >
+                            {_.get(user, "display_name", "-")}
+                            <br />
+                            {_.get(user, "email", "-")}
+                        </div>
+                    </div>
+                </>
+            ) : null}
         </>
     );
 }

@@ -1,6 +1,7 @@
 import json
 import random
 import time
+import uuid
 
 from websocket import create_connection
 
@@ -225,26 +226,71 @@ def words(count):
 session_id = input("session_id: ")
 connection_id = input("connection_id: ")
 for _ in range(1):
+    stream_id = f"local-test-client-{int(time.time() * 1000)}"
     sentence_string = sentence()
     words_string = words(random.randint(4, 11))
     ws.send(
         json.dumps(
             {
                 "type": "OBSERVER_SESSION_MESSAGE",
+                "session_id": session_id,
+                "connection_id": connection_id,
+                "message": {'label': "BOS", 'content': None, 'dtype': None},
+                "stream": stream_id,
+                "mode": "streaming",
+                "timestamp": int(time.time() * 1000),
+                "id": str(uuid.uuid4()),
+                "order": 0,
+            }
+        )
+    )
+    ws.send(
+        json.dumps(
+            {
+                "type": "OBSERVER_SESSION_MESSAGE",
                 "connection_id": connection_id,
                 "session_id": session_id,
-                "message": {
-                    "label": "TEXT",
-                    "content": random.choice([sentence_string, words_string]),
-                },
-                "stream": f"local-test-client-{int(time.time() * 1000)}",
-                "mode": "batch",
+                "message": {"label": "DATA", "content": random.choice([sentence_string, words_string]), "dtype": "str"},
+                "stream": stream_id,
+                "mode": "streaming",
                 "timestamp": int(time.time() * 1000),
+                "id": str(uuid.uuid4()),
+                "order": 0,
+            }
+        )
+    )
+    ws.send(
+        json.dumps(
+            {
+                "type": "OBSERVER_SESSION_MESSAGE",
+                "session_id": session_id,
+                "connection_id": connection_id,
+                "message": {'label': "EOS", 'content': None, 'dtype': None},
+                "stream": stream_id,
+                "mode": "streaming",
+                "timestamp": int(time.time() * 1000),
+                "id": str(uuid.uuid4()),
+                "order": 0,
             }
         )
     )
 time.sleep(2)
 stream_id = f"local-test-client-{int(time.time() * 1000)}"
+ws.send(
+    json.dumps(
+        {
+            "type": "OBSERVER_SESSION_MESSAGE",
+            "session_id": session_id,
+            "connection_id": connection_id,
+            "message": {'label': "BOS", 'content': None, 'dtype': None},
+            "stream": stream_id,
+            "mode": "streaming",
+            "timestamp": int(time.time() * 1000),
+            "id": str(uuid.uuid4()),
+            "order": 0,
+        }
+    )
+)
 ws.send(
     json.dumps(
         {
@@ -281,10 +327,13 @@ ws.send(
                         },
                     },
                 },
+                "dtype": 'json',
             },
             "stream": stream_id,
-            "mode": "batch",
+            "mode": "streaming",
             "timestamp": int(time.time() * 1000),
+            "id": str(uuid.uuid4()),
+            "order": 0,
         }
     )
 )
@@ -302,12 +351,30 @@ ws.send(
                 "content": {"type": "DONE", "form_id": 'local-test-client-form-1'},
             },
             "stream": stream_id,
-            "mode": "batch",
+            "mode": "streaming",
             "timestamp": int(time.time() * 1000),
+            "id": str(uuid.uuid4()),
+            "order": 0,
         }
     )
 )
 time.sleep(1)
+stream_id = f"local-test-client-{int(time.time() * 1000)}"
+ws.send(
+    json.dumps(
+        {
+            "type": "OBSERVER_SESSION_MESSAGE",
+            "session_id": session_id,
+            "connection_id": connection_id,
+            "message": {'label': "BOS", 'content': None, 'dtype': None},
+            "stream": stream_id,
+            "mode": "streaming",
+            "timestamp": int(time.time() * 1000),
+            "id": str(uuid.uuid4()),
+            "order": 0,
+        }
+    )
+)
 ws.send(
     json.dumps(
         {
@@ -315,15 +382,35 @@ ws.send(
             "session_id": session_id,
             "connection_id": connection_id,
             "message": {
-                "label": "JSON",
-                "content": {
-                    "type": "DONE",
-                    "form_id": (random.choice([sentence_string, words_string]) + " ") * 3,
-                },
+                "label": "DATA",
+                "content": json.dumps(
+                    {
+                        "type": "DONE",
+                        "form_id": (random.choice([sentence_string, words_string]) + " ") * 3,
+                    }
+                ),
+                "dtype": "json",
             },
             "stream": stream_id,
-            "mode": "batch",
+            "mode": "streaming",
             "timestamp": int(time.time() * 1000),
+            "id": str(uuid.uuid4()),
+            "order": 0,
+        }
+    )
+)
+ws.send(
+    json.dumps(
+        {
+            "type": "OBSERVER_SESSION_MESSAGE",
+            "session_id": session_id,
+            "connection_id": connection_id,
+            "message": {'label': "EOS", 'content': None, 'dtype': None},
+            "stream": stream_id,
+            "mode": "streaming",
+            "timestamp": int(time.time() * 1000),
+            "id": str(uuid.uuid4()),
+            "order": 0,
         }
     )
 )

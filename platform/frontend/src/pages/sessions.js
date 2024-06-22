@@ -77,10 +77,7 @@ export default function Sessions() {
                         value: data.id,
                     });
                 } else if (_.isEqual(data["type"], "NEW_SESSION_BROADCAST")) {
-                    appActions.session.observeSession({
-                        sessionId: _.get(data, "session.id"),
-                        socket: socket,
-                    });
+                    appActions.session.addSession(_.get(data, "session.id"));
                     appActions.session.setSessionDetail([data["session"]]);
                 }
             } catch (e) {
@@ -139,10 +136,7 @@ export default function Sessions() {
                 appActions.session.setSessionDetail(sessions);
                 for (let i = 0; i < sessions.length; i++) {
                     const sessionId = sessions[i].id;
-                    appActions.session.observeSession({
-                        sessionId: sessionId,
-                        socket: socket,
-                    });
+                    appActions.session.addSession(sessionId);
                 }
             })
             .catch(() => {});
@@ -155,13 +149,6 @@ export default function Sessions() {
             initialJoinAll.current = false;
             socket.send(JSON.stringify({ type: "REQUEST_USER_AGENT_ID" }));
             joinAllSessions();
-        } else {
-            for (let i = 0; i < sessionIds.length; i++) {
-                appActions.session.observeSession({
-                    sessionId: sessionIds[i],
-                    socket: socket,
-                });
-            }
         }
     }, [socketReadyState]);
     const isSocketOpen = appState.session.isSocketOpen;
@@ -246,7 +233,7 @@ export default function Sessions() {
                                         return;
                                     }
                                     setIsCreatingSession(true);
-                                    appActions.session.createSession();
+                                    appActions.session.createSession(socket);
                                 }}
                                 rightIcon={faIcon({ icon: faInboxOut })}
                             />
@@ -336,7 +323,7 @@ export default function Sessions() {
                                                                     {
                                                                         sessionId:
                                                                             item.id,
-                                                                        socket: socket,
+                                                                        socket,
                                                                     }
                                                                 );
                                                             }}

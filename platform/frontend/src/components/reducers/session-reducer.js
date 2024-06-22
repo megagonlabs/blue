@@ -17,31 +17,132 @@ export default function sessionReducer(
     let unreadSessionIds = state.unreadSessionIds;
     let sessionIds = state.sessionIds;
     let terminatedInteraction = state.terminatedInteraction;
+    let sessions = _.cloneDeep(state.sessions);
     switch (type) {
         case "session/sessions/message/add": {
             const messageLabel = _.get(payload, "message.label", null);
-            const contentType = _.get(payload, "message.content.type", null);
             const mode = _.get(payload, "mode", "batch");
-            if (
-                _.isEqual(mode, "batch") ||
-                _.isEqual(messageLabel, "INTERACTION")
-            ) {
-                if (
-                    _.isEqual(messageLabel, "INTERACTION") &&
-                    _.isEqual(contentType, "DONE")
-                ) {
-                    // non-conversational message; not adding to session messages
-                    const stream = _.get(payload, "stream", null);
-                    const formId = _.get(
-                        payload,
-                        "message.content.form_id",
-                        null
+            if (!_.includes(sessionIds, payload.session_id)) {
+                sessionIds.push(payload.session_id);
+            }
+            if (_.isEqual(mode, "streaming")) {
+                const contentType = _.get(
+                    payload,
+                    "message.content.type",
+                    null
+                );
+                let messages = _.get(
+                    sessions,
+                    [payload.session_id, "messages"],
+                    []
+                );
+                if (_.isEqual(messageLabel, "BOS")) {
+                    let streams = _.get(
+                        sessions,
+                        [payload.session_id, "streams"],
+                        {}
                     );
-                    if (!_.isEmpty(stream) && !_.isEmpty(formId)) {
-                        terminatedInteraction.add(`${stream},${formId}`);
+                    messages.push({
+                        stream: payload.stream,
+                        timestamp: payload.timestamp,
+                    });
+                    _.set(streams, payload.stream, {
+                        data: [],
+                        dtype: _.get(payload, "message.dtype", null),
+                        complete: false,
+                    });
+                    _.set(sessions, payload.session_id, {
+                        messages: _.sortBy(
+                            _.uniqBy(messages, "stream"),
+                            "timestamp"
+                        ),
+                        streams,
+                    });
+                } else if (_.includes(["DATA", "INTERACTION"], messageLabel)) {
+                    let addToData = true;
+                    if (_.isEqual(messageLabel, "INTERACTION")) {
+                        for (let i = _.size(messages) - 1; i >= 0; i--) {
+                            if (
+                                !_.isEqual(messages[i].stream, payload.stream)
+                            ) {
+                                continue;
+                            }
+                            messages[i].label = "INTERACTION";
+                        }
+                        _.set(
+                            sessions,
+                            [payload.session_id, "messages"],
+                            messages
+                        );
+                        // non-conversational message; not adding to session messages
+                        if (_.isEqual(contentType, "DONE")) {
+                            addToData = false;
+                            const stream = _.get(payload, "stream", null);
+                            const formId = _.get(
+                                payload,
+                                "message.content.form_id",
+                                null
+                            );
+                            if (!_.isEmpty(stream) && !_.isEmpty(formId)) {
+                                terminatedInteraction.add(
+                                    `${stream},${formId}`
+                                );
+                            }
+                        } else {
+                            if (
+                                !_.startsWith(
+                                    payload.stream,
+                                    `USER:${state.connectionId}`
+                                )
+                            ) {
+                                unreadSessionIds.add(payload.session_id);
+                            }
+                        }
                     }
-                    return { ...state, terminatedInteraction };
-                } else {
+                    if (addToData) {
+                        const dtype = _.get(payload, "message.dtype", null);
+                        _.set(
+                            sessions,
+                            [
+                                payload.session_id,
+                                "streams",
+                                payload.stream,
+                                "dtype",
+                            ],
+                            dtype
+                        );
+                        let data = _.get(
+                            sessions,
+                            [
+                                payload.session_id,
+                                "streams",
+                                payload.stream,
+                                "data",
+                            ],
+                            []
+                        );
+                        data.push({
+                            timestamp: payload.timestamp,
+                            content: _.get(payload, "message.content", null),
+                            order: payload.order,
+                            id: payload.id,
+                            dtype: dtype,
+                        });
+                        _.set(
+                            sessions,
+                            [
+                                payload.session_id,
+                                "streams",
+                                payload.stream,
+                                "data",
+                            ],
+                            _.sortBy(_.uniqBy(data, "id"), [
+                                "timestamp",
+                                "order",
+                            ])
+                        );
+                    }
+                } else if (_.isEqual(messageLabel, "EOS")) {
                     if (
                         !_.startsWith(
                             payload.stream,
@@ -50,51 +151,59 @@ export default function sessionReducer(
                     ) {
                         unreadSessionIds.add(payload.session_id);
                     }
-                    if (!_.includes(state.sessionIds, payload.session_id)) {
-                        sessionIds.push(payload.session_id);
-                    }
-                    // timestamp is unique redis stream entry id
-                    let nextMessages = _.uniqBy(
+                    _.set(
+                        sessions,
                         [
-                            ..._.get(
-                                state,
-                                `sessions.${payload.session_id}`,
-                                []
-                            ),
-                            {
-                                message: payload.message,
-                                stream: payload.stream,
-                                timestamp: payload.timestamp,
-                            },
+                            payload.session_id,
+                            "streams",
+                            payload.stream,
+                            "complete",
                         ],
-                        (element) => element.timestamp
+                        true
                     );
-                    return {
-                        ...state,
-                        sessions: {
-                            ...state.sessions,
-                            [payload.session_id]: _.sortBy(
-                                nextMessages,
-                                function (o) {
-                                    return o.timestamp;
-                                }
-                            ),
-                        },
-                        sessionIds,
-                        unreadSessionIds,
-                    };
-                }
-            } else if (_.isEqual(mode, "streaming")) {
-                console.log(payload);
-                if (_.isEqual(messageLabel, "BOS")) {
-                    // TODO
-                } else if (_.isEqual(messageLabel, "DATA")) {
-                    // TODO
-                } else if (_.isEqual(messageLabel, "EOS")) {
-                    // TODO
+                    const dtype = _.get(
+                        sessions,
+                        [
+                            payload.session_id,
+                            "streams",
+                            payload.stream,
+                            "dtype",
+                        ],
+                        null
+                    );
+                    const data = _.get(
+                        sessions,
+                        [payload.session_id, "streams", payload.stream, "data"],
+                        []
+                    );
+                    for (let i = _.size(messages) - 1; i >= 0; i--) {
+                        if (!_.isEqual(messages[i].stream, payload.stream)) {
+                            continue;
+                        }
+                        if (_.isEqual(dtype, "str")) {
+                            messages[i].label = "TEXT";
+                            messages[i].result = _.join(
+                                _.map(data, "content"),
+                                " "
+                            );
+                        }
+                        if (_.isEqual(dtype, "json")) {
+                            messages[i].label = "JSON";
+                            messages[i].result = JSON.parse(
+                                _.join(_.map(data, "content"), "")
+                            );
+                        }
+                    }
+                    _.set(sessions, [payload.session_id, "messages"], messages);
                 }
             }
-            return { ...state };
+            return {
+                ...state,
+                sessions,
+                sessionIds,
+                unreadSessionIds,
+                terminatedInteraction,
+            };
         }
         case "session/state/set": {
             return { ...state, [payload.key]: payload.value };
@@ -117,9 +226,8 @@ export default function sessionReducer(
                 ...state,
                 sessions: {
                     ...state.sessions,
-                    [payload]: [],
+                    [payload]: { messages: [], streams: {} },
                 },
-                sessionIdFocus: payload,
                 sessionIds: [payload, ...state.sessionIds],
             };
         }

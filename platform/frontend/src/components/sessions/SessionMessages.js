@@ -1,17 +1,20 @@
 import { AppContext } from "@/components/contexts/app-context";
-import InteractiveMessage from "@/components/sessions/InteractiveMessage";
 import { Callout, Classes, Colors, Intent, Tooltip } from "@blueprintjs/core";
+import { faEllipsisH } from "@fortawesome/pro-duotone-svg-icons";
 import _ from "lodash";
 import { useContext, useEffect, useRef, useState } from "react";
 import AutoSizer from "react-virtualized-auto-sizer";
 import { VariableSizeList } from "react-window";
+import { faIcon } from "../icon";
+import InteractiveMessage from "./InteractiveMessage";
 import MessageMetadata from "./MessageMetadata";
 export default function SessionMessages() {
     const variableSizeListRef = useRef();
     const rowHeights = useRef({});
     const { appState } = useContext(AppContext);
     const sessionIdFocus = appState.session.sessionIdFocus;
-    const messages = appState.session.sessions[sessionIdFocus];
+    const messages = appState.session.sessions[sessionIdFocus].messages;
+    const streams = appState.session.sessions[sessionIdFocus].streams;
     function getRowHeight(index) {
         const own = _.includes(
             _.get(messages, [index, "stream"]),
@@ -53,8 +56,14 @@ export default function SessionMessages() {
                 window.removeEventListener("resize", handleResize);
             };
         }, []);
-        const messageLabel = _.get(messages[index].message, "label", "TEXT"),
-            messageContent = _.get(messages[index].message, "content", null);
+        const data = _.get(streams, [messages[index].stream, "data"], []);
+        const messageLabel = _.get(messages, [index, "label"], null);
+        const result = _.get(messages, [index, "result"], null);
+        const complete = _.get(
+            streams,
+            [messages[index].stream, "complete"],
+            false
+        );
         const [hasError, setHasError] = useState(false);
         const timestamp = messages[index].timestamp;
         const stream = messages[index].stream;
@@ -90,7 +99,7 @@ export default function SessionMessages() {
                         width: "fit-content",
                     }}
                 >
-                    <div
+                    {/* <div
                         style={{
                             position: "absolute",
                             left: 0,
@@ -98,7 +107,7 @@ export default function SessionMessages() {
                             display: showActions ? null : "none",
                         }}
                     >
-                        {/* <ButtonGroup large>
+                        <ButtonGroup large>
                             <Tooltip
                                 content="Pin to this session"
                                 minimal
@@ -106,8 +115,8 @@ export default function SessionMessages() {
                             >
                                 <Button icon={faIcon({ icon: faThumbtack })} />
                             </Tooltip>
-                        </ButtonGroup> */}
-                    </div>
+                        </ButtonGroup>
+                    </div> */}
                     <div
                         ref={rowRef}
                         style={{
@@ -117,23 +126,43 @@ export default function SessionMessages() {
                             wordBreak: "break-all",
                             width: "fit-content",
                             overflow: "hidden",
+                            minHeight: 21,
                         }}
                     >
-                        {_.isEqual(messageLabel, "TEXT") ? (
-                            messageContent
+                        {_.isEqual(messageLabel, "INTERACTION") ? (
+                            <InteractiveMessage
+                                stream={stream}
+                                content={_.last(data).content}
+                                setHasError={setHasError}
+                            />
+                        ) : !complete ? (
+                            data.map((e, index) => (
+                                <span key={e.id}>
+                                    {(index && _.isEqual(e.dtype, "str")
+                                        ? " "
+                                        : "") + e.content}
+                                </span>
+                            ))
+                        ) : _.isEqual(messageLabel, "TEXT") ? (
+                            result
                         ) : _.isEqual(messageLabel, "JSON") ? (
                             <pre
                                 className="margin-0"
                                 style={{ overflowX: "auto" }}
                             >
-                                {JSON.stringify(messageContent, null, 4)}
+                                {JSON.stringify(result, null, 4)}
                             </pre>
-                        ) : _.isEqual(messageLabel, "INTERACTION") ? (
-                            <InteractiveMessage
-                                stream={stream}
-                                setHasError={setHasError}
-                                content={messageContent}
-                            />
+                        ) : null}
+                        {!complete ? (
+                            <>
+                                &nbsp;
+                                {faIcon({
+                                    icon: faEllipsisH,
+                                    size: 16.5,
+                                    className: "fa-fade",
+                                    style: { color: Colors.BLACK },
+                                })}
+                            </>
                         ) : null}
                     </div>
                 </Callout>

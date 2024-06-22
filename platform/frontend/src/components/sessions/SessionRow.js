@@ -15,42 +15,62 @@ import {
     faCircleDot,
     faClipboard,
     faCopy,
-    faPenField,
+    faMessageDots,
+    faPenLine,
 } from "@fortawesome/pro-duotone-svg-icons";
 import copy from "copy-to-clipboard";
 import _ from "lodash";
 import { useContext, useEffect, useState } from "react";
+import { useSocket } from "../hooks/useSocket";
 export default function SessionRow({ index, style }) {
     const { appState, appActions } = useContext(AppContext);
     const sessionIdFocus = appState.session.sessionIdFocus;
     const sessionId = appState.session.sessionIds[index];
     const unreadSessionIds = appState.session.unreadSessionIds;
-    const sessionMessages = appState.session.sessions[sessionId];
+    const messages = appState.session.sessions[sessionId].messages;
+    const streams = appState.session.sessions[sessionId].streams;
     const [showActions, setShowActions] = useState(false);
     const [lastMessage, setLastMessage] = useState("-");
     useEffect(() => {
-        const last = _.last(sessionMessages),
-            messageLabel = _.get(last, "message.label", "TEXT"),
-            messageContent = _.get(last, "message.content", null);
-        if (_.isEqual(messageLabel, "TEXT")) {
-            setLastMessage(messageContent);
-        } else if (_.isEqual(messageLabel, "INTERACTION")) {
-            setLastMessage(
-                <Tag minimal icon={faIcon({ icon: faPenField })}>
-                    interactive message
-                </Tag>
-            );
-        } else if (_.isEqual(messageLabel, "JSON")) {
-            setLastMessage(
-                <Tag minimal icon={faIcon({ icon: faBracketsCurly })}>
-                    json message
-                </Tag>
-            );
-        } else {
+        const last = _.last(messages);
+        if (_.isEmpty(last)) {
             setLastMessage("-");
+        } else {
+            const complete = _.get(streams, [last.stream, "complete"], false);
+            if (!complete) {
+                setLastMessage(
+                    faIcon({
+                        icon: faMessageDots,
+                        className: "fa-fade",
+                        style: { color: Colors.BLACK },
+                    })
+                );
+            } else {
+                const messageLabel = _.get(last, "label", null);
+                if (_.isEqual(messageLabel, "TEXT")) {
+                    setLastMessage(last.result);
+                } else if (_.isEqual(messageLabel, "JSON")) {
+                    setLastMessage(
+                        <Tag minimal icon={faIcon({ icon: faBracketsCurly })}>
+                            JSON
+                        </Tag>
+                    );
+                } else if (_.isEqual(messageLabel, "INTERACTION")) {
+                    setLastMessage(
+                        <Tag minimal icon={faIcon({ icon: faPenLine })}>
+                            Interactive
+                        </Tag>
+                    );
+                }
+            }
         }
-    }, [sessionMessages]);
+    }, [messages, streams]);
+    const { socket } = useSocket();
     const handleSetSessionIdFocus = () => {
+        appActions.session.observeSession({
+            sessionId,
+            socket,
+        });
         appActions.session.setSessionIdFocus(sessionId);
     };
     return (
@@ -102,7 +122,7 @@ export default function SessionRow({ index, style }) {
                         lineHeight: "20px",
                     }}
                 >
-                    {_.isEmpty(sessionMessages) ? "-" : lastMessage}
+                    {lastMessage}
                 </div>
             </div>
             <div
