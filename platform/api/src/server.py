@@ -3,8 +3,7 @@ from curses import noecho
 import os
 import sys
 
-DEVELOPMENT = os.getenv("DEVELOPMENT", "False").lower() == "true"
-SECURE_COOKIE = os.getenv("SECURE_COOKIE", "True").lower() == "true"
+
 ###### Add lib path
 sys.path.append("./lib/")
 sys.path.append("./lib/agent_registry/")
@@ -15,23 +14,15 @@ sys.path.append("./lib/platform/")
 ###### Parsers, Formats, Utils
 import json
 import re
+import pydash
 from pathlib import Path
 
-from fastapi.responses import JSONResponse
-import pydash
-
-###### Properties
-PROPERTIES = os.getenv("BLUE__PROPERTIES")
-PROPERTIES = json.loads(PROPERTIES)
-platform_id = PROPERTIES["platform.name"]
-prefix = 'PLATFORM:' + platform_id
-agent_registry_id = PROPERTIES["agent_registry.name"]
-data_registry_id = PROPERTIES["data_registry.name"]
-PLATFORM_PREFIX = f'/blue/platform/{platform_id}'
-
-##### Web / Sockets
-from ConnectionManager import ConnectionManager
+##### FastAPI, Web, Sockets, Authentication
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Request
+from fastapi.responses import JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
+from firebase_admin import auth
+
 
 ###### API Routers
 from constant import EMAIL_DOMAIN_ADDRESS_REGEXP, InvalidRequestJson
@@ -40,20 +31,32 @@ from routers import data
 from routers import sessions
 from routers import platform
 from routers import accounts
-from firebase_admin import auth
 
-from fastapi.middleware.cors import CORSMiddleware
-
-####### Version
-_VERSION_PATH = Path(__file__).parent / "version"
-version = Path(_VERSION_PATH).read_text().strip()
-print("blue-platform-api: " + version)
+from ConnectionManager import ConnectionManager
 
 ###### Blue
 from session import Session
 from blueprint import Platform
 from agent_registry import AgentRegistry
 from data_registry import DataRegistry
+
+
+###### Settings
+from routers.settings import PROPERTIES, DEVELOPMENT, SECURE_COOKIE
+
+### Assign from platform properties
+platform_id = PROPERTIES["platform.name"]
+prefix = 'PLATFORM:' + platform_id
+agent_registry_id = PROPERTIES["agent_registry.name"]
+data_registry_id = PROPERTIES["data_registry.name"]
+PLATFORM_PREFIX = f'/blue/platform/{platform_id}'
+
+####### Version
+_VERSION_PATH = Path(__file__).parent / "version"
+version = Path(_VERSION_PATH).read_text().strip()
+print("blue-platform-api: " + version)
+
+
 
 ###### Initialization
 p = Platform(id=platform_id, properties=PROPERTIES)

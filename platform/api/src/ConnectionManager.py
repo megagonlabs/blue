@@ -1,37 +1,46 @@
-import json
-import secrets
-import time
-import uuid
-from dataclasses import dataclass
-
-from fastapi import WebSocket
-import sys
+###### OS / Systems
 import os
-import pydash
-
-from server import DEVELOPMENT, PLATFORM_PREFIX
+import sys
 
 ###### Add lib path
 sys.path.append("./lib/")
 sys.path.append("./lib/agents")
 sys.path.append("./lib/platform/")
 
+
+###### Parsers, Formats, Utils
+import json
+import time
+import uuid
+import pydash
+import secrets
+
+##### FastAPI, Web, Sockets, Authentication
+from fastapi import WebSocket
+from dataclasses import dataclass
+
 ###### Blue
-from constant import redisReplace
 from session import Session
 from blueprint import Platform
 from observer import ObserverAgent
 from session import Session
 from agent import Agent
 from producer import Producer
+from constant import redisReplace
 
-###### Properties
-PROPERTIES = os.getenv("BLUE__PROPERTIES")
-PROPERTIES = json.loads(PROPERTIES)
+
+
+
+
+###### Settings
+from routers.settings import PROPERTIES, DEVELOPMENT, SECURE_COOKIE
+
+### Assign from platform properties
 platform_id = PROPERTIES["platform.name"]
 prefix = 'PLATFORM:' + platform_id
 agent_registry_id = PROPERTIES["agent_registry.name"]
 data_registry_id = PROPERTIES["data_registry.name"]
+PLATFORM_PREFIX = f'/blue/platform/{platform_id}'
 
 ###### Initialization
 p = Platform(id=platform_id, properties=PROPERTIES)

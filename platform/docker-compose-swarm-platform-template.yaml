@@ -6,7 +6,18 @@ x-blue-common:
   image: python:3.9.0
   environment:
     &blue-common-env
-    BLUE__PROPERTIES: '{"platform.name":"${BLUE_DEPLOY_PLATFORM}", "platform.version":"${BLUE_DEPLOY_VERSION}", "platform.deploy.target":"${BLUE_DEPLOY_TARGET}", "api.server":"${BLUE_PUBLIC_API_SERVER}", "api.server.port":"${BLUE_PUBLIC_API_SERVER_PORT}", "api.server.protocol":"${BLUE_PUBLIC_API_SERVER_PROTOCOL}", "web.server":"${BLUE_PUBLIC_WEB_SERVER}", "web.server.port":"${BLUE_PUBLIC_WEB_SERVER_PORT}", "db.host":"blue_db_redis", "agent_registry.name":"${BLUE_AGENT_REGISTRY}", "data_registry.name":"${BLUE_DATA_REGISTRY}", "embeddings_model":"/blue_data/models/paraphrase-MiniLM-L6-v2"}'
+    BLUE_DEPLOY_PLATFORM: "${BLUE_DEPLOY_PLATFORM}"
+    BLUE_DEPLOY_VERSION: "${BLUE_DEPLOY_VERSION}"
+    BLUE_DEPLOY_TARGET: "${BLUE_DEPLOY_TARGET}"
+    BLUE_DEPLOY_SECURE: "${BLUE_DEPLOY_SECURE}"
+    BLUE_DEPLOY_DEVELOPMENT: "${BLUE_DEPLOY_DEVELOPMENT}"
+    BLUE_PUBLIC_API_SERVER: "${BLUE_PUBLIC_API_SERVER}"
+    BLUE_PUBLIC_API_SERVER_PORT: "${BLUE_PUBLIC_API_SERVER_PORT}"
+    BLUE_PUBLIC_WEB_SERVER: "${BLUE_PUBLIC_WEB_SERVER}"
+    BLUE_PUBLIC_WEB_SERVER_PORT: "${BLUE_PUBLIC_WEB_SERVER_PORT}"
+    BLUE_AGENT_REGISTRY: "${BLUE_AGENT_REGISTRY}"
+    BLUE_DATA_REGISTRY: "${BLUE_DATA_REGISTRY}"
+    BLUE_AGENT_REGISTRY_MODEL: "${BLUE_AGENT_REGISTRY_MODEL}"
   depends_on:
     &blue-common-depends-on
     redis:
@@ -39,12 +50,14 @@ services:
     restart: always
 
   api:
-    image: megagonlabs/blue-platform-api:${BLUE_DEPLOY_VERSION}
+    image: blue-platform-api:${BLUE_DEPLOY_VERSION}
     hostname: blue_platform_api
     deploy:
       placement:
         constraints:
           - node.labels.target == platform
+    depends_on:
+      - redis
     ports:
       - "${BLUE_PUBLIC_API_SERVER_PORT}:5050"
     networks:
@@ -61,7 +74,7 @@ services:
     restart: always
 
   frontend:
-    image: megagonlabs/blue-platform-frontend:${BLUE_DEPLOY_VERSION}
+    image: blue-platform-frontend:${BLUE_DEPLOY_VERSION}
     hostname: blue_platform_frontend
     deploy:
       placement:
@@ -75,12 +88,6 @@ services:
       blue.platform: "${BLUE_DEPLOY_PLATFORM}.frontend"
     environment:
       <<: *blue-common-env
-      BLUE_PUBLIC_API_SERVER: "${BLUE_PUBLIC_API_SERVER}"
-      BLUE_PUBLIC_API_SERVER_PORT: "${BLUE_PUBLIC_API_SERVER_PORT}"
-      BLUE_PUBLIC_API_SERVER_PROTOCOL: "${BLUE_PUBLIC_API_SERVER_PROTOCOL}"
-      BLUE_AGENT_REGISTRY: "${BLUE_AGENT_REGISTRY}"
-      BLUE_DATA_REGISTRY: "${BLUE_DATA_REGISTRY}"
-      BLUE_DEPLOY_PLATFORM: "${BLUE_DEPLOY_PLATFORM}"
     restart: always
 
 networks:

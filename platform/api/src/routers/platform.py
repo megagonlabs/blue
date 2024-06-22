@@ -10,29 +10,27 @@ sys.path.append("./lib/data_registry/")
 sys.path.append("./lib/platform/")
 
 
-######
-import time
-import argparse
-import logging
-import time
-import uuid
-import random
-
 ###### Parsers, Formats, Utils
 import re
+import time
 import csv
+import uuid
+import random
 import json
+import logging
 from utils import json_utils
 
 ###### Docker
 import docker
 
-###### FastAPI
+##### Typing
+from pydantic import BaseModel, Json
+from typing import Union, Any, Dict, AnyStr, List
+
+###### FastAPI, Web, Auth
 from APIRouter import APIRouter
 from fastapi.responses import JSONResponse
-from typing import Union, Any, Dict, AnyStr, List
-from pydantic import BaseModel, Json
-from server import PLATFORM_PREFIX
+
 
 ###### Schema
 JSONObject = Dict[str, Any]
@@ -48,12 +46,15 @@ from agent_registry import AgentRegistry
 
 
 ###### Properties
-PROPERTIES = os.getenv("BLUE__PROPERTIES")
-PROPERTIES = json.loads(PROPERTIES)
+from .settings import PROPERTIES
+
+### Assign from platform properties
 platform_id = PROPERTIES["platform.name"]
 prefix = 'PLATFORM:' + platform_id
 agent_registry_id = PROPERTIES["agent_registry.name"]
 data_registry_id = PROPERTIES["data_registry.name"]
+PLATFORM_PREFIX = f'/blue/platform/{platform_id}'
+
 
 ###### Initialization
 p = Platform(id=platform_id, properties=PROPERTIES)
@@ -89,7 +90,9 @@ def list_agent_containers():
                 la = l.split(".")
                 c["agent"] = la[2]
                 c["registry"] = la[1]
-                results.append(c)
+                c["platform"] = la[0]
+                if c["platform"] == platform_id:
+                    results.append(c)
     elif PROPERTIES["platform.deploy.target"] == "swarm":
         services = client.services.list()
         results = []
@@ -110,7 +113,9 @@ def list_agent_containers():
                 la = l.split(".")
                 c["agent"] = la[2]
                 c["registry"] = la[1]
-                results.append(c)
+                c["platform"] = la[0]
+                if c["platform"] == platform_id:
+                    results.append(c)
 
     # close connection
     client.close()
@@ -141,7 +146,7 @@ def deploy_agent_container(agent_name):
     if PROPERTIES["platform.deploy.target"] == "localhost":
         client.containers.run(
             image,
-            "--serve " + agent_name + " " + "--properties " + "'" + json.dumps(agent_properties) + "'",
+            "--serve " + agent_name + " " + "--platform " + platform_id +  " " + + "--registry " + agent_registry_id + " " + "--properties " + "'" + json.dumps(agent_properties) + "'",
             network="blue_platform_" + PROPERTIES["platform.name"] + "_network_bridge",
             hostname="blue_agent_" + agent_registry_id + "_" + agent_name,
             volumes=["blue_" + platform_id + "_data:/blue_data"],
@@ -153,7 +158,7 @@ def deploy_agent_container(agent_name):
         constraints = ["node.labels.target==agent"]
         client.services.create(
             image,
-            args=["--serve", agent_name, "--properties", json.dumps(agent_properties)],
+            args=["--serve", agent_name, "--platform", platform_id, "--registry", agent_registry_id, "--properties", json.dumps(agent_properties)],
             networks=["blue_platform_" + PROPERTIES["platform.name"] + "_network_overlay"],
             constraints=constraints,
             hostname="blue_agent_" + agent_registry_id + "_" + agent_name,

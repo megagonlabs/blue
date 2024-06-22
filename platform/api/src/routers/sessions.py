@@ -25,16 +25,14 @@ from utils import json_utils
 from constant import d7validate
 from validations.base import BaseValidation
 
+##### Typing
+from pydantic import BaseModel, Json
+from typing import Union, Any, Dict, AnyStr, List
+
 ###### FastAPI
 from fastapi import Request
 from APIRouter import APIRouter
 from fastapi.responses import JSONResponse
-from typing import Union, Any, Dict, AnyStr, List
-from pydantic import BaseModel
-
-from server import PLATFORM_PREFIX
-
-router = APIRouter(prefix=f"{PLATFORM_PREFIX}/sessions")
 
 ###### Schema
 JSONObject = Dict[str, Any]
@@ -49,16 +47,20 @@ from blueprint import Platform
 from agent_registry import AgentRegistry
 
 ###### Properties
-PROPERTIES = os.getenv("BLUE__PROPERTIES")
-PROPERTIES = json.loads(PROPERTIES)
+from .settings import PROPERTIES
+
+### Assign from platform properties
 platform_id = PROPERTIES["platform.name"]
 prefix = 'PLATFORM:' + platform_id
 agent_registry_id = PROPERTIES["agent_registry.name"]
+PLATFORM_PREFIX = f'/blue/platform/{platform_id}'
 
 ###### Initialization
 p = Platform(id=platform_id, properties=PROPERTIES)
 agent_registry = AgentRegistry(id=agent_registry_id, prefix=prefix, properties=PROPERTIES)
 
+##### ROUTER
+router = APIRouter(prefix=f"{PLATFORM_PREFIX}/sessions")
 
 #############
 @router.get("/")

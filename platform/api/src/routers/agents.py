@@ -9,29 +9,24 @@ sys.path.append("./lib/agent_registry/")
 sys.path.append("./lib/platform/")
 
 
-######
-import time
-import argparse
-import logging
-import time
-import uuid
-import random
 
 ###### Parsers, Formats, Utils
 import re
 import csv
 import json
+import time
 from utils import json_utils
 
 ###### Docker
 import docker
 
+##### Typing
+from pydantic import BaseModel, Json
+from typing import Union, Any, Dict, AnyStr, List
+
 ###### FastAPI
 from APIRouter import APIRouter
 from fastapi.responses import JSONResponse
-from typing import Union, Any, Dict, AnyStr, List
-from pydantic import BaseModel, Json
-from server import PLATFORM_PREFIX
 
 
 ###### Schema
@@ -50,6 +45,7 @@ JSONArray = List[Any]
 JSONStructure = Union[JSONArray, JSONObject, Any]
 ######
 
+
 ###### Blue
 from session import Session
 from blueprint import Platform
@@ -57,11 +53,13 @@ from agent_registry import AgentRegistry
 
 
 ###### Properties
-PROPERTIES = os.getenv("BLUE__PROPERTIES")
-PROPERTIES = json.loads(PROPERTIES)
+from .settings import PROPERTIES
+
+### Assign from platform properties
 platform_id = PROPERTIES["platform.name"]
 prefix = 'PLATFORM:' + platform_id
 agent_registry_id = PROPERTIES["agent_registry.name"]
+PLATFORM_PREFIX = f'/blue/platform/{platform_id}'
 
 ###### Initialization
 p = Platform(id=platform_id, properties=PROPERTIES)
@@ -93,7 +91,9 @@ def get_agent_containers():
                 la = l.split(".")
                 c["agent"] = la[2]
                 c["registry"] = la[1]
-            results.append(c)
+                c["platform"] = la[0]
+                if c["platform"] == platform_id:
+                    results.append(c)
     elif PROPERTIES["platform.deploy.target"] == "swarm":
         services = client.services.list()
         results = []
@@ -114,8 +114,10 @@ def get_agent_containers():
                 la = l.split(".")
                 c["agent"] = la[2]
                 c["registry"] = la[1]
-            results.append(c)
-
+                c["platform"] = la[0]
+                if c["platform"] == platform_id:
+                    results.append(c)
+        
     # build dictionary of container results <registry_name>.<agent_name>
     containers = {}
     for result in results:
