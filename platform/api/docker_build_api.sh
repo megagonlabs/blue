@@ -1,5 +1,5 @@
 #/bin/bash
-source $(dirname $0)/build_agent.sh
+source $(dirname $0)/build_api.sh
 
 echo 'Building docker image...'
 
