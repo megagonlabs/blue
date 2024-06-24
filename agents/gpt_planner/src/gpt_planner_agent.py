@@ -81,8 +81,11 @@ class GPTPlannerAgent(OpenAIAgent):
         super()._initialize(properties=properties)
 
         # connect to registry
+        platform_id = self.properties["platform.name"]
+        prefix = 'PLATFORM:' + platform_id
+
         logging.info("Using agent registry:" + self.properties['registry.name'])
-        self.registry = AgentRegistry(self.properties['registry.name'])
+        self.registry = AgentRegistry(id=self.properties['registry.name'], prefix=prefix, properties=self.properties)
 
         agents = self.registry.list_records()
         logging.info('Registry contents:')

@@ -104,10 +104,13 @@ def get_agent_containers():
             c["created_date"] = service.attrs["CreatedAt"]
             c["image"] = service.attrs["Spec"]["TaskTemplate"]["ContainerSpec"]["Image"]
             tasks = service.tasks()
-            status = []
+            status = None
             for task in tasks:
-                status.append(task["Status"]["State"])
-            c["status"] = ",".join(status)
+                s = task["Status"]["State"]
+                status = s
+                if status == "running":
+                    break
+            c["status"] = status
             labels = service.attrs["Spec"]["TaskTemplate"]["ContainerSpec"]["Labels"]
             if 'blue.agent' in labels:
                 l = labels['blue.agent']
