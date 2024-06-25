@@ -108,6 +108,9 @@ class GPTPlannerAgent(OpenAIAgent):
 
         # extract, standardize json plan
         extracted_plan = self.extract_plan(gpt_plan)
+        logging.info('Standardized Plan:')
+        logging.info(json.dumps(extracted_plan, indent=4))
+        logging.info('========================================================================================================')
 
         # search, find related agents
         searched_plan = self.search_plan(extracted_plan)
@@ -480,6 +483,7 @@ class GPTPlannerAgent(OpenAIAgent):
         indices = []
         sp = prefix.split('.')
         for spi in sp:
+            spi = spi.lower()
             n = None
             try:
                 n = int(spi)
@@ -502,7 +506,7 @@ class GPTPlannerAgent(OpenAIAgent):
         for s, i in zip(scope, indices[:-1]):
             path = path + str(s) + '[' + str(i) + ']' + '.'
         if len(indices) > 0:
-            path = path + indices[-1]
+            path = path + str(indices[-1])
         return path
 
     def _set_plan_data(self, path, value, plan):
