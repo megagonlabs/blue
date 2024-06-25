@@ -1,5 +1,12 @@
 import { AppContext } from "@/components/contexts/app-context";
-import { Callout, Classes, Colors, Intent, Tooltip } from "@blueprintjs/core";
+import {
+    Callout,
+    Classes,
+    Colors,
+    Intent,
+    Tag,
+    Tooltip,
+} from "@blueprintjs/core";
 import { faEllipsisH } from "@fortawesome/pro-duotone-svg-icons";
 import _ from "lodash";
 import { useContext, useEffect, useRef, useState } from "react";
@@ -135,33 +142,46 @@ export default function SessionMessages() {
                                 content={_.last(data).content}
                                 setHasError={setHasError}
                             />
-                        ) : !complete ? (
-                            data.map((e, index) => (
-                                <span key={e.id}>
-                                    {(index && _.isEqual(e.dtype, "str")
-                                        ? " "
-                                        : "") + e.content}
-                                </span>
-                            ))
-                        ) : _.isEqual(messageLabel, "TEXT") ? (
-                            result
-                        ) : _.isEqual(messageLabel, "JSON") ? (
-                            <pre
-                                className="margin-0"
-                                style={{ overflowX: "auto" }}
-                            >
-                                {JSON.stringify(result, null, 4)}
-                            </pre>
-                        ) : null}
+                        ) : (
+                            data.map((e, index) => {
+                                const { dtype } = e;
+                                if (_.isEqual(dtype, "str")) {
+                                    return (
+                                        <span key={e.id}>
+                                            {(index ? " " : "") + e.content}
+                                        </span>
+                                    );
+                                } else if (_.isEqual(dtype, "json")) {
+                                    return (
+                                        <pre
+                                            className="margin-0"
+                                            style={{ overflowX: "auto" }}
+                                        >
+                                            {JSON.stringify(result, null, 4)}
+                                        </pre>
+                                    );
+                                }
+                            })
+                        )}
                         {!complete ? (
                             <>
-                                &nbsp;
-                                {faIcon({
-                                    icon: faEllipsisH,
-                                    size: 16.5,
-                                    className: "fa-fade",
-                                    style: { color: Colors.BLACK },
-                                })}
+                                <div style={{ height: 20.5, marginTop: 7.5 }}>
+                                    &nbsp;
+                                </div>
+                                <Tag
+                                    minimal
+                                    style={{
+                                        position: "absolute",
+                                        bottom: 15,
+                                        left: 15,
+                                    }}
+                                    icon={faIcon({
+                                        icon: faEllipsisH,
+                                        size: 16.5,
+                                        className: "fa-fade",
+                                        style: { color: Colors.BLACK },
+                                    })}
+                                />
                             </>
                         ) : null}
                     </div>

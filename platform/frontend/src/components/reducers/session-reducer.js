@@ -171,11 +171,6 @@ export default function sessionReducer(
                         ],
                         null
                     );
-                    const data = _.get(
-                        sessions,
-                        [payload.session_id, "streams", payload.stream, "data"],
-                        []
-                    );
                     for (let i = _.size(messages) - 1; i >= 0; i--) {
                         if (
                             !_.isEqual(messages[i].stream, payload.stream) ||
@@ -185,16 +180,9 @@ export default function sessionReducer(
                         }
                         if (_.isEqual(dtype, "str")) {
                             messages[i].label = "TEXT";
-                            messages[i].result = _.join(
-                                _.map(data, "content"),
-                                " "
-                            );
                         }
                         if (_.isEqual(dtype, "json")) {
                             messages[i].label = "JSON";
-                            messages[i].result = JSON.parse(
-                                _.join(_.map(data, "content"), "")
-                            );
                         }
                     }
                     _.set(sessions, [payload.session_id, "messages"], messages);

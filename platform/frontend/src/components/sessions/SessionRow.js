@@ -48,7 +48,8 @@ export default function SessionRow({ index, style }) {
             } else {
                 const messageLabel = _.get(last, "label", null);
                 if (_.isEqual(messageLabel, "TEXT")) {
-                    setLastMessage(last.result);
+                    const data = _.get(streams, [last.stream, "data"], []);
+                    setLastMessage(_.join(_.map(data, "content"), " "));
                 } else if (_.isEqual(messageLabel, "JSON")) {
                     setLastMessage(
                         <Tag minimal icon={faIcon({ icon: faBracketsCurly })}>
