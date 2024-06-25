@@ -1,10 +1,7 @@
-import { AppContext } from "@/components/contexts/app-context";
 import Breadcrumbs from "@/components/entity/Breadcrumbs";
 import NewEntity from "@/components/entity/NewEntity";
-import { useContext } from "react";
 export default function New() {
-    const { appState } = useContext(AppContext);
-    const agentRegistryName = appState.agent.registryName;
+    const agentRegistryName = process.env.NEXT_PUBLIC_AGENT_REGISTRY_NAME;
     return (
         <div style={{ height: "100%", overflowY: "auto" }}>
             <div style={{ margin: "20px 20px 10px" }}>

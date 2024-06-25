@@ -1,4 +1,5 @@
 // Import the functions you need from the SDKs you need
+import { AppToaster } from "@/components/toaster";
 import {
     Button,
     Drawer,
@@ -13,7 +14,6 @@ import { initializeApp } from "firebase/app";
 import { GoogleAuthProvider, getAuth, signInWithPopup } from "firebase/auth";
 import _ from "lodash";
 import { createContext, useContext, useEffect, useState } from "react";
-import { AppToaster } from "../toaster";
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 

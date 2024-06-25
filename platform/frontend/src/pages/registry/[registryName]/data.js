@@ -33,7 +33,7 @@ export default function Data() {
     const [keywords, setKeywords] = useState(appState.data.filter.keywords);
     const [page, setPage] = useState(appState.data.filter.page);
     const [pageSize, setPageSize] = useState(appState.data.filter.page_size);
-    const dataRegistryName = appState.data.registryName;
+    const dataRegistryName = process.env.NEXT_PUBLIC_DATA_REGISTRY_NAME;
     useEffect(() => {
         if (appState.data.search) {
             return;

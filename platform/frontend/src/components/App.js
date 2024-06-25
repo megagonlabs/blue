@@ -59,12 +59,12 @@ export default function App({ children }) {
             icon: faListUl,
         },
         data: {
-            href: `/registry/${appState.data.registryName}/data`,
+            href: `/registry/${process.env.NEXT_PUBLIC_DATA_REGISTRY_NAME}/data`,
             text: "Data",
             icon: faDatabase,
         },
         agents: {
-            href: `/registry/${appState.agent.registryName}/agents`,
+            href: `/registry/${process.env.NEXT_PUBLIC_AGENT_REGISTRY_NAME}/agents`,
             text: "Agents",
             icon: faCircleA,
         },

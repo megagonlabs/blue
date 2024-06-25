@@ -39,13 +39,7 @@ module.exports = {
         } catch (error) {}
         return agent;
     },
-    constructSavePropertyRequests: ({
-        axios,
-        difference,
-        appState,
-        entity,
-        editEntity,
-    }) => {
+    constructSavePropertyRequests: ({ axios, url, difference, editEntity }) => {
         let tasks = [];
         if (_.isArray(difference)) {
             for (var i = 0; i < difference.length; i++) {
@@ -55,9 +49,7 @@ module.exports = {
                     tasks.push(
                         new Promise((resolve, reject) => {
                             axios
-                                .delete(
-                                    `/registry/${appState.agent.registryName}/agents/${entity.name}/property/${path}`
-                                )
+                                .delete(url + "/" + path)
                                 .then(() => {
                                     resolve(true);
                                 })
@@ -75,7 +67,7 @@ module.exports = {
                         new Promise((resolve, reject) => {
                             axios
                                 .post(
-                                    `/registry/${appState.agent.registryName}/agents/${entity.name}/property/${path}`,
+                                    url + "/" + path,
                                     editEntity.properties[path],
                                     {
                                         headers: {

@@ -1,11 +1,11 @@
 import { PROFILE_PICTURE_40 } from "@/components/constant";
 import { AppContext } from "@/components/contexts/app-context";
+import { getAgentFromStream } from "@/components/helper";
 import { Card, Classes } from "@blueprintjs/core";
 import _ from "lodash";
 import Image from "next/image";
 import { memo, useContext, useEffect } from "react";
 import ReactTimeAgo from "react-time-ago";
-import { getAgentFromStream } from "../helper";
 function MessageMetadata({ timestamp, stream }) {
     const { appState, appActions } = useContext(AppContext);
     const agent = getAgentFromStream(stream);
