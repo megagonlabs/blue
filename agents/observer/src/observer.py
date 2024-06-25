@@ -82,24 +82,21 @@ class ObserverAgent(Agent):
                 if mode == 'batch':
                     data = worker.get_data(stream)
                     stream_dtype = worker.get_data(f'{stream}:dtype')
-                    if stream_dtype == 'json':
-                        json_data = ""
-                        if data is not None:
-                            json_data = "".join(data)
-                        if len(json_data.strip()) > 0:
-                            try:
-                                self.response_handler(
-                                    stream=stream,
-                                    tags=tags,
-                                    properties=properties,
-                                    message={**base_message, "message": {**base_message['message'], "label": "JSON", "content": json.loads(json_data)}},
-                                )
-                            except Exception as exception:
-                                logging.error("{} [{}]: {}".format(stream, ",".join(tags), exception))
+                    if stream_dtype == 'json' and data is not None:
+                        try:
+                            self.response_handler(
+                                stream=stream,
+                                tags=tags,
+                                properties=properties,
+                                message={**base_message, "message": {**base_message['message'], "label": "JSON", "content": [json.loads(json_data) for json_data in data]}},
+                            )
+                        except Exception as exception:
+                            logging.error("{} [{}]: {}".format(stream, ",".join(tags), exception))
                     else:
                         str_data = ""
                         if data is not None:
-                            str_data = str(" ".join(data))
+                            # convert elements inside data list into string format
+                            str_data = str(" ".join(map(str, data)))
                         if len(str_data.strip()) > 0:
                             self.response_handler(
                                 stream=stream,

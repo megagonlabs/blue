@@ -65,7 +65,6 @@ export default function SessionMessages() {
         }, []);
         const data = _.get(streams, [messages[index].stream, "data"], []);
         const messageLabel = _.get(messages, [index, "label"], null);
-        const result = _.get(messages, [index, "result"], null);
         const complete = _.get(
             streams,
             [messages[index].stream, "complete"],
@@ -144,11 +143,16 @@ export default function SessionMessages() {
                             />
                         ) : (
                             data.map((e, index) => {
-                                const { dtype } = e;
-                                if (_.isEqual(dtype, "str")) {
+                                const { dtype, content, id } = e;
+                                if (
+                                    _.includes(
+                                        ["str", "int", "float", "complex"],
+                                        dtype
+                                    )
+                                ) {
                                     return (
-                                        <span key={e.id}>
-                                            {(index ? " " : "") + e.content}
+                                        <span key={id}>
+                                            {(index ? " " : "") + content}
                                         </span>
                                     );
                                 } else if (_.isEqual(dtype, "json")) {
@@ -157,10 +161,11 @@ export default function SessionMessages() {
                                             className="margin-0"
                                             style={{ overflowX: "auto" }}
                                         >
-                                            {JSON.stringify(result, null, 4)}
+                                            {JSON.stringify(content, null, 4)}
                                         </pre>
                                     );
                                 }
+                                return null;
                             })
                         )}
                         {!complete ? (

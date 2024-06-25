@@ -383,12 +383,26 @@ ws.send(
             "connection_id": connection_id,
             "message": {
                 "label": "DATA",
-                "content": json.dumps(
-                    {
-                        "type": "DONE",
-                        "form_id": (random.choice([sentence_string, words_string]) + " ") * 3,
-                    }
-                ),
+                "content": {"type": "DONE"},
+                "dtype": "json",
+            },
+            "stream": stream_id,
+            "mode": "streaming",
+            "timestamp": int(time.time() * 1000),
+            "id": str(uuid.uuid4()),
+            "order": 0,
+        }
+    )
+)
+ws.send(
+    json.dumps(
+        {
+            "type": "OBSERVER_SESSION_MESSAGE",
+            "session_id": session_id,
+            "connection_id": connection_id,
+            "message": {
+                "label": "DATA",
+                "content": {"type": "NOT_DONE"},
                 "dtype": "json",
             },
             "stream": stream_id,
