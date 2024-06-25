@@ -41,7 +41,7 @@ export default function Breadcrumbs({ breadcrumbs }) {
                                             <MenuItem
                                                 key={`registry-breadcrumb-overflow-menu-item-${index}`}
                                                 icon={
-                                                    !_.isNull(icon)
+                                                    !_.isEmpty(icon)
                                                         ? faIcon({ icon: icon })
                                                         : null
                                                 }
@@ -58,7 +58,7 @@ export default function Breadcrumbs({ breadcrumbs }) {
                                         >
                                             <MenuItem
                                                 icon={
-                                                    !_.isNull(icon)
+                                                    !_.isEmpty(icon)
                                                         ? faIcon({ icon: icon })
                                                         : null
                                                 }
@@ -91,7 +91,7 @@ export default function Breadcrumbs({ breadcrumbs }) {
                             <Tag
                                 {...TAG_PROPS}
                                 icon={
-                                    !_.isNull(icon)
+                                    !_.isEmpty(icon)
                                         ? faIcon({ icon: icon })
                                         : null
                                 }
@@ -111,7 +111,7 @@ export default function Breadcrumbs({ breadcrumbs }) {
                             <Tag
                                 {...TAG_PROPS}
                                 icon={
-                                    !_.isNull(icon)
+                                    !_.isEmpty(icon)
                                         ? faIcon({ icon: icon })
                                         : null
                                 }
@@ -123,7 +123,7 @@ export default function Breadcrumbs({ breadcrumbs }) {
                                 <Tag
                                     {...TAG_PROPS}
                                     icon={
-                                        !_.isNull(icon)
+                                        !_.isEmpty(icon)
                                             ? faIcon({ icon: icon })
                                             : null
                                     }
