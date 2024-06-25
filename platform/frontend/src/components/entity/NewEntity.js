@@ -78,9 +78,8 @@ export default function NewEntity({ type }) {
                 settlePromises(
                     constructSavePropertyRequests({
                         axios,
+                        url: `/registry/${process.env.NEXT_PUBLIC_AGENT_REGISTRY_NAME}/agents/${entity.name}/property`,
                         difference,
-                        appState,
-                        entity,
                         editEntity: entity,
                     }),
                     (error) => {

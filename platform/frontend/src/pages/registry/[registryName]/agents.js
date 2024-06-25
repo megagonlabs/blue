@@ -33,7 +33,7 @@ export default function Agents() {
     const [keywords, setKeywords] = useState(appState.agent.filter.keywords);
     const [page, setPage] = useState(appState.agent.filter.page);
     const [pageSize, setPageSize] = useState(appState.agent.filter.page_size);
-    const agentRegistryName = appState.agent.registryName;
+    const agentRegistryName = process.env.NEXT_PUBLIC_AGENT_REGISTRY_NAME;
     useEffect(() => {
         if (appState.agent.search) {
             return;

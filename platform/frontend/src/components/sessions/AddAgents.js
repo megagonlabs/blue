@@ -33,7 +33,7 @@ export default function AddAgents({
 }) {
     const { appState } = useContext(AppContext);
     const sessionIdFocus = appState.session.sessionIdFocus;
-    const registryName = appState.agent.registryName;
+    const registryName = process.env.NEXT_PUBLIC_AGENT_REGISTRY_NAME;
     const [loading, setLoading] = useState(true);
     const [agents, setAgents] = useState(null);
     const [unavailableAgents, setUnavailableAgents] = useState(null);

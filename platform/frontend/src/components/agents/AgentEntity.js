@@ -1,4 +1,3 @@
-import { AppContext } from "@/components/contexts/app-context";
 import EntityDescription from "@/components/entity/EntityDescription";
 import EntityMain from "@/components/entity/EntityMain";
 import EntityProperties from "@/components/entity/EntityProperties";
@@ -19,9 +18,8 @@ import { diff } from "deep-diff";
 import _ from "lodash";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useContext, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 export default function AgentEntity() {
-    const { appState } = useContext(AppContext);
     const router = useRouter();
     const [entity, setEntity] = useState({});
     const [editEntity, setEditEntity] = useState({});
@@ -52,7 +50,7 @@ export default function AgentEntity() {
             new Promise((resolve, reject) => {
                 axios
                     .put(
-                        `/registry/${appState.agent.registryName}/agents/${entity.name}`,
+                        `/registry/${process.env.NEXT_PUBLIC_AGENT_REGISTRY_NAME}/agents/${entity.name}`,
                         {
                             name: entity.name,
                             description: editEntity.description,
@@ -74,9 +72,8 @@ export default function AgentEntity() {
         tasks.concat(
             constructSavePropertyRequests({
                 axios,
+                url: `/registry/${process.env.NEXT_PUBLIC_AGENT_REGISTRY_NAME}/agents/${entity.name}/property`,
                 difference,
-                appState,
-                entity,
                 editEntity,
             })
         );
