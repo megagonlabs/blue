@@ -15,6 +15,7 @@ import re
 import csv
 import json
 import time
+import logging
 from utils import json_utils
 
 ###### Docker
@@ -68,6 +69,8 @@ agent_registry = AgentRegistry(id=agent_registry_id, prefix=prefix, properties=P
 ##### ROUTER
 router = APIRouter(prefix=f"{PLATFORM_PREFIX}/registry/{agent_registry_id}/agents")
 
+# set logging
+logging.getLogger().setLevel("INFO")
 
 ###### Utility functions
 def get_agent_containers():
@@ -145,19 +148,25 @@ def merge_container_results(registry_results):
     containers = get_agent_containers()
     # logging.info(json.dumps(containers, indent=3))
 
+    # logging.info(json.dumps(registry_results, indent=3))
     # run through registry contents
     for registry_result in registry_results:
         t = registry_result.get('type', None)
         if t == 'agent':
             name = registry_result['name']
+            # logging.info(name)
 
-            # TODO: REVISIT AFTE #186
-            name = name.split("_")[0]
-
+            # check if agent has a container running
             if name in containers:
                 registry_result['container'] = containers[name]
             else:
-                registry_result['container'] = {"status": "not exist"}
+                # check if parent has a container running
+                # TODO: REVISIT AFTER #186
+                name = name.split("_")[0]
+                if name in containers:
+                    registry_result['container'] = containers[name]
+                else:
+                    registry_result['container'] = {"status": "not exist"}
 
     return registry_results
 
