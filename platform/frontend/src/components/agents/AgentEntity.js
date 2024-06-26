@@ -5,14 +5,17 @@ import {
     constructSavePropertyRequests,
     settlePromises,
 } from "@/components/helper";
+import { faIcon } from "@/components/icon";
 import { AppToaster } from "@/components/toaster";
 import {
+    Button,
     HTMLTable,
     Intent,
     Section,
     SectionCard,
     Tag,
 } from "@blueprintjs/core";
+import { faPlus } from "@fortawesome/pro-duotone-svg-icons";
 import axios from "axios";
 import { diff } from "deep-diff";
 import _ from "lodash";
@@ -28,9 +31,6 @@ export default function AgentEntity() {
     const [jsonError, setJsonError] = useState(false);
     useEffect(() => {
         if (!router.isReady) {
-            return;
-        }
-        if (_.includes(router.asPath, "/default/new?entity=")) {
             return;
         }
         axios.get(router.asPath).then((response) => {
@@ -84,6 +84,13 @@ export default function AgentEntity() {
             }
             setLoading(false);
         });
+    };
+    const addInputOutput = (type) => {
+        if (!router.isReady) {
+            return;
+        }
+        let params = _.cloneDeep(_.get(router, "query.pathParams", []));
+        router.push(`/${params.join("/")}/${type}/new`);
     };
     return (
         <div style={{ padding: "10px 20px 20px" }}>
@@ -158,6 +165,18 @@ export default function AgentEntity() {
                                     </tr>
                                 );
                             })}
+                            <tr>
+                                <td colSpan={2}>
+                                    <Button
+                                        icon={faIcon({ icon: faPlus })}
+                                        outlined
+                                        text="Add input"
+                                        onClick={() => {
+                                            addInputOutput("input");
+                                        }}
+                                    />
+                                </td>
+                            </tr>
                         </tbody>
                     </HTMLTable>
                 </SectionCard>
@@ -210,6 +229,18 @@ export default function AgentEntity() {
                                     </tr>
                                 );
                             })}
+                            <tr>
+                                <td colSpan={2}>
+                                    <Button
+                                        icon={faIcon({ icon: faPlus })}
+                                        outlined
+                                        text="Add output"
+                                        onClick={() => {
+                                            addInputOutput("output");
+                                        }}
+                                    />
+                                </td>
+                            </tr>
                         </tbody>
                     </HTMLTable>
                 </SectionCard>

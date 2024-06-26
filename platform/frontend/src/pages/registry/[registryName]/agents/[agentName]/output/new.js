@@ -8,7 +8,7 @@ import {
 import { AppToaster } from "@/components/toaster";
 import { Intent } from "@blueprintjs/core";
 import axios from "axios";
-import { diff } from "deep-diff";
+import _ from "lodash";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 export default function New() {
@@ -22,7 +22,8 @@ export default function New() {
     const [created, setCreated] = useState(false);
     const [loading, setLoading] = useState(false);
     const [jsonError, setJsonError] = useState(false);
-    const urlPrefix = `/registry/${process.env.NEXT_PUBLIC_AGENT_REGISTRY_NAME}/agents`;
+    const agentName = _.get(router, "query.agentName", null);
+    const urlPrefix = `/registry/${process.env.NEXT_PUBLIC_AGENT_REGISTRY_NAME}/agents/${agentName}/output`;
     const updateEntity = ({ path, value }) => {
         let newEntity = _.cloneDeep(entity);
         _.set(newEntity, path, value);
@@ -41,9 +42,10 @@ export default function New() {
                 setCreated(true);
                 AppToaster.show({
                     intent: Intent.SUCCESS,
-                    message: `${entity.name} agent created`,
+                    message: `${entity.name} output created`,
                 });
-                const difference = diff({}, entity.properties);
+                // const difference = diff({}, entity.properties);
+                const difference = [];
                 settlePromises(
                     constructSavePropertyRequests({
                         axios,
@@ -98,8 +100,6 @@ export default function New() {
             });
         }
         const crumb0 = _.get(crumbs, 0, {});
-        // special case
-        type = "/agents";
         _.set(crumbs, 0, { ...crumb0, href: crumb0.href + type });
         setBreadcrumbs(crumbs);
     }, [router]);
@@ -109,7 +109,7 @@ export default function New() {
                 <Breadcrumbs breadcrumbs={breadcrumbs} />
             </div>
             <NewEntity
-                type="agent"
+                type="output"
                 updateEntity={updateEntity}
                 saveEntity={saveEntity}
                 entity={entity}
