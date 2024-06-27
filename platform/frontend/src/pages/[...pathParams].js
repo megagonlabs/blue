@@ -42,10 +42,6 @@ export default function RegistryEntity() {
                 end: i + 2 >= pathParams.length,
             });
         }
-        if (_.isEqual(type, "/new")) {
-            crumbs = crumbs.slice(0, 1);
-            _.set(crumbs, "0.href", null);
-        }
         setEntityType(type);
         const crumb0 = _.get(crumbs, 0, {});
         _.set(crumbs, 0, { ...crumb0, href: crumb0.href + type });

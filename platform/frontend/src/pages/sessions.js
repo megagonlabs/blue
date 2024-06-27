@@ -128,7 +128,7 @@ export default function Sessions() {
     };
     const initialJoinAll = useRef(true);
     const joinAllSessions = () => {
-        // automatically join all existing sessions onload
+        // automatically fetch all existing sessions onload
         axios
             .get("/sessions")
             .then((response) => {

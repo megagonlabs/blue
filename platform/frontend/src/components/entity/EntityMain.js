@@ -166,7 +166,10 @@ export default function EntityMain({
                                                 text="Edit"
                                             />
                                         ) : null}
-                                        {_.isEqual(entity.type, "agent") ? (
+                                        {_.includes(
+                                            ["agent", "input"],
+                                            entity.type
+                                        ) ? (
                                             <MenuItem
                                                 icon={faIcon({
                                                     icon: faClone,
