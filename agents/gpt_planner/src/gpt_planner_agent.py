@@ -58,7 +58,7 @@ plannerGPT_properties = {
     "input_field": "messages",
     "input_template": """
 Examine the text below and identify a task plan  thatcan be fulfilled by various agents. Specify plan in JSON format, where each agent has attributes of name, description, input and output parameters with names and descriptions:
-{input}
+${input}
 """,
     "openai.temperature": 0,
     "openai.max_tokens": 1024,
