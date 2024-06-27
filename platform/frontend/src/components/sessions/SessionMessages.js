@@ -158,6 +158,7 @@ export default function SessionMessages() {
                                 } else if (_.isEqual(dtype, "json")) {
                                     return (
                                         <pre
+                                            key={id}
                                             className="margin-0"
                                             style={{ overflowX: "auto" }}
                                         >
