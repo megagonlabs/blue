@@ -89,7 +89,10 @@ export default function RegistryList({ type }) {
                         xxl={3}
                         style={{ paddingBottom: 20 }}
                     >
-                        <Link href={`${router.asPath}/new`}>
+                        <Link
+                            className="no-link-decoration"
+                            href={`${router.asPath}/new`}
+                        >
                             <Card
                                 style={{
                                     minHeight: 127,
