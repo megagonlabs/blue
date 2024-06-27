@@ -8,6 +8,7 @@ import {
 import { AppToaster } from "@/components/toaster";
 import { Intent } from "@blueprintjs/core";
 import axios from "axios";
+import { diff } from "deep-diff";
 import _ from "lodash";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
@@ -44,8 +45,7 @@ export default function New() {
                     intent: Intent.SUCCESS,
                     message: `${entity.name} input created`,
                 });
-                // const difference = diff({}, entity.properties);
-                const difference = [];
+                const difference = diff({}, entity.properties);
                 settlePromises(
                     constructSavePropertyRequests({
                         axios,

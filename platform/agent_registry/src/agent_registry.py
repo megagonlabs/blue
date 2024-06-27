@@ -8,7 +8,7 @@ sys.path.append('./lib/')
 sys.path.append('./lib/platform/')
 
 
-###### 
+######
 import time
 import argparse
 import logging
@@ -43,10 +43,8 @@ from registry import Registry
 class AgentRegistry(Registry):
     def __init__(self, name="AGENT_REGISTRY", id=None, sid=None, cid=None, prefix=None, suffix=None, properties={}):
         super().__init__(name=name, id=id, sid=sid, cid=cid, prefix=prefix, suffix=suffix, properties=properties)
-        
 
     ###### initialization
-
 
     def _initialize_properties(self):
         super()._initialize_properties()
@@ -91,13 +89,12 @@ class AgentRegistry(Registry):
     def set_agent_image(self, agent, image, rebuild=False):
         self.set_agent_property(agent, 'image', image, rebuild=rebuild)
 
-
     ######### agent input and output parameters
     def add_agent_input(self, agent, parameter, description="", properties={}, rebuild=False):
-        super().register_record(parameter, "input", "/"+agent, description=description, properties=properties, rebuild=rebuild)
+        super().register_record(parameter, "input", "/" + agent, description=description, properties=properties, rebuild=rebuild)
 
     def update_agent_input(self, agent, parameter, description="", properties={}, rebuild=False):
-        super().update_record(parameter, "input", "/"+agent, description=description, properties=properties, rebuild=rebuild)
+        super().update_record(parameter, "input", "/" + agent, description=description, properties=properties, rebuild=rebuild)
 
     def remove_agent_input(self, agent, parameter, rebuild=False):
         record = self.get_agent_input(agent, parameter)
@@ -109,20 +106,18 @@ class AgentRegistry(Registry):
     def get_agent_input(self, agent, parameter):
         return super().get_record_content(agent, '/', parameter, type='input')
 
-
     def set_agent_input(self, agent, parameter, description, properties={}, rebuild=False):
-        super().register_record(parameter, 'input', '/'+agent, description=description, properties=properties, rebuild=rebuild)
+        super().register_record(parameter, 'input', '/' + agent, description=description, properties=properties, rebuild=rebuild)
 
     def del_agent_input(self, agent, parameter, rebuild=False):
         record = self.get_agent_input(agent, parameter)
         super().deregister(record, rebuild=rebuild)
 
-
     def add_agent_output(self, agent, parameter, description="", properties={}, rebuild=False):
-        super().register_record(parameter, "output", "/"+agent, description=description, properties=properties, rebuild=rebuild)
+        super().register_record(parameter, "output", "/" + agent, description=description, properties=properties, rebuild=rebuild)
 
     def update_agent_output(self, agent, parameter, description="", properties={}, rebuild=False):
-        super().update_record(parameter, "output", "/"+agent, description=description, properties=properties, rebuild=rebuild)
+        super().update_record(parameter, "output", "/" + agent, description=description, properties=properties, rebuild=rebuild)
 
     def remove_agent_output(self, agent, parameter, rebuild=False):
         record = self.get_agent_output(agent, parameter)
@@ -134,15 +129,27 @@ class AgentRegistry(Registry):
     def get_agent_output(self, agent, parameter):
         return super().get_record_content(agent, '/', parameter, type='output')
 
-
     def set_agent_output(self, agent, parameter, description, rebuild=False):
-        super().register_record(parameter, 'output', '/'+agent, description=description, properties=properties, rebuild=rebuild)
+        super().register_record(parameter, 'output', '/' + agent, description=description, properties=properties, rebuild=rebuild)
 
     def del_agent_output(self, agent, parameter, rebuild=False):
         record = self.get_agent_output(agent, parameter)
-        super().deregister(self, record, rebuild=rebuild)
+        super().deregister(record, rebuild=rebuild)
 
- 
+    # agent input properties
+    def get_agent_input_properties(self, agent, input):
+        return super().get_record_properties(input, f'/{agent}')
+
+    def get_agent_input_property(self, agent, input, key):
+        return super().get_record_property(input, f'/{agent}', key)
+
+    def set_agent_input_property(self, agent, input, key, value, rebuild=False):
+        super().set_record_property(input, f'/{agent}', key, value, rebuild=rebuild)
+
+    def delete_agent_input_property(self, agent, input, key, rebuild=False):
+        super().delete_record_property(input, f'/{agent}', key, rebuild=rebuild)
+
+
 #######################
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -165,9 +172,9 @@ if __name__ == "__main__":
     parser.add_argument('--list', type=bool, default=False, action=argparse.BooleanOptionalAction, help='list agents in the registry')
     parser.add_argument('--approximate', type=bool, default=False, action=argparse.BooleanOptionalAction, help='use approximate (embeddings) search')
     parser.add_argument('--hybrid', type=bool, default=False, action=argparse.BooleanOptionalAction, help='use hybrid (keyword and approximate) search')
- 
+
     args = parser.parse_args()
-   
+
     # set logging
     logging.getLogger().setLevel(args.loglevel.upper())
 
@@ -203,7 +210,7 @@ if __name__ == "__main__":
         print(records)
         for record in records:
             registry.update_record_json(record)
-    
+
         # index registry
         registry.build_index()
 
@@ -223,12 +230,11 @@ if __name__ == "__main__":
         results = registry.list_records()
         logging.info(results)
 
-
     #### SEARCH
     if args.search:
         keywords = args.search
 
         # search the registry
         results = registry.search_records(keywords, type=args.type, scope=args.scope, approximate=args.approximate, hybrid=args.hybrid, page=args.page, page_size=args.page_size)
-    
+
         logging.info(json.dumps(results, indent=4))
