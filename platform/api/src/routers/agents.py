@@ -9,7 +9,6 @@ sys.path.append("./lib/agent_registry/")
 sys.path.append("./lib/platform/")
 
 
-
 ###### Parsers, Formats, Utils
 import re
 import csv
@@ -123,7 +122,7 @@ def get_agent_containers():
                 c["platform"] = la[0]
                 if c["platform"] == platform_id:
                     results.append(c)
-        
+
     # build dictionary of container results <registry_name>.<agent_name>
     containers = {}
     for result in results:
@@ -276,6 +275,28 @@ def update_agent_input(agent_name, param_name, parameter: Parameter):
 @router.delete("/{agent_name}/input/{param_name}")
 def delete_agent_input(agent_name, param_name):
     agent_registry.del_agent_input(agent_name, param_name, rebuild=True)
+    # save
+    agent_registry.dump("/blue_data/config/" + agent_registry_id + ".agents.json")
+    return JSONResponse(content={"message": "Success"})
+
+
+@router.get("/{agent_name}/input/{param_name}/properties")
+def get_agent_input_properties(agent_name, param_name):
+    results = agent_registry.get_agent_input_properties(agent_name, param_name)
+    return JSONResponse(content={"results": results})
+
+
+@router.post("/{agent_name}/input/{param_name}/property/{property_name}")
+def set_agent_input_property(agent_name, param_name, property_name, property: JSONStructure):
+    agent_registry.set_agent_input_property(agent_name, param_name, property_name, property, rebuild=True)
+    # save
+    agent_registry.dump("/blue_data/config/" + agent_registry_id + ".agents.json")
+    return JSONResponse(content={"message": "Success"})
+
+
+@router.delete("/{agent_name}/input/{param_name}/property/{property_name}")
+def delete_agent_input_property(agent_name, param_name, property_name):
+    agent_registry.delete_agent_input_property(agent_name, param_name, property_name, rebuild=True)
     # save
     agent_registry.dump("/blue_data/config/" + agent_registry_id + ".agents.json")
     return JSONResponse(content={"message": "Success"})

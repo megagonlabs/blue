@@ -1,10 +1,14 @@
 import EntityDescription from "@/components/entity/EntityDescription";
 import EntityMain from "@/components/entity/EntityMain";
 import EntityProperties from "@/components/entity/EntityProperties";
-import { settlePromises } from "@/components/helper";
+import {
+    constructSavePropertyRequests,
+    settlePromises,
+} from "@/components/helper";
 import { AppToaster } from "@/components/toaster";
 import { Intent } from "@blueprintjs/core";
 import axios from "axios";
+import { diff } from "deep-diff";
 import _ from "lodash";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
@@ -33,18 +37,16 @@ export default function InputEntity() {
         setEditEntity(newEntity);
     };
     const saveEntity = () => {
-        setLoading(true);
         const parent = _.last(_.split(scope, "/"));
+        const urlPrefix = `/registry/${process.env.NEXT_PUBLIC_AGENT_REGISTRY_NAME}/agents/${parent}/input`;
+        setLoading(true);
         let tasks = [
             new Promise((resolve, reject) => {
                 axios
-                    .put(
-                        `/registry/${process.env.NEXT_PUBLIC_AGENT_REGISTRY_NAME}/agents/${parent}/input/${entity.name}`,
-                        {
-                            name: entity.name,
-                            description: editEntity.description,
-                        }
-                    )
+                    .put(`${urlPrefix}/${entity.name}`, {
+                        name: entity.name,
+                        description: editEntity.description,
+                    })
                     .then(() => {
                         resolve(true);
                     })
@@ -57,16 +59,16 @@ export default function InputEntity() {
                     });
             }),
         ];
-        // const difference = diff(entity.properties, editEntity.properties);
-        // tasks.concat(
-        //     constructSavePropertyRequests({
-        //         axios,
-        //         url: `/registry/${process.env.NEXT_PUBLIC_AGENT_REGISTRY_NAME}/agents/${entity.name}/`
-        //         difference,
-        //         entity,
-        //         editEntity,
-        //     })
-        // );
+        const difference = diff(entity.properties, editEntity.properties);
+        tasks.concat(
+            constructSavePropertyRequests({
+                axios,
+                url: `${urlPrefix}/${entity.name}/property`,
+                difference,
+                entity,
+                editEntity,
+            })
+        );
         settlePromises(tasks, (error) => {
             if (!error) {
                 setEdit(false);
@@ -92,13 +94,13 @@ export default function InputEntity() {
                 updateEntity={updateEntity}
             />
             <EntityProperties
-                // edit={edit}
-                // setEdit={setEdit}
+                edit={edit}
+                setEdit={setEdit}
                 entity={entity}
-                // jsonError={jsonError}
-                // setJsonError={setJsonError}
-                // updateEntity={updateEntity}
-                // setLoading={setLoading}
+                jsonError={jsonError}
+                setJsonError={setJsonError}
+                updateEntity={updateEntity}
+                setLoading={setLoading}
             />
         </div>
     );

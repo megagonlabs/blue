@@ -45,17 +45,15 @@ export default function AgentEntity() {
         setEditEntity(newEntity);
     };
     const saveEntity = () => {
+        const urlPrefix = `/registry/${process.env.NEXT_PUBLIC_AGENT_REGISTRY_NAME}/agents`;
         setLoading(true);
         let tasks = [
             new Promise((resolve, reject) => {
                 axios
-                    .put(
-                        `/registry/${process.env.NEXT_PUBLIC_AGENT_REGISTRY_NAME}/agents/${entity.name}`,
-                        {
-                            name: entity.name,
-                            description: editEntity.description,
-                        }
-                    )
+                    .put(`${urlPrefix}/${entity.name}`, {
+                        name: entity.name,
+                        description: editEntity.description,
+                    })
                     .then(() => {
                         resolve(true);
                     })
@@ -72,7 +70,7 @@ export default function AgentEntity() {
         tasks.concat(
             constructSavePropertyRequests({
                 axios,
-                url: `/registry/${process.env.NEXT_PUBLIC_AGENT_REGISTRY_NAME}/agents/${entity.name}/property`,
+                url: `${urlPrefix}/${entity.name}/property`,
                 difference,
                 editEntity,
             })
