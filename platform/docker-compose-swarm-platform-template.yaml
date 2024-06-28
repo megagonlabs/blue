@@ -32,7 +32,7 @@ services:
         constraints:
           - node.labels.target == db
     ports:
-      - "${BLUE_PUBLIC_DB_SERVER_PORT}:6379"
+      - "${BLUE_PUBLIC_DB_SERVER_PORT_MAPPED}:6379"
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
@@ -59,7 +59,7 @@ services:
     depends_on:
       - redis
     ports:
-      - "${BLUE_PUBLIC_API_SERVER_PORT}:5050"
+      - "${BLUE_PUBLIC_API_SERVER_PORT_MAPPED}:5050"
     networks:
       - network_overlay
     volumes:
@@ -81,7 +81,7 @@ services:
         constraints:
           - node.labels.target == platform
     ports:
-      - "${BLUE_PUBLIC_WEB_SERVER_PORT}:3000"
+      - "${BLUE_PUBLIC_WEB_SERVER_PORT_MAPPED}:3000"
     networks:
       - network_overlay
     labels:

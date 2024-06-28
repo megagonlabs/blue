@@ -21,6 +21,7 @@ import re
 import csv
 import json
 from utils import json_utils
+from string import Template
 
 import itertools
 from tqdm import tqdm
@@ -77,7 +78,13 @@ class APIAgent(Agent):
                 merged_properties[p] = properties[p]
 
         return merged_properties
-
+    
+    def extract_input_params(self, input_data):
+        return {}
+    
+    def extract_output_params(self, output_data):
+        return {}
+    
     def create_message(self, input_data, properties=None):
         message = {}
 
@@ -96,7 +103,9 @@ class APIAgent(Agent):
 
        
         if 'input_template' in properties and properties['input_template'] is not None:
-            input_data = properties['input_template'].format(**properties, input=input_data)
+            input_template = Template(properties['input_template'])
+            input_params = self.extract_input_params(input_data)
+            input_data = input_template.substitute(**properties, **input_params, input=input_data)
 
         # set input text to message
         input_object = input_data
@@ -118,7 +127,9 @@ class APIAgent(Agent):
            
         # apply output template
         if 'output_template' in properties and properties['output_template'] is not None:
-            output_data = properties['output_template'].format(**properties, output=output_data)
+            output_template = Template(properties['output_template'])
+            output_params = self.extract_output_params(output_data)
+            output_data = output_template.substitute(**properties, **output_params, output=output_data)
         return output_data
 
     def validate_input(self, input_data):

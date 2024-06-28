@@ -56,7 +56,7 @@ triple2CYPHERGPT_properties = {
     "input_field":"messages",
      "input_template": """
 Convert below triple into a CYPHER query:
-{input}
+${input}
 """,
   "openai.temperature":0,
   "openai.max_tokens":256,
