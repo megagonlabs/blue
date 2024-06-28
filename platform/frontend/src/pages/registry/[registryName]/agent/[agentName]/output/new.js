@@ -24,7 +24,7 @@ export default function New() {
     const [loading, setLoading] = useState(false);
     const [jsonError, setJsonError] = useState(false);
     const agentName = _.get(router, "query.agentName", null);
-    const urlPrefix = `/registry/${process.env.NEXT_PUBLIC_AGENT_REGISTRY_NAME}/agents/${agentName}/output`;
+    const urlPrefix = `/registry/${process.env.NEXT_PUBLIC_AGENT_REGISTRY_NAME}/agent/${agentName}/output`;
     const updateEntity = ({ path, value }) => {
         let newEntity = _.cloneDeep(entity);
         _.set(newEntity, path, value);

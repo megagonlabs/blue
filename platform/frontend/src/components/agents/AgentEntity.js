@@ -45,7 +45,7 @@ export default function AgentEntity() {
         setEditEntity(newEntity);
     };
     const saveEntity = () => {
-        const urlPrefix = `/registry/${process.env.NEXT_PUBLIC_AGENT_REGISTRY_NAME}/agents`;
+        const urlPrefix = `/registry/${process.env.NEXT_PUBLIC_AGENT_REGISTRY_NAME}/agent`;
         setLoading(true);
         let tasks = [
             new Promise((resolve, reject) => {

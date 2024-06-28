@@ -44,7 +44,6 @@ const ArrayRenderer = ({
     moveUp,
     moveDown,
 }) => {
-    console.log(translations);
     const childUiSchema = useMemo(
         () =>
             findUISchema(
@@ -212,7 +211,9 @@ const ArrayRenderer = ({
                     </StrictModeDroppable>
                 </DragDropContext>
             ) : (
-                translations.noDataMessage
+                <div style={{ marginBottom: 15 }}>
+                    {translations.noDataMessage}
+                </div>
             )}
             <div>
                 <Tooltip

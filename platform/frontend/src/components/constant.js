@@ -52,7 +52,7 @@ module.exports = {
         agent: { icon: faCircleA, key: "agent" },
     },
     SEARCH_LIST_TYPE_LOOKUP: {
-        agents: { icon: faHeadSideGear },
+        agent: { icon: faHeadSideGear },
         input: { icon: faArrowRightToArc },
         output: { icon: faArrowRightFromArc },
         source: { icon: faServer },

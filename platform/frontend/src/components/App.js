@@ -63,9 +63,9 @@ export default function App({ children }) {
             text: "Data",
             icon: faDatabase,
         },
-        agents: {
-            href: `/registry/${process.env.NEXT_PUBLIC_AGENT_REGISTRY_NAME}/agents`,
-            text: "Agents",
+        agent: {
+            href: `/registry/${process.env.NEXT_PUBLIC_AGENT_REGISTRY_NAME}/agent`,
+            text: "Agent",
             icon: faCircleA,
         },
         designer: {
@@ -308,7 +308,7 @@ export default function App({ children }) {
                         large
                         className="full-parent-width"
                     >
-                        {["agents", "data"].map((key, index) => {
+                        {["agent", "data"].map((key, index) => {
                             const { href, icon, text } = _.get(
                                 MENU_ITEMS,
                                 key,

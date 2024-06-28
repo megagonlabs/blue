@@ -39,7 +39,7 @@ export default function OutputEntity() {
     const saveEntity = () => {
         setLoading(true);
         const parent = _.last(_.split(scope, "/"));
-        const urlPrefix = `/registry/${process.env.NEXT_PUBLIC_AGENT_REGISTRY_NAME}/agents/${parent}/output`;
+        const urlPrefix = `/registry/${process.env.NEXT_PUBLIC_AGENT_REGISTRY_NAME}/agent/${parent}/output`;
         let tasks = [
             new Promise((resolve, reject) => {
                 axios

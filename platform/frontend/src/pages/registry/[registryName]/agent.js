@@ -23,7 +23,7 @@ import {
 } from "@fortawesome/pro-duotone-svg-icons";
 import _ from "lodash";
 import { useCallback, useContext, useEffect, useState } from "react";
-export default function Agents() {
+export default function Agent() {
     const { appState, appActions } = useContext(AppContext);
     const [hybrid, setHybrid] = useState(appState.agent.filter.hybrid);
     const [approximate, setApproximate] = useState(

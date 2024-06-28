@@ -68,8 +68,8 @@ export default function EntityMain({
             .delete(router.asPath)
             .then(() => {
                 let params = _.cloneDeep(_.get(router, "query.pathParams", []));
-                if (["agents", "data"].includes(_.nth(params, -2))) {
-                    // keep /agents, /data
+                if (["agent", "data"].includes(_.nth(params, -2))) {
+                    // keep /agent, /data
                     params.pop();
                 } else {
                     params.splice(params.length - 2, 2);
