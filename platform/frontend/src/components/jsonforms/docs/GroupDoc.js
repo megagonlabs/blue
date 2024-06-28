@@ -14,7 +14,6 @@ export default function GroupDoc({ closePanel }) {
                 defaultIsOpen: true,
                 compact: false,
                 style: {},
-                nameId: null,
             },
             elements: [],
         },
@@ -129,7 +128,6 @@ export default function GroupDoc({ closePanel }) {
                             </td>
                         </tr>
                         {docProps.style}
-                        {docProps.nameId}
                     </tbody>
                 </HTMLTable>
             </div>

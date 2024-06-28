@@ -77,7 +77,10 @@ const MainMenuPanel = (props) => {
                         large
                         minimal
                         icon={faIcon({ icon: faTimes })}
-                        onClick={() => props.setIsDocOpen(false)}
+                        onClick={() => {
+                            props.setIsDocOpen(false);
+                            sessionStorage.setItem("isDocOpen", "false");
+                        }}
                     />
                 </Tooltip>
             </div>
@@ -217,6 +220,7 @@ export default function DocDrawer({ isOpen, setIsDocOpen }) {
             position={Position.RIGHT}
             onClose={() => {
                 setIsDocOpen(false);
+                sessionStorage.setItem("isDocOpen", "false");
             }}
             style={{ zIndex: 36 }}
             size={"min(40%, 716.8px)"}

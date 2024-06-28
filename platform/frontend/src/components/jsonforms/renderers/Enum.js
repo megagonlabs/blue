@@ -56,9 +56,6 @@ const EnumRenderer = ({
                         return;
                     }
                     setTimeout(() => {
-                        const dataId = _.last(
-                            _.split(_.get(uischema, "scope", ""), "/")
-                        );
                         socket.send(
                             JSON.stringify({
                                 type: "INTERACTIVE_EVENT_MESSAGE",
@@ -67,11 +64,7 @@ const EnumRenderer = ({
                                     "props.streamId",
                                     null
                                 ),
-                                name_id: _.get(
-                                    uischema,
-                                    "props.nameId",
-                                    dataId
-                                ),
+                                path: path,
                                 form_id: _.get(uischema, "props.formId", null),
                                 value: value,
                                 timestamp: Date.now(),

@@ -55,16 +55,16 @@ class TemplateInteractiveAgent(Agent):
                     # get INTERACTION stream
                     # TODO: Instead of figuring out the stream where the ui resided, it should be in the message..
 
-                    interaction_stream = stream[:stream.rindex("EVENT_MESSAGE")-1] 
+                    interaction_stream = stream[: stream.rindex("EVENT_MESSAGE") - 1]
 
                     # when the user clicked DONE
-                    if data["name_id"] == "DONE":
+                    if data["action"] == "DONE":
                         # gather all data, check if first_name is set
                         first_name = worker.get_stream_data(stream=interaction_stream, key="first_name.value")
                         last_name = worker.get_stream_data(stream=interaction_stream, key="last_name.value")
                         first_name_filled = not pydash.is_empty(pydash.strings.trim(first_name))
                         last_name_filled = not pydash.is_empty(pydash.strings.trim(last_name))
-                        
+
                         # close previous form and send a new one asking for last_name, in a new form
                         interactive_stream_producer = Producer(cid=interaction_stream, properties=properties)
                         interactive_stream_producer.start()
@@ -126,7 +126,7 @@ class TemplateInteractiveAgent(Agent):
                                                 "label": "Done",
                                                 "props": {
                                                     "intent": "success",
-                                                    "nameId": "DONE",
+                                                    "action": "DONE",
                                                     "large": True,
                                                 },
                                             },
@@ -145,12 +145,10 @@ class TemplateInteractiveAgent(Agent):
                             elif first_name_filled and last_name_filled:
                                 return ("DATA", f"Hello, {first_name} {last_name}.", "str", True)
                     else:
-                        timestamp = worker.get_stream_data(
-                            stream=interaction_stream, key=f'{data["name_id"]}.timestamp'
-                        )
+                        timestamp = worker.get_stream_data(stream=interaction_stream, key=f'{data["path"]}.timestamp')
                         if timestamp is None or data["timestamp"] > timestamp:
                             worker.set_stream_data(
-                                key=data["name_id"],
+                                key=data["path"],
                                 value={
                                     "value": data["value"],
                                     "timestamp": data["timestamp"],
@@ -198,7 +196,7 @@ class TemplateInteractiveAgent(Agent):
                                     "label": "Done",
                                     "props": {
                                         "intent": "success",
-                                        "nameId": "DONE",
+                                        "action": "DONE",
                                         "large": True,
                                     },
                                 },

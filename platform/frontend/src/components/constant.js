@@ -41,6 +41,11 @@ import UnknownRenderer, {
     UnknownTester,
 } from "@/components/jsonforms/renderers/Unknown";
 import { Classes, Colors, Intent } from "@blueprintjs/core";
+import ArrayRenderer, { ArrayTester } from "./jsonforms/renderers/Array";
+import DateRenderer, { DateTester } from "./jsonforms/renderers/Date";
+import DateTimeRenderer, {
+    DateTimeTester,
+} from "./jsonforms/renderers/DateTime";
 module.exports = {
     REGISTRY_TYPE_LOOKUP: {
         data: { icon: faServer, key: "source" },
@@ -67,6 +72,9 @@ module.exports = {
         { tester: NumberTester, renderer: NumberRenderer },
         { tester: IntegerTester, renderer: IntegerRenderer },
         { tester: ButtonTester, renderer: ButtonRenderer },
+        { tester: DateTester, renderer: DateRenderer },
+        { tester: DateTimeTester, renderer: DateTimeRenderer },
+        { tester: ArrayTester, renderer: ArrayRenderer },
         { tester: UnknownTester, renderer: UnknownRenderer },
     ],
     CARD_LIST_CLASS_NAMES: `${Classes.CARD} ${Classes.CARD_LIST} ${Classes.CARD_LIST_BORDERED}`,

@@ -29,9 +29,6 @@ from producer import Producer
 from constant import redisReplace
 
 
-
-
-
 ###### Settings
 from routers.settings import PROPERTIES, DEVELOPMENT, SECURE_COOKIE
 
@@ -117,10 +114,19 @@ class ConnectionManager:
         if user_agent is not None:
             user_agent.interact(message)
 
-    def interactive_event_message(self, stream_id: str, name_id: str, form_id: str, timestamp: int, value):
-        event_stream = Producer(cid=stream_id, properties=PROPERTIES)
+    def interactive_event_message(self, json_data):
+        event_stream = Producer(cid=json_data["stream_id"], properties=PROPERTIES)
         event_stream.start()
-        event_stream.write(data={"name_id": name_id, "form_id": form_id, "value": value, "timestamp": timestamp}, dtype="json")
+        event_stream.write(
+            data={
+                "path": json_data['path'],
+                "action": pydash.objects.get(json_data, "action", None),
+                "form_id": json_data['form_id'],
+                "value": pydash.objects.get(json_data, "value", None),
+                "timestamp": json_data['timestamp'],
+            },
+            dtype="json",
+        )
 
     async def observer_session_message(self, connection_id: str, message):
         # stream is an agent identifier

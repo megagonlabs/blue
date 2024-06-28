@@ -57,7 +57,6 @@ version = Path(_VERSION_PATH).read_text().strip()
 print("blue-platform-api: " + version)
 
 
-
 ###### Initialization
 p = Platform(id=platform_id, properties=PROPERTIES)
 
@@ -155,7 +154,7 @@ async def websocket_endpoint(websocket: WebSocket, ticket: str = None):
             elif json_data["type"] == "USER_SESSION_MESSAGE":
                 connection_manager.user_session_message(connection_id, json_data["session_id"], json_data["message"])
             elif json_data["type"] == "INTERACTIVE_EVENT_MESSAGE":
-                connection_manager.interactive_event_message(json_data["stream_id"], json_data["name_id"], json_data["form_id"], json_data["timestamp"], pydash.objects.get(json_data, "value", None))
+                connection_manager.interactive_event_message(json_data)
             elif json_data["type"] == "OBSERVER_SESSION_MESSAGE":
                 await connection_manager.observer_session_message(json_data["connection_id"], json_data)
     except WebSocketDisconnect:
