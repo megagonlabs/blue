@@ -2,8 +2,10 @@ import { StrictModeDroppable } from "@/components/dnd/StrictModeDroppable";
 import { faIcon } from "@/components/icon";
 import {
     Button,
+    Classes,
     H6,
     Intent,
+    Popover,
     Section,
     SectionCard,
     Tooltip,
@@ -11,7 +13,7 @@ import {
 import {
     faArrowUpArrowDown,
     faPlus,
-    faTimes,
+    faTrash,
 } from "@fortawesome/pro-duotone-svg-icons";
 import {
     composePaths,
@@ -42,6 +44,7 @@ const ArrayRenderer = ({
     moveUp,
     moveDown,
 }) => {
+    console.log(translations);
     const childUiSchema = useMemo(
         () =>
             findUISchema(
@@ -96,9 +99,10 @@ const ArrayRenderer = ({
                                             renderers={renderers}
                                         />
                                     );
+
                                     return (
                                         <Draggable
-                                            key={String(index)}
+                                            key={index}
                                             draggableId={String(index)}
                                             index={index}
                                         >
@@ -138,21 +142,57 @@ const ArrayRenderer = ({
                                                             </div>
                                                         }
                                                         rightElement={
-                                                            <Button
-                                                                minimal
-                                                                intent={
-                                                                    Intent.DANGER
-                                                                }
-                                                                icon={faIcon({
-                                                                    icon: faTimes,
-                                                                })}
-                                                                onClick={() =>
-                                                                    removeItems(
-                                                                        path,
-                                                                        [index]
-                                                                    )()
-                                                                }
-                                                            />
+                                                            snapshot.isDragging ? null : (
+                                                                <Popover
+                                                                    content={
+                                                                        <div
+                                                                            style={{
+                                                                                maxWidth: 200,
+                                                                                padding: 15,
+                                                                            }}
+                                                                        >
+                                                                            <Button
+                                                                                intent={
+                                                                                    Intent.DANGER
+                                                                                }
+                                                                                className={
+                                                                                    Classes.POPOVER_DISMISS
+                                                                                }
+                                                                                text="Confirm"
+                                                                                onClick={() =>
+                                                                                    removeItems(
+                                                                                        path,
+                                                                                        [
+                                                                                            index,
+                                                                                        ]
+                                                                                    )()
+                                                                                }
+                                                                            />
+                                                                        </div>
+                                                                    }
+                                                                    placement="bottom-end"
+                                                                >
+                                                                    <Tooltip
+                                                                        minimal
+                                                                        placement="bottom-end"
+                                                                        content={
+                                                                            translations.removeTooltip
+                                                                        }
+                                                                    >
+                                                                        <Button
+                                                                            minimal
+                                                                            intent={
+                                                                                Intent.DANGER
+                                                                            }
+                                                                            icon={faIcon(
+                                                                                {
+                                                                                    icon: faTrash,
+                                                                                }
+                                                                            )}
+                                                                        />
+                                                                    </Tooltip>
+                                                                </Popover>
+                                                            )
                                                         }
                                                     >
                                                         {snapshot.isDragging ? null : (
@@ -183,6 +223,7 @@ const ArrayRenderer = ({
                     <Button
                         icon={faIcon({ icon: faPlus })}
                         text="Add"
+                        outlined
                         onClick={addItem(
                             path,
                             createDefaultValue(schema, rootSchema)
