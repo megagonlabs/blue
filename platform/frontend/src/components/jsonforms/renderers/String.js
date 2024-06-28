@@ -46,7 +46,7 @@ const StringRenderer = ({ uischema, handleChange, path, data, required }) => {
             >
                 <TextArea
                     placeholder={placeholder}
-                    value={data}
+                    value={_.isEmpty(data) ? "" : data}
                     onChange={handleOnChange}
                     fill
                     autoResize
@@ -65,7 +65,7 @@ const StringRenderer = ({ uischema, handleChange, path, data, required }) => {
             <InputGroup
                 placeholder={placeholder}
                 large
-                value={data}
+                value={_.isEmpty(data) ? "" : data}
                 onChange={handleOnChange}
                 fill
             />

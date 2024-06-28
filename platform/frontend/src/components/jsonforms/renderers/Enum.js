@@ -33,11 +33,11 @@ const EnumRenderer = ({
             helperText={_.get(uischema, "props.helperText", null)}
         >
             <HTMLSelect
-                value={data}
+                value={_.isEmpty(data) ? "-" : data}
                 options={[
                     {
                         label: "-",
-                        value: null,
+                        value: "-",
                         disabled: required,
                         selected: true,
                     },

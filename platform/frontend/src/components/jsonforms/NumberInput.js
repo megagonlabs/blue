@@ -162,7 +162,7 @@ export default function NumberInput({
             onBlur={handleBlur}
             onKeyDown={handleKeyDown}
             onValueChange={handleValueChange}
-            value={data}
+            value={_.isNumber(data) || _.isString(data) ? data : ""}
             buttonPosition="none"
             large
         />
