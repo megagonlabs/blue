@@ -167,7 +167,7 @@ export default function EntityMain({
                                             />
                                         ) : null}
                                         {_.includes(
-                                            ["agent", "input"],
+                                            ["agent", "input", "output"],
                                             entity.type
                                         ) ? (
                                             <MenuItem

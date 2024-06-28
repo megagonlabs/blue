@@ -64,7 +64,7 @@ export default function RegistryList({ type }) {
                     }
                     return (
                         <Col
-                            key={`registry-list-${element.name}`}
+                            key={element.name}
                             sm={12}
                             md={6}
                             lg={4}

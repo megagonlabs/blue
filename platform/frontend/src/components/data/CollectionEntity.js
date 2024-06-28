@@ -53,9 +53,7 @@ export default function CollectionEntity() {
                                     return null;
                                 }
                                 return (
-                                    <tr
-                                        key={`collection-entity-table-entity-${index}`}
-                                    >
+                                    <tr key={index}>
                                         <td>
                                             <Link
                                                 href={`${router.asPath}/entity/${element.name}`}
@@ -105,9 +103,7 @@ export default function CollectionEntity() {
                                     return null;
                                 }
                                 return (
-                                    <tr
-                                        key={`collection-entity-table-relation-${index}`}
-                                    >
+                                    <tr key={index}>
                                         <td>
                                             <Link
                                                 href={`${router.asPath}/relation/${element.name}`}

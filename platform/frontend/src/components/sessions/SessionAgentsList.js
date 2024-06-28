@@ -75,7 +75,7 @@ export default function SessionAgentsList() {
                             );
                             return (
                                 <div
-                                    key={`session-agents-list-agent-${index}`}
+                                    key={index}
                                     className="on-hover-background-color-bp-gray-3"
                                     style={{
                                         display: "flex",

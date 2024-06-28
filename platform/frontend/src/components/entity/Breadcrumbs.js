@@ -39,7 +39,7 @@ export default function Breadcrumbs({ breadcrumbs }) {
                                     if (_.isNil(href)) {
                                         return (
                                             <MenuItem
-                                                key={`registry-breadcrumb-overflow-menu-item-${index}`}
+                                                key={index}
                                                 icon={
                                                     !_.isEmpty(icon)
                                                         ? faIcon({ icon: icon })
@@ -54,7 +54,7 @@ export default function Breadcrumbs({ breadcrumbs }) {
                                         <Link
                                             href={href}
                                             className="no-link-decoration"
-                                            key={`registry-breadcrumb-overflow-menu-item-${index}`}
+                                            key={index}
                                         >
                                             <MenuItem
                                                 icon={
@@ -83,10 +83,7 @@ export default function Breadcrumbs({ breadcrumbs }) {
                 const { href, text, start, end, icon } = item;
                 if (end) {
                     return (
-                        <div
-                            style={BREADCRUMB_STYLE}
-                            key={`registry-breadcrumb-visible-${index}`}
-                        >
+                        <div style={BREADCRUMB_STYLE} key={index}>
                             {!start || !end ? HYPHEN_ICON : null}
                             <Tag
                                 {...TAG_PROPS}
@@ -102,10 +99,7 @@ export default function Breadcrumbs({ breadcrumbs }) {
                     );
                 }
                 return (
-                    <div
-                        style={BREADCRUMB_STYLE}
-                        key={`registry-breadcrumb-visible-${index}`}
-                    >
+                    <div style={BREADCRUMB_STYLE} key={index}>
                         {!start ? HYPHEN_ICON : null}
                         {_.isNil(href) ? (
                             <Tag

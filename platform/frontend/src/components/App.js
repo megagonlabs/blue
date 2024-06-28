@@ -235,7 +235,7 @@ export default function App({ children }) {
                     >
                         {pinnedSessionIds.map((sessionId) => (
                             <Button
-                                key={`app-pinned-session-id-${sessionId}`}
+                                key={sessionId}
                                 active={
                                     _.isEqual(sessionIdFocus, sessionId) &&
                                     _.startsWith(router.asPath, "/sessions")
@@ -276,10 +276,7 @@ export default function App({ children }) {
                             );
                             const active = _.startsWith(router.asPath, href);
                             return (
-                                <Link
-                                    href={href}
-                                    key={`app-card-button-group-link-${index}`}
-                                >
+                                <Link href={href} key={index}>
                                     <Button
                                         large
                                         style={
@@ -319,10 +316,7 @@ export default function App({ children }) {
                             );
                             const active = _.startsWith(router.asPath, href);
                             return (
-                                <Link
-                                    href={href}
-                                    key={`app-card-button-group-link-${index}`}
-                                >
+                                <Link href={href} key={index}>
                                     <Button
                                         style={
                                             !active
@@ -359,10 +353,7 @@ export default function App({ children }) {
                             );
                             const active = _.startsWith(router.asPath, href);
                             return (
-                                <Link
-                                    href={href}
-                                    key={`app-card-button-group-link-${index}`}
-                                >
+                                <Link href={href} key={index}>
                                     <Button
                                         style={
                                             !active
@@ -400,10 +391,7 @@ export default function App({ children }) {
                                     href
                                 );
                                 return (
-                                    <Link
-                                        href={href}
-                                        key={`app-card-button-group-link-${index}`}
-                                    >
+                                    <Link href={href} key={index}>
                                         <Button
                                             style={
                                                 !active

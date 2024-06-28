@@ -215,7 +215,7 @@ export default function Agents() {
                                         ].map(({ value, text }, index) => {
                                             return (
                                                 <Radio
-                                                    key={`agent-registry-filter-type-${index}`}
+                                                    key={index}
                                                     className={
                                                         appState.agent.loading
                                                             ? Classes.SKELETON

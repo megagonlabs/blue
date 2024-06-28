@@ -139,9 +139,7 @@ export default function AgentEntity() {
                                     return null;
                                 }
                                 return (
-                                    <tr
-                                        key={`agent-entity-table-input-${index}`}
-                                    >
+                                    <tr key={index}>
                                         <td>
                                             <Link
                                                 href={`${router.asPath}/input/${element.name}`}
@@ -203,9 +201,7 @@ export default function AgentEntity() {
                                     return null;
                                 }
                                 return (
-                                    <tr
-                                        key={`agent-entity-table-output-${index}`}
-                                    >
+                                    <tr key={index}>
                                         <td>
                                             <Link
                                                 href={`${router.asPath}/output/${element.name}`}

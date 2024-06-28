@@ -53,9 +53,7 @@ export default function SourceEntity() {
                                     return null;
                                 }
                                 return (
-                                    <tr
-                                        key={`data-entity-table-database-${index}`}
-                                    >
+                                    <tr key={index}>
                                         <td>
                                             <Link
                                                 href={`${router.asPath}/database/${element.name}`}
