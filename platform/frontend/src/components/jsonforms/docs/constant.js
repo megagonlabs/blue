@@ -20,25 +20,6 @@ module.exports = {
             </td>
         </tr>
     ),
-    nameId: (
-        <tr>
-            <td>
-                <Code>nameId</Code>
-            </td>
-            <td>
-                <strong>string</strong>
-                <em
-                    className={classNames(
-                        Classes.TEXT_MUTED,
-                        "docs-prop-default"
-                    )}
-                >
-                    null
-                </em>
-                <div>Name of the container.</div>
-            </td>
-        </tr>
-    ),
     inline: (
         <tr>
             <td>

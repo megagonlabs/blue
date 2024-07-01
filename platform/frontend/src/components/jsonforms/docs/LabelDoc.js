@@ -22,7 +22,6 @@ export default function LabelDoc({ closePanel }) {
                 small: false,
                 large: false,
                 style: {},
-                nameId: null,
             },
         },
         null,
@@ -145,7 +144,6 @@ export default function LabelDoc({ closePanel }) {
                             </td>
                         </tr>
                         {docProps.style}
-                        {docProps.nameId}
                     </tbody>
                 </HTMLTable>
             </div>

@@ -23,7 +23,7 @@ import {
 } from "@fortawesome/pro-duotone-svg-icons";
 import _ from "lodash";
 import { useCallback, useContext, useEffect, useState } from "react";
-export default function Agents() {
+export default function Agent() {
     const { appState, appActions } = useContext(AppContext);
     const [hybrid, setHybrid] = useState(appState.agent.filter.hybrid);
     const [approximate, setApproximate] = useState(
@@ -215,7 +215,7 @@ export default function Agents() {
                                         ].map(({ value, text }, index) => {
                                             return (
                                                 <Radio
-                                                    key={`agent-registry-filter-type-${index}`}
+                                                    key={index}
                                                     className={
                                                         appState.agent.loading
                                                             ? Classes.SKELETON

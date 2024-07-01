@@ -228,7 +228,7 @@ export default function Data() {
                                         ].map(({ value, text }, index) => {
                                             return (
                                                 <Radio
-                                                    key={`data-registry-filter-type-${index}`}
+                                                    key={index}
                                                     className={
                                                         appState.data.loading
                                                             ? Classes.SKELETON

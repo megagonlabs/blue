@@ -53,25 +53,24 @@ class FormAgent(Agent):
         for trigger in triggers:
             if trigger.lower() in text.lower():
                 return True
-        return False 
-    
+        return False
+
     def default_processor(self, stream, id, label, data, dtype=None, tags=None, properties=None, worker=None):
         if ":EVENT_MESSAGE:" in stream:
             if label == "DATA":
                 if worker:
-                   
-                    output_stream_cid = stream[:stream.rindex("EVENT_MESSAGE")-1] 
+
+                    output_stream_cid = stream[: stream.rindex("EVENT_MESSAGE") - 1]
 
                     # when the user clicked DONE
-                    if data["name_id"] == "DONE":
+                    if data["action"] == "DONE":
                         # gather all data in the form from stream memory
                         schema = properties['schema']['properties'].keys()
 
                         json_data = {}
                         for element in schema:
-                            json_data[element] = worker.get_stream_data(stream=output_stream_cid, key = element + ".value")
+                            json_data[element] = worker.get_stream_data(stream=output_stream_cid, key=element + ".value")
 
-            
                         # get output stream with original form
                         output_stream = Producer(cid=output_stream_cid, properties=properties)
                         output_stream.start()
@@ -89,15 +88,13 @@ class FormAgent(Agent):
                         # stream form data
                         return ("DATA", json_data, "json", True)
                     else:
-                        timestamp = worker.get_stream_data(
-                            stream=output_stream_cid, key=f'{data["name_id"]}.timestamp'
-                        )
+                        timestamp = worker.get_stream_data(stream=output_stream_cid, key=f'{data["path"]}.timestamp')
 
                         # TODO: timestamp should be replaced by id to determine order
                         if timestamp is None or data["timestamp"] > timestamp:
                             # save data into stream memory
                             worker.set_stream_data(
-                                key=data["name_id"],
+                                key=data["path"],
                                 value={
                                     "value": data["value"],
                                     "timestamp": data["timestamp"],
@@ -123,7 +120,7 @@ class FormAgent(Agent):
                                     "label": "Submit",
                                     "props": {
                                         "intent": "success",
-                                        "nameId": "DONE",
+                                        "action": "DONE",
                                         "large": True,
                                     },
                                 },

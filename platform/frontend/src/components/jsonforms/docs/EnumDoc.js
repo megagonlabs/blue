@@ -20,7 +20,6 @@ export default function EnumDoc({ closePanel }) {
                 inline: false,
                 helperText: null,
                 style: {},
-                nameId: null,
             },
             scope: "",
             required: false,
@@ -86,7 +85,6 @@ export default function EnumDoc({ closePanel }) {
                         {docProps.inline}
                         {docProps.helperText}
                         {docProps.style}
-                        {docProps.nameId}
                     </tbody>
                 </HTMLTable>
             </div>

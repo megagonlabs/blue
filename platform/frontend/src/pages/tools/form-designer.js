@@ -69,6 +69,7 @@ function FormDesigner() {
     useEffect(() => {
         if (error) {
             setIsDocOpen(false);
+            sessionStorage.setItem("isDocOpen", "false");
         }
     }, [error]);
     useEffect(() => {

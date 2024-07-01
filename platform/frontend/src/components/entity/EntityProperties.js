@@ -41,7 +41,7 @@ export default function EntityProperties({
                         className={Classes.TEXT_SMALL}
                         style={{
                             margin: 0,
-                            padding: 20,
+                            padding: 15,
                             width: "100%",
                             overflowX: "auto",
                         }}

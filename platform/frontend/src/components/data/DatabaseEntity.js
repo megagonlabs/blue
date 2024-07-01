@@ -53,9 +53,7 @@ export default function DatabaseEntity() {
                                     return null;
                                 }
                                 return (
-                                    <tr
-                                        key={`data-entity-table-collection-${index}`}
-                                    >
+                                    <tr key={index}>
                                         <td>
                                             <Link
                                                 href={`${router.asPath}/collection/${element.name}`}

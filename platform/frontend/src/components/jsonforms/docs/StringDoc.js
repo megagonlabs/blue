@@ -25,7 +25,6 @@ export default function StringDoc({ closePanel }) {
                 placeholder: null,
                 helperText: null,
                 style: {},
-                nameId: null,
             },
             scope: "",
             required: false,
@@ -112,7 +111,6 @@ export default function StringDoc({ closePanel }) {
                         {docProps.inline}
                         {docProps.helperText}
                         {docProps.style}
-                        {docProps.nameId}
                     </tbody>
                 </HTMLTable>
             </div>

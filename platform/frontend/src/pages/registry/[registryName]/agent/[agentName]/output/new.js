@@ -8,6 +8,7 @@ import {
 import { AppToaster } from "@/components/toaster";
 import { Intent } from "@blueprintjs/core";
 import axios from "axios";
+import { diff } from "deep-diff";
 import _ from "lodash";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
@@ -23,7 +24,7 @@ export default function New() {
     const [loading, setLoading] = useState(false);
     const [jsonError, setJsonError] = useState(false);
     const agentName = _.get(router, "query.agentName", null);
-    const urlPrefix = `/registry/${process.env.NEXT_PUBLIC_AGENT_REGISTRY_NAME}/agents/${agentName}/output`;
+    const urlPrefix = `/registry/${process.env.NEXT_PUBLIC_AGENT_REGISTRY_NAME}/agent/${agentName}/output`;
     const updateEntity = ({ path, value }) => {
         let newEntity = _.cloneDeep(entity);
         _.set(newEntity, path, value);
@@ -44,8 +45,7 @@ export default function New() {
                     intent: Intent.SUCCESS,
                     message: `${entity.name} output created`,
                 });
-                // const difference = diff({}, entity.properties);
-                const difference = [];
+                const difference = diff({}, entity.properties);
                 settlePromises(
                     constructSavePropertyRequests({
                         axios,

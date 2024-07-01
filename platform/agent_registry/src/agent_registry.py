@@ -149,6 +149,19 @@ class AgentRegistry(Registry):
     def delete_agent_input_property(self, agent, input, key, rebuild=False):
         super().delete_record_property(input, f'/{agent}', key, rebuild=rebuild)
 
+    # agent output properties
+    def get_agent_output_properties(self, agent, output):
+        return super().get_record_properties(output, f'/{agent}')
+
+    def get_agent_output_property(self, agent, output, key):
+        return super().get_record_property(output, f'/{agent}', key)
+
+    def set_agent_output_property(self, agent, output, key, value, rebuild=False):
+        super().set_record_property(output, f'/{agent}', key, value, rebuild=rebuild)
+
+    def delete_agent_output_property(self, agent, output, key, rebuild=False):
+        super().delete_record_property(output, f'/{agent}', key, rebuild=rebuild)
+
 
 #######################
 if __name__ == "__main__":

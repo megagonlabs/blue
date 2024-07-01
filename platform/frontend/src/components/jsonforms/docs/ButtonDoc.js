@@ -23,7 +23,7 @@ export default function ButtonDoc({ closePanel }) {
                 outlined: false,
                 intent: null,
                 style: {},
-                nameId: null,
+                action: null,
             },
         },
         null,
@@ -174,7 +174,23 @@ export default function ButtonDoc({ closePanel }) {
                             </td>
                         </tr>
                         {docProps.style}
-                        {docProps.nameId}
+                        <tr>
+                            <td>
+                                <Code>action</Code>
+                            </td>
+                            <td>
+                                <strong>string</strong>
+                                <em
+                                    className={classNames(
+                                        Classes.TEXT_MUTED,
+                                        "docs-prop-default"
+                                    )}
+                                >
+                                    null
+                                </em>
+                                <div>Name of the action.</div>
+                            </td>
+                        </tr>
                     </tbody>
                 </HTMLTable>
             </div>

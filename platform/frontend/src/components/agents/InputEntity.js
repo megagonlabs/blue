@@ -38,7 +38,7 @@ export default function InputEntity() {
     };
     const saveEntity = () => {
         const parent = _.last(_.split(scope, "/"));
-        const urlPrefix = `/registry/${process.env.NEXT_PUBLIC_AGENT_REGISTRY_NAME}/agents/${parent}/input`;
+        const urlPrefix = `/registry/${process.env.NEXT_PUBLIC_AGENT_REGISTRY_NAME}/agent/${parent}/input`;
         setLoading(true);
         let tasks = [
             new Promise((resolve, reject) => {

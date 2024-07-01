@@ -50,7 +50,7 @@ export default function Pagination({
                             return (
                                 <MenuItem
                                     text={size}
-                                    key={`agent-registry-page-size-${size}`}
+                                    key={size}
                                     disabled={_.isEqual(pageSize, size)}
                                     onClick={() => setPageSize(size)}
                                 />

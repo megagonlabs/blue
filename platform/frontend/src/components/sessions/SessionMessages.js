@@ -76,7 +76,7 @@ export default function SessionMessages() {
         const [showActions, setShowActions] = useState(false);
         return (
             <div
-                key={`session-message-${index}`}
+                key={index}
                 onMouseEnter={() => {
                     setShowActions(true);
                 }}

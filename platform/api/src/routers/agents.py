@@ -66,10 +66,11 @@ p = Platform(id=platform_id, properties=PROPERTIES)
 agent_registry = AgentRegistry(id=agent_registry_id, prefix=prefix, properties=PROPERTIES)
 
 ##### ROUTER
-router = APIRouter(prefix=f"{PLATFORM_PREFIX}/registry/{agent_registry_id}/agents")
+router = APIRouter(prefix=f"{PLATFORM_PREFIX}/registry/{agent_registry_id}")
 
 # set logging
 logging.getLogger().setLevel("INFO")
+
 
 ###### Utility functions
 def get_agent_containers():
@@ -171,7 +172,7 @@ def merge_container_results(registry_results):
 
 
 #############
-@router.get("/")
+@router.get("/agents")
 def get_agents():
     registry_results = agent_registry.list_records()
     registry_results = list(registry_results.values())
@@ -179,14 +180,14 @@ def get_agents():
     return JSONResponse(content={"results": merged_results})
 
 
-@router.get("/{agent_name}")
+@router.get("/agent/{agent_name}")
 def get_agent(agent_name):
     result = agent_registry.get_agent(agent_name)
     merged_results = merge_container_results([result])
     return JSONResponse(content={"result": merged_results[0]})
 
 
-@router.post("/{agent_name}")
+@router.post("/agent/{agent_name}")
 def add_agent(agent_name, agent: Agent):
     # TODO: properties
     agent_registry.add_agent(agent_name, description=agent.description, properties={}, rebuild=True)
@@ -195,7 +196,7 @@ def add_agent(agent_name, agent: Agent):
     return JSONResponse(content={"message": "Success"})
 
 
-@router.put("/{agent_name}")
+@router.put("/agent/{agent_name}")
 def update_agent(agent_name, agent: Agent):
     # TODO: properties
     agent_registry.update_agent(agent_name, description=agent.description, properties={}, rebuild=True)
@@ -204,7 +205,7 @@ def update_agent(agent_name, agent: Agent):
     return JSONResponse(content={"message": "Success"})
 
 
-@router.delete("/{agent_name}")
+@router.delete("/agent/{agent_name}")
 def delete_agent(agent_name):
     agent_registry.remove_agent(agent_name, rebuild=True)
     # save
@@ -213,19 +214,19 @@ def delete_agent(agent_name):
 
 
 ##### properties
-@router.get("/{agent_name}/properties")
+@router.get("/agent/{agent_name}/properties")
 def get_agent_properties(agent_name):
     results = agent_registry.get_agent_properties(agent_name)
     return JSONResponse(content={"results": results})
 
 
-@router.get("/{agent_name}/property/{property_name}")
+@router.get("/agent/{agent_name}/property/{property_name}")
 def get_agent_property(agent_name, property_name):
     result = agent_registry.get_agent_property(agent_name, property_name)
     return JSONResponse(content={"result": result})
 
 
-@router.post("/{agent_name}/property/{property_name}")
+@router.post("/agent/{agent_name}/property/{property_name}")
 def set_agent_property(agent_name, property_name, property: JSONStructure):
     agent_registry.set_agent_property(agent_name, property_name, property, rebuild=True)
     # save
@@ -233,7 +234,7 @@ def set_agent_property(agent_name, property_name, property: JSONStructure):
     return JSONResponse(content={"message": "Success"})
 
 
-@router.delete("/{agent_name}/property/{property_name}")
+@router.delete("/agent/{agent_name}/property/{property_name}")
 def delete_agent_property(agent_name, property_name):
     agent_registry.delete_agent_property(agent_name, property_name, rebuild=True)
     # save
@@ -242,19 +243,19 @@ def delete_agent_property(agent_name, property_name):
 
 
 ##### inputs
-@router.get("/{agent_name}/inputs")
+@router.get("/agent/{agent_name}/inputs")
 def get_agent_inputs(agent_name):
     results = agent_registry.get_agent_inputs(agent_name)
     return JSONResponse(content={"results": results})
 
 
-@router.get("/{agent_name}/input/{param_name}")
+@router.get("/agent/{agent_name}/input/{param_name}")
 def get_agent_input(agent_name, param_name):
     result = agent_registry.get_agent_input(agent_name, param_name)
     return JSONResponse(content={"result": result})
 
 
-@router.post("/{agent_name}/input/{param_name}")
+@router.post("/agent/{agent_name}/input/{param_name}")
 def add_agent_input(agent_name, param_name, parameter: Parameter):
     # TODO: properties
     agent_registry.add_agent_input(agent_name, param_name, description=parameter.description, properties={}, rebuild=True)
@@ -263,7 +264,7 @@ def add_agent_input(agent_name, param_name, parameter: Parameter):
     return JSONResponse(content={"message": "Success"})
 
 
-@router.put("/{agent_name}/input/{param_name}")
+@router.put("/agent/{agent_name}/input/{param_name}")
 def update_agent_input(agent_name, param_name, parameter: Parameter):
     # TODO: properties
     agent_registry.update_agent_input(agent_name, param_name, description=parameter.description, properties={}, rebuild=True)
@@ -272,7 +273,7 @@ def update_agent_input(agent_name, param_name, parameter: Parameter):
     return JSONResponse(content={"message": "Success"})
 
 
-@router.delete("/{agent_name}/input/{param_name}")
+@router.delete("/agent/{agent_name}/input/{param_name}")
 def delete_agent_input(agent_name, param_name):
     agent_registry.del_agent_input(agent_name, param_name, rebuild=True)
     # save
@@ -280,13 +281,19 @@ def delete_agent_input(agent_name, param_name):
     return JSONResponse(content={"message": "Success"})
 
 
-@router.get("/{agent_name}/input/{param_name}/properties")
+@router.get("/agent/{agent_name}/input/{param_name}/properties")
 def get_agent_input_properties(agent_name, param_name):
     results = agent_registry.get_agent_input_properties(agent_name, param_name)
     return JSONResponse(content={"results": results})
 
 
-@router.post("/{agent_name}/input/{param_name}/property/{property_name}")
+@router.get("/agent/{agent_name}/input/{param_name}/property/{property_name}")
+def get_agent_input_property(agent_name, param_name, property_name):
+    result = agent_registry.get_agent_input_property(agent_name, param_name, property_name)
+    return JSONResponse(content={"result": result})
+
+
+@router.post("/agent/{agent_name}/input/{param_name}/property/{property_name}")
 def set_agent_input_property(agent_name, param_name, property_name, property: JSONStructure):
     agent_registry.set_agent_input_property(agent_name, param_name, property_name, property, rebuild=True)
     # save
@@ -294,7 +301,7 @@ def set_agent_input_property(agent_name, param_name, property_name, property: JS
     return JSONResponse(content={"message": "Success"})
 
 
-@router.delete("/{agent_name}/input/{param_name}/property/{property_name}")
+@router.delete("/agent/{agent_name}/input/{param_name}/property/{property_name}")
 def delete_agent_input_property(agent_name, param_name, property_name):
     agent_registry.delete_agent_input_property(agent_name, param_name, property_name, rebuild=True)
     # save
@@ -303,26 +310,26 @@ def delete_agent_input_property(agent_name, param_name, property_name):
 
 
 ##### outputs
-@router.get("/{agent_name}/outputs")
+@router.get("/agent/{agent_name}/outputs")
 def get_agent_outputs(agent_name):
     results = agent_registry.get_agent_outputs(agent_name)
     return JSONResponse(content={"results": results})
 
 
-@router.get("/{agent_name}/output/{param_name}")
+@router.get("/agent/{agent_name}/output/{param_name}")
 def get_agent_output(agent_name, param_name):
     result = agent_registry.get_agent_output(agent_name, param_name)
     return JSONResponse(content={"result": result})
 
 
-@router.post("/{agent_name}/output/{param_name}")
+@router.post("/agent/{agent_name}/output/{param_name}")
 def add_agent_output(agent_name, param_name, parameter: Parameter):
     # TODO: properties
     agent_registry.add_agent_output(agent_name, param_name, description=parameter.description, properties={}, rebuild=True)
     return JSONResponse(content={"message": "Success"})
 
 
-@router.put("/{agent_name}/output/{param_name}")
+@router.put("/agent/{agent_name}/output/{param_name}")
 def update_agent_output(agent_name, param_name, parameter: Parameter):
     # TODO: properties
     agent_registry.update_agent_output(agent_name, param_name, description=parameter.description, properties={}, rebuild=True)
@@ -331,7 +338,7 @@ def update_agent_output(agent_name, param_name, parameter: Parameter):
     return JSONResponse(content={"message": "Success"})
 
 
-@router.delete("/{agent_name}/output/{param_name}")
+@router.delete("/agent/{agent_name}/output/{param_name}")
 def delete_agent_output(agent_name, param_name):
     agent_registry.del_agent_output(agent_name, param_name, rebuild=True)
     # save
@@ -339,7 +346,35 @@ def delete_agent_output(agent_name, param_name):
     return JSONResponse(content={"message": "Success"})
 
 
-@router.get("/search")
+@router.get("/agent/{agent_name}/output/{param_name}/properties")
+def get_agent_output_properties(agent_name, param_name):
+    results = agent_registry.get_agent_output_properties(agent_name, param_name)
+    return JSONResponse(content={"results": results})
+
+
+@router.get("/agent/{agent_name}/output/{param_name}/property/{property_name}")
+def get_agent_output_property(agent_name, param_name, property_name):
+    result = agent_registry.get_agent_output_property(agent_name, param_name, property_name)
+    return JSONResponse(content={"result": result})
+
+
+@router.post("/agent/{agent_name}/output/{param_name}/property/{property_name}")
+def set_agent_output_property(agent_name, param_name, property_name, property: JSONStructure):
+    agent_registry.set_agent_output_property(agent_name, param_name, property_name, property, rebuild=True)
+    # save
+    agent_registry.dump("/blue_data/config/" + agent_registry_id + ".agents.json")
+    return JSONResponse(content={"message": "Success"})
+
+
+@router.delete("/agent/{agent_name}/output/{param_name}/property/{property_name}")
+def delete_agent_output_property(agent_name, param_name, property_name):
+    agent_registry.delete_agent_output_property(agent_name, param_name, property_name, rebuild=True)
+    # save
+    agent_registry.dump("/blue_data/config/" + agent_registry_id + ".agents.json")
+    return JSONResponse(content={"message": "Success"})
+
+
+@router.get("/agents/search")
 def search_agents(keywords, approximate: bool = False, hybrid: bool = False, type: str = None, scope: str = None, page: int = 0, page_size: int = 10):
     results = agent_registry.search_records(keywords, type=type, scope=scope, approximate=approximate, hybrid=hybrid, page=page, page_size=page_size)
     return JSONResponse(content={"results": results})
