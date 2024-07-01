@@ -1,4 +1,5 @@
 import { StrictModeDroppable } from "@/components/dnd/StrictModeDroppable";
+import { useSocket } from "@/components/hooks/useSocket";
 import { faIcon } from "@/components/icon";
 import {
     Button,
@@ -27,7 +28,7 @@ import {
     withJsonFormsArrayControlProps,
 } from "@jsonforms/react";
 import _, { range } from "lodash";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { DragDropContext, Draggable } from "react-beautiful-dnd";
 const ArrayRenderer = ({
     label,
@@ -44,6 +45,7 @@ const ArrayRenderer = ({
     moveUp,
     moveDown,
 }) => {
+    const { socket } = useSocket();
     const childUiSchema = useMemo(
         () =>
             findUISchema(
@@ -73,6 +75,20 @@ const ArrayRenderer = ({
             from += 1;
         }
     };
+    useEffect(() => {
+        setTimeout(() => {
+            socket.send(
+                JSON.stringify({
+                    type: "INTERACTIVE_EVENT_MESSAGE",
+                    stream_id: _.get(uischema, "props.streamId", null),
+                    path: path,
+                    form_id: _.get(uischema, "props.formId", null),
+                    value: event.target.value,
+                    timestamp: Date.now(),
+                })
+            );
+        }, 0);
+    }, [data]);
     return (
         <div>
             <H6 style={{ marginTop: 0, marginBottom: 15 }}>{label}</H6>
