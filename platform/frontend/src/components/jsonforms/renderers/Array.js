@@ -83,7 +83,7 @@ const ArrayRenderer = ({
                     stream_id: _.get(uischema, "props.streamId", null),
                     path: path,
                     form_id: _.get(uischema, "props.formId", null),
-                    value: event.target.value,
+                    value: data,
                     timestamp: Date.now(),
                 })
             );
