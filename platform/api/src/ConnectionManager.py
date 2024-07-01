@@ -30,7 +30,7 @@ from constant import redisReplace
 
 
 ###### Settings
-from routers.settings import PROPERTIES, DEVELOPMENT, SECURE_COOKIE
+from settings import PROPERTIES, DEVELOPMENT
 
 ### Assign from platform properties
 platform_id = PROPERTIES["platform.name"]

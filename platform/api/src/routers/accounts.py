@@ -17,6 +17,7 @@ import time
 import datetime
 import pydash
 
+
 ##### Typing
 from pydantic import BaseModel, Json
 from typing import Union, Any, Dict, AnyStr, List
@@ -28,18 +29,14 @@ from fastapi.responses import JSONResponse
 import firebase_admin
 from firebase_admin import auth, credentials, exceptions
 
-
-
-
-
-
+import redis
 from constant import EMAIL_DOMAIN_ADDRESS_REGEXP, redisReplace
 from fastapi import Request
 from APIRouter import APIRouter
 from fastapi.responses import JSONResponse
 
 ###### Settings
-from .settings import PROPERTIES, SECURE_COOKIE
+from settings import PROPERTIES, SECURE_COOKIE
 
 ### Assign from platform properties
 platform_id = PROPERTIES["platform.name"]
@@ -48,7 +45,10 @@ PLATFORM_PREFIX = f'/blue/platform/{platform_id}'
 ##### ROUTER
 router = APIRouter(prefix=f"{PLATFORM_PREFIX}/accounts")
 
-
+host = pydash.objects.get(PROPERTIES, 'db.host', 'localhost')
+port = pydash.objects.get(PROPERTIES, 'db.port', 6379)
+db = redis.Redis(host=host, port=port, decode_responses=True)
+db.set('foo', 'bar')
 
 FIREBASE_SERVICE_CRED = os.getenv("FIREBASE_SERVICE_CRED", "{}")
 cert = json.loads(base64.b64decode(FIREBASE_SERVICE_CRED))

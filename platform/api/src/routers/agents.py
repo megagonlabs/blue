@@ -53,7 +53,7 @@ from agent_registry import AgentRegistry
 
 
 ###### Properties
-from .settings import PROPERTIES
+from settings import PROPERTIES
 
 ### Assign from platform properties
 platform_id = PROPERTIES["platform.name"]

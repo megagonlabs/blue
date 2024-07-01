@@ -416,11 +416,14 @@ function FormDesigner() {
                                         icon={null}
                                         intent={error ? Intent.DANGER : null}
                                         style={{
+                                            position: "relative",
                                             maxWidth: "min(802.2px, 100%)",
+                                            overflowX: "hidden",
+                                            minWidth: 50,
                                             whiteSpace: "pre-wrap",
                                             wordBreak: "break-all",
                                             width: "fit-content",
-                                            overflow: "hidden",
+                                            minHeight: 21,
                                         }}
                                     >
                                         {!error ? (

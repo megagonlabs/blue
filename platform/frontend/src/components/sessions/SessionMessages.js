@@ -6,10 +6,12 @@ import {
     Intent,
     Tag,
     Tooltip,
+    mergeRefs,
 } from "@blueprintjs/core";
 import { faEllipsisH } from "@fortawesome/pro-duotone-svg-icons";
 import _ from "lodash";
-import { useContext, useEffect, useRef, useState } from "react";
+import { useCallback, useContext, useEffect, useRef, useState } from "react";
+import { useResizeDetector } from "react-resize-detector";
 import AutoSizer from "react-virtualized-auto-sizer";
 import { VariableSizeList } from "react-window";
 import { faIcon } from "../icon";
@@ -29,8 +31,8 @@ export default function SessionMessages() {
         );
         return rowHeights.current[index] + 20 || 51 + (!own ? 15.43 : 0);
     }
-    function setRowHeight(index, size, shouldForceUpdate = true) {
-        variableSizeListRef.current.resetAfterIndex(0, shouldForceUpdate);
+    function setRowHeight(index, size) {
+        variableSizeListRef.current.resetAfterIndex(0);
         rowHeights.current = { ...rowHeights.current, [index]: size };
     }
     function Row({ index, style }) {
@@ -47,24 +49,20 @@ export default function SessionMessages() {
                 );
             }
         }, [rowRef]);
-        useEffect(() => {
-            const handleResize = () => {
-                // do magic for resize
-                if (rowRef.current) {
-                    setRowHeight(
-                        index,
-                        rowRef.current.clientHeight + 30 + (!own ? 20.43 : 0),
-                        false
-                    );
-                }
-            };
-            window.addEventListener("resize", handleResize);
-            return () => {
-                window.removeEventListener("resize", handleResize);
-            };
+        const handleResize = useCallback(() => {
+            // do magic for resize
+            if (rowRef.current) {
+                setRowHeight(
+                    index,
+                    rowRef.current.clientHeight + 30 + (!own ? 20.43 : 0)
+                );
+            }
         }, []);
         const data = _.get(streams, [messages[index].stream, "data"], []);
         const messageLabel = _.get(messages, [index, "label"], null);
+        const { ref: resizeRef } = useResizeDetector({
+            onResize: handleResize,
+        });
         const complete = _.get(
             streams,
             [messages[index].stream, "complete"],
@@ -101,8 +99,9 @@ export default function SessionMessages() {
                     style={{
                         position: "relative",
                         maxWidth: "min(802.2px, 100%)",
-                        minWidth: 50,
                         width: "fit-content",
+                        overflowX: "hidden",
+                        overflowY: "visible",
                     }}
                 >
                     {/* <div
@@ -124,14 +123,13 @@ export default function SessionMessages() {
                         </ButtonGroup>
                     </div> */}
                     <div
-                        ref={rowRef}
+                        ref={mergeRefs(rowRef, resizeRef)}
                         style={{
                             maxWidth: "min(802.2px, 100%)",
                             minWidth: 50,
                             whiteSpace: "pre-wrap",
                             wordBreak: "break-all",
                             width: "fit-content",
-                            overflow: "hidden",
                             minHeight: 21,
                         }}
                     >

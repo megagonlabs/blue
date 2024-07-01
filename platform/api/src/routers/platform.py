@@ -46,7 +46,7 @@ from agent_registry import AgentRegistry
 
 
 ###### Properties
-from .settings import PROPERTIES
+from settings import PROPERTIES
 
 ### Assign from platform properties
 platform_id = PROPERTIES["platform.name"]
@@ -66,6 +66,7 @@ router = APIRouter(prefix=f"{PLATFORM_PREFIX}/containers")
 
 # set logging
 logging.getLogger().setLevel("INFO")
+
 
 @router.get("/agents/")
 # get the list of agent running agents on the platform
@@ -129,7 +130,6 @@ def list_agent_containers():
 @router.post("/agents/agent/{agent_name}")
 # deploy an agent container with the name {agent_name} to the agent registry with the name
 def deploy_agent_container(agent_name):
-   
     agent_registry_properties = agent_registry.get_agent_properties(agent_name)
     image = agent_registry_properties["image"]
 
@@ -149,7 +149,7 @@ def deploy_agent_container(agent_name):
     if PROPERTIES["platform.deploy.target"] == "localhost":
         client.containers.run(
             image,
-            "--serve " + agent_name + " " + "--platform " + platform_id +  " " + + "--registry " + agent_registry_id + " " + "--properties " + "'" + json.dumps(agent_properties) + "'",
+            "--serve " + agent_name + " " + "--platform " + platform_id + " " + "--registry " + agent_registry_id + " " + "--properties " + "'" + json.dumps(agent_properties) + "'",
             network="blue_platform_" + PROPERTIES["platform.name"] + "_network_bridge",
             name="blue_agent_" + platform_id + "_" + agent_registry_id + "_" + agent_name.lower(),
             hostname="blue_agent_" + agent_registry_id + "_" + agent_name,

@@ -47,7 +47,7 @@ from blueprint import Platform
 from agent_registry import AgentRegistry
 
 ###### Properties
-from .settings import PROPERTIES
+from settings import PROPERTIES
 
 ### Assign from platform properties
 platform_id = PROPERTIES["platform.name"]
@@ -61,6 +61,7 @@ agent_registry = AgentRegistry(id=agent_registry_id, prefix=prefix, properties=P
 
 ##### ROUTER
 router = APIRouter(prefix=f"{PLATFORM_PREFIX}/sessions")
+
 
 #############
 @router.get("/")

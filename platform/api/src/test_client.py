@@ -291,6 +291,37 @@ ws.send(
         }
     )
 )
+json_form = {
+    "type": "JSONFORM",
+    "form_id": 'local-test-client-form-1',
+    "content": {
+        "schema": {
+            "type": "object",
+            "properties": {
+                "first_name": {"type": "string"},
+                "last_name": {"type": "string"},
+            },
+        },
+        "uischema": {
+            "type": "HorizontalLayout",
+            "elements": [
+                {
+                    "type": "Control",
+                    "label": "First Name",
+                    "scope": "#/properties/first_name",
+                },
+                {
+                    "type": "Control",
+                    "label": "Last Name",
+                    "scope": "#/properties/last_name",
+                },
+            ],
+        },
+    },
+}
+# json_form = json.loads(
+#     '{"type": "JSONFORM", "content": {"schema": {"type": "object", "properties": {"step_0": {"type": "object", "properties": {"selected": {"type": "boolean"}, "from_agent": {"type": "string", "enum": ["USER"]}, "from_output": {"type": "string", "enum": ["TEXT"]}, "to_agent": {"type": "string", "enum": ["FORM_PROFILER"]}, "to_input": {"type": "string", "enum": ["PROFILE"]}}}, "step_1": {"type": "object", "properties": {"selected": {"type": "boolean"}, "from_agent": {"type": "string", "enum": ["FORM_PROFILER"]}, "from_output": {"type": "string", "enum": ["PROFILE"]}, "to_agent": {"type": "string", "enum": ["JOBSEARCH"]}, "to_input": {"type": "string", "enum": ["JOBSEEKERDATA"]}}}, "step_2": {"type": "object", "properties": {"selected": {"type": "boolean"}, "from_agent": {"type": "string", "enum": ["USER"]}, "from_output": {"type": "string", "enum": ["TEXT"]}, "to_agent": {"type": "string", "enum": ["JOBSEARCH"]}, "to_input": {"type": "string", "enum": ["CRITERIA"]}}}}}, "uischema": {"type": "VerticalLayout", "elements": [{"type": "Label", "label": "PROPOSED PLAN", "props": {"style": {"fontWeight": "bold"}}}, {"type": "Label", "label": "Review the proposed plan below and if necessary make appropriate adjustments", "props": {"muted": true, "style": {"marginBottom": 15, "fontStyle": "italic"}}}, {"type": "VerticalLayout", "elements": [{"type": "Group", "label": "STEP 0", "props": {"collapsible": true, "compact": true, "style": {"marginBottom": 15}}, "elements": [{"type": "Control", "props": {"large": true, "switch": true, "streamId": "PLATFORM:dev:SESSION:17ae09bf:AGENT:INTERACTIVEPLANNER:24898e88:STREAM:d190aa10:EVENT_MESSAGE:c99c9e0d", "formId": "c99c9e0d"}, "scope": "#/properties/step_0/properties/selected"}, {"type": "VerticalLayout", "elements": [{"type": "VerticalLayout", "elements": [{"type": "Label", "label": "From:", "props": {"style": {"fontWeight": "bold"}}}, {"type": "HorizontalLayout", "props": {"spaceEvenly": false}, "elements": [{"type": "Control", "label": "Agent:", "scope": "#/properties/step_0/properties/from_agent", "props": {"inline": true, "streamId": "PLATFORM:dev:SESSION:17ae09bf:AGENT:INTERACTIVEPLANNER:24898e88:STREAM:d190aa10:EVENT_MESSAGE:c99c9e0d", "formId": "c99c9e0d"}}, {"type": "Label", "label": "", "props": {"muted": true, "small": true, "style": {"fontStyle": "italic"}}}]}, {"type": "HorizontalLayout", "props": {"spaceEvenly": false}, "elements": [{"type": "Control", "label": "Parameter:", "scope": "#/properties/step_0/properties/from_output", "props": {"inline": true, "streamId": "PLATFORM:dev:SESSION:17ae09bf:AGENT:INTERACTIVEPLANNER:24898e88:STREAM:d190aa10:EVENT_MESSAGE:c99c9e0d", "formId": "c99c9e0d"}}, {"type": "Label", "label": "", "props": {"muted": true, "small": true, "style": {"fontStyle": "italic"}}}]}]}]}, {"type": "VerticalLayout", "elements": [{"type": "Label", "label": "To:", "props": {"style": {"fontWeight": "bold"}}}, {"type": "HorizontalLayout", "props": {"spaceEvenly": false}, "elements": [{"type": "Control", "label": "Agent:", "scope": "#/properties/step_0/properties/to_agent", "props": {"inline": true, "streamId": "PLATFORM:dev:SESSION:17ae09bf:AGENT:INTERACTIVEPLANNER:24898e88:STREAM:d190aa10:EVENT_MESSAGE:c99c9e0d", "formId": "c99c9e0d"}}, {"type": "Label", "label": "", "props": {"muted": true, "small": true, "style": {"fontStyle": "italic"}}}]}, {"type": "HorizontalLayout", "props": {"spaceEvenly": false}, "elements": [{"type": "Control", "label": "Parameter:", "scope": "#/properties/step_0/properties/to_input", "props": {"inline": true, "streamId": "PLATFORM:dev:SESSION:17ae09bf:AGENT:INTERACTIVEPLANNER:24898e88:STREAM:d190aa10:EVENT_MESSAGE:c99c9e0d", "formId": "c99c9e0d"}}, {"type": "Label", "label": "", "props": {"muted": true, "small": true, "style": {"fontStyle": "italic"}}}]}]}]}, {"type": "Group", "label": "STEP 1", "props": {"collapsible": true, "compact": true, "style": {"marginBottom": 15}}, "elements": [{"type": "Control", "props": {"large": true, "switch": true, "streamId": "PLATFORM:dev:SESSION:17ae09bf:AGENT:INTERACTIVEPLANNER:24898e88:STREAM:d190aa10:EVENT_MESSAGE:c99c9e0d", "formId": "c99c9e0d"}, "scope": "#/properties/step_1/properties/selected"}, {"type": "VerticalLayout", "elements": [{"type": "VerticalLayout", "elements": [{"type": "Label", "label": "From:", "props": {"style": {"fontWeight": "bold"}}}, {"type": "HorizontalLayout", "props": {"spaceEvenly": false}, "elements": [{"type": "Control", "label": "Agent:", "scope": "#/properties/step_1/properties/from_agent", "props": {"inline": true, "streamId": "PLATFORM:dev:SESSION:17ae09bf:AGENT:INTERACTIVEPLANNER:24898e88:STREAM:d190aa10:EVENT_MESSAGE:c99c9e0d", "formId": "c99c9e0d"}}, {"type": "Label", "label": "", "props": {"muted": true, "small": true, "style": {"fontStyle": "italic"}}}]}, {"type": "HorizontalLayout", "props": {"spaceEvenly": false}, "elements": [{"type": "Control", "label": "Parameter:", "scope": "#/properties/step_1/properties/from_output", "props": {"inline": true, "streamId": "PLATFORM:dev:SESSION:17ae09bf:AGENT:INTERACTIVEPLANNER:24898e88:STREAM:d190aa10:EVENT_MESSAGE:c99c9e0d", "formId": "c99c9e0d"}}, {"type": "Label", "label": "", "props": {"muted": true, "small": true, "style": {"fontStyle": "italic"}}}]}]}]}, {"type": "VerticalLayout", "elements": [{"type": "Label", "label": "To:", "props": {"style": {"fontWeight": "bold"}}}, {"type": "HorizontalLayout", "props": {"spaceEvenly": false}, "elements": [{"type": "Control", "label": "Agent:", "scope": "#/properties/step_1/properties/to_agent", "props": {"inline": true, "streamId": "PLATFORM:dev:SESSION:17ae09bf:AGENT:INTERACTIVEPLANNER:24898e88:STREAM:d190aa10:EVENT_MESSAGE:c99c9e0d", "formId": "c99c9e0d"}}, {"type": "Label", "label": "", "props": {"muted": true, "small": true, "style": {"fontStyle": "italic"}}}]}, {"type": "HorizontalLayout", "props": {"spaceEvenly": false}, "elements": [{"type": "Control", "label": "Parameter:", "scope": "#/properties/step_1/properties/to_input", "props": {"inline": true, "streamId": "PLATFORM:dev:SESSION:17ae09bf:AGENT:INTERACTIVEPLANNER:24898e88:STREAM:d190aa10:EVENT_MESSAGE:c99c9e0d", "formId": "c99c9e0d"}}, {"type": "Label", "label": "", "props": {"muted": true, "small": true, "style": {"fontStyle": "italic"}}}]}]}]}, {"type": "Group", "label": "STEP 2", "props": {"collapsible": true, "compact": true, "style": {"marginBottom": 15}}, "elements": [{"type": "Control", "props": {"large": true, "switch": true, "streamId": "PLATFORM:dev:SESSION:17ae09bf:AGENT:INTERACTIVEPLANNER:24898e88:STREAM:d190aa10:EVENT_MESSAGE:c99c9e0d", "formId": "c99c9e0d"}, "scope": "#/properties/step_2/properties/selected"}, {"type": "VerticalLayout", "elements": [{"type": "VerticalLayout", "elements": [{"type": "Label", "label": "From:", "props": {"style": {"fontWeight": "bold"}}}, {"type": "HorizontalLayout", "props": {"spaceEvenly": false}, "elements": [{"type": "Control", "label": "Agent:", "scope": "#/properties/step_2/properties/from_agent", "props": {"inline": true, "streamId": "PLATFORM:dev:SESSION:17ae09bf:AGENT:INTERACTIVEPLANNER:24898e88:STREAM:d190aa10:EVENT_MESSAGE:c99c9e0d", "formId": "c99c9e0d"}}, {"type": "Label", "label": "", "props": {"muted": true, "small": true, "style": {"fontStyle": "italic"}}}]}, {"type": "HorizontalLayout", "props": {"spaceEvenly": false}, "elements": [{"type": "Control", "label": "Parameter:", "scope": "#/properties/step_2/properties/from_output", "props": {"inline": true, "streamId": "PLATFORM:dev:SESSION:17ae09bf:AGENT:INTERACTIVEPLANNER:24898e88:STREAM:d190aa10:EVENT_MESSAGE:c99c9e0d", "formId": "c99c9e0d"}}, {"type": "Label", "label": "", "props": {"muted": true, "small": true, "style": {"fontStyle": "italic"}}}]}]}]}, {"type": "VerticalLayout", "elements": [{"type": "Label", "label": "To:", "props": {"style": {"fontWeight": "bold"}}}, {"type": "HorizontalLayout", "props": {"spaceEvenly": false}, "elements": [{"type": "Control", "label": "Agent:", "scope": "#/properties/step_2/properties/to_agent", "props": {"inline": true, "streamId": "PLATFORM:dev:SESSION:17ae09bf:AGENT:INTERACTIVEPLANNER:24898e88:STREAM:d190aa10:EVENT_MESSAGE:c99c9e0d", "formId": "c99c9e0d"}}, {"type": "Label", "label": "", "props": {"muted": true, "small": true, "style": {"fontStyle": "italic"}}}]}, {"type": "HorizontalLayout", "props": {"spaceEvenly": false}, "elements": [{"type": "Control", "label": "Parameter:", "scope": "#/properties/step_2/properties/to_input", "props": {"inline": true, "streamId": "PLATFORM:dev:SESSION:17ae09bf:AGENT:INTERACTIVEPLANNER:24898e88:STREAM:d190aa10:EVENT_MESSAGE:c99c9e0d", "formId": "c99c9e0d"}}, {"type": "Label", "label": "", "props": {"muted": true, "small": true, "style": {"fontStyle": "italic"}}}]}]}]}]}]}}, "form_id": "c99c9e0d"}'
+# )
 ws.send(
     json.dumps(
         {
@@ -299,34 +330,7 @@ ws.send(
             "connection_id": connection_id,
             "message": {
                 "label": "INTERACTION",
-                "content": {
-                    "type": "JSONFORM",
-                    "form_id": 'local-test-client-form-1',
-                    "content": {
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "first_name": {"type": "string"},
-                                "last_name": {"type": "string"},
-                            },
-                        },
-                        "uischema": {
-                            "type": "HorizontalLayout",
-                            "elements": [
-                                {
-                                    "type": "Control",
-                                    "label": "First Name",
-                                    "scope": "#/properties/first_name",
-                                },
-                                {
-                                    "type": "Control",
-                                    "label": "Last Name",
-                                    "scope": "#/properties/last_name",
-                                },
-                            ],
-                        },
-                    },
-                },
+                "content": json_form,
                 "dtype": 'json',
             },
             "stream": stream_id,

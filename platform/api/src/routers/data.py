@@ -9,7 +9,6 @@ sys.path.append("./lib/data_registry/")
 sys.path.append("./lib/platform/")
 
 
-
 ###### Parsers, Formats, Utils
 import re
 import csv
@@ -44,7 +43,7 @@ from blueprint import Platform
 from data_registry import DataRegistry
 
 ###### Properties
-from .settings import PROPERTIES
+from settings import PROPERTIES
 
 ### Assign from platform properties
 platform_id = PROPERTIES["platform.name"]
