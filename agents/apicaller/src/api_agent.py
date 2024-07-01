@@ -138,6 +138,29 @@ class APIAgent(Agent):
     def process_output(self, output_data):
         return output_data
 
+    def handle_api_call(self, stream_data, properties=None):
+        # create message, copying API specific properties
+        input_data = " ".join(stream_data)
+        if not self.validate_input(input_data):
+            return 
+
+        logging.info(input_data)
+        message = self.create_message(input_data, properties=properties)
+
+        # serialize message, call service
+        m = json.dumps(message)
+        r = self.call_service(m)
+
+        response = json.loads(r)
+
+        # create output from response
+        output_data = self.create_output(response)
+
+        # process output data
+        output = self.process_output(output_data)
+
+        return output
+
     def default_processor(self, stream, id, label, data, dtype=None, tags=None, properties=None, worker=None):
         
         if label == 'EOS':
@@ -146,38 +169,8 @@ class APIAgent(Agent):
             if worker:
                 stream_data = worker.get_data('stream')
 
-            #### call service to compute
-
-            # create message, copying API specific properties
-            input_data = " ".join(stream_data)
-            if not self.validate_input(input_data):
-                return 
-
-            logging.info(input_data)
-            message = self.create_message(input_data, properties=properties)
-
-            # serialize message, call service
-            m = json.dumps(message)
-            r = self.call_service(m)
-
-            response = json.loads(r)
-
-            # create output from response
-            output_data = self.create_output(response)
-
-            # process output data
-            output_data = self.process_output(output_data)
-
-            output_dtype = None
-
-            if type(output_data) == int:
-                output_dtype = 'int'
-            elif type(output_data) == str:
-                output_dtype = 'str'
-            elif type(output_data) == dict:
-                output_dtype = 'json'
-
-            return "DATA", output_data, output_dtype, True
+            #### call api to compute
+            return self.handle_api_call(stream_data, properties=properties)
             
         elif label == 'BOS':
             # init stream to empty array
