@@ -45,10 +45,9 @@ PLATFORM_PREFIX = f'/blue/platform/{platform_id}'
 ##### ROUTER
 router = APIRouter(prefix=f"{PLATFORM_PREFIX}/accounts")
 
-host = pydash.objects.get(PROPERTIES, 'db.host', 'localhost')
-port = pydash.objects.get(PROPERTIES, 'db.port', 6379)
+host = PROPERTIES.get('db.host', 'localhost')
+port = PROPERTIES.get('db.port', 6379)
 db = redis.Redis(host=host, port=port, decode_responses=True)
-db.set('foo', 'bar')
 
 FIREBASE_SERVICE_CRED = os.getenv("FIREBASE_SERVICE_CRED", "{}")
 cert = json.loads(base64.b64decode(FIREBASE_SERVICE_CRED))
@@ -143,6 +142,7 @@ async def signin(request: Request):
             expires = datetime.datetime.now(datetime.timezone.utc) + expires_in
             # samesite - lax: allow GET requests across origin
             response.set_cookie("session", session_cookie, expires=expires, httponly=True, secure=SECURE_COOKIE, samesite="lax", path="/")
+            # create user profile if does not exist
             return response
         return ERROR_RESPONSE
     except auth.InvalidIdTokenError:
