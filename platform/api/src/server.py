@@ -42,7 +42,7 @@ from data_registry import DataRegistry
 
 
 ###### Settings
-from routers.settings import PROPERTIES, DEVELOPMENT, SECURE_COOKIE
+from settings import PROPERTIES, DEVELOPMENT, SECURE_COOKIE
 
 ### Assign from platform properties
 platform_id = PROPERTIES["platform.name"]

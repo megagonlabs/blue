@@ -257,7 +257,52 @@ class InteractivePlannerAgent(OpenAIAgent):
         return interactive_plan
 
     def create_interactive_plan(self, plan):
-        steps_ui = []
+        steps_ui = {
+            "type": "Control",
+            "scope": "#/properties/steps",
+            "options": {
+                "detail": {
+                    "type": "VerticalLayout",
+                    "elements": [
+                        {
+                            "type": "Label",
+                            "label": "From"
+                        },
+                        {
+                            "type": "HorizontalLayout",
+                            "elements": [
+                                {
+                                    "type": "Control",
+                                    "scope": "#/properties/from_agent"
+                                },
+                                {
+                                    "type": "Control",
+                                    "scope": "#/properties/from_agent_param"
+                                }
+                            ]
+                        },
+                        {
+                            "type": "Label",
+                            "label": "To"
+                        },
+                        {
+                            "type": "HorizontalLayout",
+                            "elements": [
+                                {
+                                    "type": "Control",
+                                    "scope": "#/properties/to_agent"
+                                },
+                                {
+                                    "type": "Control",
+                                    "scope": "#/properties/to_agent_param"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            }
+        }
+
         plan_ui = {
             "type": "VerticalLayout",
             "elements": [
@@ -288,247 +333,102 @@ class InteractivePlannerAgent(OpenAIAgent):
             ]
         }
 
-        step_ui_template = """
-        {
-            "type": "Group",
-            "label": "STEP ${index}",
-            "props": {
-                "collapsible": true,
-                "compact": true,
-                "style": {
-                    "marginBottom": 15
-                }
-            },
-            "elements": [
-                {
-                    "type": "Control",
-                    "props": {
-                        "large": true,
-                        "switch": true
-                    },
-                    "scope": "#/properties/step_${index}/properties/selected"
-                },
-                {
-                    "type": "VerticalLayout",
-                    "elements": [
-                        {
-                            "type": "VerticalLayout",
-                            "elements": [
-                                {
-                                    "type": "Label",
-                                    "label": "From:",
-                                    "props": {
-                                        "style": {
-                                            "fontWeight": "bold"
-                                        }
-                                    }
-                                },
-                                {
-                                    "type": "HorizontalLayout",
-                                    "props": {
-                                        "spaceEvenly": false
-                                    },
-                                    "elements": [
-                                        {
-                                            "type": "Control",
-                                            "label": "Agent:",
-                                            "scope": "#/properties/step_${index}/properties/from_agent",
-                                            "props": {
-                                                "inline": true
-                                            }
-                                        },
-                                        {
-                                            "type": "Label",
-                                            "label": "${from_agent_description}",
-                                            "props": {
-                                                "muted": true,
-                                                "small": true,
-                                                "style": {
-                                                    "fontStyle": "italic"
-                                                }
-                                            }
-                                        }
-                                    ]
-                                },
-                                {
-                                    "type": "HorizontalLayout",
-                                    "props": {
-                                        "spaceEvenly": false
-                                    },
-                                    "elements": [
-                                        {
-                                            "type": "Control",
-                                            "label": "Parameter:",
-                                            "scope": "#/properties/step_${index}/properties/from_output",
-                                            "props": {
-                                                "inline": true
-                                            }
-                                        },
-                                        {
-                                            "type": "Label",
-                                            "label": "${from_agent_output_parameter_description}",
-                                            "props": {
-                                                "muted": true,
-                                                "small": true,
-                                                "style": {
-                                                    "fontStyle": "italic"
-                                                }
-                                            }
-                                        }
-                                    ]
-                                }
-                            ]
-                        }
-                    ]
-                },
-    
-                {
-                    "type": "VerticalLayout",
-                    "elements": [
-                        {
-                            "type": "Label",
-                            "label": "To:",
-                            "props": {
-                                "style": {
-                                    "fontWeight": "bold"
-                                }
-                            }
-                        },
-                        {
-                            "type": "HorizontalLayout",
-                            "props": {
-                                "spaceEvenly": false
-                            },
-                            "elements": [
-                                {
-                                    "type": "Control",
-                                    "label": "Agent:",
-                                    "scope": "#/properties/step_${index}/properties/to_agent",
-                                    "props": {
-                                        "inline": true
-                                    }
-                                },
-                                {
-                                    "type": "Label",
-                                    "label": "${to_agent_description}",
-                                    "props": {
-                                        "muted": true,
-                                        "small": true,
-                                        "style": {
-                                            "fontStyle": "italic"
-                                        }
-                                    }
-                                }
-                            ]
-                        },
-                        {
-                            "type": "HorizontalLayout",
-                            "props": {
-                                "spaceEvenly": false
-                            },
-                            "elements": [
-                                {
-                                    "type": "Control",
-                                    "label": "Parameter:",
-                                    "scope": "#/properties/step_${index}/properties/to_input",
-                                    "props": {
-                                        "inline": true
-                                    }
-                                },
-                                {
-                                    "type": "Label",
-                                    "label": "${to_agent_input_parameter_description}",
-                                    "props": {
-                                        "muted": true,
-                                        "small": true,
-                                        "style": {
-                                            "fontStyle": "italic"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    ]
-                }  
-            ]   
-        }      
-        """
 
-        steps_data = {}
-        plan_data =  {
-            "type": "object",
-            "properties": steps_data
-        }
-
-        step_data_template = """
+        plan_schema_template = """
         {
             "type": "object",
             "properties": {
-                "selected": {
-                    "type": "boolean"
-                },
-                "from_agent": {
-                    "type": "string",
-                    "enum": [
-                        "${from_agent}"
-                    ]
-                },
-                "from_output": {
-                    "type": "string",
-                    "enum": [
-                        "${from_agent_output_parameter}"
-                    ]
-                },
-                "to_agent": {
-                    "type": "string",
-                    "enum": [
-                        "${to_agent}"
-                    ]
-                },
-                "to_input": {
-                    "type": "string",
-                    "enum": [
-                        "${to_agent_input_parameter}"
-                    ]
+                "steps": {
+                    "type": "array",
+                    "title": "Steps",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "from_agent": {
+                                "type": "string",
+                                "enum": ${from_agent_list}
+                            },
+                            "from_agent_param": {
+                                "type": "string",
+                                "enum": ${from_agent_params}
+                            },
+                            "to_agent": {
+                                "type": "string",
+                                "enum":  ${to_agent_list}
+                            },
+                            "to_agent_param": {
+                                "type": "string",
+                                "enum": ${to_agent_params}
+                            }
+                        }
+                    }
                 }
             }
         }
         """
 
+        plan_data = []
+
+        step_data_template = """
+        {
+            "from_agent": "${from_agent}",
+            "from_agent_param": "${from_agent_param}",
+            "to_agent": "${to_agent}",
+            "to_agent_param": "${to_agent_param}"
+        }
+        """
+
+        ## set plan schema
+        records = self.registry.list_records()
+        agents = list(records.keys())
+        params = list(set(json_utils.json_query(records, "*.contents.*.name", single=False)))
+        # convert to json strings
+
+        agents = json.dumps(agents)
+        params = json.dumps(params)
+        # assign
+        from_agent_list = agents
+        to_agent_list = agents
+        from_agent_params = params
+        to_agent_params = params
+
+
+        plan_schema_t = Template(plan_schema_template)
+        plan_schema = plan_schema_t.substitute(from_agent_list=from_agent_list, from_agent_params=from_agent_params, to_agent_list=to_agent_list, to_agent_params=to_agent_params)
+        logging.info(plan_schema)
+        plan_schema = json.loads(plan_schema)
+
+        # inject plan/steps data
         index = 0 
         for step in plan:
             _from = step['from']
             from_split = _from.split(".")
             from_agent =  from_split[0]
             from_agent_description = ""
-            from_agent_output_parameter = from_split[1]
-            from_agent_output_parameter_description = ""
+            from_agent_param = from_split[1]
 
             _to = step['to']
             to_split = _to.split(".")
             to_agent =  to_split[0]
             to_agent_description = ""
-            to_agent_input_parameter = to_split[1]
-            to_agent_input_parameter_description = ""
+            to_agent_param = to_split[1]
 
             step_data_t = Template(step_data_template)
-            step_data = step_data_t.substitute(index=index, from_agent=from_agent, from_agent_output_parameter=from_agent_output_parameter, to_agent=to_agent, to_agent_input_parameter=to_agent_input_parameter)
+            step_data = step_data_t.substitute(index=index, from_agent=from_agent, from_agent_param=from_agent_param, to_agent=to_agent, to_agent_param=to_agent_param)
+            logging.info(step_data)
             step_data = json.loads(step_data)
 
-            steps_data["step_" + str(index)] = step_data
-
-            step_ui_t = Template(step_ui_template)
-            step_ui = step_ui_t.substitute(index=index, from_agent_description=from_agent_description, from_agent_output_parameter_description=from_agent_output_parameter_description, to_agent_description=to_agent_description, to_agent_input_parameter_description=to_agent_input_parameter_description)
-            step_ui = json.loads(step_ui)
-            steps_ui.append(step_ui)
+            plan_data.append(step_data)
 
             index = index + 1
 
         interactive_form = {
-            "schema": plan_data,
-            "uischema": plan_ui
+            "schema": plan_schema,
+            "data": plan_data,
+            "uischema": plan_ui,
             }
 
+        logging.info(json.dumps(interactive_form, indent=3))
         return ("INTERACTION", {"type": "JSONFORM", "content": interactive_form}, "json", False)
 
     def default_processor(self, stream, id, label, data, dtype=None, tags=None, properties=None, worker=None):
