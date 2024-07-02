@@ -69,6 +69,7 @@ module.exports = {
                     placeholder: { type: "string", minLength: 1 },
                     style: { type: "object" },
                     streamId: { type: "string", minLength: 1 },
+                    formId: { type: "string", minLength: 1 },
                     action: { type: "string", minLength: 1 },
                 },
                 additionalProperties: false,
