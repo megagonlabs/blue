@@ -328,7 +328,7 @@ class InteractivePlannerAgent(OpenAIAgent):
                 },
                 {
                     "type": "VerticalLayout",
-                    "elements": steps_ui
+                    "elements": [ steps_ui ]
                 }
             ]
         }
@@ -424,7 +424,7 @@ class InteractivePlannerAgent(OpenAIAgent):
 
         interactive_form = {
             "schema": plan_schema,
-            "data": plan_data,
+            "data": { "steps": plan_data },
             "uischema": plan_ui,
             }
 
