@@ -18,7 +18,7 @@ const ButtonRenderer = ({ uischema, path }) => {
                     path: path,
                     action: _.get(uischema, "props.action", null),
                     form_id: _.get(uischema, "props.formId", null),
-                    timestamp: Date.now(),
+                    timestamp: performance.timeOrigin + performance.now(),
                 })
             );
         }, 0);

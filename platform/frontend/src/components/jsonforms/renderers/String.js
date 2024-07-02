@@ -31,7 +31,7 @@ const StringRenderer = ({ uischema, handleChange, path, data, required }) => {
                     path: path,
                     form_id: _.get(uischema, "props.formId", null),
                     value: event.target.value,
-                    timestamp: Date.now(),
+                    timestamp: performance.timeOrigin + performance.now(),
                 })
             );
         }, 0);

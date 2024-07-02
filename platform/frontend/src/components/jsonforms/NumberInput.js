@@ -140,7 +140,7 @@ export default function NumberInput({
                     path: path,
                     form_id: _.get(uischema, "props.formId", null),
                     value: _.toNumber(result),
-                    timestamp: Date.now(),
+                    timestamp: performance.timeOrigin + performance.now(),
                 })
             );
         }, 0);

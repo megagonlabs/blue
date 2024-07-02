@@ -24,7 +24,7 @@ const BooleanRenderer = ({ uischema, handleChange, path, data, required }) => {
                     path: path,
                     form_id: _.get(uischema, "props.formId", null),
                     value: event.target.checked,
-                    timestamp: Date.now(),
+                    timestamp: performance.timeOrigin + performance.now(),
                 })
             );
         }, 0);

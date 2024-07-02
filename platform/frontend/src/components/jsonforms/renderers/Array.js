@@ -84,7 +84,7 @@ const ArrayRenderer = ({
                     path: path,
                     form_id: _.get(uischema, "props.formId", null),
                     value: data,
-                    timestamp: Date.now(),
+                    timestamp: performance.timeOrigin + performance.now(),
                 })
             );
         }, 0);

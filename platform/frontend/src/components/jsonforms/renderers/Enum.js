@@ -67,7 +67,8 @@ const EnumRenderer = ({
                                 path: path,
                                 form_id: _.get(uischema, "props.formId", null),
                                 value: value,
-                                timestamp: Date.now(),
+                                timestamp:
+                                    performance.timeOrigin + performance.now(),
                             })
                         );
                     }, 0);
