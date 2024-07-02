@@ -120,7 +120,7 @@ class ConnectionManager:
             event_stream.start()
             event_stream.write(
                 data={
-                    "path": json_data['path'],
+                    "path": pydash.objects.get(json_data, "path", None),
                     "action": pydash.objects.get(json_data, "action", None),
                     "form_id": json_data['form_id'],
                     "value": pydash.objects.get(json_data, "value", None),
