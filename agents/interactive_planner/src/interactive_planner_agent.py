@@ -39,6 +39,9 @@ from websockets.sync.client import connect
 from agent import Agent, AgentFactory
 from api_agent import APIAgent
 from session import Session
+from producer import Producer
+from consumer import Consumer
+
 from openai_agent import OpenAIAgent
 from agent_registry import AgentRegistry
 
@@ -329,6 +332,15 @@ class InteractivePlannerAgent(OpenAIAgent):
                 {
                     "type": "VerticalLayout",
                     "elements": [ steps_ui ]
+                },
+                {
+                    "type": "Button",
+                    "label": "Submit",
+                    "props": {
+                        "intent": "success",
+                        "action": "DONE",
+                        "large": True,
+                    },
                 }
             ]
         }
@@ -431,29 +443,87 @@ class InteractivePlannerAgent(OpenAIAgent):
         logging.info(json.dumps(interactive_form, indent=3))
         return ("INTERACTION", {"type": "JSONFORM", "content": interactive_form}, "json", False)
 
-    def default_processor(self, stream, id, label, data, dtype=None, tags=None, properties=None, worker=None):
-        if label == 'EOS':
-            # get all data received from stream
-            stream_data = ""
-            if worker:
-                stream_data = worker.get_data('stream')
 
-            #### call api to compute, render interactive plan
-            return self.handle_api_call(stream_data)
+    def standardize_plan(self, plan):
+        # transform each step into a tuple [ "from_agent.from_agent_param", "to_agent.to_agent_param" ] of edges in DAG
+        edges = []
+        for step in plan:
+            from_agent = step["from_agent"]
+            from_agent_param = step["from_agent_param"]
+            to_agent = step["to_agent"]
+            to_agent_param = step["to_agent_param"]
+            edge = [ from_agent + "." + from_agent_param, to_agent + "." + to_agent_param ]
+            edges.append(edge)
+
+        return edges
+
+    def default_processor(self, stream, id, label, data, dtype=None, tags=None, properties=None, worker=None):
+        if ":EVENT_MESSAGE:" in stream:
+            if label == "DATA":
+                if worker:
+
+                    output_stream_cid = stream[: stream.rindex("EVENT_MESSAGE") - 1]
+
+                    # when the user clicked DONE
+                    if data["action"] == "DONE":
+                        # get plan
+                        plan_data = worker.get_stream_data(stream=output_stream_cid, key="steps")
+                        # standardize plan
+                        plan_dag = self.standardize_plan(plan_data)
+                        logging.info(plan_dag)
+
+
+                        # get output stream with original form
+                        output_stream = Producer(cid=output_stream_cid, properties=properties)
+                        output_stream.start()
+
+                        # close form
+                        output_stream.write(
+                            label="INTERACTION",
+                            data={
+                                "type": "DONE",
+                                "form_id": data["form_id"],
+                            },
+                            dtype="json",
+                        )
+
+                        # stream form data
+                        return ("DATA", { "plan" : plan_dag }, "json", True)
+                    else:
+                        timestamp = worker.get_stream_data(stream=output_stream_cid, key=f'{data["path"]}.timestamp')
+
+                        # TODO: timestamp should be replaced by id to determine order
+                        if timestamp is None or data["timestamp"] > timestamp:
+                            
+                            
+                            worker.set_stream_data(
+                                key=data["path"],
+                                value=data["value"],
+                                stream=output_stream_cid,
+                            )
+        else:
+            if label == 'EOS':
+                # get all data received from stream
+                stream_data = ""
+                if worker:
+                    stream_data = worker.get_data('stream')
+
+                #### call api to compute, render interactive plan
+                return self.handle_api_call(stream_data)
+                
+            elif label == 'BOS':
+                # init stream to empty array
+                if worker:
+                    worker.set_data('stream',[])
+                pass
+            elif label == 'DATA':
+                # store data value
+                logging.info(data)
+                
+                if worker:
+                    worker.append_data('stream', data)
             
-        elif label == 'BOS':
-            # init stream to empty array
-            if worker:
-                worker.set_data('stream',[])
-            pass
-        elif label == 'DATA':
-            # store data value
-            logging.info(data)
-            
-            if worker:
-                worker.append_data('stream', data)
-        
-        return None
+            return None
     
 
 if __name__ == "__main__":
