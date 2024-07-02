@@ -174,13 +174,12 @@ class Worker:
                     properties=self.properties,
                 )
                 event_stream.start()
-                
+
                 # inject stream and form id into ui
                 result_data["form_id"] = form_id
                 interactive_result_type = pydash.objects.get(result_data, "type", None)
                 if pydash.is_equal(interactive_result_type, "JSONFORM"):
                     self._stream_injection(result_data["content"], event_stream.get_stream(), form_id)
-
 
                 # start a consumer to listen to a event stream, using self.processor
                 event_consumer = Consumer(
@@ -221,6 +220,9 @@ class Worker:
                 for element in form_element["elements"]:
                     self._stream_injection(element, stream, form_id)
             elif pydash.includes(["Control", "Button"], form_element["type"]):
+                if form_element["type"] is "Control":
+                    if pydash.objects.has(form_element, 'options.detail.type'):
+                        self._stream_injection(pydash.objects.get(form_element, 'options.detail', {}), stream, form_id)
                 pydash.objects.set_(form_element, "props.streamId", stream)
                 pydash.objects.set_(form_element, "props.formId", form_id)
 
