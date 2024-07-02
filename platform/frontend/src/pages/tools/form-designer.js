@@ -51,6 +51,14 @@ const DEFAULT_SCHEMA = JSON.stringify(
     null,
     4
 );
+const DEFAULT_UI_SCHEMA = JSON.stringify(
+    {
+        type: "VerticalLayout",
+        elements: [],
+    },
+    null,
+    4
+);
 function FormDesigner() {
     const [error, resetError] = useErrorBoundary();
     const leftPaneRef = createRef();
@@ -151,7 +159,7 @@ function FormDesigner() {
         leftPaneRef.current.resize([50, 50]);
         setUiSchemaError(false);
         setSchemaError(false);
-        setJsonUischema("{}");
+        setJsonUischema(DEFAULT_UI_SCHEMA);
         setJsonSchema(DEFAULT_SCHEMA);
         setResultPanel(true);
         sessionStorage.removeItem("jsonUischema");

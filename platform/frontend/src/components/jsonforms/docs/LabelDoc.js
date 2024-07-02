@@ -29,7 +29,7 @@ export default function LabelDoc({ closePanel }) {
     );
     return (
         <>
-            <div className="bp-border-bottom" style={{ padding: 10 }}>
+            <div className="bp-border-bottom" style={{ padding: "10px 20px" }}>
                 <Button
                     outlined
                     text="Back"
