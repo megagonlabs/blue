@@ -193,7 +193,6 @@ class Platform:
     def _start_producer(self):
         # start, if not started
         if self.producer == None:
-            print(self.cid)
             producer = Producer(sid="STREAM", prefix=self.cid, properties=self.properties)
             producer.start()
             self.producer = producer
