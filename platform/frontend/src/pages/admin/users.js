@@ -1,10 +1,11 @@
-import { CONTAINER_STATUS_INDICATOR } from "@/components/constant";
+import { PROFILE_PICTURE_40 } from "@/components/constant";
 import { faIcon } from "@/components/icon";
 import {
     Button,
     ButtonGroup,
+    Card,
     Checkbox,
-    Divider,
+    Classes,
     Intent,
     NonIdealState,
     Tag,
@@ -19,30 +20,31 @@ import {
     TableLoadingOption,
     Utils,
 } from "@blueprintjs/table";
-import {
-    faCircleA,
-    faRefresh,
-    faStop,
-} from "@fortawesome/pro-duotone-svg-icons";
+import { faRefresh, faUserGroup } from "@fortawesome/pro-duotone-svg-icons";
 import axios from "axios";
 import _ from "lodash";
+import Image from "next/image";
 import { useEffect, useState } from "react";
-import ReactTimeAgo from "react-time-ago";
-export default function Agents() {
+export default function Users() {
     const [tableKey, setTableKey] = useState(Date.now());
-    const [loading, setLoading] = useState(true);
     const [data, setData] = useState([]);
-    const fetchContainerList = () => {
+    const [loading, setLoading] = useState(true);
+    const fetchUserList = () => {
         setLoading(true);
-        axios.get("/containers/agents").then((response) => {
-            setData(_.get(response, "data.results", []));
+        axios.get("/accounts/users").then((response) => {
+            setData(_.get(response, "data.users", []));
             setLoading(false);
         });
     };
     useEffect(() => {
-        fetchContainerList();
+        fetchUserList();
     }, []);
-    const TABLE_CELL_HEIGHT = 40;
+    const TABLE_CELL_HEIGHT = 50;
+    const USER_ROLE_INTENT = {
+        admin: Intent.DANGER,
+        member: Intent.PRIMARY,
+        guest: Intent.SUCCESS,
+    };
     const INIT_COLUMNS = [
         {
             name: <div>&nbsp;</div>,
@@ -53,61 +55,64 @@ export default function Agents() {
                 </Cell>
             ),
         },
-        { name: "ID", key: "id" },
-        { name: "Hostname", key: "hostname" },
+        { name: "UID", key: "uid" },
         {
-            name: "Created At",
-            key: "created_date",
+            name: "Name",
+            key: "name",
             cellRenderer: ({ rowIndex, data }) => {
-                const timestamp = _.get(data, [rowIndex, "created_date"], null);
+                const picture = _.get(data, [rowIndex, "picture"], "");
+                const name = _.get(data, [rowIndex, "name"], "-");
                 return (
                     <Cell style={{ lineHeight: `${TABLE_CELL_HEIGHT - 1}px` }}>
-                        {!_.isEmpty(timestamp) ? (
-                            <ReactTimeAgo
-                                date={new Date(timestamp)}
-                                locale="en-US"
-                            />
-                        ) : (
-                            "-"
-                        )}
+                        <div
+                            className="full-parent-width"
+                            style={{ position: "relative" }}
+                        >
+                            <Card
+                                className="margin-0"
+                                style={{
+                                    ...PROFILE_PICTURE_40,
+                                    position: "absolute",
+                                    top: 5,
+                                    left: 1,
+                                }}
+                            >
+                                <Image
+                                    alt=""
+                                    src={picture}
+                                    width={40}
+                                    height={40}
+                                />
+                            </Card>
+                            <div
+                                style={{ paddingLeft: 52 }}
+                                className={Classes.TEXT_OVERFLOW_ELLIPSIS}
+                            >
+                                {name}
+                            </div>
+                        </div>
                     </Cell>
                 );
             },
         },
+        { name: "Email", key: "email" },
         {
-            name: "Image",
-            key: "image",
-            cellRenderer: ({ rowIndex, data }) => (
-                <Cell style={{ lineHeight: `${TABLE_CELL_HEIGHT - 1}px` }}>
-                    <Tag intent={Intent.PRIMARY} minimal>
-                        {_.get(data, [rowIndex, "image"], "-")}
-                    </Tag>
-                </Cell>
-            ),
-        },
-        {
-            name: "Status",
-            key: "status",
+            name: "Role",
+            key: "role",
             cellRenderer: ({ rowIndex, data }) => {
-                const status = _.get(data, [rowIndex, "status"], "-");
+                const role = _.get(data, [rowIndex, "role"], "-");
                 return (
                     <Cell style={{ lineHeight: `${TABLE_CELL_HEIGHT - 1}px` }}>
                         <Tag
-                            intent={_.get(
-                                CONTAINER_STATUS_INDICATOR,
-                                [status, "intent"],
-                                null
-                            )}
                             minimal
+                            intent={_.get(USER_ROLE_INTENT, role, null)}
                         >
-                            {_.capitalize(status)}
+                            {role}
                         </Tag>
                     </Cell>
                 );
             },
         },
-        { name: "Agent", key: "agent" },
-        { name: "Registry", key: "registry" },
     ];
     const [columns, setColumns] = useState(INIT_COLUMNS);
     useEffect(() => {
@@ -139,21 +144,17 @@ export default function Agents() {
                     }}
                 >
                     <NonIdealState
-                        title="No Agent"
-                        icon={faIcon({ icon: faCircleA, size: 50 })}
+                        title="No User"
+                        icon={faIcon({ icon: faUserGroup, size: 50 })}
                     />
                 </div>
             ) : null}
             <div style={{ padding: 5, height: 50 }}>
                 <ButtonGroup large minimal>
-                    <Tooltip placement="bottom-start" minimal content="Stop">
-                        <Button disabled icon={faIcon({ icon: faStop })} />
-                    </Tooltip>
-                    <Divider />
-                    <Tooltip placement="bottom" minimal content="Refresh">
+                    <Tooltip placement="bottom-start" minimal content="Refresh">
                         <Button
                             intent={Intent.PRIMARY}
-                            onClick={fetchContainerList}
+                            onClick={fetchUserList}
                             loading={loading}
                             icon={faIcon({ icon: faRefresh })}
                         />
@@ -162,6 +163,7 @@ export default function Agents() {
             </div>
             <div style={{ height: "calc(100% - 50px)" }}>
                 <Table2
+                    minColumnWidth={62}
                     loadingOptions={
                         loading
                             ? [

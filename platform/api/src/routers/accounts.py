@@ -48,6 +48,8 @@ router = APIRouter(prefix=f"{PLATFORM_PREFIX}/accounts")
 host = PROPERTIES.get('db.host', 'localhost')
 port = PROPERTIES.get('db.port', 6379)
 db = redis.Redis(host=host, port=port, decode_responses=True)
+REDIS_USER_PREFIX = f'PLATFORM:{platform_id}:USERS:{platform_id}:METADATA'
+db.json().set(REDIS_USER_PREFIX, '$', {}, nx=True)
 
 FIREBASE_SERVICE_CRED = os.getenv("FIREBASE_SERVICE_CRED", "{}")
 cert = json.loads(base64.b64decode(FIREBASE_SERVICE_CRED))
@@ -142,7 +144,20 @@ async def signin(request: Request):
             expires = datetime.datetime.now(datetime.timezone.utc) + expires_in
             # samesite - lax: allow GET requests across origin
             response.set_cookie("session", session_cookie, expires=expires, httponly=True, secure=SECURE_COOKIE, samesite="lax", path="/")
-            # create user profile if does not exist
+            # create user profile with guest role if does not exist
+            uid = decoded_claims['uid']
+            db.json().set(
+                REDIS_USER_PREFIX,
+                f'$.{uid}',
+                {
+                    "uid": uid,
+                    'role': 'guest',
+                    'email': email,
+                    "name": decoded_claims["name"],
+                    "picture": decoded_claims["picture"],
+                },
+                nx=True,
+            )
             return response
         return ERROR_RESPONSE
     except auth.InvalidIdTokenError:
@@ -189,7 +204,14 @@ async def signin_cli(request: Request):
 
 @router.get("/profile")
 def get_profile(request: Request):
-    return JSONResponse(content={"profile": request.state.user})
+    profile = {**request.state.user}
+    user_role = db.json().get(REDIS_USER_PREFIX, f'$.{profile["uid"]}.role')
+    if len(user_role) == 0:
+        user_role = None
+    else:
+        user_role = user_role[0]
+    profile['role'] = user_role
+    return JSONResponse(content={"profile": profile})
 
 
 @router.get("/profile/email/{email}")
@@ -201,3 +223,9 @@ def get_profil_by_email(email):
     except ValueError as ex:
         print(ex)
     return JSONResponse(content={"user": user})
+
+
+@router.get("/users")
+def get_users():
+    users = db.json().get(REDIS_USER_PREFIX)
+    return JSONResponse(content={"users": list(users.values())})

@@ -97,7 +97,6 @@ module.exports = {
         overflow: "hidden",
         width: 40,
         height: 40,
-        marginTop: 4,
     },
     HEX_TRANSPARENCY: {
         100: "FF",

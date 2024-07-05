@@ -56,7 +56,6 @@ _VERSION_PATH = Path(__file__).parent / "version"
 version = Path(_VERSION_PATH).read_text().strip()
 print("blue-platform-api: " + version)
 
-
 ###### Initialization
 p = Platform(id=platform_id, properties=PROPERTIES)
 
