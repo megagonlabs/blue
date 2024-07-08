@@ -21,3 +21,4 @@ PROPERTIES["db.host"] = os.getenv("BLUE_DB_HOST", 'blue_db_redis')
 ##### Other Settings
 DEVELOPMENT = os.getenv("BLUE_DEPLOY_DEVELOPMENT", "False").lower() == "true"
 SECURE_COOKIE = os.getenv("BLUE_DEPLOY_SECURE", "True").lower() == "true"
+REDIS_USER_PREFIX = f'PLATFORM:{PROPERTIES["platform.name"]}:USERS:{PROPERTIES["platform.name"]}:METADATA'

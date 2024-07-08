@@ -3,6 +3,9 @@ from curses import noecho
 import os
 import sys
 
+from fastapi import Request
+from constant import authorize
+
 ###### Add lib path
 sys.path.append("./lib/")
 sys.path.append("./lib/agent_registry/")
@@ -69,8 +72,9 @@ logging.getLogger().setLevel("INFO")
 
 
 @router.get("/agents/")
+@authorize(roles=['admin'])
 # get the list of agent running agents on the platform
-def list_agent_containers():
+def list_agent_containers(request: Request):
     # connect to docker
     client = docker.from_env()
 
@@ -128,8 +132,9 @@ def list_agent_containers():
 
 
 @router.post("/agents/agent/{agent_name}")
+@authorize(roles=['admin'])
 # deploy an agent container with the name {agent_name} to the agent registry with the name
-def deploy_agent_container(agent_name):
+def deploy_agent_container(request: Request, agent_name):
     agent_registry_properties = agent_registry.get_agent_properties(agent_name)
     image = agent_registry_properties["image"]
 
@@ -179,8 +184,9 @@ def deploy_agent_container(agent_name):
 
 
 @router.put("/agents/agent/{agent_name}")
+@authorize(roles=['admin'])
 # update the agent container with the name {agent_name} in the agent registry with the name, pulling in new image
-def update_agent_container(registry_name, agent_name):
+def update_agent_container(request: Request, registry_name, agent_name):
     agent = agent_registry.get_agent_properties(agent_name)
     properties = agent_registry.get_agent_properties(agent_name)
     image = properties["image"]
@@ -202,8 +208,9 @@ def update_agent_container(registry_name, agent_name):
 
 
 @router.delete("/agents/agent/{agent_name}")
+@authorize(roles=['admin'])
 # shutdown the agent container with the name {agent_name} from the agent registry with the name
-def shutdown_agent_container(registry_name, agent_name):
+def shutdown_agent_container(request: Request, registry_name, agent_name):
     platform = Platform(id=platform_id, properties=PROPERTIES)
 
     # connect to docker

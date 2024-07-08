@@ -2,7 +2,7 @@
 from curses import noecho
 import os
 import sys
-
+import redis
 
 ###### Add lib path
 sys.path.append("./lib/")
@@ -23,6 +23,13 @@ from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from firebase_admin import auth
 
+###### Settings
+from settings import PROPERTIES, REDIS_USER_PREFIX
+
+host = PROPERTIES.get('db.host', 'localhost')
+port = PROPERTIES.get('db.port', 6379)
+db = redis.Redis(host=host, port=port, decode_responses=True)
+db.json().set(REDIS_USER_PREFIX, '$', {}, nx=True)
 
 ###### API Routers
 from constant import EMAIL_DOMAIN_ADDRESS_REGEXP, InvalidRequestJson
@@ -39,10 +46,6 @@ from session import Session
 from blueprint import Platform
 from agent_registry import AgentRegistry
 from data_registry import DataRegistry
-
-
-###### Settings
-from settings import PROPERTIES, DEVELOPMENT, SECURE_COOKIE
 
 ### Assign from platform properties
 platform_id = PROPERTIES["platform.name"]
@@ -103,7 +106,7 @@ async def session_verification(request: Request, call_next):
             decoded_claims = auth.verify_session_cookie(session_cookie, check_revoked=True)
             email = decoded_claims["email"]
             email_domain = re.search(EMAIL_DOMAIN_ADDRESS_REGEXP, email).group(1)
-            request.state.user = {
+            profile = {
                 "name": decoded_claims["name"],
                 "picture": decoded_claims["picture"],
                 "uid": decoded_claims["uid"],
@@ -111,6 +114,13 @@ async def session_verification(request: Request, call_next):
                 "email": email,
                 "exp": decoded_claims["exp"],
             }
+            user_role = db.json().get(REDIS_USER_PREFIX, f'$.{profile["uid"]}.role')
+            if len(user_role) == 0:
+                user_role = None
+            else:
+                user_role = user_role[0]
+            profile['role'] = user_role
+            request.state.user = profile
         except auth.InvalidSessionCookieError:
             # Session cookie is invalid, expired or revoked. Force user to login.
             response = JSONResponse(content={"message": "Session cookie is invalid, epxpired or revoked", "error_code": "session_cookie_invalid"}, status_code=401)

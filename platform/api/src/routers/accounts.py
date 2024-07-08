@@ -17,26 +17,20 @@ import time
 import datetime
 import pydash
 
-
-##### Typing
-from pydantic import BaseModel, Json
-from typing import Union, Any, Dict, AnyStr, List
-
-
 ###### FastAPI, Auth, Web
 from APIRouter import APIRouter
 from fastapi.responses import JSONResponse
 import firebase_admin
 from firebase_admin import auth, credentials, exceptions
 
-import redis
-from constant import EMAIL_DOMAIN_ADDRESS_REGEXP, redisReplace
+from constant import EMAIL_DOMAIN_ADDRESS_REGEXP, authorize, redisReplace
 from fastapi import Request
 from APIRouter import APIRouter
 from fastapi.responses import JSONResponse
 
 ###### Settings
-from settings import PROPERTIES, SECURE_COOKIE
+from settings import PROPERTIES, SECURE_COOKIE, REDIS_USER_PREFIX
+from server import db
 
 ### Assign from platform properties
 platform_id = PROPERTIES["platform.name"]
@@ -44,12 +38,6 @@ PLATFORM_PREFIX = f'/blue/platform/{platform_id}'
 
 ##### ROUTER
 router = APIRouter(prefix=f"{PLATFORM_PREFIX}/accounts")
-
-host = PROPERTIES.get('db.host', 'localhost')
-port = PROPERTIES.get('db.port', 6379)
-db = redis.Redis(host=host, port=port, decode_responses=True)
-REDIS_USER_PREFIX = f'PLATFORM:{platform_id}:USERS:{platform_id}:METADATA'
-db.json().set(REDIS_USER_PREFIX, '$', {}, nx=True)
 
 FIREBASE_SERVICE_CRED = os.getenv("FIREBASE_SERVICE_CRED", "{}")
 cert = json.loads(base64.b64decode(FIREBASE_SERVICE_CRED))
@@ -60,6 +48,7 @@ allowed_domains = EMAIL_DOMAIN_WHITE_LIST.split(",")
 
 
 @router.get('/websocket-ticket')
+@authorize(roles=['admin', 'member', 'guest'])
 def ws_ticket(request: Request):
     ticket = request.app.connection_manager.get_ticket(user=request.state.user)
     return JSONResponse(content={"ticket": ticket})
@@ -203,19 +192,14 @@ async def signin_cli(request: Request):
 
 
 @router.get("/profile")
+@authorize(roles=['admin', 'member', 'guest'])
 def get_profile(request: Request):
-    profile = {**request.state.user}
-    user_role = db.json().get(REDIS_USER_PREFIX, f'$.{profile["uid"]}.role')
-    if len(user_role) == 0:
-        user_role = None
-    else:
-        user_role = user_role[0]
-    profile['role'] = user_role
-    return JSONResponse(content={"profile": profile})
+    return JSONResponse(content={"profile": request.state.user})
 
 
 @router.get("/profile/email/{email}")
-def get_profil_by_email(email):
+@authorize(roles=['admin', 'member', 'guest'])
+def get_profil_by_email(request: Request, email):
     user = {'id': email}
     try:
         user_record = auth.get_user_by_email(redisReplace(email, reverse=True))
@@ -226,6 +210,7 @@ def get_profil_by_email(email):
 
 
 @router.get("/users")
-def get_users():
+@authorize(roles=['admin'])
+def get_users(request: Request):
     users = db.json().get(REDIS_USER_PREFIX)
     return JSONResponse(content={"users": list(users.values())})

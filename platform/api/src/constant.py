@@ -37,3 +37,21 @@ def redisReplace(value, reverse=False):
         replacements = {'_AT_': '@', '_DOT_': '.'}
     pattern = '|'.join(sorted(re.escape(char) for char in replacements))
     return re.sub(pattern, lambda m: replacements.get(m.group(0).upper()), value, flags=re.IGNORECASE)
+
+
+from functools import wraps
+from fastapi import HTTPException
+
+
+def authorize(roles: list):
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            user_role = pydash.objects.get(kwargs, 'request.state.user.role', None)
+            if user_role not in roles:
+                raise HTTPException(status_code=403, detail="You don't have permission for this request.")
+            return func(*args, **kwargs)
+
+        return wrapper
+
+    return decorator

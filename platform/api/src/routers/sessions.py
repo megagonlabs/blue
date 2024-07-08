@@ -22,7 +22,7 @@ import re
 import csv
 import json
 from utils import json_utils
-from constant import d7validate
+from constant import authorize, d7validate
 from validations.base import BaseValidation
 
 ##### Typing
@@ -65,26 +65,30 @@ router = APIRouter(prefix=f"{PLATFORM_PREFIX}/sessions")
 
 #############
 @router.get("/")
-def get_sessions():
+@authorize(roles=['admin', 'member', 'guest'])
+def get_sessions(request: Request):
     results = p.get_sessions()
     return JSONResponse(content={"results": results})
 
 
 @router.get("/session/{session_id}")
-def get_session(session_id):
+@authorize(roles=['admin', 'member', 'guest'])
+def get_session(request: Request, session_id):
     result = p.get_session(session_id)
     return JSONResponse(content={"result": result})
 
 
 @router.get("/session/{session_id}/agents")
-def list_session_agents(session_id):
+@authorize(roles=['admin', 'member', 'guest'])
+def list_session_agents(request: Request, session_id):
     session = p.get_session(session_id)
     results = session.list_agents()
     return JSONResponse(content={"results": results})
 
 
 @router.post("/session/{session_id}/agents/{registry_name}/agent/{agent_name}")
-def add_agent_to_session(session_id, registry_name, agent_name, properties: JSONObject, input: Union[str, None] = None):
+@authorize(roles=['admin', 'member', 'guest'])
+def add_agent_to_session(request: Request, session_id, registry_name, agent_name, properties: JSONObject, input: Union[str, None] = None):
     if registry_name == agent_registry_id:
         session = p.get_session(session_id)
         properties_from_registry = agent_registry.get_agent_properties(agent_name)
@@ -110,6 +114,7 @@ def add_agent_to_session(session_id, registry_name, agent_name, properties: JSON
 
 
 @router.put("/session/{session_id}")
+@authorize(roles=['admin', 'member', 'guest'])
 async def update_session(request: Request, session_id):
     payload = await request.json()
     d7validate(
@@ -132,6 +137,7 @@ async def update_session(request: Request, session_id):
 
 
 @router.post("/session")
+@authorize(roles=['admin', 'member'])
 async def create_session(request: Request):
     result = p.create_session()
 
