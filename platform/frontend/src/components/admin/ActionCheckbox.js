@@ -7,6 +7,8 @@ export default function ActionCheckbox({ data, rowIndex }) {
     const { appState, appActions } = useContext(AppContext);
     const selectedUsers = _.get(appState, "admin.selectedUsers", new Set());
     const uid = _.get(data, [rowIndex, "uid"], null);
+    const { user } = useContext(AuthContext);
+    const currentUserUid = _.get(user, "uid", null);
     const onChange = (event) => {
         if (event.target.checked) {
             appActions.admin.addSelectedUser(uid);
@@ -14,8 +16,8 @@ export default function ActionCheckbox({ data, rowIndex }) {
             appActions.admin.removeSelectedUser(uid);
         }
     };
-    const { user } = useContext(AuthContext);
-    if (_.isEqual(uid, user.uid)) {
+
+    if (_.isEqual(uid, currentUserUid)) {
         return null;
     }
     return (

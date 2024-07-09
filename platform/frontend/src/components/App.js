@@ -2,6 +2,7 @@ import SupportDialog from "@/components/SupportDialog";
 import {
     NAVIGATION_MENU_WIDTH,
     PROFILE_PICTURE_40,
+    USER_ROLES_LOOKUP,
 } from "@/components/constant";
 import { AppContext } from "@/components/contexts/app-context";
 import { AuthContext } from "@/components/contexts/auth-context";
@@ -150,6 +151,15 @@ export default function App({ children }) {
                                     >
                                         Managed by&nbsp;
                                         {_.get(user, "email_domain", "-")}
+                                    </div>
+                                    <div style={{ marginTop: 5 }}>
+                                        <Tag minimal>
+                                            {_.get(
+                                                USER_ROLES_LOOKUP,
+                                                userRole,
+                                                userRole
+                                            )}
+                                        </Tag>
                                     </div>
                                     <Image
                                         alt=""
@@ -371,58 +381,56 @@ export default function App({ children }) {
                                         }
                                         active={active}
                                         text={text}
-                                        icon={faIcon({ icon: icon })}
+                                        icon={faIcon({
+                                            icon: icon,
+                                        })}
                                     />
                                 </Link>
                             );
                         })}
                     </ButtonGroup>
-                    {_.isEqual(userRole, "admin") ? (
-                        <>
-                            <div>&nbsp;</div>
-                            <MenuDivider title="Admin. Tools" />
-                            <ButtonGroup
-                                alignText={Alignment.LEFT}
-                                vertical
-                                minimal
-                                large
-                                className="full-parent-width"
-                            >
-                                {[
-                                    "admin_agents",
-                                    "admin_services",
-                                    "admin_users",
-                                ].map((key, index) => {
-                                    const { href, icon, text } = _.get(
-                                        MENU_ITEMS,
-                                        key,
-                                        {}
-                                    );
-                                    const active = _.startsWith(
-                                        router.asPath,
-                                        href
-                                    );
-                                    return (
-                                        <Link href={href} key={index}>
-                                            <Button
-                                                style={
-                                                    !active
-                                                        ? {
-                                                              backgroundColor:
-                                                                  "transparent",
-                                                          }
-                                                        : null
-                                                }
-                                                active={active}
-                                                text={text}
-                                                icon={faIcon({ icon: icon })}
-                                            />
-                                        </Link>
-                                    );
-                                })}
-                            </ButtonGroup>
-                        </>
-                    ) : null}
+                    <div>&nbsp;</div>
+                    <MenuDivider title="Admin. Tools" />
+                    <ButtonGroup
+                        alignText={Alignment.LEFT}
+                        vertical
+                        minimal
+                        large
+                        className="full-parent-width"
+                    >
+                        {["admin_agents", "admin_services", "admin_users"].map(
+                            (key, index) => {
+                                const { href, icon, text } = _.get(
+                                    MENU_ITEMS,
+                                    key,
+                                    {}
+                                );
+                                const active = _.startsWith(
+                                    router.asPath,
+                                    href
+                                );
+                                return (
+                                    <Link href={href} key={index}>
+                                        <Button
+                                            style={
+                                                !active
+                                                    ? {
+                                                          backgroundColor:
+                                                              "transparent",
+                                                      }
+                                                    : null
+                                            }
+                                            active={active}
+                                            text={text}
+                                            icon={faIcon({
+                                                icon: icon,
+                                            })}
+                                        />
+                                    </Link>
+                                );
+                            }
+                        )}
+                    </ButtonGroup>
                 </div>
             </Card>
             <div
