@@ -397,7 +397,7 @@ export default function App({ children }) {
                                 </ButtonGroup>
                             </>
                         ) : null}
-                        {_.isEqual(userRole, "admin") ? (
+                        {_.includes(["admin"], userRole) ? (
                             <>
                                 <div>&nbsp;</div>
                                 <MenuDivider title="Admin. Tools" />

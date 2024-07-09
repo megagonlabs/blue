@@ -41,15 +41,22 @@ def redisReplace(value, reverse=False):
 
 from functools import wraps
 from fastapi import HTTPException
+import asyncio
+
+
+def isAsync(function):
+    return asyncio.iscoroutinefunction(function)
 
 
 def authorize(roles: list):
     def decorator(func):
         @wraps(func)
-        def wrapper(*args, **kwargs):
+        async def wrapper(*args, **kwargs):
             user_role = pydash.objects.get(kwargs, 'request.state.user.role', None)
             if user_role not in roles:
                 raise HTTPException(status_code=403, detail="You don't have permission for this request.")
+            if isAsync(func):
+                return await func(*args, **kwargs)
             return func(*args, **kwargs)
 
         return wrapper

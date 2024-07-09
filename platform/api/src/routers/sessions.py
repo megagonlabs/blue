@@ -1,6 +1,5 @@
 ###### OS / Systems
 from curses import noecho
-import os
 import sys
 
 ###### Add lib path
@@ -11,23 +10,15 @@ sys.path.append("./lib/platform/")
 
 ######
 import time
-import argparse
-import logging
-import time
-import uuid
-import random
 
 ###### Parsers, Formats, Utils
-import re
-import csv
 import json
 from utils import json_utils
 from constant import authorize, d7validate
 from validations.base import BaseValidation
 
 ##### Typing
-from pydantic import BaseModel, Json
-from typing import Union, Any, Dict, AnyStr, List
+from typing import Union, Any, Dict, List
 
 ###### FastAPI
 from fastapi import Request
@@ -42,7 +33,6 @@ JSONStructure = Union[JSONArray, JSONObject, Any]
 
 
 ###### Blue
-from session import Session
 from blueprint import Platform
 from agent_registry import AgentRegistry
 
