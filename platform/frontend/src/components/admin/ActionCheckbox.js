@@ -2,6 +2,7 @@ import { Checkbox } from "@blueprintjs/core";
 import _ from "lodash";
 import { useContext } from "react";
 import { AppContext } from "../contexts/app-context";
+import { AuthContext } from "../contexts/auth-context";
 export default function ActionCheckbox({ data, rowIndex }) {
     const { appState, appActions } = useContext(AppContext);
     const selectedUsers = _.get(appState, "admin.selectedUsers", new Set());
@@ -13,6 +14,10 @@ export default function ActionCheckbox({ data, rowIndex }) {
             appActions.admin.removeSelectedUser(uid);
         }
     };
+    const { user } = useContext(AuthContext);
+    if (_.isEqual(uid, user.uid)) {
+        return null;
+    }
     return (
         <Checkbox
             onChange={onChange}
