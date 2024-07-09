@@ -183,10 +183,7 @@ async def signin_cli(request: Request):
             return JSONResponse(content={"cookie": session_cookie})
         return ERROR_RESPONSE
     except auth.InvalidIdTokenError:
-        return JSONResponse(
-            content={"message": "The provided ID token is not a valid Firebase ID token."},
-            status_code=401,
-        )
+        return JSONResponse(content={"message": "The provided ID token is not a valid Firebase ID token."}, status_code=401)
     except exceptions.FirebaseError:
         return ERROR_RESPONSE
 
@@ -213,4 +210,15 @@ def get_profil_by_email(request: Request, email):
 @authorize(roles=['admin'])
 def get_users(request: Request):
     users = db.json().get(REDIS_USER_PREFIX)
-    return JSONResponse(content={"users": list(users.values())})
+    users = list(users.values())
+    return JSONResponse(content={"users": users})
+
+
+@router.put('/users/{uid}/role/{role_name}')
+@authorize(roles=['admin'])
+def update_user_role(request: Request, uid, role_name):
+    # preventive measure
+    if uid == pydash.objects.get(request, 'state.user.uid', None):
+        return JSONResponse(content={"message": "You can't modify your own role."}, status_code=400)
+    user = db.json().set(REDIS_USER_PREFIX, f'$.{uid}', {'role': role_name}, xx=True)
+    return JSONResponse(content={"user": user})

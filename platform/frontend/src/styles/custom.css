@@ -69,3 +69,6 @@ table.entity-section-card-table tr td {
     -o-transition: none !important;
     transition: none !important;
 }
+.role-configuration-permission-list li span[class^="bp"][class*="-tag"] {
+    margin-right: 5px;
+}

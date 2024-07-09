@@ -1,8 +1,10 @@
+import { adminAction } from "@/components/actions/admin-action";
 import { agentAction } from "@/components/actions/agent-action";
 import { appAction } from "@/components/actions/app-action";
 import { dataAction } from "@/components/actions/data-action";
 import { sessionAction } from "@/components/actions/session-action";
 import rootReducer from "@/components/reducers";
+import { defaultState as adminDefaultState } from "@/components/reducers/admin-reducer";
 import { defaultState as agentDefaultState } from "@/components/reducers/agent-reducer";
 import { defaultState as appDefaultState } from "@/components/reducers/app-reducer";
 import { defaultState as dataDefaultState } from "@/components/reducers/data-reducer";
@@ -15,12 +17,14 @@ const AppProvider = ({ children }) => {
         session: sessionDefaultState,
         agent: agentDefaultState,
         data: dataDefaultState,
+        admin: adminDefaultState,
     });
     const actions = {
         app: { ...appAction(dispatch) },
         session: { ...sessionAction(dispatch) },
         agent: { ...agentAction(dispatch) },
         data: { ...dataAction(dispatch) },
+        admin: { ...adminAction(dispatch) },
     };
     const store = useMemo(
         () => ({ appState, appActions: actions }),

@@ -1,4 +1,3 @@
-import { faIcon } from "@/components/icon";
 import {
     Classes,
     Dialog,
@@ -7,7 +6,6 @@ import {
     Tag,
     Tooltip,
 } from "@blueprintjs/core";
-import { faCopyright } from "@fortawesome/pro-duotone-svg-icons";
 export default function SupportDialog({ isOpen, setIsSupportDialogOpen }) {
     return (
         <Dialog onClose={() => setIsSupportDialogOpen(false)} isOpen={isOpen}>
@@ -28,10 +26,6 @@ export default function SupportDialog({ isOpen, setIsSupportDialogOpen }) {
                         {process.env.NEXT_PUBLIC_GIT_SHORT}
                     </Tag>
                 </Tooltip>
-                <div style={{ marginTop: 10 }}>
-                    {faIcon({ icon: faCopyright })} {new Date().getFullYear()}{" "}
-                    Megagon Labs. All rights reserved.
-                </div>
             </DialogBody>
         </Dialog>
     );

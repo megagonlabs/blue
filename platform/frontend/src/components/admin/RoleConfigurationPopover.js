@@ -1,0 +1,291 @@
+import { USER_ROLES_LOOKUP } from "@/components/constant";
+import {
+    Button,
+    Classes,
+    Dialog,
+    DialogBody,
+    DialogFooter,
+    HTMLTable,
+    Intent,
+    Radio,
+    Section,
+    SectionCard,
+    Tag,
+} from "@blueprintjs/core";
+import { faCheck } from "@fortawesome/pro-duotone-svg-icons";
+import axios from "axios";
+import _ from "lodash";
+import { useContext, useState } from "react";
+import { AppContext } from "../contexts/app-context";
+import { faIcon } from "../icon";
+import { AppToaster } from "../toaster";
+const ROLE_PERMISSIONS = {
+    admin: (
+        <>
+            <ul className={Classes.LIST}>
+                <li>
+                    <Tag minimal intent={Intent.SUCCESS}>
+                        Read
+                    </Tag>
+                    <Tag minimal intent={Intent.PRIMARY}>
+                        Write
+                    </Tag>
+                    operations in agent registry for any agent
+                </li>
+                <li>
+                    <Tag minimal intent={Intent.SUCCESS}>
+                        Read
+                    </Tag>
+                    <Tag minimal intent={Intent.PRIMARY}>
+                        Write
+                    </Tag>
+                    operations in data registry for any data
+                </li>
+                <li>
+                    administrator tools
+                    <ul className={Classes.LIST}>
+                        <li>deploy and stop agents</li>
+                        <li>update user roles</li>
+                    </ul>
+                </li>
+                <li>
+                    development tools
+                    <ul className={Classes.LIST}>
+                        <li>form designer</li>
+                    </ul>
+                </li>
+                <li>
+                    <Tag minimal intent={Intent.SUCCESS}>
+                        Read
+                    </Tag>
+                    <Tag minimal intent={Intent.PRIMARY}>
+                        Write
+                    </Tag>
+                    any sessions
+                </li>
+            </ul>
+        </>
+    ),
+    member: (
+        <>
+            <ul className={Classes.LIST}>
+                <li>
+                    <Tag minimal intent={Intent.SUCCESS}>
+                        Read
+                    </Tag>
+                    operations in agent registry for any agent
+                </li>
+                <li>
+                    <Tag minimal intent={Intent.SUCCESS}>
+                        Read
+                    </Tag>
+                    operations in data registry for any data
+                </li>
+                <li>
+                    <Tag minimal intent={Intent.SUCCESS}>
+                        Read
+                    </Tag>
+                    <Tag minimal intent={Intent.PRIMARY}>
+                        Write
+                    </Tag>
+                    any sessions that they own / particpate
+                </li>
+                <li>
+                    <Tag minimal intent={Intent.SUCCESS}>
+                        Read
+                    </Tag>
+                    <Tag minimal intent={Intent.PRIMARY}>
+                        Write
+                    </Tag>
+                    agents to sessions, and modify agent properties for session
+                    only
+                </li>
+            </ul>
+        </>
+    ),
+    guest: (
+        <>
+            <ul className={Classes.LIST}>
+                <li>
+                    <Tag minimal intent={Intent.SUCCESS}>
+                        Read
+                    </Tag>
+                    operations in agent registry for any agent
+                </li>
+                <li>
+                    <Tag minimal intent={Intent.SUCCESS}>
+                        Read
+                    </Tag>
+                    operations in data registry for any data
+                </li>
+                <li>
+                    <Tag minimal intent={Intent.SUCCESS}>
+                        Read
+                    </Tag>
+                    any sessions that they particpate
+                </li>
+            </ul>
+        </>
+    ),
+};
+export default function RoleConfigurationPopover({
+    isRoleConfigOpen,
+    setIsRoleConfigOpen,
+}) {
+    const [selectedRole, setSelectedRole] = useState(null);
+    const [loading, setLoading] = useState(false);
+    const { appState } = useContext(AppContext);
+    const [updated, setUpdated] = useState(new Set());
+    const selectedUsers = appState.admin.selectedUsers;
+    const [saved, setSaved] = useState(false);
+    const usersMap = appState.admin.usersMap;
+    const handleUpdateUserRole = () => {
+        setLoading(true);
+        let promises = [];
+        const selectedUsersArray = _.toArray(selectedUsers);
+        for (let i = 0; i < _.size(selectedUsersArray); i++) {
+            const uid = selectedUsersArray[i];
+            if (updated.has(uid)) {
+                continue;
+            }
+            promises.push(
+                new Promise((resolve, reject) => {
+                    axios
+                        .put(`/accounts/users/${uid}/role/${selectedRole}`)
+                        .then(() => {
+                            resolve(uid);
+                        })
+                        .catch((error) => {
+                            AppToaster.show({
+                                intent: Intent.DANGER,
+                                message: `${error.name}: ${error.message}`,
+                            });
+                            reject(uid);
+                        });
+                })
+            );
+        }
+        Promise.allSettled(promises).then((results) => {
+            let newUpdated = _.clone(updated);
+            for (let i = 0; i < _.size(results); i++) {
+                if (!_.isEqual("fulfilled", results[i].status)) continue;
+                newUpdated.add(results[i].value);
+            }
+            if (_.isEqual(_.size(newUpdated), _.size(selectedUsers))) {
+                onClose();
+            } else {
+                setSaved(true);
+                setLoading(false);
+                setUpdated(newUpdated);
+            }
+        });
+    };
+    const onClose = () => {
+        if (loading) {
+            return;
+        }
+        setUpdated(new Set());
+        setSaved(false);
+        setLoading(false);
+        setIsRoleConfigOpen(false);
+        setSelectedRole(null);
+    };
+    const handleRadioChange = (event) => {
+        setSelectedRole(event.currentTarget.value);
+    };
+    return (
+        <Dialog
+            onClose={onClose}
+            title="Role configuration"
+            isOpen={isRoleConfigOpen}
+        >
+            <DialogBody>
+                <p>Select a new role</p>
+                {["admin", "member", "guest"].map((role) => (
+                    <div style={{ display: "flex" }} key={role}>
+                        <Radio
+                            onChange={handleRadioChange}
+                            value={role}
+                            style={{ marginTop: 10 }}
+                            large
+                            checked={_.isEqual(role, selectedRole)}
+                        />
+                        <Section
+                            style={{ marginBottom: 15 }}
+                            title={_.get(USER_ROLES_LOOKUP, role, role)}
+                            compact
+                            collapsible
+                            collapseProps={{ defaultIsOpen: false }}
+                        >
+                            <SectionCard
+                                className="role-configuration-permission-list"
+                                padded={false}
+                            >
+                                {_.get(
+                                    ROLE_PERMISSIONS,
+                                    role,
+                                    <div style={{ padding: "10px 16.5px" }}>
+                                        -
+                                    </div>
+                                )}
+                            </SectionCard>
+                        </Section>
+                    </div>
+                ))}
+                <p>Affected users</p>
+                <HTMLTable style={{ width: "100%" }} compact bordered>
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Current role</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {_.toArray(selectedUsers).map((uid) => {
+                            if (updated.has(uid)) {
+                                return null;
+                            }
+                            const user = _.get(usersMap, uid, {});
+                            return (
+                                <tr key={uid}>
+                                    <td>{_.get(user, "name", "-")}</td>
+                                    <td>{_.get(user, "email", "-")}</td>
+                                    <td>
+                                        {_.get(
+                                            USER_ROLES_LOOKUP,
+                                            user.role,
+                                            user.role
+                                        )}
+                                    </td>
+                                </tr>
+                            );
+                        })}
+                    </tbody>
+                </HTMLTable>
+            </DialogBody>
+            <DialogFooter className="position-relative">
+                <Button
+                    disabled={_.isEmpty(selectedRole)}
+                    loading={loading}
+                    text="Assign"
+                    large
+                    onClick={handleUpdateUserRole}
+                    intent={Intent.SUCCESS}
+                    icon={faIcon({ icon: faCheck })}
+                />
+                {saved && _.size(updated) < _.size(selectedUsers) ? (
+                    <Tag
+                        large
+                        style={{ position: "absolute", right: 15, top: 15 }}
+                        minimal
+                        intent={Intent.DANGER}
+                    >
+                        {Math.abs(_.size(updated) - _.size(selectedUsers))}
+                        &nbsp; failed to save
+                    </Tag>
+                ) : null}
+            </DialogFooter>
+        </Dialog>
+    );
+}

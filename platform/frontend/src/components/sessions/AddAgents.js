@@ -100,11 +100,14 @@ export default function AddAgents({
             });
     }, [isOpen]);
     const handleAddAgents = () => {
+        setLoading(true);
         let promises = [];
         const selectedAgents = Array.from(selected);
         for (let i = 0; i < _.size(selectedAgents); i++) {
             const agentName = selectedAgents[i];
-            if (added.has(agentName)) continue;
+            if (added.has(agentName)) {
+                continue;
+            }
             promises.push(
                 new Promise((resolve, reject) => {
                     axios
@@ -125,7 +128,6 @@ export default function AddAgents({
                 })
             );
         }
-        setLoading(true);
         Promise.allSettled(promises).then((results) => {
             let newAdded = _.clone(added);
             for (let i = 0; i < _.size(results); i++) {

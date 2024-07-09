@@ -1,11 +1,14 @@
-import { PROFILE_PICTURE_40 } from "@/components/constant";
+import ActionCheckbox from "@/components/admin/ActionCheckbox";
+import RoleConfigurationPopover from "@/components/admin/RoleConfigurationPopover";
+import { PROFILE_PICTURE_40, USER_ROLES_LOOKUP } from "@/components/constant";
+import { AppContext } from "@/components/contexts/app-context";
 import { faIcon } from "@/components/icon";
 import {
     Button,
     ButtonGroup,
     Card,
-    Checkbox,
     Classes,
+    Divider,
     Intent,
     NonIdealState,
     Tag,
@@ -20,38 +23,40 @@ import {
     TableLoadingOption,
     Utils,
 } from "@blueprintjs/table";
-import { faRefresh, faUserGroup } from "@fortawesome/pro-duotone-svg-icons";
+import {
+    faRefresh,
+    faStamp,
+    faUserGroup,
+} from "@fortawesome/pro-duotone-svg-icons";
 import axios from "axios";
 import _ from "lodash";
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 export default function Users() {
     const [tableKey, setTableKey] = useState(Date.now());
-    const [data, setData] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [isRoleConfigOpen, setIsRoleConfigOpen] = useState(false);
+    const { appState, appActions } = useContext(AppContext);
+    const data = _.get(appState, "admin.users", []);
     const fetchUserList = () => {
         setLoading(true);
         axios.get("/accounts/users").then((response) => {
-            setData(_.get(response, "data.users", []));
+            appActions.admin.setUserList(_.get(response, "data.users", []));
             setLoading(false);
         });
     };
     useEffect(() => {
+        appActions.admin.setState({ key: "selectedUsers", value: new Set() });
         fetchUserList();
     }, []);
     const TABLE_CELL_HEIGHT = 50;
-    const USER_ROLE_INTENT = {
-        admin: Intent.DANGER,
-        member: Intent.PRIMARY,
-        guest: Intent.SUCCESS,
-    };
     const INIT_COLUMNS = [
         {
             name: <div>&nbsp;</div>,
             key: "checkbox",
-            cellRenderer: () => (
+            cellRenderer: ({ rowIndex, data }) => (
                 <Cell style={{ lineHeight: `${TABLE_CELL_HEIGHT - 1}px` }}>
-                    <Checkbox large className="margin-0" />
+                    <ActionCheckbox rowIndex={rowIndex} data={data} />
                 </Cell>
             ),
         },
@@ -103,11 +108,8 @@ export default function Users() {
                 const role = _.get(data, [rowIndex, "role"], "-");
                 return (
                     <Cell style={{ lineHeight: `${TABLE_CELL_HEIGHT - 1}px` }}>
-                        <Tag
-                            minimal
-                            intent={_.get(USER_ROLE_INTENT, role, null)}
-                        >
-                            {role}
+                        <Tag minimal>
+                            {_.get(USER_ROLES_LOOKUP, role, role)}
                         </Tag>
                     </Cell>
                 );
@@ -149,6 +151,10 @@ export default function Users() {
                     />
                 </div>
             ) : null}
+            <RoleConfigurationPopover
+                setIsRoleConfigOpen={setIsRoleConfigOpen}
+                isRoleConfigOpen={isRoleConfigOpen}
+            />
             <div style={{ padding: 5, height: 50 }}>
                 <ButtonGroup large minimal>
                     <Tooltip placement="bottom-start" minimal content="Refresh">
@@ -157,6 +163,15 @@ export default function Users() {
                             onClick={fetchUserList}
                             loading={loading}
                             icon={faIcon({ icon: faRefresh })}
+                        />
+                    </Tooltip>
+                    <Divider />
+                    <Tooltip>
+                        <Button
+                            disabled={_.isEmpty(appState.admin.selectedUsers)}
+                            onClick={() => setIsRoleConfigOpen(true)}
+                            icon={faIcon({ icon: faStamp })}
+                            text="Update role(s)"
                         />
                     </Tooltip>
                 </ButtonGroup>
@@ -184,8 +199,6 @@ export default function Users() {
                                     style={{
                                         textAlign: "center",
                                         lineHeight: `${TABLE_CELL_HEIGHT}px`,
-                                        paddingLeft: 5,
-                                        paddingRight: 5,
                                     }}
                                 >
                                     {rowIndex + 1}

@@ -98,6 +98,11 @@ module.exports = {
         width: 40,
         height: 40,
     },
+    USER_ROLES_LOOKUP: {
+        admin: "Administrator",
+        member: "Member",
+        guest: "Guest",
+    },
     HEX_TRANSPARENCY: {
         100: "FF",
         99: "FC",
