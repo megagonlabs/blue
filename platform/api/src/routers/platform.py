@@ -1,6 +1,5 @@
 ###### OS / Systems
 from curses import noecho
-import os
 import sys
 
 from fastapi import Request
@@ -14,11 +13,6 @@ sys.path.append("./lib/platform/")
 
 
 ###### Parsers, Formats, Utils
-import re
-import time
-import csv
-import uuid
-import random
 import json
 import logging
 from utils import json_utils
@@ -27,8 +21,7 @@ from utils import json_utils
 import docker
 
 ##### Typing
-from pydantic import BaseModel, Json
-from typing import Union, Any, Dict, AnyStr, List
+from typing import Union, Any, Dict, List
 
 ###### FastAPI, Web, Auth
 from APIRouter import APIRouter
@@ -43,7 +36,6 @@ JSONStructure = Union[JSONArray, JSONObject, Any]
 
 
 ###### Blue
-from session import Session
 from blueprint import Platform
 from agent_registry import AgentRegistry
 
@@ -72,7 +64,7 @@ logging.getLogger().setLevel("INFO")
 
 
 @router.get("/agents/")
-@authorize(roles=['admin'])
+@authorize(roles=['admin', 'developer'])
 # get the list of agent running agents on the platform
 def list_agent_containers(request: Request):
     # connect to docker
@@ -132,7 +124,7 @@ def list_agent_containers(request: Request):
 
 
 @router.post("/agents/agent/{agent_name}")
-@authorize(roles=['admin'])
+@authorize(roles=['admin', 'developer'])
 # deploy an agent container with the name {agent_name} to the agent registry with the name
 def deploy_agent_container(request: Request, agent_name):
     agent_registry_properties = agent_registry.get_agent_properties(agent_name)
@@ -208,7 +200,7 @@ def update_agent_container(request: Request, registry_name, agent_name):
 
 
 @router.delete("/agents/agent/{agent_name}")
-@authorize(roles=['admin'])
+@authorize(roles=['admin', 'developer'])
 # shutdown the agent container with the name {agent_name} from the agent registry with the name
 def shutdown_agent_container(request: Request, registry_name, agent_name):
     platform = Platform(id=platform_id, properties=PROPERTIES)

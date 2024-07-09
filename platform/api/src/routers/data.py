@@ -1,6 +1,5 @@
 ###### OS / Systems
 from curses import noecho
-import os
 import sys
 
 from fastapi import Request
@@ -12,17 +11,9 @@ sys.path.append("./lib/")
 sys.path.append("./lib/data_registry/")
 sys.path.append("./lib/platform/")
 
-
-###### Parsers, Formats, Utils
-import re
-import csv
-import json
-import time
-from utils import json_utils
-
 ##### Typing
-from pydantic import BaseModel, Json
-from typing import Union, Any, Dict, AnyStr, List
+from pydantic import BaseModel
+from typing import Union, Any, Dict, List
 
 ###### FastAPI
 from APIRouter import APIRouter
@@ -65,21 +56,21 @@ router = APIRouter(prefix=f"{PLATFORM_PREFIX}/registry/{data_registry_id}/data")
 
 #############
 @router.get("/")
-@authorize(roles=['admin', 'member', 'guest'])
+@authorize(roles=['admin', 'member', 'developer', 'guest'])
 def get_data(request: Request):
     results = data_registry.list_records()
     return JSONResponse(content={"results": list(results.values())})
 
 
 @router.get("/sources")
-@authorize(roles=['admin', 'member', 'guest'])
+@authorize(roles=['admin', 'member', 'developer', 'guest'])
 def get_data_sources(request: Request):
     results = data_registry.get_sources()
     return JSONResponse(content={"results": list(results.values())})
 
 
 @router.get("/{source_name}")
-@authorize(roles=['admin', 'member', 'guest'])
+@authorize(roles=['admin', 'member', 'developer', 'guest'])
 def get_data_source(request: Request, source_name):
     result = data_registry.get_source(source_name)
     return JSONResponse(content={"result": result})
@@ -118,14 +109,14 @@ def delete_source(request: Request, source_name):
 
 
 @router.get("/{source_name}/databases")
-@authorize(roles=['admin', 'member', 'guest'])
+@authorize(roles=['admin', 'member', 'developer', 'guest'])
 def get_data_source_databases(request: Request, source_name):
     results = data_registry.get_source_databases(source_name)
     return JSONResponse(content={"results": results})
 
 
 @router.get("/{source_name}/database/{database_name}")
-@authorize(roles=['admin', 'member', 'guest'])
+@authorize(roles=['admin', 'member', 'developer', 'guest'])
 def get_data_source_database(request: Request, source_name, database_name):
     result = data_registry.get_source_database(source_name, database_name)
     return JSONResponse(content={"result": result})
@@ -163,14 +154,14 @@ def delete_source_database(request: Request, source_name, database_name):
 
 
 @router.get("/{source_name}/database/{database_name}/collections")
-@authorize(roles=['admin', 'member', 'guest'])
+@authorize(roles=['admin', 'member', 'developer', 'guest'])
 def get_data_source_database_collections(request: Request, source_name, database_name):
     results = data_registry.get_source_database_collections(source_name, database_name)
     return JSONResponse(content={"results": results})
 
 
 @router.get("/{source_name}/database/{database_name}/collection/{collection_name}")
-@authorize(roles=['admin', 'member', 'guest'])
+@authorize(roles=['admin', 'member', 'developer', 'guest'])
 def get_data_source_database_collection(request: Request, source_name, database_name, collection_name):
     result = data_registry.get_source_database_collection(source_name, database_name, collection_name)
     return JSONResponse(content={"result": result})
@@ -208,7 +199,7 @@ def delete_source_database_collection(request: Request, source_name, database_na
 
 
 @router.get("/search")
-@authorize(roles=['admin', 'member', 'guest'])
+@authorize(roles=['admin', 'member', 'developer', 'guest'])
 def search_data(request: Request, keywords, approximate: bool = False, hybrid: bool = False, type: str = None, scope: str = None, page: int = 0, page_size: int = 10):
     results = data_registry.search_records(keywords, type=type, scope=scope, approximate=approximate, hybrid=hybrid, page=page, page_size=page_size)
     return JSONResponse(content={"results": results})

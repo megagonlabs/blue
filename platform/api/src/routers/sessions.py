@@ -65,21 +65,21 @@ router = APIRouter(prefix=f"{PLATFORM_PREFIX}/sessions")
 
 #############
 @router.get("/")
-@authorize(roles=['admin', 'member', 'guest'])
+@authorize(roles=['admin', 'member', 'developer', 'guest'])
 def get_sessions(request: Request):
     results = p.get_sessions()
     return JSONResponse(content={"results": results})
 
 
 @router.get("/session/{session_id}")
-@authorize(roles=['admin', 'member', 'guest'])
+@authorize(roles=['admin', 'member', 'developer', 'guest'])
 def get_session(request: Request, session_id):
     result = p.get_session(session_id)
     return JSONResponse(content={"result": result})
 
 
 @router.get("/session/{session_id}/agents")
-@authorize(roles=['admin', 'member', 'guest'])
+@authorize(roles=['admin', 'member', 'developer', 'guest'])
 def list_session_agents(request: Request, session_id):
     session = p.get_session(session_id)
     results = session.list_agents()
@@ -87,7 +87,7 @@ def list_session_agents(request: Request, session_id):
 
 
 @router.post("/session/{session_id}/agents/{registry_name}/agent/{agent_name}")
-@authorize(roles=['admin', 'member', 'guest'])
+@authorize(roles=['admin', 'member', 'developer', 'guest'])
 def add_agent_to_session(request: Request, session_id, registry_name, agent_name, properties: JSONObject, input: Union[str, None] = None):
     if registry_name == agent_registry_id:
         session = p.get_session(session_id)
@@ -114,7 +114,7 @@ def add_agent_to_session(request: Request, session_id, registry_name, agent_name
 
 
 @router.put("/session/{session_id}")
-@authorize(roles=['admin', 'member', 'guest'])
+@authorize(roles=['admin', 'member', 'developer', 'guest'])
 async def update_session(request: Request, session_id):
     payload = await request.json()
     d7validate(
@@ -137,7 +137,7 @@ async def update_session(request: Request, session_id):
 
 
 @router.post("/session")
-@authorize(roles=['admin', 'member'])
+@authorize(roles=['admin', 'member', 'developer'])
 async def create_session(request: Request):
     result = p.create_session()
 

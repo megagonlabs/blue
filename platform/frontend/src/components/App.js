@@ -78,7 +78,7 @@ export default function App({ children }) {
         },
         admin_users: {
             href: "/admin/users",
-            text: "users",
+            text: "Users",
             icon: faUserGroup,
         },
         admin_agents: {
@@ -352,86 +352,101 @@ export default function App({ children }) {
                         })}
                     </ButtonGroup>
                 </div>
-                <div className="bp-border-top" style={{ padding: 20 }}>
-                    <MenuDivider title="Dev. Tools" />
-                    <ButtonGroup
-                        alignText={Alignment.LEFT}
-                        vertical
-                        minimal
-                        large
-                        className="full-parent-width"
-                    >
-                        {["designer"].map((key, index) => {
-                            const { href, icon, text } = _.get(
-                                MENU_ITEMS,
-                                key,
-                                {}
-                            );
-                            const active = _.startsWith(router.asPath, href);
-                            return (
-                                <Link href={href} key={index}>
-                                    <Button
-                                        style={
-                                            !active
-                                                ? {
-                                                      backgroundColor:
-                                                          "transparent",
-                                                  }
-                                                : null
-                                        }
-                                        active={active}
-                                        text={text}
-                                        icon={faIcon({
-                                            icon: icon,
-                                        })}
-                                    />
-                                </Link>
-                            );
-                        })}
-                    </ButtonGroup>
-                    <div>&nbsp;</div>
-                    <MenuDivider title="Admin. Tools" />
-                    <ButtonGroup
-                        alignText={Alignment.LEFT}
-                        vertical
-                        minimal
-                        large
-                        className="full-parent-width"
-                    >
-                        {["admin_agents", "admin_services", "admin_users"].map(
-                            (key, index) => {
-                                const { href, icon, text } = _.get(
-                                    MENU_ITEMS,
-                                    key,
-                                    {}
-                                );
-                                const active = _.startsWith(
-                                    router.asPath,
-                                    href
-                                );
-                                return (
-                                    <Link href={href} key={index}>
-                                        <Button
-                                            style={
-                                                !active
-                                                    ? {
-                                                          backgroundColor:
-                                                              "transparent",
-                                                      }
-                                                    : null
-                                            }
-                                            active={active}
-                                            text={text}
-                                            icon={faIcon({
-                                                icon: icon,
-                                            })}
-                                        />
-                                    </Link>
-                                );
-                            }
-                        )}
-                    </ButtonGroup>
-                </div>
+                {_.includes(["admin", "developer"], userRole) ? (
+                    <div className="bp-border-top" style={{ padding: 20 }}>
+                        {_.includes(["admin", "developer"], userRole) ? (
+                            <>
+                                <MenuDivider title="Dev. Tools" />
+                                <ButtonGroup
+                                    alignText={Alignment.LEFT}
+                                    vertical
+                                    minimal
+                                    large
+                                    className="full-parent-width"
+                                >
+                                    {["designer"].map((key, index) => {
+                                        const { href, icon, text } = _.get(
+                                            MENU_ITEMS,
+                                            key,
+                                            {}
+                                        );
+                                        const active = _.startsWith(
+                                            router.asPath,
+                                            href
+                                        );
+                                        return (
+                                            <Link href={href} key={index}>
+                                                <Button
+                                                    style={
+                                                        !active
+                                                            ? {
+                                                                  backgroundColor:
+                                                                      "transparent",
+                                                              }
+                                                            : null
+                                                    }
+                                                    active={active}
+                                                    text={text}
+                                                    icon={faIcon({
+                                                        icon: icon,
+                                                    })}
+                                                />
+                                            </Link>
+                                        );
+                                    })}
+                                </ButtonGroup>
+                            </>
+                        ) : null}
+                        {_.isEqual(userRole, "admin") ? (
+                            <>
+                                <div>&nbsp;</div>
+                                <MenuDivider title="Admin. Tools" />
+                                <ButtonGroup
+                                    alignText={Alignment.LEFT}
+                                    vertical
+                                    minimal
+                                    large
+                                    className="full-parent-width"
+                                >
+                                    {[
+                                        "admin_agents",
+                                        "admin_services",
+                                        "admin_users",
+                                    ].map((key, index) => {
+                                        const { href, icon, text } = _.get(
+                                            MENU_ITEMS,
+                                            key,
+                                            {}
+                                        );
+                                        const active = _.startsWith(
+                                            router.asPath,
+                                            href
+                                        );
+                                        return (
+                                            <Link href={href} key={index}>
+                                                <Button
+                                                    style={
+                                                        !active
+                                                            ? {
+                                                                  backgroundColor:
+                                                                      "transparent",
+                                                              }
+                                                            : null
+                                                    }
+                                                    active={active}
+                                                    text={text}
+                                                    icon={faIcon({
+                                                        icon: icon,
+                                                    })}
+                                                />
+                                            </Link>
+                                        );
+                                    })}
+                                </ButtonGroup>
+                            </>
+                        ) : null}
+                    </div>
+                ) : null}
             </Card>
             <div
                 style={{

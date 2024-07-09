@@ -19,26 +19,28 @@ import { useContext, useState } from "react";
 import { AppContext } from "../contexts/app-context";
 import { faIcon } from "../icon";
 import { AppToaster } from "../toaster";
+const READ_TAG = (
+    <Tag minimal intent={Intent.SUCCESS}>
+        Read
+    </Tag>
+);
+const WRITE_TAG = (
+    <Tag minimal intent={Intent.PRIMARY}>
+        Write
+    </Tag>
+);
 const ROLE_PERMISSIONS = {
     admin: (
         <>
             <ul className={Classes.LIST}>
                 <li>
-                    <Tag minimal intent={Intent.SUCCESS}>
-                        Read
-                    </Tag>
-                    <Tag minimal intent={Intent.PRIMARY}>
-                        Write
-                    </Tag>
+                    {READ_TAG}
+                    {WRITE_TAG}
                     operations in agent registry for any agent
                 </li>
                 <li>
-                    <Tag minimal intent={Intent.SUCCESS}>
-                        Read
-                    </Tag>
-                    <Tag minimal intent={Intent.PRIMARY}>
-                        Write
-                    </Tag>
+                    {READ_TAG}
+                    {WRITE_TAG}
                     operations in data registry for any data
                 </li>
                 <li>
@@ -55,12 +57,8 @@ const ROLE_PERMISSIONS = {
                     </ul>
                 </li>
                 <li>
-                    <Tag minimal intent={Intent.SUCCESS}>
-                        Read
-                    </Tag>
-                    <Tag minimal intent={Intent.PRIMARY}>
-                        Write
-                    </Tag>
+                    {READ_TAG}
+                    {WRITE_TAG}
                     any sessions
                 </li>
             </ul>
@@ -70,33 +68,61 @@ const ROLE_PERMISSIONS = {
         <>
             <ul className={Classes.LIST}>
                 <li>
-                    <Tag minimal intent={Intent.SUCCESS}>
-                        Read
-                    </Tag>
+                    {READ_TAG}
                     operations in agent registry for any agent
                 </li>
                 <li>
-                    <Tag minimal intent={Intent.SUCCESS}>
-                        Read
-                    </Tag>
+                    {READ_TAG}
                     operations in data registry for any data
                 </li>
                 <li>
-                    <Tag minimal intent={Intent.SUCCESS}>
-                        Read
-                    </Tag>
-                    <Tag minimal intent={Intent.PRIMARY}>
-                        Write
-                    </Tag>
+                    {READ_TAG}
+                    {WRITE_TAG}
                     any sessions that they own / particpate
                 </li>
                 <li>
-                    <Tag minimal intent={Intent.SUCCESS}>
-                        Read
-                    </Tag>
-                    <Tag minimal intent={Intent.PRIMARY}>
-                        Write
-                    </Tag>
+                    {READ_TAG}
+                    {WRITE_TAG}
+                    agents to sessions, and modify agent properties for session
+                    only
+                </li>
+            </ul>
+        </>
+    ),
+    developer: (
+        <>
+            <ul className={Classes.LIST}>
+                <li>
+                    {READ_TAG}
+                    operations in agent registry for any agent
+                </li>
+                <li>
+                    {READ_TAG}
+                    operations in data registry for any data
+                </li>
+                <li>
+                    {READ_TAG}
+                    {WRITE_TAG}
+                    operations in agent / data registries for any agent / data
+                    they created
+                    <ul className={Classes.LIST}>
+                        <li>deploy and stop agents</li>
+                    </ul>
+                </li>
+                <li>
+                    development tools
+                    <ul className={Classes.LIST}>
+                        <li>form designer</li>
+                    </ul>
+                </li>
+                <li>
+                    {READ_TAG}
+                    {WRITE_TAG}
+                    any sessions that they own / particpate
+                </li>
+                <li>
+                    {READ_TAG}
+                    {WRITE_TAG}
                     agents to sessions, and modify agent properties for session
                     only
                 </li>
@@ -107,21 +133,15 @@ const ROLE_PERMISSIONS = {
         <>
             <ul className={Classes.LIST}>
                 <li>
-                    <Tag minimal intent={Intent.SUCCESS}>
-                        Read
-                    </Tag>
+                    {READ_TAG}
                     operations in agent registry for any agent
                 </li>
                 <li>
-                    <Tag minimal intent={Intent.SUCCESS}>
-                        Read
-                    </Tag>
+                    {READ_TAG}
                     operations in data registry for any data
                 </li>
                 <li>
-                    <Tag minimal intent={Intent.SUCCESS}>
-                        Read
-                    </Tag>
+                    {READ_TAG}
                     any sessions that they particpate
                 </li>
             </ul>
@@ -201,7 +221,7 @@ export default function RoleConfigurationPopover({
         >
             <DialogBody>
                 <p>Select a new role</p>
-                {["admin", "member", "guest"].map((role) => (
+                {["admin", "member", "developer", "guest"].map((role) => (
                     <div style={{ display: "flex" }} key={role}>
                         <Radio
                             onChange={handleRadioChange}
@@ -220,6 +240,7 @@ export default function RoleConfigurationPopover({
                             <SectionCard
                                 className="role-configuration-permission-list"
                                 padded={false}
+                                style={{ paddingRight: 16.5 }}
                             >
                                 {_.get(
                                     ROLE_PERMISSIONS,

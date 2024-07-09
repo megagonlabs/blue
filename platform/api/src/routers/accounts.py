@@ -48,7 +48,7 @@ allowed_domains = EMAIL_DOMAIN_WHITE_LIST.split(",")
 
 
 @router.get('/websocket-ticket')
-@authorize(roles=['admin', 'member', 'guest'])
+@authorize(roles=['admin', 'member', 'developer', 'guest'])
 def ws_ticket(request: Request):
     ticket = request.app.connection_manager.get_ticket(user=request.state.user)
     return JSONResponse(content={"ticket": ticket})
@@ -189,13 +189,13 @@ async def signin_cli(request: Request):
 
 
 @router.get("/profile")
-@authorize(roles=['admin', 'member', 'guest'])
+@authorize(roles=['admin', 'member', 'developer', 'guest'])
 def get_profile(request: Request):
     return JSONResponse(content={"profile": request.state.user})
 
 
 @router.get("/profile/email/{email}")
-@authorize(roles=['admin', 'member', 'guest'])
+@authorize(roles=['admin', 'member', 'developer', 'guest'])
 def get_profil_by_email(request: Request, email):
     user = {'id': email}
     try:

@@ -102,6 +102,7 @@ module.exports = {
         admin: "Administrator",
         member: "Member",
         guest: "Guest",
+        developer: "Developer",
     },
     HEX_TRANSPARENCY: {
         100: "FF",

@@ -1,6 +1,5 @@
 ###### OS / Systems
 from curses import noecho
-import os
 import sys
 
 from fastapi import Request
@@ -14,19 +13,14 @@ sys.path.append("./lib/platform/")
 
 
 ###### Parsers, Formats, Utils
-import re
-import csv
-import json
-import time
 import logging
-from utils import json_utils
 
 ###### Docker
 import docker
 
 ##### Typing
-from pydantic import BaseModel, Json
-from typing import Union, Any, Dict, AnyStr, List
+from pydantic import BaseModel
+from typing import Union, Any, Dict, List
 
 ###### FastAPI
 from APIRouter import APIRouter
@@ -177,7 +171,7 @@ def merge_container_results(registry_results):
 
 #############
 @router.get("/agents")
-@authorize(roles=['admin', 'member', 'guest'])
+@authorize(roles=['admin', 'member', 'developer', 'guest'])
 def get_agents(request: Request):
     registry_results = agent_registry.list_records()
     registry_results = list(registry_results.values())
@@ -186,7 +180,7 @@ def get_agents(request: Request):
 
 
 @router.get("/agent/{agent_name}")
-@authorize(roles=['admin', 'member', 'guest'])
+@authorize(roles=['admin', 'member', 'developer', 'guest'])
 def get_agent(request: Request, agent_name):
     result = agent_registry.get_agent(agent_name)
     merged_results = merge_container_results([result])
@@ -224,7 +218,7 @@ def delete_agent(request: Request, agent_name):
 
 ##### properties
 @router.get("/agent/{agent_name}/properties")
-@authorize(roles=['admin', 'member', 'guest'])
+@authorize(roles=['admin', 'member', 'developer', 'guest'])
 def get_agent_properties(request: Request, agent_name):
     results = agent_registry.get_agent_properties(agent_name)
     return JSONResponse(content={"results": results})
@@ -257,14 +251,14 @@ def delete_agent_property(request: Request, agent_name, property_name):
 
 ##### inputs
 @router.get("/agent/{agent_name}/inputs")
-@authorize(roles=['admin', 'member', 'guest'])
+@authorize(roles=['admin', 'member', 'developer', 'guest'])
 def get_agent_inputs(request: Request, agent_name):
     results = agent_registry.get_agent_inputs(agent_name)
     return JSONResponse(content={"results": results})
 
 
 @router.get("/agent/{agent_name}/input/{param_name}")
-@authorize(roles=['admin', 'member', 'guest'])
+@authorize(roles=['admin', 'member', 'developer', 'guest'])
 def get_agent_input(request: Request, agent_name, param_name):
     result = agent_registry.get_agent_input(agent_name, param_name)
     return JSONResponse(content={"result": result})
@@ -300,14 +294,14 @@ def delete_agent_input(request: Request, agent_name, param_name):
 
 
 @router.get("/agent/{agent_name}/input/{param_name}/properties")
-@authorize(roles=['admin', 'member', 'guest'])
+@authorize(roles=['admin', 'member', 'developer', 'guest'])
 def get_agent_input_properties(request: Request, agent_name, param_name):
     results = agent_registry.get_agent_input_properties(agent_name, param_name)
     return JSONResponse(content={"results": results})
 
 
 @router.get("/agent/{agent_name}/input/{param_name}/property/{property_name}")
-@authorize(roles=['admin', 'member', 'guest'])
+@authorize(roles=['admin', 'member', 'developer', 'guest'])
 def get_agent_input_property(request: Request, agent_name, param_name, property_name):
     result = agent_registry.get_agent_input_property(agent_name, param_name, property_name)
     return JSONResponse(content={"result": result})
@@ -333,14 +327,14 @@ def delete_agent_input_property(request: Request, agent_name, param_name, proper
 
 ##### outputs
 @router.get("/agent/{agent_name}/outputs")
-@authorize(roles=['admin', 'member', 'guest'])
+@authorize(roles=['admin', 'member', 'developer', 'guest'])
 def get_agent_outputs(request: Request, agent_name):
     results = agent_registry.get_agent_outputs(agent_name)
     return JSONResponse(content={"results": results})
 
 
 @router.get("/agent/{agent_name}/output/{param_name}")
-@authorize(roles=['admin', 'member', 'guest'])
+@authorize(roles=['admin', 'member', 'developer', 'guest'])
 def get_agent_output(request: Request, agent_name, param_name):
     result = agent_registry.get_agent_output(agent_name, param_name)
     return JSONResponse(content={"result": result})
@@ -374,14 +368,14 @@ def delete_agent_output(request: Request, agent_name, param_name):
 
 
 @router.get("/agent/{agent_name}/output/{param_name}/properties")
-@authorize(roles=['admin', 'member', 'guest'])
+@authorize(roles=['admin', 'member', 'developer', 'guest'])
 def get_agent_output_properties(request: Request, agent_name, param_name):
     results = agent_registry.get_agent_output_properties(agent_name, param_name)
     return JSONResponse(content={"results": results})
 
 
 @router.get("/agent/{agent_name}/output/{param_name}/property/{property_name}")
-@authorize(roles=['admin', 'member', 'guest'])
+@authorize(roles=['admin', 'member', 'developer', 'guest'])
 def get_agent_output_property(request: Request, agent_name, param_name, property_name):
     result = agent_registry.get_agent_output_property(agent_name, param_name, property_name)
     return JSONResponse(content={"result": result})
@@ -406,7 +400,7 @@ def delete_agent_output_property(request: Request, agent_name, param_name, prope
 
 
 @router.get("/agents/search")
-@authorize(roles=['admin', 'member', 'guest'])
+@authorize(roles=['admin', 'member', 'developer', 'guest'])
 def search_agents(request: Request, keywords, approximate: bool = False, hybrid: bool = False, type: str = None, scope: str = None, page: int = 0, page_size: int = 10):
     results = agent_registry.search_records(keywords, type=type, scope=scope, approximate=approximate, hybrid=hybrid, page=page, page_size=page_size)
     return JSONResponse(content={"results": results})
