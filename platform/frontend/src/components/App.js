@@ -37,6 +37,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useContext, useMemo, useState } from "react";
+import AccessDeniedNonIdealState from "./AccessDeniedNonIdealState";
 export default function App({ children }) {
     const router = useRouter();
     const { appState, appActions } = useContext(AppContext);
@@ -419,7 +420,7 @@ export default function App({ children }) {
                     position: "relative",
                 }}
             >
-                {children}
+                {_.isEmpty(user) ? <AccessDeniedNonIdealState /> : children}
             </div>
         </div>
     );
