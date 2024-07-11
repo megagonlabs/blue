@@ -7,6 +7,7 @@ export default function appReducer(state = defaultState, { type, payload }) {
                 users: {
                     ...state.users,
                     [payload.id]: payload,
+                    [payload.uid]: payload,
                 },
             };
         }

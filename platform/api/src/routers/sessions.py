@@ -126,13 +126,29 @@ async def update_session(request: Request, session_id):
     return JSONResponse(content={"message": "Success"})
 
 
+@router.get("/session/{session_id}/members")
+def list_session_members(session_id):
+    session = p.get_session(session_id)
+    created_by = session.get_metadata("created_by")
+    members = session.get_metadata('members')
+    print(members)
+    return JSONResponse(content={"results": [{'uid': created_by, 'owner': True}]})
+
+
+@router.post("/session/{session_id}/members/{uid}")
+def add_member_to_session(session_id, uid):
+    pass
+
+
 @router.post("/session")
 @authorize(roles=['admin', 'member', 'developer'])
 async def create_session(request: Request):
-    result = p.create_session()
-
+    session = p.create_session()
+    session.set_metadata('created_by', request.state.user['uid'])
+    created_date = session.get_metadata('created_date')
+    result = {"id": session.sid, "name": session.sid, "description": "", 'created_date': created_date}
     await request.app.connection_manager.broadcast(json.dumps({"type": "NEW_SESSION_BROADCAST", "session": result}))
-    return JSONResponse(content={"result": result, "message": "Success"})
+    return JSONResponse(content={"result": result})
 
 
 # @router.delete("/{platform_name}/session/{session_id}")

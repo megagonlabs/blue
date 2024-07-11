@@ -194,6 +194,17 @@ def get_profile(request: Request):
     return JSONResponse(content={"profile": request.state.user})
 
 
+@router.get('/profile/uid/{uid}')
+def get_profile_by_uid(uid):
+    user = {'id': uid}
+    try:
+        user_record = auth.get_user(uid)
+        user.update({'uid': user_record.uid, 'email': user_record.email, 'picture': user_record.photo_url, 'display_name': user_record.display_name})
+    except ValueError as ex:
+        print(ex)
+    return JSONResponse(content={"user": user})
+
+
 @router.get("/profile/email/{email}")
 @authorize(roles=['admin', 'member', 'developer', 'guest'])
 def get_profil_by_email(request: Request, email):
