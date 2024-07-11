@@ -110,16 +110,6 @@ export default function SessionDetail({ isOpen, setIsSessionDetailOpen }) {
                         }}
                         active={_.isEqual(tab, "members")}
                     />
-                    <Button
-                        minimal
-                        large
-                        disabled
-                        text="Settings"
-                        onClick={() => {
-                            setTab("settings");
-                        }}
-                        active={_.isEqual(tab, "settings")}
-                    />
                 </Card>
                 <div style={{ padding: 15 }}>
                     {_.isEqual(tab, "about") ? (

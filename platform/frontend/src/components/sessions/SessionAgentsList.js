@@ -21,7 +21,10 @@ export default function SessionAgentsList() {
                             type: _.split(agent.sid, ":")[0],
                             id: _.split(agent.sid, ":")[1],
                         };
-                        return !_.isEqual(agentTypeId.type, "USER");
+                        return !_.includes(
+                            ["USER", "OBSERVER"],
+                            agentTypeId.type
+                        );
                     })
                 );
                 setLoading(false);
@@ -61,7 +64,7 @@ export default function SessionAgentsList() {
                 <NonIdealState
                     className="full-parent-height"
                     icon={faIcon({ icon: faScreenUsers, size: 50 })}
-                    title="It's an empty room"
+                    title="No Agent"
                 />
             ) : (
                 <FormGroup

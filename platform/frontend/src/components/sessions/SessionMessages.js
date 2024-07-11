@@ -37,11 +37,10 @@ export default function SessionMessages() {
     }
     function Row({ index, style }) {
         const rowRef = useRef({});
-        const own =
-            _.includes(
-                _.get(messages, [index, "stream"]),
-                `USER:${appState.session.connectionId}`
-            ) && false;
+        const own = _.includes(
+            _.get(messages, [index, "stream"]),
+            `USER:${appState.session.connectionId}`
+        );
         useEffect(() => {
             if (rowRef.current) {
                 setRowHeight(

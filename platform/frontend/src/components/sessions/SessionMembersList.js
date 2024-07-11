@@ -1,6 +1,6 @@
 import { PROFILE_PICTURE_40 } from "@/components/constant";
 import { Card, Classes, InputGroup, Intent, Tag } from "@blueprintjs/core";
-import { faSearch } from "@fortawesome/pro-duotone-svg-icons";
+import { faCircleUser, faSearch } from "@fortawesome/pro-duotone-svg-icons";
 import axios from "axios";
 import classNames from "classnames";
 import _ from "lodash";
@@ -93,17 +93,37 @@ export default function SessionMembersList() {
                                 position: "relative",
                             }}
                         >
-                            <Card
-                                style={PROFILE_PICTURE_40}
-                                className="margin-0"
-                            >
-                                <Image
-                                    alt=""
-                                    src={_.get(user, "picture", "")}
-                                    width={40}
-                                    height={40}
-                                />
-                            </Card>
+                            {hasUserProfile ? (
+                                <Card
+                                    style={PROFILE_PICTURE_40}
+                                    className="margin-0"
+                                >
+                                    <Image
+                                        alt=""
+                                        src={_.get(user, "picture", "")}
+                                        width={40}
+                                        height={40}
+                                    />
+                                </Card>
+                            ) : (
+                                <Card
+                                    style={{
+                                        borderRadius: "50%",
+                                        padding: 0,
+                                        overflow: "hidden",
+                                        width: 40,
+                                        height: 40,
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                    }}
+                                >
+                                    {faIcon({
+                                        icon: faCircleUser,
+                                        style: { color: "#5f6b7c" },
+                                    })}
+                                </Card>
+                            )}
                             <div>
                                 <div style={{ fontWeight: 600 }}>
                                     {_.get(user, "display_name", "-")}
