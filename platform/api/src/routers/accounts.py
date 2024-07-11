@@ -23,7 +23,7 @@ from fastapi.responses import JSONResponse
 import firebase_admin
 from firebase_admin import auth, credentials, exceptions
 
-from constant import EMAIL_DOMAIN_ADDRESS_REGEXP, authorize, redisReplace
+from constant import EMAIL_DOMAIN_ADDRESS_REGEXP, authorize
 from fastapi import Request
 from APIRouter import APIRouter
 from fastapi.responses import JSONResponse
@@ -45,6 +45,26 @@ cred = credentials.Certificate(cert)
 firebase_admin.initialize_app(cred)
 EMAIL_DOMAIN_WHITE_LIST = os.getenv("EMAIL_DOMAIN_WHITE_LIST", "megagon.ai")
 allowed_domains = EMAIL_DOMAIN_WHITE_LIST.split(",")
+
+
+def create_update_user_profile(decoded_claims):
+    # create user profile with guest role if does not exist
+    uid = decoded_claims['uid']
+    db.json().set(
+        REDIS_USER_PREFIX,
+        f'$.{uid}',
+        {
+            "uid": uid,
+            "role": "guest",
+            'email': decoded_claims["email"],
+            "name": decoded_claims["name"],
+            "picture": decoded_claims["picture"],
+        },
+        nx=True,
+    )
+    db.json().set(REDIS_USER_PREFIX, f'$.{uid}.email', decoded_claims["email"])
+    db.json().set(REDIS_USER_PREFIX, f'$.{uid}.name', decoded_claims["name"])
+    db.json().set(REDIS_USER_PREFIX, f'$.{uid}.picture', decoded_claims["picture"])
 
 
 @router.get('/websocket-ticket')
@@ -133,20 +153,7 @@ async def signin(request: Request):
             expires = datetime.datetime.now(datetime.timezone.utc) + expires_in
             # samesite - lax: allow GET requests across origin
             response.set_cookie("session", session_cookie, expires=expires, httponly=True, secure=SECURE_COOKIE, samesite="lax", path="/")
-            # create user profile with guest role if does not exist
-            uid = decoded_claims['uid']
-            db.json().set(
-                REDIS_USER_PREFIX,
-                f'$.{uid}',
-                {
-                    "uid": uid,
-                    'role': 'guest',
-                    'email': email,
-                    "name": decoded_claims["name"],
-                    "picture": decoded_claims["picture"],
-                },
-                nx=True,
-            )
+            create_update_user_profile(decoded_claims)
             return response
         return ERROR_RESPONSE
     except auth.InvalidIdTokenError:
@@ -180,6 +187,7 @@ async def signin_cli(request: Request):
         if time.time() - decoded_claims["auth_time"] < 5 * 60:
             expires_in = datetime.timedelta(hours=10)
             session_cookie = auth.create_session_cookie(id_token, expires_in=expires_in)
+            create_update_user_profile(decoded_claims)
             return JSONResponse(content={"cookie": session_cookie})
         return ERROR_RESPONSE
     except auth.InvalidIdTokenError:
@@ -196,7 +204,7 @@ def get_profile(request: Request):
 
 @router.get('/profile/uid/{uid}')
 def get_profile_by_uid(uid):
-    user = {'id': uid}
+    user = {}
     try:
         user_record = auth.get_user(uid)
         user.update({'uid': user_record.uid, 'email': user_record.email, 'picture': user_record.photo_url, 'display_name': user_record.display_name})
@@ -205,23 +213,14 @@ def get_profile_by_uid(uid):
     return JSONResponse(content={"user": user})
 
 
-@router.get("/profile/email/{email}")
-@authorize(roles=['admin', 'member', 'developer', 'guest'])
-def get_profil_by_email(request: Request, email):
-    user = {'id': email}
-    try:
-        user_record = auth.get_user_by_email(redisReplace(email, reverse=True))
-        user.update({'uid': user_record.uid, 'email': user_record.email, 'picture': user_record.photo_url, 'display_name': user_record.display_name})
-    except ValueError as ex:
-        print(ex)
-    return JSONResponse(content={"user": user})
-
-
 @router.get("/users")
-@authorize(roles=['admin'])
+@authorize(roles=['admin', 'member', 'developer', 'guest'])
 def get_users(request: Request):
     users = db.json().get(REDIS_USER_PREFIX)
     users = list(users.values())
+    if request.state.user.role != 'admin':
+        for user in users:
+            del user['role']
     return JSONResponse(content={"users": users})
 
 
@@ -231,5 +230,5 @@ def update_user_role(request: Request, uid, role_name):
     # preventive measure
     if uid == pydash.objects.get(request, 'state.user.uid', None):
         return JSONResponse(content={"message": "You can't modify your own role."}, status_code=400)
-    user = db.json().set(REDIS_USER_PREFIX, f'$.{uid}', {'role': role_name}, xx=True)
+    user = db.json().set(REDIS_USER_PREFIX, f'$.{uid}.role', role_name)
     return JSONResponse(content={"user": user})

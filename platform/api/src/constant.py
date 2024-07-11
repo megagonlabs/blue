@@ -1,4 +1,3 @@
-import re
 from jsonschema.validators import Draft7Validator
 import pydash
 
@@ -29,14 +28,6 @@ def d7validate(validations, payload):
         pydash.objects.set_(errors, abs_path, messages)
     if len(errors) > 0:
         raise InvalidRequestJson(errors)
-
-
-def redisReplace(value, reverse=False):
-    replacements = {'@': '_AT_', '.': '_DOT_'}
-    if reverse:
-        replacements = {'_AT_': '@', '_DOT_': '.'}
-    pattern = '|'.join(sorted(re.escape(char) for char in replacements))
-    return re.sub(pattern, lambda m: replacements.get(m.group(0).upper()), value, flags=re.IGNORECASE)
 
 
 from functools import wraps

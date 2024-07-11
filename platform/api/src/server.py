@@ -115,7 +115,7 @@ async def session_verification(request: Request, call_next):
                 "exp": decoded_claims["exp"],
             }
             user_role = db.json().get(REDIS_USER_PREFIX, f'$.{profile["uid"]}.role')
-            if len(user_role) == 0:
+            if user_role is not None and len(user_role) == 0:
                 user_role = None
             else:
                 user_role = user_role[0]

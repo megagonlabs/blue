@@ -49,7 +49,7 @@ export default function Users() {
         appActions.admin.setState({ key: "selectedUsers", value: new Set() });
         fetchUserList();
     }, []);
-    const TABLE_CELL_HEIGHT = 50;
+    const TABLE_CELL_HEIGHT = 55;
     const INIT_COLUMNS = [
         {
             name: <div>&nbsp;</div>,
@@ -78,7 +78,7 @@ export default function Users() {
                                 style={{
                                     ...PROFILE_PICTURE_40,
                                     position: "absolute",
-                                    top: 5,
+                                    top: 7.5,
                                     left: 1,
                                 }}
                             >

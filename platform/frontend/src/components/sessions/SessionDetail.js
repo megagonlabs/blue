@@ -95,11 +95,11 @@ export default function SessionDetail({ isOpen, setIsSessionDetailOpen }) {
                     <Button
                         minimal
                         large
-                        text="Participants"
+                        text="Agents"
                         onClick={() => {
-                            setTab("participants");
+                            setTab("agents");
                         }}
-                        active={_.isEqual(tab, "participants")}
+                        active={_.isEqual(tab, "agents")}
                     />
                     <Button
                         minimal
@@ -146,9 +146,7 @@ export default function SessionDetail({ isOpen, setIsSessionDetailOpen }) {
                             </FormGroup>
                         </>
                     ) : null}
-                    {_.isEqual(tab, "participants") ? (
-                        <SessionAgentsList />
-                    ) : null}
+                    {_.isEqual(tab, "agents") ? <SessionAgentsList /> : null}
                     {_.isEqual(tab, "members") ? <SessionMembersList /> : null}
                 </div>
             </DialogBody>

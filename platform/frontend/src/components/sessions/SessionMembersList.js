@@ -58,7 +58,7 @@ export default function SessionMembersList() {
                 leftIcon={faIcon({ icon: faSearch })}
                 placeholder="Find members"
                 large
-                style={{ marginBottom: 5 }}
+                style={{ marginBottom: 7 }}
             />
             {loading ? (
                 <>
@@ -78,7 +78,7 @@ export default function SessionMembersList() {
                         member.uid,
                     ]);
                     if (!hasUserProfile) {
-                        appActions.app.getUserProfileByUid(member.uid);
+                        appActions.app.getUserProfile(member.uid);
                     }
                     return (
                         <div

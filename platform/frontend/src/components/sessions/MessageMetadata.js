@@ -15,7 +15,7 @@ function MessageMetadata({ timestamp, stream }) {
     const user = _.get(appState, ["app", "users", agentId], {});
     useEffect(() => {
         if (!hasUserProfile && _.isEqual(agentType, "USER")) {
-            appActions.app.getUserProfileByEmail(agentId);
+            appActions.app.getUserProfile(agentId);
         }
     }, []);
     return (
