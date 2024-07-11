@@ -126,8 +126,7 @@ class Platform:
 
     def create_session(self):
         session = Session(prefix=self.cid, properties=self.properties)
-        created_date = session.get_metadata('created_date')
-        return {"id": session.sid, "name": session.sid, "description": "", 'created_date': created_date}
+        return session
 
     def delete_session(self, session_sid):
         session_cid = self.cid + ":" + session_sid

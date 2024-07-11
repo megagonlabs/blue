@@ -16,6 +16,7 @@ import axios from "axios";
 import _ from "lodash";
 import { useContext, useEffect, useState } from "react";
 import SessionAgentsList from "./SessionAgentsList";
+import SessionMembersList from "./SessionMembersList";
 export default function SessionDetail({ isOpen, setIsSessionDetailOpen }) {
     const { appState, appActions } = useContext(AppContext);
     const sessionIdFocus = appState.session.sessionIdFocus;
@@ -96,9 +97,28 @@ export default function SessionDetail({ isOpen, setIsSessionDetailOpen }) {
                         large
                         text="Participants"
                         onClick={() => {
+                            setTab("participants");
+                        }}
+                        active={_.isEqual(tab, "participants")}
+                    />
+                    <Button
+                        minimal
+                        large
+                        text="Members"
+                        onClick={() => {
                             setTab("members");
                         }}
                         active={_.isEqual(tab, "members")}
+                    />
+                    <Button
+                        minimal
+                        large
+                        disabled
+                        text="Settings"
+                        onClick={() => {
+                            setTab("settings");
+                        }}
+                        active={_.isEqual(tab, "settings")}
                     />
                 </Card>
                 <div style={{ padding: 15 }}>
@@ -126,7 +146,10 @@ export default function SessionDetail({ isOpen, setIsSessionDetailOpen }) {
                             </FormGroup>
                         </>
                     ) : null}
-                    {_.isEqual(tab, "members") ? <SessionAgentsList /> : null}
+                    {_.isEqual(tab, "participants") ? (
+                        <SessionAgentsList />
+                    ) : null}
+                    {_.isEqual(tab, "members") ? <SessionMembersList /> : null}
                 </div>
             </DialogBody>
             {_.isEqual(tab, "about") ? (

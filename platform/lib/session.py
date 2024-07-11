@@ -190,11 +190,17 @@ class Session:
         )
 
         if self.get_metadata("created_date") is None:
-            # add created
+            # add created_date
             self.set_metadata("created_date", int(time.time()))
 
     def _get_metadata_namespace(self):
         return self.cid + ":METADATA"
+
+    def add_metadata_sets(self, key, value):
+        pass
+
+    def remove_metadata_sets(self, key, value):
+        pass
 
     def set_metadata(self, key, value):
         self.connection.json().set(self._get_metadata_namespace(), "$." + key, value)
