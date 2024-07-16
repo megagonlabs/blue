@@ -129,7 +129,7 @@ def list_session_members(request: Request, session_id):
     members: dict = session.get_metadata('members')
     results = [{'uid': created_by, 'owner': True}]
     for key in members.keys():
-        if key != created_by:
+        if key != created_by and members[key]:
             results.append({'uid': key, 'owner': False})
     return JSONResponse(content={"results": results})
 
