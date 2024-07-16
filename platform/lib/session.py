@@ -197,10 +197,13 @@ class Session:
         return self.cid + ":METADATA"
 
     def add_metadata_sets(self, key, value):
-        pass
+        self.connection.sadd(f'{self._get_metadata_namespace()}:{key}', value)
 
     def remove_metadata_sets(self, key, value):
-        pass
+        self.connection.srem(f'{self._get_metadata_namespace()}:{key}', value)
+
+    def get_metadata_sets(self, key):
+        return self.connection.smembers(f'{self._get_metadata_namespace()}:{key}')
 
     def set_metadata(self, key, value):
         self.connection.json().set(self._get_metadata_namespace(), "$." + key, value)

@@ -11,7 +11,6 @@ import {
     Divider,
     Intent,
     NonIdealState,
-    Tag,
     Tooltip,
 } from "@blueprintjs/core";
 import {
@@ -108,9 +107,7 @@ export default function Users() {
                 const role = _.get(data, [rowIndex, "role"], "-");
                 return (
                     <Cell style={{ lineHeight: `${TABLE_CELL_HEIGHT - 1}px` }}>
-                        <Tag minimal>
-                            {_.get(USER_ROLES_LOOKUP, role, role)}
-                        </Tag>
+                        {_.get(USER_ROLES_LOOKUP, role, role)}
                     </Cell>
                 );
             },

@@ -7,10 +7,6 @@ sys.path.append("./lib/")
 sys.path.append("./lib/agent_registry/")
 sys.path.append("./lib/platform/")
 
-
-######
-import time
-
 ###### Parsers, Formats, Utils
 import json
 from utils import json_utils
@@ -77,7 +73,7 @@ def list_session_agents(request: Request, session_id):
 
 
 @router.post("/session/{session_id}/agents/{registry_name}/agent/{agent_name}")
-@authorize(roles=['admin', 'member', 'developer', 'guest'])
+@authorize(roles=['admin', 'member', 'developer'])
 def add_agent_to_session(request: Request, session_id, registry_name, agent_name, properties: JSONObject, input: Union[str, None] = None):
     if registry_name == agent_registry_id:
         session = p.get_session(session_id)
@@ -104,7 +100,7 @@ def add_agent_to_session(request: Request, session_id, registry_name, agent_name
 
 
 @router.put("/session/{session_id}")
-@authorize(roles=['admin', 'member', 'developer', 'guest'])
+@authorize(roles=['admin', 'member', 'developer'])
 async def update_session(request: Request, session_id):
     payload = await request.json()
     d7validate(
@@ -127,17 +123,32 @@ async def update_session(request: Request, session_id):
 
 
 @router.get("/session/{session_id}/members")
-def list_session_members(session_id):
+@authorize(roles=['admin', 'member', 'developer', 'guest'])
+def list_session_members(request: Request, session_id):
     session = p.get_session(session_id)
     created_by = session.get_metadata("created_by")
-    members = session.get_metadata('members')
-    print(members)
-    return JSONResponse(content={"results": [{'uid': created_by, 'owner': True}]})
+    members = session.get_metadata_sets('members')
+    results = [{'uid': created_by, 'owner': True}]
+    for member in members:
+        if member != created_by:
+            results.append({'uid': member, 'owner': False})
+    return JSONResponse(content={"results": results})
 
 
 @router.post("/session/{session_id}/members/{uid}")
-def add_member_to_session(session_id, uid):
-    pass
+@authorize(roles=['admin', 'member', 'developer'])
+def add_member_to_session(request: Request, session_id, uid):
+    session = p.get_session(session_id)
+    session.add_metadata_sets('members', uid)
+    return JSONResponse(content={"message": "Success"})
+
+
+@router.delete("/session/{session_id}/members/{uid}")
+@authorize(roles=['admin', 'member', 'developer'])
+def remove_member_from_session(request: Request, session_id, uid):
+    session = p.get_session(session_id)
+    session.remove_metadata_sets('members', uid)
+    return JSONResponse(content={"message": "Success"})
 
 
 @router.post("/session")

@@ -29,7 +29,6 @@ from settings import PROPERTIES, REDIS_USER_PREFIX
 host = PROPERTIES.get('db.host', 'localhost')
 port = PROPERTIES.get('db.port', 6379)
 db = redis.Redis(host=host, port=port, decode_responses=True)
-db.json().set(REDIS_USER_PREFIX, '$', {}, nx=True)
 
 ###### API Routers
 from constant import EMAIL_DOMAIN_ADDRESS_REGEXP, InvalidRequestJson
@@ -114,11 +113,10 @@ async def session_verification(request: Request, call_next):
                 "email": email,
                 "exp": decoded_claims["exp"],
             }
-            user_role = db.json().get(REDIS_USER_PREFIX, f'$.{profile["uid"]}.role')
-            if user_role is not None and len(user_role) == 0:
-                user_role = None
-            else:
-                user_role = user_role[0]
+            user_role = db.json().get(f'{REDIS_USER_PREFIX}:{profile["uid"]}', '$.role')
+            if user_role is not None:
+                if len(user_role) > 0:
+                    user_role = user_role[0]
             profile['role'] = user_role
             request.state.user = profile
         except auth.InvalidSessionCookieError:

@@ -45,7 +45,7 @@ function MessageMetadata({ timestamp, stream }) {
                             className={Classes.TEXT_MUTED}
                             style={{ marginLeft: 12 }}
                         >
-                            {_.get(user, "display_name", "-")}
+                            {_.get(user, "name", "-")}
                             <br />
                             {_.get(user, "email", "-")}
                         </div>
