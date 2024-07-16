@@ -53,13 +53,18 @@ class KnowledgGroundingAgent(Agent):
         super()._initialize_properties()
 
         listeners = {}
-        self.properties["listens"] = listeners
-        listeners["includes"] = []
-        listeners["excludes"] = [self.name]
+        default_listeners = {}
+        listeners["DEFAULT"] = default_listeners
+
+        self.properties['listens'] = listeners
+        default_listeners['includes'] = ["USER"]
+        default_listeners['excludes'] = [self.name]
 
         ### default tags to tag output streams
-        tags = []
-        self.properties["tags"] = ["JSON"]
+        tags = {}
+        default_tags = ['JSON']
+        tags["DEFAULT"] = default_tags
+        self.properties['tags'] = tags
 
         # rationalizer config
         self.properties["requires"] = []  #'name', 'top_title_recommendation',]

@@ -83,9 +83,10 @@ class Agent:
         if session:
             self.join_session(session)
 
-        self.aggregate_producer_id = None
-        self.consumer = None
+        # consumer for session stream
+        self.session_consumer = None
 
+        # workers of an agent in a session
         self.workers = []
 
         self._start()
@@ -102,18 +103,19 @@ class Agent:
         self.properties["db.host"] = "localhost"
         self.properties["db.port"] = 6379
 
-        # aggregator (have a single producer for all workers)
-        self.properties["aggregator"] = False
-        self.properties["aggregator.eos"] = "FIRST"
-
         ### include/exclude list of rules to listen to agents/tags
         listeners = {}
+        default_listeners = {}
+        listeners["DEFAULT"] = default_listeners
+
         self.properties["listens"] = listeners
-        listeners["includes"] = [".*"]
-        listeners["excludes"] = [self.name]
+        default_listeners["includes"] = [".*"]
+        default_listeners["excludes"] = []
 
         ### default tags to tag output streams
-        tags = []
+        tags = {}
+        default_tags = []
+        tags["DEFAULT"] = default_tags
         self.properties["tags"] = tags
 
     def _update_properties(self, properties=None):
@@ -134,21 +136,15 @@ class Agent:
         self.connection = redis.Redis(host=host, port=port, decode_responses=True)
 
     ###### worker
-    def create_worker(self, input_stream, tags=None, id=None):
-        # TODO: REVISE AS PART OF MI/MO
-        # if self.properties['aggregator']:
-        #     # generate unique id for aggregate producer
-        #     if self.aggregate_producer_id is None:
-        #         self.aggregate_producer_id = self.name + ":" + str(hex(uuid.uuid4().fields[0]))[2:]
-        #     # if id not set use aggregate_producer
-        #     if id is None:
-        #         id = self.aggregate_producer_id
+    # input_streams is a map from param to stream, e.g. 
+    # { "DEFAULT": default_input_stream }
+    def create_worker(self, input_streams):
 
         worker = Worker(
-            input_stream,
+            input_streams,
             prefix=self.cid,
             agent=self,
-            processor=lambda *args, **kwargs: self.processor(*args, **kwargs, tags=tags),
+            processor=lambda *args, **kwargs: self.processor(*args, **kwargs),
             session=self.session,
             properties=self.properties,
         )
@@ -208,23 +204,32 @@ class Agent:
                
 
                 # agent define what to listen to using include/exclude expressions
-                logging.info("checking match.")
+                logging.info("Checking listener tags...")
                 matches = self._match_listen_to_tags(tags)
-                logging.info("Done checking match.")
+                logging.info("Done.")
+
+                # skip
                 if len(matches) == 0:
-                    logging.info("Not listening to {stream} with {tags}...".format(stream=input_stream, tags=tags))
+                    logging.info("Skipping stream {stream} with {tags}...".format(stream=input_stream, tags=tags))
                     return
 
+                # listen 
                 logging.info(
-                    "Spawning worker for stream {stream} with matching tags {matches}...".format(
+                    "Listening stream {stream} with matching tags {matches}...".format(
                         stream=input_stream, matches=matches
                     )
                 )
-                session_stream = self.session.get_stream()
 
                 # create and start worker
-                # TODO; pass tag to worker, with parameters
+                logging.info(
+                    "Spawning worker for stream {stream}...".format(
+                        stream=input_stream
+                    )
+                )
+
+                # create map, with de
                 worker = self.create_worker(input_stream, tags=matches)
+                
                 self.workers.append(worker)
 
                 logging.info("Spawned worker for stream {stream}...".format(stream=input_stream))
@@ -232,8 +237,11 @@ class Agent:
     def _match_listen_to_tags(self, tags):
         matches = set()
 
-        includes = self.properties["listens"]["includes"]
-        excludes = self.properties["listens"]["excludes"]
+        # default listeners
+        listeners = self.properties["listens"]
+        default_listeners = listeners["DEFAULT"]
+        includes = default_listeners["includes"]
+        excludes = default_listeners["excludes"]
 
         logging.info("includes")
         for i in includes:
@@ -314,8 +322,6 @@ class Agent:
     def _start(self):
         self._start_connection()
 
-        # logging.info('Starting agent {name}'.format(name=self.name))
-
         # if agent is associated with a session
         if self.session:
             self._start_session_consumer()
@@ -328,13 +334,13 @@ class Agent:
             session_stream = self.session.get_stream()
 
             if session_stream:
-                self.consumer = Consumer(
+                self.session_consumer = Consumer(
                     session_stream,
                     name=self.name,
                     listener=lambda id, message: self.session_listener(id, message),
                     properties=self.properties,
                 )
-                self.consumer.start()
+                self.session_consumer.start()
 
     def stop(self):
         # leave session
@@ -367,7 +373,7 @@ class AgentFactory:
 
         self._initialize(properties=properties)
 
-        self.consumer = None
+        self.session_consumer = None
 
         # creation time
         self.ct = math.floor(time.time_ns() / 1000000)
@@ -423,18 +429,18 @@ class AgentFactory:
         )
 
     def wait(self):
-        self.consumer.wait()
+        self.session_consumer.wait()
 
     def _start_consumer(self):
         # platform stream
         stream = "PLATFORM:" + self.platform + ":STREAM"
-        self.consumer = Consumer(
+        self.session_consumer = Consumer(
             stream,
             name=self.agent_name + "_FACTORY",
             listener=lambda id, message: self.platform_listener(id, message),
             properties=self.properties,
         )
-        self.consumer.start()
+        self.session_consumer.start()
 
     def platform_listener(self, id, message):
         # listen to platform stream

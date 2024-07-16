@@ -52,13 +52,17 @@ class TitleRecommenderAgent(Agent):
 
         # default properties
         listeners = {}
+        default_listeners = {}
+        listeners["DEFAULT"] = default_listeners
         self.properties['listens'] = listeners
-        listeners['includes'] = ['RECORDER']
-        listeners['excludes'] = [self.name]
+        default_listeners['includes'] = ['RECORDER']
+        default_listeners['excludes'] = [self.name]
 
         ### default tags to tag output streams
-        tags = []
-        self.properties['tags'] = ['JSON']
+        tags = {}
+        default_tags = ['JSON']
+        tags["DEFAULT"] = default_tags
+        self.properties['tags'] = tags
 
 
     def default_processor(self, stream, id, label, data, dtype=None, tags=None, properties=None, worker=None):

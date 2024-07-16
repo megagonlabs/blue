@@ -49,13 +49,18 @@ class JobSearchAgent(Agent):
 
         # default properties
         listeners = {}
+        default_listeners = {}
+        listeners["DEFAULT"] = default_listeners
         self.properties['listens'] = listeners
-        listeners['includes'] = ['Recorder']
-        listeners['excludes'] = [self.name]
+        default_listeners['includes'] = ['Recorder']
+        default_listeners['excludes'] = [self.name]
 
         ### default tags to tag output streams
-        tags = []
-        self.properties['tags'] = ['JSON']
+        tags = {}
+        default_tags = ['JSON']
+        tags["DEFAULT"] = default_tags
+        self.properties['tags'] = tags
+        
 
     def create_jobs_list(self, jobs):
 

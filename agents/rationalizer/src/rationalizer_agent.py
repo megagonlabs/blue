@@ -75,9 +75,11 @@ class RationalizerAgent(OpenAIAgent):
                 '''
         
         listeners = {}
+        default_listeners = {}
+        listeners["DEFAULT"] = default_listeners
         self.properties['listens'] = listeners
-        listeners['includes'] = ['RECORDER']
-        listeners['excludes'] = [self.name]
+        default_listeners['includes'] = ['RECORDER']
+        default_listeners['excludes'] = [self.name]
 
         # rationalizer config
         self.properties['requires'] = ['title', 'top_title_recommendation', 'resume_skills', 'top_title_skills']

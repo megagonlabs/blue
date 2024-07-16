@@ -278,7 +278,11 @@ class Worker:
                 tags = set()
                 tags.add(self.agent.name)
                 if "tags" in self.properties:
-                    tags = tags.union(set(self.properties["tags"]))
+                    tags_by_param = self.properties["tags"]
+                    # include tags from all params
+                    for param in tags_by_param:
+                        param_tags = tags_by_param[param]
+                        tags = tags.union(set(param_tags))
                 tags = list(tags)
 
                 self.session.notify(output_stream, tags)

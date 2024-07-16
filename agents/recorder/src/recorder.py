@@ -49,9 +49,12 @@ class RecorderAgent(Agent):
 
         # default properties
         listeners = {}
+        default_listeners = {}
+        listeners["DEFAULT"] = default_listeners
+
         self.properties['listens'] = listeners
-        listeners['includes'] = ['JSON']
-        listeners['excludes'] = [self.name]
+        default_listeners['includes'] = ['JSON']
+        default_listeners['excludes'] = [self.name]
 
         # recorder is an aggregator agent
         self.properties['aggregator'] = True 
