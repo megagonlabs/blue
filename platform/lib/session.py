@@ -1,5 +1,4 @@
 ###### OS / Systems
-import os
 import sys
 from xml.sax.handler import property_dom_node
 
@@ -15,15 +14,9 @@ import argparse
 import logging
 import time
 import uuid
-import random
 
 ###### Parsers, Formats, Utils
-import re
-import csv
 import json
-
-import itertools
-from tqdm import tqdm
 
 ###### Backend, Databases
 import redis
@@ -185,28 +178,18 @@ class Session:
         self.connection.json().set(
             self._get_metadata_namespace(),
             "$",
-            {},
+            {"members": {}},
             nx=True,
         )
 
-        if self.get_metadata("created_date") is None:
-            # add created_date
-            self.set_metadata("created_date", int(time.time()))
+        # add created_date
+        self.set_metadata("created_date", int(time.time()), nx=True)
 
     def _get_metadata_namespace(self):
         return self.cid + ":METADATA"
 
-    def add_metadata_sets(self, key, value):
-        self.connection.sadd(f'{self._get_metadata_namespace()}:{key}', value)
-
-    def remove_metadata_sets(self, key, value):
-        self.connection.srem(f'{self._get_metadata_namespace()}:{key}', value)
-
-    def get_metadata_sets(self, key):
-        return self.connection.smembers(f'{self._get_metadata_namespace()}:{key}')
-
-    def set_metadata(self, key, value):
-        self.connection.json().set(self._get_metadata_namespace(), "$." + key, value)
+    def set_metadata(self, key, value, nx=False):
+        self.connection.json().set(self._get_metadata_namespace(), "$." + key, value, nx=nx)
 
     def get_metadata(self, key=""):
         value = self.connection.json().get(

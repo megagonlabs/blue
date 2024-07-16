@@ -76,7 +76,6 @@ def list_session_agents(request: Request, session_id):
 @authorize(roles=['admin', 'member', 'developer'])
 def add_agent_to_session(request: Request, session_id, registry_name, agent_name, properties: JSONObject, input: Union[str, None] = None):
     if registry_name == agent_registry_id:
-        session = p.get_session(session_id)
         properties_from_registry = agent_registry.get_agent_properties(agent_name)
 
         # start with platform properties, merge properties from registry, then merge properties from API call
@@ -127,11 +126,11 @@ async def update_session(request: Request, session_id):
 def list_session_members(request: Request, session_id):
     session = p.get_session(session_id)
     created_by = session.get_metadata("created_by")
-    members = session.get_metadata_sets('members')
+    members: dict = session.get_metadata('members')
     results = [{'uid': created_by, 'owner': True}]
-    for member in members:
-        if member != created_by:
-            results.append({'uid': member, 'owner': False})
+    for key in members.keys():
+        if key != created_by:
+            results.append({'uid': key, 'owner': False})
     return JSONResponse(content={"results": results})
 
 
@@ -139,7 +138,7 @@ def list_session_members(request: Request, session_id):
 @authorize(roles=['admin', 'member', 'developer'])
 def add_member_to_session(request: Request, session_id, uid):
     session = p.get_session(session_id)
-    session.add_metadata_sets('members', uid)
+    session.set_metadata(f'members.{uid}', True)
     return JSONResponse(content={"message": "Success"})
 
 
@@ -147,7 +146,7 @@ def add_member_to_session(request: Request, session_id, uid):
 @authorize(roles=['admin', 'member', 'developer'])
 def remove_member_from_session(request: Request, session_id, uid):
     session = p.get_session(session_id)
-    session.remove_metadata_sets('members', uid)
+    session.set_metadata(f'members.{uid}', False)
     return JSONResponse(content={"message": "Success"})
 
 

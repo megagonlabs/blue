@@ -27,7 +27,6 @@ import {
     faArrowRightFromBracket,
     faCircleA,
     faDatabase,
-    faGear,
     faListUl,
     faPencilRuler,
     faQuestion,
@@ -86,11 +85,6 @@ export default function App({ children }) {
             href: "/admin/agents",
             text: "Agents",
             icon: faCircleA,
-        },
-        admin_services: {
-            href: "/admin/services",
-            text: "Services",
-            icon: faGear,
         },
     };
     const [isSupportDialogOpen, setIsSupportDialogOpen] = useState(false);
@@ -409,40 +403,38 @@ export default function App({ children }) {
                                     large
                                     className="full-parent-width"
                                 >
-                                    {[
-                                        "admin_agents",
-                                        "admin_services",
-                                        "admin_users",
-                                    ].map((key, index) => {
-                                        const { href, icon, text } = _.get(
-                                            MENU_ITEMS,
-                                            key,
-                                            {}
-                                        );
-                                        const active = _.startsWith(
-                                            router.asPath,
-                                            href
-                                        );
-                                        return (
-                                            <Link href={href} key={index}>
-                                                <Button
-                                                    style={
-                                                        !active
-                                                            ? {
-                                                                  backgroundColor:
-                                                                      "transparent",
-                                                              }
-                                                            : null
-                                                    }
-                                                    active={active}
-                                                    text={text}
-                                                    icon={faIcon({
-                                                        icon: icon,
-                                                    })}
-                                                />
-                                            </Link>
-                                        );
-                                    })}
+                                    {["admin_agents", "admin_users"].map(
+                                        (key, index) => {
+                                            const { href, icon, text } = _.get(
+                                                MENU_ITEMS,
+                                                key,
+                                                {}
+                                            );
+                                            const active = _.startsWith(
+                                                router.asPath,
+                                                href
+                                            );
+                                            return (
+                                                <Link href={href} key={index}>
+                                                    <Button
+                                                        style={
+                                                            !active
+                                                                ? {
+                                                                      backgroundColor:
+                                                                          "transparent",
+                                                                  }
+                                                                : null
+                                                        }
+                                                        active={active}
+                                                        text={text}
+                                                        icon={faIcon({
+                                                            icon: icon,
+                                                        })}
+                                                    />
+                                                </Link>
+                                            );
+                                        }
+                                    )}
                                 </ButtonGroup>
                             </>
                         ) : null}

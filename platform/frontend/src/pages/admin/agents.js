@@ -146,17 +146,17 @@ export default function Agents() {
             ) : null}
             <div style={{ padding: 5, height: 50 }}>
                 <ButtonGroup large minimal>
-                    <Tooltip placement="bottom-start" minimal content="Stop">
-                        <Button disabled icon={faIcon({ icon: faStop })} />
-                    </Tooltip>
-                    <Divider />
-                    <Tooltip placement="bottom" minimal content="Refresh">
+                    <Tooltip placement="bottom-start" minimal content="Refresh">
                         <Button
                             intent={Intent.PRIMARY}
                             onClick={fetchContainerList}
                             loading={loading}
                             icon={faIcon({ icon: faRefresh })}
                         />
+                    </Tooltip>
+                    <Divider />
+                    <Tooltip placement="bottom" minimal content="Stop">
+                        <Button disabled icon={faIcon({ icon: faStop })} />
                     </Tooltip>
                 </ButtonGroup>
             </div>

@@ -23,14 +23,13 @@ from fastapi.responses import JSONResponse
 import firebase_admin
 from firebase_admin import auth, credentials, exceptions
 
-from constant import EMAIL_DOMAIN_ADDRESS_REGEXP, authorize, redisReplace
+from constant import EMAIL_DOMAIN_ADDRESS_REGEXP, authorize
 from fastapi import Request
 from APIRouter import APIRouter
 from fastapi.responses import JSONResponse
 
 ###### Settings
-from settings import PROPERTIES, SECURE_COOKIE, REDIS_USER_PREFIX
-from server import db
+from settings import PROPERTIES, SECURE_COOKIE
 
 ### Assign from platform properties
 platform_id = PROPERTIES["platform.name"]
@@ -46,40 +45,11 @@ firebase_admin.initialize_app(cred)
 EMAIL_DOMAIN_WHITE_LIST = os.getenv("EMAIL_DOMAIN_WHITE_LIST", "megagon.ai")
 allowed_domains = EMAIL_DOMAIN_WHITE_LIST.split(",")
 
-from redis.commands.search.field import TextField, TagField
-from redis.commands.search.indexDefinition import IndexDefinition, IndexType
+from blueprint import Platform
+from settings import PROPERTIES
 
-#  check if users_index exists if not then create
-users_index_name = f'idx:{REDIS_USER_PREFIX}'
-users_index = db.ft(users_index_name)
-try:
-    users_index.info()
-except:
-    schema = (
-        TextField("$.name", as_name="name"),
-        TagField("$.role", as_name="role"),
-    )
-    users_index.create_index(schema, definition=IndexDefinition(prefix=[f'{REDIS_USER_PREFIX}:'], index_type=IndexType.JSON))
-
-
-def create_update_user_profile(user_profile):
-    # create user profile with guest role if does not exist
-    uid = user_profile['uid']
-    db.json().set(
-        f'{REDIS_USER_PREFIX}:{uid}',
-        '$',
-        {
-            "uid": uid,
-            "role": "guest",
-            'email': user_profile["email"],
-            "name": user_profile["name"],
-            "picture": user_profile["picture"],
-        },
-        nx=True,
-    )
-    db.json().set(f'{REDIS_USER_PREFIX}:{uid}', '$.email', user_profile["email"])
-    db.json().set(f'{REDIS_USER_PREFIX}:{uid}', '$.name', user_profile["name"])
-    db.json().set(f'{REDIS_USER_PREFIX}:{uid}', '$.picture', user_profile["picture"])
+platform_id = PROPERTIES["platform.name"]
+p = Platform(id=platform_id, properties=PROPERTIES)
 
 
 @router.get('/websocket-ticket')
@@ -168,7 +138,7 @@ async def signin(request: Request):
             expires = datetime.datetime.now(datetime.timezone.utc) + expires_in
             # samesite - lax: allow GET requests across origin
             response.set_cookie("session", session_cookie, expires=expires, httponly=True, secure=SECURE_COOKIE, samesite="lax", path="/")
-            create_update_user_profile(decoded_claims)
+            p.create_update_user(decoded_claims)
             return response
         return ERROR_RESPONSE
     except auth.InvalidIdTokenError:
@@ -202,7 +172,7 @@ async def signin_cli(request: Request):
         if time.time() - decoded_claims["auth_time"] < 5 * 60:
             expires_in = datetime.timedelta(hours=10)
             session_cookie = auth.create_session_cookie(id_token, expires_in=expires_in)
-            create_update_user_profile(decoded_claims)
+            p.create_update_user(decoded_claims)
             return JSONResponse(content={"cookie": session_cookie})
         return ERROR_RESPONSE
     except auth.InvalidIdTokenError:
@@ -223,7 +193,6 @@ def get_profile_by_uid(uid):
     try:
         user_record = auth.get_user(uid)
         user.update({'uid': user_record.uid, 'email': user_record.email, 'picture': user_record.photo_url, 'name': user_record.display_name})
-        create_update_user_profile(user)
     except ValueError as ex:
         print(ex)
     return JSONResponse(content={"user": user})
@@ -232,20 +201,16 @@ def get_profile_by_uid(uid):
 @router.get("/users")
 @authorize(roles=['admin', 'member', 'developer', 'guest'])
 def get_users(request: Request, keyword: str = ""):
-    users = users_index.search('*' if pydash.is_empty(keyword) else f'{redisReplace(keyword)}*').docs
+    users: dict = p.get_metadata('users')
     result = []
-    for user in users:
-        user_json = json.loads(user.json)
-        temp = {
-            'uid': user_json['uid'],
-            'email': user_json['email'],
-            'name': user_json['name'],
-            'picture': user_json['picture'],
-        }
-        # hide user role info when querying without admin role
-        if request.state.user['role'] == 'admin':
-            temp.update({"role": user_json['role']})
-        result.append(temp)
+    rx = re.compile(f'(?<!\w)\s*({keyword})', re.IGNORECASE)
+    for key in users.keys():
+        user = users[key]
+        if re.search(rx, user['name']) is not None:
+            # hide user role info when querying without admin role
+            if request.state.user['role'] != 'admin':
+                del user['role']
+            result.append(user)
     return JSONResponse(content={"users": result})
 
 
@@ -255,5 +220,5 @@ def update_user_role(request: Request, uid, role_name):
     # preventive measure
     if uid == pydash.objects.get(request, 'state.user.uid', None):
         return JSONResponse(content={"message": "You can't modify your own role."}, status_code=400)
-    user = db.json().set(f'{REDIS_USER_PREFIX}:{uid}', '$.role', role_name)
-    return JSONResponse(content={"user": user})
+    p.set_metadata(f'users.{uid}.role', role_name)
+    return JSONResponse(content={"message": "Success"})

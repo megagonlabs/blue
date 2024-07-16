@@ -1,8 +1,6 @@
 ###### OS / Systems
 from curses import noecho
-import os
 import sys
-import redis
 
 ###### Add lib path
 sys.path.append("./lib/")
@@ -14,7 +12,6 @@ sys.path.append("./lib/platform/")
 ###### Parsers, Formats, Utils
 import json
 import re
-import pydash
 from pathlib import Path
 
 ##### FastAPI, Web, Sockets, Authentication
@@ -24,11 +21,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from firebase_admin import auth
 
 ###### Settings
-from settings import PROPERTIES, REDIS_USER_PREFIX
-
-host = PROPERTIES.get('db.host', 'localhost')
-port = PROPERTIES.get('db.port', 6379)
-db = redis.Redis(host=host, port=port, decode_responses=True)
+from settings import PROPERTIES
 
 ###### API Routers
 from constant import EMAIL_DOMAIN_ADDRESS_REGEXP, InvalidRequestJson
@@ -113,10 +106,7 @@ async def session_verification(request: Request, call_next):
                 "email": email,
                 "exp": decoded_claims["exp"],
             }
-            user_role = db.json().get(f'{REDIS_USER_PREFIX}:{profile["uid"]}', '$.role')
-            if user_role is not None:
-                if len(user_role) > 0:
-                    user_role = user_role[0]
+            user_role = p.get_metadata(f'users.{profile["uid"]}.role')
             profile['role'] = user_role
             request.state.user = profile
         except auth.InvalidSessionCookieError:
