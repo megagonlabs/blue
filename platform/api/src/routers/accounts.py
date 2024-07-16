@@ -206,11 +206,17 @@ def get_users(request: Request, keyword: str = ""):
     rx = re.compile(f'(?<!\w)\s*({keyword})', re.IGNORECASE)
     for key in users.keys():
         user = users[key]
+        temp = {
+            'uid': user['uid'],
+            'email': user['email'],
+            'name': user['name'],
+            'picture': user['picture'],
+        }
         if re.search(rx, user['name']) is not None:
             # hide user role info when querying without admin role
-            if request.state.user['role'] != 'admin':
-                del user['role']
-            result.append(user)
+            if request.state.user['role'] == 'admin':
+                temp['role'] = user['role']
+            result.append(temp)
     return JSONResponse(content={"users": result})
 
 
