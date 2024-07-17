@@ -1,13 +1,19 @@
 import { PROFILE_PICTURE_40 } from "@/components/constant";
 import {
+    Button,
     Card,
     Classes,
     InputGroup,
     Intent,
     Popover,
     Tag,
+    Tooltip,
 } from "@blueprintjs/core";
-import { faCircleCheck, faSearch } from "@fortawesome/pro-duotone-svg-icons";
+import {
+    faCircleCheck,
+    faSearch,
+    faTrash,
+} from "@fortawesome/pro-duotone-svg-icons";
 import axios from "axios";
 import classNames from "classnames";
 import _ from "lodash";
@@ -62,11 +68,6 @@ export default function SessionMembersList() {
                     .get("/accounts/users", { params: { keyword: keyword } })
                     .then((response) => {
                         setSearchResult(_.get(response, "data.users", []));
-                        // _.differenceBy(
-                        //     _.get(response, "data.users", []),
-                        //     members,
-                        //     "uid"
-                        // )
                     })
                     .finally(() => {
                         setIsTyping(false);
@@ -106,6 +107,21 @@ export default function SessionMembersList() {
             </div>
         </div>
     );
+    const removeMember = (user) => {
+        axios
+            .delete(`/sessions/session/${sessionIdFocus}/members/${user.uid}`)
+            .then(() => {
+                fetchMemberList();
+                AppToaster.show({
+                    intent: Intent.SUCCESS,
+                    message: `Removed ${_.get(
+                        user,
+                        "name",
+                        "-"
+                    )} from the session`,
+                });
+            });
+    };
     const addMember = (user) => {
         axios
             .post(`/sessions/session/${sessionIdFocus}/members/${user.uid}`)
@@ -115,11 +131,7 @@ export default function SessionMembersList() {
                 setRecentlyAdded(temp);
                 AppToaster.show({
                     intent: Intent.SUCCESS,
-                    message: `Invited ${_.get(
-                        user,
-                        "name",
-                        "-"
-                    )} to the session`,
+                    message: `Added ${_.get(user, "name", "-")} to the session`,
                 });
             });
     };
@@ -275,7 +287,44 @@ export default function SessionMembersList() {
                                 >
                                     Owner
                                 </Tag>
-                            ) : null}
+                            ) : (
+                                <div
+                                    style={{
+                                        position: "absolute",
+                                        right: 15,
+                                    }}
+                                >
+                                    <Popover
+                                        placement="left"
+                                        content={
+                                            <div style={{ padding: 15 }}>
+                                                <Button
+                                                    className={
+                                                        Classes.POPOVER_DISMISS
+                                                    }
+                                                    text="Confirm"
+                                                    onClick={() => {
+                                                        removeMember(user);
+                                                    }}
+                                                    intent={Intent.DANGER}
+                                                />
+                                            </div>
+                                        }
+                                    >
+                                        <Tooltip
+                                            content="Remove"
+                                            minimal
+                                            placement="left"
+                                        >
+                                            <Button
+                                                minimal
+                                                icon={faIcon({ icon: faTrash })}
+                                                intent={Intent.DANGER}
+                                            />
+                                        </Tooltip>
+                                    </Popover>
+                                </div>
+                            )}
                         </div>
                     );
                 })
