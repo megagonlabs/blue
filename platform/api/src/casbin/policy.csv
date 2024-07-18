@@ -4,6 +4,11 @@ p, developer, platform_users, read_all
 p, guest, platform_users, read_all
 p, admin, platform_users, write_all
 
+p, admin, platform_agents, read_all
+p, admin, platform_agents, write_all
+p, developer, platform_agents, read_own
+p, developer, platform_agents, write_own
+
 p, admin, sessions, read_all
 p, member, sessions, read_own
 p, member, sessions, read_participate

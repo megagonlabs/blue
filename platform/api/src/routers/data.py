@@ -4,7 +4,7 @@ import sys
 
 from fastapi import Request
 import pydash
-from constant import acl_enforce
+from constant import HTTP_EXCEPTION_403, acl_enforce
 
 ###### Add lib path
 sys.path.append("./lib/")
@@ -37,7 +37,7 @@ from blueprint import Platform
 from data_registry import DataRegistry
 
 ###### Properties
-from settings import PROPERTIES
+from settings import ACL, PROPERTIES
 
 ### Assign from platform properties
 platform_id = PROPERTIES["platform.name"]
@@ -51,6 +51,23 @@ data_registry = DataRegistry(id=data_registry_id, prefix=prefix, properties=PROP
 
 ##### ROUTER
 router = APIRouter(prefix=f"{PLATFORM_PREFIX}/registry/{data_registry_id}/data")
+
+write_all_roles = ACL.get_implicit_users_for_permission('data_registry', 'write_all')
+write_own_roles = ACL.get_implicit_users_for_permission('data_registry', 'write_own')
+
+
+def source_acl_enforce(request: Request, source: dict, write=False, throw=True):
+    user_role = request.state.user['role']
+    uid = request.state.user['uid']
+    allow = False
+    if write and user_role in write_all_roles:
+        allow = True
+    elif write and user_role in write_own_roles:
+        if pydash.objects.get(source, 'created_by', None) == uid:
+            allow = True
+    if throw and not allow:
+        raise HTTP_EXCEPTION_403
+    return allow
 
 
 #############
@@ -87,11 +104,8 @@ def add_source(request: Request, source_name, data: Data):
 
 @router.put("/{source_name}")
 def update_source(request: Request, source_name, data: Data, sync: bool = False, recursive: bool = False):
-    actions = ['write_all']
-    result = data_registry.get_source(source_name)
-    if pydash.is_equal(request.state.user['uid'], pydash.objects.get(result, 'created_by', None)):
-        actions.append('write_own')
-    acl_enforce(request.state.user['role'], 'data_registry', actions)
+    source = data_registry.get_source(source_name)
+    source_acl_enforce(request, source, write=True)
     # TODO: properties
     data_registry.update_source(source_name, description=data.description, properties={}, rebuild=True)
     if sync:
@@ -104,11 +118,8 @@ def update_source(request: Request, source_name, data: Data, sync: bool = False,
 
 @router.delete("/{source_name}")
 def delete_source(request: Request, source_name):
-    actions = ['write_all']
-    result = data_registry.get_source(source_name)
-    if pydash.is_equal(request.state.user['uid'], pydash.objects.get(result, 'created_by', None)):
-        actions.append('write_own')
-    acl_enforce(request.state.user['role'], 'data_registry', actions)
+    source = data_registry.get_source(source_name)
+    source_acl_enforce(request, source, write=True)
     data_registry.deregister_source(source_name, rebuild=True)
     # save
     data_registry.dump("/blue_data/config/" + data_registry_id + ".data.json")
@@ -131,11 +142,8 @@ def get_data_source_database(request: Request, source_name, database_name):
 
 @router.post("/{source_name}/database/{database_name}")
 def add_data_source_database(request: Request, source_name, database_name, data: Data):
-    actions = ['write_all']
-    result = data_registry.get_source(source_name)
-    if pydash.is_equal(request.state.user['uid'], pydash.objects.get(result, 'created_by', None)):
-        actions.append('write_own')
-    acl_enforce(request.state.user['role'], 'data_registry', actions)
+    source = data_registry.get_source(source_name)
+    source_acl_enforce(request, source, write=True)
     # TODO: properties
     data_registry.register_source_database(source_name, database_name, description=data.description, properties={}, rebuild=True)
     # save
@@ -145,11 +153,8 @@ def add_data_source_database(request: Request, source_name, database_name, data:
 
 @router.put("/{source_name}/database/{database_name}")
 def update_source_database(request: Request, source_name, database_name, data: Data, sync: bool = False, recursive: bool = False):
-    actions = ['write_all']
-    result = data_registry.get_source(source_name)
-    if pydash.is_equal(request.state.user['uid'], pydash.objects.get(result, 'created_by', None)):
-        actions.append('write_own')
-    acl_enforce(request.state.user['role'], 'data_registry', actions)
+    source = data_registry.get_source(source_name)
+    source_acl_enforce(request, source, write=True)
     # TODO: properties
     data_registry.update_source_database(source_name, database_name, description=data.description, properties={}, rebuild=True)
     if sync:
@@ -161,11 +166,8 @@ def update_source_database(request: Request, source_name, database_name, data: D
 
 @router.delete("/{source_name}/database/{database_name}")
 def delete_source_database(request: Request, source_name, database_name):
-    actions = ['write_all']
-    result = data_registry.get_source(source_name)
-    if pydash.is_equal(request.state.user['uid'], pydash.objects.get(result, 'created_by', None)):
-        actions.append('write_own')
-    acl_enforce(request.state.user['role'], 'data_registry', actions)
+    source = data_registry.get_source(source_name)
+    source_acl_enforce(request, source, write=True)
     data_registry.deregister_source_database(source_name, database_name, rebuild=True)
     # save
     data_registry.dump("/blue_data/config/" + data_registry_id + ".data.json")
@@ -188,11 +190,8 @@ def get_data_source_database_collection(request: Request, source_name, database_
 
 @router.post("/{source_name}/database/{database_name}/collection/{collection_name}")
 def add_data_source_database_collection(request: Request, source_name, database_name, collection_name, data: Data):
-    actions = ['write_all']
-    result = data_registry.get_source(source_name)
-    if pydash.is_equal(request.state.user['uid'], pydash.objects.get(result, 'created_by', None)):
-        actions.append('write_own')
-    acl_enforce(request.state.user['role'], 'data_registry', actions)
+    source = data_registry.get_source(source_name)
+    source_acl_enforce(request, source, write=True)
     # TODO: properties
     data_registry.register_source_database_collection(source_name, database_name, collection_name, description=data.description, properties={}, rebuild=True)
     # save
@@ -202,11 +201,8 @@ def add_data_source_database_collection(request: Request, source_name, database_
 
 @router.put("/{source_name}/database/{database_name}/collection/{collection_name}")
 def update_source_database_collection(request: Request, source_name, database_name, collection_name, data: Data, sync: bool = False, recursive: bool = False):
-    actions = ['write_all']
-    result = data_registry.get_source(source_name)
-    if pydash.is_equal(request.state.user['uid'], pydash.objects.get(result, 'created_by', None)):
-        actions.append('write_own')
-    acl_enforce(request.state.user['role'], 'data_registry', actions)
+    source = data_registry.get_source(source_name)
+    source_acl_enforce(request, source, write=True)
     # TODO: properties
     data_registry.update_source_database_collection(source_name, database_name, collection_name, description=data.description, properties={}, rebuild=True)
     if sync:
@@ -218,11 +214,8 @@ def update_source_database_collection(request: Request, source_name, database_na
 
 @router.delete("/{source_name}/database/{database_name}/collection/{collection_name}")
 def delete_source_database_collection(request: Request, source_name, database_name, collection_name):
-    actions = ['write_all']
-    result = data_registry.get_source(source_name)
-    if pydash.is_equal(request.state.user['uid'], pydash.objects.get(result, 'created_by', None)):
-        actions.append('write_own')
-    acl_enforce(request.state.user['role'], 'data_registry', actions)
+    source = data_registry.get_source(source_name)
+    source_acl_enforce(request, source, write=True)
     data_registry.deregister_source_database_collection(source_name, database_name, collection_name, rebuild=True)
     # save
     data_registry.dump("/blue_data/config/" + data_registry_id + ".data.json")
