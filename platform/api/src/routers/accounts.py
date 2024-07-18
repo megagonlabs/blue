@@ -210,7 +210,7 @@ def get_users(request: Request, keyword: str = ""):
             'picture': user['picture'],
         }
         if re.search(rx, user['name']) is not None:
-            # hide user role info when querying without admin role
+            # add user role value when querying with admin role
             if request.state.user['role'] == 'admin':
                 temp['role'] = user['role']
             result.append(temp)
