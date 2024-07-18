@@ -89,8 +89,8 @@ def list_agent_containers(request: Request):
     acl_enforce(request.state.user['role'], 'platform_agents', ['read_all', 'read_own'])
     # connect to docker
     client = docker.from_env()
-    containers = []
-    # get list of containers based on deploy target
+    results = []
+    # get list of docker containers based on deploy target
     if PROPERTIES["platform.deploy.target"] == "localhost":
         containers = client.containers.list()
         for container in containers:
@@ -108,7 +108,7 @@ def list_agent_containers(request: Request):
                 c["registry"] = la[1]
                 c["platform"] = la[0]
                 if c["platform"] == platform_id:
-                    containers.append(c)
+                    results.append(c)
     elif PROPERTIES["platform.deploy.target"] == "swarm":
         services = client.services.list()
         for service in services:
@@ -133,16 +133,16 @@ def list_agent_containers(request: Request):
                 c["registry"] = la[1]
                 c["platform"] = la[0]
                 if c["platform"] == platform_id:
-                    containers.append(c)
+                    results.append(c)
 
     # close connection
     client.close()
-    results = []
-    for container in containers:
+    temp = []
+    for container in results:
         agent = agent_registry.get_agent(container['agent'])
         if container_acl_enforce(request, agent, read=True, throw=False):
-            results.append(container)
-    return JSONResponse(content={"results": results})
+            temp.append(container)
+    return JSONResponse(content={"results": temp})
 
 
 @router.post("/agents/agent/{agent_name}")
