@@ -96,15 +96,7 @@ class Platform:
         result = []
         for session_sid in session_sids:
             session = self.get_session(session_sid)
-            metadata = session.get_metadata()
-            result.append(
-                {
-                    "id": session_sid,
-                    "name": pydash.objects.get(metadata, "name", session_sid),
-                    "description": pydash.objects.get(metadata, "description", ""),
-                    "created_date": pydash.objects.get(metadata, "created_date", None),
-                }
-            )
+            result.append(session.to_dict())
         return result
 
     def get_session(self, session_sid):

@@ -3,8 +3,8 @@ from curses import noecho
 import sys
 
 from fastapi import Request
-
-from constant import authorize
+import pydash
+from constant import acl_enforce
 
 ###### Add lib path
 sys.path.append("./lib/")
@@ -33,7 +33,6 @@ JSONStructure = Union[JSONArray, JSONObject, Any]
 
 
 ###### Blue
-from session import Session
 from blueprint import Platform
 from data_registry import DataRegistry
 
@@ -56,39 +55,43 @@ router = APIRouter(prefix=f"{PLATFORM_PREFIX}/registry/{data_registry_id}/data")
 
 #############
 @router.get("/")
-@authorize(roles=['admin', 'member', 'developer', 'guest'])
 def get_data(request: Request):
+    acl_enforce(request.state.user['role'], 'data_registry', 'read_all')
     results = data_registry.list_records()
     return JSONResponse(content={"results": list(results.values())})
 
 
 @router.get("/sources")
-@authorize(roles=['admin', 'member', 'developer', 'guest'])
 def get_data_sources(request: Request):
+    acl_enforce(request.state.user['role'], 'data_registry', 'read_all')
     results = data_registry.get_sources()
     return JSONResponse(content={"results": list(results.values())})
 
 
 @router.get("/{source_name}")
-@authorize(roles=['admin', 'member', 'developer', 'guest'])
 def get_data_source(request: Request, source_name):
+    acl_enforce(request.state.user['role'], 'data_registry', 'read_all')
     result = data_registry.get_source(source_name)
     return JSONResponse(content={"result": result})
 
 
 @router.post("/{source_name}")
-@authorize(roles=['admin'])
 def add_source(request: Request, source_name, data: Data):
+    acl_enforce(request.state.user['role'], 'data_registry', ['write_all', 'write_own'])
     # TODO: properties
-    data_registry.register_source(source_name, description=data.description, properties={}, rebuild=True)
+    data_registry.register_source(source_name, request.state.user['uid'], description=data.description, properties={}, rebuild=True)
     # save
     data_registry.dump("/blue_data/config/" + data_registry_id + ".data.json")
     return JSONResponse(content={"message": "Success"})
 
 
 @router.put("/{source_name}")
-@authorize(roles=['admin'])
 def update_source(request: Request, source_name, data: Data, sync: bool = False, recursive: bool = False):
+    actions = ['write_all']
+    result = data_registry.get_source(source_name)
+    if pydash.is_equal(request.state.user['uid'], pydash.objects.get(result, 'created_by', None)):
+        actions.append('write_own')
+    acl_enforce(request.state.user['role'], 'data_registry', actions)
     # TODO: properties
     data_registry.update_source(source_name, description=data.description, properties={}, rebuild=True)
     if sync:
@@ -100,8 +103,12 @@ def update_source(request: Request, source_name, data: Data, sync: bool = False,
 
 
 @router.delete("/{source_name}")
-@authorize(roles=['admin'])
 def delete_source(request: Request, source_name):
+    actions = ['write_all']
+    result = data_registry.get_source(source_name)
+    if pydash.is_equal(request.state.user['uid'], pydash.objects.get(result, 'created_by', None)):
+        actions.append('write_own')
+    acl_enforce(request.state.user['role'], 'data_registry', actions)
     data_registry.deregister_source(source_name, rebuild=True)
     # save
     data_registry.dump("/blue_data/config/" + data_registry_id + ".data.json")
@@ -109,22 +116,26 @@ def delete_source(request: Request, source_name):
 
 
 @router.get("/{source_name}/databases")
-@authorize(roles=['admin', 'member', 'developer', 'guest'])
 def get_data_source_databases(request: Request, source_name):
+    acl_enforce(request.state.user['role'], 'data_registry', 'read_all')
     results = data_registry.get_source_databases(source_name)
     return JSONResponse(content={"results": results})
 
 
 @router.get("/{source_name}/database/{database_name}")
-@authorize(roles=['admin', 'member', 'developer', 'guest'])
 def get_data_source_database(request: Request, source_name, database_name):
+    acl_enforce(request.state.user['role'], 'data_registry', 'read_all')
     result = data_registry.get_source_database(source_name, database_name)
     return JSONResponse(content={"result": result})
 
 
 @router.post("/{source_name}/database/{database_name}")
-@authorize(roles=['admin'])
 def add_data_source_database(request: Request, source_name, database_name, data: Data):
+    actions = ['write_all']
+    result = data_registry.get_source(source_name)
+    if pydash.is_equal(request.state.user['uid'], pydash.objects.get(result, 'created_by', None)):
+        actions.append('write_own')
+    acl_enforce(request.state.user['role'], 'data_registry', actions)
     # TODO: properties
     data_registry.register_source_database(source_name, database_name, description=data.description, properties={}, rebuild=True)
     # save
@@ -133,8 +144,12 @@ def add_data_source_database(request: Request, source_name, database_name, data:
 
 
 @router.put("/{source_name}/database/{database_name}")
-@authorize(roles=['admin'])
 def update_source_database(request: Request, source_name, database_name, data: Data, sync: bool = False, recursive: bool = False):
+    actions = ['write_all']
+    result = data_registry.get_source(source_name)
+    if pydash.is_equal(request.state.user['uid'], pydash.objects.get(result, 'created_by', None)):
+        actions.append('write_own')
+    acl_enforce(request.state.user['role'], 'data_registry', actions)
     # TODO: properties
     data_registry.update_source_database(source_name, database_name, description=data.description, properties={}, rebuild=True)
     if sync:
@@ -145,8 +160,12 @@ def update_source_database(request: Request, source_name, database_name, data: D
 
 
 @router.delete("/{source_name}/database/{database_name}")
-@authorize(roles=['admin'])
 def delete_source_database(request: Request, source_name, database_name):
+    actions = ['write_all']
+    result = data_registry.get_source(source_name)
+    if pydash.is_equal(request.state.user['uid'], pydash.objects.get(result, 'created_by', None)):
+        actions.append('write_own')
+    acl_enforce(request.state.user['role'], 'data_registry', actions)
     data_registry.deregister_source_database(source_name, database_name, rebuild=True)
     # save
     data_registry.dump("/blue_data/config/" + data_registry_id + ".data.json")
@@ -154,22 +173,26 @@ def delete_source_database(request: Request, source_name, database_name):
 
 
 @router.get("/{source_name}/database/{database_name}/collections")
-@authorize(roles=['admin', 'member', 'developer', 'guest'])
 def get_data_source_database_collections(request: Request, source_name, database_name):
+    acl_enforce(request.state.user['role'], 'data_registry', 'read_all')
     results = data_registry.get_source_database_collections(source_name, database_name)
     return JSONResponse(content={"results": results})
 
 
 @router.get("/{source_name}/database/{database_name}/collection/{collection_name}")
-@authorize(roles=['admin', 'member', 'developer', 'guest'])
 def get_data_source_database_collection(request: Request, source_name, database_name, collection_name):
+    acl_enforce(request.state.user['role'], 'data_registry', 'read_all')
     result = data_registry.get_source_database_collection(source_name, database_name, collection_name)
     return JSONResponse(content={"result": result})
 
 
 @router.post("/{source_name}/database/{database_name}/collection/{collection_name}")
-@authorize(roles=['admin'])
 def add_data_source_database_collection(request: Request, source_name, database_name, collection_name, data: Data):
+    actions = ['write_all']
+    result = data_registry.get_source(source_name)
+    if pydash.is_equal(request.state.user['uid'], pydash.objects.get(result, 'created_by', None)):
+        actions.append('write_own')
+    acl_enforce(request.state.user['role'], 'data_registry', actions)
     # TODO: properties
     data_registry.register_source_database_collection(source_name, database_name, collection_name, description=data.description, properties={}, rebuild=True)
     # save
@@ -178,8 +201,12 @@ def add_data_source_database_collection(request: Request, source_name, database_
 
 
 @router.put("/{source_name}/database/{database_name}/collection/{collection_name}")
-@authorize(roles=['admin'])
 def update_source_database_collection(request: Request, source_name, database_name, collection_name, data: Data, sync: bool = False, recursive: bool = False):
+    actions = ['write_all']
+    result = data_registry.get_source(source_name)
+    if pydash.is_equal(request.state.user['uid'], pydash.objects.get(result, 'created_by', None)):
+        actions.append('write_own')
+    acl_enforce(request.state.user['role'], 'data_registry', actions)
     # TODO: properties
     data_registry.update_source_database_collection(source_name, database_name, collection_name, description=data.description, properties={}, rebuild=True)
     if sync:
@@ -190,8 +217,12 @@ def update_source_database_collection(request: Request, source_name, database_na
 
 
 @router.delete("/{source_name}/database/{database_name}/collection/{collection_name}")
-@authorize(roles=['admin'])
 def delete_source_database_collection(request: Request, source_name, database_name, collection_name):
+    actions = ['write_all']
+    result = data_registry.get_source(source_name)
+    if pydash.is_equal(request.state.user['uid'], pydash.objects.get(result, 'created_by', None)):
+        actions.append('write_own')
+    acl_enforce(request.state.user['role'], 'data_registry', actions)
     data_registry.deregister_source_database_collection(source_name, database_name, collection_name, rebuild=True)
     # save
     data_registry.dump("/blue_data/config/" + data_registry_id + ".data.json")
@@ -199,7 +230,7 @@ def delete_source_database_collection(request: Request, source_name, database_na
 
 
 @router.get("/search")
-@authorize(roles=['admin', 'member', 'developer', 'guest'])
 def search_data(request: Request, keywords, approximate: bool = False, hybrid: bool = False, type: str = None, scope: str = None, page: int = 0, page_size: int = 10):
+    acl_enforce(request.state.user['role'], 'data_registry', 'read_all')
     results = data_registry.search_records(keywords, type=type, scope=scope, approximate=approximate, hybrid=hybrid, page=page, page_size=page_size)
     return JSONResponse(content={"results": results})

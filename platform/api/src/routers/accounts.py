@@ -8,7 +8,6 @@ sys.path.append("./lib/agent_registry/")
 sys.path.append("./lib/data_registry/")
 sys.path.append("./lib/platform/")
 
-
 ###### Parsers, Formats, Utils
 import re
 import json
@@ -23,7 +22,7 @@ from fastapi.responses import JSONResponse
 import firebase_admin
 from firebase_admin import auth, credentials, exceptions
 
-from constant import EMAIL_DOMAIN_ADDRESS_REGEXP, authorize
+from constant import EMAIL_DOMAIN_ADDRESS_REGEXP, acl_enforce
 from fastapi import Request
 from APIRouter import APIRouter
 from fastapi.responses import JSONResponse
@@ -32,8 +31,13 @@ from fastapi.responses import JSONResponse
 from settings import PROPERTIES, SECURE_COOKIE
 
 ### Assign from platform properties
+from blueprint import Platform
+
 platform_id = PROPERTIES["platform.name"]
 PLATFORM_PREFIX = f'/blue/platform/{platform_id}'
+
+p = Platform(id=platform_id, properties=PROPERTIES)
+
 
 ##### ROUTER
 router = APIRouter(prefix=f"{PLATFORM_PREFIX}/accounts")
@@ -45,15 +49,8 @@ firebase_admin.initialize_app(cred)
 EMAIL_DOMAIN_WHITE_LIST = os.getenv("EMAIL_DOMAIN_WHITE_LIST", "megagon.ai")
 allowed_domains = EMAIL_DOMAIN_WHITE_LIST.split(",")
 
-from blueprint import Platform
-from settings import PROPERTIES
-
-platform_id = PROPERTIES["platform.name"]
-p = Platform(id=platform_id, properties=PROPERTIES)
-
 
 @router.get('/websocket-ticket')
-@authorize(roles=['admin', 'member', 'developer', 'guest'])
 def ws_ticket(request: Request):
     ticket = request.app.connection_manager.get_ticket(user=request.state.user)
     return JSONResponse(content={"ticket": ticket})
@@ -182,13 +179,13 @@ async def signin_cli(request: Request):
 
 
 @router.get("/profile")
-@authorize(roles=['admin', 'member', 'developer', 'guest'])
 def get_profile(request: Request):
     return JSONResponse(content={"profile": request.state.user})
 
 
 @router.get('/profile/uid/{uid}')
-def get_profile_by_uid(uid):
+def get_profile_by_uid(request: Request, uid):
+    acl_enforce(request.state.user['role'], 'platform_users', 'read_all')
     user = {}
     try:
         user_record = auth.get_user(uid)
@@ -199,8 +196,8 @@ def get_profile_by_uid(uid):
 
 
 @router.get("/users")
-@authorize(roles=['admin', 'member', 'developer', 'guest'])
 def get_users(request: Request, keyword: str = ""):
+    acl_enforce(request.state.user['role'], 'platform_users', 'read_all')
     users: dict = p.get_metadata('users')
     result = []
     rx = re.compile(f'(?<!\w)\s*({keyword})', re.IGNORECASE)
@@ -221,8 +218,8 @@ def get_users(request: Request, keyword: str = ""):
 
 
 @router.put('/users/{uid}/role/{role_name}')
-@authorize(roles=['admin'])
 def update_user_role(request: Request, uid, role_name):
+    acl_enforce(request.state.user['role'], 'platform_users', 'write_all')
     # preventive measure
     if uid == pydash.objects.get(request, 'state.user.uid', None):
         return JSONResponse(content={"message": "You can't modify your own role."}, status_code=400)

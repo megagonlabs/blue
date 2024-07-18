@@ -33,6 +33,16 @@ def d7validate(validations, payload):
 from functools import wraps
 from fastapi import HTTPException
 import asyncio
+from settings import ACL
+
+HTTP_EXCEPTION_403 = HTTPException(status_code=403, detail="You don't have permission for this request.")
+
+
+def acl_enforce(role, resource, action, throw=True):
+    result = ACL.enforce(role, resource, action)
+    if not result and throw:
+        raise HTTP_EXCEPTION_403
+    return result
 
 
 def isAsync(function):
@@ -45,7 +55,7 @@ def authorize(roles: list):
         async def wrapper(*args, **kwargs):
             user_role = pydash.objects.get(kwargs, 'request.state.user.role', None)
             if user_role not in roles:
-                raise HTTPException(status_code=403, detail="You don't have permission for this request.")
+                raise HTTP_EXCEPTION_403
             if isAsync(func):
                 return await func(*args, **kwargs)
             return func(*args, **kwargs)

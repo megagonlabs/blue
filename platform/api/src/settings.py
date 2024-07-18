@@ -1,7 +1,5 @@
 ###### OS / Systems
 import os
-import sys
-
 
 ###### Properties
 PROPERTIES = {}
@@ -21,3 +19,15 @@ PROPERTIES["db.host"] = os.getenv("BLUE_DB_HOST", 'blue_db_redis')
 ##### Other Settings
 DEVELOPMENT = os.getenv("BLUE_DEPLOY_DEVELOPMENT", "False").lower() == "true"
 SECURE_COOKIE = os.getenv("BLUE_DEPLOY_SECURE", "True").lower() == "true"
+
+##### RBAC
+import casbin
+
+ACL = casbin.Enforcer("./src/casbin/model.conf", "./src/casbin/policy.csv")
+
+
+def contains(actions, action):
+    return isinstance(actions, list) and action in actions
+
+
+ACL.add_function('contains', contains)

@@ -304,6 +304,17 @@ class Session:
             Path("$." + key),
         )
 
+    def to_dict(self):
+        metadata = self.get_metadata()
+        return {
+            "id": self.sid,
+            "name": pydash.objects.get(metadata, "name", self.sid),
+            "description": pydash.objects.get(metadata, "description", ""),
+            "created_date": pydash.objects.get(metadata, "created_date", None),
+            "created_by": pydash.objects.get(metadata, "created_by", None),
+            "members": pydash.objects.get(metadata, "members", {}),
+        }
+
     # ## session stream worker data
     # def _init_stream_agent_data_namespace(self, stream, agent):
     #     # create namespaces for stream-specific data

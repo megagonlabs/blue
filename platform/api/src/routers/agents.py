@@ -3,8 +3,9 @@ from curses import noecho
 import sys
 
 from fastapi import Request
+import pydash
 
-from constant import authorize
+from constant import HTTP_EXCEPTION_403, acl_enforce, authorize
 
 ###### Add lib path
 sys.path.append("./lib/")
@@ -171,8 +172,8 @@ def merge_container_results(registry_results):
 
 #############
 @router.get("/agents")
-@authorize(roles=['admin', 'member', 'developer', 'guest'])
 def get_agents(request: Request):
+    acl_enforce(request.state.user['role'], 'agent_registry', 'read_all')
     registry_results = agent_registry.list_records()
     registry_results = list(registry_results.values())
     merged_results = merge_container_results(registry_results)
@@ -180,26 +181,30 @@ def get_agents(request: Request):
 
 
 @router.get("/agent/{agent_name}")
-@authorize(roles=['admin', 'member', 'developer', 'guest'])
 def get_agent(request: Request, agent_name):
+    acl_enforce(request.state.user['role'], 'agent_registry', 'read_all')
     result = agent_registry.get_agent(agent_name)
     merged_results = merge_container_results([result])
     return JSONResponse(content={"result": merged_results[0]})
 
 
 @router.post("/agent/{agent_name}")
-@authorize(roles=['admin'])
 def add_agent(request: Request, agent_name, agent: Agent):
+    acl_enforce(request.state.user['role'], 'agent_registry', ['write_all', 'write_own'])
     # TODO: properties
-    agent_registry.add_agent(agent_name, description=agent.description, properties={}, rebuild=True)
+    agent_registry.add_agent(agent_name, request.state.user['uid'], description=agent.description, properties={}, rebuild=True)
     # save
     agent_registry.dump("/blue_data/config/" + agent_registry_id + ".agents.json")
     return JSONResponse(content={"message": "Success"})
 
 
 @router.put("/agent/{agent_name}")
-@authorize(roles=['admin'])
 def update_agent(request: Request, agent_name, agent: Agent):
+    actions = ['write_all']
+    result = agent_registry.get_agent(agent_name)
+    if pydash.is_equal(request.state.user['uid'], pydash.objects.get(result, 'created_by', None)):
+        actions.append('write_own')
+    acl_enforce(request.state.user['role'], 'agent_registry', actions)
     # TODO: properties
     agent_registry.update_agent(agent_name, description=agent.description, properties={}, rebuild=True)
     # save
@@ -208,8 +213,12 @@ def update_agent(request: Request, agent_name, agent: Agent):
 
 
 @router.delete("/agent/{agent_name}")
-@authorize(roles=['admin'])
 def delete_agent(request: Request, agent_name):
+    actions = ['write_all']
+    result = agent_registry.get_agent(agent_name)
+    if pydash.is_equal(request.state.user['uid'], pydash.objects.get(result, 'created_by', None)):
+        actions.append('write_own')
+    acl_enforce(request.state.user['role'], 'agent_registry', actions)
     agent_registry.remove_agent(agent_name, rebuild=True)
     # save
     agent_registry.dump("/blue_data/config/" + agent_registry_id + ".agents.json")
@@ -218,22 +227,26 @@ def delete_agent(request: Request, agent_name):
 
 ##### properties
 @router.get("/agent/{agent_name}/properties")
-@authorize(roles=['admin', 'member', 'developer', 'guest'])
 def get_agent_properties(request: Request, agent_name):
+    acl_enforce(request.state.user['role'], 'agent_registry', 'read_all')
     results = agent_registry.get_agent_properties(agent_name)
     return JSONResponse(content={"results": results})
 
 
 @router.get("/agent/{agent_name}/property/{property_name}")
-@authorize(roles=['admin', 'member', 'request'])
 def get_agent_property(request: Request, agent_name, property_name):
+    acl_enforce(request.state.user['role'], 'agent_registry', 'read_all')
     result = agent_registry.get_agent_property(agent_name, property_name)
     return JSONResponse(content={"result": result})
 
 
 @router.post("/agent/{agent_name}/property/{property_name}")
-@authorize(roles=['admin'])
 def set_agent_property(request: Request, agent_name, property_name, property: JSONStructure):
+    actions = ['write_all']
+    result = agent_registry.get_agent(agent_name)
+    if pydash.is_equal(request.state.user['uid'], pydash.objects.get(result, 'created_by', None)):
+        actions.append('write_own')
+    acl_enforce(request.state.user['role'], 'agent_registry', actions)
     agent_registry.set_agent_property(agent_name, property_name, property, rebuild=True)
     # save
     agent_registry.dump("/blue_data/config/" + agent_registry_id + ".agents.json")
@@ -241,8 +254,12 @@ def set_agent_property(request: Request, agent_name, property_name, property: JS
 
 
 @router.delete("/agent/{agent_name}/property/{property_name}")
-@authorize(roles=['admin'])
 def delete_agent_property(request: Request, agent_name, property_name):
+    actions = ['write_all']
+    result = agent_registry.get_agent(agent_name)
+    if pydash.is_equal(request.state.user['uid'], pydash.objects.get(result, 'created_by', None)):
+        actions.append('write_own')
+    acl_enforce(request.state.user['role'], 'agent_registry', actions)
     agent_registry.delete_agent_property(agent_name, property_name, rebuild=True)
     # save
     agent_registry.dump("/blue_data/config/" + agent_registry_id + ".agents.json")
@@ -251,22 +268,26 @@ def delete_agent_property(request: Request, agent_name, property_name):
 
 ##### inputs
 @router.get("/agent/{agent_name}/inputs")
-@authorize(roles=['admin', 'member', 'developer', 'guest'])
 def get_agent_inputs(request: Request, agent_name):
+    acl_enforce(request.state.user['role'], 'agent_registry', 'read_all')
     results = agent_registry.get_agent_inputs(agent_name)
     return JSONResponse(content={"results": results})
 
 
 @router.get("/agent/{agent_name}/input/{param_name}")
-@authorize(roles=['admin', 'member', 'developer', 'guest'])
 def get_agent_input(request: Request, agent_name, param_name):
+    acl_enforce(request.state.user['role'], 'agent_registry', 'read_all')
     result = agent_registry.get_agent_input(agent_name, param_name)
     return JSONResponse(content={"result": result})
 
 
 @router.post("/agent/{agent_name}/input/{param_name}")
-@authorize(roles=['admin'])
 def add_agent_input(request: Request, agent_name, param_name, parameter: Parameter):
+    actions = ['write_all']
+    result = agent_registry.get_agent(agent_name)
+    if pydash.is_equal(request.state.user['uid'], pydash.objects.get(result, 'created_by', None)):
+        actions.append('write_own')
+    acl_enforce(request.state.user['role'], 'agent_registry', actions)
     # TODO: properties
     agent_registry.add_agent_input(agent_name, param_name, description=parameter.description, properties={}, rebuild=True)
     # save
@@ -275,8 +296,12 @@ def add_agent_input(request: Request, agent_name, param_name, parameter: Paramet
 
 
 @router.put("/agent/{agent_name}/input/{param_name}")
-@authorize(roles=['admin'])
 def update_agent_input(request: Request, agent_name, param_name, parameter: Parameter):
+    actions = ['write_all']
+    result = agent_registry.get_agent(agent_name)
+    if pydash.is_equal(request.state.user['uid'], pydash.objects.get(result, 'created_by', None)):
+        actions.append('write_own')
+    acl_enforce(request.state.user['role'], 'agent_registry', actions)
     # TODO: properties
     agent_registry.update_agent_input(agent_name, param_name, description=parameter.description, properties={}, rebuild=True)
     # save
@@ -285,8 +310,12 @@ def update_agent_input(request: Request, agent_name, param_name, parameter: Para
 
 
 @router.delete("/agent/{agent_name}/input/{param_name}")
-@authorize(roles=['admin'])
 def delete_agent_input(request: Request, agent_name, param_name):
+    actions = ['write_all']
+    result = agent_registry.get_agent(agent_name)
+    if pydash.is_equal(request.state.user['uid'], pydash.objects.get(result, 'created_by', None)):
+        actions.append('write_own')
+    acl_enforce(request.state.user['role'], 'agent_registry', actions)
     agent_registry.del_agent_input(agent_name, param_name, rebuild=True)
     # save
     agent_registry.dump("/blue_data/config/" + agent_registry_id + ".agents.json")
@@ -294,31 +323,39 @@ def delete_agent_input(request: Request, agent_name, param_name):
 
 
 @router.get("/agent/{agent_name}/input/{param_name}/properties")
-@authorize(roles=['admin', 'member', 'developer', 'guest'])
 def get_agent_input_properties(request: Request, agent_name, param_name):
+    acl_enforce(request.state.user['role'], 'agent_registry', 'read_all')
     results = agent_registry.get_agent_input_properties(agent_name, param_name)
     return JSONResponse(content={"results": results})
 
 
 @router.get("/agent/{agent_name}/input/{param_name}/property/{property_name}")
-@authorize(roles=['admin', 'member', 'developer', 'guest'])
 def get_agent_input_property(request: Request, agent_name, param_name, property_name):
+    acl_enforce(request.state.user['role'], 'agent_registry', 'read_all')
     result = agent_registry.get_agent_input_property(agent_name, param_name, property_name)
     return JSONResponse(content={"result": result})
 
 
 @router.post("/agent/{agent_name}/input/{param_name}/property/{property_name}")
-@authorize(roles=['admin'])
 def set_agent_input_property(request: Request, agent_name, param_name, property_name, property: JSONStructure):
+    actions = ['write_all']
+    result = agent_registry.get_agent(agent_name)
+    if pydash.is_equal(request.state.user['uid'], pydash.objects.get(result, 'created_by', None)):
+        actions.append('write_own')
+    acl_enforce(request.state.user['role'], 'agent_registry', actions)
     agent_registry.set_agent_input_property(agent_name, param_name, property_name, property, rebuild=True)
     # save
     agent_registry.dump("/blue_data/config/" + agent_registry_id + ".agents.json")
     return JSONResponse(content={"message": "Success"})
 
 
-@authorize(roles=['admin'])
 @router.delete("/agent/{agent_name}/input/{param_name}/property/{property_name}")
 def delete_agent_input_property(request: Request, agent_name, param_name, property_name):
+    actions = ['write_all']
+    result = agent_registry.get_agent(agent_name)
+    if pydash.is_equal(request.state.user['uid'], pydash.objects.get(result, 'created_by', None)):
+        actions.append('write_own')
+    acl_enforce(request.state.user['role'], 'agent_registry', actions)
     agent_registry.delete_agent_input_property(agent_name, param_name, property_name, rebuild=True)
     # save
     agent_registry.dump("/blue_data/config/" + agent_registry_id + ".agents.json")
@@ -327,30 +364,38 @@ def delete_agent_input_property(request: Request, agent_name, param_name, proper
 
 ##### outputs
 @router.get("/agent/{agent_name}/outputs")
-@authorize(roles=['admin', 'member', 'developer', 'guest'])
 def get_agent_outputs(request: Request, agent_name):
+    acl_enforce(request.state.user['role'], 'agent_registry', 'read_all')
     results = agent_registry.get_agent_outputs(agent_name)
     return JSONResponse(content={"results": results})
 
 
 @router.get("/agent/{agent_name}/output/{param_name}")
-@authorize(roles=['admin', 'member', 'developer', 'guest'])
 def get_agent_output(request: Request, agent_name, param_name):
+    acl_enforce(request.state.user['role'], 'agent_registry', 'read_all')
     result = agent_registry.get_agent_output(agent_name, param_name)
     return JSONResponse(content={"result": result})
 
 
 @router.post("/agent/{agent_name}/output/{param_name}")
-@authorize(roles=['admin'])
 def add_agent_output(request: Request, agent_name, param_name, parameter: Parameter):
+    actions = ['write_all']
+    result = agent_registry.get_agent(agent_name)
+    if pydash.is_equal(request.state.user['uid'], pydash.objects.get(result, 'created_by', None)):
+        actions.append('write_own')
+    acl_enforce(request.state.user['role'], 'agent_registry', actions)
     # TODO: properties
     agent_registry.add_agent_output(agent_name, param_name, description=parameter.description, properties={}, rebuild=True)
     return JSONResponse(content={"message": "Success"})
 
 
 @router.put("/agent/{agent_name}/output/{param_name}")
-@authorize(roles=['admin'])
 def update_agent_output(request: Request, agent_name, param_name, parameter: Parameter):
+    actions = ['write_all']
+    result = agent_registry.get_agent(agent_name)
+    if pydash.is_equal(request.state.user['uid'], pydash.objects.get(result, 'created_by', None)):
+        actions.append('write_own')
+    acl_enforce(request.state.user['role'], 'agent_registry', actions)
     # TODO: properties
     agent_registry.update_agent_output(agent_name, param_name, description=parameter.description, properties={}, rebuild=True)
     # save
@@ -359,8 +404,12 @@ def update_agent_output(request: Request, agent_name, param_name, parameter: Par
 
 
 @router.delete("/agent/{agent_name}/output/{param_name}")
-@authorize(roles=['admin'])
 def delete_agent_output(request: Request, agent_name, param_name):
+    actions = ['write_all']
+    result = agent_registry.get_agent(agent_name)
+    if pydash.is_equal(request.state.user['uid'], pydash.objects.get(result, 'created_by', None)):
+        actions.append('write_own')
+    acl_enforce(request.state.user['role'], 'agent_registry', actions)
     agent_registry.del_agent_output(agent_name, param_name, rebuild=True)
     # save
     agent_registry.dump("/blue_data/config/" + agent_registry_id + ".agents.json")
@@ -368,22 +417,26 @@ def delete_agent_output(request: Request, agent_name, param_name):
 
 
 @router.get("/agent/{agent_name}/output/{param_name}/properties")
-@authorize(roles=['admin', 'member', 'developer', 'guest'])
 def get_agent_output_properties(request: Request, agent_name, param_name):
+    acl_enforce(request.state.user['role'], 'agent_registry', 'read_all')
     results = agent_registry.get_agent_output_properties(agent_name, param_name)
     return JSONResponse(content={"results": results})
 
 
 @router.get("/agent/{agent_name}/output/{param_name}/property/{property_name}")
-@authorize(roles=['admin', 'member', 'developer', 'guest'])
 def get_agent_output_property(request: Request, agent_name, param_name, property_name):
+    acl_enforce(request.state.user['role'], 'agent_registry', 'read_all')
     result = agent_registry.get_agent_output_property(agent_name, param_name, property_name)
     return JSONResponse(content={"result": result})
 
 
 @router.post("/agent/{agent_name}/output/{param_name}/property/{property_name}")
-@authorize(roles=['admin'])
 def set_agent_output_property(request: Request, agent_name, param_name, property_name, property: JSONStructure):
+    actions = ['write_all']
+    result = agent_registry.get_agent(agent_name)
+    if pydash.is_equal(request.state.user['uid'], pydash.objects.get(result, 'created_by', None)):
+        actions.append('write_own')
+    acl_enforce(request.state.user['role'], 'agent_registry', actions)
     agent_registry.set_agent_output_property(agent_name, param_name, property_name, property, rebuild=True)
     # save
     agent_registry.dump("/blue_data/config/" + agent_registry_id + ".agents.json")
@@ -391,8 +444,12 @@ def set_agent_output_property(request: Request, agent_name, param_name, property
 
 
 @router.delete("/agent/{agent_name}/output/{param_name}/property/{property_name}")
-@authorize(roles=['admin'])
 def delete_agent_output_property(request: Request, agent_name, param_name, property_name):
+    actions = ['write_all']
+    result = agent_registry.get_agent(agent_name)
+    if pydash.is_equal(request.state.user['uid'], pydash.objects.get(result, 'created_by', None)):
+        actions.append('write_own')
+    acl_enforce(request.state.user['role'], 'agent_registry', actions)
     agent_registry.delete_agent_output_property(agent_name, param_name, property_name, rebuild=True)
     # save
     agent_registry.dump("/blue_data/config/" + agent_registry_id + ".agents.json")
@@ -400,7 +457,7 @@ def delete_agent_output_property(request: Request, agent_name, param_name, prope
 
 
 @router.get("/agents/search")
-@authorize(roles=['admin', 'member', 'developer', 'guest'])
 def search_agents(request: Request, keywords, approximate: bool = False, hybrid: bool = False, type: str = None, scope: str = None, page: int = 0, page_size: int = 10):
+    acl_enforce(request.state.user['role'], 'agent_registry', 'read_all')
     results = agent_registry.search_records(keywords, type=type, scope=scope, approximate=approximate, hybrid=hybrid, page=page, page_size=page_size)
     return JSONResponse(content={"results": results})

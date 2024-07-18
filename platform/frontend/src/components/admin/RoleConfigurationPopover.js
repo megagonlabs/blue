@@ -101,7 +101,6 @@ const ROLE_PERMISSIONS = {
                     operations in data registry for any data
                 </li>
                 <li>
-                    {READ_TAG}
                     {WRITE_TAG}
                     operations in agent / data registries for any agent / data
                     they created

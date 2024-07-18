@@ -50,8 +50,8 @@ class AgentRegistry(Registry):
         super()._initialize_properties()
 
     ######### agent
-    def add_agent(self, agent, description="", properties={}, rebuild=False):
-        super().register_record(agent, "agent", "/", description=description, properties=properties, rebuild=rebuild)
+    def add_agent(self, agent, created_by, description="", properties={}, rebuild=False):
+        super().register_record(agent, "agent", "/", created_by=created_by, description=description, properties=properties, rebuild=rebuild)
 
     def update_agent(self, agent, description="", properties={}, rebuild=False):
         super().update_record(agent, "agent", "/", description=description, properties=properties, rebuild=rebuild)

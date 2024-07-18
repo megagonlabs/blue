@@ -158,7 +158,7 @@ class ConnectionManager:
 
     def get_ticket(self, user: dict = {}, single_use: bool = True):
         # default 32 nbytes ~ 43 chars
-        ticket = secrets.token_urlsafe()
+        ticket = secrets.token_urlsafe() + str(int(time.time()))
         # ticket is key and metadata information as value
         pydash.objects.set_(self.tickets, ticket, {**user, "set_on": time.time(), "single_use": single_use})
         return ticket

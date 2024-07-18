@@ -337,13 +337,13 @@ class Registry:
         return embedding.astype(np.float32).tobytes()
 
     ###### registry functions
-    def register_record(self, name, type, scope, description="", properties={}, rebuild=False):
+    def register_record(self, name, type, scope, created_by=None, description="", properties={}, rebuild=False):
         record = {}
         record['name'] = name
         record['type'] = type
         record['scope'] = scope
         record['description'] = description
-
+        record['created_by'] = created_by
         record['properties'] = properties
 
         # default contents

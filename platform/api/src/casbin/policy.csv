@@ -1,0 +1,32 @@
+p, admin, platform_users, read_all
+p, member, platform_users, read_all
+p, developer, platform_users, read_all
+p, guest, platform_users, read_all
+p, admin, platform_users, write_all
+
+p, admin, sessions, read_all
+p, member, sessions, read_own
+p, member, sessions, read_participate
+p, developer, sessions, read_own
+p, developer, sessions, read_participate
+p, guest, sessions, read_participate
+
+p, admin, sessions, write_all
+p, member, sessions, write_own
+p, member, sessions, write_participate
+p, developer, sessions, write_own
+p, developer, sessions, write_participate
+
+p, admin, agent_registry, read_all
+p, admin, agent_registry, write_all
+p, member, agent_registry, read_all
+p, developer, agent_registry, write_own
+p, developer, agent_registry, read_all
+p, guest, agent_registry, read_all
+
+p, admin, data_registry, read_all
+p, admin, data_registry, write_all
+p, member, data_registry, read_all
+p, developer, data_registry, write_own
+p, developer, data_registry, read_all
+p, guest, data_registry, read_all
