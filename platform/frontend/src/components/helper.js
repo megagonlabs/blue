@@ -118,6 +118,7 @@ module.exports = {
             callback(requestError);
         })();
     },
-    hasInteraction: (left, right) =>
-        _.some(left, _.ary(_.partial(_.includes, right), 1)),
+    hasInteraction: (array1, array2) =>
+        _.some(array1, _.ary(_.partial(_.includes, array2), 1)),
+    hasTrue: (array) => _.some(array, Boolean),
 };

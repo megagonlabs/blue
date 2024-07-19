@@ -25,19 +25,16 @@ import {
 import axios from "axios";
 import _ from "lodash";
 import { useRouter } from "next/router";
-import { useState } from "react";
 export default function EntityMain({
     entity,
     edit,
     discard,
-    editEntity,
     setEdit,
     saveEntity,
     loading,
     jsonError,
 }) {
     const router = useRouter();
-    const [isDiscardOpen, setIsDiscardOpen] = useState(false);
     const containerStatus = _.get(entity, "container.status", "not exist");
     const deployAgent = () => {
         if (!router.isReady) {

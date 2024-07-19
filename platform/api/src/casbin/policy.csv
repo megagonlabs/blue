@@ -35,3 +35,6 @@ p, member, data_registry, read_all
 p, developer, data_registry, write_own
 p, developer, data_registry, read_all
 p, guest, data_registry, read_all
+
+p, admin, form_designer, visible
+p, developer, form_designer, visible

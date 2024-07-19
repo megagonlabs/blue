@@ -79,12 +79,11 @@ const ROLE_PERMISSIONS = {
                     {READ_TAG}
                     {WRITE_TAG}
                     any sessions that they own / particpate
-                </li>
-                <li>
-                    {READ_TAG}
-                    {WRITE_TAG}
-                    agents to sessions, and modify agent properties for session
-                    only
+                    <ul>
+                        <li>
+                            add and modify agent properties for sessions only
+                        </li>
+                    </ul>
                 </li>
             </ul>
         </>
@@ -118,12 +117,11 @@ const ROLE_PERMISSIONS = {
                     {READ_TAG}
                     {WRITE_TAG}
                     any sessions that they own / particpate
-                </li>
-                <li>
-                    {READ_TAG}
-                    {WRITE_TAG}
-                    agents to sessions, and modify agent properties for session
-                    only
+                    <ul>
+                        <li>
+                            add and modify agent properties for sessions only
+                        </li>
+                    </ul>
                 </li>
             </ul>
         </>
