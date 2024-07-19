@@ -9,7 +9,7 @@ sys.path.append('./lib/agent/')
 sys.path.append('./lib/platform/')
 
 
-###### 
+######
 import time
 import argparse
 import logging
@@ -44,17 +44,18 @@ from registry import Registry
 from mongodb_source import MongoDBSource
 from neo4j_source import NEO4JSource
 
+
 class DataRegistry(Registry):
     def __init__(self, name="DATA_REGISTRY", id=None, sid=None, cid=None, prefix=None, suffix=None, properties={}):
         super().__init__(name=name, id=id, sid=sid, cid=cid, prefix=prefix, suffix=suffix, properties=properties)
-                         
+
     ###### initialization
     def _initialize_properties(self):
         super()._initialize_properties()
 
     ######### source
-    def register_source(self, source, description="", properties={}, rebuild=False):
-        self.register_record(source, 'source', '/', description=description, properties=properties, rebuild=rebuild)
+    def register_source(self, source, created_by, description="", properties={}, rebuild=False):
+        self.register_record(source, 'source', '/', created_by=created_by, description=description, properties=properties, rebuild=rebuild)
 
     def update_source(self, source, description=None, properties=None, rebuild=False):
         self.update_record(source, 'source', '/', description=description, properties=properties, rebuild=rebuild)
@@ -65,7 +66,7 @@ class DataRegistry(Registry):
 
     def get_sources(self):
         return super().list_records(type="source", scope="/")
-      
+
     def get_source(self, source):
         return super().get_record(source, '/')
 
@@ -86,16 +87,15 @@ class DataRegistry(Registry):
     def set_source_property(self, source, key, value, rebuild=False):
         super().set_record_property(source, '/', key, value, rebuild=rebuild)
 
-
     ######### source/database
     def register_source_database(self, source, database, description="", properties={}, rebuild=False):
-        self.register_record(database, 'database', '/'+source, description=description, properties=properties, rebuild=rebuild)
+        self.register_record(database, 'database', '/' + source, description=description, properties=properties, rebuild=rebuild)
 
     def update_source_database(self, source, database, description=None, properties=None, rebuild=False):
-        self.update_record(database, 'database', '/'+source, description=description, properties=properties, rebuild=rebuild)
+        self.update_record(database, 'database', '/' + source, description=description, properties=properties, rebuild=rebuild)
 
     def deregister_source_database(self, source, database, rebuild=False):
-        record = self.get_record(database, '/'+source)
+        record = self.get_record(database, '/' + source)
         self.deregister(record, rebuild=rebuild)
 
     def get_source_databases(self, source):
@@ -104,9 +104,8 @@ class DataRegistry(Registry):
     def get_source_database(self, source, database):
         return super().get_record_content(source, '/', database, type='database')
 
-
     def register_source_database(self, source, database, description, properties={}, rebuild=False):
-        super().register_record(database, 'database', '/'+source, description=description, properties=properties, rebuild=rebuild)
+        super().register_record(database, 'database', '/' + source, description=description, properties=properties, rebuild=rebuild)
 
     def deregister_source_database(self, source, database, rebuild=False):
         record = self.get_source_database(source, database)
@@ -114,133 +113,125 @@ class DataRegistry(Registry):
 
     # description
     def get_source_database_description(self, source, database):
-        return super().get_record_description(database, '/'+source)
+        return super().get_record_description(database, '/' + source)
 
     def set_source_database_description(self, source, database, description, rebuild=False):
-        super().set_record_description(database, '/'+source, description, rebuild=rebuild)
+        super().set_record_description(database, '/' + source, description, rebuild=rebuild)
 
     # properties
     def get_source_database_properties(self, source, database):
-        return super().get_record_properties(database, '/'+source)
+        return super().get_record_properties(database, '/' + source)
 
     def get_source_database_property(self, source, database, key):
-        return super().get_record_property(database, '/'+source, key)
+        return super().get_record_property(database, '/' + source, key)
 
     def set_source_database_property(self, source, database, key, value, rebuild=False):
-        super().set_record_property(database, '/'+source, key, value, rebuild=rebuild)
-
+        super().set_record_property(database, '/' + source, key, value, rebuild=rebuild)
 
     ######### source/database/collection
     def register_source_database_collection(self, source, database, collection, description="", properties={}, rebuild=False):
-        self.register_record(collection, 'collection', '/'+source+'/'+database, description=description, properties=properties, rebuild=rebuild)
+        self.register_record(collection, 'collection', '/' + source + '/' + database, description=description, properties=properties, rebuild=rebuild)
 
     def update_source_database_collection(self, source, database, collection, description=None, properties=None, rebuild=False):
-        original_record, merged_record = self.update_record(collection, 'collection', '/'+source+'/'+database, description=description, properties=properties, rebuild=rebuild)
+        original_record, merged_record = self.update_record(collection, 'collection', '/' + source + '/' + database, description=description, properties=properties, rebuild=rebuild)
         return original_record, merged_record
 
-
     def deregister_source_database_collection(self, source, database, collection, rebuild=False):
-        record = self.get_record(collection, '/'+source+'/'+database)
+        record = self.get_record(collection, '/' + source + '/' + database)
         self.deregister(record, rebuild=rebuild)
 
     def get_source_database_collections(self, source, database):
-        return super().get_record_contents(database, '/'+source, type='collection')
+        return super().get_record_contents(database, '/' + source, type='collection')
 
     def get_source_database_collection(self, source, database, collection):
-        return super().get_record_content(database, '/'+source, collection, type='collection')
-
+        return super().get_record_content(database, '/' + source, collection, type='collection')
 
     # description
     def get_source_database_collection_description(self, source, database, collection):
-        return super().get_record_description(collection, '/'+source+'/'+database)
+        return super().get_record_description(collection, '/' + source + '/' + database)
 
     def set_source_database_collection_description(self, source, database, collection, description, rebuild=False):
-        super().set_record_description(collection, '/'+source+'/'+database, description, rebuild=rebuild)
+        super().set_record_description(collection, '/' + source + '/' + database, description, rebuild=rebuild)
 
     # properties
     def get_source_database_collection_properties(self, source, database, collection):
-        return super().get_record_properties(collection, '/'+source+'/'+database)
+        return super().get_record_properties(collection, '/' + source + '/' + database)
 
     def get_source_database_collection_property(self, source, database, collection, key):
-        return super().get_record_property(collection, '/'+source+'/'+database, key)
+        return super().get_record_property(collection, '/' + source + '/' + database, key)
 
     def set_source_database_collection_property(self, source, database, collection, key, value, rebuild=False):
-        super().set_record_property(collection, '/'+source+'/'+database, key, value, rebuild=rebuild)
+        super().set_record_property(collection, '/' + source + '/' + database, key, value, rebuild=rebuild)
 
     ######### source/database/collection/entity
     def register_source_database_collection_entity(self, source, database, collection, entity, description="", properties={}, rebuild=False):
-        self.register_record(entity, 'entity', '/'+source+'/'+database+'/'+collection, description=description, properties=properties, rebuild=rebuild)
+        self.register_record(entity, 'entity', '/' + source + '/' + database + '/' + collection, description=description, properties=properties, rebuild=rebuild)
 
     def update_source_database_collection_entity(self, source, database, collection, entity, description=None, properties=None, rebuild=False):
-        original_record, merged_record = self.update_record(entity, 'entity', '/'+source+'/'+database+'/'+collection, description=description, properties=properties, rebuild=rebuild)
+        original_record, merged_record = self.update_record(entity, 'entity', '/' + source + '/' + database + '/' + collection, description=description, properties=properties, rebuild=rebuild)
         return original_record, merged_record
 
-
     def deregister_source_database_collection_entity(self, source, database, collection, entity, rebuild=False):
-        record = self.get_record(entity, '/'+source+'/'+database+'/'+collection)
+        record = self.get_record(entity, '/' + source + '/' + database + '/' + collection)
         self.deregister(record, rebuild=rebuild)
 
     def get_source_database_collection_entities(self, source, database, collection):
-        return super().get_record_contents(collection, '/'+source+'/'+database, type='entity')
+        return super().get_record_contents(collection, '/' + source + '/' + database, type='entity')
 
     def get_source_database_collection_entity(self, source, database, collection, entity):
-        return super().get_record_content(collection, '/'+source+'/'+database, entity, type='entity')
-
+        return super().get_record_content(collection, '/' + source + '/' + database, entity, type='entity')
 
     # description
     def get_source_database_collection_entity_description(self, source, database, collection, entity):
-        return super().get_record_description(entity, '/'+source+'/'+database+'/'+collection)
+        return super().get_record_description(entity, '/' + source + '/' + database + '/' + collection)
 
     def set_source_database_collection_entity_description(self, source, database, collection, entity, description, rebuild=False):
-        super().set_record_description(entity, '/'+source+'/'+database+'/'+collection, description, rebuild=rebuild)
+        super().set_record_description(entity, '/' + source + '/' + database + '/' + collection, description, rebuild=rebuild)
 
     # properties
     def get_source_database_collection_entity_properties(self, source, database, collection, entity):
-        return super().get_record_properties(entity, '/'+source+'/'+database+'/'+collection)
+        return super().get_record_properties(entity, '/' + source + '/' + database + '/' + collection)
 
     def get_source_database_collection_entity_property(self, source, database, collection, entity, key):
-        return super().get_record_property(entity, '/'+source+'/'+database+'/'+collection, key)
+        return super().get_record_property(entity, '/' + source + '/' + database + '/' + collection, key)
 
     def set_source_database_collection_entity_property(self, source, database, collection, entity, key, value, rebuild=False):
-        super().set_record_property(entity, '/'+source+'/'+database+'/'+collection, key, value, rebuild=rebuild)
-
+        super().set_record_property(entity, '/' + source + '/' + database + '/' + collection, key, value, rebuild=rebuild)
 
     ######### source/database/collection/relation
     def register_source_database_collection_relation(self, source, database, collection, relation, description="", properties={}, rebuild=False):
-        self.register_record(relation, 'relation', '/'+source+'/'+database+'/'+collection, description=description, properties=properties, rebuild=rebuild)
+        self.register_record(relation, 'relation', '/' + source + '/' + database + '/' + collection, description=description, properties=properties, rebuild=rebuild)
 
     def update_source_database_collection_relation(self, source, database, collection, relation, description=None, properties=None, rebuild=False):
-        original_record, merged_record = self.update_record(relation, 'relation', '/'+source+'/'+database+'/'+collection, description=description, properties=properties, rebuild=rebuild)
+        original_record, merged_record = self.update_record(relation, 'relation', '/' + source + '/' + database + '/' + collection, description=description, properties=properties, rebuild=rebuild)
         return original_record, merged_record
 
-
     def deregister_source_database_collection_relation(self, source, database, collection, relation, rebuild=False):
-        record = self.get_record(relation, '/'+source+'/'+database+'/'+collection)
+        record = self.get_record(relation, '/' + source + '/' + database + '/' + collection)
         self.deregister(record, rebuild=rebuild)
 
     def get_source_database_collection_relations(self, source, database, collection):
-        return super().get_record_contents(collection, '/'+source+'/'+database, type='relation')
+        return super().get_record_contents(collection, '/' + source + '/' + database, type='relation')
 
     def get_source_database_collection_relation(self, source, database, collection, relation):
-        return super().get_record_content(collection, '/'+source+'/'+database, relation, type='relation')
-
+        return super().get_record_content(collection, '/' + source + '/' + database, relation, type='relation')
 
     # description
     def get_source_database_collection_relation_description(self, source, database, collection, relation):
-        return super().get_record_description(relation, '/'+source+'/'+database+'/'+collection)
+        return super().get_record_description(relation, '/' + source + '/' + database + '/' + collection)
 
     def set_source_database_collection_relation_description(self, source, database, collection, relation, description, rebuild=False):
-        super().set_record_description(relation, '/'+source+'/'+database+'/'+collection, description, rebuild=rebuild)
+        super().set_record_description(relation, '/' + source + '/' + database + '/' + collection, description, rebuild=rebuild)
 
     # properties
     def get_source_database_collection_relation_properties(self, source, database, collection, relation):
-        return super().get_record_properties(relation, '/'+source+'/'+database+'/'+collection)
+        return super().get_record_properties(relation, '/' + source + '/' + database + '/' + collection)
 
     def get_source_database_collection_relation_property(self, source, database, collection, relation, key):
-        return super().get_record_property(relation, '/'+source+'/'+database+'/'+collection, key)
+        return super().get_record_property(relation, '/' + source + '/' + database + '/' + collection, key)
 
     def set_source_database_collection_relation_property(self, source, database, collection, relation, key, value, rebuild=False):
-        super().set_record_property(relation, '/'+source+'/'+database+'/'+collection, key, value, rebuild=rebuild)
+        super().set_record_property(relation, '/' + source + '/' + database + '/' + collection, key, value, rebuild=rebuild)
 
     ######### sync
     # source connection (part of properties)
@@ -280,7 +271,7 @@ class DataRegistry(Registry):
 
             # update source properties
             properties = {}
-            properties['metadata'] = metadata 
+            properties['metadata'] = metadata
             description = ""
             if 'description' in metadata:
                 description = metadata['description']
@@ -292,7 +283,7 @@ class DataRegistry(Registry):
 
             # get existing databases
             registry_dbs = self.get_source_databases(source)
-            registry_dbs_set = set(json_utils.json_query(registry_dbs,'$.name', single=False))
+            registry_dbs_set = set(json_utils.json_query(registry_dbs, '$.name', single=False))
 
             adds = set()
             removes = set()
@@ -307,12 +298,11 @@ class DataRegistry(Registry):
             for db in registry_dbs_set:
                 if db not in fetched_dbs_set:
                     removes.add(db)
-                
+
             # update registry
             # add
             for db in adds:
                 self.register_source_database(source, db, description="", properties={}, rebuild=rebuild)
-                
 
             # remove
             for db in removes:
@@ -341,12 +331,11 @@ class DataRegistry(Registry):
 
             # update source database properties
             properties = {}
-            properties['metadata'] = metadata 
+            properties['metadata'] = metadata
             description = ""
             if 'description' in metadata:
                 description = metadata['description']
             self.update_source_database(source, database, description=description, properties=properties, rebuild=rebuild)
-
 
             # fetch collections
             fetched_collections = source_connection.fetch_database_collections(database)
@@ -354,7 +343,7 @@ class DataRegistry(Registry):
 
             # get existing collections
             registry_collections = self.get_source_database_collections(source, database)
-            registry_collections_set = set(json_utils.json_query(registry_collections,'$.name', single=False))
+            registry_collections_set = set(json_utils.json_query(registry_collections, '$.name', single=False))
 
             adds = set()
             removes = set()
@@ -369,7 +358,7 @@ class DataRegistry(Registry):
             for collection in registry_collections_set:
                 if collection not in fetched_collections_set:
                     removes.add(collection)
-                
+
             # update registry
             # add
             for collection in adds:
@@ -378,7 +367,6 @@ class DataRegistry(Registry):
             # remove
             for collection in removes:
                 self.deregister_source_database_collection(source, database, collection)
-
 
             ## recurse
             if recursive:
@@ -393,8 +381,6 @@ class DataRegistry(Registry):
                     # sync to update description, properties, schema
                     self.sync_source_database_collection(source, database, collection, source_connection=source_connection, recursive=False, rebuild=rebuild)
 
-
-
     def sync_source_database_collection(self, source, database, collection, source_connection=None, recursive=False, rebuild=False):
         if source_connection is None:
             source_connection = self.connect_source(source)
@@ -402,16 +388,15 @@ class DataRegistry(Registry):
         if source_connection:
             # fetch collection metadata
             metadata = source_connection.fetch_database_collection_metadata(database, collection)
-            
+
             # update source database collection properties
             properties = {}
-            properties['metadata'] = metadata 
+            properties['metadata'] = metadata
             description = ""
             if 'description' in metadata:
                 description = metadata['description']
 
             self.update_source_database_collection(source, database, collection, description=description, properties=properties, rebuild=rebuild)
-   
 
             #### fetch collection schema
             schema = source_connection.fetch_database_collection_schema(database, collection)
@@ -424,7 +409,7 @@ class DataRegistry(Registry):
             ## entities
             # get existing schema entities
             registry_entities = self.get_source_database_collection_entities(source, database, collection)
-            registry_entities_set = set(json_utils.json_query(registry_entities,'$.name', single=False))
+            registry_entities_set = set(json_utils.json_query(registry_entities, '$.name', single=False))
 
             adds = set()
             removes = set()
@@ -456,7 +441,7 @@ class DataRegistry(Registry):
             ## relations
             # get existing schema entities
             registry_relations = self.get_source_database_collection_relations(source, database, collection)
-            registry_relations_set = set(json_utils.json_query(registry_relations,'$.name', single=False))
+            registry_relations_set = set(json_utils.json_query(registry_relations, '$.name', single=False))
 
             adds = set()
             removes = set()
@@ -485,21 +470,21 @@ class DataRegistry(Registry):
             for relation in merges:
                 self.update_source_database_collection_relation(source, database, collection, relation, description="", properties=relations[relation], rebuild=rebuild)
 
-
     ######
     def _start(self):
         super()._start()
 
         # logging.info('Starting session {name}'.format(name=self.name))
         self._start_connection()
-        
-         # initialize registry data
+
+        # initialize registry data
         self._init_registry_namespace()
 
         # build search index on registry
         self._init_search_index()
 
         logging.info('Started registry {name}'.format(name=self.name))
+
 
 #######################
 if __name__ == "__main__":
@@ -528,9 +513,9 @@ if __name__ == "__main__":
     parser.add_argument('--source', type=str, default=None, help='data source')
     parser.add_argument('--database', type=str, default=None, help='database')
     parser.add_argument('--collection', type=str, default=None, help='collection')
- 
+
     args = parser.parse_args()
-   
+
     # set logging
     logging.getLogger().setLevel(args.loglevel.upper())
 
@@ -557,7 +542,7 @@ if __name__ == "__main__":
         print(records)
         for record in records:
             registry.register_record_json(record)
-    
+
         # index registry
         registry.build_index()
 
@@ -571,7 +556,7 @@ if __name__ == "__main__":
         print(records)
         for record in records:
             registry.update_record_json(record)
-    
+
         # index registry
         registry.build_index()
 
@@ -591,14 +576,13 @@ if __name__ == "__main__":
         results = registry.list_records()
         logging.info(results)
 
-
     #### SEARCH
     if args.search:
         keywords = args.search
 
         # search the registry
         results = registry.search_records(keywords, type=args.type, scope=args.scope, approximate=args.approximate, hybrid=args.hybrid, page=args.page, page_size=args.page_size)
-    
+
         logging.info(json.dumps(results, indent=4))
 
     #### SYNC
@@ -611,7 +595,7 @@ if __name__ == "__main__":
                     registry.sync_source_database(args.source, args.database, recursive=args.recursive)
             else:
                 registry.sync_source(args.source, recursive=args.recursive)
-            
+
         else:
             registry.sync_all(recursive=args.recursive)
 

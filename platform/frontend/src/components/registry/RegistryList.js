@@ -17,11 +17,15 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { useContext } from "react";
 import { Col, Container, Row } from "react-grid-system";
+import { AuthContext } from "../contexts/auth-context";
+import { hasInteraction } from "../helper";
 export default function RegistryList({ type }) {
     const { appState } = useContext(AppContext);
     const list = appState[type].list;
     const loading = appState[type].loading;
     const router = useRouter();
+    const { user } = useContext(AuthContext);
+    const permissions = _.get(user, `permissions.${type}_registry`, null);
     if (_.isEmpty(list))
         return (
             <div style={{ padding: "0px 20px 20px", height: "100%" }}>
@@ -81,7 +85,8 @@ export default function RegistryList({ type }) {
                         </Col>
                     );
                 })}
-                {_.includes(["agent"], type) ? (
+                {_.includes(["agent"], type) &&
+                hasInteraction(permissions, ["write_all", "write_own"]) ? (
                     <Col
                         sm={12}
                         md={6}

@@ -26,7 +26,6 @@ from observer import ObserverAgent
 from session import Session
 from agent import Agent
 from producer import Producer
-from constant import redisReplace
 
 
 ###### Settings
@@ -73,7 +72,7 @@ class ConnectionManager:
             pydash.objects.set_(self.active_connections, connection_id, {'websocket': websocket, 'user': pydash.objects.get(self.tickets, ticket, {})})
             await self.send_message_to(
                 websocket,
-                json.dumps({"type": "CONNECTED", "id": redisReplace(pydash.objects.get(self.tickets, [ticket, 'email'], connection_id)), 'connection_id': connection_id}),
+                json.dumps({"type": "CONNECTED", "id": pydash.objects.get(self.tickets, [ticket, 'uid'], connection_id), 'connection_id': connection_id}),
             )
         else:
             await websocket.close()
@@ -159,13 +158,13 @@ class ConnectionManager:
 
     def get_ticket(self, user: dict = {}, single_use: bool = True):
         # default 32 nbytes ~ 43 chars
-        ticket = secrets.token_urlsafe()
+        ticket = secrets.token_urlsafe() + str(int(time.time()))
         # ticket is key and metadata information as value
         pydash.objects.set_(self.tickets, ticket, {**user, "set_on": time.time(), "single_use": single_use})
         return ticket
 
     def get_user_agent_id(self, connection_id: str):
-        return redisReplace(pydash.objects.get(self.active_connections, [connection_id, "user", 'email'], connection_id))
+        return pydash.objects.get(self.active_connections, [connection_id, "user", 'uid'], connection_id)
 
     def find_connection_id(self, websocket: WebSocket):
         key_list = list(self.active_connections.keys())

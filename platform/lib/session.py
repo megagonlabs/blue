@@ -1,5 +1,4 @@
 ###### OS / Systems
-import os
 import sys
 from xml.sax.handler import property_dom_node
 
@@ -15,15 +14,9 @@ import argparse
 import logging
 import time
 import uuid
-import random
 
 ###### Parsers, Formats, Utils
-import re
-import csv
 import json
-
-import itertools
-from tqdm import tqdm
 
 ###### Backend, Databases
 import redis
@@ -185,25 +178,18 @@ class Session:
         self.connection.json().set(
             self._get_metadata_namespace(),
             "$",
-            {},
+            {"members": {}},
             nx=True,
         )
 
-        if self.get_metadata("created_date") is None:
-            # add created_date
-            self.set_metadata("created_date", int(time.time()))
+        # add created_date
+        self.set_metadata("created_date", int(time.time()), nx=True)
 
     def _get_metadata_namespace(self):
         return self.cid + ":METADATA"
 
-    def add_metadata_sets(self, key, value):
-        pass
-
-    def remove_metadata_sets(self, key, value):
-        pass
-
-    def set_metadata(self, key, value):
-        self.connection.json().set(self._get_metadata_namespace(), "$." + key, value)
+    def set_metadata(self, key, value, nx=False):
+        self.connection.json().set(self._get_metadata_namespace(), "$." + key, value, nx=nx)
 
     def get_metadata(self, key=""):
         value = self.connection.json().get(
@@ -317,6 +303,17 @@ class Session:
             self._get_stream_data_namespace(stream),
             Path("$." + key),
         )
+
+    def to_dict(self):
+        metadata = self.get_metadata()
+        return {
+            "id": self.sid,
+            "name": pydash.objects.get(metadata, "name", self.sid),
+            "description": pydash.objects.get(metadata, "description", ""),
+            "created_date": pydash.objects.get(metadata, "created_date", None),
+            "created_by": pydash.objects.get(metadata, "created_by", None),
+            "members": pydash.objects.get(metadata, "members", {}),
+        }
 
     # ## session stream worker data
     # def _init_stream_agent_data_namespace(self, stream, agent):

@@ -1,5 +1,4 @@
 ###### OS / Systems
-import os
 import sys
 
 import pydash
@@ -9,20 +8,12 @@ sys.path.append("./lib/")
 sys.path.append("./lib/utils/")
 
 ######
-import time
 import argparse
 import logging
-import time
 import uuid
-import random
 
 ###### Parsers, Formats, Utils
 import re
-import csv
-import json
-
-import itertools
-from tqdm import tqdm
 
 ###### Backend, Databases
 import redis
@@ -105,15 +96,7 @@ class Platform:
         result = []
         for session_sid in session_sids:
             session = self.get_session(session_sid)
-            metadata = session.get_metadata()
-            result.append(
-                {
-                    "id": session_sid,
-                    "name": pydash.objects.get(metadata, "name", session_sid),
-                    "description": pydash.objects.get(metadata, "description", ""),
-                    "created_date": pydash.objects.get(metadata, "created_date", None),
-                }
-            )
+            result.append(session.to_dict())
         return result
 
     def get_session(self, session_sid):
@@ -155,6 +138,24 @@ class Platform:
         self._send_message(code, params)
 
     ###### METADATA RELATED
+    def create_update_user(self, user):
+        uid = user['uid']
+        # create user profile with guest role if does not exist
+        self.set_metadata(
+            f'users.{uid}',
+            {
+                'uid': user['uid'],
+                'role': 'guest',
+                'email': user['email'],
+                'name': user['name'],
+                'picture': user['picture'],
+            },
+            nx=True,
+        )
+        self.set_metadata(f'users.{uid}.email', user['email'])
+        self.set_metadata(f'users.{uid}.name', user['name'])
+        self.set_metadata(f'users.{uid}.picture', user['picture'])
+
     def __get_json_value(self, value):
         if value is None:
             return None
@@ -171,15 +172,15 @@ class Platform:
         self.connection.json().set(
             self._get_metadata_namespace(),
             "$",
-            {},
+            {'users': {}},
             nx=True,
         )
 
     def _get_metadata_namespace(self):
         return self.cid + ":METADATA"
 
-    def set_metadata(self, key, value):
-        self.connection.json().set(self._get_metadata_namespace(), "$." + key, value)
+    def set_metadata(self, key, value, nx=False):
+        self.connection.json().set(self._get_metadata_namespace(), "$." + key, value, nx=nx)
 
     def get_metadata(self, key=""):
         value = self.connection.json().get(

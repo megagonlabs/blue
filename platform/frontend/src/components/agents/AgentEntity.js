@@ -29,6 +29,10 @@ export default function AgentEntity() {
     const [edit, setEdit] = useState(false);
     const [loading, setLoading] = useState(true);
     const [jsonError, setJsonError] = useState(false);
+    const discard = () => {
+        setEdit(false);
+        setEditEntity(entity);
+    };
     useEffect(() => {
         if (!router.isReady) {
             return;
@@ -97,6 +101,7 @@ export default function AgentEntity() {
                 setEdit={setEdit}
                 entity={entity}
                 saveEntity={saveEntity}
+                discard={discard}
                 loading={loading}
                 jsonError={jsonError}
             />

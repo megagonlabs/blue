@@ -1,8 +1,6 @@
 ###### OS / Systems
 from curses import noecho
-import os
 import sys
-
 
 ###### Add lib path
 sys.path.append("./lib/")
@@ -14,7 +12,6 @@ sys.path.append("./lib/platform/")
 ###### Parsers, Formats, Utils
 import json
 import re
-import pydash
 from pathlib import Path
 
 ##### FastAPI, Web, Sockets, Authentication
@@ -23,6 +20,8 @@ from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from firebase_admin import auth
 
+###### Settings
+from settings import PROPERTIES
 
 ###### API Routers
 from constant import EMAIL_DOMAIN_ADDRESS_REGEXP, InvalidRequestJson
@@ -40,10 +39,6 @@ from blueprint import Platform
 from agent_registry import AgentRegistry
 from data_registry import DataRegistry
 
-
-###### Settings
-from settings import PROPERTIES, DEVELOPMENT, SECURE_COOKIE
-
 ### Assign from platform properties
 platform_id = PROPERTIES["platform.name"]
 prefix = 'PLATFORM:' + platform_id
@@ -55,7 +50,6 @@ PLATFORM_PREFIX = f'/blue/platform/{platform_id}'
 _VERSION_PATH = Path(__file__).parent / "version"
 version = Path(_VERSION_PATH).read_text().strip()
 print("blue-platform-api: " + version)
-
 
 ###### Initialization
 p = Platform(id=platform_id, properties=PROPERTIES)
@@ -104,7 +98,7 @@ async def session_verification(request: Request, call_next):
             decoded_claims = auth.verify_session_cookie(session_cookie, check_revoked=True)
             email = decoded_claims["email"]
             email_domain = re.search(EMAIL_DOMAIN_ADDRESS_REGEXP, email).group(1)
-            request.state.user = {
+            profile = {
                 "name": decoded_claims["name"],
                 "picture": decoded_claims["picture"],
                 "uid": decoded_claims["uid"],
@@ -112,6 +106,9 @@ async def session_verification(request: Request, call_next):
                 "email": email,
                 "exp": decoded_claims["exp"],
             }
+            user_role = p.get_metadata(f'users.{profile["uid"]}.role')
+            profile['role'] = user_role
+            request.state.user = profile
         except auth.InvalidSessionCookieError:
             # Session cookie is invalid, expired or revoked. Force user to login.
             response = JSONResponse(content={"message": "Session cookie is invalid, epxpired or revoked", "error_code": "session_cookie_invalid"}, status_code=401)

@@ -77,6 +77,16 @@ export const AuthProvider = ({ children }) => {
             setUser(null);
         });
     };
+    const fetchAccountProfile = () => {
+        axios
+            .get("/accounts/profile")
+            .then((response) => {
+                setUser(_.get(response, "data.profile", null));
+            })
+            .finally(() => {
+                setAuthInitialized(true);
+            });
+    };
     const signInWithGoogle = () => {
         setPopupOpen(true);
         signInWithPopup(auth, provider)
@@ -84,9 +94,9 @@ export const AuthProvider = ({ children }) => {
                 result.user.getIdToken().then((idToken) => {
                     axios
                         .post("/accounts/sign-in", { id_token: idToken })
-                        .then((response) => {
+                        .then(() => {
                             setPopupOpen(false);
-                            setUser(_.get(response, "data.result", null));
+                            fetchAccountProfile();
                         })
                         .catch(() => {
                             setPopupOpen(false);
@@ -104,15 +114,7 @@ export const AuthProvider = ({ children }) => {
             });
     };
     useEffect(() => {
-        axios
-            .get("/accounts/profile")
-            .then((response) => {
-                setUser(_.get(response, "data.profile", null));
-                setAuthInitialized(true);
-            })
-            .catch(() => {
-                setAuthInitialized(true);
-            });
+        fetchAccountProfile();
     }, []);
     return (
         <AuthContext.Provider value={{ user, signOut }}>
