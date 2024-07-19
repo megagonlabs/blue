@@ -54,7 +54,19 @@ export default function SessionMembersList() {
         axios
             .get(`/sessions/session/${sessionIdFocus}/members`)
             .then((response) => {
-                setMembers(_.get(response, "data.results", []));
+                const results = _.get(response, "data.results", []);
+                for (let i = 0; i < _.size(results); i++) {
+                    const result = results[i];
+                    const hasUserProfile = _.has(appState, [
+                        "app",
+                        "users",
+                        result.uid,
+                    ]);
+                    if (!hasUserProfile) {
+                        appActions.app.getUserProfile(result.uid);
+                    }
+                }
+                setMembers(results);
                 setLoading(false);
             });
     };
@@ -258,7 +270,6 @@ export default function SessionMembersList() {
                         member.uid,
                     ]);
                     if (!hasUserProfile) {
-                        appActions.app.getUserProfile(member.uid);
                         return LOADING_PLACEHOLDER;
                     }
                     return (
