@@ -118,4 +118,6 @@ module.exports = {
             callback(requestError);
         })();
     },
+    hasInteraction: (left, right) =>
+        _.some(left, _.ary(_.partial(_.includes, right), 1)),
 };

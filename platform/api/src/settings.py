@@ -1,6 +1,8 @@
 ###### OS / Systems
 import os
 
+import pydash
+
 ###### Properties
 PROPERTIES = {}
 PROPERTIES["platform.name"] = os.getenv("BLUE_DEPLOY_PLATFORM")
@@ -31,3 +33,15 @@ def contains(actions, action):
 
 
 ACL.add_function('contains', contains)
+roles = ACL.get_all_subjects()
+ROLE_PERMISSIONS = {}
+for role in roles:
+    role_permissions = ACL.get_permissions_for_user(role)
+    permissions = {}
+    for permission in role_permissions:
+        resource = permission[1]
+        if pydash.objects.has(permissions, resource):
+            permissions[resource].append(permission[2])
+        else:
+            pydash.objects.set_(permissions, resource, [permission[2]])
+    pydash.objects.set_(ROLE_PERMISSIONS, role, permissions)

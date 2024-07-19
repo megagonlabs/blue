@@ -28,7 +28,7 @@ from APIRouter import APIRouter
 from fastapi.responses import JSONResponse
 
 ###### Settings
-from settings import PROPERTIES, SECURE_COOKIE
+from settings import PROPERTIES, ROLE_PERMISSIONS, SECURE_COOKIE
 
 ### Assign from platform properties
 from blueprint import Platform
@@ -180,7 +180,7 @@ async def signin_cli(request: Request):
 
 @router.get("/profile")
 def get_profile(request: Request):
-    return JSONResponse(content={"profile": request.state.user})
+    return JSONResponse(content={"profile": {**request.state.user, 'permissions': pydash.objects.get(ROLE_PERMISSIONS, request.state.user['role'], {})}})
 
 
 @router.get('/profile/uid/{uid}')
