@@ -37,7 +37,7 @@ from neo4j import GraphDatabase
 from agent import Agent, AgentFactory
 from session import Session
 from data_registry import DataRegistry
-
+from message import Message, MessageType, ContentType, ControlCode
 
 # set log level
 logging.getLogger().setLevel(logging.INFO)
@@ -185,18 +185,18 @@ class KnowledgeGroundingAgent(Agent):
         ret["top_title_skills"] = skills_duration_next
         return ret
     
-    def default_processor(self, stream, id, label, data, dtype=None, tags=None, properties=None, worker=None):    
-        if label == 'EOS':
+    def default_processor(self, message, input="DEFAULT", properties=None, worker=None):  
+        if message.isEOS():
             if worker:
                 logging.info("WORKER")
                 processed = worker.get_agent_data('processed')
                 if processed:
-                    return 'EOS', None, None
+                    return Message.EOS
             return None
                 
-        elif label == 'BOS':
+        elif message.isBOS():
             pass
-        elif label == 'DATA':
+        elif message.isData():
             # check if a required variable is seen
             requires = properties['requires']
 
@@ -222,7 +222,7 @@ class KnowledgeGroundingAgent(Agent):
                     worker.set_agent_data('processed', True)
 
                     # output to stream
-                    return "DATA", ret, "json", True
+                    return ret
     
         return None
         

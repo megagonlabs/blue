@@ -29,6 +29,7 @@ from agent import Agent, AgentFactory
 from session import Session
 from tqdm import tqdm
 from websocket import create_connection
+from message import Message, MessageType, ContentType, ControlCode, MessageEncoder
 
 
 # set log level
@@ -47,7 +48,7 @@ class ObserverAgent(Agent):
             kwargs["name"] = "OBSERVER"
         super().__init__(**kwargs)
 
-    def response_handler(self, stream, tags=None, properties=None, message={}):
+    def response_handler(self, stream,  properties=None, message={}):
         try:
             output = {}
             if "output" in properties:
@@ -57,41 +58,54 @@ class ObserverAgent(Agent):
                 ws.send(json.dumps(message))
                 ws.close()
             else:
-                logging.info("{} [{}]: {}".format(stream, ",".join(tags), message))
+                logging.info("{} : {}".format(stream, message))
         except Exception as exception:
-            logging.error("{} [{}]: {}".format(stream, ",".join(tags), exception))
+            logging.error("{}: {}".format(stream, exception))
 
-    def default_processor(self, stream, id, label, value, dtype=None, tags=None, properties=None, worker=None):
+    def default_processor(self, message, input="DEFAULT", properties=None, worker=None):
         mode = None
         if 'output' in properties:
             mode = properties['output'].get('mode', 'batch')
+
+        id = message.getID()
+        stream = message.getStream()
+
+        message_json = json.loads(message, cls=MessageEncoder)
+        label = message_json["label"]
+        contents = message_json["contents"]
+        content_type = message_json["content_type"]
+
         base_message = {
             "type": "OBSERVER_SESSION_MESSAGE",
             "session_id": properties["session_id"],
             "connection_id": properties["connection_id"],
-            "message": {"label": label, "content": value, "dtype": dtype},
+            # TODO: REPLACE WITH BELOW
+            # "message": {"label": label, "contents": contents, "content_type": content_type},
+            "message": {"label": label, "content": contents, "dtype": content_type},
             "stream": stream,
             "mode": mode,
             "timestamp": int(id.split("-")[0]),
             "order": int(id.split("-")[1]),
             "id": id,
         }
-        if label == "EOS":
+        if message.isEOS():
             # compute stream data
             if worker:
                 if mode == 'batch':
                     data = worker.get_data(stream)
-                    stream_dtype = worker.get_data(f'{stream}:dtype')
+                    stream_dtype = worker.get_data(f'{stream}:content_type')
                     if stream_dtype == 'json' and data is not None:
                         try:
                             self.response_handler(
                                 stream=stream,
-                                tags=tags,
                                 properties=properties,
+                                # TODO: REPLACE WITH BELOW
+                                # TODO: Why is label JSON? 
+                                # message={**base_message, "message": {**base_message['message'], "label": "JSON", "contents": [json.loads(json_data) for json_data in data]}},
                                 message={**base_message, "message": {**base_message['message'], "label": "JSON", "content": [json.loads(json_data) for json_data in data]}},
                             )
                         except Exception as exception:
-                            logging.error("{} [{}]: {}".format(stream, ",".join(tags), exception))
+                            logging.error("{} : {}".format(stream, exception))
                     else:
                         str_data = ""
                         if data is not None:
@@ -100,30 +114,33 @@ class ObserverAgent(Agent):
                         if len(str_data.strip()) > 0:
                             self.response_handler(
                                 stream=stream,
-                                tags=tags,
                                 properties=properties,
-                                message={**base_message, "message": {**base_message['message'], "label": "TEXT", "content": str_data}},
+                                # TODO: REPLACE WITH BELOW
+                                # TODO: Why is label TEXT? 
+                                message={**base_message, "message": {**base_message['message'], "label": "TEXT", "contents": str_data}},
                             )
                 elif mode == 'streaming':
-                    self.response_handler(stream=stream, tags=tags, properties=properties, message=base_message)
-        elif label == "BOS":
+                    self.response_handler(stream=stream, properties=properties, message=base_message)
+        elif message.isBOS():
             # init stream to empty array
             if worker:
                 if mode == 'batch':
                     worker.set_data(stream, [])
                 elif mode == 'streaming':
-                    self.response_handler(stream=stream, tags=tags, properties=properties, message=base_message)
-        elif label == "DATA":
+                    self.response_handler(stream=stream, properties=properties, message=base_message)
+        elif message.isData():
             # store data value
+            data = message.getData()
+            
             if worker:
                 if mode == 'batch':
-                    worker.set_data(f'{stream}:dtype', dtype)
-                    worker.append_data(stream, str(value))
+                    worker.set_data(f'{stream}:content_type', content_type)
+                    worker.append_data(stream, str(data))
                 elif mode == 'streaming':
-                    self.response_handler(stream=stream, tags=tags, properties=properties, message=base_message)
-        elif label == "INTERACTION":
+                    self.response_handler(stream=stream, properties=properties, message=base_message)
+        elif message.getCode() in [ControlCode.CREATE_FORM, ControlCode.UPDATE_FORM, ControlCode.CLOSE_FORM]:
             # interactive messages
-            self.response_handler(stream=stream, tags=tags, properties=properties, message=base_message)
+            self.response_handler(stream=stream, properties=properties, message=base_message)
 
         return None
 

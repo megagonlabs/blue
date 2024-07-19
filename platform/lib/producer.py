@@ -26,6 +26,9 @@ import redis
 import threading
 import concurrent.futures
 
+###### Blue
+from message import Message, MessageType, ContentType, ControlCode, MessageEncoder, MessageDecoder
+
 # set log level
 logging.getLogger().setLevel(logging.INFO)
 logging.basicConfig(
@@ -113,12 +116,13 @@ class Producer:
         r = self.connection
         # check if stream has BOS in the front
         data = r.xread(streams={s: 0}, count=1)
-        has_bos = pydash.is_equal(
-            pydash.objects.get(data, "0.1.0.1.label", None), "BOS"
-        )
-        if not has_bos:
+        empty_stream = data == None
+        # has_bos = pydash.is_equal(
+        #     pydash.objects.get(data, "0.1.0.1.label", None), "BOS"
+        # )
+        if empty_stream:
             # add BOS (begin of stream)
-            self.write(label="BOS")
+            self.write_bos()
 
         self._print_stream_info()
 
@@ -130,66 +134,36 @@ class Producer:
         return self.cid
 
     # stream
-    def write(self, data=None, dtype="str", label="DATA", eos=False, split=None):
-        # logging.info("producer write {label} {data} {dtype} {eos}".format(label=label,data=data,dtype=dtype,eos=eos))
+    def write_bos(self):
+        self.write(Message.BOS)
 
-        # do basic type casting, if none given
-        # print("type {type}".format(type=type))
-        if dtype == None:
-            if isinstance(data, int):
-                dtype = "int"
-            elif isinstance(data, float):
-                dtype = "float"
-            elif isinstance(data, str):
-                dtype = "str"
-            elif isinstance(data, dict) or isinstance(data, list):
-                dtype = "json"
-            else:
-                # convert everything else to string
-                data = str(data)
-                dtype = "str"
+    def write_eos(self):
+        self.write(Message.EOS)
 
-        if dtype == "json":
-            data = json.dumps(data)
+    def write_data(self, data):
+        if type(data) == int:
+            contents = data
+            content_type = ContentType.INT
+        elif type(data) == float:
+            contents = data
+            content_type = ContentType.FLOAT
+        elif type(data) == str:
+            contents = data
+            content_type = ContentType.STR
+        elif type(data) == dict:
+            contents = json.dumps(data)
+            content_type = ContentType.JSON
+        self.write(Message(MessageType.DATA, contents, content_type))
 
-        if label == "DATA":
+    def write_control(self, code, args):
+        self.write(Message(MessageType.CONTROL, {"code": code, args: args}, ContentType.JSON))
 
-            if dtype == "str":
-                # TODO: Overrride?
-                if split is None:
-                    split = " "
+    def write(self, message):
+        self._write_message_to_stream(message.toJSON())
 
-            if split is None:
-                tokens = [data]
-            else:
-                tokens = data.split(split)
-
-            for token in tokens:
-                message = self._prepare_message(data=token, label=label, dtype=dtype)
-                self._write_message_to_stream(message)
-
-            # logging.info(eos)
-            if eos:
-                message = self._prepare_message(label="EOS")
-                self._write_message_to_stream(message)
-
-        elif label == "INSTRUCTION":
-            message = self._prepare_message(data=data, label=label, dtype=dtype)
-            self._write_message_to_stream(message)
-        else:
-            message = self._prepare_message(data=data, label=label, dtype=dtype)
-            self._write_message_to_stream(message)
-
-    def _prepare_message(self, label=None, data=None, dtype=None):
-        if data is None:
-            return {"label": label}
-        else:
-            return {"label": label, "data": data, "type": dtype}
-
-    def _write_message_to_stream(self, message):
-        # logging.info("Streaming into {s} message {m}".format(s=self.sid, m=str(message)))
-        self.connection.xadd(self.cid, message)
-        logging.info("Streamed into {s} message {m}".format(s=self.sid, m=str(message)))
+    def _write_message_to_stream(self, json_message):
+        self.connection.xadd(self.cid, json_message)
+        logging.info("Streamed into {s} message {m}".format(s=self.sid, m=str(json_message)))
 
     def read_all(self):
         sl = self.connection.xlen(self.cid)
@@ -200,7 +174,14 @@ class Producer:
         d = e[1]
         for di in d:
             id = di[0]
-            message = di[1]
+            m_json = di[1]
+
+             
+            message = json.loads(m_json, cls=MessageDecoder)
+            message.setID(id)
+            message.setStream(s)
+            
+            
             messages.append(message)
 
         return messages

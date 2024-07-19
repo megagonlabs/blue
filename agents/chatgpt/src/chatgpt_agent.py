@@ -36,7 +36,7 @@ from agent import Agent, AgentFactory
 from api_agent import APIAgent
 from session import Session
 from openai_agent import OpenAIAgent
-
+from message import Message, MessageType, ContentType, ControlCode
 
 # set log level
 logging.getLogger().setLevel(logging.INFO)

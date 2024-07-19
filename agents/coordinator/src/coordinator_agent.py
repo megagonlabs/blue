@@ -29,7 +29,7 @@ from tqdm import tqdm
 ###### Blue
 from agent import Agent, AgentFactory
 from session import Session
-
+from message import Message, MessageType, ContentType, ControlCode
 
 # set log level
 logging.getLogger().setLevel(logging.INFO)
@@ -139,9 +139,10 @@ class CoordinatorAgent(Agent):
 
     # node status progression
     # PLANNED, TRIGGERED, STARTED, FINISHED
-    def default_processor(self, stream, id, label, data, dtype=None, tags=None, properties=None, worker=None):
+    def default_processor(self, message, input="DEFAULT", properties=None, worker=None):
 
         # TODO: Instructions should use TAGs not agent_name
+        stream = message.getStream()
         agent_name = stream.split(':')[0]
 
         plan = self.plan
@@ -151,7 +152,7 @@ class CoordinatorAgent(Agent):
         id2node = plan['id2node']
         logging.info("stream {} {}".format(stream, str(id2node)))
 
-        if label == 'EOS':
+        if message.isEOS():
             if stream in id2node:
                 node = id2node[stream]
                 node['status'] = 'FINISHED'
@@ -182,21 +183,22 @@ class CoordinatorAgent(Agent):
                         next['status'] = 'TRIGGERED'
 
                         ### prepare plan data/instruction 
-                        # assign input stream
-                        instruction = {}
-                        instruction['agent'] = next_agent_name
-                        instruction['id'] = next_id
-                        instruction['stream'] = stream
+                        args = {}
+                        args['agent'] = next_agent_name
+                        input = {}
+                        input["DEFAULT"] = stream # TODO: Is this correct?
+                        args["input"] = input
+                        args['context'] = ""
 
                         ### put instruction into plan stream
                         logging.info(plan)
-                        return 'INSTRUCTION', instruction, 'json'
+                        return Message(Message.MessageType.CONTROL, {"code": ControlCode.EXECUTE_AGENT, "args": args}, ContentType.JSON)
             else:
                 # doesn't belong to plan
                 pass
             
 
-        elif label == 'BOS':
+        elif message.isBOS():
             # if a start node instantiate a plan
             logging.info("checking agent in start {name}{start}".format(name=agent_name,start=str(start)))
             if agent_name in start:
@@ -212,7 +214,7 @@ class CoordinatorAgent(Agent):
             else:
                 pass
 
-        elif label == 'DATA':
+        elif message.isData():
             # nothing to do here, other than setting status
             if stream in id2node:
                 node = id2node[stream]
@@ -226,22 +228,15 @@ class AgentA(Agent):
             kwargs['name'] = "A"
         super().__init__(**kwargs)
    
-    def default_processor(self, stream, id, label, data, dtype=None, properties=None, worker=None):
-        if label == 'INSTRUCTION':
-            logging.info(label)
-            logging.info(id)
-            logging.info(data)
-            logging.info(properties)
-            logging.info(worker)
-            logging.info(worker.agent)
-            instruction = json.loads(data)
-            instruction_agent = instruction['agent']
-            assigned_id = instruction['id']
-            input_stream = instruction['stream']
+    def default_processor(self, message, input="DEFAULT", properties=None, worker=None):
+        if message.getCode() == ControlCode.EXECUTE_AGENT:
+            
+            instruction_agent = message.getArg("agent")
+            input_stream = message.getArg['stream']
             if instruction_agent == self.name:
-                worker.agent.create_worker(input_stream, id=assigned_id)
+                worker.agent.create_worker(input_stream, input="DEFAULT")
                 return 
-        elif label == 'EOS':
+        elif message.isEOS():
             # compute stream data
             l = 0
             if worker:
@@ -250,13 +245,14 @@ class AgentA(Agent):
             
             # output to stream
             return l
-        elif label == 'BOS':
+        elif message.isBOS():
             # init stream to empty array
             if worker:
                 worker.set_data('stream',[])
             pass
-        elif label == 'DATA':
+        elif message.isData():
             # store data value
+            data = message.getData()
             logging.info(data)
             
             if worker:
@@ -271,22 +267,15 @@ class AgentB(Agent):
             kwargs['name'] = "B"
         super().__init__(**kwargs)
    
-    def default_processor(self, stream, id, label, data, dtype=None, properties=None, worker=None):
-        if label == 'INSTRUCTION':
-            logging.info(label)
-            logging.info(id)
-            logging.info(data)
-            logging.info(properties)
-            logging.info(worker)
-            logging.info(worker.agent)
-            instruction = json.loads(data)
-            instruction_agent = instruction['agent']
-            assigned_id = instruction['id']
-            input_stream = instruction['stream']
+    def default_processor(self, message, input="DEFAULT", properties=None, worker=None):
+        if message.getCode() == ControlCode.EXECUTE_AGENT:
+            
+            instruction_agent = message.getArg("agent")
+            input_stream = message.getArg['stream']
             if instruction_agent == self.name:
-                worker.agent.create_worker(input_stream, id=assigned_id)
+                worker.agent.create_worker(input_stream, input="DEFAULT")
                 return 
-        elif label == 'EOS':
+        elif message.isEOS():
             # compute stream data
             l = 0
             if worker:
@@ -295,13 +284,14 @@ class AgentB(Agent):
             
             # output to stream
             return l
-        elif label == 'BOS':
+        elif message.isBOS():
             # init stream to empty array
             if worker:
                 worker.set_data('stream',[])
             pass
-        elif label == 'DATA':
+        elif message.isData():
             # store data value
+            data = message.getData()
             logging.info(data)
             
             if worker:

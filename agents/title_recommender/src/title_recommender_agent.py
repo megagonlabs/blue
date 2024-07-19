@@ -33,6 +33,7 @@ from tqdm import tqdm
 ###### Blue
 from agent import Agent, AgentFactory
 from session import Session
+from message import Message, MessageType, ContentType, ControlCode
 
 
 # set log level
@@ -65,18 +66,19 @@ class TitleRecommenderAgent(Agent):
         self.properties['tags'] = tags
 
 
-    def default_processor(self, stream, id, label, data, dtype=None, tags=None, properties=None, worker=None):
+    def default_processor(self, message, input="DEFAULT", properties=None, worker=None):
 
-        if label == 'EOS':
+        if message.isEOS():
             if worker:
                 processed = worker.get_data('processed')
                 if processed:
-                    return 'EOS', None, None
+                    return Message.EOS
             return None
-        elif label == 'BOS':
+        elif message.isBOS():
             pass
-        elif label == 'DATA':
+        elif message.isData():
             # check if title is recorded
+            data = message.getData()
             variables = data
             variables = set(variables) 
 
@@ -92,7 +94,7 @@ class TitleRecommenderAgent(Agent):
                     worker.set_data('processed', True)
                     
                     # output to stream
-                    return "DATA", { "title_recommendations": recommendations }, "json", True
+                    return [{ "title_recommendations": recommendations }, Message.EOS]
         
         return None
 

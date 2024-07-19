@@ -44,7 +44,7 @@ from consumer import Consumer
 
 from openai_agent import OpenAIAgent
 from agent_registry import AgentRegistry
-
+from message import Message, MessageType, ContentType, ControlCode
 
 # set log level
 logging.getLogger().setLevel(logging.INFO)
@@ -464,52 +464,46 @@ class InteractivePlannerAgent(OpenAIAgent):
 
         return edges
 
-    def default_processor(self, stream, id, label, data, dtype=None, tags=None, properties=None, worker=None):
-        if ":EVENT_MESSAGE:" in stream:
-            if label == "DATA":
-                if worker:
+    def default_processor(self, message, input="DEFAULT", properties=None, worker=None):
+        stream = message.getStream()
 
-                    output_stream_cid = stream[: stream.rindex("EVENT_MESSAGE") - 1]
+        if input == "EVENT":
+            if message.isData():
+                if worker:
+                    data = message.getData()
+                    stream = message.getStream()
+                    form_id = data["form_id"]
+                    action = data["action"]
 
                     # when the user clicked DONE
-                    if data["action"] == "DONE":
+                    if action == "DONE":
                         # get plan
-                        plan_data = worker.get_stream_data(stream=output_stream_cid, key="steps")
+                        plan_data = worker.get_stream_data(stream=stream, key="steps")
                         # standardize plan
                         plan_dag = self.standardize_plan(plan_data)
                         logging.info(plan_dag)
 
 
-                        # get output stream with original form
-                        output_stream = Producer(cid=output_stream_cid, properties=properties)
-                        output_stream.start()
-
                         # close form
-                        output_stream.write(
-                            label="INTERACTION",
-                            data={
-                                "type": "DONE",
-                                "form_id": data["form_id"],
-                            },
-                            dtype="json",
-                        )
+                        args = {
+                            "form_id": form_id
+                        }
+                        worker.write_control(ControlCode.CLOSE_FORM, args, output="FORM")
 
                         # stream form data
-                        return ("DATA", { "plan" : plan_dag }, "json", True)
+                        return plan_dag
                     else:
-                        timestamp = worker.get_stream_data(stream=output_stream_cid, key=f'{data["path"]}.timestamp')
+                        timestamp = worker.get_stream_data(stream=stream, key=f'{data["path"]}.timestamp')
 
                         # TODO: timestamp should be replaced by id to determine order
                         if timestamp is None or data["timestamp"] > timestamp:
-                            
-                            
                             worker.set_stream_data(
                                 key=data["path"],
                                 value=data["value"],
-                                stream=output_stream_cid,
+                                stream=stream,
                             )
         else:
-            if label == 'EOS':
+            if message.isEOS():
                 # get all data received from stream
                 stream_data = ""
                 if worker:
@@ -518,13 +512,14 @@ class InteractivePlannerAgent(OpenAIAgent):
                 #### call api to compute, render interactive plan
                 return self.handle_api_call(stream_data)
                 
-            elif label == 'BOS':
+            elif message.isBOS:
                 # init stream to empty array
                 if worker:
                     worker.set_data('stream',[])
                 pass
-            elif label == 'DATA':
+            elif message.isData():
                 # store data value
+                data = message.getData()
                 logging.info(data)
                 
                 if worker:

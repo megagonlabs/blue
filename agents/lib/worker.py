@@ -23,12 +23,14 @@ from tqdm import tqdm
 from producer import Producer
 from consumer import Consumer
 from agent import Session
+from message import Message, MessageType, ContentType, ControlCode, MessageDecoder
 
 
 class Worker:
     def __init__(
         self,
         input_stream,
+        input="DEFAULT"
         name="WORKER",
         id=None,
         sid=None,
@@ -64,23 +66,22 @@ class Worker:
             if self.suffix:
                 self.cid = self.cid + ":" + self.suffix
 
+        self.input = input
+
         self.session = session
         self.agent = agent
 
         self._initialize(properties=properties)
 
-        self.input_streams = set()
-        self.input_streams.add(input_stream)
-
+        self.input_stream = input_stream
         self.processor = processor
         if processor is not None:
             self.processor = lambda *args, **kwargs,: processor(*args, **kwargs, worker=self)
 
         self.properties = properties
 
-        self.producer = None
-
-        self.consumers = {}
+        self.producers = {}
+        self.consumer = None
 
         self._start()
 
@@ -103,189 +104,162 @@ class Worker:
         for p in properties:
             self.properties[p] = properties[p]
 
-    def listener(self, id, message, stream):
-        label = None
-        data = None
-        dtype = None
-
-        if "label" in message:
-            label = message["label"]
-        if "data" in message:
-            data = message["data"]
-        if "type" in message:
-            dtype = message["type"]
-
-        result = None
-
-        if dtype == "json":
-            data = json.loads(data)
-
+    def listener(self, message, input="DEFAULT"):
+        
+        r = None
         if self.processor is not None:
-            result = self.processor(stream, id, label, data, dtype=dtype)
+            r = self.processor(message, input=self.input)
 
-        # logging.info(result)
-        # if result, write to stream
-        if result is not None:
-            result_label = None
-            result_data = None
-            result_dtype = None
-            result_eos = None
+        if r is None:
+            return
+        
+        results = []
+        if type(r) == list:
+            results = r
+        else:
+            results = [r]
 
-            # processor can return multiple values, and the order is mapped to the following:
-            # DATA
-            # DATA, DTYPE
-            # LABEL, DATA, DTYPE
-            # LABEL, DATA, DTYPE, EOS
-            # where
-            # LABEL is BOS, EOS, DATA, INSTRUCTION, ...
-            # DTYPE is int, float, str, json, ...
-            # EOS is True, False
 
-            if type(result) == tuple:
-                if len(result) == 2:
-                    result_label = "DATA"
-                    result_data = result[0]
-                    result_dtype = result[1]
-                elif len(result) == 3:
-                    result_label = result[0]
-                    result_data = result[1]
-                    result_dtype = result[2]
-                elif len(result) == 4:
-                    result_label = result[0]
-                    result_data = result[1]
-                    result_dtype = result[2]
-                    result_eos = result[3]
+        for result in results:
+            out_param = "DEFAULT"
+
+            if type(result) in [int, float, str, dict]:
+                self.write_data(result, output=out_param)
+            elif type(result) == Message:
+                self.write(result, output=out_param)
+
             else:
-                result_label = "DATA"
-                result_data = result
-                result_dtype = None
-                result_eos = False
+                # error
+                logging.error("Unknown return type from processor function: " + str(result))
+                return
 
-            # result is interactive, create event message stream to track interactions
-            if result_label == "INTERACTION":
-                # start INTERACTION output stream early
+
+    # TODO: this seems out of place...
+    def update_form_ids(self, form_element: dict, stream_id: str, form_id: str):
+        if "elements" in form_element:
+            for element in form_element["elements"]:
+                self._stream_injection(element, stream_id, form_id)
+        elif pydash.includes(["Control", "Button"], form_element["type"]):
+            if form_element["type"] is "Control":
+                if pydash.objects.has(form_element, 'options.detail.type'):
+                    self._stream_injection(pydash.objects.get(form_element, 'options.detail', {}), stream_id, form_id)
+            pydash.objects.set_(form_element, "props.streamId", stream_id)
+            pydash.objects.set_(form_element, "props.formId", form_id)
+
+    def write_bos(self, output="DEFAULT"):
+        producer = self._start_producer(output=output)
+        producer.write_bos()
+
+    def write_eos(self, output="DEFAULT"):
+        producer = self._start_producer(output=output)
+        producer.write_eos()
+
+    def write_data(self, data, output="DEFAULT"):
+        producer = self._start_producer(output=output)
+        producer.write_data(data)
+
+    def write_control(self, code, args, output="DEFAULT"):
+        producer = self._start_producer(output=output)
+        producer.write_control(code, args)
+
+    def write(self, message, output="DEFAULT"):
+
+        form_id = None
+        if message.getCode() in [ ControlCode.CREATE_FORM, ControlCode.UPDATE_FORM, ControlCode.CLOSE_FORM ]:
+            if message.getCode() == ControlCode.CREATE_FORM:
+                # create a new form id
                 form_id = str(hex(uuid.uuid4().fields[0]))[2:]
 
+                message.setArg("form_id", form_id)
+
+                # start stream
                 self._start_producer()
-                event_stream = Producer(
-                    name="EVENT_MESSAGE",
+                event_producer = Producer(
+                    name="EVENT",
                     id=form_id,
-                    prefix=self.producer.get_stream(),
+                    prefix=self.prefix, 
+                    suffix="STREAM",
                     properties=self.properties,
                 )
-                event_stream.start()
+                event_producer.start()
+                event_stream = event_producer.get_stream()
 
                 # inject stream and form id into ui
-                result_data["form_id"] = form_id
-                interactive_result_type = pydash.objects.get(result_data, "type", None)
-                if pydash.is_equal(interactive_result_type, "JSONFORM"):
-                    self._stream_injection(result_data["content"], event_stream.get_stream(), form_id)
+                self.update_form_ids(message.getArg("uischema"), event_stream, form_id)
 
                 # start a consumer to listen to a event stream, using self.processor
                 event_consumer = Consumer(
-                    event_stream.get_stream(),
+                    event_stream,
                     name=self.name,
                     prefix=self.cid,
-                    listener=lambda id, data: self.listener(id, data, event_stream.get_stream()),
+                    listener=lambda message: self.listener(message, input="EVENT"),
                     properties=self.properties,
                 )
                 event_consumer.start()
 
-            if self.properties["aggregator"]:
-                if self.properties["aggregator.eos"] == "FIRST":
-                    self.write(
-                        result_data,
-                        dtype=result_dtype,
-                        label=result_label,
-                        eos=(label == "EOS"),
-                    )
-                elif self.properties["aggregator.eos"] == "NEVER":
-                    self.write(result_data, dtype=result_dtype, label=result_label, eos=False)
-                else:
-                    self.write(result_data, dtype=result_dtype, label=result_label, eos=False)
             else:
-                # TODO Implement 'ALL' option
-                self.write(result_data, dtype=result_dtype, label=result_label, eos=result_eos)
+                form_id = message.getArg('form_id')
 
-        if label == "EOS":
+            # update output variable
+            output = output + ":" + form_id
+
+
+        # create producer, if not existing
+        producer = self._start_producer(output=output)
+        producer.write(message)
+
+        # close consumer, if end of stream
+        if message.isEOS():
             # done, stop listening to input stream
-            consumer = self.consumers[stream]
-            consumer.stop()
-
-    def _stream_injection(self, form_element: dict, stream: str, form_id: str):
-        if "uischema" in form_element:
-            self._stream_injection(form_element["uischema"], stream, form_id)
-        else:
-            if "elements" in form_element:
-                for element in form_element["elements"]:
-                    self._stream_injection(element, stream, form_id)
-            elif pydash.includes(["Control", "Button"], form_element["type"]):
-                if form_element["type"] is "Control":
-                    if pydash.objects.has(form_element, 'options.detail.type'):
-                        self._stream_injection(pydash.objects.get(form_element, 'options.detail', {}), stream, form_id)
-                pydash.objects.set_(form_element, "props.streamId", stream)
-                pydash.objects.set_(form_element, "props.formId", form_id)
-
-    def write(self, data, dtype=None, label="DATA", eos=True, split=None):
-        # start producer on first write
-        self._start_producer()
-
-        self.producer.write(data=data, dtype=dtype, label=label, eos=eos, split=split)
+            self.consumer.stop()
 
     def _start(self):
         # logging.info('Starting agent worker {name}'.format(name=self.sid))
 
         # start consumer only first on initial given input_stream
-        self._start_consumers()
+        self._start_consumer()
         logging.info("Started agent worker {name}".format(name=self.sid))
 
-    def _start_consumers(self):
-        for input_stream in self.input_streams:
-            self._start_consumer_on_stream(input_stream)
-
-    def _start_consumer_on_stream(self, input_stream):
+    def _start_consumer(self):
         # start a consumer to listen to stream
-        if input_stream:
-            # create data namespace to share data on stream
-            # if self.session:
-            #     self.session._init_stream_agent_data_namespace(input_stream, self.agent)
+        consumer = Consumer(
+            self.input_stream,
+            name=self.name,
+            prefix=self.cid,
+            listener=lambda message: self.listener(id, message, input=self.input),
+            properties=self.properties,
+        )
 
-            consumer = Consumer(
-                input_stream,
-                name=self.name,
-                prefix=self.cid,
-                listener=lambda id, data: self.listener(id, data, input_stream),
-                properties=self.properties,
-            )
+        self.consumer = consumer
+        consumer.start()
 
-            self.consumers[input_stream] = consumer
-            consumer.start()
-
-    def _start_producer(self):
+    def _start_producer(self, output="DEFAULT"):
         # start, if not started
-        if self.producer == None:
+        if output in self.producers:
+            return self.producers[output]
+        
+        # create producer for output
+        producer = Producer(name="OUTPUT", id=output, prefix=self.prefix, suffix="STREAM", properties=self.properties)
+        producer.start()
+        self.producers[output] = producer
 
-            producer = Producer(prefix=self.prefix, properties=self.properties)
-            producer.start()
-            self.producer = producer
+        # notify session of new stream, if in a session
+        if self.session:
+            # get output stream info
+            output_stream = self.producer.get_stream()
 
-            # notify session of new stream, if in a session
-            if self.session:
-                # get output stream info
-                output_stream = self.producer.get_stream()
+            # notify session, get tags for output param
+            tags = set()
+            tags.add(self.agent.name)
+            if "tags" in self.properties:
+                tags_by_param = self.properties["tags"]
+                # include tags from all params
+                for param in tags_by_param:
+                    param_tags = tags_by_param[param]
+                    tags = tags.union(set(param_tags))
+            tags = list(tags)
 
-                # notify session
-                tags = set()
-                tags.add(self.agent.name)
-                if "tags" in self.properties:
-                    tags_by_param = self.properties["tags"]
-                    # include tags from all params
-                    for param in tags_by_param:
-                        param_tags = tags_by_param[param]
-                        tags = tags.union(set(param_tags))
-                tags = list(tags)
-
-                self.session.notify(output_stream, tags)
+            self.session.notify(output_stream, tags)
 
     ###### DATA RELATED
     ## session data

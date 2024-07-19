@@ -30,6 +30,7 @@ import psycopg2
 ###### Blue
 from agent import Agent, AgentFactory
 from session import Session
+from message import Message, MessageType, ContentType, ControlCode
 
 
 # set log level
@@ -107,10 +108,11 @@ class JobSearchAgent(Agent):
             results.append({'title': datum[0], 'company': datum[1], 'link': 'http'})
         return results
 
-    def default_processor(self, stream, id, label, data, dtype=None, tags=None, properties=None, worker=None):
+    def default_processor(self, message, input="DEFAULT", properties=None, worker=None):
 
-        if label == 'DATA':
+        if message.isData():
             # check if title is recorded
+            data = message.getData()
             variables = data
             variables = set(variables)
 
@@ -120,20 +122,17 @@ class JobSearchAgent(Agent):
 
                     logging.info("recommended jobs with title: {title}".format(title=title))
 
-                    # do job search
-                    # jobs = [
-                    #     {'title': 'Sr. Research Engineer', 'company': 'Megagon Labs', 'link': 'https://megagon.ai/jobs/research-engineer/'},
-                    #     {'title': 'Research Scientist', 'company': 'Megagon Labs', 'link': 'https://megagon.ai/jobs/research-scientist/'},
-                    # ]
-
+        
                     jobs = self.search_jobs(title)
 
                     jobs_form = self.create_jobs_list(jobs)
-                    return ("INTERACTION", {"type": "JSONFORM", "content": jobs_form}, "json", False)
 
-                    # output to stream
-                    # return "DATA", json.dumps({ "jobs": results }, indent=3), "str", True
-                    # return "DATA", { "jobs": results }, "json", True
+                    args = {
+                        "schema": jobs_form["schema"],
+                        "uischema": jobs_form["uischema"]
+                    }
+                    # write ui
+                    worker.write_control(ControlCode.CREATE_FORM, args, output="FORM")
 
         return None
 

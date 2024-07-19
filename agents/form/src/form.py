@@ -31,6 +31,7 @@ from agent import Agent, AgentFactory
 from session import Session
 from producer import Producer
 from consumer import Consumer
+from message import Message, MessageType, ContentType, ControlCode
 
 # set log level
 logging.getLogger().setLevel(logging.INFO)
@@ -55,40 +56,38 @@ class FormAgent(Agent):
                 return True
         return False
 
-    def default_processor(self, stream, id, label, data, dtype=None, tags=None, properties=None, worker=None):
-        if ":EVENT_MESSAGE:" in stream:
-            if label == "DATA":
-                if worker:
+    def default_processor(self, message, input="DEFAULT", properties=None, worker=None):
+        stream = message.getStream()
 
-                    output_stream_cid = stream[: stream.rindex("EVENT_MESSAGE") - 1]
+        if input == "EVENT":
+            if message.isData():
+                if worker:
+                    data = message.getData()
+                    stream = message.getStream()
+                    form_id = data["form_id"]
+                    action = data["action"]
 
                     # when the user clicked DONE
-                    if data["action"] == "DONE":
+                    if action == "DONE":
                         # gather all data in the form from stream memory
                         schema = properties['schema']['properties'].keys()
 
-                        json_data = {}
+                        form_data = {}
                         for element in schema:
-                            json_data[element] = worker.get_stream_data(stream=output_stream_cid, key=element + ".value")
+                            form_data[element] = worker.get_stream_data(stream=stream, key=element + ".value")
 
-                        # get output stream with original form
-                        output_stream = Producer(cid=output_stream_cid, properties=properties)
-                        output_stream.start()
-
+            
                         # close form
-                        output_stream.write(
-                            label="INTERACTION",
-                            data={
-                                "type": "DONE",
-                                "form_id": data["form_id"],
-                            },
-                            dtype="json",
-                        )
+                        args = {
+                            "form_id": form_id
+                        }
+                        worker.write_control(ControlCode.CLOSE_FORM, args, output="FORM")
 
                         # stream form data
-                        return ("DATA", json_data, "json", True)
+                        return form_data
+                    
                     else:
-                        timestamp = worker.get_stream_data(stream=output_stream_cid, key=f'{data["path"]}.timestamp')
+                        timestamp = worker.get_stream_data(stream=stream, key=f'{data["path"]}.timestamp')
 
                         # TODO: timestamp should be replaced by id to determine order
                         if timestamp is None or data["timestamp"] > timestamp:
@@ -99,17 +98,17 @@ class FormAgent(Agent):
                                     "value": data["value"],
                                     "timestamp": data["timestamp"],
                                 },
-                                stream=output_stream_cid,
+                                stream=stream,
                             )
         else:
-            if label == "EOS":
+            if message.isEOS():
                 stream_message = ""
                 if worker:
                     stream_message = pydash.to_lower(" ".join(worker.get_data(stream)))
 
                 # check trigger condition, and output to stream form UI when triggered
                 if self.triggered(stream_message, properties):
-                    interactive_form = {
+                    args = {
                         "schema": properties['schema'],
                         "uischema": {
                             "type": "VerticalLayout",
@@ -127,14 +126,17 @@ class FormAgent(Agent):
                             ],
                         },
                     }
-                    return ("INTERACTION", {"type": "JSONFORM", "content": interactive_form}, "json", False)
-            elif label == "BOS":
+                    # write ui
+                    worker.write_control(ControlCode.CREATE_FORM, args, output="FORM")
+
+            elif message.isBOS():
                 # init stream to empty array
                 if worker:
                     worker.set_data(stream, [])
                 pass
-            elif label == "DATA":
+            elif message.isData():
                 # store data value
+                data = message.getData()
                 logging.info(data)
 
                 if worker:

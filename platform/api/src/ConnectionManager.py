@@ -27,6 +27,7 @@ from session import Session
 from agent import Agent
 from producer import Producer
 from constant import redisReplace
+from message import Message, MessageType, ContentType, ControlCode, MessageDecoder
 
 
 ###### Settings
@@ -118,15 +119,14 @@ class ConnectionManager:
         if json_data["stream_id"] is not None:
             event_stream = Producer(cid=json_data["stream_id"], properties=PROPERTIES)
             event_stream.start()
-            event_stream.write(
-                data={
+            event_stream.write_data(
+                {
                     "path": pydash.objects.get(json_data, "path", None),
                     "action": pydash.objects.get(json_data, "action", None),
                     "form_id": json_data['form_id'],
                     "value": pydash.objects.get(json_data, "value", None),
                     "timestamp": json_data['timestamp'],
-                },
-                dtype="json",
+                }
             )
 
     async def observer_session_message(self, connection_id: str, message):

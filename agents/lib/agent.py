@@ -32,6 +32,7 @@ from producer import Producer
 from consumer import Consumer
 from session import Session
 from worker import Worker
+from message import Message, MessageType, ContentType, ControlCode
 
 
 class Agent:
@@ -105,18 +106,23 @@ class Agent:
 
         ### include/exclude list of rules to listen to agents/tags
         listeners = {}
+        self.properties["listens"] = listeners
+        
+
+        # DEFAULT is the default input parameter
         default_listeners = {}
         listeners["DEFAULT"] = default_listeners
-
-        self.properties["listens"] = listeners
         default_listeners["includes"] = [".*"]
         default_listeners["excludes"] = []
 
         ### default tags to tag output streams
         tags = {}
+        self.properties["tags"] = tags
+        
+        # DEFAULT is the default output parameter
         default_tags = []
         tags["DEFAULT"] = default_tags
-        self.properties["tags"] = tags
+        
 
     def _update_properties(self, properties=None):
         if properties is None:
@@ -136,12 +142,11 @@ class Agent:
         self.connection = redis.Redis(host=host, port=port, decode_responses=True)
 
     ###### worker
-    # input_streams is a map from param to stream, e.g. 
-    # { "DEFAULT": default_input_stream }
-    def create_worker(self, input_streams):
-
+    # input_stream is data stream for input param, default 'DEFAULT' 
+    def create_worker(self, input_stream, input="DEFAULT"):
         worker = Worker(
-            input_streams,
+            input_stream,
+            input=input,
             prefix=self.cid,
             agent=self,
             processor=lambda *args, **kwargs: self.processor(*args, **kwargs),
@@ -154,21 +159,14 @@ class Agent:
     ###### default processor, override
     def default_processor(
         self,
-        stream,
-        id,
-        label,
-        data,
-        dtype=None,
-        tags=None,
+        message,
+        input=None,
         properties=None,
         worker=None,
     ):
-        logging.info("default processor: override")
-        logging.info(stream)
-        logging.info(tags)
-        logging.info(id)
-        logging.info(label)
-        logging.info(data)
+        logging.info("default_processor: override")
+        logging.info(message)
+        logging.info(input)
         logging.info(properties)
         logging.info(worker)
 
@@ -186,127 +184,121 @@ class Agent:
         if self.session:
             self.session.remove_agent(self)
 
-    def session_listener(self, id, message):
+    def session_listener(self, message):
         # listen to session stream
+        if message.getCode() == ControlCode.ADD_STREAM:
+            
+            stream = message.getArg("stream")
+            tags = message.getArg("tags")
+            
+            # agent define what to listen to using include/exclude expressions
+            logging.info("Checking listener tags...")
+            matched_params = self._match_listen_to_tags(tags)
+            logging.info("Done.")
 
-        label = message["label"]
+            # skip
+            if len(matched_params) == 0:
+                logging.info("Skipping stream {stream} with {tags}...".format(stream=stream, tags=tags))
+                return
 
-        if label == "INSTRUCTION":
-            data = json.loads(message["data"])
-
-            code = data["code"]
-
-            if code == "ADD_STREAM":
-                params = data["params"]
-
-                input_stream = params["cid"]
-                tags = params["tags"]
-               
-
-                # agent define what to listen to using include/exclude expressions
-                logging.info("Checking listener tags...")
-                matches = self._match_listen_to_tags(tags)
-                logging.info("Done.")
-
-                # skip
-                if len(matches) == 0:
-                    logging.info("Skipping stream {stream} with {tags}...".format(stream=input_stream, tags=tags))
-                    return
-
+            for param in matched_params:
+                tags = matched_params[param]
                 # listen 
                 logging.info(
-                    "Listening stream {stream} with matching tags {matches}...".format(
-                        stream=input_stream, matches=matches
+                    "Listening stream {stream} for param {param} with matching tags {tags}...".format(
+                        stream=stream, param=param, tags=tags
                     )
                 )
 
                 # create and start worker
                 logging.info(
-                    "Spawning worker for stream {stream}...".format(
-                        stream=input_stream
+                    "Spawning worker for param {param} from stream {stream}...".format(
+                        stream=stream, param=param
                     )
                 )
 
-                # create map, with de
-                worker = self.create_worker(input_stream, tags=matches)
-                
+                # create worker
+                worker = self.create_worker(stream, input=param)
                 self.workers.append(worker)
 
-                logging.info("Spawned worker for stream {stream}...".format(stream=input_stream))
+                logging.info("Spawned worker for stream {stream}...".format(stream=stream))
 
     def _match_listen_to_tags(self, tags):
-        matches = set()
+        matched_params = {}
 
         # default listeners
-        listeners = self.properties["listens"]
-        default_listeners = listeners["DEFAULT"]
-        includes = default_listeners["includes"]
-        excludes = default_listeners["excludes"]
+        listeners_by_param = self.properties["listens"]
+        for param in listeners_by_param:
+            matched_tags = set()
 
-        logging.info("includes")
-        for i in includes:
-            logging.info(i)
-            p = None
-            if type(i) == str:
-                p = re.compile(i)
-                for tag in tags:
+            param_listeners = listeners_by_param[param]
+            includes = param_listeners["includes"]
+            excludes = param_listeners["excludes"]
+
+            for i in includes:
+                p = None
+                if type(i) == str:
+                    p = re.compile(i)
+                    for tag in tags:
+                        if p.match(tag):
+                            matched_tags.add(tag)
+                            logging.info("Matched include rule: {rule} for param: {param}".format(rule=str(i),param=param))
+                elif type(i) == list:
+                    m = set()
+                    a = True
+                    for ii in i:
+                        logging.info(ii)
+                        p = re.compile(ii)
+                        b = False
+                        for tag in tags:
+                            if p.match(tag):
+                                m.add(tag)
+                                b = True
+                                break
+                        if b:
+                            continue
+                        else:
+                            a = False
+                            break
+                    if a:
+                        matched_tags = matched_tags.union(m)
+                        logging.info("Matched include rule: {rule} for param: {param}".format(rule=str(i),param=param))
+
+            # no matches for param
+            if len(matched_tags) == 0:
+                continue
+
+            for x in excludes:
+                p = None
+                if type(x) == str:
+                    p = re.compile(x)
                     if p.match(tag):
-                        matches.add(tag)
-                        logging.info("Matched include rule: {rule}".format(rule=str(i)))
-            elif type(i) == list:
-                m = set()
-                a = True
-                for ii in i:
-                    logging.info(ii)
-                    p = re.compile(ii)
-                    b = False
-                    for tag in tags:
-                        if p.match(tag):
-                            m.add(tag)
-                            b = True
-                            break
-                    if b:
-                        continue
-                    else:
+                        logging.info("Matched exclude rule: {rule} for param: {param}".format(rule=str(x),param=param))
+                        return []
+                elif type(x) == list:
+                    a = True
+                    if len(x) == 0:
                         a = False
-                        break
-                if a:
-                    matches = matches.union(m)
-                    logging.info("Matched include rule: {rule}".format(rule=str(i)))
-
-        if len(matches) == 0:
-            return list(matches)
-
-        logging.info("excludes")
-        for x in excludes:
-            logging.info(x)
-            p = None
-            if type(x) == str:
-                p = re.compile(x)
-                if p.match(tag):
-                    logging.info("Matched exclude rule: {rule}".format(rule=str(x)))
-                    return []
-            elif type(x) == list:
-                a = True
-                if len(x) == 0:
-                    a = False
-                for xi in x:
-                    p = re.compile(xi)
-                    b = False
-                    for tag in tags:
-                        if p.match(tag):
-                            b = True
+                    for xi in x:
+                        p = re.compile(xi)
+                        b = False
+                        for tag in tags:
+                            if p.match(tag):
+                                b = True
+                                break
+                        if b:
+                            continue
+                        else:
+                            a = False
                             break
-                    if b:
+                    if a:
+                        logging.info("Matched exclude rule: {rule} for param: {param}".format(rule=str(x),param=param))
                         continue
-                    else:
-                        a = False
-                        break
-                if a:
-                    logging.info("Matched exclude rule: {rule}".format(rule=str(x)))
-                    return []
 
-        return list(matches)
+                # found matched_tags for param
+                matched_params[param] = list(matched_tags)
+
+        return matched_params
 
     def interact(self, data):
         if self.session is None:
@@ -317,7 +309,7 @@ class Agent:
         worker = self.create_worker(None)
 
         # write data, automatically notify session on BOS
-        worker.write(data)
+        worker.write_data(data)
 
     def _start(self):
         self._start_connection()
@@ -337,7 +329,7 @@ class Agent:
                 self.session_consumer = Consumer(
                     session_stream,
                     name=self.name,
-                    listener=lambda id, message: self.session_listener(id, message),
+                    listener=lambda message: self.session_listener(message),
                     properties=self.properties,
                 )
                 self.session_consumer.start()
@@ -437,12 +429,12 @@ class AgentFactory:
         self.session_consumer = Consumer(
             stream,
             name=self.agent_name + "_FACTORY",
-            listener=lambda id, message: self.platform_listener(id, message),
+            listener=lambda message: self.platform_listener(message),
             properties=self.properties,
         )
         self.session_consumer.start()
 
-    def platform_listener(self, id, message):
+    def platform_listener(self, message):
         # listen to platform stream
 
         logging.info("Processing: " + str(message))
@@ -454,18 +446,14 @@ class AgentFactory:
         if mt < self.ct:
             return
 
-        if label == "INSTRUCTION":
-            data = json.loads(message["data"])
-
-            code = data["code"]
-            params = data["params"]
-
-            session = params["session"]
-            registry = params["registry"]
-            agent = params["agent"]
+        if message.getCode() == ControlCode.JOIN_SESSION:
+            session = message.getArg("session")
+            registry = message.getArg("registry")
+            agent = message.getArg("agent")
+            
 
             # start with factory properties, merge properties from API call
-            properties_from_api = params["properties"]
+            properties_from_api = message.getArg("properties")
             properties_from_factory = self.properties
             agent_properties = {}
             agent_properties = json_utils.merge_json(agent_properties, properties_from_factory)

@@ -28,6 +28,7 @@ from tqdm import tqdm
 ###### Blue
 from agent import Agent, AgentFactory
 from session import Session
+from message import Message, MessageType, ContentType, ControlCode
 
 
 import ast
@@ -66,22 +67,22 @@ class RecorderAgent(Agent):
         records.append({"variable":"all","query":"$","single":True})
 
 
-    def default_processor(self, stream, id, label, data, dtype=None, tags=None, properties=None, worker=None):
-        if label == 'EOS':
+    def default_processor(self, message, input="DEFAULT", properties=None, worker=None):
+        if message.isEOS():
             ## TODO: Verify and remove
             # if worker:
             #     processed = worker.get_data('processed')
             #     if processed:
             #         return 'EOS', None, None
             return None
-        elif label == 'BOS':
+        elif message.isBOS():
             pass
-        elif label == 'DATA':
+        elif message.isData():
             # store data value
-            
+            data = message.getData()
+
             # TODO: Record from other data types
-            if dtype == 'json':
-            
+            if message.getContentType() == ContentType.JSON:
                 if 'records' in self.properties:
                     records = self.properties['records']
                     variables = []
@@ -110,7 +111,7 @@ class RecorderAgent(Agent):
                         # worker.set_data('processed', True)
 
                         # output to stream
-                        return 'DATA', variables, 'json'
+                        return variables
 
     
         return None
