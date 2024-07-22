@@ -14,6 +14,7 @@ import re
 import csv
 import json
 import time
+import logging
 from utils import json_utils
 
 ##### Typing
@@ -57,6 +58,9 @@ data_registry = DataRegistry(id=data_registry_id, prefix=prefix, properties=PROP
 
 ##### ROUTER
 router = APIRouter(prefix=f"{PLATFORM_PREFIX}/registry/{data_registry_id}/data")
+
+# set logging
+logging.getLogger().setLevel("INFO")
 
 
 #############

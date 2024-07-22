@@ -268,13 +268,18 @@ class Agent:
             if len(matched_tags) == 0:
                 continue
 
+            # found matched_tags for param
+            matched_params[param] = list(matched_tags)
+
             for x in excludes:
                 p = None
                 if type(x) == str:
                     p = re.compile(x)
                     if p.match(tag):
                         logging.info("Matched exclude rule: {rule} for param: {param}".format(rule=str(x),param=param))
-                        return []
+                        # delete match
+                        del matched_params[param] 
+                        break
                 elif type(x) == list:
                     a = True
                     if len(x) == 0:
@@ -293,14 +298,13 @@ class Agent:
                             break
                     if a:
                         logging.info("Matched exclude rule: {rule} for param: {param}".format(rule=str(x),param=param))
-                        continue
-
-                # found matched_tags for param
-                matched_params[param] = list(matched_tags)
+                        # delete match
+                        del matched_params[param] 
+                        break
 
         return matched_params
 
-    def interact(self, data):
+    def interact(self, data, eos=True):
         if self.session is None:
             logging.error("No current session to interact with.")
             return
@@ -310,6 +314,9 @@ class Agent:
 
         # write data, automatically notify session on BOS
         worker.write_data(data)
+
+        if eos:
+            worker.write_eos()
 
     def _start(self):
         self._start_connection()
@@ -438,14 +445,16 @@ class AgentFactory:
         # listen to platform stream
 
         logging.info("Processing: " + str(message))
-
-        label = message["label"]
+        id = message.getID()
 
         # only process newer instructions
         mt = int(id.split("-")[0])
+
+        # ignore past instructions
         if mt < self.ct:
             return
 
+        # check if join session
         if message.getCode() == ControlCode.JOIN_SESSION:
             session = message.getArg("session")
             registry = message.getArg("registry")

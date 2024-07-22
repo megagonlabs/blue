@@ -23,14 +23,14 @@ from tqdm import tqdm
 from producer import Producer
 from consumer import Consumer
 from agent import Session
-from message import Message, MessageType, ContentType, ControlCode, MessageDecoder
+from message import Message, MessageType, ContentType, ControlCode
 
 
 class Worker:
     def __init__(
         self,
         input_stream,
-        input="DEFAULT"
+        input="DEFAULT",
         name="WORKER",
         id=None,
         sid=None,
@@ -108,7 +108,7 @@ class Worker:
         
         r = None
         if self.processor is not None:
-            r = self.processor(message, input=self.input)
+            r = self.processor(message, input=input)
 
         if r is None:
             return
@@ -135,35 +135,50 @@ class Worker:
 
 
     # TODO: this seems out of place...
-    def update_form_ids(self, form_element: dict, stream_id: str, form_id: str):
+    def _update_form_ids(self, form_element: dict, stream_id: str, form_id: str):
         if "elements" in form_element:
             for element in form_element["elements"]:
-                self._stream_injection(element, stream_id, form_id)
+                self._update_form_ids(element, stream_id, form_id)
         elif pydash.includes(["Control", "Button"], form_element["type"]):
-            if form_element["type"] is "Control":
+            if form_element["type"] == "Control":
                 if pydash.objects.has(form_element, 'options.detail.type'):
-                    self._stream_injection(pydash.objects.get(form_element, 'options.detail', {}), stream_id, form_id)
+                    self._update_form_ids(pydash.objects.get(form_element, 'options.detail', {}), stream_id, form_id)
             pydash.objects.set_(form_element, "props.streamId", stream_id)
             pydash.objects.set_(form_element, "props.formId", form_id)
 
     def write_bos(self, output="DEFAULT"):
-        producer = self._start_producer(output=output)
-        producer.write_bos()
+        # producer = self._start_producer(output=output)
+        # producer.write_bos()
+        self.write(Message.BOS)
 
     def write_eos(self, output="DEFAULT"):
-        producer = self._start_producer(output=output)
-        producer.write_eos()
+        # producer = self._start_producer(output=output)
+        # producer.write_eos()
+        self.write(Message.EOS)
 
     def write_data(self, data, output="DEFAULT"):
-        producer = self._start_producer(output=output)
-        producer.write_data(data)
+        # producer = self._start_producer(output=output)
+        # producer.write_data(data)
+        if type(data) == int:
+            contents = data
+            content_type = ContentType.INT
+        elif type(data) == float:
+            contents = data
+            content_type = ContentType.FLOAT
+        elif type(data) == str:
+            contents = data
+            content_type = ContentType.STR
+        elif type(data) == dict:
+            contents = json.dumps(data)
+            content_type = ContentType.JSON
+        self.write(Message(MessageType.DATA, contents, content_type))
 
     def write_control(self, code, args, output="DEFAULT"):
-        producer = self._start_producer(output=output)
-        producer.write_control(code, args)
+        # producer = self._start_producer(output=output)
+        # producer.write_control(code, args)
+        self.write(Message(MessageType.CONTROL, {"code": code, "args": args}, ContentType.JSON))
 
     def write(self, message, output="DEFAULT"):
-
         form_id = None
         if message.getCode() in [ ControlCode.CREATE_FORM, ControlCode.UPDATE_FORM, ControlCode.CLOSE_FORM ]:
             if message.getCode() == ControlCode.CREATE_FORM:
@@ -173,7 +188,6 @@ class Worker:
                 message.setArg("form_id", form_id)
 
                 # start stream
-                self._start_producer()
                 event_producer = Producer(
                     name="EVENT",
                     id=form_id,
@@ -185,7 +199,7 @@ class Worker:
                 event_stream = event_producer.get_stream()
 
                 # inject stream and form id into ui
-                self.update_form_ids(message.getArg("uischema"), event_stream, form_id)
+                self._update_form_ids(message.getArg("uischema"), event_stream, form_id)
 
                 # start a consumer to listen to a event stream, using self.processor
                 event_consumer = Consumer(
@@ -200,7 +214,7 @@ class Worker:
             else:
                 form_id = message.getArg('form_id')
 
-            # update output variable
+            # append output variable with form_id
             output = output + ":" + form_id
 
 
@@ -226,7 +240,7 @@ class Worker:
             self.input_stream,
             name=self.name,
             prefix=self.cid,
-            listener=lambda message: self.listener(id, message, input=self.input),
+            listener=lambda message: self.listener(message, input=self.input),
             properties=self.properties,
         )
 
@@ -246,7 +260,7 @@ class Worker:
         # notify session of new stream, if in a session
         if self.session:
             # get output stream info
-            output_stream = self.producer.get_stream()
+            output_stream = producer.get_stream()
 
             # notify session, get tags for output param
             tags = set()
@@ -260,6 +274,8 @@ class Worker:
             tags = list(tags)
 
             self.session.notify(output_stream, tags)
+        
+        return producer
 
     ###### DATA RELATED
     ## session data

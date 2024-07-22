@@ -30,7 +30,7 @@ logging.getLogger().setLevel(logging.INFO)
 logging.basicConfig(format="%(asctime)s [%(levelname)s] [%(process)d:%(threadName)s:%(thread)d](%(filename)s:%(lineno)d) %(name)s -  %(message)s", level=logging.ERROR, datefmt="%Y-%m-%d %H:%M:%S")
 
 ###### Blue
-from message import Message, MessageType, ContentType, ControlCode, MessageEncoder, MessageDecoder
+from message import Message, MessageType, ContentType, ControlCode
 
 class Consumer():
     def __init__(self,  stream, name="STREAM", id=None, sid=None, cid=None, prefix=None, suffix=None,  listener=None, properties={}):
@@ -64,7 +64,7 @@ class Consumer():
         self._initialize(properties=properties)
 
         if listener is None:
-            listener = lambda id, message: print("{id}:{message}".format(id=id, message=message))
+            listener = lambda message: print("{message}".format(message=message))
 
         self.listener = listener
 
@@ -177,7 +177,7 @@ class Consumer():
                     logging.info("[Thread {c}]: reclaiming... {s} {id}".format(c=c, s=s, id=id))
 
                     # listen
-                    message = json.loads(m_json, cls=MessageDecoder)
+                    message = Message.fromJSON(json.dumps(m_json))
                     message.setID(id)
                     message.setStream(s)
                     l(message)
@@ -197,10 +197,10 @@ class Consumer():
                 id = d[0]
                 m_json = d[1]
 
-                logging.info("[Thread {c}]: listening... stream:{s} id:{id} message:{message}".format(c=c, s=s, id=id, message=message))
+                logging.info("[Thread {c}]: listening... stream:{s} id:{id} message:{message}".format(c=c, s=s, id=id, message=m_json))
                 
                 # listen
-                message = json.loads(m_json, cls=MessageDecoder)
+                message = Message.fromJSON(json.dumps(m_json))
                 message.setID(id)
                 message.setStream(s)
                 l(message)

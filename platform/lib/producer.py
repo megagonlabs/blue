@@ -27,7 +27,7 @@ import threading
 import concurrent.futures
 
 ###### Blue
-from message import Message, MessageType, ContentType, ControlCode, MessageEncoder, MessageDecoder
+from message import Message, MessageType, ContentType, ControlCode
 
 # set log level
 logging.getLogger().setLevel(logging.INFO)
@@ -116,7 +116,9 @@ class Producer:
         r = self.connection
         # check if stream has BOS in the front
         data = r.xread(streams={s: 0}, count=1)
-        empty_stream = data == None
+        logging.info("Platform data.....")
+        logging.info(str(data))
+        empty_stream = len(data) == 0
         # has_bos = pydash.is_equal(
         #     pydash.objects.get(data, "0.1.0.1.label", None), "BOS"
         # )
@@ -156,12 +158,13 @@ class Producer:
         self.write(Message(MessageType.DATA, contents, content_type))
 
     def write_control(self, code, args):
-        self.write(Message(MessageType.CONTROL, {"code": code, args: args}, ContentType.JSON))
+        self.write(Message(MessageType.CONTROL, {"code": code, "args": args}, ContentType.JSON))
 
     def write(self, message):
-        self._write_message_to_stream(message.toJSON())
+        self._write_message_to_stream(json.loads(message.toJSON()))
 
     def _write_message_to_stream(self, json_message):
+        # logging.info("json_message: " + json_message)
         self.connection.xadd(self.cid, json_message)
         logging.info("Streamed into {s} message {m}".format(s=self.sid, m=str(json_message)))
 
@@ -177,7 +180,7 @@ class Producer:
             m_json = di[1]
 
              
-            message = json.loads(m_json, cls=MessageDecoder)
+            message = Message.fromJSON(json.dumps(m_json))
             message.setID(id)
             message.setStream(s)
             

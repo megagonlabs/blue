@@ -441,14 +441,13 @@ class InteractivePlannerAgent(OpenAIAgent):
 
             index = index + 1
 
-        interactive_form = {
+        interactive_plan= {
             "schema": plan_schema,
             "data": { "steps": plan_data },
             "uischema": plan_ui,
             }
 
-        logging.info(json.dumps(interactive_form, indent=3))
-        return ("INTERACTION", {"type": "JSONFORM", "content": interactive_form}, "json", False)
+        return interactive_plan
 
 
     def standardize_plan(self, plan):
@@ -503,25 +502,33 @@ class InteractivePlannerAgent(OpenAIAgent):
                                 stream=stream,
                             )
         else:
+
             if message.isEOS():
+                logging.info("MESSAGE EOS")
                 # get all data received from stream
                 stream_data = ""
                 if worker:
                     stream_data = worker.get_data('stream')
 
                 #### call api to compute, render interactive plan
-                return self.handle_api_call(stream_data)
+                interactive_plan = self.handle_api_call(stream_data)
+                # write ui
+                worker.write_control(ControlCode.CREATE_FORM, interactive_plan, output="FORM")
+                return 
                 
-            elif message.isBOS:
+            elif message.isBOS():
+                logging.info("MESSAGE BOS")
                 # init stream to empty array
                 if worker:
                     worker.set_data('stream',[])
                 pass
             elif message.isData():
+                logging.info("MESSAGE DATA")
                 # store data value
                 data = message.getData()
+                logging.info("=====")
                 logging.info(data)
-                
+                logging.info("=====")
                 if worker:
                     worker.append_data('stream', data)
             

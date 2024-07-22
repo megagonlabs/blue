@@ -153,18 +153,31 @@ class Message():
         if self.isControl():
             self.contents['args'][arg] = value
         
+    def fromJSON(message_json):
+        d = json.loads(message_json)
+        label = MessageType(d['label'])
+        content_type = ContentType(d['content_type'])
+        contents = d['contents']
+        if content_type == ContentType.JSON:
+            contents = json.loads(contents)
+            if label == MessageType.CONTROL:
+                contents['code'] = ControlCode(contents['code'])
+        return Message(label, contents, content_type)
+
     def toJSON(self):
         d = deepcopy(self.__dict__)
         # remove id, stream
         del d["id"]
         del d["stream"]
         # convert to JSON
-        return self._toJSON(d)
+        return json.dumps(self._toJSON(d))
     
     def _toJSON(self, v):
         if type(v) == dict:
             for k in v:
                 v[k] = self._toJSON(v[k])
+                if k == "contents":
+                    v[k] = json.dumps(v[k])
             return(v)
         elif type(v) == MessageType or type(v) == ContentType or type(v) == ControlCode:
             return str(v)
@@ -172,28 +185,8 @@ class Message():
             return v
 
     def __str__(self):
-        return json.dumps(self.toJSON(), cls=MessageEncoder)
+        return self.toJSON()
     
 # constants
 Message.BOS=Message(MessageType.CONTROL, {"code": ControlCode.BOS, "args": {}}, ContentType.JSON)
 Message.EOS=Message(MessageType.CONTROL, {"code": ControlCode.EOS, "args": {}}, ContentType.JSON)
-
-class MessageEncoder(JSONEncoder):
-    def default(self, obj):
-        if isinstance(obj, Message):
-            return obj.toJSON()
-        
-        return super().default(obj)
-
-class MessageDecoder(JSONDecoder):
-    def __init__(self, **kwargs):
-        super().__init__(object_hook=MessageDecoder.from_dict, **kwargs)
-
-    @staticmethod
-    def from_dict(d):
-        if 'label' in d and 'contents' in d and 'type' in d:
-            d['label'] = MessageType(d['label'])
-            d['type'] = ContentType(d['type'])
-        if 'code' in d and 'args' in d:
-            d['code'] = ControlCode(d['code'])
-        return d

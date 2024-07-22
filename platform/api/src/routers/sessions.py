@@ -21,6 +21,7 @@ import random
 import re
 import csv
 import json
+import logging
 from utils import json_utils
 from constant import d7validate
 from validations.base import BaseValidation
@@ -62,6 +63,8 @@ agent_registry = AgentRegistry(id=agent_registry_id, prefix=prefix, properties=P
 ##### ROUTER
 router = APIRouter(prefix=f"{PLATFORM_PREFIX}/sessions")
 
+# set logging
+logging.getLogger().setLevel("INFO")
 
 #############
 @router.get("/")

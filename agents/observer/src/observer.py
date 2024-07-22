@@ -29,7 +29,7 @@ from agent import Agent, AgentFactory
 from session import Session
 from tqdm import tqdm
 from websocket import create_connection
-from message import Message, MessageType, ContentType, ControlCode, MessageEncoder
+from message import Message, MessageType, ContentType, ControlCode
 
 
 # set log level
@@ -70,7 +70,7 @@ class ObserverAgent(Agent):
         id = message.getID()
         stream = message.getStream()
 
-        message_json = json.loads(message, cls=MessageEncoder)
+        message_json = json.loads(message.toJSON())
         label = message_json["label"]
         contents = message_json["contents"]
         content_type = message_json["content_type"]

@@ -31,7 +31,7 @@ from redis.commands.json.path import Path
 
 ###### Blue
 from producer import Producer
-from message import Message, MessageType, ContentType, ControlCode, MessageDecoder
+from message import Message, MessageType, ContentType, ControlCode
 
 
 
