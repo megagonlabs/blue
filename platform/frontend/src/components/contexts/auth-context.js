@@ -14,6 +14,7 @@ import { initializeApp } from "firebase/app";
 import { GoogleAuthProvider, getAuth, signInWithPopup } from "firebase/auth";
 import _ from "lodash";
 import { createContext, useContext, useEffect, useState } from "react";
+import { hasInteraction } from "../helper";
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -70,18 +71,59 @@ export const AuthContext = createContext();
 export const useAuthContext = () => useContext(AuthContext);
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
+    const [permissions, setPermissions] = useState({});
     const [popupOpen, setPopupOpen] = useState(false);
     const [authInitialized, setAuthInitialized] = useState(false);
     const signOut = () => {
         axios.post("/accounts/sign-out").then(() => {
             setUser(null);
+            setPermissions({});
         });
+    };
+    const getPermissions = (user) => {
+        const permissions = _.get(user, "permissions", null);
+        return {
+            canWritePlatformUsers: hasInteraction(
+                _.get(permissions, "platform_users", []),
+                ["write_all"]
+            ),
+            canWriteAgentRegistry: hasInteraction(
+                _.get(user, `permissions.agent_registry`, null),
+                ["write_all", "write_own"]
+            ),
+            canWritePlatformUsers: hasInteraction(
+                _.get(permissions, "platform_users", []),
+                ["write_all"]
+            ),
+            canUseFormDesigner: hasInteraction(
+                _.get(permissions, "form_designer", []),
+                ["visible"]
+            ),
+            canReadWritePlatformAgents: hasInteraction(
+                _.get(permissions, "platform_agents", []),
+                ["write_all", "write_own", "read_all", "read_own"]
+            ),
+            canReadSessions: hasInteraction(
+                _.get(permissions, "sessions", []),
+                ["read_all", "read_own", "read_participate"]
+            ),
+            canReadDataRegistry: hasInteraction(
+                _.get(permissions, "data_registry", []),
+                ["read_all"]
+            ),
+            canReadAgentRegistry: hasInteraction(
+                _.get(permissions, "agent_registry", []),
+                ["read_all"]
+            ),
+        };
     };
     const fetchAccountProfile = () => {
         axios
             .get("/accounts/profile")
             .then((response) => {
-                setUser(_.get(response, "data.profile", null));
+                const profile = _.get(response, "data.profile", null);
+                setUser(profile);
+                setPermissions(getPermissions(profile));
             })
             .finally(() => {
                 setAuthInitialized(true);
@@ -117,7 +159,7 @@ export const AuthProvider = ({ children }) => {
         fetchAccountProfile();
     }, []);
     return (
-        <AuthContext.Provider value={{ user, signOut }}>
+        <AuthContext.Provider value={{ user, permissions, signOut }}>
             <Drawer
                 size={DrawerSize.SMALL}
                 portalClassName="z-index-36"

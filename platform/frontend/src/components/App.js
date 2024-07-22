@@ -32,7 +32,7 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { useContext, useMemo, useState } from "react";
 import AccessDeniedNonIdealState from "./AccessDeniedNonIdealState";
-import { hasInteraction, hasTrue } from "./helper";
+import { hasTrue } from "./helper";
 import UserAccountPanel from "./navigation/UserAccountPanel";
 export default function App({ children }) {
     const router = useRouter();
@@ -48,69 +48,49 @@ export default function App({ children }) {
                 .map((session) => session.id),
         [sessionDetail]
     );
-    const { user } = useContext(AuthContext);
-    const permissions = _.get(user, "permissions", null);
-    const showAdminUsers = hasInteraction(
-        _.get(permissions, "platform_users", []),
-        ["write_all"]
-    );
-    const showFormDesigner = hasInteraction(
-        _.get(permissions, "form_designer", []),
-        ["visible"]
-    );
-    const showAdminAgents = hasInteraction(
-        _.get(permissions, "platform_agents", []),
-        ["write_all", "write_own", "read_all", "read_own"]
-    );
-    const showSessions = hasInteraction(_.get(permissions, "sessions", []), [
-        "read_all",
-        "read_own",
-        "read_participate",
-    ]);
-    const showDataRegistry = hasInteraction(
-        _.get(permissions, "data_registry", []),
-        ["read_all"]
-    );
-    const showAgentRegistry = hasInteraction(
-        _.get(permissions, "agent_registry", []),
-        ["read_all"]
-    );
+    const { user, permissions } = useContext(AuthContext);
+    const canWritePlatformUsers = permissions.canWritePlatformUsers;
+    const canUseFormDesigner = permissions.canUseFormDesigner;
+    const canReadWritePlatformAgents = permissions.canReadWritePlatformAgents;
+    const canReadSessions = permissions.canReadSessions;
+    const canReadDataRegistry = permissions.canReadDataRegistry;
+    const canReadAgentRegistry = permissions.canReadAgentRegistry;
     const MENU_ITEMS = {
         sessions: {
             href: "/sessions",
             text: "See All",
             icon: faListUl,
-            visible: showSessions,
+            visible: canReadSessions,
         },
         data_registry: {
             href: `/registry/${process.env.NEXT_PUBLIC_DATA_REGISTRY_NAME}/data`,
             text: "Data",
             icon: faDatabase,
-            visible: showDataRegistry,
+            visible: canReadDataRegistry,
         },
         agent_registry: {
             href: `/registry/${process.env.NEXT_PUBLIC_AGENT_REGISTRY_NAME}/agent`,
             text: "Agent",
             icon: faCircleA,
-            visible: showAgentRegistry,
+            visible: canReadAgentRegistry,
         },
         form_designer: {
             href: "/tools/form-designer",
             text: "Form Designer",
             icon: faPencilRuler,
-            visible: showFormDesigner,
+            visible: canUseFormDesigner,
         },
         admin_users: {
             href: "/admin/users",
             text: "Users",
             icon: faUserGroup,
-            visible: showAdminUsers,
+            visible: canWritePlatformUsers,
         },
         admin_agents: {
             href: "/admin/agents",
             text: "Agents",
             icon: faCircleA,
-            visible: showAdminAgents,
+            visible: canReadWritePlatformAgents,
         },
     };
     const [isSupportDialogOpen, setIsSupportDialogOpen] = useState(false);
@@ -174,7 +154,7 @@ export default function App({ children }) {
                         padding: 20,
                     }}
                 >
-                    {hasTrue([showSessions]) ? (
+                    {hasTrue([canReadSessions]) ? (
                         <>
                             <MenuDivider title="Sessions" />
                             <ButtonGroup
@@ -184,7 +164,7 @@ export default function App({ children }) {
                                 className="full-parent-width"
                                 style={{ marginBottom: 20 }}
                             >
-                                {showSessions &&
+                                {canReadSessions &&
                                     pinnedSessionIds.map((sessionId) => (
                                         <Button
                                             key={sessionId}
@@ -269,7 +249,7 @@ export default function App({ children }) {
                             </ButtonGroup>
                         </>
                     ) : null}
-                    {hasTrue([showAgentRegistry, showDataRegistry]) ? (
+                    {hasTrue([canReadAgentRegistry, canReadDataRegistry]) ? (
                         <>
                             <MenuDivider title="Registries" />
                             <ButtonGroup
@@ -316,12 +296,12 @@ export default function App({ children }) {
                     ) : null}
                 </div>
                 {hasTrue([
-                    showAdminAgents,
-                    showAdminUsers,
-                    showFormDesigner,
+                    canReadWritePlatformAgents,
+                    canWritePlatformUsers,
+                    canUseFormDesigner,
                 ]) ? (
                     <div className="bp-border-top" style={{ padding: 20 }}>
-                        {hasTrue([showFormDesigner]) ? (
+                        {hasTrue([canUseFormDesigner]) ? (
                             <>
                                 <MenuDivider title="Dev. Tools" />
                                 <ButtonGroup
@@ -364,7 +344,10 @@ export default function App({ children }) {
                                 </ButtonGroup>
                             </>
                         ) : null}
-                        {hasTrue([showAdminAgents, showAdminUsers]) ? (
+                        {hasTrue([
+                            canReadWritePlatformAgents,
+                            canWritePlatformUsers,
+                        ]) ? (
                             <>
                                 <div>&nbsp;</div>
                                 <MenuDivider title="Admin. Tools" />
