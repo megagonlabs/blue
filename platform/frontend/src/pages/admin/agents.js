@@ -1,4 +1,6 @@
+import AccessDeniedNonIdealState from "@/components/AccessDeniedNonIdealState";
 import { CONTAINER_STATUS_INDICATOR } from "@/components/constant";
+import { AuthContext } from "@/components/contexts/auth-context";
 import { faIcon } from "@/components/icon";
 import {
     Button,
@@ -26,7 +28,7 @@ import {
 } from "@fortawesome/pro-duotone-svg-icons";
 import axios from "axios";
 import _ from "lodash";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import ReactTimeAgo from "react-time-ago";
 export default function Agents() {
     const [tableKey, setTableKey] = useState(Date.now());
@@ -125,6 +127,10 @@ export default function Agents() {
         );
         setColumns(nextChildren);
     };
+    const { permissions } = useContext(AuthContext);
+    if (!permissions.canReadPlatformAgents) {
+        return <AccessDeniedNonIdealState />;
+    }
     return (
         <>
             {_.isEmpty(data) ? (

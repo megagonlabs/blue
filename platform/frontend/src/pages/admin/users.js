@@ -1,7 +1,9 @@
+import AccessDeniedNonIdealState from "@/components/AccessDeniedNonIdealState";
 import ActionCheckbox from "@/components/admin/ActionCheckbox";
 import RoleConfigurationPopover from "@/components/admin/RoleConfigurationPopover";
 import { PROFILE_PICTURE_40, USER_ROLES_LOOKUP } from "@/components/constant";
 import { AppContext } from "@/components/contexts/app-context";
+import { AuthContext } from "@/components/contexts/auth-context";
 import { faIcon } from "@/components/icon";
 import {
     Button,
@@ -129,6 +131,10 @@ export default function Users() {
         );
         setColumns(nextChildren);
     };
+    const { permissions } = useContext(AuthContext);
+    if (!permissions.canWritePlatformUsers) {
+        return <AccessDeniedNonIdealState />;
+    }
     return (
         <>
             {_.isEmpty(data) ? (

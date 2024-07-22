@@ -50,8 +50,8 @@ export default function App({ children }) {
     );
     const { user, permissions } = useContext(AuthContext);
     const canWritePlatformUsers = permissions.canWritePlatformUsers;
-    const canUseFormDesigner = permissions.canUseFormDesigner;
-    const canReadWritePlatformAgents = permissions.canReadWritePlatformAgents;
+    const showFormDesigner = permissions.showFormDesigner;
+    const canReadPlatformAgents = permissions.canReadPlatformAgents;
     const canReadSessions = permissions.canReadSessions;
     const canReadDataRegistry = permissions.canReadDataRegistry;
     const canReadAgentRegistry = permissions.canReadAgentRegistry;
@@ -78,7 +78,7 @@ export default function App({ children }) {
             href: "/tools/form-designer",
             text: "Form Designer",
             icon: faPencilRuler,
-            visible: canUseFormDesigner,
+            visible: showFormDesigner,
         },
         admin_users: {
             href: "/admin/users",
@@ -90,7 +90,7 @@ export default function App({ children }) {
             href: "/admin/agents",
             text: "Agents",
             icon: faCircleA,
-            visible: canReadWritePlatformAgents,
+            visible: canReadPlatformAgents,
         },
     };
     const [isSupportDialogOpen, setIsSupportDialogOpen] = useState(false);
@@ -296,12 +296,12 @@ export default function App({ children }) {
                     ) : null}
                 </div>
                 {hasTrue([
-                    canReadWritePlatformAgents,
+                    canReadPlatformAgents,
                     canWritePlatformUsers,
-                    canUseFormDesigner,
+                    showFormDesigner,
                 ]) ? (
                     <div className="bp-border-top" style={{ padding: 20 }}>
-                        {hasTrue([canUseFormDesigner]) ? (
+                        {hasTrue([showFormDesigner]) ? (
                             <>
                                 <MenuDivider title="Dev. Tools" />
                                 <ButtonGroup
@@ -345,7 +345,7 @@ export default function App({ children }) {
                             </>
                         ) : null}
                         {hasTrue([
-                            canReadWritePlatformAgents,
+                            canReadPlatformAgents,
                             canWritePlatformUsers,
                         ]) ? (
                             <>

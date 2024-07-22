@@ -83,10 +83,6 @@ export const AuthProvider = ({ children }) => {
     const getPermissions = (user) => {
         const permissions = _.get(user, "permissions", null);
         return {
-            canWritePlatformUsers: hasInteraction(
-                _.get(permissions, "platform_users", []),
-                ["write_all"]
-            ),
             canWriteAgentRegistry: hasInteraction(
                 _.get(user, `permissions.agent_registry`, null),
                 ["write_all", "write_own"]
@@ -95,13 +91,17 @@ export const AuthProvider = ({ children }) => {
                 _.get(permissions, "platform_users", []),
                 ["write_all"]
             ),
-            canUseFormDesigner: hasInteraction(
+            showFormDesigner: hasInteraction(
                 _.get(permissions, "form_designer", []),
                 ["visible"]
             ),
-            canReadWritePlatformAgents: hasInteraction(
+            canReadPlatformAgents: hasInteraction(
                 _.get(permissions, "platform_agents", []),
-                ["write_all", "write_own", "read_all", "read_own"]
+                ["read_all", "read_own"]
+            ),
+            canWritePlatformAgents: hasInteraction(
+                _.get(permissions, "platform_agents", []),
+                ["write_all", "write_own"]
             ),
             canReadSessions: hasInteraction(
                 _.get(permissions, "sessions", []),
