@@ -15,7 +15,7 @@ function MessageMetadata({ timestamp, stream }) {
     const user = _.get(appState, ["app", "users", agentId], {});
     useEffect(() => {
         if (!hasUserProfile && _.isEqual(agentType, "USER")) {
-            appActions.app.getUserProfileByEmail(agentId);
+            appActions.app.getUserProfile(agentId);
         }
     }, []);
     return (
@@ -45,7 +45,7 @@ function MessageMetadata({ timestamp, stream }) {
                             className={Classes.TEXT_MUTED}
                             style={{ marginLeft: 12 }}
                         >
-                            {_.get(user, "display_name", "-")}
+                            {_.get(user, "name", "-")}
                             <br />
                             {_.get(user, "email", "-")}
                         </div>

@@ -162,7 +162,6 @@ const ArrayRenderer = ({
                                                                     content={
                                                                         <div
                                                                             style={{
-                                                                                maxWidth: 200,
                                                                                 padding: 15,
                                                                             }}
                                                                         >

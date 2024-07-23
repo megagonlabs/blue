@@ -1,3 +1,4 @@
+import adminReducer from "@/components/reducers/admin-reducer";
 import agentReducer from "@/components/reducers/agent-reducer";
 import appReducer from "@/components/reducers/app-reducer";
 import dataReducer from "@/components/reducers/data-reducer";
@@ -8,5 +9,6 @@ export default function rootReducer(state = {}, action) {
         session: sessionReducer(state.session, action),
         agent: agentReducer(state.agent, action),
         data: dataReducer(state.data, action),
+        admin: adminReducer(state.admin, action),
     };
 }

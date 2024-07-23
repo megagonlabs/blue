@@ -97,7 +97,12 @@ module.exports = {
         overflow: "hidden",
         width: 40,
         height: 40,
-        marginTop: 4,
+    },
+    USER_ROLES_LOOKUP: {
+        admin: "Administrator",
+        member: "Member",
+        guest: "Guest",
+        developer: "Developer",
     },
     HEX_TRANSPARENCY: {
         100: "FF",

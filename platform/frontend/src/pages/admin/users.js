@@ -1,15 +1,18 @@
 import AccessDeniedNonIdealState from "@/components/AccessDeniedNonIdealState";
-import { CONTAINER_STATUS_INDICATOR } from "@/components/constant";
+import ActionCheckbox from "@/components/admin/ActionCheckbox";
+import RoleConfigurationPopover from "@/components/admin/RoleConfigurationPopover";
+import { PROFILE_PICTURE_40, USER_ROLES_LOOKUP } from "@/components/constant";
+import { AppContext } from "@/components/contexts/app-context";
 import { AuthContext } from "@/components/contexts/auth-context";
 import { faIcon } from "@/components/icon";
 import {
     Button,
     ButtonGroup,
-    Checkbox,
+    Card,
+    Classes,
     Divider,
     Intent,
     NonIdealState,
-    Tag,
     Tooltip,
 } from "@blueprintjs/core";
 import {
@@ -22,94 +25,95 @@ import {
     Utils,
 } from "@blueprintjs/table";
 import {
-    faCircleA,
     faRefresh,
-    faStop,
+    faStamp,
+    faUserGroup,
 } from "@fortawesome/pro-duotone-svg-icons";
 import axios from "axios";
 import _ from "lodash";
+import Image from "next/image";
 import { useContext, useEffect, useState } from "react";
-import ReactTimeAgo from "react-time-ago";
-export default function Agents() {
+export default function Users() {
     const [tableKey, setTableKey] = useState(Date.now());
     const [loading, setLoading] = useState(true);
-    const [data, setData] = useState([]);
-    const fetchContainerList = () => {
+    const [isRoleConfigOpen, setIsRoleConfigOpen] = useState(false);
+    const { appState, appActions } = useContext(AppContext);
+    const data = _.get(appState, "admin.users", []);
+    const fetchUserList = () => {
         setLoading(true);
-        axios.get("/containers/agents").then((response) => {
-            setData(_.get(response, "data.results", []));
+        axios.get("/accounts/users").then((response) => {
+            appActions.admin.setUserList(_.get(response, "data.users", []));
             setLoading(false);
         });
     };
     useEffect(() => {
-        fetchContainerList();
+        appActions.admin.setState({ key: "selectedUsers", value: new Set() });
+        fetchUserList();
     }, []);
-    const TABLE_CELL_HEIGHT = 40;
+    const TABLE_CELL_HEIGHT = 55;
     const INIT_COLUMNS = [
         {
             name: <div>&nbsp;</div>,
             key: "checkbox",
-            cellRenderer: () => (
-                <Cell style={{ lineHeight: `${TABLE_CELL_HEIGHT - 1}px` }}>
-                    <Checkbox large className="margin-0" />
-                </Cell>
-            ),
-        },
-        { name: "ID", key: "id" },
-        { name: "Hostname", key: "hostname" },
-        {
-            name: "Created At",
-            key: "created_date",
-            cellRenderer: ({ rowIndex, data }) => {
-                const timestamp = _.get(data, [rowIndex, "created_date"], null);
-                return (
-                    <Cell style={{ lineHeight: `${TABLE_CELL_HEIGHT - 1}px` }}>
-                        {!_.isEmpty(timestamp) ? (
-                            <ReactTimeAgo
-                                date={new Date(timestamp)}
-                                locale="en-US"
-                            />
-                        ) : (
-                            "-"
-                        )}
-                    </Cell>
-                );
-            },
-        },
-        {
-            name: "Image",
-            key: "image",
             cellRenderer: ({ rowIndex, data }) => (
                 <Cell style={{ lineHeight: `${TABLE_CELL_HEIGHT - 1}px` }}>
-                    <Tag intent={Intent.PRIMARY} minimal>
-                        {_.get(data, [rowIndex, "image"], "-")}
-                    </Tag>
+                    <ActionCheckbox rowIndex={rowIndex} data={data} />
                 </Cell>
             ),
         },
+        { name: "UID", key: "uid" },
         {
-            name: "Status",
-            key: "status",
+            name: "Name",
+            key: "name",
             cellRenderer: ({ rowIndex, data }) => {
-                const status = _.get(data, [rowIndex, "status"], "-");
+                const picture = _.get(data, [rowIndex, "picture"], "");
+                const name = _.get(data, [rowIndex, "name"], "-");
                 return (
                     <Cell style={{ lineHeight: `${TABLE_CELL_HEIGHT - 1}px` }}>
-                        <Tag
-                            intent={_.get(
-                                CONTAINER_STATUS_INDICATOR,
-                                [status, "intent"],
-                                null
-                            )}
-                            minimal
+                        <div
+                            className="full-parent-width"
+                            style={{ position: "relative" }}
                         >
-                            {_.capitalize(status)}
-                        </Tag>
+                            <Card
+                                className="margin-0"
+                                style={{
+                                    ...PROFILE_PICTURE_40,
+                                    position: "absolute",
+                                    top: 7.5,
+                                    left: 1,
+                                }}
+                            >
+                                <Image
+                                    alt=""
+                                    src={picture}
+                                    width={40}
+                                    height={40}
+                                />
+                            </Card>
+                            <div
+                                style={{ paddingLeft: 52 }}
+                                className={Classes.TEXT_OVERFLOW_ELLIPSIS}
+                            >
+                                {name}
+                            </div>
+                        </div>
                     </Cell>
                 );
             },
         },
-        { name: "Agent", key: "agent" },
-        { name: "Registry", key: "registry" },
+        { name: "Email", key: "email" },
+        {
+            name: "Role",
+            key: "role",
+            cellRenderer: ({ rowIndex, data }) => {
+                const role = _.get(data, [rowIndex, "role"], "-");
+                return (
+                    <Cell style={{ lineHeight: `${TABLE_CELL_HEIGHT - 1}px` }}>
+                        {_.get(USER_ROLES_LOOKUP, role, role)}
+                    </Cell>
+                );
+            },
+        },
     ];
     const [columns, setColumns] = useState(INIT_COLUMNS);
     useEffect(() => {
@@ -128,7 +132,7 @@ export default function Agents() {
         setColumns(nextChildren);
     };
     const { permissions } = useContext(AuthContext);
-    if (!permissions.canReadPlatformAgents) {
+    if (!permissions.canWritePlatformUsers) {
         return <AccessDeniedNonIdealState />;
     }
     return (
@@ -145,29 +149,39 @@ export default function Agents() {
                     }}
                 >
                     <NonIdealState
-                        title="No Agent"
-                        icon={faIcon({ icon: faCircleA, size: 50 })}
+                        title="No User"
+                        icon={faIcon({ icon: faUserGroup, size: 50 })}
                     />
                 </div>
             ) : null}
+            <RoleConfigurationPopover
+                setIsRoleConfigOpen={setIsRoleConfigOpen}
+                isRoleConfigOpen={isRoleConfigOpen}
+            />
             <div style={{ padding: 5, height: 50 }}>
                 <ButtonGroup large minimal>
                     <Tooltip placement="bottom-start" minimal content="Refresh">
                         <Button
                             intent={Intent.PRIMARY}
-                            onClick={fetchContainerList}
+                            onClick={fetchUserList}
                             loading={loading}
                             icon={faIcon({ icon: faRefresh })}
                         />
                     </Tooltip>
                     <Divider />
-                    <Tooltip placement="bottom" minimal content="Stop">
-                        <Button disabled icon={faIcon({ icon: faStop })} />
+                    <Tooltip>
+                        <Button
+                            disabled={_.isEmpty(appState.admin.selectedUsers)}
+                            onClick={() => setIsRoleConfigOpen(true)}
+                            icon={faIcon({ icon: faStamp })}
+                            text="Update role(s)"
+                        />
                     </Tooltip>
                 </ButtonGroup>
             </div>
             <div style={{ height: "calc(100% - 50px)" }}>
                 <Table2
+                    minColumnWidth={62}
                     loadingOptions={
                         loading
                             ? [
@@ -188,8 +202,6 @@ export default function Agents() {
                                     style={{
                                         textAlign: "center",
                                         lineHeight: `${TABLE_CELL_HEIGHT}px`,
-                                        paddingLeft: 5,
-                                        paddingRight: 5,
                                     }}
                                 >
                                     {rowIndex + 1}

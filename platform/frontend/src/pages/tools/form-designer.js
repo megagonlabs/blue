@@ -66,7 +66,7 @@ function FormDesigner() {
     const [schema, setSchema] = useState({});
     const ssData = sessionStorage.getItem("data");
     const [data, setData] = useState(_.isNil(ssData) ? {} : JSON.parse(ssData));
-    const [jsonUischema, setJsonUischema] = useState("{}");
+    const [jsonUischema, setJsonUischema] = useState(DEFAULT_UI_SCHEMA);
     const [jsonSchema, setJsonSchema] = useState(DEFAULT_SCHEMA);
     const [uiSchemaError, setUiSchemaError] = useState(false);
     const [schemaError, setSchemaError] = useState(false);

@@ -1,7 +1,11 @@
 ###### OS / Systems
 from curses import noecho
-import os
 import sys
+
+from fastapi import Request
+import pydash
+
+from constant import HTTP_EXCEPTION_403, acl_enforce
 
 ###### Add lib path
 sys.path.append("./lib/")
@@ -10,19 +14,14 @@ sys.path.append("./lib/platform/")
 
 
 ###### Parsers, Formats, Utils
-import re
-import csv
-import json
-import time
 import logging
-from utils import json_utils
 
 ###### Docker
 import docker
 
 ##### Typing
-from pydantic import BaseModel, Json
-from typing import Union, Any, Dict, AnyStr, List
+from pydantic import BaseModel
+from typing import Union, Any, Dict, List
 
 ###### FastAPI
 from APIRouter import APIRouter
@@ -53,7 +52,7 @@ from agent_registry import AgentRegistry
 
 
 ###### Properties
-from settings import PROPERTIES
+from settings import ACL, PROPERTIES
 
 ### Assign from platform properties
 platform_id = PROPERTIES["platform.name"]
@@ -171,9 +170,28 @@ def merge_container_results(registry_results):
     return registry_results
 
 
+write_all_roles = ACL.get_implicit_users_for_permission('agent_registry', 'write_all')
+write_own_roles = ACL.get_implicit_users_for_permission('agent_registry', 'write_own')
+
+
+def agent_acl_enforce(request: Request, agent: dict, write=False, throw=True):
+    user_role = request.state.user['role']
+    uid = request.state.user['uid']
+    allow = False
+    if write and user_role in write_all_roles:
+        allow = True
+    elif write and user_role in write_own_roles:
+        if pydash.objects.get(agent, 'created_by', None) == uid:
+            allow = True
+    if throw and not allow:
+        raise HTTP_EXCEPTION_403
+    return allow
+
+
 #############
 @router.get("/agents")
-def get_agents():
+def get_agents(request: Request):
+    acl_enforce(request.state.user['role'], 'agent_registry', 'read_all')
     registry_results = agent_registry.list_records()
     registry_results = list(registry_results.values())
     merged_results = merge_container_results(registry_results)
@@ -181,23 +199,27 @@ def get_agents():
 
 
 @router.get("/agent/{agent_name}")
-def get_agent(agent_name):
+def get_agent(request: Request, agent_name):
+    acl_enforce(request.state.user['role'], 'agent_registry', 'read_all')
     result = agent_registry.get_agent(agent_name)
     merged_results = merge_container_results([result])
     return JSONResponse(content={"result": merged_results[0]})
 
 
 @router.post("/agent/{agent_name}")
-def add_agent(agent_name, agent: Agent):
+def add_agent(request: Request, agent_name, agent: Agent):
+    acl_enforce(request.state.user['role'], 'agent_registry', ['write_all', 'write_own'])
     # TODO: properties
-    agent_registry.add_agent(agent_name, description=agent.description, properties={}, rebuild=True)
+    agent_registry.add_agent(agent_name, request.state.user['uid'], description=agent.description, properties={}, rebuild=True)
     # save
     agent_registry.dump("/blue_data/config/" + agent_registry_id + ".agents.json")
     return JSONResponse(content={"message": "Success"})
 
 
 @router.put("/agent/{agent_name}")
-def update_agent(agent_name, agent: Agent):
+def update_agent(request: Request, agent_name, agent: Agent):
+    agent = agent_registry.get_agent(agent_name)
+    agent_acl_enforce(request, agent, write=True)
     # TODO: properties
     agent_registry.update_agent(agent_name, description=agent.description, properties={}, rebuild=True)
     # save
@@ -206,7 +228,9 @@ def update_agent(agent_name, agent: Agent):
 
 
 @router.delete("/agent/{agent_name}")
-def delete_agent(agent_name):
+def delete_agent(request: Request, agent_name):
+    agent = agent_registry.get_agent(agent_name)
+    agent_acl_enforce(request, agent, write=True)
     agent_registry.remove_agent(agent_name, rebuild=True)
     # save
     agent_registry.dump("/blue_data/config/" + agent_registry_id + ".agents.json")
@@ -215,19 +239,23 @@ def delete_agent(agent_name):
 
 ##### properties
 @router.get("/agent/{agent_name}/properties")
-def get_agent_properties(agent_name):
+def get_agent_properties(request: Request, agent_name):
+    acl_enforce(request.state.user['role'], 'agent_registry', 'read_all')
     results = agent_registry.get_agent_properties(agent_name)
     return JSONResponse(content={"results": results})
 
 
 @router.get("/agent/{agent_name}/property/{property_name}")
-def get_agent_property(agent_name, property_name):
+def get_agent_property(request: Request, agent_name, property_name):
+    acl_enforce(request.state.user['role'], 'agent_registry', 'read_all')
     result = agent_registry.get_agent_property(agent_name, property_name)
     return JSONResponse(content={"result": result})
 
 
 @router.post("/agent/{agent_name}/property/{property_name}")
-def set_agent_property(agent_name, property_name, property: JSONStructure):
+def set_agent_property(request: Request, agent_name, property_name, property: JSONStructure):
+    agent = agent_registry.get_agent(agent_name)
+    agent_acl_enforce(request, agent, write=True)
     agent_registry.set_agent_property(agent_name, property_name, property, rebuild=True)
     # save
     agent_registry.dump("/blue_data/config/" + agent_registry_id + ".agents.json")
@@ -235,7 +263,9 @@ def set_agent_property(agent_name, property_name, property: JSONStructure):
 
 
 @router.delete("/agent/{agent_name}/property/{property_name}")
-def delete_agent_property(agent_name, property_name):
+def delete_agent_property(request: Request, agent_name, property_name):
+    agent = agent_registry.get_agent(agent_name)
+    agent_acl_enforce(request, agent, write=True)
     agent_registry.delete_agent_property(agent_name, property_name, rebuild=True)
     # save
     agent_registry.dump("/blue_data/config/" + agent_registry_id + ".agents.json")
@@ -244,19 +274,23 @@ def delete_agent_property(agent_name, property_name):
 
 ##### inputs
 @router.get("/agent/{agent_name}/inputs")
-def get_agent_inputs(agent_name):
+def get_agent_inputs(request: Request, agent_name):
+    acl_enforce(request.state.user['role'], 'agent_registry', 'read_all')
     results = agent_registry.get_agent_inputs(agent_name)
     return JSONResponse(content={"results": results})
 
 
 @router.get("/agent/{agent_name}/input/{param_name}")
-def get_agent_input(agent_name, param_name):
+def get_agent_input(request: Request, agent_name, param_name):
+    acl_enforce(request.state.user['role'], 'agent_registry', 'read_all')
     result = agent_registry.get_agent_input(agent_name, param_name)
     return JSONResponse(content={"result": result})
 
 
 @router.post("/agent/{agent_name}/input/{param_name}")
-def add_agent_input(agent_name, param_name, parameter: Parameter):
+def add_agent_input(request: Request, agent_name, param_name, parameter: Parameter):
+    agent = agent_registry.get_agent(agent_name)
+    agent_acl_enforce(request, agent, write=True)
     # TODO: properties
     agent_registry.add_agent_input(agent_name, param_name, description=parameter.description, properties={}, rebuild=True)
     # save
@@ -265,7 +299,9 @@ def add_agent_input(agent_name, param_name, parameter: Parameter):
 
 
 @router.put("/agent/{agent_name}/input/{param_name}")
-def update_agent_input(agent_name, param_name, parameter: Parameter):
+def update_agent_input(request: Request, agent_name, param_name, parameter: Parameter):
+    agent = agent_registry.get_agent(agent_name)
+    agent_acl_enforce(request, agent, write=True)
     # TODO: properties
     agent_registry.update_agent_input(agent_name, param_name, description=parameter.description, properties={}, rebuild=True)
     # save
@@ -274,7 +310,9 @@ def update_agent_input(agent_name, param_name, parameter: Parameter):
 
 
 @router.delete("/agent/{agent_name}/input/{param_name}")
-def delete_agent_input(agent_name, param_name):
+def delete_agent_input(request: Request, agent_name, param_name):
+    agent = agent_registry.get_agent(agent_name)
+    agent_acl_enforce(request, agent, write=True)
     agent_registry.del_agent_input(agent_name, param_name, rebuild=True)
     # save
     agent_registry.dump("/blue_data/config/" + agent_registry_id + ".agents.json")
@@ -282,19 +320,23 @@ def delete_agent_input(agent_name, param_name):
 
 
 @router.get("/agent/{agent_name}/input/{param_name}/properties")
-def get_agent_input_properties(agent_name, param_name):
+def get_agent_input_properties(request: Request, agent_name, param_name):
+    acl_enforce(request.state.user['role'], 'agent_registry', 'read_all')
     results = agent_registry.get_agent_input_properties(agent_name, param_name)
     return JSONResponse(content={"results": results})
 
 
 @router.get("/agent/{agent_name}/input/{param_name}/property/{property_name}")
-def get_agent_input_property(agent_name, param_name, property_name):
+def get_agent_input_property(request: Request, agent_name, param_name, property_name):
+    acl_enforce(request.state.user['role'], 'agent_registry', 'read_all')
     result = agent_registry.get_agent_input_property(agent_name, param_name, property_name)
     return JSONResponse(content={"result": result})
 
 
 @router.post("/agent/{agent_name}/input/{param_name}/property/{property_name}")
-def set_agent_input_property(agent_name, param_name, property_name, property: JSONStructure):
+def set_agent_input_property(request: Request, agent_name, param_name, property_name, property: JSONStructure):
+    agent = agent_registry.get_agent(agent_name)
+    agent_acl_enforce(request, agent, write=True)
     agent_registry.set_agent_input_property(agent_name, param_name, property_name, property, rebuild=True)
     # save
     agent_registry.dump("/blue_data/config/" + agent_registry_id + ".agents.json")
@@ -302,7 +344,9 @@ def set_agent_input_property(agent_name, param_name, property_name, property: JS
 
 
 @router.delete("/agent/{agent_name}/input/{param_name}/property/{property_name}")
-def delete_agent_input_property(agent_name, param_name, property_name):
+def delete_agent_input_property(request: Request, agent_name, param_name, property_name):
+    agent = agent_registry.get_agent(agent_name)
+    agent_acl_enforce(request, agent, write=True)
     agent_registry.delete_agent_input_property(agent_name, param_name, property_name, rebuild=True)
     # save
     agent_registry.dump("/blue_data/config/" + agent_registry_id + ".agents.json")
@@ -311,26 +355,32 @@ def delete_agent_input_property(agent_name, param_name, property_name):
 
 ##### outputs
 @router.get("/agent/{agent_name}/outputs")
-def get_agent_outputs(agent_name):
+def get_agent_outputs(request: Request, agent_name):
+    acl_enforce(request.state.user['role'], 'agent_registry', 'read_all')
     results = agent_registry.get_agent_outputs(agent_name)
     return JSONResponse(content={"results": results})
 
 
 @router.get("/agent/{agent_name}/output/{param_name}")
-def get_agent_output(agent_name, param_name):
+def get_agent_output(request: Request, agent_name, param_name):
+    acl_enforce(request.state.user['role'], 'agent_registry', 'read_all')
     result = agent_registry.get_agent_output(agent_name, param_name)
     return JSONResponse(content={"result": result})
 
 
 @router.post("/agent/{agent_name}/output/{param_name}")
-def add_agent_output(agent_name, param_name, parameter: Parameter):
+def add_agent_output(request: Request, agent_name, param_name, parameter: Parameter):
+    agent = agent_registry.get_agent(agent_name)
+    agent_acl_enforce(request, agent, write=True)
     # TODO: properties
     agent_registry.add_agent_output(agent_name, param_name, description=parameter.description, properties={}, rebuild=True)
     return JSONResponse(content={"message": "Success"})
 
 
 @router.put("/agent/{agent_name}/output/{param_name}")
-def update_agent_output(agent_name, param_name, parameter: Parameter):
+def update_agent_output(request: Request, agent_name, param_name, parameter: Parameter):
+    agent = agent_registry.get_agent(agent_name)
+    agent_acl_enforce(request, agent, write=True)
     # TODO: properties
     agent_registry.update_agent_output(agent_name, param_name, description=parameter.description, properties={}, rebuild=True)
     # save
@@ -339,7 +389,9 @@ def update_agent_output(agent_name, param_name, parameter: Parameter):
 
 
 @router.delete("/agent/{agent_name}/output/{param_name}")
-def delete_agent_output(agent_name, param_name):
+def delete_agent_output(request: Request, agent_name, param_name):
+    agent = agent_registry.get_agent(agent_name)
+    agent_acl_enforce(request, agent, write=True)
     agent_registry.del_agent_output(agent_name, param_name, rebuild=True)
     # save
     agent_registry.dump("/blue_data/config/" + agent_registry_id + ".agents.json")
@@ -347,19 +399,23 @@ def delete_agent_output(agent_name, param_name):
 
 
 @router.get("/agent/{agent_name}/output/{param_name}/properties")
-def get_agent_output_properties(agent_name, param_name):
+def get_agent_output_properties(request: Request, agent_name, param_name):
+    acl_enforce(request.state.user['role'], 'agent_registry', 'read_all')
     results = agent_registry.get_agent_output_properties(agent_name, param_name)
     return JSONResponse(content={"results": results})
 
 
 @router.get("/agent/{agent_name}/output/{param_name}/property/{property_name}")
-def get_agent_output_property(agent_name, param_name, property_name):
+def get_agent_output_property(request: Request, agent_name, param_name, property_name):
+    acl_enforce(request.state.user['role'], 'agent_registry', 'read_all')
     result = agent_registry.get_agent_output_property(agent_name, param_name, property_name)
     return JSONResponse(content={"result": result})
 
 
 @router.post("/agent/{agent_name}/output/{param_name}/property/{property_name}")
-def set_agent_output_property(agent_name, param_name, property_name, property: JSONStructure):
+def set_agent_output_property(request: Request, agent_name, param_name, property_name, property: JSONStructure):
+    agent = agent_registry.get_agent(agent_name)
+    agent_acl_enforce(request, agent, write=True)
     agent_registry.set_agent_output_property(agent_name, param_name, property_name, property, rebuild=True)
     # save
     agent_registry.dump("/blue_data/config/" + agent_registry_id + ".agents.json")
@@ -367,7 +423,9 @@ def set_agent_output_property(agent_name, param_name, property_name, property: J
 
 
 @router.delete("/agent/{agent_name}/output/{param_name}/property/{property_name}")
-def delete_agent_output_property(agent_name, param_name, property_name):
+def delete_agent_output_property(request: Request, agent_name, param_name, property_name):
+    agent = agent_registry.get_agent(agent_name)
+    agent_acl_enforce(request, agent, write=True)
     agent_registry.delete_agent_output_property(agent_name, param_name, property_name, rebuild=True)
     # save
     agent_registry.dump("/blue_data/config/" + agent_registry_id + ".agents.json")
@@ -375,6 +433,7 @@ def delete_agent_output_property(agent_name, param_name, property_name):
 
 
 @router.get("/agents/search")
-def search_agents(keywords, approximate: bool = False, hybrid: bool = False, type: str = None, scope: str = None, page: int = 0, page_size: int = 10):
+def search_agents(request: Request, keywords, approximate: bool = False, hybrid: bool = False, type: str = None, scope: str = None, page: int = 0, page_size: int = 10):
+    acl_enforce(request.state.user['role'], 'agent_registry', 'read_all')
     results = agent_registry.search_records(keywords, type=type, scope=scope, approximate=approximate, hybrid=hybrid, page=page, page_size=page_size)
     return JSONResponse(content={"results": results})

@@ -1,5 +1,6 @@
 import { NAVIGATION_MENU_WIDTH } from "@/components/constant";
 import { AppContext } from "@/components/contexts/app-context";
+import { AuthContext } from "@/components/contexts/auth-context";
 import { useSocket } from "@/components/hooks/useSocket";
 import { faIcon } from "@/components/icon";
 import AddAgents from "@/components/sessions/AddAgents";
@@ -49,6 +50,8 @@ export default function Sessions() {
     const [isSessionDetailOpen, setIsSessionDetailOpen] = useState(false);
     const { socket, reconnectWs } = useSocket();
     const socketReadyState = _.get(socket, "readyState", 3);
+    const { user } = useContext(AuthContext);
+    const userRole = _.get(user, "role", null);
     const sendSessionMessage = (message) => {
         if (!_.isEqual(socketReadyState, 1)) {
             return;
@@ -217,27 +220,34 @@ export default function Sessions() {
                     }}
                 >
                     <ButtonGroup large>
-                        <Tooltip
-                            minimal
-                            placement="bottom-start"
-                            content="Start a new session"
-                        >
-                            <Button
-                                disabled={!_.isEqual(socketReadyState, 1)}
-                                text="New"
-                                outlined
-                                loading={isCreatingSession}
-                                intent={Intent.PRIMARY}
-                                onClick={() => {
-                                    if (!_.isEqual(socketReadyState, 1)) {
-                                        return;
-                                    }
-                                    setIsCreatingSession(true);
-                                    appActions.session.createSession(socket);
-                                }}
-                                rightIcon={faIcon({ icon: faInboxOut })}
-                            />
-                        </Tooltip>
+                        {_.includes(
+                            ["admin", "member", "developer"],
+                            userRole
+                        ) ? (
+                            <Tooltip
+                                minimal
+                                placement="bottom-start"
+                                content="Start a new session"
+                            >
+                                <Button
+                                    disabled={!_.isEqual(socketReadyState, 1)}
+                                    text="New"
+                                    outlined
+                                    loading={isCreatingSession}
+                                    intent={Intent.PRIMARY}
+                                    onClick={() => {
+                                        if (!_.isEqual(socketReadyState, 1)) {
+                                            return;
+                                        }
+                                        setIsCreatingSession(true);
+                                        appActions.session.createSession(
+                                            socket
+                                        );
+                                    }}
+                                    rightIcon={faIcon({ icon: faInboxOut })}
+                                />
+                            </Tooltip>
+                        ) : null}
                         <Popover
                             placement="bottom"
                             onOpening={fetchExistingSessions}

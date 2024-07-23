@@ -1,4 +1,5 @@
 import { AppContext } from "@/components/contexts/app-context";
+import { AuthContext } from "@/components/contexts/auth-context";
 import { faIcon } from "@/components/icon";
 import Pagination from "@/components/registry/Pagination";
 import RegistryList from "@/components/registry/RegistryList";
@@ -81,6 +82,10 @@ export default function Data() {
             pageSize,
         });
     }, [hybrid, approximate, type, page, pageSize]);
+    const { permissions } = useContext(AuthContext);
+    if (!permissions.canReadDataRegistry) {
+        return <AccessDeniedNonIdealState />;
+    }
     return (
         <>
             <div style={{ padding: "20px 20px 10px 20px", display: "flex" }}>

@@ -1,7 +1,10 @@
 ###### OS / Systems
 from curses import noecho
-import os
 import sys
+
+from fastapi import Request
+import pydash
+from constant import HTTP_EXCEPTION_403, acl_enforce
 
 ###### Add lib path
 sys.path.append("./lib/")
@@ -11,11 +14,6 @@ sys.path.append("./lib/platform/")
 
 
 ###### Parsers, Formats, Utils
-import re
-import time
-import csv
-import uuid
-import random
 import json
 import logging
 from utils import json_utils
@@ -24,8 +22,7 @@ from utils import json_utils
 import docker
 
 ##### Typing
-from pydantic import BaseModel, Json
-from typing import Union, Any, Dict, AnyStr, List
+from typing import Union, Any, Dict, List
 
 ###### FastAPI, Web, Auth
 from APIRouter import APIRouter
@@ -40,13 +37,12 @@ JSONStructure = Union[JSONArray, JSONObject, Any]
 
 
 ###### Blue
-from session import Session
 from blueprint import Platform
 from agent_registry import AgentRegistry
 
 
 ###### Properties
-from settings import PROPERTIES
+from settings import ACL, PROPERTIES
 
 ### Assign from platform properties
 platform_id = PROPERTIES["platform.name"]
@@ -67,17 +63,36 @@ router = APIRouter(prefix=f"{PLATFORM_PREFIX}/containers")
 # set logging
 logging.getLogger().setLevel("INFO")
 
+write_all_roles = ACL.get_implicit_users_for_permission('platform_agents', 'write_all')
+write_own_roles = ACL.get_implicit_users_for_permission('platform_agents', 'write_own')
+read_all_roles = ACL.get_implicit_users_for_permission('platform_agents', 'read_all')
+read_own_roles = ACL.get_implicit_users_for_permission('platform_agents', 'read_own')
+
+
+def container_acl_enforce(request: Request, agent: dict, read=False, write=False, throw=True):
+    user_role = request.state.user['role']
+    uid = request.state.user['uid']
+    allow = False
+    if (read and user_role in read_all_roles) or (write and user_role in write_all_roles):
+        allow = True
+    elif (read and user_role in read_own_roles) and (write and user_role in write_own_roles):
+        if pydash.objects.get(agent, 'created_by', None) == uid:
+            allow = True
+    if throw and not allow:
+        raise HTTP_EXCEPTION_403
+    return allow
+
 
 @router.get("/agents/")
 # get the list of agent running agents on the platform
-def list_agent_containers():
+def list_agent_containers(request: Request):
+    acl_enforce(request.state.user['role'], 'platform_agents', ['read_all', 'read_own'])
     # connect to docker
     client = docker.from_env()
-
-    # get list of containers based on deploy target
+    results = []
+    # get list of docker containers based on deploy target
     if PROPERTIES["platform.deploy.target"] == "localhost":
         containers = client.containers.list()
-        results = []
         for container in containers:
             c = {}
             c["id"] = container.attrs["Id"]
@@ -96,7 +111,6 @@ def list_agent_containers():
                     results.append(c)
     elif PROPERTIES["platform.deploy.target"] == "swarm":
         services = client.services.list()
-        results = []
         for service in services:
             c = {}
             c["id"] = service.attrs["ID"]
@@ -123,13 +137,19 @@ def list_agent_containers():
 
     # close connection
     client.close()
-
-    return JSONResponse(content={"results": results})
+    temp = []
+    for container in results:
+        agent = agent_registry.get_agent(container['agent'])
+        if container_acl_enforce(request, agent, read=True, throw=False):
+            temp.append(container)
+    return JSONResponse(content={"results": temp})
 
 
 @router.post("/agents/agent/{agent_name}")
 # deploy an agent container with the name {agent_name} to the agent registry with the name
-def deploy_agent_container(agent_name):
+def deploy_agent_container(request: Request, agent_name):
+    agent = agent_registry.get_agent(agent_name)
+    container_acl_enforce(request, agent, write=True)
     agent_registry_properties = agent_registry.get_agent_properties(agent_name)
     image = agent_registry_properties["image"]
 
@@ -180,8 +200,9 @@ def deploy_agent_container(agent_name):
 
 @router.put("/agents/agent/{agent_name}")
 # update the agent container with the name {agent_name} in the agent registry with the name, pulling in new image
-def update_agent_container(registry_name, agent_name):
-    agent = agent_registry.get_agent_properties(agent_name)
+def update_agent_container(request: Request, registry_name, agent_name):
+    agent = agent_registry.get_agent(agent_name)
+    container_acl_enforce(request, agent, write=True)
     properties = agent_registry.get_agent_properties(agent_name)
     image = properties["image"]
 
@@ -203,15 +224,15 @@ def update_agent_container(registry_name, agent_name):
 
 @router.delete("/agents/agent/{agent_name}")
 # shutdown the agent container with the name {agent_name} from the agent registry with the name
-def shutdown_agent_container(registry_name, agent_name):
-    platform = Platform(id=platform_id, properties=PROPERTIES)
+def shutdown_agent_container(request: Request, registry_name, agent_name):
+    agent = agent_registry.get_agent(agent_name)
+    container_acl_enforce(request, agent, write=True)
 
     # connect to docker
     client = docker.from_env()
 
     if PROPERTIES["platform.deploy.target"] == "localhost":
         containers = client.containers.list()
-        results = []
         for container in containers:
             h = container.attrs["Config"]["Hostname"]
             if h.find("blue_agent") < 0:

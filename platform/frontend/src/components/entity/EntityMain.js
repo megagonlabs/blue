@@ -11,6 +11,7 @@ import {
     Popover,
     Section,
     SectionCard,
+    Tooltip,
 } from "@blueprintjs/core";
 import {
     faCheck,
@@ -19,6 +20,7 @@ import {
     faPen,
     faPlay,
     faTrash,
+    faXmarkLarge,
 } from "@fortawesome/pro-duotone-svg-icons";
 import axios from "axios";
 import _ from "lodash";
@@ -26,6 +28,7 @@ import { useRouter } from "next/router";
 export default function EntityMain({
     entity,
     edit,
+    discard,
     setEdit,
     saveEntity,
     loading,
@@ -134,15 +137,41 @@ export default function EntityMain({
                     }}
                 >
                     {edit ? (
-                        <Button
-                            className={loading ? Classes.SKELETON : null}
-                            large
-                            disabled={jsonError}
-                            intent={Intent.SUCCESS}
-                            text="Save"
-                            onClick={saveEntity}
-                            icon={faIcon({ icon: faCheck })}
-                        />
+                        <ButtonGroup large>
+                            <Popover
+                                placement="bottom"
+                                content={
+                                    <div style={{ padding: 15 }}>
+                                        <Button
+                                            className={Classes.POPOVER_DISMISS}
+                                            text="Confirm"
+                                            onClick={discard}
+                                            intent={Intent.DANGER}
+                                        />
+                                    </div>
+                                }
+                            >
+                                <Tooltip
+                                    minimal
+                                    placement="bottom"
+                                    content="Discard"
+                                >
+                                    <Button
+                                        minimal
+                                        icon={faIcon({ icon: faXmarkLarge })}
+                                    />
+                                </Tooltip>
+                            </Popover>
+                            <Button
+                                className={loading ? Classes.SKELETON : null}
+                                large
+                                disabled={jsonError}
+                                intent={Intent.SUCCESS}
+                                text="Save"
+                                onClick={saveEntity}
+                                icon={faIcon({ icon: faCheck })}
+                            />
+                        </ButtonGroup>
                     ) : (
                         <ButtonGroup
                             large
@@ -218,7 +247,9 @@ export default function EntityMain({
                                 <Button
                                     outlined
                                     text="Actions"
-                                    rightIcon={faIcon({ icon: faListDropdown })}
+                                    rightIcon={faIcon({
+                                        icon: faListDropdown,
+                                    })}
                                 />
                             </Popover>
                         </ButtonGroup>

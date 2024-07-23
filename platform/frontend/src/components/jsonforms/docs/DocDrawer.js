@@ -11,6 +11,7 @@ import StringDoc from "@/components/jsonforms/docs/StringDoc";
 import {
     Button,
     Callout,
+    Classes,
     Code,
     Drawer,
     HTMLTable,
@@ -27,6 +28,7 @@ import {
 import {
     faInputNumeric,
     faInputText,
+    faList,
     faListDropdown,
     faObjectGroup,
     faParagraph,
@@ -37,6 +39,7 @@ import {
 } from "@fortawesome/pro-duotone-svg-icons";
 import _ from "lodash";
 import { useCallback, useState } from "react";
+import ArrayDoc from "./ArrayDoc";
 const RendererDetailPanel = (props) => {
     const DOCS = {
         boolean: <BooleanDoc closePanel={props.closePanel} />,
@@ -48,6 +51,7 @@ const RendererDetailPanel = (props) => {
         layout: <LayoutDoc closePanel={props.closePanel} />,
         number: <NumberDoc closePanel={props.closePanel} />,
         string: <StringDoc closePanel={props.closePanel} />,
+        array: <ArrayDoc closePanel={props.closePanel} />,
     };
     return _.get(DOCS, props.type, null);
 };
@@ -62,6 +66,18 @@ const MainMenuPanel = (props) => {
         { text: "Layout", icon: faRectanglesMixed },
         { text: "Number", icon: faInputNumeric },
         { text: "String", icon: faInputText },
+        {
+            text: "Array",
+            icon: faList,
+            label: (
+                <span
+                    className={Classes.TEXT_DISABLED}
+                    style={{ marginRight: 4 }}
+                >
+                    Inlined UI schema
+                </span>
+            ),
+        },
     ];
     const [openingPanel, setOpeningPanel] = useState(false);
     return (
@@ -108,6 +124,7 @@ const MainMenuPanel = (props) => {
                             }, 500);
                         }}
                         text={type.text}
+                        label={type.label}
                     />
                 ))}
                 <MenuDivider title="Data Schema" />
