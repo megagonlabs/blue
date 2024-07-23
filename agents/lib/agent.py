@@ -231,12 +231,17 @@ class Agent:
 
         # default listeners
         listeners_by_param = self.properties["listens"]
+        logging.info(json.dumps(listeners_by_param, indent=3))
         for param in listeners_by_param:
             matched_tags = set()
 
             param_listeners = listeners_by_param[param]
+            if 'includes' not in param_listeners:
+                continue
             includes = param_listeners["includes"]
-            excludes = param_listeners["excludes"]
+            excludes = []
+            if 'excludes' in param_listeners:
+                excludes = param_listeners["excludes"]
 
             for i in includes:
                 p = None

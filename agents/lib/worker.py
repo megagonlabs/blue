@@ -169,7 +169,7 @@ class Worker:
             contents = data
             content_type = ContentType.STR
         elif type(data) == dict:
-            contents = json.dumps(data)
+            contents = data
             content_type = ContentType.JSON
         self.write(Message(MessageType.DATA, contents, content_type), output=output)
 

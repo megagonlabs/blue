@@ -192,6 +192,12 @@ class CoordinatorAgent(Agent):
         #TODO: verify plan
         return plan
     
+    # def session_listener(self, message):
+    #     ### check if stream is in stream watch list
+
+    #     ### do regular session listening
+    #     return super().session_listener(message)
+    
     # node status progression
     # PLANNED, TRIGGERED, STARTED, FINISHED
     def default_processor(self, message, input="DEFAULT", properties=None, worker=None):
@@ -203,9 +209,10 @@ class CoordinatorAgent(Agent):
         if message.isData():
             logging.info("plan:")
             p = message.getData()
+            logging.info(type(p))
             logging.info(json.dumps(p))
             
-            plan = self.verify_plan()
+            plan = self.verify_plan(p)
             if plan:
                 # start plan
                 self.initialize_plan(plan)
