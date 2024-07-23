@@ -149,12 +149,12 @@ class Worker:
     def write_bos(self, output="DEFAULT"):
         # producer = self._start_producer(output=output)
         # producer.write_bos()
-        self.write(Message.BOS)
+        self.write(Message.BOS, output=output)
 
     def write_eos(self, output="DEFAULT"):
         # producer = self._start_producer(output=output)
         # producer.write_eos()
-        self.write(Message.EOS)
+        self.write(Message.EOS, output=output)
 
     def write_data(self, data, output="DEFAULT"):
         # producer = self._start_producer(output=output)
@@ -171,15 +171,16 @@ class Worker:
         elif type(data) == dict:
             contents = json.dumps(data)
             content_type = ContentType.JSON
-        self.write(Message(MessageType.DATA, contents, content_type))
+        self.write(Message(MessageType.DATA, contents, content_type), output=output)
 
     def write_control(self, code, args, output="DEFAULT"):
         # producer = self._start_producer(output=output)
         # producer.write_control(code, args)
-        self.write(Message(MessageType.CONTROL, {"code": code, "args": args}, ContentType.JSON))
+        self.write(Message(MessageType.CONTROL, {"code": code, "args": args}, ContentType.JSON), output=output)
 
     def write(self, message, output="DEFAULT"):
         form_id = None
+        # TODO: This doesn't belong here..
         if message.getCode() in [ ControlCode.CREATE_FORM, ControlCode.UPDATE_FORM, ControlCode.CLOSE_FORM ]:
             if message.getCode() == ControlCode.CREATE_FORM:
                 # create a new form id
@@ -379,13 +380,13 @@ class Worker:
 
     def stop(self):
         # send stop signal to consumer(s)
-        for consumer in self.consumers.values():
-            consumer.stop()
+        if self.consumer:
+            self.consumer.stop()
 
     def wait(self):
         # send wait to consumer(s)
-        for consumer in self.consumers.values():
-            consumer.wait()
+        if self.consumer:
+            self.consumer.wait()
 
 
 #######################

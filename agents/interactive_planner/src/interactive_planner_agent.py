@@ -51,6 +51,9 @@ logging.getLogger().setLevel(logging.INFO)
 logging.basicConfig(format="%(asctime)s [%(levelname)s] [%(process)d:%(threadName)s:%(thread)d](%(filename)s:%(lineno)d) %(name)s -  %(message)s", level=logging.ERROR, datefmt="%Y-%m-%d %H:%M:%S")
 
 
+def create_uuid():
+    return str(hex(uuid.uuid4().fields[0]))[2:]
+
 ## --properties '{"openai.api":"ChatCompletion","openai.model":"gpt-4","output_path":"$.choices[0].message.content","listens":{"includes":["USER"],"excludes":[]},"tags": ["TRIPLE"], "input_json":"[{\"role\":\"user\"}]","input_context":"$[0]","input_context_field":"content","input_field":"messages","input_template":"Examine the text below and identify a task plan  thatcan be fulfilled by various agents. Specify plan in JSON format, where each agent has attributes of name, description, input and output parameters with names and descriptions:\n{input}",  "openai.temperature":0,"openai.max_tokens":256,"openai.top_p":1,"openai.frequency_penalty":0,"openai.presence_penalty":0}'
 interactive_planner_properties = {
     "openai.api": "ChatCompletion",
@@ -478,10 +481,24 @@ class InteractivePlannerAgent(OpenAIAgent):
                     if action == "DONE":
                         # get plan
                         plan_data = worker.get_stream_data(stream=stream, key="steps")
+
+                        # get context from data section
+                        plan_context = {
+                            "scope": worker.session.cid,
+                            # "streams": {
+                            #     "USER.TEXT": stream
+                            # }
+                        }
+                        
                         # standardize plan
                         plan_dag = self.standardize_plan(plan_data)
                         logging.info(plan_dag)
-
+                        plan = {
+                            "id":  create_uuid(),
+                            "steps": plan_dag,
+                            "context": plan_context
+                        }
+                        
 
                         # close form
                         args = {
@@ -489,8 +506,9 @@ class InteractivePlannerAgent(OpenAIAgent):
                         }
                         worker.write_control(ControlCode.CLOSE_FORM, args, output="FORM")
 
-                        # stream form data
-                        return plan_dag
+                        # stream plan data
+                        logging.info(plan)
+                        return plan
                     else:
                         timestamp = worker.get_stream_data(stream=stream, key=f'{data["path"]}.timestamp')
 
@@ -506,31 +524,56 @@ class InteractivePlannerAgent(OpenAIAgent):
             if message.isEOS():
                 logging.info("MESSAGE EOS")
                 # get all data received from stream
+                stream = message.getStream()
                 stream_data = ""
                 if worker:
-                    stream_data = worker.get_data('stream')
+                    stream_data = worker.get_data(stream)
 
                 #### call api to compute, render interactive plan
                 interactive_plan = self.handle_api_call(stream_data)
+
+                # save context to data section
+                plan_context = {
+                    "scope": worker.session.cid,
+                    "streams": {
+                        "USER.TEXT": stream
+                    }
+                }
+                interactive_plan['data']['context'] = plan_context
+
                 # write ui
                 worker.write_control(ControlCode.CREATE_FORM, interactive_plan, output="FORM")
-                return 
+
+                # TODO: TESTING, REMOVE LATER
+                plan_data = interactive_plan['data']['steps']
+                plan_dag = self.standardize_plan(plan_data)
+                plan = {
+                    "id": create_uuid(),
+                    "steps": plan_dag,
+                    "context": plan_context
+                }
+                logging.info(plan)
+                return plan
                 
             elif message.isBOS():
                 logging.info("MESSAGE BOS")
+                stream = message.getStream()
                 # init stream to empty array
                 if worker:
-                    worker.set_data('stream',[])
+                    worker.set_data(stream,[])
                 pass
             elif message.isData():
                 logging.info("MESSAGE DATA")
                 # store data value
                 data = message.getData()
+                stream = message.getStream()
+
                 logging.info("=====")
+                logging.info(stream)
                 logging.info(data)
                 logging.info("=====")
                 if worker:
-                    worker.append_data('stream', data)
+                    worker.append_data(stream, data)
             
             return None
     

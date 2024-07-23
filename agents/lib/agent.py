@@ -35,6 +35,9 @@ from worker import Worker
 from message import Message, MessageType, ContentType, ControlCode
 
 
+def create_uuid():
+    return str(hex(uuid.uuid4().fields[0]))[2:]
+
 class Agent:
     def __init__(
         self,
@@ -304,19 +307,24 @@ class Agent:
 
         return matched_params
 
-    def interact(self, data, eos=True):
+    def interact(self, data, output="DEFAULT", unique=True, eos=True):
         if self.session is None:
             logging.error("No current session to interact with.")
             return
+
+        # update output, if unique
+        if unique:
+            output = output + ":" + create_uuid()
 
         # create worker to emit data for session
         worker = self.create_worker(None)
 
         # write data, automatically notify session on BOS
-        worker.write_data(data)
+        
+        worker.write_data(data, output=output)
 
         if eos:
-            worker.write_eos()
+            worker.write_eos(output=output)
 
     def _start(self):
         self._start_connection()
