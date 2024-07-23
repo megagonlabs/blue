@@ -1,3 +1,4 @@
+import AccessDeniedNonIdealState from "@/components/AccessDeniedNonIdealState";
 import SupportDialog from "@/components/SupportDialog";
 import { NAVIGATION_MENU_WIDTH } from "@/components/constant";
 import { AppContext } from "@/components/contexts/app-context";
@@ -31,7 +32,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useContext, useMemo, useState } from "react";
-import AccessDeniedNonIdealState from "./AccessDeniedNonIdealState";
 import { hasTrue } from "./helper";
 import UserAccountPanel from "./navigation/UserAccountPanel";
 export default function App({ children }) {

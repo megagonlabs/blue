@@ -67,10 +67,7 @@ def signout(request: Request):
         return response
     except auth.InvalidSessionCookieError:
         return JSONResponse(
-            content={
-                "message": "Session cookie is invalid, epxpired or revoked",
-                "error_code": "session_cookie_invalid",
-            },
+            content={"message": "Session cookie is invalid, epxpired or revoked"},
             status_code=401,
         )
 
