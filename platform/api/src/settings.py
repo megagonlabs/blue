@@ -17,6 +17,7 @@ PROPERTIES["agent_registry.name"] = os.getenv("BLUE_AGENT_REGISTRY")
 PROPERTIES["data_registry.name"] = os.getenv("BLUE_DATA_REGISTRY")
 PROPERTIES["embeddings_model"] = os.getenv("BLUE_AGENT_REGISTRY_MODEL")
 PROPERTIES["db.host"] = os.getenv("BLUE_DB_HOST", 'blue_db_redis')
+PROPERTIES["rbac.config.folder"] = os.getenv("BLUE_RBAC_CONFIG_FOLDER")
 
 ##### Other Settings
 DEVELOPMENT = os.getenv("BLUE_DEPLOY_DEVELOPMENT", "False").lower() == "true"
@@ -25,7 +26,7 @@ SECURE_COOKIE = os.getenv("BLUE_DEPLOY_SECURE", "True").lower() == "true"
 ##### RBAC
 import casbin
 
-ACL = casbin.Enforcer("./src/casbin/model.conf", "./src/casbin/policy.csv")
+ACL = casbin.Enforcer(os.path.join(PROPERTIES["rbac.config.folder"], "model.conf"), os.path.join(PROPERTIES["rbac.config.folder"], "policy.csv"))
 
 
 def contains(actions, action):
