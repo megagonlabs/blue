@@ -27,7 +27,6 @@ from session import Session
 from agent import Agent
 from producer import Producer
 
-from constant import redisReplace
 from message import Message, MessageType, ContentType, ControlCode
 
 
