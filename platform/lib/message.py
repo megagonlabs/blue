@@ -167,23 +167,24 @@ class Message():
     def toJSON(self):
         d = deepcopy(self.__dict__)
         # remove id, stream
-        del d["id"]
-        del d["stream"]
-        # convert to JSON
-        return json.dumps(self._toJSON(d))
-    
-    def _toJSON(self, v):
-        if type(v) == dict:
-            for k in v:
-                v[k] = self._toJSON(v[k])
-                if k == "contents":
-                    v[k] = json.dumps(v[k])
-            return(v)
-        elif type(v) == MessageType or type(v) == ContentType or type(v) == ControlCode:
-            return str(v)
+        del d['id']
+        del d['stream']
+        # convert types to str, when necessary
+        d['label'] = str(self.label)
+        d['content_type'] = str(self.content_type)
+        if self.label == MessageType.CONTROL:
+            contents = d['contents']
+            contents['code'] = str(contents['code'])
+            d['contents'] = json.dumps(contents)
         else:
-            return v
+            if self.content_type == ContentType.JSON:
+                d['contents'] = json.dumps(self.contents)
+            else:
+                d['contents'] = self.contents
 
+        # convert to JSON
+        return json.dumps(d)
+    
     def __str__(self):
         return self.toJSON()
     
