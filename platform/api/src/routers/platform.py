@@ -4,7 +4,7 @@ import sys
 
 from fastapi import Request
 import pydash
-from constant import HTTP_EXCEPTION_403, acl_enforce
+from constant import PermissionDenied, acl_enforce
 
 ###### Add lib path
 sys.path.append("./lib/")
@@ -79,7 +79,7 @@ def container_acl_enforce(request: Request, agent: dict, read=False, write=False
         if pydash.objects.get(agent, 'created_by', None) == uid:
             allow = True
     if throw and not allow:
-        raise HTTP_EXCEPTION_403
+        raise PermissionDenied
     return allow
 
 

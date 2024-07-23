@@ -12,7 +12,7 @@ sys.path.append("./lib/platform/")
 import json
 import logging
 from utils import json_utils
-from constant import HTTP_EXCEPTION_403, acl_enforce, d7validate
+from constant import PermissionDenied, acl_enforce, d7validate
 from validations.base import BaseValidation
 
 ##### Typing
@@ -76,7 +76,7 @@ def session_acl_enforce(request: Request, session: dict, read=False, write=False
         if pydash.objects.get(session, f'members.{uid}', False):
             allow = True
     if throw and not allow:
-        raise HTTP_EXCEPTION_403
+        raise PermissionDenied
     return allow
 
 

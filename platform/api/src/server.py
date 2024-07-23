@@ -16,7 +16,7 @@ import re
 from pathlib import Path
 
 ##### FastAPI, Web, Sockets, Authentication
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Request
+from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect, Request
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from firebase_admin import auth
@@ -25,7 +25,7 @@ from firebase_admin import auth
 from settings import PROPERTIES
 
 ###### API Routers
-from constant import EMAIL_DOMAIN_ADDRESS_REGEXP, InvalidRequestJson
+from constant import EMAIL_DOMAIN_ADDRESS_REGEXP, InvalidRequestJson, PermissionDenied
 from routers import agents
 from routers import data
 from routers import sessions
@@ -51,7 +51,6 @@ PLATFORM_PREFIX = f'/blue/platform/{platform_id}'
 _VERSION_PATH = Path(__file__).parent / "version"
 version = Path(_VERSION_PATH).read_text().strip()
 print("blue-platform-api: " + version)
-
 
 
 # set logging
@@ -136,8 +135,13 @@ app.add_middleware(CORSMiddleware, allow_origins=allowed_origins, allow_credenti
 
 
 @app.exception_handler(InvalidRequestJson)
-async def unicorn_exception_handler(request: Request, exc: InvalidRequestJson):
+async def unicorn_exception_handler_invalid_request_json(exc: InvalidRequestJson):
     return JSONResponse(status_code=exc.status_code, content={"json_errors": exc.errors})
+
+
+@app.exception_handler(PermissionDenied)
+async def unicorn_exception_handler_permission_denied(exc: PermissionDenied):
+    return JSONResponse(status_code=403, content={"message": "You don't have permission for this request."})
 
 
 @app.websocket(f"{PLATFORM_PREFIX}/sessions/ws")
