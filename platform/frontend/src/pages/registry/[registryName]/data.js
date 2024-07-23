@@ -1,3 +1,4 @@
+import AccessDeniedNonIdealState from "@/components/AccessDeniedNonIdealState";
 import { AppContext } from "@/components/contexts/app-context";
 import { AuthContext } from "@/components/contexts/auth-context";
 import { faIcon } from "@/components/icon";
