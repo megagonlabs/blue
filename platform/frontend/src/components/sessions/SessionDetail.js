@@ -11,7 +11,12 @@ import {
     InputGroup,
     Intent,
 } from "@blueprintjs/core";
-import { faCheck } from "@fortawesome/pro-duotone-svg-icons";
+import {
+    faCheck,
+    faCircleA,
+    faCircleInfo,
+    faUserGroup,
+} from "@fortawesome/pro-duotone-svg-icons";
 import axios from "axios";
 import _ from "lodash";
 import { useContext, useEffect, useState } from "react";
@@ -84,6 +89,7 @@ export default function SessionDetail({ isOpen, setIsSessionDetailOpen }) {
             <DialogBody className="padding-0">
                 <Card style={{ padding: "5px 15px", borderRadius: 0 }}>
                     <Button
+                        icon={faIcon({ icon: faCircleInfo })}
                         minimal
                         large
                         text="About"
@@ -93,6 +99,7 @@ export default function SessionDetail({ isOpen, setIsSessionDetailOpen }) {
                         active={_.isEqual(tab, "about")}
                     />
                     <Button
+                        icon={faIcon({ icon: faCircleA })}
                         minimal
                         large
                         text="Agents"
@@ -102,6 +109,7 @@ export default function SessionDetail({ isOpen, setIsSessionDetailOpen }) {
                         active={_.isEqual(tab, "agents")}
                     />
                     <Button
+                        icon={faIcon({ icon: faUserGroup })}
                         minimal
                         large
                         text="Members"
