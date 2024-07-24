@@ -97,6 +97,7 @@ export default function AgentEntity() {
     return (
         <div style={{ padding: "10px 20px 20px" }}>
             <EntityMain
+                enableIcon={true}
                 edit={edit}
                 setEdit={setEdit}
                 entity={entity}

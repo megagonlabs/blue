@@ -3,6 +3,7 @@ import { AppToaster } from "@/components/toaster";
 import {
     Button,
     ButtonGroup,
+    Card,
     Classes,
     Intent,
     Menu,
@@ -15,6 +16,7 @@ import {
 } from "@blueprintjs/core";
 import {
     faCheck,
+    faCircleA,
     faClone,
     faListDropdown,
     faPen,
@@ -25,6 +27,8 @@ import {
 import axios from "axios";
 import _ from "lodash";
 import { useRouter } from "next/router";
+import { useContext } from "react";
+import { AuthContext } from "../contexts/auth-context";
 export default function EntityMain({
     entity,
     edit,
@@ -33,8 +37,10 @@ export default function EntityMain({
     saveEntity,
     loading,
     jsonError,
+    enableIcon = false,
 }) {
     const router = useRouter();
+    const { permissions } = useContext(AuthContext);
     const containerStatus = _.get(entity, "container.status", "not exist");
     const deployAgent = () => {
         if (!router.isReady) {
@@ -93,7 +99,32 @@ export default function EntityMain({
     return (
         <Section compact style={{ position: "relative" }}>
             <SectionCard padded={false}>
-                <div style={{ display: "flex" }}>
+                {enableIcon ? (
+                    <Card
+                        style={{
+                            cursor: edit ? "pointer" : null,
+                            position: "absolute",
+                            left: 15,
+                            padding: 0,
+                            height: 40,
+                            width: 40,
+                            display: "flex",
+                            justifyContent: "center",
+                            alignItems: "center",
+                            top: "50%",
+                            transform: "translateY(-50%)",
+                            msTransform: "translateY(-50%)",
+                        }}
+                    >
+                        {faIcon({ icon: faCircleA })}
+                    </Card>
+                ) : null}
+                <div
+                    style={{
+                        display: "flex",
+                        paddingLeft: enableIcon ? 55 : 0,
+                    }}
+                >
                     <div
                         className={Classes.TEXT_MUTED}
                         style={{ width: 52.7, margin: "15px 0px 0px 15px" }}
@@ -104,13 +135,18 @@ export default function EntityMain({
                         className={Classes.TEXT_OVERFLOW_ELLIPSIS}
                         style={{
                             width: "calc(100% - 112.16px - 82.7px)",
-                            padding: "15px 20px 10px 10px",
+                            padding: "15px 20px 5px 10px",
                         }}
                     >
                         {entity.name}
                     </div>
                 </div>
-                <div style={{ display: "flex" }}>
+                <div
+                    style={{
+                        display: "flex",
+                        paddingLeft: enableIcon ? 55 : 0,
+                    }}
+                >
                     <div
                         className={Classes.TEXT_MUTED}
                         style={{ width: 52.7, margin: "0px 0px 15px 15px" }}
@@ -121,7 +157,7 @@ export default function EntityMain({
                         className={Classes.TEXT_OVERFLOW_ELLIPSIS}
                         style={{
                             width: "calc(100% - 112.16px - 82.7px)",
-                            padding: "0px 20px 10px 10px",
+                            padding: "0px 20px 5px 10px",
                         }}
                     >
                         {entity.type}
@@ -207,7 +243,8 @@ export default function EntityMain({
                                                 onClick={duplicateEntity}
                                             />
                                         ) : null}
-                                        {_.isEqual(entity.type, "agent") ? (
+                                        {_.isEqual(entity.type, "agent") &&
+                                        permissions.canWritePlatformAgents ? (
                                             <MenuItem
                                                 intent={Intent.SUCCESS}
                                                 icon={faIcon({
