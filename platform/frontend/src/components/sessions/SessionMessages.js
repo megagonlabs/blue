@@ -59,7 +59,7 @@ export default function SessionMessages() {
             }
         }, []);
         const data = _.get(streams, [messages[index].stream, "data"], []);
-        const messageLabel = _.get(messages, [index, "label"], null);
+        const contentType = _.get(messages, [index, "contentType"], null);
         const { ref: resizeRef } = useResizeDetector({
             onResize: handleResize,
         });
@@ -133,7 +133,7 @@ export default function SessionMessages() {
                             minHeight: 21,
                         }}
                     >
-                        {_.isEqual(messageLabel, "INTERACTION") ? (
+                        {_.isEqual(contentType, "INTERACTION") ? (
                             <InteractiveMessage
                                 stream={stream}
                                 content={_.last(data).content}
@@ -141,11 +141,11 @@ export default function SessionMessages() {
                             />
                         ) : (
                             data.map((e, index) => {
-                                const { dtype, content, id } = e;
+                                const { dataType, content, id } = e;
                                 if (
                                     _.includes(
-                                        ["str", "int", "float", "complex"],
-                                        dtype
+                                        ["STR", "INT", "FLOAT"],
+                                        dataType
                                     )
                                 ) {
                                     return (
@@ -153,7 +153,7 @@ export default function SessionMessages() {
                                             {(index ? " " : "") + content}
                                         </span>
                                     );
-                                } else if (_.isEqual(dtype, "json")) {
+                                } else if (_.isEqual(dataType, "JSON")) {
                                     return (
                                         <pre
                                             key={id}

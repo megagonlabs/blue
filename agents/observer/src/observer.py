@@ -48,15 +48,14 @@ class ObserverAgent(Agent):
             kwargs["name"] = "OBSERVER"
         super().__init__(**kwargs)
 
-    
-        
+  
     def _initialize(self, properties=None):
         super()._initialize(properties=properties)
 
         # observer is not instructable
         self.properties['instructable'] = False
 
-    def response_handler(self, stream,  properties=None, message={}):
+    def response_handler(self, stream, properties=None, message={}):
         try:
             output = {}
             if "output" in properties:
@@ -82,14 +81,14 @@ class ObserverAgent(Agent):
         label = message_json["label"]
         contents = message_json["contents"]
         content_type = message_json["content_type"]
+        if content_type == 'JSON':
+            contents = json.loads(contents)
 
         base_message = {
             "type": "OBSERVER_SESSION_MESSAGE",
             "session_id": properties["session_id"],
             "connection_id": properties["connection_id"],
-            # TODO: REPLACE WITH BELOW
-            # "message": {"label": label, "contents": contents, "content_type": content_type},
-            "message": {"label": label, "content": contents, "dtype": content_type},
+            "message": {"label": label, "contents": contents, "content_type": content_type},
             "stream": stream,
             "mode": mode,
             "timestamp": int(id.split("-")[0]),
@@ -107,25 +106,16 @@ class ObserverAgent(Agent):
                             self.response_handler(
                                 stream=stream,
                                 properties=properties,
-                                # TODO: REPLACE WITH BELOW
-                                # TODO: Why is label JSON? 
-                                # message={**base_message, "message": {**base_message['message'], "label": "JSON", "contents": [json.loads(json_data) for json_data in data]}},
-                                message={**base_message, "message": {**base_message['message'], "label": "JSON", "content": [json.loads(json_data) for json_data in data]}},
+                                message={**base_message, "message": {**base_message['message'], "label": "DATA", "contents": [json.loads(json_data) for json_data in data], "content_type": 'JSON'}},
                             )
                         except Exception as exception:
                             logging.error("{} : {}".format(stream, exception))
                     else:
-                        str_data = ""
-                        if data is not None:
-                            # convert elements inside data list into string format
-                            str_data = str(" ".join(map(str, data)))
-                        if len(str_data.strip()) > 0:
+                        if len(data) > 0:
                             self.response_handler(
                                 stream=stream,
                                 properties=properties,
-                                # TODO: REPLACE WITH BELOW
-                                # TODO: Why is label TEXT? 
-                                message={**base_message, "message": {**base_message['message'], "label": "TEXT", "contents": str_data}},
+                                message={**base_message, "message": {**base_message['message'], "label": "DATA", "contents": [map(str, data)], "content_type": 'STR'}},
                             )
                 elif mode == 'streaming':
                     self.response_handler(stream=stream, properties=properties, message=base_message)
@@ -139,7 +129,7 @@ class ObserverAgent(Agent):
         elif message.isData():
             # store data value
             data = message.getData()
-            
+
             if worker:
                 if mode == 'batch':
                     worker.set_data(f'{stream}:content_type', content_type)

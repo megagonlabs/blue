@@ -95,7 +95,7 @@ async def session_verification(request: Request, call_next):
     if not session_cookie:
         if not request.url.path.startswith(f"{PLATFORM_PREFIX}/accounts/sign-in"):
             # Session cookie is unavailable. Force user to login.
-            return JSONResponse(status_code=401, content={"message": "Session cookie is unavailable", "error_code": "session_cookie_unavailable"})
+            return JSONResponse(status_code=401, content={"message": "Session cookie is unavailable"})
     # Verify the session cookie. In this case an additional check is added to detect
     # if the user's Firebase session was revoked, user deleted/disabled, etc.
     else:
@@ -116,7 +116,7 @@ async def session_verification(request: Request, call_next):
             request.state.user = profile
         except auth.InvalidSessionCookieError:
             # Session cookie is invalid, expired or revoked. Force user to login.
-            response = JSONResponse(content={"message": "Session cookie is invalid, epxpired or revoked", "error_code": "session_cookie_invalid"}, status_code=401)
+            response = JSONResponse(content={"message": "Session cookie is invalid, epxpired or revoked"}, status_code=401)
             response.set_cookie("session", expires=0, path="/")
             return response
     return await call_next(request)
@@ -135,12 +135,12 @@ app.add_middleware(CORSMiddleware, allow_origins=allowed_origins, allow_credenti
 
 
 @app.exception_handler(InvalidRequestJson)
-async def unicorn_exception_handler_invalid_request_json(exc: InvalidRequestJson):
+async def unicorn_exception_handler_invalid_request_json(request: Request, exc: InvalidRequestJson):
     return JSONResponse(status_code=exc.status_code, content={"json_errors": exc.errors})
 
 
 @app.exception_handler(PermissionDenied)
-async def unicorn_exception_handler_permission_denied(exc: PermissionDenied):
+async def unicorn_exception_handler_permission_denied(request: Request, exc: PermissionDenied):
     return JSONResponse(status_code=403, content={"message": "You don't have permission for this request."})
 
 
