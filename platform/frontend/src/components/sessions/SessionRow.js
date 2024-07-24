@@ -57,10 +57,10 @@ export default function SessionRow({ index, style }) {
                             JSON
                         </Tag>
                     );
-                } else if (_.isEqual(contentType, "INTERACTION")) {
+                } else if (_.isEqual(contentType, "JSON_FORM")) {
                     setLastMessage(
                         <Tag minimal icon={faIcon({ icon: faPenLine })}>
-                            Interactive
+                            Form
                         </Tag>
                     );
                 } else {

@@ -111,6 +111,12 @@ export default function sessionReducer(
                         );
                     }
                 } else if (_.isEqual(messageLabel, "DATA")) {
+                    for (let i = _.size(messages) - 1; i >= 0; i--) {
+                        if (_.isEqual(messages[i].stream, payload.stream)) {
+                            messages[i].contentType = contentType;
+                            break;
+                        }
+                    }
                     _.set(
                         sessions,
                         [
