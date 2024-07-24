@@ -49,12 +49,14 @@ export default function App({ children }) {
         [sessionDetail]
     );
     const { user, permissions } = useContext(AuthContext);
-    const canWritePlatformUsers = permissions.canWritePlatformUsers;
-    const showFormDesigner = permissions.showFormDesigner;
-    const canReadPlatformAgents = permissions.canReadPlatformAgents;
-    const canReadSessions = permissions.canReadSessions;
-    const canReadDataRegistry = permissions.canReadDataRegistry;
-    const canReadAgentRegistry = permissions.canReadAgentRegistry;
+    const {
+        canWritePlatformUsers,
+        showFormDesigner,
+        canReadPlatformAgents,
+        canReadSessions,
+        canReadDataRegistry,
+        canReadAgentRegistry,
+    } = permissions;
     const MENU_ITEMS = {
         sessions: {
             href: "/sessions",

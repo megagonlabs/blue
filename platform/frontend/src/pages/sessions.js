@@ -50,8 +50,8 @@ export default function Sessions() {
     const [isSessionDetailOpen, setIsSessionDetailOpen] = useState(false);
     const { socket, reconnectWs } = useSocket();
     const socketReadyState = _.get(socket, "readyState", 3);
-    const { user } = useContext(AuthContext);
-    const userRole = _.get(user, "role", null);
+    const { permissions } = useContext(AuthContext);
+    const { canCreateSessions } = permissions;
     const sendSessionMessage = (message) => {
         if (!_.isEqual(socketReadyState, 1)) {
             return;
@@ -220,10 +220,7 @@ export default function Sessions() {
                     }}
                 >
                     <ButtonGroup large>
-                        {_.includes(
-                            ["admin", "member", "developer"],
-                            userRole
-                        ) ? (
+                        {canCreateSessions ? (
                             <Tooltip
                                 minimal
                                 placement="bottom-start"
@@ -249,7 +246,9 @@ export default function Sessions() {
                             </Tooltip>
                         ) : null}
                         <Popover
-                            placement="bottom"
+                            placement={`bottom${
+                                canCreateSessions ? "" : "-start"
+                            }`}
                             onOpening={fetchExistingSessions}
                             onClose={() => {
                                 setExistingSessions(null);
@@ -263,6 +262,7 @@ export default function Sessions() {
                                             large
                                             autoFocus
                                             fill
+                                            style={{ width: 210 }}
                                             value={joinSessionId}
                                             onChange={(event) => {
                                                 setJoinSessionId(
