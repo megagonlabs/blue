@@ -40,6 +40,13 @@ class UserAgent(Agent):
             kwargs['name'] = "USER"
         super().__init__(**kwargs)
 
+    
+    def _initialize(self, properties=None):
+        super()._initialize(properties=properties)
+
+        # user is not instructable
+        self.properties['instructable'] = False
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--name', default="USER", type=str)

@@ -48,6 +48,14 @@ class ObserverAgent(Agent):
             kwargs["name"] = "OBSERVER"
         super().__init__(**kwargs)
 
+    
+        
+    def _initialize(self, properties=None):
+        super()._initialize(properties=properties)
+
+        # observer is not instructable
+        self.properties['instructable'] = False
+
     def response_handler(self, stream,  properties=None, message={}):
         try:
             output = {}

@@ -48,6 +48,7 @@ class RecorderAgent(Agent):
     def _initialize_properties(self):
         super()._initialize_properties()
 
+
         # default properties
         listeners = {}
         default_listeners = {}

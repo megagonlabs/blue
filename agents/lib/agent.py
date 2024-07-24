@@ -107,6 +107,9 @@ class Agent:
         self.properties["db.host"] = "localhost"
         self.properties["db.port"] = 6379
 
+        # instructable
+        self.properties["instructable"] = True
+
         ### include/exclude list of rules to listen to agents/tags
         listeners = {}
         self.properties["listens"] = listeners
@@ -146,16 +149,28 @@ class Agent:
 
     ###### worker
     # input_stream is data stream for input param, default 'DEFAULT' 
-    def create_worker(self, input_stream, input="DEFAULT"):
+    def create_worker(self, input_stream, input="DEFAULT", processor=None):
+        # listen 
+        logging.info(
+            "Listening stream {stream} for param {param}...".format(
+                stream=input_stream, param=input
+            )
+        )
+
+        if processor == None:
+            processor = lambda *args, **kwargs: self.processor(*args, **kwargs)
+
         worker = Worker(
             input_stream,
             input=input,
             prefix=self.cid,
             agent=self,
-            processor=lambda *args, **kwargs: self.processor(*args, **kwargs),
+            processor=processor,
             session=self.session,
             properties=self.properties,
         )
+
+        self.workers.append(worker)
 
         return worker
 
@@ -172,6 +187,30 @@ class Agent:
         logging.info(input)
         logging.info(properties)
         logging.info(worker)
+
+    ###### default processor, do not override
+    def _instruction_processor(
+        self,
+        message,
+        input=None,
+        properties=None,
+        worker=None,
+    ):
+        logging.info("instruction processor")
+        logging.info(message)
+        logging.info(input)
+        logging.info(properties)
+        logging.info(worker)
+
+        if message.getCode() == ControlCode.EXECUTE_AGENT:
+            agent = message.getArg("agent")
+            if agent == self.name:
+                input_streams = message.getArg("input")
+                for input_param in input_streams:
+                    logging.info("l")
+                    self.create_worker(input_streams[input_param], input=input_param)
+            
+        
 
     ###### session
     def join_session(self, session):
@@ -199,6 +238,13 @@ class Agent:
             matched_params = self._match_listen_to_tags(tags)
             logging.info("Done.")
 
+            # instructable
+            logging.info("instructable? " + str(self.properties['instructable']))
+            if self.properties['instructable']:
+                if 'INSTRUCTION' in set(tags):
+                    # create a special worker to list to streams with instructions
+                    instruction_worker = self.create_worker(stream, input="INSTRUCTION", processor=lambda *args, **kwargs: self._instruction_processor(*args, **kwargs))
+
             # skip
             if len(matched_params) == 0:
                 logging.info("Skipping stream {stream} with {tags}...".format(stream=stream, tags=tags))
@@ -206,23 +252,10 @@ class Agent:
 
             for param in matched_params:
                 tags = matched_params[param]
-                # listen 
-                logging.info(
-                    "Listening stream {stream} for param {param} with matching tags {tags}...".format(
-                        stream=stream, param=param, tags=tags
-                    )
-                )
-
-                # create and start worker
-                logging.info(
-                    "Spawning worker for param {param} from stream {stream}...".format(
-                        stream=stream, param=param
-                    )
-                )
+                
 
                 # create worker
                 worker = self.create_worker(stream, input=param)
-                self.workers.append(worker)
 
                 logging.info("Spawned worker for stream {stream}...".format(stream=stream))
 
