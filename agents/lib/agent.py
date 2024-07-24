@@ -149,7 +149,7 @@ class Agent:
 
     ###### worker
     # input_stream is data stream for input param, default 'DEFAULT' 
-    def create_worker(self, input_stream, input="DEFAULT", processor=None):
+    def create_worker(self, input_stream, input="DEFAULT", context=None, processor=None):
         # listen 
         logging.info(
             "Listening stream {stream} for param {param}...".format(
@@ -160,10 +160,17 @@ class Agent:
         if processor == None:
             processor = lambda *args, **kwargs: self.processor(*args, **kwargs)
 
+        # set prefix if context provided
+        if context:
+            p = context + ":" + self.sid
+        else:
+            # default agent's cid is prefix
+            p = self.cid
+
         worker = Worker(
             input_stream,
             input=input,
-            prefix=self.cid,
+            prefix=p,
             agent=self,
             processor=processor,
             session=self.session,
@@ -205,10 +212,11 @@ class Agent:
         if message.getCode() == ControlCode.EXECUTE_AGENT:
             agent = message.getArg("agent")
             if agent == self.name:
+                context = message.getArg("context")
                 input_streams = message.getArg("input")
                 for input_param in input_streams:
                     logging.info("l")
-                    self.create_worker(input_streams[input_param], input=input_param)
+                    self.create_worker(input_streams[input_param], input=input_param, context=context)
             
         
 

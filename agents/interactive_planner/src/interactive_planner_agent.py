@@ -484,7 +484,7 @@ class InteractivePlannerAgent(OpenAIAgent):
 
                         # get context from data section
                         plan_context = {
-                            "scope": worker.session.cid,
+                            "scope": stream,
                             # "streams": {
                             #     "USER.TEXT": stream
                             # }
@@ -534,7 +534,7 @@ class InteractivePlannerAgent(OpenAIAgent):
 
                 # save context to data section
                 plan_context = {
-                    "scope": worker.session.cid,
+                    "scope": stream,
                     "streams": {
                         "USER.TEXT": stream
                     }
