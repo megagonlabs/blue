@@ -17,6 +17,7 @@ import {
     faCopy,
     faMessageDots,
     faPenLine,
+    faQuestion,
 } from "@fortawesome/pro-duotone-svg-icons";
 import copy from "copy-to-clipboard";
 import _ from "lodash";
@@ -56,10 +57,16 @@ export default function SessionRow({ index, style }) {
                             JSON
                         </Tag>
                     );
-                } else if (_.isEqual(contentType, "INTERACTION")) {
+                } else if (_.isEqual(contentType, "JSON_FORM")) {
                     setLastMessage(
                         <Tag minimal icon={faIcon({ icon: faPenLine })}>
-                            Interactive
+                            Form
+                        </Tag>
+                    );
+                } else {
+                    setLastMessage(
+                        <Tag minimal icon={faIcon({ icon: faQuestion })}>
+                            Unknown
                         </Tag>
                     );
                 }
