@@ -135,12 +135,12 @@ app.add_middleware(CORSMiddleware, allow_origins=allowed_origins, allow_credenti
 
 
 @app.exception_handler(InvalidRequestJson)
-async def unicorn_exception_handler_invalid_request_json(exc: InvalidRequestJson):
+async def unicorn_exception_handler_invalid_request_json(request: Request, exc: InvalidRequestJson):
     return JSONResponse(status_code=exc.status_code, content={"json_errors": exc.errors})
 
 
 @app.exception_handler(PermissionDenied)
-async def unicorn_exception_handler_permission_denied(exc: PermissionDenied):
+async def unicorn_exception_handler_permission_denied(request: Request, exc: PermissionDenied):
     return JSONResponse(status_code=403, content={"message": "You don't have permission for this request."})
 
 

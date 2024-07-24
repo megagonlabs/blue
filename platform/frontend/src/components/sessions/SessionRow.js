@@ -46,17 +46,17 @@ export default function SessionRow({ index, style }) {
                     })
                 );
             } else {
-                const messageLabel = _.get(last, "label", null);
-                if (_.isEqual(messageLabel, "TEXT")) {
+                const contentType = _.get(last, "contentType", null);
+                if (_.includes(["STR", "INT", "FLOAT"], contentType)) {
                     const data = _.get(streams, [last.stream, "data"], []);
                     setLastMessage(_.join(_.map(data, "content"), " "));
-                } else if (_.isEqual(messageLabel, "JSON")) {
+                } else if (_.isEqual(contentType, "JSON")) {
                     setLastMessage(
                         <Tag minimal icon={faIcon({ icon: faBracketsCurly })}>
                             JSON
                         </Tag>
                     );
-                } else if (_.isEqual(messageLabel, "INTERACTION")) {
+                } else if (_.isEqual(contentType, "INTERACTION")) {
                     setLastMessage(
                         <Tag minimal icon={faIcon({ icon: faPenLine })}>
                             Interactive
