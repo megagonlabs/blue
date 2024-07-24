@@ -96,6 +96,7 @@ class CoordinatorAgent(Agent):
 
         # context: scope, streams
         context = plan['context']
+        context_scope = context['scope']
         # plan steps
         steps = plan['steps']
 
@@ -106,6 +107,7 @@ class CoordinatorAgent(Agent):
         plan["stream2id"] = stream2id
         id2node = {}
         plan["id2node"] = id2node
+        
 
         
         # plan status
@@ -146,7 +148,8 @@ class CoordinatorAgent(Agent):
                 src_node = id2node[src_id]
             else:
                 src_id = create_uuid()
-                src_node = { 'agent': src_agent_name, 'param': src_agent_param, 'canonical_name': src_canonical_name, 'id': src_id, 'next': [], 'prev': [], 'params': {}, 'status': 'PLANNED' }
+
+                src_node = { 'agent': src_agent_name,  'param': src_agent_param, 'canonical_name': src_canonical_name, 'id': src_id, 'next': [], 'prev': [], 'params': {}, 'status': 'PLANNED' }
                 canonical2id[src_canonical_name] = src_id
                 id2node[src_id] = src_node
 
@@ -157,7 +160,11 @@ class CoordinatorAgent(Agent):
                 dst_node = id2node[dst_id]
             else:
                 dst_id = create_uuid()
-                dst_node = { 'agent': dst_agent_name, 'param': dst_agaent_param, 'canonical_name': dst_canonical_name, 'id': dst_id, 'next': [], 'prev': [], 'params': {}, 'status': 'PLANNED' }
+                if dst_agent_name in name2id:
+                    dst_agent_id = name2id[dst_agent_name]
+                else:
+                    dst_agent_id = create_uuid()
+                dst_node = { 'agent': dst_agent_name,  'param': dst_agaent_param, 'canonical_name': dst_canonical_name, 'id': dst_id, 'next': [], 'prev': [], 'params': {}, 'status': 'PLANNED' }
                 canonical2id[dst_canonical_name] = dst_id
                 id2node[dst_id] = dst_node
 
@@ -204,11 +211,16 @@ class CoordinatorAgent(Agent):
         #TODO: verify plan
         return plan
     
-    # def session_listener(self, message):
-    #     ### check if stream is in stream watch list
+    def session_listener(self, message):
+        ### check if stream is in stream watch list
+        if message.getCode() == ControlCode.ADD_STREAM:
+            stream = message.getArg("stream")
+            logging.info("Observed stream: " + stream)
+            
 
-    #     ### do regular session listening
-    #     return super().session_listener(message)
+
+        ### do regular session listening
+        return super().session_listener(message)
     
     # node status progression
     # PLANNED, TRIGGERED, STARTED, FINISHED
@@ -253,6 +265,7 @@ class CoordinatorAgent(Agent):
                 node_id = worker.get_data(plan_id + ".stream2id." + stream)
                 worker.set_data(plan_id + ".id2node." + node_id + ".status", "FINISHED")
 
+                context_scope = worker.get_data(plan_id + ".context.scope")
                 # start nexts
                 next_node_ids = worker.get_data(plan_id + ".id2node." + node_id + ".next")
                 logging.info("nexts")
@@ -261,8 +274,10 @@ class CoordinatorAgent(Agent):
                 for next_node_id in next_node_ids:
                     next_agent = worker.get_data(plan_id + ".id2node." + next_node_id + ".agent")
                     next_agent_param = worker.get_data(plan_id + ".id2node." + next_node_id + ".param")
+
                     # create an EXECUTE_AGENT instruction
-                    worker.write_control(ControlCode.EXECUTE_AGENT, {"agent": next_agent, "input": { next_agent_param: stream }})
+                    context_cid = context_scope + ":PLAN:" + plan_id 
+                    worker.write_control(ControlCode.EXECUTE_AGENT, {"agent": next_agent, "context": context_cid, "input": { next_agent_param: stream }})
                     
             else:
                 pass
