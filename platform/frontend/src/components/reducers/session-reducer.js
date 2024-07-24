@@ -60,10 +60,7 @@ export default function sessionReducer(
                             complete: false,
                         });
                         _.set(sessions, payload.session_id, {
-                            messages: _.sortBy(_.uniqBy(messages, "stream"), [
-                                "timestamp",
-                                "order",
-                            ]),
+                            messages,
                             streams,
                         });
                     } else if (_.isEqual(messageContentsCode, "EOS")) {
@@ -132,7 +129,14 @@ export default function sessionReducer(
                         dataType: contentType,
                     });
                 }
-                _.set(sessions, [payload.session_id, "messages"], messages);
+                _.set(
+                    sessions,
+                    [payload.session_id, "messages"],
+                    _.sortBy(_.uniqBy(messages, "stream"), [
+                        "timestamp",
+                        "order",
+                    ])
+                );
                 _.set(
                     sessions,
                     [payload.session_id, "streams", payload.stream, "data"],
