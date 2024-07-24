@@ -143,18 +143,17 @@ class Producer:
         self.write(Message.EOS)
 
     def write_data(self, data):
+        # default to string
+        content_type = ContentType.STR
         if type(data) == int:
-            contents = data
             content_type = ContentType.INT
         elif type(data) == float:
-            contents = data
             content_type = ContentType.FLOAT
         elif type(data) == str:
-            contents = data
             content_type = ContentType.STR
         elif type(data) == dict:
             content_type = ContentType.JSON
-        self.write(Message(MessageType.DATA, contents, content_type))
+        self.write(Message(MessageType.DATA, data, content_type))
 
     def write_control(self, code, args):
         self.write(Message(MessageType.CONTROL, {"code": code, "args": args}, ContentType.JSON))
@@ -178,12 +177,10 @@ class Producer:
             id = di[0]
             m_json = di[1]
 
-             
             message = Message.fromJSON(json.dumps(m_json))
             message.setID(id)
             message.setStream(s)
-            
-            
+
             messages.append(message)
 
         return messages
