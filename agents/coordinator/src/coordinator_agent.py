@@ -160,10 +160,7 @@ class CoordinatorAgent(Agent):
                 dst_node = id2node[dst_id]
             else:
                 dst_id = create_uuid()
-                if dst_agent_name in name2id:
-                    dst_agent_id = name2id[dst_agent_name]
-                else:
-                    dst_agent_id = create_uuid()
+
                 dst_node = { 'agent': dst_agent_name,  'param': dst_agaent_param, 'canonical_name': dst_canonical_name, 'id': dst_id, 'next': [], 'prev': [], 'params': {}, 'status': 'PLANNED' }
                 canonical2id[dst_canonical_name] = dst_id
                 id2node[dst_id] = dst_node

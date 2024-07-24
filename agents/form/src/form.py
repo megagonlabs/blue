@@ -50,6 +50,11 @@ class FormAgent(Agent):
         super().__init__(**kwargs)
 
     def triggered(self, text, properties):
+        # if instructed, consider it triggered
+        if 'instructable' in properties:
+            if properties['instructable']:
+                return True
+            
         triggers = properties['triggers']
         for trigger in triggers:
             if trigger.lower() in text.lower():
