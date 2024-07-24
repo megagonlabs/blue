@@ -64,6 +64,9 @@ class CoordinatorAgent(Agent):
     def _initialize(self, properties=None):
         super()._initialize(properties=properties)
 
+        # coordinator is not instructable
+        self.properties['instructable'] = False
+
         # if plan is fixed, in properties
         if 'plan' in self.properties:
             plan = self.properties['plan']
@@ -89,6 +92,7 @@ class CoordinatorAgent(Agent):
         # init id if None
         if 'id' not in plan:
             plan["id"] = create_uuid()
+        plan_id = plan["id"]
 
         # context: scope, streams
         context = plan['context']
@@ -157,8 +161,8 @@ class CoordinatorAgent(Agent):
                 canonical2id[dst_canonical_name] = dst_id
                 id2node[dst_id] = dst_node
 
-            src_node['next'].append(dst_node)
-            dst_node['prev'].append(src_node)
+            src_node['next'].append(dst_node['id'])
+            dst_node['prev'].append(src_node['id'])
 
         plan['canonical2id'] = canonical2id
         plan['id2node'] = id2node
@@ -169,6 +173,8 @@ class CoordinatorAgent(Agent):
             stream = streams[canonicalname]
             id = canonical2id[canonicalname]
             stream2id[stream] = id
+
+            planned[stream] = True
 
         # how to figure out the stream of an agent for a particular output parameter
         # 
@@ -183,9 +189,15 @@ class CoordinatorAgent(Agent):
         # PLATFORM:dev:SESSION:27410756:AGENT:USER:eser_AT_megagon_DOT_ai:OUTPUT:DEFAULT:<ID>:STREAM
         
         # persist plan data to agent memory
-        worker.set_data(id, plan)
+        logging.info(str(plan))
+        logging.info(json.dumps(plan, indent=3))
+        worker.set_data(plan_id, plan)
 
-        # start executing plan from streams
+        ### start executing plan from streams
+        # create workers to planned streams to monitor progress
+        for stream in planned:
+            self.create_worker(stream, input=plan_id)
+
 
 
     def verify_plan(self, plan):
@@ -202,23 +214,58 @@ class CoordinatorAgent(Agent):
     # PLANNED, TRIGGERED, STARTED, FINISHED
     def default_processor(self, message, input="DEFAULT", properties=None, worker=None):
 
-        # TODO: Instructions should use TAGs not agent_name
-        stream = message.getStream()
+        if input == "DEFAULT":
+            # new plan 
+            stream = message.getStream()
 
-        logging.info("stream: " + stream)
-        if message.isData():
-            logging.info("plan:")
-            p = message.getData()
-            logging.info(type(p))
-            logging.info(json.dumps(p))
-            
-            plan = self.verify_plan(p)
-            if plan:
-                # start plan
-                self.initialize_plan(plan)
+            logging.info("stream: " + stream)
+            if message.isData():
+                logging.info("plan:")
+                p = message.getData()
+                logging.info(type(p))
+                logging.info(json.dumps(p))
+                
+                plan = self.verify_plan(p)
+                if plan:
+                    # start plan
+                    self.initialize_plan(plan, worker=worker)
+        else:
+            # process a plan
+            plan_id = input
+            stream = message.getStream()
+
+            if message.isBOS():
+                # set planned to False
+                worker.set_data(plan_id + ".status.planned." + stream, False)
+                # set runnning to True
+                worker.set_data(plan_id + ".status.running." + stream, True)
+
+                # update node status
+                node_id = worker.get_data(plan_id + ".stream2id." + stream)
+                worker.set_data(plan_id + ".id2node." + node_id + ".status", "RUNNING")
+            elif message.isEOS():
+                # set running to False
+                worker.set_data(plan_id + ".status.running." + stream, False)
+                # set finished to True
+                worker.set_data(plan_id + ".status.finished." + stream, True)
+
+                # update node status
+                node_id = worker.get_data(plan_id + ".stream2id." + stream)
+                worker.set_data(plan_id + ".id2node." + node_id + ".status", "FINISHED")
+
+                # start nexts
+                next_node_ids = worker.get_data(plan_id + ".id2node." + node_id + ".next")
+                logging.info("nexts")
+                logging.info(next_node_ids)
+                logging.info(type(next_node_ids))
+                for next_node_id in next_node_ids:
+                    next_agent = worker.get_data(plan_id + ".id2node." + next_node_id + ".agent")
+                    next_agent_param = worker.get_data(plan_id + ".id2node." + next_node_id + ".param")
+                    # create an EXECUTE_AGENT instruction
+                    worker.write_control(ControlCode.EXECUTE_AGENT, {"agent": next_agent, "input": { next_agent_param: stream }})
+                    
+            else:
                 pass
-
-        
 
         # start = plan['start']
         # canonical2node = plan['canonical2node']
