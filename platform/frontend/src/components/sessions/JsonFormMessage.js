@@ -1,42 +1,29 @@
 import { HEX_TRANSPARENCY, JSONFORMS_RENDERERS } from "@/components/constant";
 import { AppContext } from "@/components/contexts/app-context";
-import { Callout, Colors, Tag } from "@blueprintjs/core";
+import { Colors, Tag } from "@blueprintjs/core";
 import { JsonForms } from "@jsonforms/react";
 import { vanillaCells } from "@jsonforms/vanilla-renderers";
 import classNames from "classnames";
 import _ from "lodash";
 import { useContext, useEffect, useState } from "react";
 import { useErrorBoundary } from "react-use-error-boundary";
-export default function InteractiveMessage({ stream, content, setHasError }) {
+export default function JsonFormMessage({ content, setHasError }) {
     const { appState } = useContext(AppContext);
     const terminatedInteraction = appState.session.terminatedInteraction;
-    const contentType = _.get(content, "type", null);
-    const contentValue = _.get(content, "content", {});
     const [error] = useErrorBoundary();
-    const [data, setData] = useState(_.get(contentValue, "data", {}));
+    const [data, setData] = useState(_.get(content, "data", {}));
     const isFormTerminated = terminatedInteraction.has(
-        `${stream},${_.get(content, "form_id", "")}`
+        _.get(content, "form_id", null)
     );
     useEffect(() => {
         setHasError(Boolean(error));
     }, [error]);
-    if (_.isEqual(contentType, "CALLOUT")) {
-        return (
-            <Callout
-                icon={null}
-                intent={_.get(content, "content.intent", null)}
-            >
-                {_.get(content, "content.message", "")}
-            </Callout>
-        );
-    }
-    // contentType == "JSONFORM"
     return !error ? (
         <>
             <JsonForms
-                schema={_.get(contentValue, "schema", {})}
+                schema={_.get(content, "schema", {})}
                 data={data}
-                uischema={_.get(contentValue, "uischema", {})}
+                uischema={_.get(content, "uischema", {})}
                 renderers={JSONFORMS_RENDERERS}
                 cells={vanillaCells}
                 onChange={({ data, errors }) => {
@@ -58,7 +45,7 @@ export default function InteractiveMessage({ stream, content, setHasError }) {
                             zIndex: 21,
                         }}
                     >
-                        Interactions Complete
+                        Closed
                     </Tag>
                     <div
                         style={{

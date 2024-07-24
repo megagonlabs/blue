@@ -15,7 +15,7 @@ import { useResizeDetector } from "react-resize-detector";
 import AutoSizer from "react-virtualized-auto-sizer";
 import { VariableSizeList } from "react-window";
 import { faIcon } from "../icon";
-import InteractiveMessage from "./InteractiveMessage";
+import JsonFormMessage from "./JsonFormMessage";
 import MessageMetadata from "./MessageMetadata";
 export default function SessionMessages() {
     const variableSizeListRef = useRef();
@@ -133,9 +133,8 @@ export default function SessionMessages() {
                             minHeight: 21,
                         }}
                     >
-                        {_.isEqual(contentType, "INTERACTION") ? (
-                            <InteractiveMessage
-                                stream={stream}
+                        {_.isEqual(contentType, "JSON_FORM") ? (
+                            <JsonFormMessage
                                 content={_.last(data).content}
                                 setHasError={setHasError}
                             />
