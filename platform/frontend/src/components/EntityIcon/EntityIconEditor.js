@@ -3,6 +3,7 @@ import {
     Card,
     Collapse,
     Colors,
+    ControlGroup,
     Dialog,
     DialogBody,
     DialogFooter,
@@ -12,16 +13,20 @@ import {
     Tag,
 } from "@blueprintjs/core";
 import {
+    faArrowsToCircle,
     faCaretDown,
     faCaretUp,
     faCheck,
     faFaceViewfinder,
-    faIcons,
     faImage,
 } from "@fortawesome/pro-duotone-svg-icons";
 import _ from "lodash";
 import { useRef, useState } from "react";
-import ReactCrop, { centerCrop, makeAspectCrop } from "react-image-crop";
+import ReactCrop, {
+    centerCrop,
+    convertToPixelCrop,
+    makeAspectCrop,
+} from "react-image-crop";
 import "react-image-crop/dist/ReactCrop.css";
 import { useDebounceEffect } from "../hooks/useDebounceEffect";
 import { faIcon } from "../icon";
@@ -43,10 +48,16 @@ export default function EntityIconEditor({ isOpen, setIsIconEditorOpen }) {
     };
     const imgRef = useRef(null);
     const previewCanvasRef = useRef(null);
-    const centerAspectCrop = (mediaWidth, mediaHeight, aspect) => {
+    const centerAspectCrop = (
+        mediaWidth,
+        mediaHeight,
+        aspect = 1,
+        cropWidth = 90,
+        cropHeight = 90
+    ) => {
         return centerCrop(
             makeAspectCrop(
-                { unit: "%", width: 90 },
+                { unit: "%", width: cropWidth, height: cropHeight },
                 aspect,
                 mediaWidth,
                 mediaHeight
@@ -76,13 +87,15 @@ export default function EntityIconEditor({ isOpen, setIsIconEditorOpen }) {
     );
     const onImageLoad = (event) => {
         const { width, height } = event.currentTarget;
-        setCrop(centerAspectCrop(width, height, 1));
+        setCrop(centerAspectCrop(width, height));
     };
     const [showPreview, setShowPreview] = useState(false);
     return (
         <Dialog
             onClose={() => {
                 setIsIconEditorOpen(false);
+                setImgSrc("");
+                setShowPreview(false);
             }}
             title="Entity Icon"
             isOpen={isOpen}
@@ -99,34 +112,20 @@ export default function EntityIconEditor({ isOpen, setIsIconEditorOpen }) {
                         }}
                         active={_.isEqual(tab, "image")}
                     />
-                    <Button
-                        icon={faIcon({ icon: faIcons })}
-                        minimal
-                        large
-                        text="Icon"
-                        onClick={() => {
-                            setTab("icon");
-                        }}
-                        active={_.isEqual(tab, "icon")}
-                    />
                 </Card>
                 <div style={{ padding: 15 }}>
                     {_.isEqual(tab, "image") ? (
                         <div>
-                            <FileInput
-                                style={{ width: 200 }}
-                                text="Choose file..."
-                                onInputChange={onSelectFile}
-                            />
-                            {!!imgSrc && (
-                                <>
-                                    <div
-                                        style={{
-                                            marginTop: 15,
-                                            marginBottom: 15,
-                                        }}
-                                    >
+                            <ControlGroup fill>
+                                <FileInput
+                                    style={{ maxWidth: 216.57 }}
+                                    text="Choose an image..."
+                                    onInputChange={onSelectFile}
+                                />
+                                {!!imgSrc && (
+                                    <>
                                         <Button
+                                            minimal
                                             onClick={() =>
                                                 setShowPreview(!showPreview)
                                             }
@@ -140,99 +139,122 @@ export default function EntityIconEditor({ isOpen, setIsIconEditorOpen }) {
                                                     : faCaretDown,
                                             })}
                                         />
-                                        <Collapse
-                                            keepChildrenMounted
-                                            isOpen={showPreview}
+                                        <Button
+                                            minimal
+                                            icon={faIcon({
+                                                icon: faArrowsToCircle,
+                                            })}
+                                            text="Center crop"
+                                            onClick={() => {
+                                                const centerCrop =
+                                                    centerAspectCrop(
+                                                        imgRef.current.width,
+                                                        imgRef.current.height,
+                                                        1,
+                                                        crop.width,
+                                                        crop.height
+                                                    );
+                                                setCrop(centerCrop);
+                                                setCompletedCrop(
+                                                    convertToPixelCrop(
+                                                        centerCrop,
+                                                        imgRef.current.width,
+                                                        imgRef.current.height
+                                                    )
+                                                );
+                                            }}
+                                        />
+                                    </>
+                                )}
+                            </ControlGroup>
+                            {!!imgSrc && (
+                                <>
+                                    <Collapse
+                                        keepChildrenMounted
+                                        isOpen={showPreview}
+                                    >
+                                        <Card
+                                            style={{
+                                                padding: 15,
+                                                width: 300,
+                                                marginTop: 15,
+                                            }}
                                         >
                                             <Card
                                                 style={{
-                                                    marginTop: 15,
-                                                    width: 400,
-                                                    padding: 15,
+                                                    position: "relative",
+                                                    backgroundColor:
+                                                        Colors.LIGHT_GRAY5,
                                                 }}
                                             >
                                                 <Card
                                                     style={{
-                                                        position: "relative",
-                                                        backgroundColor:
-                                                            Colors.LIGHT_GRAY5,
+                                                        overflow: "hidden",
+                                                        position: "absolute",
+                                                        left: 20,
+                                                        top: 20,
+                                                        padding: 0,
+                                                        height: 40,
+                                                        width: 40,
+                                                        display: "flex",
+                                                        justifyContent:
+                                                            "center",
+                                                        alignItems: "center",
                                                     }}
                                                 >
-                                                    <Card
+                                                    <canvas
+                                                        ref={previewCanvasRef}
                                                         style={{
-                                                            overflow: "hidden",
-                                                            position:
-                                                                "absolute",
-                                                            left: 20,
-                                                            top: 20,
-                                                            padding: 0,
-                                                            height: 40,
+                                                            objectFit:
+                                                                "contain",
                                                             width: 40,
-                                                            display: "flex",
-                                                            justifyContent:
-                                                                "center",
-                                                            alignItems:
-                                                                "center",
+                                                            height: 40,
                                                         }}
-                                                    >
-                                                        <canvas
-                                                            ref={
-                                                                previewCanvasRef
-                                                            }
-                                                            style={{
-                                                                objectFit:
-                                                                    "contain",
-                                                                width: 40,
-                                                                height: 40,
-                                                            }}
-                                                        />
-                                                    </Card>
-                                                    <H5
-                                                        style={{
-                                                            lineHeight: "40px",
-                                                            marginLeft: 50,
-                                                            marginBottom: 0,
-                                                        }}
-                                                    >
-                                                        Lorem
-                                                    </H5>
-                                                    <div
-                                                        className="multiline-ellipsis"
-                                                        style={{
-                                                            height: 36,
-                                                            marginTop: 10,
-                                                        }}
-                                                    >
-                                                        ehicula enim praesent
-                                                        natoque nec aliquet diam
-                                                        dolor. Justo cras purus
-                                                        montes ridiculus
-                                                        volutpat morbi venenatis
-                                                        pretium.
-                                                    </div>
-                                                    <Tag
-                                                        style={{
-                                                            marginTop: 10,
-                                                        }}
-                                                        minimal
-                                                        intent={Intent.PRIMARY}
-                                                    >
-                                                        consectetuer/adipiscing-elit
-                                                    </Tag>
+                                                    />
                                                 </Card>
+                                                <H5
+                                                    style={{
+                                                        lineHeight: "40px",
+                                                        marginLeft: 50,
+                                                        marginBottom: 0,
+                                                    }}
+                                                >
+                                                    LoremIpsum
+                                                </H5>
+                                                <div
+                                                    className="multiline-ellipsis"
+                                                    style={{
+                                                        height: 36,
+                                                        marginTop: 10,
+                                                    }}
+                                                >
+                                                    Morbi mauris natoque finibus
+                                                    parturient urna at
+                                                    himenaeos.
+                                                </div>
+                                                <Tag
+                                                    style={{
+                                                        marginTop: 10,
+                                                    }}
+                                                    minimal
+                                                    intent={Intent.PRIMARY}
+                                                >
+                                                    consectetuer/adipiscing-elit
+                                                </Tag>
                                             </Card>
-                                        </Collapse>
-                                    </div>
+                                        </Card>
+                                    </Collapse>
                                     <ReactCrop
-                                        ruleOfThirds
+                                        style={{ marginTop: 15 }}
+                                        keepSelection
                                         crop={crop}
                                         onChange={(_, percentCrop) =>
                                             setCrop(percentCrop)
                                         }
                                         onComplete={(c) => setCompletedCrop(c)}
                                         aspect={1}
-                                        minWidth={40}
-                                        minHeight={40}
+                                        minWidth={80}
+                                        minHeight={80}
                                     >
                                         <img
                                             ref={imgRef}
