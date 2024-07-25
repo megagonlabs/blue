@@ -61,11 +61,14 @@ class TemplateInteractiveAgent(Agent):
                     action = data["action"]
 
                 
+                    # get form stream
+                    form_data_stream = stream.replace("EVENT", "OUTPUT:FORM")
+
                     # when the user clicked DONE
                     if action == "DONE":
                         # gather all data, check if first_name is set
-                        first_name = worker.get_stream_data(stream=stream, key="first_name.value")
-                        last_name = worker.get_stream_data(stream=stream, key="last_name.value")
+                        first_name = worker.get_stream_data("first_name.value", stream=form_data_stream)
+                        last_name = worker.get_stream_data("last_name.value", stream=form_data_stream)
                         first_name_filled = not pydash.is_empty(pydash.strings.trim(first_name))
                         last_name_filled = not pydash.is_empty(pydash.strings.trim(last_name))
 
@@ -140,15 +143,16 @@ class TemplateInteractiveAgent(Agent):
                             elif first_name_filled and last_name_filled:
                                 return [ "Hello, " + first_name + " " + last_name, Message.EOS ]
                     else:
-                        timestamp = worker.get_stream_data(stream=stream, key=f'{data["path"]}.timestamp')
+                        path = data["path"]
+                        timestamp = worker.get_stream_data(path + ".timestamp", stream=form_data_stream)
                         if timestamp is None or data["timestamp"] > timestamp:
                             worker.set_stream_data(
-                                key=data["path"],
-                                value={
+                                path,
+                                {
                                     "value": data["value"],
                                     "timestamp": data["timestamp"],
                                 },
-                                stream=stream,
+                                stream=form_data_stream
                             )
         else:
             if message.isEOS():

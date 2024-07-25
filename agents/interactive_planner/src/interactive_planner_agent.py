@@ -477,10 +477,13 @@ class InteractivePlannerAgent(OpenAIAgent):
                     form_id = data["form_id"]
                     action = data["action"]
 
+                     # get form stream
+                    form_data_stream = stream.replace("EVENT", "OUTPUT:FORM")
+
                     # when the user clicked DONE
                     if action == "DONE":
                         # get plan
-                        plan_data = worker.get_stream_data(stream=stream, key="steps")
+                        plan_data = worker.get_stream_data("steps", stream=form_data_stream)
 
                         # get context from data section
                         plan_context = {
@@ -510,14 +513,18 @@ class InteractivePlannerAgent(OpenAIAgent):
                         logging.info(plan)
                         return plan
                     else:
-                        timestamp = worker.get_stream_data(stream=stream, key=f'{data["path"]}.timestamp')
+                        path = data["path"]
+                        timestamp = worker.get_stream_data(path + ".timestamp", stream=form_data_stream)
 
                         # TODO: timestamp should be replaced by id to determine order
                         if timestamp is None or data["timestamp"] > timestamp:
                             worker.set_stream_data(
-                                key=data["path"],
-                                value=data["value"],
-                                stream=stream,
+                                path,
+                                {
+                                    "value": data["value"],
+                                    "timestamp": data["timestamp"],
+                                },
+                                stream=form_data_stream
                             )
         else:
 

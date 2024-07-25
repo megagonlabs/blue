@@ -301,63 +301,26 @@ class Worker:
         return None
 
     ## session stream data
-    def _identify_stream(self, stream=None):
-        if stream:
-            return stream
-        else:
-            if len(self.input_streams) == 1:
-                return list(self.input_streams)[0]
-            else:
-                return "UNIDENTIFIED"
-
     def set_stream_data(self, key, value, stream=None):
         if self.session:
-            stream = self._identify_stream(stream=stream)
             self.session.set_stream_data(stream, key, value)
 
     def append_stream_data(self, key, value, stream=None):
         if self.session:
-            stream = self._identify_stream(stream=stream)
             self.session.append_stream_data(stream, key, value)
 
     def get_stream_data(self, key, stream=None):
         if self.session:
-            stream = self._identify_stream(stream=stream)
             return self.session.get_stream_data(stream, key)
 
         return None
 
     def get_stream_data_len(self, key, stream=None):
         if self.session:
-            stream = self._identify_stream(stream=stream)
             return self.session.get_stream_data_len(stream, key)
 
         return None
 
-    ## worker data
-    # def set_data(self, key, value, stream=None):
-    #     if self.session:
-    #         stream = self._identify_stream(stream=stream)
-    #         self.session.set_stream_agent_data(stream, self.agent, key, value)
-
-    # def append_data(self, key, value, stream=None):
-    #     if self.session:
-    #         stream = self._identify_stream(stream=stream)
-    #         self.session.append_stream_agent_data(stream, self.agent, key, value)
-
-    # def get_data(self, key, stream=None):
-    #     if self.session:
-    #         stream = self._identify_stream(stream=stream)
-    #         return self.session.get_stream_agent_data(stream, self.agent, key)
-
-    #     return None
-
-    # def get_data_len(self, key, stream=None):
-    #     if self.session:
-    #         stream = self._identify_stream(stream=stream)
-    #         return self.session.get_stream_agent_data_len(stream, self.agent, key)
-
-    #     return None
 
     ## agent data
     def set_data(self, key, value):
