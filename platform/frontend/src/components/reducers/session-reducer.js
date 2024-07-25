@@ -107,7 +107,11 @@ export default function sessionReducer(
                         });
                     } else if (_.isEqual(messageContentsCode, "CLOSE_FORM")) {
                         terminatedInteraction.add(
-                            _.get(payload, "message.contents.form_id", null)
+                            _.get(
+                                payload,
+                                "message.contents.args.form_id",
+                                null
+                            )
                         );
                     }
                 } else if (_.isEqual(messageLabel, "DATA")) {
