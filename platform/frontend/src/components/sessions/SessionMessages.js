@@ -42,12 +42,14 @@ export default function SessionMessages() {
             `USER:${appState.session.connectionId}`
         );
         useEffect(() => {
-            if (rowRef.current) {
-                setRowHeight(
-                    index,
-                    rowRef.current.clientHeight + 30 + (!own ? 20.43 : 0)
-                );
-            }
+            setTimeout(() => {
+                if (rowRef.current) {
+                    setRowHeight(
+                        index,
+                        rowRef.current.clientHeight + 30 + (!own ? 20.43 : 0)
+                    );
+                }
+            }, 0);
         }, [rowRef]);
         const handleResize = useCallback(() => {
             // do magic for resize

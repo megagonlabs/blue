@@ -1,5 +1,4 @@
 import AccessDeniedNonIdealState from "@/components/AccessDeniedNonIdealState";
-import SupportDialog from "@/components/SupportDialog";
 import { NAVIGATION_MENU_WIDTH } from "@/components/constant";
 import { AppContext } from "@/components/contexts/app-context";
 import { AuthContext } from "@/components/contexts/auth-context";
@@ -24,14 +23,13 @@ import {
     faDatabase,
     faListUl,
     faPencilRuler,
-    faQuestion,
     faUserGroup,
 } from "@fortawesome/pro-duotone-svg-icons";
 import _ from "lodash";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useContext, useMemo, useState } from "react";
+import { useContext, useMemo } from "react";
 import { hasTrue } from "./helper";
 import UserAccountPanel from "./navigation/UserAccountPanel";
 export default function App({ children }) {
@@ -49,12 +47,14 @@ export default function App({ children }) {
         [sessionDetail]
     );
     const { user, permissions } = useContext(AuthContext);
-    const canWritePlatformUsers = permissions.canWritePlatformUsers;
-    const showFormDesigner = permissions.showFormDesigner;
-    const canReadPlatformAgents = permissions.canReadPlatformAgents;
-    const canReadSessions = permissions.canReadSessions;
-    const canReadDataRegistry = permissions.canReadDataRegistry;
-    const canReadAgentRegistry = permissions.canReadAgentRegistry;
+    const {
+        canWritePlatformUsers,
+        showFormDesigner,
+        canReadPlatformAgents,
+        canReadSessions,
+        canReadDataRegistry,
+        canReadAgentRegistry,
+    } = permissions;
     const MENU_ITEMS = {
         sessions: {
             href: "/sessions",
@@ -93,16 +93,8 @@ export default function App({ children }) {
             visible: canReadPlatformAgents,
         },
     };
-    const [isSupportDialogOpen, setIsSupportDialogOpen] = useState(false);
-    const openSupportDialog = () => {
-        setIsSupportDialogOpen(true);
-    };
     return (
         <div>
-            <SupportDialog
-                isOpen={isSupportDialogOpen}
-                setIsSupportDialogOpen={setIsSupportDialogOpen}
-            />
             <Navbar style={{ paddingLeft: 20, paddingRight: 20 }}>
                 <Navbar.Group align={Alignment.LEFT}>
                     <Image
@@ -119,16 +111,17 @@ export default function App({ children }) {
                             </Tag>
                         </NavbarHeading>
                     </Link>
+                    <Tooltip
+                        placement="right"
+                        content={process.env.NEXT_PUBLIC_GIT_LONG}
+                    >
+                        <Tag minimal>
+                            {process.env.NEXT_PUBLIC_GIT_BRANCH}-
+                            {process.env.NEXT_PUBLIC_GIT_SHORT}
+                        </Tag>
+                    </Tooltip>
                 </Navbar.Group>
                 <Navbar.Group align={Alignment.RIGHT}>
-                    <Tooltip placement="bottom" minimal content="Support">
-                        <Button
-                            minimal
-                            large
-                            onClick={openSupportDialog}
-                            icon={faIcon({ icon: faQuestion })}
-                        />
-                    </Tooltip>
                     <UserAccountPanel />
                 </Navbar.Group>
             </Navbar>

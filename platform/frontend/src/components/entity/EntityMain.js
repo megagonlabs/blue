@@ -3,6 +3,7 @@ import { AppToaster } from "@/components/toaster";
 import {
     Button,
     ButtonGroup,
+    Card,
     Classes,
     Intent,
     Menu,
@@ -15,6 +16,7 @@ import {
 } from "@blueprintjs/core";
 import {
     faCheck,
+    faCircleA,
     faClone,
     faListDropdown,
     faPen,
@@ -25,6 +27,9 @@ import {
 import axios from "axios";
 import _ from "lodash";
 import { useRouter } from "next/router";
+import { useContext, useState } from "react";
+import { AuthContext } from "../contexts/auth-context";
+import EntityIconEditor from "../EntityIcon/EntityIconEditor";
 export default function EntityMain({
     entity,
     edit,
@@ -33,8 +38,10 @@ export default function EntityMain({
     saveEntity,
     loading,
     jsonError,
+    enableIcon = false,
 }) {
     const router = useRouter();
+    const { permissions } = useContext(AuthContext);
     const containerStatus = _.get(entity, "container.status", "not exist");
     const deployAgent = () => {
         if (!router.isReady) {
@@ -90,172 +97,221 @@ export default function EntityMain({
                 });
             });
     };
+    const [isIconEditorOpen, setIsIconEditorOpen] = useState(false);
     return (
-        <Section compact style={{ position: "relative" }}>
-            <SectionCard padded={false}>
-                <div style={{ display: "flex" }}>
-                    <div
-                        className={Classes.TEXT_MUTED}
-                        style={{ width: 52.7, margin: "15px 0px 0px 15px" }}
-                    >
-                        Name
-                    </div>
-                    <div
-                        className={Classes.TEXT_OVERFLOW_ELLIPSIS}
-                        style={{
-                            width: "calc(100% - 112.16px - 82.7px)",
-                            padding: "15px 20px 10px 10px",
-                        }}
-                    >
-                        {entity.name}
-                    </div>
-                </div>
-                <div style={{ display: "flex" }}>
-                    <div
-                        className={Classes.TEXT_MUTED}
-                        style={{ width: 52.7, margin: "0px 0px 15px 15px" }}
-                    >
-                        Type
-                    </div>
-                    <div
-                        className={Classes.TEXT_OVERFLOW_ELLIPSIS}
-                        style={{
-                            width: "calc(100% - 112.16px - 82.7px)",
-                            padding: "0px 20px 10px 10px",
-                        }}
-                    >
-                        {entity.type}
-                    </div>
-                </div>
-                <div
-                    style={{
-                        position: "absolute",
-                        right: 15,
-                        top: "50%",
-                        transform: "translateY(-50%)",
-                        msTransform: "translateY(-50%)",
-                    }}
-                >
-                    {edit ? (
-                        <ButtonGroup large>
-                            <Popover
-                                placement="bottom"
-                                content={
-                                    <div style={{ padding: 15 }}>
-                                        <Button
-                                            className={Classes.POPOVER_DISMISS}
-                                            text="Confirm"
-                                            onClick={discard}
-                                            intent={Intent.DANGER}
-                                        />
-                                    </div>
+        <>
+            <EntityIconEditor
+                isOpen={isIconEditorOpen}
+                setIsIconEditorOpen={setIsIconEditorOpen}
+            />
+            <Section compact style={{ position: "relative" }}>
+                <SectionCard padded={false}>
+                    {enableIcon ? (
+                        <Card
+                            onClick={() => {
+                                if (edit) {
+                                    setIsIconEditorOpen(true);
                                 }
-                            >
-                                <Tooltip
-                                    minimal
-                                    placement="bottom"
-                                    content="Discard"
-                                >
-                                    <Button
-                                        minimal
-                                        icon={faIcon({ icon: faXmarkLarge })}
-                                    />
-                                </Tooltip>
-                            </Popover>
-                            <Button
-                                className={loading ? Classes.SKELETON : null}
-                                large
-                                disabled={jsonError}
-                                intent={Intent.SUCCESS}
-                                text="Save"
-                                onClick={saveEntity}
-                                icon={faIcon({ icon: faCheck })}
-                            />
-                        </ButtonGroup>
-                    ) : (
-                        <ButtonGroup
-                            large
-                            minimal
-                            className={loading ? Classes.SKELETON : null}
+                            }}
+                            style={{
+                                cursor: edit ? "pointer" : null,
+                                position: "absolute",
+                                left: 15,
+                                padding: 0,
+                                height: 40,
+                                width: 40,
+                                display: "flex",
+                                justifyContent: "center",
+                                alignItems: "center",
+                                top: "50%",
+                                transform: "translateY(-50%)",
+                                msTransform: "translateY(-50%)",
+                            }}
                         >
-                            <Popover
+                            {faIcon({ icon: faCircleA })}
+                        </Card>
+                    ) : null}
+                    <div
+                        style={{
+                            display: "flex",
+                            paddingLeft: enableIcon ? 55 : 0,
+                        }}
+                    >
+                        <div
+                            className={Classes.TEXT_MUTED}
+                            style={{ width: 52.7, margin: "15px 0px 0px 15px" }}
+                        >
+                            Name
+                        </div>
+                        <div
+                            className={Classes.TEXT_OVERFLOW_ELLIPSIS}
+                            style={{
+                                width: "calc(100% - 112.16px - 82.7px)",
+                                padding: "15px 20px 5px 10px",
+                            }}
+                        >
+                            {entity.name}
+                        </div>
+                    </div>
+                    <div
+                        style={{
+                            display: "flex",
+                            paddingLeft: enableIcon ? 55 : 0,
+                        }}
+                    >
+                        <div
+                            className={Classes.TEXT_MUTED}
+                            style={{ width: 52.7, margin: "0px 0px 15px 15px" }}
+                        >
+                            Type
+                        </div>
+                        <div
+                            className={Classes.TEXT_OVERFLOW_ELLIPSIS}
+                            style={{
+                                width: "calc(100% - 112.16px - 82.7px)",
+                                padding: "0px 20px 5px 10px",
+                            }}
+                        >
+                            {entity.type}
+                        </div>
+                    </div>
+                    <div
+                        style={{
+                            position: "absolute",
+                            right: 15,
+                            top: "50%",
+                            transform: "translateY(-50%)",
+                            msTransform: "translateY(-50%)",
+                        }}
+                    >
+                        {edit ? (
+                            <ButtonGroup large>
+                                <Popover
+                                    placement="bottom"
+                                    content={
+                                        <div style={{ padding: 15 }}>
+                                            <Button
+                                                className={
+                                                    Classes.POPOVER_DISMISS
+                                                }
+                                                text="Confirm"
+                                                onClick={discard}
+                                                intent={Intent.DANGER}
+                                            />
+                                        </div>
+                                    }
+                                >
+                                    <Tooltip
+                                        minimal
+                                        placement="bottom"
+                                        content="Discard"
+                                    >
+                                        <Button
+                                            minimal
+                                            icon={faIcon({
+                                                icon: faXmarkLarge,
+                                            })}
+                                        />
+                                    </Tooltip>
+                                </Popover>
+                                <Button
+                                    className={
+                                        loading ? Classes.SKELETON : null
+                                    }
+                                    large
+                                    disabled={jsonError}
+                                    intent={Intent.SUCCESS}
+                                    text="Save"
+                                    onClick={saveEntity}
+                                    icon={faIcon({ icon: faCheck })}
+                                />
+                            </ButtonGroup>
+                        ) : (
+                            <ButtonGroup
+                                large
                                 minimal
-                                placement="bottom-end"
-                                content={
-                                    <Menu large>
-                                        {_.isFunction(setEdit) ? (
-                                            <MenuItem
-                                                onClick={() => {
-                                                    setEdit(true);
-                                                }}
-                                                intent={Intent.PRIMARY}
-                                                icon={faIcon({
-                                                    icon: faPen,
-                                                })}
-                                                text="Edit"
-                                            />
-                                        ) : null}
-                                        {_.includes(
-                                            ["agent", "input", "output"],
-                                            entity.type
-                                        ) ? (
-                                            <MenuItem
-                                                icon={faIcon({
-                                                    icon: faClone,
-                                                })}
-                                                text="Duplicate"
-                                                onClick={duplicateEntity}
-                                            />
-                                        ) : null}
-                                        {_.isEqual(entity.type, "agent") ? (
-                                            <MenuItem
-                                                intent={Intent.SUCCESS}
-                                                icon={faIcon({
-                                                    icon: faPlay,
-                                                })}
-                                                disabled={_.isEqual(
-                                                    containerStatus,
-                                                    "running"
-                                                )}
-                                                text="Deploy"
-                                            >
+                                className={loading ? Classes.SKELETON : null}
+                            >
+                                <Popover
+                                    minimal
+                                    placement="bottom-end"
+                                    content={
+                                        <Menu large>
+                                            {_.isFunction(setEdit) ? (
+                                                <MenuItem
+                                                    onClick={() => {
+                                                        setEdit(true);
+                                                    }}
+                                                    intent={Intent.PRIMARY}
+                                                    icon={faIcon({
+                                                        icon: faPen,
+                                                    })}
+                                                    text="Edit"
+                                                />
+                                            ) : null}
+                                            {_.includes(
+                                                ["agent", "input", "output"],
+                                                entity.type
+                                            ) ? (
+                                                <MenuItem
+                                                    icon={faIcon({
+                                                        icon: faClone,
+                                                    })}
+                                                    text="Duplicate"
+                                                    onClick={duplicateEntity}
+                                                />
+                                            ) : null}
+                                            {_.isEqual(entity.type, "agent") &&
+                                            permissions.canWritePlatformAgents ? (
                                                 <MenuItem
                                                     intent={Intent.SUCCESS}
-                                                    text="Confirm"
-                                                    onClick={deployAgent}
-                                                />
-                                            </MenuItem>
-                                        ) : null}
-                                        {_.isFunction(setEdit) ||
-                                        _.isEqual(entity.type, "agent") ? (
-                                            <MenuDivider />
-                                        ) : null}
-                                        <MenuItem
-                                            intent={Intent.DANGER}
-                                            icon={faIcon({ icon: faTrash })}
-                                            text="Delete"
-                                        >
+                                                    icon={faIcon({
+                                                        icon: faPlay,
+                                                    })}
+                                                    disabled={_.isEqual(
+                                                        containerStatus,
+                                                        "running"
+                                                    )}
+                                                    text="Deploy"
+                                                >
+                                                    <MenuItem
+                                                        intent={Intent.SUCCESS}
+                                                        text="Confirm"
+                                                        onClick={deployAgent}
+                                                    />
+                                                </MenuItem>
+                                            ) : null}
+                                            {_.isFunction(setEdit) ||
+                                            _.isEqual(entity.type, "agent") ? (
+                                                <MenuDivider />
+                                            ) : null}
                                             <MenuItem
                                                 intent={Intent.DANGER}
-                                                text="Confirm"
-                                                onClick={deleteEntity}
-                                            />
-                                        </MenuItem>
-                                    </Menu>
-                                }
-                            >
-                                <Button
-                                    outlined
-                                    text="Actions"
-                                    rightIcon={faIcon({
-                                        icon: faListDropdown,
-                                    })}
-                                />
-                            </Popover>
-                        </ButtonGroup>
-                    )}
-                </div>
-            </SectionCard>
-        </Section>
+                                                icon={faIcon({ icon: faTrash })}
+                                                text="Delete"
+                                            >
+                                                <MenuItem
+                                                    intent={Intent.DANGER}
+                                                    text="Confirm"
+                                                    onClick={deleteEntity}
+                                                />
+                                            </MenuItem>
+                                        </Menu>
+                                    }
+                                >
+                                    <Button
+                                        outlined
+                                        text="Actions"
+                                        rightIcon={faIcon({
+                                            icon: faListDropdown,
+                                        })}
+                                    />
+                                </Popover>
+                            </ButtonGroup>
+                        )}
+                    </div>
+                </SectionCard>
+            </Section>
+        </>
     );
 }

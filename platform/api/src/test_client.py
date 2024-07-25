@@ -349,7 +349,7 @@ ws.send(
             "connection_id": connection_id,
             "message": {
                 "label": "CONTROL",
-                "contents": {"code": "CLOSE_FORM", "form_id": 'local-test-client-form-1'},
+                "contents": {"code": "CLOSE_FORM", "args": {"form_id": 'local-test-client-form-1'}},
             },
             "stream": stream_id,
             "mode": "streaming",
