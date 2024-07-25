@@ -1,5 +1,6 @@
 import {
     Button,
+    ButtonGroup,
     Card,
     Collapse,
     Colors,
@@ -12,6 +13,7 @@ import {
     Tag,
 } from "@blueprintjs/core";
 import {
+    faArrowsToCircle,
     faCaretDown,
     faCaretUp,
     faCheck,
@@ -21,7 +23,11 @@ import {
 } from "@fortawesome/pro-duotone-svg-icons";
 import _ from "lodash";
 import { useRef, useState } from "react";
-import ReactCrop, { centerCrop, makeAspectCrop } from "react-image-crop";
+import ReactCrop, {
+    centerCrop,
+    convertToPixelCrop,
+    makeAspectCrop,
+} from "react-image-crop";
 import "react-image-crop/dist/ReactCrop.css";
 import { useDebounceEffect } from "../hooks/useDebounceEffect";
 import { faIcon } from "../icon";
@@ -43,10 +49,15 @@ export default function EntityIconEditor({ isOpen, setIsIconEditorOpen }) {
     };
     const imgRef = useRef(null);
     const previewCanvasRef = useRef(null);
-    const centerAspectCrop = (mediaWidth, mediaHeight, aspect) => {
+    const centerAspectCrop = (
+        mediaWidth,
+        mediaHeight,
+        aspect,
+        cropSize = 90
+    ) => {
         return centerCrop(
             makeAspectCrop(
-                { unit: "%", width: 90 },
+                { unit: "%", width: cropSize },
                 aspect,
                 mediaWidth,
                 mediaHeight
@@ -83,6 +94,8 @@ export default function EntityIconEditor({ isOpen, setIsIconEditorOpen }) {
         <Dialog
             onClose={() => {
                 setIsIconEditorOpen(false);
+                setImgSrc("");
+                setShowPreview(false);
             }}
             title="Entity Icon"
             isOpen={isOpen}
@@ -100,6 +113,7 @@ export default function EntityIconEditor({ isOpen, setIsIconEditorOpen }) {
                         active={_.isEqual(tab, "image")}
                     />
                     <Button
+                        disabled
                         icon={faIcon({ icon: faIcons })}
                         minimal
                         large
@@ -126,20 +140,49 @@ export default function EntityIconEditor({ isOpen, setIsIconEditorOpen }) {
                                             marginBottom: 15,
                                         }}
                                     >
-                                        <Button
-                                            onClick={() =>
-                                                setShowPreview(!showPreview)
-                                            }
-                                            icon={faIcon({
-                                                icon: faFaceViewfinder,
-                                            })}
-                                            text="Preview"
-                                            rightIcon={faIcon({
-                                                icon: showPreview
-                                                    ? faCaretUp
-                                                    : faCaretDown,
-                                            })}
-                                        />
+                                        <ButtonGroup>
+                                            <Button
+                                                icon={faIcon({
+                                                    icon: faArrowsToCircle,
+                                                })}
+                                                text="Center"
+                                                onClick={() => {
+                                                    const centerCrop =
+                                                        centerAspectCrop(
+                                                            imgRef.current
+                                                                .width,
+                                                            imgRef.current
+                                                                .height,
+                                                            1,
+                                                            crop.height
+                                                        );
+                                                    setCrop(centerCrop);
+                                                    setCompletedCrop(
+                                                        convertToPixelCrop(
+                                                            centerCrop,
+                                                            imgRef.current
+                                                                .width,
+                                                            imgRef.current
+                                                                .height
+                                                        )
+                                                    );
+                                                }}
+                                            />
+                                            <Button
+                                                onClick={() =>
+                                                    setShowPreview(!showPreview)
+                                                }
+                                                icon={faIcon({
+                                                    icon: faFaceViewfinder,
+                                                })}
+                                                text="Preview"
+                                                rightIcon={faIcon({
+                                                    icon: showPreview
+                                                        ? faCaretUp
+                                                        : faCaretDown,
+                                                })}
+                                            />
+                                        </ButtonGroup>
                                         <Collapse
                                             keepChildrenMounted
                                             isOpen={showPreview}
@@ -203,12 +246,9 @@ export default function EntityIconEditor({ isOpen, setIsIconEditorOpen }) {
                                                             marginTop: 10,
                                                         }}
                                                     >
-                                                        ehicula enim praesent
-                                                        natoque nec aliquet diam
-                                                        dolor. Justo cras purus
-                                                        montes ridiculus
-                                                        volutpat morbi venenatis
-                                                        pretium.
+                                                        Morbi mauris natoque
+                                                        finibus parturient urna
+                                                        at himenaeos.
                                                     </div>
                                                     <Tag
                                                         style={{
@@ -224,7 +264,7 @@ export default function EntityIconEditor({ isOpen, setIsIconEditorOpen }) {
                                         </Collapse>
                                     </div>
                                     <ReactCrop
-                                        ruleOfThirds
+                                        keepSelection
                                         crop={crop}
                                         onChange={(_, percentCrop) =>
                                             setCrop(percentCrop)
