@@ -474,7 +474,7 @@ class InteractivePlannerAgent(OpenAIAgent):
                 if worker:
                     data = message.getData()
                     stream = message.getStream()
-                    form_id = data["form_id"]
+                    plan_id = form_id = data["form_id"]
                     action = data["action"]
 
                      # get form stream
@@ -496,8 +496,13 @@ class InteractivePlannerAgent(OpenAIAgent):
                         # standardize plan
                         plan_dag = self.standardize_plan(plan_data)
                         logging.info(plan_dag)
+
+                        # get plan context
+                        plan_context = worker.get_data(plan_id)
+                        plan_context = plan_context['context']
+                        
                         plan = {
-                            "id":  create_uuid(),
+                            "id":  plan_id,
                             "steps": plan_dag,
                             "context": plan_context
                         }
@@ -539,28 +544,32 @@ class InteractivePlannerAgent(OpenAIAgent):
                 #### call api to compute, render interactive plan
                 interactive_plan = self.handle_api_call(stream_data)
 
-                # save context to data section
+                # plan id and context 
+                plan_id = create_uuid()
                 plan_context = {
                     "scope": stream[:-7], # omit ":STREAM"
                     "streams": {
                         "USER.TEXT": stream
                     }
                 }
+                # save into data section 
                 interactive_plan['data']['context'] = plan_context
+                # save into agent memory by id
+                worker.set_data(plan_id, { "context": plan_context })
 
                 # write ui
-                worker.write_control(ControlCode.CREATE_FORM, interactive_plan, output="FORM")
+                worker.write_control(ControlCode.CREATE_FORM, interactive_plan, output="FORM", id=plan_id)
 
-                # TODO: TESTING, REMOVE LATER
-                plan_data = interactive_plan['data']['steps']
-                plan_dag = self.standardize_plan(plan_data)
-                plan = {
-                    "id": create_uuid(),
-                    "steps": plan_dag,
-                    "context": plan_context
-                }
-                logging.info(plan)
-                return plan
+                # # TODO: TESTING, REMOVE LATER
+                # plan_data = interactive_plan['data']['steps']
+                # plan_dag = self.standardize_plan(plan_data)
+                # plan = {
+                #     "id": create_uuid(),
+                #     "steps": plan_dag,
+                #     "context": plan_context
+                # }
+                # logging.info(plan)
+                # return plan
                 
             elif message.isBOS():
                 logging.info("MESSAGE BOS")

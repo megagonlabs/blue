@@ -65,7 +65,6 @@ class FormAgent(Agent):
         stream = message.getStream()
 
         if input == "EVENT":
-            logging.info("event received")
             if message.isData():
                 if worker:
                     data = message.getData()
@@ -92,8 +91,12 @@ class FormAgent(Agent):
                         }
                         worker.write_control(ControlCode.CLOSE_FORM, args, output="FORM")
 
-                        # stream form data
-                        return form_data
+                        ### stream form data
+                        # if output defined, write to output
+                        if 'output' in self.properties:
+                            worker.write_data(form_data)
+                        else:
+                            return form_data
                     
                     else:
                         path = data["path"]
@@ -147,7 +150,6 @@ class FormAgent(Agent):
             elif message.isData():
                 # store data value
                 data = message.getData()
-                logging.info(data)
 
                 if worker:
                     worker.append_data(stream, data)
