@@ -65,12 +65,16 @@ class FormAgent(Agent):
         stream = message.getStream()
 
         if input == "EVENT":
+            logging.info("event received")
             if message.isData():
                 if worker:
                     data = message.getData()
                     stream = message.getStream()
                     form_id = data["form_id"]
                     action = data["action"]
+
+                    # get form stream
+                    form_data_stream = stream.replace("EVENT", "OUTPUT:FORM")
 
                     # when the user clicked DONE
                     if action == "DONE":
@@ -79,7 +83,7 @@ class FormAgent(Agent):
 
                         form_data = {}
                         for element in schema:
-                            form_data[element] = worker.get_stream_data(stream=stream, key=element + ".value")
+                            form_data[element] = worker.get_stream_data(element + ".value", stream=form_data_stream)
 
             
                         # close form
@@ -92,18 +96,19 @@ class FormAgent(Agent):
                         return form_data
                     
                     else:
-                        timestamp = worker.get_stream_data(stream=stream, key=f'{data["path"]}.timestamp')
+                        path = data["path"]
+                        timestamp = worker.get_stream_data(path + ".timestamp", stream=form_data_stream)
 
                         # TODO: timestamp should be replaced by id to determine order
                         if timestamp is None or data["timestamp"] > timestamp:
                             # save data into stream memory
                             worker.set_stream_data(
-                                key=data["path"],
-                                value={
+                                path,
+                                {
                                     "value": data["value"],
                                     "timestamp": data["timestamp"],
                                 },
-                                stream=stream,
+                                stream=form_data_stream
                             )
         else:
             if message.isEOS():
