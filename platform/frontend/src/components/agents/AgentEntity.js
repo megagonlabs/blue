@@ -57,6 +57,7 @@ export default function AgentEntity() {
                     .put(`${urlPrefix}/${entity.name}`, {
                         name: entity.name,
                         description: editEntity.description,
+                        icon: editEntity.icon,
                     })
                     .then(() => {
                         resolve(true);
@@ -100,7 +101,8 @@ export default function AgentEntity() {
                 enableIcon={true}
                 edit={edit}
                 setEdit={setEdit}
-                entity={entity}
+                entity={editEntity}
+                updateEntity={updateEntity}
                 saveEntity={saveEntity}
                 discard={discard}
                 loading={loading}

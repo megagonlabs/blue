@@ -21,7 +21,7 @@ import {
     faImage,
 } from "@fortawesome/pro-duotone-svg-icons";
 import _ from "lodash";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import ReactCrop, {
     centerCrop,
     convertToPixelCrop,
@@ -31,7 +31,24 @@ import "react-image-crop/dist/ReactCrop.css";
 import { useDebounceEffect } from "../hooks/useDebounceEffect";
 import { faIcon } from "../icon";
 import { canvasPreview } from "./canvasPreview";
-export default function EntityIconEditor({ isOpen, setIsIconEditorOpen }) {
+export default function EntityIconEditor({
+    isOpen,
+    setIsIconEditorOpen,
+    entity,
+    updateEntity,
+}) {
+    const [extra, setExtra] = useState(null);
+    const containerStatus = _.get(entity, "container.status", "not exist");
+    useEffect(() => {
+        const { type, properties } = entity;
+        let temp = null;
+        if (_.isEqual(type, "agent")) {
+            temp = properties.image;
+        } else if (_.isEqual(type, "data")) {
+            temp = `${properties.connection.protocol}://${properties.connection.host}:${properties.connection.port}`;
+        }
+        setExtra(temp);
+    }, [entity]);
     const [tab, setTab] = useState("image");
     const [crop, setCrop] = useState(null);
     const [completedCrop, setCompletedCrop] = useState(null);
@@ -66,6 +83,70 @@ export default function EntityIconEditor({ isOpen, setIsIconEditorOpen }) {
             mediaHeight
         );
     };
+    const loadingRef = useRef(false);
+    const readFileAsDataURL = async (file) => {
+        loadingRef.current = true;
+        let result_base64 = await new Promise((resolve) => {
+            let fileReader = new FileReader();
+            fileReader.onload = (e) => resolve(fileReader.result);
+            fileReader.readAsDataURL(file);
+        });
+        loadingRef.current = false;
+        return result_base64;
+    };
+    const applyIcon = async () => {
+        if (_.isEqual(tab, "image")) {
+            const image = imgRef.current;
+            const previewCanvas = previewCanvasRef.current;
+            if (!image || !previewCanvas || !completedCrop) {
+                throw new Error("Crop canvas does not exist");
+            }
+
+            // This will size relative to the uploaded image
+            // size. If you want to size according to what they
+            // are looking at on screen, remove scaleX + scaleY
+            const scaleX = image.naturalWidth / image.width;
+            const scaleY = image.naturalHeight / image.height;
+
+            const offscreen = new OffscreenCanvas(
+                completedCrop.width * scaleX,
+                completedCrop.height * scaleY
+            );
+            const ctx = offscreen.getContext("2d");
+            if (!ctx) {
+                throw new Error("No 2d context");
+            }
+
+            ctx.drawImage(
+                previewCanvas,
+                0,
+                0,
+                previewCanvas.width,
+                previewCanvas.height,
+                0,
+                0,
+                offscreen.width,
+                offscreen.height
+            );
+
+            // You might want { type: "image/jpeg", quality: <0 to 1> } to
+            // reduce image size
+            const blob = await offscreen.convertToBlob({
+                type: "image/png",
+            });
+            const dataURL = await readFileAsDataURL(blob);
+            updateEntity({ path: "icon", value: dataURL });
+            closeEditor();
+        }
+    };
+    const closeEditor = () => {
+        if (loadingRef.current) {
+            return;
+        }
+        setIsIconEditorOpen(false);
+        setImgSrc("");
+        setShowPreview(false);
+    };
     useDebounceEffect(
         async () => {
             if (
@@ -91,15 +172,7 @@ export default function EntityIconEditor({ isOpen, setIsIconEditorOpen }) {
     };
     const [showPreview, setShowPreview] = useState(false);
     return (
-        <Dialog
-            onClose={() => {
-                setIsIconEditorOpen(false);
-                setImgSrc("");
-                setShowPreview(false);
-            }}
-            title="Entity Icon"
-            isOpen={isOpen}
-        >
+        <Dialog onClose={closeEditor} title="Entity Icon" isOpen={isOpen}>
             <DialogBody className="padding-0">
                 <Card style={{ padding: "5px 15px", borderRadius: 0 }}>
                     <Button
@@ -118,8 +191,9 @@ export default function EntityIconEditor({ isOpen, setIsIconEditorOpen }) {
                         <div>
                             <ControlGroup fill>
                                 <FileInput
+                                    inputProps={{ accept: "image/*" }}
                                     style={{ maxWidth: 216.57 }}
-                                    text="Choose an image..."
+                                    text="Choose file..."
                                     onInputChange={onSelectFile}
                                 />
                                 {!!imgSrc && (
@@ -219,7 +293,7 @@ export default function EntityIconEditor({ isOpen, setIsIconEditorOpen }) {
                                                         marginBottom: 0,
                                                     }}
                                                 >
-                                                    LoremIpsum
+                                                    {entity.name}
                                                 </H5>
                                                 <div
                                                     className="multiline-ellipsis"
@@ -228,19 +302,27 @@ export default function EntityIconEditor({ isOpen, setIsIconEditorOpen }) {
                                                         marginTop: 10,
                                                     }}
                                                 >
-                                                    Morbi mauris natoque finibus
-                                                    parturient urna at
-                                                    himenaeos.
+                                                    {entity.description}
                                                 </div>
-                                                <Tag
-                                                    style={{
-                                                        marginTop: 10,
-                                                    }}
-                                                    minimal
-                                                    intent={Intent.PRIMARY}
-                                                >
-                                                    consectetuer/adipiscing-elit
-                                                </Tag>
+                                                {!_.isEmpty(extra) ? (
+                                                    <Tag
+                                                        style={{
+                                                            marginTop: 10,
+                                                            maxWidth: `calc(100% - ${
+                                                                _.isEqual(
+                                                                    containerStatus,
+                                                                    "not exist"
+                                                                )
+                                                                    ? 0
+                                                                    : 36
+                                                            }px)`,
+                                                        }}
+                                                        minimal
+                                                        intent={Intent.PRIMARY}
+                                                    >
+                                                        {extra}
+                                                    </Tag>
+                                                ) : null}
                                             </Card>
                                         </Card>
                                     </Collapse>
@@ -272,6 +354,12 @@ export default function EntityIconEditor({ isOpen, setIsIconEditorOpen }) {
             </DialogBody>
             <DialogFooter>
                 <Button
+                    disabled={
+                        !imgRef.current ||
+                        !previewCanvasRef.current ||
+                        !completedCrop
+                    }
+                    onClick={applyIcon}
                     text={`Apply ${tab}`}
                     large
                     icon={faIcon({ icon: faCheck })}

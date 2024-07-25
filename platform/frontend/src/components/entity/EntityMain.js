@@ -32,6 +32,7 @@ import { AuthContext } from "../contexts/auth-context";
 import EntityIconEditor from "../EntityIcon/EntityIconEditor";
 export default function EntityMain({
     entity,
+    updateEntity,
     edit,
     discard,
     setEdit,
@@ -101,6 +102,8 @@ export default function EntityMain({
     return (
         <>
             <EntityIconEditor
+                entity={entity}
+                updateEntity={updateEntity}
                 isOpen={isIconEditorOpen}
                 setIsIconEditorOpen={setIsIconEditorOpen}
             />
