@@ -15,7 +15,6 @@ import {
     faCircleDot,
     faClipboard,
     faCopy,
-    faMessageDots,
     faPenLine,
     faQuestion,
 } from "@fortawesome/pro-duotone-svg-icons";
@@ -40,11 +39,15 @@ export default function SessionRow({ index, style }) {
             const complete = _.get(streams, [last.stream, "complete"], false);
             if (!complete) {
                 setLastMessage(
-                    faIcon({
-                        icon: faMessageDots,
-                        className: "fa-fade",
-                        style: { color: Colors.BLACK },
-                    })
+                    <Tag
+                        minimal
+                        icon={faIcon({
+                            icon: faEllipsisH,
+                            size: 16.5,
+                            className: "fa-fade",
+                            style: { color: Colors.BLACK },
+                        })}
+                    />
                 );
             } else {
                 const contentType = _.get(last, "contentType", null);

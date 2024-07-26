@@ -110,7 +110,6 @@ export default function SessionAgentsList() {
                                         {faIcon({
                                             icon: faCircleA,
                                             size: 20,
-                                            style: { color: "#5f6b7c" },
                                         })}
                                     </Card>
                                     <div style={{ fontWeight: 600 }}>
