@@ -74,6 +74,7 @@ export default function RegistryList({ type }) {
                             style={{ paddingBottom: 20 }}
                         >
                             <RegistryCard
+                                icon={element.icon}
                                 title={element.name}
                                 description={element.description}
                                 extra={extra}

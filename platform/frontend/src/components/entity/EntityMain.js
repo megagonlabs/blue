@@ -26,6 +26,7 @@ import {
 } from "@fortawesome/pro-duotone-svg-icons";
 import axios from "axios";
 import _ from "lodash";
+import Image from "next/image";
 import { useRouter } from "next/router";
 import { useContext, useState } from "react";
 import { AuthContext } from "../contexts/auth-context";
@@ -110,29 +111,46 @@ export default function EntityMain({
             <Section compact style={{ position: "relative" }}>
                 <SectionCard padded={false}>
                     {enableIcon ? (
-                        <Card
-                            onClick={() => {
-                                if (edit) {
-                                    setIsIconEditorOpen(true);
-                                }
-                            }}
+                        <div
                             style={{
-                                cursor: edit ? "pointer" : null,
                                 position: "absolute",
                                 left: 15,
-                                padding: 0,
-                                height: 40,
-                                width: 40,
-                                display: "flex",
-                                justifyContent: "center",
-                                alignItems: "center",
                                 top: "50%",
+                                height: 40,
                                 transform: "translateY(-50%)",
                                 msTransform: "translateY(-50%)",
                             }}
                         >
-                            {faIcon({ icon: faCircleA })}
-                        </Card>
+                            <Card
+                                className={loading ? Classes.SKELETON : null}
+                                onClick={() => {
+                                    if (edit) {
+                                        setIsIconEditorOpen(true);
+                                    }
+                                }}
+                                style={{
+                                    cursor: edit ? "pointer" : null,
+                                    overflow: "hidden",
+                                    padding: 0,
+                                    height: 40,
+                                    width: 40,
+                                    display: "flex",
+                                    justifyContent: "center",
+                                    alignItems: "center",
+                                }}
+                            >
+                                {_.isEmpty(entity.icon) ? (
+                                    faIcon({ icon: faCircleA, size: 20 })
+                                ) : (
+                                    <Image
+                                        width={40}
+                                        height={40}
+                                        src={entity.icon}
+                                        alt=""
+                                    />
+                                )}
+                            </Card>
+                        </div>
                     ) : null}
                     <div
                         style={{

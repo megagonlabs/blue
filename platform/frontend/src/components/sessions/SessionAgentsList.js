@@ -98,9 +98,8 @@ export default function SessionAgentsList() {
                                 >
                                     <Card
                                         style={{
-                                            borderRadius: "50%",
-                                            padding: 0,
                                             overflow: "hidden",
+                                            padding: 0,
                                             width: 40,
                                             height: 40,
                                             display: "flex",
@@ -110,6 +109,7 @@ export default function SessionAgentsList() {
                                     >
                                         {faIcon({
                                             icon: faCircleA,
+                                            size: 20,
                                             style: { color: "#5f6b7c" },
                                         })}
                                     </Card>
