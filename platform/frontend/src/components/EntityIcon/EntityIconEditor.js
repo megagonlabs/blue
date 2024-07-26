@@ -164,6 +164,8 @@ export default function EntityIconEditor({
         }
         setIsIconEditorOpen(false);
         setShowPreview(false);
+        setCrop(null);
+        setImgSrc("");
         setFileName("Choose file...");
     };
     useDebounceEffect(
@@ -194,7 +196,13 @@ export default function EntityIconEditor({
     };
     const [showPreview, setShowPreview] = useState(false);
     return (
-        <Dialog onClose={closeEditor} title="Entity Icon" isOpen={isOpen}>
+        <Dialog
+            canEscapeKeyClose={false}
+            canOutsideClickClose={false}
+            onClose={closeEditor}
+            title="Entity Icon"
+            isOpen={isOpen}
+        >
             <DialogBody className="padding-0">
                 <Card style={{ padding: "5px 15px", borderRadius: 0 }}>
                     <Button
@@ -257,7 +265,8 @@ export default function EntityIconEditor({
                                     >
                                         <Card
                                             style={{
-                                                padding: 15,
+                                                boxShadow: "none",
+                                                padding: 20,
                                                 width: 300,
                                                 marginTop: 15,
                                             }}
