@@ -1,3 +1,4 @@
+import { ENTITY_ICON_40 } from "@/components/constant";
 import { faIcon } from "@/components/icon";
 import { AppToaster } from "@/components/toaster";
 import {
@@ -122,7 +123,6 @@ export default function EntityMain({
                             }}
                         >
                             <Card
-                                className={loading ? Classes.SKELETON : null}
                                 onClick={() => {
                                     if (edit) {
                                         setIsIconEditorOpen(true);
@@ -130,13 +130,7 @@ export default function EntityMain({
                                 }}
                                 style={{
                                     cursor: edit ? "pointer" : null,
-                                    overflow: "hidden",
-                                    padding: 0,
-                                    height: 40,
-                                    width: 40,
-                                    display: "flex",
-                                    justifyContent: "center",
-                                    alignItems: "center",
+                                    ...ENTITY_ICON_40,
                                 }}
                             >
                                 {_.isEmpty(entity.icon) ? (
