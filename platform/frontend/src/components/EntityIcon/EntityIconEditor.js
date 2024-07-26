@@ -163,8 +163,6 @@ export default function EntityIconEditor({
             return;
         }
         setIsIconEditorOpen(false);
-        setCrop(null);
-        setImgSrc("");
         setShowPreview(false);
         setFileName("Choose file...");
     };

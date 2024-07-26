@@ -15,6 +15,7 @@ import {
     faCircleDot,
     faClipboard,
     faCopy,
+    faEllipsisH,
     faPenLine,
     faQuestion,
 } from "@fortawesome/pro-duotone-svg-icons";
