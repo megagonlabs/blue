@@ -176,7 +176,7 @@ export default function SessionMembersList() {
                                 style={{ padding: 7.5 }}
                                 className={isTyping ? Classes.SKELETON : null}
                             >
-                                No results
+                                No result
                             </div>
                         ) : null}
                         {searchResult.map((user) => {

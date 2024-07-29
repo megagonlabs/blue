@@ -1,6 +1,6 @@
 import { COLOR_OPTIONS, ENTITY_ICON_40 } from "@/components/constant";
 import { Card, InputGroup } from "@blueprintjs/core";
-import { faSearch } from "@fortawesome/pro-duotone-svg-icons";
+import { faDotCircle, faSearch } from "@fortawesome/pro-duotone-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import _ from "lodash";
 import { useCallback, useContext, useState } from "react";
@@ -17,7 +17,6 @@ export default function IconPicker({
 }) {
     const { appState } = useContext(AppContext);
     const [keyword, setKeyword] = useState("");
-    const [loading, setLoading] = useState(true);
     const [searchResults, setSearchResults] = useState([]);
     const handleSearchQuery = useCallback(
         _.debounce((keyword) => {
@@ -119,14 +118,14 @@ export default function IconPicker({
                                 "30px 30px 30px 30px 30px 30px",
                         }}
                     >
-                        {COLOR_OPTIONS.map((color, index) => {
-                            const isWhite = _.isEqual("#FFFFFF", color);
+                        {COLOR_OPTIONS.map((code, index) => {
+                            const isWhite = _.isEqual("#FFFFFF", code);
                             return (
                                 <div
                                     key={index}
                                     onClick={() => {
                                         if (!isWhite) {
-                                            setColor(color);
+                                            setColor(code);
                                         }
                                     }}
                                     style={{
@@ -135,10 +134,17 @@ export default function IconPicker({
                                         userSelect: "none",
                                         width: 30,
                                         height: 30,
-                                        backgroundColor: !isWhite && color,
+                                        backgroundColor: !isWhite && code,
+                                        textAlign: "center",
+                                        lineHeight: "30px",
                                     }}
                                 >
-                                    &nbsp;
+                                    {_.isEqual(color, code)
+                                        ? faIcon({
+                                              icon: faDotCircle,
+                                              style: { color: "white" },
+                                          })
+                                        : null}
                                 </div>
                             );
                         })}
