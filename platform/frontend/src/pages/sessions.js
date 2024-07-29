@@ -167,8 +167,6 @@ export default function Sessions() {
             />
         );
     };
-    const [sessionDetailTooltipOpen, setSessionDetailTooltipOpen] =
-        useState(false);
     const [isAddAgentsOpen, setIsAddAgentsOpen] = useState(false);
     const [skippable, setSkippable] = useState(false);
     const sessionName = _.get(
@@ -437,21 +435,12 @@ export default function Sessions() {
                 >
                     {!_.isNull(sessionIdFocus) ? (
                         <Tooltip
+                            openOnTargetFocus={false}
                             minimal
-                            isOpen={sessionDetailTooltipOpen}
                             content="Get session details"
                             placement="bottom-start"
                         >
                             <Button
-                                onMouseEnter={() => {
-                                    setSessionDetailTooltipOpen(true);
-                                }}
-                                onBlur={() => {
-                                    setSessionDetailTooltipOpen(false);
-                                }}
-                                onMouseLeave={() => {
-                                    setSessionDetailTooltipOpen(false);
-                                }}
                                 large
                                 minimal
                                 onClick={() => {

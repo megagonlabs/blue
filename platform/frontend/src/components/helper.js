@@ -30,7 +30,7 @@ module.exports = {
         let agent = {};
         try {
             const agentTypeId = stream
-                .match(/(?<=:AGENT:\s*).*?(?=\s*:STREAM:)/gs)[0]
+                .match(/(?<=:AGENT:\s*).*?(?=\s*:OUTPUT:)/gs)[0]
                 .split(":");
             agent = {
                 type: _.get(agentTypeId, 0, null),

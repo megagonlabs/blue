@@ -19,13 +19,13 @@ import {
 } from "@fortawesome/pro-duotone-svg-icons";
 import axios from "axios";
 import _ from "lodash";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import SessionAgentsList from "./SessionAgentsList";
 import SessionMembersList from "./SessionMembersList";
 export default function SessionDetail({ isOpen, setIsSessionDetailOpen }) {
     const { appState, appActions } = useContext(AppContext);
     const sessionIdFocus = appState.session.sessionIdFocus;
-    const [allowQuickClose, setAllowQuickCloset] = useState(true);
+    const allowQuickClose = useRef(true);
     const sessionDetail = _.get(
         appState,
         ["session", "sessionDetail", sessionIdFocus],
@@ -45,14 +45,14 @@ export default function SessionDetail({ isOpen, setIsSessionDetailOpen }) {
         axios
             .put(`/sessions/session/${sessionIdFocus}`, payload)
             .then(() => {
-                setAllowQuickCloset(true);
+                allowQuickClose.current = true;
                 setLoading(false);
                 appActions.session.setSessionDetail([
                     { ...sessionDetail, ...payload, id: sessionIdFocus },
                 ]);
             })
             .catch(() => {
-                setAllowQuickCloset(true);
+                allowQuickClose.current = true;
                 setLoading(false);
             });
     };
@@ -76,7 +76,7 @@ export default function SessionDetail({ isOpen, setIsSessionDetailOpen }) {
                     </div>
                 )
             }
-            canOutsideClickClose={allowQuickClose}
+            canOutsideClickClose={allowQuickClose.current}
             onClose={() => {
                 if (loading) {
                     return;
@@ -128,7 +128,7 @@ export default function SessionDetail({ isOpen, setIsSessionDetailOpen }) {
                                     value={name}
                                     onChange={(event) => {
                                         setName(event.target.value);
-                                        setAllowQuickCloset(false);
+                                        allowQuickClose.current = false;
                                     }}
                                 />
                             </FormGroup>
@@ -138,7 +138,7 @@ export default function SessionDetail({ isOpen, setIsSessionDetailOpen }) {
                                     value={description}
                                     onChange={(event) => {
                                         setDescription(event.target.value);
-                                        setAllowQuickCloset(false);
+                                        allowQuickClose.current = false;
                                     }}
                                 />
                             </FormGroup>

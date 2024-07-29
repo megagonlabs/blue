@@ -1,16 +1,14 @@
 import {
     Button,
+    ButtonGroup,
     Card,
     Collapse,
-    Colors,
     ControlGroup,
     Dialog,
     DialogBody,
     DialogFooter,
     FileInput,
-    H5,
     Intent,
-    Tag,
 } from "@blueprintjs/core";
 import {
     faArrowsToCircle,
@@ -19,9 +17,10 @@ import {
     faCheck,
     faFaceViewfinder,
     faImage,
+    faTrash,
 } from "@fortawesome/pro-duotone-svg-icons";
 import _ from "lodash";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import ReactCrop, {
     centerCrop,
     convertToPixelCrop,
@@ -30,8 +29,25 @@ import ReactCrop, {
 import "react-image-crop/dist/ReactCrop.css";
 import { useDebounceEffect } from "../hooks/useDebounceEffect";
 import { faIcon } from "../icon";
+import RegistryCard from "../registry/RegistryCard";
 import { canvasPreview } from "./canvasPreview";
-export default function EntityIconEditor({ isOpen, setIsIconEditorOpen }) {
+export default function EntityIconEditor({
+    isOpen,
+    setIsIconEditorOpen,
+    entity,
+    updateEntity,
+}) {
+    const [extra, setExtra] = useState(null);
+    useEffect(() => {
+        const { type, properties } = entity;
+        let temp = null;
+        if (_.isEqual(type, "agent")) {
+            temp = properties.image;
+        } else if (_.isEqual(type, "data")) {
+            temp = `${properties.connection.protocol}://${properties.connection.host}:${properties.connection.port}`;
+        }
+        setExtra(temp);
+    }, [entity]);
     const [tab, setTab] = useState("image");
     const [crop, setCrop] = useState(null);
     const [completedCrop, setCompletedCrop] = useState(null);
@@ -40,20 +56,22 @@ export default function EntityIconEditor({ isOpen, setIsIconEditorOpen }) {
         if (event.target.files && event.target.files.length > 0) {
             setCrop(null); // Makes crop preview update between images.
             const reader = new FileReader();
-            reader.addEventListener("load", () =>
-                setImgSrc(reader.result?.toString() || "")
-            );
+            reader.addEventListener("load", () => {
+                setImgSrc(reader.result?.toString() || "");
+            });
+            setFileName(event.target.files[0].name);
             reader.readAsDataURL(event.target.files[0]);
         }
     };
+    const [fileName, setFileName] = useState("Choose file...");
     const imgRef = useRef(null);
     const previewCanvasRef = useRef(null);
     const centerAspectCrop = (
         mediaWidth,
         mediaHeight,
         aspect = 1,
-        cropWidth = 90,
-        cropHeight = 90
+        cropWidth = 100,
+        cropHeight = 100
     ) => {
         return centerCrop(
             makeAspectCrop(
@@ -65,6 +83,90 @@ export default function EntityIconEditor({ isOpen, setIsIconEditorOpen }) {
             mediaWidth,
             mediaHeight
         );
+    };
+    const loadingRef = useRef(false);
+    const readFileAsDataURL = async (file) => {
+        loadingRef.current = true;
+        let result_base64 = await new Promise((resolve) => {
+            let fileReader = new FileReader();
+            fileReader.onload = (e) => resolve(fileReader.result);
+            fileReader.readAsDataURL(file);
+        });
+        loadingRef.current = false;
+        return result_base64;
+    };
+    const centerCropManually = () => {
+        const centerCropArea = centerAspectCrop(
+            imgRef.current.width,
+            imgRef.current.height,
+            1,
+            crop.width,
+            crop.height
+        );
+        setCrop(centerCropArea);
+        setCompletedCrop(
+            convertToPixelCrop(
+                centerCropArea,
+                imgRef.current.width,
+                imgRef.current.height
+            )
+        );
+    };
+    const applyIcon = async () => {
+        if (_.isEqual(tab, "image")) {
+            const image = imgRef.current;
+            const previewCanvas = previewCanvasRef.current;
+            if (!image || !previewCanvas || !completedCrop) {
+                throw new Error("Crop canvas does not exist");
+            }
+
+            // This will size relative to the uploaded image
+            // size. If you want to size according to what they
+            // are looking at on screen, remove scaleX + scaleY
+            const scaleX = image.naturalWidth / image.width;
+            const scaleY = image.naturalHeight / image.height;
+
+            const offscreen = new OffscreenCanvas(
+                completedCrop.width * scaleX,
+                completedCrop.height * scaleY
+            );
+            const ctx = offscreen.getContext("2d");
+            if (!ctx) {
+                throw new Error("No 2d context");
+            }
+
+            ctx.drawImage(
+                previewCanvas,
+                0,
+                0,
+                previewCanvas.width,
+                previewCanvas.height,
+                0,
+                0,
+                offscreen.width,
+                offscreen.height
+            );
+
+            // You might want { type: "image/jpeg", quality: <0 to 1> } to
+            // reduce image size
+            const blob = await offscreen.convertToBlob({
+                type: "image/jpeg",
+                quality: 1,
+            });
+            const dataURL = await readFileAsDataURL(blob);
+            updateEntity({ path: "icon", value: dataURL });
+            closeEditor();
+        }
+    };
+    const closeEditor = () => {
+        if (loadingRef.current) {
+            return;
+        }
+        setIsIconEditorOpen(false);
+        setShowPreview(false);
+        setCrop(null);
+        setImgSrc("");
+        setFileName("Choose file...");
     };
     useDebounceEffect(
         async () => {
@@ -85,6 +187,9 @@ export default function EntityIconEditor({ isOpen, setIsIconEditorOpen }) {
         100,
         [completedCrop]
     );
+    useEffect(() => {
+        setImgSrc(_.isEmpty(entity.icon) ? "" : entity.icon);
+    }, [entity, isOpen]);
     const onImageLoad = (event) => {
         const { width, height } = event.currentTarget;
         setCrop(centerAspectCrop(width, height));
@@ -92,11 +197,9 @@ export default function EntityIconEditor({ isOpen, setIsIconEditorOpen }) {
     const [showPreview, setShowPreview] = useState(false);
     return (
         <Dialog
-            onClose={() => {
-                setIsIconEditorOpen(false);
-                setImgSrc("");
-                setShowPreview(false);
-            }}
+            canEscapeKeyClose={false}
+            canOutsideClickClose={false}
+            onClose={closeEditor}
             title="Entity Icon"
             isOpen={isOpen}
         >
@@ -118,13 +221,16 @@ export default function EntityIconEditor({ isOpen, setIsIconEditorOpen }) {
                         <div>
                             <ControlGroup fill>
                                 <FileInput
+                                    inputProps={{ accept: "image/*" }}
                                     style={{ maxWidth: 216.57 }}
-                                    text="Choose an image..."
+                                    text={fileName}
                                     onInputChange={onSelectFile}
                                 />
                                 {!!imgSrc && (
                                     <>
                                         <Button
+                                            text="Preview"
+                                            fill
                                             minimal
                                             onClick={() =>
                                                 setShowPreview(!showPreview)
@@ -132,37 +238,21 @@ export default function EntityIconEditor({ isOpen, setIsIconEditorOpen }) {
                                             icon={faIcon({
                                                 icon: faFaceViewfinder,
                                             })}
-                                            text="Preview"
                                             rightIcon={faIcon({
                                                 icon: showPreview
                                                     ? faCaretUp
                                                     : faCaretDown,
                                             })}
                                         />
+
                                         <Button
+                                            text="Center crop"
+                                            fill
                                             minimal
                                             icon={faIcon({
                                                 icon: faArrowsToCircle,
                                             })}
-                                            text="Center crop"
-                                            onClick={() => {
-                                                const centerCrop =
-                                                    centerAspectCrop(
-                                                        imgRef.current.width,
-                                                        imgRef.current.height,
-                                                        1,
-                                                        crop.width,
-                                                        crop.height
-                                                    );
-                                                setCrop(centerCrop);
-                                                setCompletedCrop(
-                                                    convertToPixelCrop(
-                                                        centerCrop,
-                                                        imgRef.current.width,
-                                                        imgRef.current.height
-                                                    )
-                                                );
-                                            }}
+                                            onClick={centerCropManually}
                                         />
                                     </>
                                 )}
@@ -175,33 +265,18 @@ export default function EntityIconEditor({ isOpen, setIsIconEditorOpen }) {
                                     >
                                         <Card
                                             style={{
-                                                padding: 15,
+                                                boxShadow: "none",
+                                                padding: 20,
                                                 width: 300,
                                                 marginTop: 15,
                                             }}
                                         >
-                                            <Card
-                                                style={{
-                                                    position: "relative",
-                                                    backgroundColor:
-                                                        Colors.LIGHT_GRAY5,
-                                                }}
-                                            >
-                                                <Card
-                                                    style={{
-                                                        overflow: "hidden",
-                                                        position: "absolute",
-                                                        left: 20,
-                                                        top: 20,
-                                                        padding: 0,
-                                                        height: 40,
-                                                        width: 40,
-                                                        display: "flex",
-                                                        justifyContent:
-                                                            "center",
-                                                        alignItems: "center",
-                                                    }}
-                                                >
+                                            <RegistryCard
+                                                title={entity.name}
+                                                description={entity.description}
+                                                extra={extra}
+                                                container={entity.container}
+                                                previewIcon={
                                                     <canvas
                                                         ref={previewCanvasRef}
                                                         style={{
@@ -211,47 +286,59 @@ export default function EntityIconEditor({ isOpen, setIsIconEditorOpen }) {
                                                             height: 40,
                                                         }}
                                                     />
-                                                </Card>
-                                                <H5
-                                                    style={{
-                                                        lineHeight: "40px",
-                                                        marginLeft: 50,
-                                                        marginBottom: 0,
-                                                    }}
-                                                >
-                                                    LoremIpsum
-                                                </H5>
-                                                <div
-                                                    className="multiline-ellipsis"
-                                                    style={{
-                                                        height: 36,
-                                                        marginTop: 10,
-                                                    }}
-                                                >
-                                                    Morbi mauris natoque finibus
-                                                    parturient urna at
-                                                    himenaeos.
-                                                </div>
-                                                <Tag
-                                                    style={{
-                                                        marginTop: 10,
-                                                    }}
-                                                    minimal
-                                                    intent={Intent.PRIMARY}
-                                                >
-                                                    consectetuer/adipiscing-elit
-                                                </Tag>
-                                            </Card>
+                                                }
+                                            />
                                         </Card>
                                     </Collapse>
                                     <ReactCrop
+                                        renderSelectionAddon={() => {
+                                            if (_.isEmpty(entity.icon)) {
+                                                return null;
+                                            }
+                                            return (
+                                                <div
+                                                    style={{
+                                                        position: "relative",
+                                                    }}
+                                                >
+                                                    <Button
+                                                        style={{
+                                                            position:
+                                                                "absolute",
+                                                            right: 2,
+                                                            top: 2,
+                                                        }}
+                                                        intent={Intent.DANGER}
+                                                        large
+                                                        onClick={() => {
+                                                            updateEntity({
+                                                                path: "icon",
+                                                                value: null,
+                                                            });
+                                                            closeEditor();
+                                                        }}
+                                                        icon={faIcon({
+                                                            icon: faTrash,
+                                                        })}
+                                                    />
+                                                </div>
+                                            );
+                                        }}
                                         style={{ marginTop: 15 }}
                                         keepSelection
                                         crop={crop}
-                                        onChange={(_, percentCrop) =>
-                                            setCrop(percentCrop)
-                                        }
-                                        onComplete={(c) => setCompletedCrop(c)}
+                                        onChange={(_, percentCrop) => {
+                                            setCrop(percentCrop);
+                                        }}
+                                        onComplete={(crop, percentCrop) => {
+                                            setCompletedCrop(
+                                                convertToPixelCrop(
+                                                    percentCrop,
+                                                    imgRef.current.width,
+                                                    imgRef.current.height
+                                                )
+                                            );
+                                        }}
                                         aspect={1}
                                         minWidth={80}
                                         minHeight={80}
@@ -271,11 +358,19 @@ export default function EntityIconEditor({ isOpen, setIsIconEditorOpen }) {
                 </div>
             </DialogBody>
             <DialogFooter>
-                <Button
-                    text={`Apply ${tab}`}
-                    large
-                    icon={faIcon({ icon: faCheck })}
-                />
+                <ButtonGroup>
+                    <Button
+                        disabled={
+                            !imgRef.current ||
+                            !previewCanvasRef.current ||
+                            !completedCrop
+                        }
+                        onClick={applyIcon}
+                        text={`Apply ${tab}`}
+                        large
+                        icon={faIcon({ icon: faCheck })}
+                    />
+                </ButtonGroup>
             </DialogFooter>
         </Dialog>
     );

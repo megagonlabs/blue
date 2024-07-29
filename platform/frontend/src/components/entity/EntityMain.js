@@ -1,3 +1,4 @@
+import { ENTITY_ICON_40 } from "@/components/constant";
 import { faIcon } from "@/components/icon";
 import { AppToaster } from "@/components/toaster";
 import {
@@ -26,12 +27,14 @@ import {
 } from "@fortawesome/pro-duotone-svg-icons";
 import axios from "axios";
 import _ from "lodash";
+import Image from "next/image";
 import { useRouter } from "next/router";
 import { useContext, useState } from "react";
 import { AuthContext } from "../contexts/auth-context";
 import EntityIconEditor from "../EntityIcon/EntityIconEditor";
 export default function EntityMain({
     entity,
+    updateEntity,
     edit,
     discard,
     setEdit,
@@ -101,35 +104,47 @@ export default function EntityMain({
     return (
         <>
             <EntityIconEditor
+                entity={entity}
+                updateEntity={updateEntity}
                 isOpen={isIconEditorOpen}
                 setIsIconEditorOpen={setIsIconEditorOpen}
             />
             <Section compact style={{ position: "relative" }}>
                 <SectionCard padded={false}>
                     {enableIcon ? (
-                        <Card
-                            onClick={() => {
-                                if (edit) {
-                                    setIsIconEditorOpen(true);
-                                }
-                            }}
+                        <div
                             style={{
-                                cursor: edit ? "pointer" : null,
                                 position: "absolute",
                                 left: 15,
-                                padding: 0,
-                                height: 40,
-                                width: 40,
-                                display: "flex",
-                                justifyContent: "center",
-                                alignItems: "center",
                                 top: "50%",
+                                height: 40,
                                 transform: "translateY(-50%)",
                                 msTransform: "translateY(-50%)",
                             }}
                         >
-                            {faIcon({ icon: faCircleA })}
-                        </Card>
+                            <Card
+                                onClick={() => {
+                                    if (edit) {
+                                        setIsIconEditorOpen(true);
+                                    }
+                                }}
+                                style={{
+                                    cursor: edit ? "pointer" : null,
+                                    ...ENTITY_ICON_40,
+                                }}
+                            >
+                                {_.isEmpty(entity.icon) ? (
+                                    faIcon({ icon: faCircleA, size: 20 })
+                                ) : (
+                                    <Image
+                                        width={40}
+                                        height={40}
+                                        src={entity.icon}
+                                        alt=""
+                                    />
+                                )}
+                            </Card>
+                        </div>
                     ) : null}
                     <div
                         style={{

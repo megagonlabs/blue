@@ -32,6 +32,7 @@ from fastapi.responses import JSONResponse
 class Agent(BaseModel):
     name: str
     description: Union[str, None] = None
+    icon: Union[str, None] = None
 
 
 class Parameter(BaseModel):
@@ -221,7 +222,7 @@ def update_agent(request: Request, agent_name, agent: Agent):
     agent_db = agent_registry.get_agent(agent_name)
     agent_acl_enforce(request, agent_db, write=True)
     # TODO: properties
-    agent_registry.update_agent(agent_name, description=agent.description, properties={}, rebuild=True)
+    agent_registry.update_agent(agent_name, description=agent.description, icon=agent.icon, properties={}, rebuild=True)
     # save
     agent_registry.dump("/blue_data/config/" + agent_registry_id + ".agents.json")
     return JSONResponse(content={"message": "Success"})

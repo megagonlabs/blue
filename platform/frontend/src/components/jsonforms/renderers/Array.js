@@ -1,4 +1,3 @@
-import { StrictModeDroppable } from "@/components/dnd/StrictModeDroppable";
 import { useSocket } from "@/components/hooks/useSocket";
 import { faIcon } from "@/components/icon";
 import {
@@ -12,7 +11,8 @@ import {
     Tooltip,
 } from "@blueprintjs/core";
 import {
-    faArrowUpArrowDown,
+    faArrowDown,
+    faArrowUp,
     faPlus,
     faTrash,
 } from "@fortawesome/pro-duotone-svg-icons";
@@ -29,7 +29,6 @@ import {
 } from "@jsonforms/react";
 import _, { range } from "lodash";
 import { useEffect, useMemo } from "react";
-import { DragDropContext, Draggable } from "react-beautiful-dnd";
 const ArrayRenderer = ({
     label,
     data,
@@ -59,22 +58,6 @@ const ArrayRenderer = ({
             ),
         [uischemas, schema, uischema.scope, path, uischema, rootSchema]
     );
-    const onDragEnd = (result) => {
-        // dropped outside the list
-        if (!result.destination) {
-            return;
-        }
-        let from = result.source.index;
-        let to = result.destination.index;
-        while (from > to) {
-            moveUp(path, from)();
-            from -= 1;
-        }
-        while (from < to) {
-            moveDown(path, from)();
-            from += 1;
-        }
-    };
     useEffect(() => {
         setTimeout(() => {
             socket.send(
@@ -93,138 +76,105 @@ const ArrayRenderer = ({
         <div>
             <H6 style={{ marginTop: 0, marginBottom: 15 }}>{label}</H6>
             {!_.isEmpty(data) ? (
-                <DragDropContext onDragEnd={onDragEnd}>
-                    <StrictModeDroppable droppableId={path}>
-                        {(provided) => (
-                            <div
-                                {...provided.droppableProps}
-                                ref={provided.innerRef}
-                            >
-                                {range(0, data.length).map((index) => {
-                                    const childPath = composePaths(
-                                        path,
-                                        String(index)
-                                    );
-                                    const content = (
-                                        <JsonFormsDispatch
-                                            schema={schema}
-                                            uischema={childUiSchema || uischema}
-                                            path={childPath}
-                                            key={childPath}
-                                            renderers={renderers}
-                                        />
-                                    );
-
-                                    return (
-                                        <Draggable
-                                            key={index}
-                                            draggableId={String(index)}
-                                            index={index}
+                range(0, data.length).map((index) => {
+                    const childPath = composePaths(path, String(index));
+                    const content = (
+                        <JsonFormsDispatch
+                            schema={schema}
+                            uischema={childUiSchema || uischema}
+                            path={childPath}
+                            key={childPath}
+                            renderers={renderers}
+                        />
+                    );
+                    return (
+                        <Section
+                            key={index}
+                            style={{
+                                marginBottom: 15,
+                            }}
+                            compact
+                            title={<div>{index + 1}</div>}
+                            rightElement={
+                                <div>
+                                    {index > 0 ? (
+                                        <Tooltip
+                                            minimal
+                                            placement="bottom"
+                                            content="Move up"
                                         >
-                                            {(provided, snapshot) => (
-                                                <div
-                                                    ref={provided.innerRef}
-                                                    {...provided.draggableProps}
-                                                >
-                                                    <Section
-                                                        key={index}
-                                                        style={{
-                                                            marginBottom: 15,
-                                                        }}
-                                                        compact
-                                                        title={
-                                                            <div>
-                                                                <span
-                                                                    style={{
-                                                                        marginRight: 15,
-                                                                        cursor: "pointer",
-                                                                    }}
-                                                                    {...provided.dragHandleProps}
-                                                                >
-                                                                    <Tooltip
-                                                                        content="Drag & drop"
-                                                                        minimal
-                                                                        placement="bottom-start"
-                                                                    >
-                                                                        {faIcon(
-                                                                            {
-                                                                                icon: faArrowUpArrowDown,
-                                                                            }
-                                                                        )}
-                                                                    </Tooltip>
-                                                                </span>
-                                                                {index + 1}
-                                                            </div>
-                                                        }
-                                                        rightElement={
-                                                            snapshot.isDragging ? null : (
-                                                                <Popover
-                                                                    content={
-                                                                        <div
-                                                                            style={{
-                                                                                padding: 15,
-                                                                            }}
-                                                                        >
-                                                                            <Button
-                                                                                intent={
-                                                                                    Intent.DANGER
-                                                                                }
-                                                                                className={
-                                                                                    Classes.POPOVER_DISMISS
-                                                                                }
-                                                                                text="Confirm"
-                                                                                onClick={() =>
-                                                                                    removeItems(
-                                                                                        path,
-                                                                                        [
-                                                                                            index,
-                                                                                        ]
-                                                                                    )()
-                                                                                }
-                                                                            />
-                                                                        </div>
-                                                                    }
-                                                                    placement="bottom-end"
-                                                                >
-                                                                    <Tooltip
-                                                                        minimal
-                                                                        placement="bottom-end"
-                                                                        content={
-                                                                            translations.removeTooltip
-                                                                        }
-                                                                    >
-                                                                        <Button
-                                                                            minimal
-                                                                            intent={
-                                                                                Intent.DANGER
-                                                                            }
-                                                                            icon={faIcon(
-                                                                                {
-                                                                                    icon: faTrash,
-                                                                                }
-                                                                            )}
-                                                                        />
-                                                                    </Tooltip>
-                                                                </Popover>
-                                                            )
-                                                        }
-                                                    >
-                                                        {snapshot.isDragging ? null : (
-                                                            <SectionCard>
-                                                                {content}
-                                                            </SectionCard>
-                                                        )}
-                                                    </Section>
-                                                </div>
-                                            )}
-                                        </Draggable>
-                                    );
-                                })}
-                                {provided.placeholder}
-                            </div>
-                        )}
-                    </StrictModeDroppable>
-                </DragDropContext>
+                                            <Button
+                                                onClick={() => {
+                                                    moveUp(path, index)();
+                                                }}
+                                                minimal
+                                                icon={faIcon({
+                                                    icon: faArrowUp,
+                                                })}
+                                            />
+                                        </Tooltip>
+                                    ) : null}
+                                    {index < _.size(data) - 1 ? (
+                                        <Tooltip
+                                            minimal
+                                            placement="bottom"
+                                            content="Move down"
+                                        >
+                                            <Button
+                                                onClick={() => {
+                                                    moveDown(path, index)();
+                                                }}
+                                                minimal
+                                                icon={faIcon({
+                                                    icon: faArrowDown,
+                                                })}
+                                            />
+                                        </Tooltip>
+                                    ) : null}
+                                    <Popover
+                                        content={
+                                            <div
+                                                style={{
+                                                    padding: 15,
+                                                }}
+                                            >
+                                                <Button
+                                                    intent={Intent.DANGER}
+                                                    className={
+                                                        Classes.POPOVER_DISMISS
+                                                    }
+                                                    text="Confirm"
+                                                    onClick={() =>
+                                                        removeItems(path, [
+                                                            index,
+                                                        ])()
+                                                    }
+                                                />
+                                            </div>
+                                        }
+                                        placement="bottom-end"
+                                    >
+                                        <Tooltip
+                                            minimal
+                                            placement="bottom-end"
+                                            content={translations.removeTooltip}
+                                        >
+                                            <Button
+                                                minimal
+                                                intent={Intent.DANGER}
+                                                icon={faIcon({
+                                                    icon: faTrash,
+                                                })}
+                                            />
+                                        </Tooltip>
+                                    </Popover>
+                                </div>
+                            }
+                        >
+                            <SectionCard>{content}</SectionCard>
+                        </Section>
+                    );
+                })
             ) : (
                 <div style={{ marginBottom: 15 }}>
                     {translations.noDataMessage}

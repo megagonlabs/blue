@@ -98,6 +98,15 @@ module.exports = {
         width: 40,
         height: 40,
     },
+    ENTITY_ICON_40: {
+        overflow: "hidden",
+        padding: 0,
+        width: 40,
+        height: 40,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+    },
     USER_ROLES_LOOKUP: {
         admin: "Administrator",
         member: "Member",

@@ -169,14 +169,12 @@ export default function Users() {
                         />
                     </Tooltip>
                     <Divider />
-                    <Tooltip>
-                        <Button
-                            disabled={_.isEmpty(appState.admin.selectedUsers)}
-                            onClick={() => setIsRoleConfigOpen(true)}
-                            icon={faIcon({ icon: faStamp })}
-                            text="Update role(s)"
-                        />
-                    </Tooltip>
+                    <Button
+                        disabled={_.isEmpty(appState.admin.selectedUsers)}
+                        onClick={() => setIsRoleConfigOpen(true)}
+                        icon={faIcon({ icon: faStamp })}
+                        text="Update role(s)"
+                    />
                 </ButtonGroup>
             </div>
             <div style={{ height: "calc(100% - 50px)" }}>
