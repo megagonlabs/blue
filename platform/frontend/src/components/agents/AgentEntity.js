@@ -38,8 +38,14 @@ export default function AgentEntity() {
             return;
         }
         axios.get(router.asPath).then((response) => {
-            setEntity(_.get(response, "data.result", {}));
-            setEditEntity(_.get(response, "data.result", {}));
+            const result = _.get(response, "data.result", {});
+            let icon = _.get(result, "icon", null);
+            if (!_.isEmpty(icon) && !_.startsWith(icon, "data:image/")) {
+                icon = _.split(icon, ":");
+            }
+            _.set(result, "icon", icon);
+            setEntity(result);
+            setEditEntity(result);
             setLoading(false);
         });
     }, [router]);
@@ -51,13 +57,17 @@ export default function AgentEntity() {
     const saveEntity = () => {
         const urlPrefix = `/registry/${process.env.NEXT_PUBLIC_AGENT_REGISTRY_NAME}/agent`;
         setLoading(true);
+        let icon = _.get(editEntity, "icon", null);
+        if (!_.isEmpty(icon) && !_.startsWith(icon, "data:image/")) {
+            icon = _.join(icon, ":");
+        }
         let tasks = [
             new Promise((resolve, reject) => {
                 axios
                     .put(`${urlPrefix}/${entity.name}`, {
                         name: entity.name,
                         description: editEntity.description,
-                        icon: editEntity.icon,
+                        icon: icon,
                     })
                     .then(() => {
                         resolve(true);

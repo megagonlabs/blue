@@ -9,6 +9,7 @@ import {
     DialogFooter,
     FileInput,
     Intent,
+    Tooltip,
 } from "@blueprintjs/core";
 import {
     faArrowsToCircle,
@@ -40,17 +41,7 @@ export default function EntityIconEditor({
     updateEntity,
 }) {
     const [extra, setExtra] = useState(null);
-    useEffect(() => {
-        const { type, properties } = entity;
-        let temp = null;
-        if (_.isEqual(type, "agent")) {
-            temp = properties.image;
-        } else if (_.isEqual(type, "data")) {
-            temp = `${properties.connection.protocol}://${properties.connection.host}:${properties.connection.port}`;
-        }
-        setExtra(temp);
-    }, [entity]);
-    const [tab, setTab] = useState("image");
+    const [tab, setTab] = useState("icon");
     const [crop, setCrop] = useState(null);
     const [completedCrop, setCompletedCrop] = useState(null);
     const [imgSrc, setImgSrc] = useState("");
@@ -158,6 +149,12 @@ export default function EntityIconEditor({
             const dataURL = await readFileAsDataURL(blob);
             updateEntity({ path: "icon", value: dataURL });
             closeEditor();
+        } else if (_.isEqual(tab, "icon")) {
+            updateEntity({
+                path: "icon",
+                value: [icon, color],
+            });
+            closeEditor();
         }
     };
     const [icon, setIcon] = useState(null);
@@ -170,6 +167,8 @@ export default function EntityIconEditor({
         setShowPreview(false);
         setCrop(null);
         setImgSrc("");
+        setIcon(null);
+        setColor(null);
         setFileName("Choose file...");
     };
     useDebounceEffect(
@@ -192,7 +191,25 @@ export default function EntityIconEditor({
         [completedCrop]
     );
     useEffect(() => {
-        setImgSrc(_.isEmpty(entity.icon) ? "" : entity.icon);
+        if (isOpen) {
+            const { type, properties } = entity;
+            let temp = null;
+            if (_.isEqual(type, "agent")) {
+                temp = properties.image;
+            } else if (_.isEqual(type, "data")) {
+                temp = `${properties.connection.protocol}://${properties.connection.host}:${properties.connection.port}`;
+            }
+            setExtra(temp);
+            if (!_.isEmpty(entity.icon)) {
+                if (_.startsWith(entity.icon, "data:image/")) {
+                    setImgSrc(entity.icon);
+                } else {
+                    setIcon(entity.icon[0]);
+                    setColor(entity.icon[1]);
+                }
+            }
+            setTab(_.startsWith(entity.icon, "data:image/") ? "image" : "icon");
+        }
     }, [entity, isOpen]);
     const onImageLoad = (event) => {
         const { width, height } = event.currentTarget;
@@ -210,7 +227,6 @@ export default function EntityIconEditor({
             <DialogBody className="dialog-body">
                 <Card style={{ padding: "5px 15px", borderRadius: 0 }}>
                     <Button
-                        disabled
                         icon={faIcon({ icon: faIcons })}
                         minimal
                         large
@@ -233,7 +249,7 @@ export default function EntityIconEditor({
                 </Card>
                 <div style={{ padding: 15 }}>
                     {_.isEqual(tab, "image") ? (
-                        <div>
+                        <>
                             <ControlGroup fill>
                                 <FileInput
                                     large
@@ -283,7 +299,7 @@ export default function EntityIconEditor({
                                             style={{
                                                 boxShadow: "none",
                                                 padding: 20,
-                                                width: 300,
+                                                width: 350,
                                                 marginTop: 15,
                                             }}
                                         >
@@ -307,39 +323,6 @@ export default function EntityIconEditor({
                                         </Card>
                                     </Collapse>
                                     <ReactCrop
-                                        renderSelectionAddon={() => {
-                                            if (_.isEmpty(entity.icon)) {
-                                                return null;
-                                            }
-                                            return (
-                                                <div
-                                                    style={{
-                                                        position: "relative",
-                                                    }}
-                                                >
-                                                    <Button
-                                                        style={{
-                                                            position:
-                                                                "absolute",
-                                                            right: 2,
-                                                            top: 2,
-                                                        }}
-                                                        intent={Intent.DANGER}
-                                                        large
-                                                        onClick={() => {
-                                                            updateEntity({
-                                                                path: "icon",
-                                                                value: null,
-                                                            });
-                                                            closeEditor();
-                                                        }}
-                                                        icon={faIcon({
-                                                            icon: faTrash,
-                                                        })}
-                                                    />
-                                                </div>
-                                            );
-                                        }}
                                         style={{ marginTop: 15 }}
                                         keepSelection
                                         crop={crop}
@@ -368,7 +351,7 @@ export default function EntityIconEditor({
                                     </ReactCrop>
                                 </>
                             )}
-                        </div>
+                        </>
                     ) : null}
                     {_.isEqual(tab, "icon") ? (
                         <IconPicker
@@ -376,6 +359,8 @@ export default function EntityIconEditor({
                             setIcon={setIcon}
                             color={color}
                             setColor={setColor}
+                            entity={entity}
+                            extra={extra}
                         />
                     ) : null}
                 </div>
@@ -384,15 +369,33 @@ export default function EntityIconEditor({
                 <ButtonGroup>
                     <Button
                         disabled={
-                            !imgRef.current ||
-                            !previewCanvasRef.current ||
-                            !completedCrop
+                            (_.isEqual(tab, "image") &&
+                                (!imgRef.current ||
+                                    !previewCanvasRef.current ||
+                                    !completedCrop)) ||
+                            (_.isEqual(tab, "icon") && !icon)
                         }
                         onClick={applyIcon}
                         text={`Apply ${tab}`}
                         large
                         icon={faIcon({ icon: faCheck })}
                     />
+                    <Tooltip
+                        minimal
+                        placement="top"
+                        content="Revert to default"
+                    >
+                        <Button
+                            onClick={() => {
+                                updateEntity({ path: "icon", value: null });
+                                closeEditor();
+                            }}
+                            large
+                            intent={Intent.DANGER}
+                            minimal
+                            icon={faIcon({ icon: faTrash })}
+                        />
+                    </Tooltip>
                 </ButtonGroup>
             </DialogFooter>
         </Dialog>

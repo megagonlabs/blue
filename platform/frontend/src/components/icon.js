@@ -9,8 +9,7 @@ export const faIcon = (props) => {
     return (
         <FontAwesomeIcon
             className={classNames(...className)}
-            style={style}
-            fontSize={size}
+            style={{ ...style, height: size, width: size }}
             icon={icon}
         />
     );

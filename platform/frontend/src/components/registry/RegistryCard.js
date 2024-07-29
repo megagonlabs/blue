@@ -10,6 +10,7 @@ import {
     Tooltip,
 } from "@blueprintjs/core";
 import { faCircleA, faCircleDot } from "@fortawesome/pro-duotone-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import _ from "lodash";
 import Image from "next/image";
 import Link from "next/link";
@@ -58,8 +59,14 @@ export default function RegistryCard({
                         previewIcon
                     ) : _.isEmpty(icon) ? (
                         faIcon({ icon: faCircleA, size: 20 })
-                    ) : (
+                    ) : _.startsWith(icon, "data:image/") ? (
                         <Image width={40} height={40} src={icon} alt="" />
+                    ) : (
+                        <FontAwesomeIcon
+                            color={icon[1]}
+                            style={{ height: 20, width: 20 }}
+                            icon={["fad", icon[0]]}
+                        />
                     )}
                 </Card>
                 <H5
