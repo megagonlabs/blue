@@ -102,8 +102,9 @@ export default function IconPicker({ icon, color, setIcon, setColor }) {
                                     "20px 20px 20px 20px 20px 20px",
                             }}
                         >
-                            {COLOR_OPTIONS.map((color) => (
+                            {COLOR_OPTIONS.map((color, index) => (
                                 <div
+                                    key={index}
                                     onClick={() => {
                                         setColor(color);
                                     }}
