@@ -94,9 +94,11 @@ class FormAgent(Agent):
                         ### stream form data
                         # if output defined, write to output
                         if 'output' in self.properties:
-                            worker.write_data(form_data)
+                            output = self.properties['output']
+                            worker.write_data(form_data, output=output)
+                            worker.write_eos(output=output)
                         else:
-                            return form_data
+                            return [form_data, Message.EOS]
                     
                     else:
                         path = data["path"]

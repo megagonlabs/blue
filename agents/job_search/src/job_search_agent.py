@@ -113,26 +113,23 @@ class JobSearchAgent(Agent):
         if message.isData():
             # check if title is recorded
             data = message.getData()
-            variables = data
-            variables = set(variables)
+            
+            if 'desired_title' in data:
+                title = data['desired_title']
 
-            if 'desired_title' in variables:
-                if worker:
-                    title = worker.get_session_data('desired_title')
+                logging.info("recommended jobs with title: {title}".format(title=title))
 
-                    logging.info("recommended jobs with title: {title}".format(title=title))
+    
+                jobs = self.search_jobs(title)
 
-        
-                    jobs = self.search_jobs(title)
+                jobs_form = self.create_jobs_list(jobs)
 
-                    jobs_form = self.create_jobs_list(jobs)
-
-                    args = {
-                        "schema": jobs_form["schema"],
-                        "uischema": jobs_form["uischema"]
-                    }
-                    # write ui
-                    worker.write_control(ControlCode.CREATE_FORM, args, output="FORM")
+                args = {
+                    "schema": jobs_form["schema"],
+                    "uischema": jobs_form["uischema"]
+                }
+                # write ui
+                worker.write_control(ControlCode.CREATE_FORM, args, output="FORM")
 
         return None
 

@@ -483,7 +483,7 @@ class InteractivePlannerAgent(OpenAIAgent):
                     # when the user clicked DONE
                     if action == "DONE":
                         # get plan
-                        plan_data = worker.get_stream_data("steps", stream=form_data_stream)
+                        plan_data = worker.get_stream_data("steps.value", stream=form_data_stream)
 
                         # get context from data section
                         plan_context = {
@@ -492,7 +492,8 @@ class InteractivePlannerAgent(OpenAIAgent):
                             #     "USER.TEXT": stream
                             # }
                         }
-                        
+                        logging.info(plan_data)
+                        logging.info(type(plan_data))
                         # standardize plan
                         plan_dag = self.standardize_plan(plan_data)
                         logging.info(plan_dag)
@@ -500,7 +501,7 @@ class InteractivePlannerAgent(OpenAIAgent):
                         # get plan context
                         plan_context = worker.get_data(plan_id)
                         plan_context = plan_context['context']
-                        
+
                         plan = {
                             "id":  plan_id,
                             "steps": plan_dag,

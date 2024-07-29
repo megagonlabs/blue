@@ -72,6 +72,7 @@ class CoordinatorAgent(Agent):
             plan = self.properties['plan']
             self.initialize_plan(plan)
 
+
     def _initialize_properties(self):
         super()._initialize_properties()
 
@@ -93,6 +94,14 @@ class CoordinatorAgent(Agent):
         if 'id' not in plan:
             plan["id"] = create_uuid()
         plan_id = plan["id"]
+
+        # add plan to list to monitor
+        logging.info("write to plans")
+        plans = worker.get_data("plans")
+        if plans is None:
+            worker.set_data("plans", {})
+        worker.set_data("plans." + plan_id, True)
+        logging.info("written to plans")
 
         # context: scope, streams
         context = plan['context']
@@ -191,6 +200,18 @@ class CoordinatorAgent(Agent):
         # each interaction from user should be another stream
         # i.e.
         # PLATFORM:dev:SESSION:27410756:AGENT:USER:eser_AT_megagon_DOT_ai:OUTPUT:DEFAULT:<ID>:STREAM
+
+        # PLATFORM:dev:SESSION:e146cc7c:AGENT:USER:5WgRzdacRdOEvj8JBmCXFZSvWmH3:OUTPUT:TEXT:3856af67:PLAN:edd97fe5:FORM_PROFILER:b5221f29:OUTPUT:PROFILE:STREAM
+        
+        # context:
+        # PLATFORM:dev:SESSION:6bad5453:AGENT:USER:5WgRzdacRdOEvj8JBmCXFZSvWmH3:OUTPUT:TEXT:9a0e073a
+        # PLAN:edd97fe5
+        # AGENT:<ID>
+        # OUTPUT:PARAM 
+        # STREAM
+        # {"code": "ADD_STREAM", "args": {"session": "PLATFORM:dev:SESSION:e146cc7c", 
+        #                                 "stream": "", "tags": ["JSON", "FORM_PROFILER"]}}
+
         
         # persist plan data to agent memory
         logging.info(str(plan))
@@ -212,9 +233,29 @@ class CoordinatorAgent(Agent):
         ### check if stream is in stream watch list
         if message.getCode() == ControlCode.ADD_STREAM:
             stream = message.getArg("stream")
-            logging.info("Observed stream: " + stream)
             
-
+            # check if stream is part of plan
+            plans = self.get_data('plans')
+            if plans:
+                for plan_id in plans:
+                    context_scope = self.get_data(plan_id + ".context.scope")
+                    prefix = context_scope + ":PLAN:" + plan_id + ":"
+                    canonical2id = self.get_data(plan_id + ".canonical2id")
+                    id2node = self.get_data(plan_id + ".id2node")
+                    if stream.find(prefix) == 0:
+                        s = stream[len(prefix):]
+                        ss = s.split(":") 
+                        agent = ss[0]
+                        param = ss[3]
+                        canonical_name = agent + "." + param
+                        if canonical_name in canonical2id:
+                            id = canonical2id[canonical_name]
+                            self.set_data(plan_id + ".stream2id." + stream, id)
+                            # create worker
+                            logging.info("create worker")
+                            logging.info(stream)
+                            self.create_worker(stream, input=plan_id)
+   
 
         ### do regular session listening
         return super().session_listener(message)
