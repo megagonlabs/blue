@@ -33,6 +33,7 @@
         "copy-to-clipboard": "^3.3.3",
         "deep-diff": "^1.0.2",
         "firebase": "^10.11.0",
+        "flexsearch": "^0.7.43",
         "javascript-time-ago": "^2.5.10",
         "json-schema-library": "^9.3.4",
         "json-string-formatter": "^1.0.1",

@@ -237,11 +237,13 @@ export default function SessionMembersList() {
             >
                 <InputGroup
                     onClick={(event) => {
-                        if (isSearchPopoverOpen) event.stopPropagation();
+                        if (isSearchPopoverOpen) {
+                            event.stopPropagation();
+                        }
                     }}
                     autoFocus
                     leftIcon={faIcon({ icon: faSearch })}
-                    placeholder="Find members"
+                    placeholder="Search members"
                     large
                     value={keyword}
                     onChange={(event) => {
@@ -249,7 +251,7 @@ export default function SessionMembersList() {
                         setKeyword(event.target.value);
                         handleSearchQuery.call({}, event.target.value);
                     }}
-                    style={{ marginBottom: 7 }}
+                    style={{ marginBottom: 7.5 }}
                 />
             </Popover>
             {loading ? (

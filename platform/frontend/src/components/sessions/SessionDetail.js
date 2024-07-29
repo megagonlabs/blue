@@ -86,7 +86,7 @@ export default function SessionDetail({ isOpen, setIsSessionDetailOpen }) {
             isOpen={isOpen}
             style={{ padding: 0 }}
         >
-            <DialogBody className="padding-0">
+            <DialogBody className="dialog-body">
                 <Card style={{ padding: "5px 15px", borderRadius: 0 }}>
                     <Button
                         icon={faIcon({ icon: faCircleInfo })}

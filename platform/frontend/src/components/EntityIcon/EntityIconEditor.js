@@ -16,6 +16,7 @@ import {
     faCaretUp,
     faCheck,
     faFaceViewfinder,
+    faIcons,
     faImage,
     faTrash,
 } from "@fortawesome/pro-duotone-svg-icons";
@@ -31,6 +32,7 @@ import { useDebounceEffect } from "../hooks/useDebounceEffect";
 import { faIcon } from "../icon";
 import RegistryCard from "../registry/RegistryCard";
 import { canvasPreview } from "./canvasPreview";
+import IconPicker from "./IconPicker";
 export default function EntityIconEditor({
     isOpen,
     setIsIconEditorOpen,
@@ -158,6 +160,8 @@ export default function EntityIconEditor({
             closeEditor();
         }
     };
+    const [icon, setIcon] = useState(null);
+    const [color, setColor] = useState(null);
     const closeEditor = () => {
         if (loadingRef.current) {
             return;
@@ -203,8 +207,19 @@ export default function EntityIconEditor({
             title="Entity Icon"
             isOpen={isOpen}
         >
-            <DialogBody className="padding-0">
+            <DialogBody className="dialog-body">
                 <Card style={{ padding: "5px 15px", borderRadius: 0 }}>
+                    <Button
+                        disabled
+                        icon={faIcon({ icon: faIcons })}
+                        minimal
+                        large
+                        text="Icon"
+                        onClick={() => {
+                            setTab("icon");
+                        }}
+                        active={_.isEqual(tab, "icon")}
+                    />
                     <Button
                         icon={faIcon({ icon: faImage })}
                         minimal
@@ -221,6 +236,7 @@ export default function EntityIconEditor({
                         <div>
                             <ControlGroup fill>
                                 <FileInput
+                                    large
                                     inputProps={{ accept: "image/*" }}
                                     style={{ maxWidth: 216.57 }}
                                     text={fileName}
@@ -354,7 +370,14 @@ export default function EntityIconEditor({
                             )}
                         </div>
                     ) : null}
-                    {_.isEqual(tab, "icon") ? <div></div> : null}
+                    {_.isEqual(tab, "icon") ? (
+                        <IconPicker
+                            icon={icon}
+                            setIcon={setIcon}
+                            color={color}
+                            setColor={setColor}
+                        />
+                    ) : null}
                 </div>
             </DialogBody>
             <DialogFooter>
