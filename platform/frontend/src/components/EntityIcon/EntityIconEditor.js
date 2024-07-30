@@ -158,7 +158,7 @@ export default function EntityIconEditor({
         }
     };
     const [icon, setIcon] = useState(null);
-    const [color, setColor] = useState(null);
+    const [color, setColor] = useState("#1C2127");
     const closeEditor = () => {
         if (loadingRef.current) {
             return;
@@ -168,7 +168,7 @@ export default function EntityIconEditor({
         setCrop(null);
         setImgSrc("");
         setIcon(null);
-        setColor(null);
+        setColor("#1C2127");
         setFileName("Choose file...");
     };
     useDebounceEffect(
@@ -374,8 +374,9 @@ export default function EntityIconEditor({
                                 (!imgRef.current ||
                                     !previewCanvasRef.current ||
                                     !completedCrop)) ||
-                            (_.isEqual(tab, "icon") && !icon)
+                            (_.isEqual(tab, "icon") && _.isEmpty(icon))
                         }
+                        intent={Intent.SUCCESS}
                         onClick={applyIcon}
                         text={`Apply ${tab}`}
                         large
@@ -387,6 +388,7 @@ export default function EntityIconEditor({
                         content="Revert to default"
                     >
                         <Button
+                            disabled={_.isEmpty(icon)}
                             onClick={() => {
                                 updateEntity({ path: "icon", value: null });
                                 closeEditor();
