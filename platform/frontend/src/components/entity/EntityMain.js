@@ -25,6 +25,7 @@ import {
     faTrash,
     faXmarkLarge,
 } from "@fortawesome/pro-duotone-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import axios from "axios";
 import _ from "lodash";
 import Image from "next/image";
@@ -135,12 +136,18 @@ export default function EntityMain({
                             >
                                 {_.isEmpty(entity.icon) ? (
                                     faIcon({ icon: faCircleA, size: 20 })
-                                ) : (
+                                ) : _.startsWith(entity.icon, "data:image/") ? (
                                     <Image
                                         width={40}
                                         height={40}
                                         src={entity.icon}
                                         alt=""
+                                    />
+                                ) : (
+                                    <FontAwesomeIcon
+                                        color={entity.icon[1]}
+                                        style={{ height: 20, width: 20 }}
+                                        icon={["fad", entity.icon[0]]}
                                     />
                                 )}
                             </Card>

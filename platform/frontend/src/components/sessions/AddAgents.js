@@ -151,7 +151,7 @@ export default function AddAgents({
                 setSkippable(false);
             }}
         >
-            <DialogBody className="padding-0">
+            <DialogBody className="dialog-body">
                 {_.isEmpty(agents) ? (
                     <div style={{ padding: 15 }}>
                         <NonIdealState

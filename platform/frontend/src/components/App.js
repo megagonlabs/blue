@@ -21,6 +21,7 @@ import {
 import {
     faCircleA,
     faDatabase,
+    faGear,
     faListUl,
     faPencilRuler,
     faUserGroup,
@@ -29,8 +30,9 @@ import _ from "lodash";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useContext, useMemo } from "react";
+import { useContext, useMemo, useState } from "react";
 import { hasTrue } from "./helper";
+import Settings from "./navigation/Settings";
 import UserAccountPanel from "./navigation/UserAccountPanel";
 export default function App({ children }) {
     const router = useRouter();
@@ -93,6 +95,7 @@ export default function App({ children }) {
             visible: canReadPlatformAgents,
         },
     };
+    const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     return (
         <div>
             <Navbar style={{ paddingLeft: 20, paddingRight: 20 }}>
@@ -111,20 +114,30 @@ export default function App({ children }) {
                             </Tag>
                         </NavbarHeading>
                     </Link>
-                    <Tooltip
-                        placement="right"
-                        content={process.env.NEXT_PUBLIC_GIT_LONG}
-                    >
-                        <Tag minimal>
-                            {process.env.NEXT_PUBLIC_GIT_BRANCH}-
-                            {process.env.NEXT_PUBLIC_GIT_SHORT}
-                        </Tag>
-                    </Tooltip>
                 </Navbar.Group>
                 <Navbar.Group align={Alignment.RIGHT}>
+                    <Tooltip
+                        placement="bottom"
+                        minimal
+                        content="Settings"
+                        openOnTargetFocus={false}
+                    >
+                        <Button
+                            onClick={() => {
+                                setIsSettingsOpen(true);
+                            }}
+                            large
+                            minimal
+                            icon={faIcon({ icon: faGear })}
+                        />
+                    </Tooltip>
                     <UserAccountPanel />
                 </Navbar.Group>
             </Navbar>
+            <Settings
+                isOpen={isSettingsOpen}
+                setIsSettingsOpen={setIsSettingsOpen}
+            />
             <Card
                 interactive
                 style={{
