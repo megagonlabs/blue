@@ -372,6 +372,20 @@ class Agent:
         if eos:
             worker.write_eos(output=output)
 
+    ## data
+    def set_data(self, key, value):
+        self.session.set_agent_data(self, key, value)
+
+    def get_data(self, key):
+        return self.session.get_agent_data(self, key)
+
+    def append_data(self, key, value):
+        self.session.append_agent_data(self, key, value)
+
+    def get_data_len(self, key):
+        return self.session.get_agent_data_len(self, key)
+
+
     def _start(self):
         self._start_connection()
 
@@ -407,6 +421,8 @@ class Agent:
         # send wait to each worker
         for w in self.workers:
             w.wait()
+        
+    
 
 
 class AgentFactory:

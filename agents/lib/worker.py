@@ -146,17 +146,17 @@ class Worker:
             pydash.objects.set_(form_element, "props.streamId", stream_id)
             pydash.objects.set_(form_element, "props.formId", form_id)
 
-    def write_bos(self, output="DEFAULT"):
+    def write_bos(self, output="DEFAULT", id=None):
         # producer = self._start_producer(output=output)
         # producer.write_bos()
-        self.write(Message.BOS, output=output)
+        self.write(Message.BOS, output=output, id=id)
 
-    def write_eos(self, output="DEFAULT"):
+    def write_eos(self, output="DEFAULT", id=None):
         # producer = self._start_producer(output=output)
         # producer.write_eos()
-        self.write(Message.EOS, output=output)
+        self.write(Message.EOS, output=output, id=id)
 
-    def write_data(self, data, output="DEFAULT"):
+    def write_data(self, data, output="DEFAULT", id=None):
         # producer = self._start_producer(output=output)
         # producer.write_data(data)
         if type(data) == int:
@@ -171,27 +171,28 @@ class Worker:
         elif type(data) == dict:
             contents = data
             content_type = ContentType.JSON
-        self.write(Message(MessageType.DATA, contents, content_type), output=output)
+        self.write(Message(MessageType.DATA, contents, content_type), output=output, id=id)
 
-    def write_control(self, code, args, output="DEFAULT"):
+    def write_control(self, code, args, output="DEFAULT", id=None):
         # producer = self._start_producer(output=output)
         # producer.write_control(code, args)
-        self.write(Message(MessageType.CONTROL, {"code": code, "args": args}, ContentType.JSON), output=output)
+        self.write(Message(MessageType.CONTROL, {"code": code, "args": args}, ContentType.JSON), output=output, id=id)
 
-    def write(self, message, output="DEFAULT"):
-        form_id = None
+    def write(self, message, output="DEFAULT", id=None):
+        
         # TODO: This doesn't belong here..
         if message.getCode() in [ ControlCode.CREATE_FORM, ControlCode.UPDATE_FORM, ControlCode.CLOSE_FORM ]:
             if message.getCode() == ControlCode.CREATE_FORM:
                 # create a new form id
-                form_id = str(hex(uuid.uuid4().fields[0]))[2:]
+                if id == None:
+                    id = str(hex(uuid.uuid4().fields[0]))[2:]
 
-                message.setArg("form_id", form_id)
+                message.setArg("form_id", id)
 
                 # start stream
                 event_producer = Producer(
                     name="EVENT",
-                    id=form_id,
+                    id=id,
                     prefix=self.prefix, 
                     suffix="STREAM",
                     properties=self.properties,
@@ -200,7 +201,7 @@ class Worker:
                 event_stream = event_producer.get_stream()
 
                 # inject stream and form id into ui
-                self._update_form_ids(message.getArg("uischema"), event_stream, form_id)
+                self._update_form_ids(message.getArg("uischema"), event_stream, id)
 
                 # start a consumer to listen to a event stream, using self.processor
                 event_consumer = Consumer(
@@ -213,10 +214,10 @@ class Worker:
                 event_consumer.start()
 
             else:
-                form_id = message.getArg('form_id')
+                id = message.getArg('form_id')
 
-            # append output variable with form_id
-            output = output + ":" + form_id
+            # append output variable with id
+            output = output + ":" + id
 
 
         # create producer, if not existing
