@@ -125,7 +125,11 @@ export default function IconPicker({
                                     key={index}
                                     onClick={() => {
                                         if (!isWhite) {
-                                            setColor(code);
+                                            setColor(
+                                                _.isEqual(color, code)
+                                                    ? null
+                                                    : code
+                                            );
                                         }
                                     }}
                                     style={{
