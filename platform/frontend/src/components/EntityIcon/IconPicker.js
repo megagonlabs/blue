@@ -144,13 +144,12 @@ export default function IconPicker({
                                     }
                                     large
                                     onChange={(event) => {
-                                        setColorHex(_.upperCase("#1C2127"));
-                                        if (
-                                            /^#[0-9A-F]{6}$/i.test(
-                                                _.upperCase("#1C2127")
-                                            )
-                                        ) {
-                                            setColor(_.upperCase("#1C2127"));
+                                        const value = _.toUpper(
+                                            event.target.value
+                                        );
+                                        setColorHex(value);
+                                        if (/^#[0-9A-F]{6}$/i.test(value)) {
+                                            setColor(value);
                                             invalidColor.current = false;
                                         } else {
                                             invalidColor.current = true;
