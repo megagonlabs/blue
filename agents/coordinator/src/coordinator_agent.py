@@ -259,7 +259,25 @@ class CoordinatorAgent(Agent):
 
         ### do regular session listening
         return super().session_listener(message)
-    
+
+    def transform_data(self, stream, from_agent, from_agent_param, to_agent, to_agent_param):
+        logging.info("TRANSFORM DATA:")
+        logging.info(from_agent + "." + from_agent_param)
+        logging.info(to_agent + "." + to_agent_param)
+
+        # TODO: get registry info on from_agent, from_agent_param
+
+        # TODO: get registry info on to_agent, to_agent_param
+
+        # TODO: call data planner
+
+        # TODO: call data optimizer
+
+        # TODO: execute plan
+
+        # output stream
+        return stream
+
     # node status progression
     # PLANNED, TRIGGERED, STARTED, FINISHED
     def default_processor(self, message, input="DEFAULT", properties=None, worker=None):
@@ -304,7 +322,11 @@ class CoordinatorAgent(Agent):
                 worker.set_data(plan_id + ".id2node." + node_id + ".status", "FINISHED")
 
                 context_scope = worker.get_data(plan_id + ".context.scope")
-                # start nexts
+                # get from agent
+                from_agent = worker.get_data(plan_id + ".id2node." + node_id + ".agent")
+                from_agent_param = worker.get_data(plan_id + ".id2node." + node_id + ".param")
+
+                # start nexts agents
                 next_node_ids = worker.get_data(plan_id + ".id2node." + node_id + ".next")
                 logging.info("nexts")
                 logging.info(next_node_ids)
@@ -313,10 +335,14 @@ class CoordinatorAgent(Agent):
                     next_agent = worker.get_data(plan_id + ".id2node." + next_node_id + ".agent")
                     next_agent_param = worker.get_data(plan_id + ".id2node." + next_node_id + ".param")
 
+                    # transform data utilizing planner/optimizers, if necessary
+                    output_stream = self.transform_data(stream, from_agent, from_agent_param, next_agent, next_agent_param)
+
                     # create an EXECUTE_AGENT instruction
-                    context_cid = context_scope + ":PLAN:" + plan_id 
-                    worker.write_control(ControlCode.EXECUTE_AGENT, {"agent": next_agent, "context": context_cid, "input": { next_agent_param: stream }})
-                    
+                    if output_stream:
+                        context_cid = context_scope + ":PLAN:" + plan_id 
+                        worker.write_control(ControlCode.EXECUTE_AGENT, {"agent": next_agent, "context": context_cid, "input": { next_agent_param: output_stream }})
+                        
             else:
                 pass
 
