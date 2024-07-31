@@ -27,7 +27,6 @@ from producer import Producer
 from message import Message, MessageType, ContentType, ControlCode
 
 
-
 class Session:
     def __init__(self, name="SESSION", id=None, sid=None, cid=None, prefix=None, suffix=None, properties={}):
 
@@ -100,7 +99,6 @@ class Session:
 
         self.producer.write_control(ControlCode.ADD_AGENT, args)
 
-
     def remove_agent(self, agent):
         ### TODO: Purge agent memory, probably not..
 
@@ -123,7 +121,7 @@ class Session:
         m = self.producer.read_all()
         for message in m:
             if message.getCode() == ControlCode.ADD_AGENT:
-                name = message.getArg('name')
+                name = message.getArg('agent')
                 sid = message.getArg('sid')
                 cid = message.getArg('cid')
                 agents[sid] = {"name": name, "sid": sid, "cid": cid}
