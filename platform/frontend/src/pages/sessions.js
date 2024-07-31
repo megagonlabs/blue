@@ -256,15 +256,19 @@ export default function Sessions() {
                                 <div>
                                     <div style={{ padding: 15 }}>
                                         <InputGroup
-                                            placeholder="Session ID"
                                             large
+                                            leftElement={
+                                                <Tag minimal>SESSION:</Tag>
+                                            }
                                             autoFocus
                                             fill
-                                            style={{ width: 210 }}
+                                            style={{ width: 230 }}
                                             value={joinSessionId}
                                             onChange={(event) => {
                                                 setJoinSessionId(
-                                                    event.target.value
+                                                    _.toLower(
+                                                        event.target.value
+                                                    )
                                                 );
                                             }}
                                             rightElement={
@@ -294,8 +298,7 @@ export default function Sessions() {
                                                             return;
                                                         appActions.session.observeSession(
                                                             {
-                                                                sessionId:
-                                                                    joinSessionId,
+                                                                sessionId: `SESSION:${joinSessionId}`,
                                                                 socket: socket,
                                                             }
                                                         );
