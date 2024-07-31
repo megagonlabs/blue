@@ -1,4 +1,4 @@
-import { ENTITY_ICON_40 } from "@/components/constant";
+import { DEFAULT_ENTITY_ICON, ENTITY_ICON_40 } from "@/components/constant";
 import { faIcon } from "@/components/icon";
 import { AppToaster } from "@/components/toaster";
 import {
@@ -17,7 +17,6 @@ import {
 } from "@blueprintjs/core";
 import {
     faCheck,
-    faCircleA,
     faClone,
     faListDropdown,
     faPen,
@@ -135,7 +134,10 @@ export default function EntityMain({
                                 }}
                             >
                                 {_.isEmpty(entity.icon) ? (
-                                    faIcon({ icon: faCircleA, size: 20 })
+                                    faIcon({
+                                        icon: DEFAULT_ENTITY_ICON[entity.type],
+                                        size: 20,
+                                    })
                                 ) : _.startsWith(entity.icon, "data:image/") ? (
                                     <Image
                                         width={40}

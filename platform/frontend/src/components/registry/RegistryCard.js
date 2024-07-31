@@ -1,4 +1,7 @@
-import { CONTAINER_STATUS_INDICATOR } from "@/components/constant";
+import {
+    CONTAINER_STATUS_INDICATOR,
+    DEFAULT_ENTITY_ICON,
+} from "@/components/constant";
 import { faIcon } from "@/components/icon";
 import {
     Card,
@@ -9,12 +12,13 @@ import {
     Tag,
     Tooltip,
 } from "@blueprintjs/core";
-import { faCircleA, faCircleDot } from "@fortawesome/pro-duotone-svg-icons";
+import { faCircleDot } from "@fortawesome/pro-duotone-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import _ from "lodash";
 import Image from "next/image";
 import Link from "next/link";
 export default function RegistryCard({
+    type,
     title,
     icon,
     description,
@@ -58,7 +62,7 @@ export default function RegistryCard({
                     {!_.isEmpty(previewIcon) ? (
                         previewIcon
                     ) : _.isEmpty(icon) ? (
-                        faIcon({ icon: faCircleA, size: 20 })
+                        faIcon({ icon: DEFAULT_ENTITY_ICON[type], size: 20 })
                     ) : _.startsWith(icon, "data:image/") ? (
                         <Image width={40} height={40} src={icon} alt="" />
                     ) : (

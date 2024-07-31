@@ -53,7 +53,14 @@ export default function IconPicker({
                 }}
             />
             {!_.isEmpty(searchResults) || !_.isEmpty(icon) ? (
-                <div style={{ position: "relative", display: "flex", gap: 15 }}>
+                <div
+                    style={{
+                        position: "relative",
+                        display: "flex",
+                        gap: 15,
+                        paddingBottom: 15,
+                    }}
+                >
                     <Card
                         style={{
                             boxShadow: "none",
@@ -68,7 +75,7 @@ export default function IconPicker({
                         {searchResults.map((id, index) => {
                             const iconName = _.get(
                                 appState,
-                                ["app", "iconPickerStore", id, "iconName"],
+                                ["app", "iconPickerStore", id],
                                 null
                             );
                             return (
@@ -100,8 +107,15 @@ export default function IconPicker({
                             alignSelf: "flex-start",
                         }}
                     >
-                        <Card style={{ padding: 20, boxShadow: "none" }}>
+                        <Card
+                            style={{
+                                padding: 20,
+                                boxShadow: "none",
+                                width: 350,
+                            }}
+                        >
                             <RegistryCard
+                                type={entity.type}
                                 title={entity.name}
                                 description={entity.description}
                                 extra={extra}
@@ -119,16 +133,15 @@ export default function IconPicker({
                         </Card>
                         <Card
                             style={{
-                                padding: 20,
                                 boxShadow: "none",
                                 marginTop: 15,
                             }}
                         >
-                            <ControlGroup style={{ marginBottom: 15 }}>
+                            <ControlGroup style={{ marginBottom: 10 }}>
                                 <Tag
                                     style={{
                                         backgroundColor: _.isEmpty(color)
-                                            ? "transparent"
+                                            ? "#1C2127"
                                             : color,
                                         height: 30,
                                         width: 30,
@@ -163,7 +176,7 @@ export default function IconPicker({
                                     display: "grid",
                                     gap: 5,
                                     gridTemplateColumns:
-                                        "30px 30px 30px 30px 30px 30px",
+                                        "30px 30px 30px 30px 30px 30px 30px 30px",
                                 }}
                             >
                                 {COLOR_OPTIONS.map((code, index) => {
@@ -175,7 +188,7 @@ export default function IconPicker({
                                                 if (!isWhite) {
                                                     setColor(
                                                         _.isEqual(color, code)
-                                                            ? null
+                                                            ? "#1C2127"
                                                             : code
                                                     );
                                                 }

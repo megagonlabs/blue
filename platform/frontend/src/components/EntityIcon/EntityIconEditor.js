@@ -223,6 +223,7 @@ export default function EntityIconEditor({
             onClose={closeEditor}
             title="Entity Icon"
             isOpen={isOpen}
+            style={{ minWidth: 550 }}
         >
             <DialogBody className="dialog-body">
                 <Card style={{ padding: "5px 15px", borderRadius: 0 }}>
@@ -247,7 +248,12 @@ export default function EntityIconEditor({
                         active={_.isEqual(tab, "image")}
                     />
                 </Card>
-                <div style={{ padding: 15 }}>
+                <div
+                    style={{
+                        padding: 15,
+                        maxHeight: _.isEqual(tab, "icon") ? 591 : null,
+                    }}
+                >
                     <div
                         style={{
                             display: _.isEqual(tab, "image") ? null : "none",

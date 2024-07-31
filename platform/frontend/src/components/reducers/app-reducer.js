@@ -7,7 +7,7 @@ const iconList = Object.keys(Icons).filter(
 );
 library.add(...iconList.map((icon) => Icons[icon]));
 const Index = Flexsearch.Index ?? Flexsearch;
-const index = Index({ tokenize: "forward" });
+const index = Index({ tokenize: "reverse" });
 let store = {};
 const wordRegex = /[A-Z]?[a-z]+|[0-9]+|[A-Z]+(?![a-z])/g;
 let iconSearchTags = {};
@@ -22,11 +22,8 @@ for (let i = 0; i < _.size(iconList); i++) {
 }
 const searchTagKeys = Object.keys(iconSearchTags);
 for (let i = 0; i < _.size(searchTagKeys); i++) {
-    store[i] = {
-        iconName: searchTagKeys[i],
-        tags: _.uniq(iconSearchTags[searchTagKeys[i]]),
-    };
-    index.add(i, iconSearchTags[searchTagKeys[i]].join(" "));
+    store[i] = searchTagKeys[i];
+    index.add(i, _.join(iconSearchTags[searchTagKeys[i]], " "));
 }
 export const defaultState = {
     users: {},
