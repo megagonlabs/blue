@@ -12,16 +12,13 @@ import {
     Button,
     ButtonGroup,
     Card,
-    Classes,
     ControlGroup,
     H4,
-    InputGroup,
     Intent,
     Menu,
     MenuItem,
     NonIdealState,
     Popover,
-    Tag,
     TextArea,
     Tooltip,
 } from "@blueprintjs/core";
@@ -32,20 +29,18 @@ import {
     faInboxOut,
     faMessages,
     faPlusLarge,
+    faRefresh,
     faSatelliteDish,
     faSignalStreamSlash,
-    faUserPlus,
 } from "@fortawesome/pro-duotone-svg-icons";
 import axios from "axios";
 import _ from "lodash";
 import { useCallback, useContext, useEffect, useRef, useState } from "react";
-import { FixedSizeList } from "react-window";
 export default function Sessions() {
     const { appState, appActions } = useContext(AppContext);
     const sessionIdFocus = appState.session.sessionIdFocus;
     const sessionIds = appState.session.sessionIds;
     const [message, setMessage] = useState("");
-    const [joinSessionId, setJoinSessionId] = useState("");
     const sessionMessageTextArea = useRef(null);
     const [isSessionDetailOpen, setIsSessionDetailOpen] = useState(false);
     const { socket, reconnectWs } = useSocket();
@@ -107,31 +102,11 @@ export default function Sessions() {
         }
     }, [sessionIdFocus]);
     const SESSION_LISTL_PANEL_WIDTH = 376.02;
-    const [getSessionsRequest, setGetSessionsRequest] = useState(null);
-    const [existingSessions, setExistingSessions] = useState(null);
-    const fetchExistingSessions = () => {
-        if (!_.isNil(getSessionsRequest)) {
-            getSessionsRequest.cancel();
-            setGetSessionsRequest(null);
-        }
-        const requestSource = axios.CancelToken.source();
-        setGetSessionsRequest(requestSource);
-        axios
-            .get("/sessions", {
-                cancelToken: requestSource.token,
-            })
-            .then((response) => {
-                setExistingSessions(
-                    _.get(response, "data.results", []).filter((session) => {
-                        return !_.includes(sessionIds, session.id);
-                    })
-                );
-            })
-            .catch(() => {});
-    };
-    const initialJoinAll = useRef(true);
-    const joinAllSessions = () => {
+    const initialFetchAll = useRef(true);
+    const [loading, setLoading] = useState(false);
+    const fetchAllSessions = () => {
         // automatically fetch all existing sessions onload
+        setLoading(true);
         axios
             .get("/sessions")
             .then((response) => {
@@ -141,6 +116,7 @@ export default function Sessions() {
                     const sessionId = sessions[i].id;
                     appActions.session.addSession(sessionId);
                 }
+                setLoading(false);
             })
             .catch(() => {});
     };
@@ -148,10 +124,10 @@ export default function Sessions() {
         if (!_.isEqual(socketReadyState, 1)) {
             return;
         }
-        if (initialJoinAll.current) {
-            initialJoinAll.current = false;
+        if (initialFetchAll.current) {
+            initialFetchAll.current = false;
             socket.send(JSON.stringify({ type: "REQUEST_USER_AGENT_ID" }));
-            joinAllSessions();
+            fetchAllSessions();
         }
     }, [socketReadyState]);
     const isSocketOpen = appState.session.isSocketOpen;
@@ -218,10 +194,22 @@ export default function Sessions() {
                     }}
                 >
                     <ButtonGroup large>
+                        <Tooltip
+                            content="Refresh"
+                            placement="bottom-start"
+                            minimal
+                        >
+                            <Button
+                                loading={loading}
+                                onClick={fetchAllSessions}
+                                outlined
+                                icon={faIcon({ icon: faRefresh })}
+                            />
+                        </Tooltip>
                         {canCreateSessions ? (
                             <Tooltip
                                 minimal
-                                placement="bottom-start"
+                                placement="bottom"
                                 content="Start a new session"
                             >
                                 <Button
@@ -243,157 +231,6 @@ export default function Sessions() {
                                 />
                             </Tooltip>
                         ) : null}
-                        <Popover
-                            placement={`bottom${
-                                canCreateSessions ? "" : "-start"
-                            }`}
-                            onOpening={fetchExistingSessions}
-                            onClose={() => {
-                                setExistingSessions(null);
-                                setJoinSessionId("");
-                            }}
-                            content={
-                                <div>
-                                    <div style={{ padding: 15 }}>
-                                        <InputGroup
-                                            large
-                                            leftElement={
-                                                <Tag minimal>SESSION:</Tag>
-                                            }
-                                            autoFocus
-                                            fill
-                                            style={{ width: 230 }}
-                                            value={joinSessionId}
-                                            onChange={(event) => {
-                                                setJoinSessionId(
-                                                    _.toLower(
-                                                        event.target.value
-                                                    )
-                                                );
-                                            }}
-                                            rightElement={
-                                                <Button
-                                                    className={
-                                                        Classes.POPOVER_DISMISS
-                                                    }
-                                                    minimal
-                                                    disabled={_.isEmpty(
-                                                        joinSessionId
-                                                    )}
-                                                    text="Join"
-                                                    onClick={() => {
-                                                        if (
-                                                            _.isEmpty(
-                                                                joinSessionId
-                                                            ) ||
-                                                            !_.isEqual(
-                                                                socketReadyState,
-                                                                1
-                                                            ) ||
-                                                            _.includes(
-                                                                sessionIds,
-                                                                joinSessionId
-                                                            )
-                                                        )
-                                                            return;
-                                                        appActions.session.observeSession(
-                                                            {
-                                                                sessionId: `SESSION:${joinSessionId}`,
-                                                                socket: socket,
-                                                            }
-                                                        );
-                                                        setJoinSessionId("");
-                                                    }}
-                                                    intent={Intent.SUCCESS}
-                                                />
-                                            }
-                                        />
-                                    </div>
-                                    {!_.isEmpty(existingSessions) ? (
-                                        <FixedSizeList
-                                            className="bp-border-top"
-                                            height={210}
-                                            itemCount={_.size(existingSessions)}
-                                            itemSize={40}
-                                        >
-                                            {({ index, style }) => {
-                                                const item =
-                                                    existingSessions[index];
-                                                return (
-                                                    <div style={style}>
-                                                        <Tag
-                                                            onClick={() => {
-                                                                if (
-                                                                    _.includes(
-                                                                        sessionIds,
-                                                                        item.id
-                                                                    )
-                                                                )
-                                                                    return;
-                                                                appActions.session.observeSession(
-                                                                    {
-                                                                        sessionId:
-                                                                            item.id,
-                                                                        socket,
-                                                                    }
-                                                                );
-                                                            }}
-                                                            intent={
-                                                                !_.includes(
-                                                                    sessionIds,
-                                                                    item.id
-                                                                )
-                                                                    ? Intent.PRIMARY
-                                                                    : null
-                                                            }
-                                                            interactive={
-                                                                !_.includes(
-                                                                    sessionIds,
-                                                                    item.id
-                                                                )
-                                                            }
-                                                            large
-                                                            minimal
-                                                            style={{
-                                                                margin: 15,
-                                                                width: "calc(100% - 30px)",
-                                                            }}
-                                                            key={item.id}
-                                                        >
-                                                            <div
-                                                                className={
-                                                                    _.includes(
-                                                                        sessionIds,
-                                                                        item.id
-                                                                    )
-                                                                        ? Classes.TEXT_DISABLED
-                                                                        : null
-                                                                }
-                                                            >
-                                                                {item.name}
-                                                            </div>
-                                                        </Tag>
-                                                    </div>
-                                                );
-                                            }}
-                                        </FixedSizeList>
-                                    ) : null}
-                                </div>
-                            }
-                        >
-                            <Tooltip
-                                minimal
-                                placement="bottom"
-                                content="Join an existing session"
-                            >
-                                <Button
-                                    disabled={!isSocketOpen}
-                                    outlined
-                                    text="Join"
-                                    rightIcon={faIcon({ icon: faUserPlus })}
-                                />
-                            </Tooltip>
-                        </Popover>
                     </ButtonGroup>
                     {!isSocketOpen ? <ReconnectButton /> : null}
                 </div>
