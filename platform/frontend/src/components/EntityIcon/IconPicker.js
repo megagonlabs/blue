@@ -1,8 +1,21 @@
 import { COLOR_OPTIONS, ENTITY_ICON_40 } from "@/components/constant";
-import { Card, ControlGroup, InputGroup, Intent, Tag } from "@blueprintjs/core";
-import { faDotCircle, faSearch } from "@fortawesome/pro-duotone-svg-icons";
+import {
+    Button,
+    Card,
+    ControlGroup,
+    InputGroup,
+    Intent,
+    Tag,
+} from "@blueprintjs/core";
+import {
+    faArrowUpRightFromSquare,
+    faDotCircle,
+    faSearch,
+    faTelescope,
+} from "@fortawesome/pro-duotone-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import _ from "lodash";
+import Link from "next/link";
 import { useCallback, useContext, useEffect, useRef, useState } from "react";
 import { AppContext } from "../contexts/app-context";
 import { faIcon } from "../icon";
@@ -51,6 +64,22 @@ export default function IconPicker({
                     marginBottom:
                         !_.isEmpty(searchResults) || !_.isEmpty(icon) ? 15 : 0,
                 }}
+                rightElement={
+                    <Link
+                        target="_blank"
+                        href="https://fontawesome.com/search?o=r&s=solid&f=duotone"
+                    >
+                        <Button
+                            icon={faIcon({ icon: faTelescope })}
+                            intent={Intent.PRIMARY}
+                            minimal
+                            rightIcon={faIcon({
+                                icon: faArrowUpRightFromSquare,
+                            })}
+                            text="Advanced"
+                        />
+                    </Link>
+                }
             />
             {!_.isEmpty(searchResults) || !_.isEmpty(icon) ? (
                 <div
