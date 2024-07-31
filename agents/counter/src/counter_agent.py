@@ -27,6 +27,7 @@ from tqdm import tqdm
 ###### Blue
 from agent import Agent, AgentFactory
 from session import Session
+from message import Message, MessageType, ContentType, ControlCode
 
 
 # set log level
@@ -41,8 +42,8 @@ class CounterAgent(Agent):
             kwargs['name'] = "COUNTER"
         super().__init__(**kwargs)
 
-    def default_processor(self, stream, id, label, data, dtype=None, tags=None, properties=None, worker=None):
-        if label == 'EOS':
+    def default_processor(self, message, input="DEFAULT", properties=None, worker=None):
+        if message.isEOS():
             # get all data received from stream
             stream_data = ""
             if worker:
@@ -52,13 +53,14 @@ class CounterAgent(Agent):
             output_data = len(stream_data)
             return output_data
         
-        elif label == 'BOS':
+        elif message.isBOS():
             # init stream to empty array
             if worker:
                 worker.set_data('stream',[])
             pass
-        elif label == 'DATA':
+        elif message.isData():
             # store data value
+            data = message.getData()
             logging.info(data)
             
             if worker:

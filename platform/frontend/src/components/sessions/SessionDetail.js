@@ -11,16 +11,21 @@ import {
     InputGroup,
     Intent,
 } from "@blueprintjs/core";
-import { faCheck } from "@fortawesome/pro-duotone-svg-icons";
+import {
+    faCheck,
+    faCircleA,
+    faCircleInfo,
+    faUserGroup,
+} from "@fortawesome/pro-duotone-svg-icons";
 import axios from "axios";
 import _ from "lodash";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import SessionAgentsList from "./SessionAgentsList";
 import SessionMembersList from "./SessionMembersList";
 export default function SessionDetail({ isOpen, setIsSessionDetailOpen }) {
     const { appState, appActions } = useContext(AppContext);
     const sessionIdFocus = appState.session.sessionIdFocus;
-    const [allowQuickClose, setAllowQuickCloset] = useState(true);
+    const allowQuickClose = useRef(true);
     const sessionDetail = _.get(
         appState,
         ["session", "sessionDetail", sessionIdFocus],
@@ -40,14 +45,14 @@ export default function SessionDetail({ isOpen, setIsSessionDetailOpen }) {
         axios
             .put(`/sessions/session/${sessionIdFocus}`, payload)
             .then(() => {
-                setAllowQuickCloset(true);
+                allowQuickClose.current = true;
                 setLoading(false);
                 appActions.session.setSessionDetail([
                     { ...sessionDetail, ...payload, id: sessionIdFocus },
                 ]);
             })
             .catch(() => {
-                setAllowQuickCloset(true);
+                allowQuickClose.current = true;
                 setLoading(false);
             });
     };
@@ -71,7 +76,7 @@ export default function SessionDetail({ isOpen, setIsSessionDetailOpen }) {
                     </div>
                 )
             }
-            canOutsideClickClose={allowQuickClose}
+            canOutsideClickClose={allowQuickClose.current}
             onClose={() => {
                 if (loading) {
                     return;
@@ -81,9 +86,10 @@ export default function SessionDetail({ isOpen, setIsSessionDetailOpen }) {
             isOpen={isOpen}
             style={{ padding: 0 }}
         >
-            <DialogBody className="padding-0">
+            <DialogBody className="dialog-body">
                 <Card style={{ padding: "5px 15px", borderRadius: 0 }}>
                     <Button
+                        icon={faIcon({ icon: faCircleInfo })}
                         minimal
                         large
                         text="About"
@@ -93,6 +99,7 @@ export default function SessionDetail({ isOpen, setIsSessionDetailOpen }) {
                         active={_.isEqual(tab, "about")}
                     />
                     <Button
+                        icon={faIcon({ icon: faCircleA })}
                         minimal
                         large
                         text="Agents"
@@ -102,6 +109,7 @@ export default function SessionDetail({ isOpen, setIsSessionDetailOpen }) {
                         active={_.isEqual(tab, "agents")}
                     />
                     <Button
+                        icon={faIcon({ icon: faUserGroup })}
                         minimal
                         large
                         text="Members"
@@ -120,7 +128,7 @@ export default function SessionDetail({ isOpen, setIsSessionDetailOpen }) {
                                     value={name}
                                     onChange={(event) => {
                                         setName(event.target.value);
-                                        setAllowQuickCloset(false);
+                                        allowQuickClose.current = false;
                                     }}
                                 />
                             </FormGroup>
@@ -130,7 +138,7 @@ export default function SessionDetail({ isOpen, setIsSessionDetailOpen }) {
                                     value={description}
                                     onChange={(event) => {
                                         setDescription(event.target.value);
-                                        setAllowQuickCloset(false);
+                                        allowQuickClose.current = false;
                                     }}
                                 />
                             </FormGroup>

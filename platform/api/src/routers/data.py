@@ -4,12 +4,21 @@ import sys
 
 from fastapi import Request
 import pydash
-from constant import HTTP_EXCEPTION_403, acl_enforce
+from constant import PermissionDenied, acl_enforce
 
 ###### Add lib path
 sys.path.append("./lib/")
 sys.path.append("./lib/data_registry/")
 sys.path.append("./lib/platform/")
+
+###### Parsers, Formats, Utils
+import re
+import csv
+import json
+import time
+import logging
+from utils import json_utils
+
 
 ##### Typing
 from pydantic import BaseModel
@@ -52,6 +61,10 @@ data_registry = DataRegistry(id=data_registry_id, prefix=prefix, properties=PROP
 ##### ROUTER
 router = APIRouter(prefix=f"{PLATFORM_PREFIX}/registry/{data_registry_id}/data")
 
+# set logging
+logging.getLogger().setLevel("INFO")
+
+
 write_all_roles = ACL.get_implicit_users_for_permission('data_registry', 'write_all')
 write_own_roles = ACL.get_implicit_users_for_permission('data_registry', 'write_own')
 
@@ -66,7 +79,7 @@ def source_acl_enforce(request: Request, source: dict, write=False, throw=True):
         if pydash.objects.get(source, 'created_by', None) == uid:
             allow = True
     if throw and not allow:
-        raise HTTP_EXCEPTION_403
+        raise PermissionDenied
     return allow
 
 

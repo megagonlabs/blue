@@ -7,11 +7,9 @@ EMAIL_DOMAIN_ADDRESS_REGEXP = r"@((\w+?\.)+\w+)"
 class InvalidRequestJson(Exception):
     status_code = 422
 
-    def __init__(self, errors, status_code=None):
+    def __init__(self, errors):
         super().__init__()
         self.errors = errors
-        if status_code is not None:
-            self.status_code = status_code
 
 
 def d7validate(validations, payload):
@@ -30,15 +28,16 @@ def d7validate(validations, payload):
         raise InvalidRequestJson(errors)
 
 
-from functools import wraps
-from fastapi import HTTPException
 from settings import ACL
 
-HTTP_EXCEPTION_403 = HTTPException(status_code=403, detail="You don't have permission for this request.")
+
+class PermissionDenied(Exception):
+    def __init__(self):
+        super().__init__()
 
 
 def acl_enforce(role, resource, action, throw=True):
     result = ACL.enforce(role, resource, action)
     if not result and throw:
-        raise HTTP_EXCEPTION_403
+        raise PermissionDenied
     return result

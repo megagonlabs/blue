@@ -29,17 +29,20 @@ from tqdm import tqdm
 ###### Blue
 from agent import Agent, AgentFactory
 from session import Session
-
+from message import Message, MessageType, ContentType, ControlCode
 
 # set log level
 logging.getLogger().setLevel(logging.INFO)
 logging.basicConfig(format="%(asctime)s [%(levelname)s] [%(process)d:%(threadName)s:%(thread)d](%(filename)s:%(lineno)d) %(name)s -  %(message)s", level=logging.ERROR, datefmt="%Y-%m-%d %H:%M:%S")
 
 
+def create_uuid():
+    return str(hex(uuid.uuid4().fields[0]))[2:]
+
 #######################
 ### planner plan is passed as a property, e.g.
 # "plan": [ 
-#     ["user","a"],
+#     ["user.text","a.default"],
 #     ["a","b"],
 #     ["a","c"],
 #     ["b","d"],
@@ -57,166 +60,364 @@ class CoordinatorAgent(Agent):
             kwargs['name'] = "COORDINATOR"
         super().__init__(**kwargs)
 
-        self.initialize_plan()
 
     def _initialize(self, properties=None):
         super()._initialize(properties=properties)
 
-        self.initialize_plan()
+        # coordinator is not instructable
+        self.properties['instructable'] = False
+
+        # if plan is fixed, in properties
+        if 'plan' in self.properties:
+            plan = self.properties['plan']
+            self.initialize_plan(plan)
 
 
     def _initialize_properties(self):
         super()._initialize_properties()
 
-        self.properties['aggregator'] = True 
-        self.properties['aggregator.eos'] = 'NEVER'
+        listeners = {}
+        default_listeners = {}
+        listeners["DEFAULT"] = default_listeners
+        self.properties['listens'] = listeners
+        default_listeners['includes'] = ['PLAN']
+        default_listeners['excludes'] = []
 
-    def initialize_plan(self):
+    def initialize_plan(self, plan, worker=None):
       
-        plan = {}
-        self.plan = plan
-
+        # create worker if None
+        if worker == None:
+            # TODO: Create worker
+            return
         
-        canonical2node = {}
+        # init id if None
+        if 'id' not in plan:
+            plan["id"] = create_uuid()
+        plan_id = plan["id"]
+
+        # add plan to list to monitor
+        logging.info("write to plans")
+        plans = worker.get_data("plans")
+        if plans is None:
+            worker.set_data("plans", {})
+        worker.set_data("plans." + plan_id, True)
+        logging.info("written to plans")
+
+        # context: scope, streams
+        context = plan['context']
+        context_scope = context['scope']
+        # plan steps
+        steps = plan['steps']
+
+        # node access by name, stream
+        canonical2id = {}
+        plan["canonical2id"] = canonical2id 
+        stream2id = {}
+        plan["stream2id"] = stream2id
         id2node = {}
+        plan["id2node"] = id2node
         
-        if 'plan' in self.properties:
-            tuples = self.properties['plan']
+
+        
+        # plan status
+        status = {}
+        planned = {}
+        running = {}
+        finished = {}
+        plan['status'] = status
+        status['planned'] = planned
+        status['running'] = running
+        status['finished'] = finished
+
+        # process steps
+        for step in steps:
+            # get canonical src and dst from plan relations: src -> dst
+            src = step[0]
+            dst = step[1]
+
+            src_canonical_name = src.split('.')
+            dst_canonical_name = dst.split('.')
+
+            # parse agent name, id from canonical name
+            src_agent_name = src_canonical_name[0]
+            src_agent_param = src_canonical_name[1]
+
+
+            dst_agent_name = dst_canonical_name[0]
+            dst_agaent_param = dst_canonical_name[1]
             
-            sources = set()
-            destinations = set()
-            for tuple in tuples:
-                # get canonical src and dst from plan relations: src -> dst
-                src = tuple[0]
-                dst = tuple[1]
 
-                src_canonical_name = src.split(':')
-                dst_canonical_name = dst.split(':')
+            src_canonical_name = ".".join([src_agent_name, src_agent_param])
+            dst_canonical_name = ".".join([dst_agent_name, dst_agaent_param])
 
-                # parse agent name, id from canonical name
-                src_agent_name = src_canonical_name[0]
-                src_agent_ref = '*'
-                if len(src_canonical_name) > 1:
-                    src_agent_ref = src_canonical_name[1]
+            src_id = None
+            src_node = None
+            if src_canonical_name in canonical2id:
+                src_id = canonical2id[src_canonical_name]
+                src_node = id2node[src_id]
+            else:
+                src_id = create_uuid()
 
-                dst_agent_name = dst_canonical_name[0]
-                dst_agent_ref = '*'
-                if len(dst_canonical_name) > 1:
-                    dst_agent_ref = dst_canonical_name[1]
+                src_node = { 'agent': src_agent_name,  'param': src_agent_param, 'canonical_name': src_canonical_name, 'id': src_id, 'next': [], 'prev': [], 'params': {}, 'status': 'PLANNED' }
+                canonical2id[src_canonical_name] = src_id
+                id2node[src_id] = src_node
 
-                src_canonical_name = ":".join([src_agent_name, src_agent_ref])
-                dst_canonical_name = ":".join([dst_agent_name, dst_agent_ref])
+            dst_id = None
+            dst_node = None
+            if dst_canonical_name in canonical2id:
+                dst_id = canonical2id[dst_canonical_name]
+                dst_node = id2node[dst_id]
+            else:
+                dst_id = create_uuid()
 
-                src_node = None
-                if src_canonical_name in canonical2node:
-                    src_node = canonical2node[src_canonical_name]
-                else:
-                    src_node = { 'agent': src_agent_name, 'canonical_name': src_canonical_name, 'id': None, 'next': [], 'prev': [], 'params': {}, 'status': 'PLANNED' }
-                    canonical2node[src_canonical_name] = src_node
+                dst_node = { 'agent': dst_agent_name,  'param': dst_agaent_param, 'canonical_name': dst_canonical_name, 'id': dst_id, 'next': [], 'prev': [], 'params': {}, 'status': 'PLANNED' }
+                canonical2id[dst_canonical_name] = dst_id
+                id2node[dst_id] = dst_node
 
-                dst_node = None
-                if dst_canonical_name in canonical2node:
-                    dst_node = canonical2node[dst_canonical_name]
-                else:
-                    dst_node = { 'agent': dst_agent_name, 'canonical_name': dst_canonical_name, 'id': None, 'next': [], 'prev': [], 'params': {}, 'status': 'PLANNED' }
-                    canonical2node[dst_canonical_name] = dst_node
+            src_node['next'].append(dst_node['id'])
+            dst_node['prev'].append(src_node['id'])
 
-                src_node['next'].append(dst_node)
-                dst_node['prev'].append(src_node)
+        plan['canonical2id'] = canonical2id
+        plan['id2node'] = id2node
+        
+        # process context.streams
+        streams = context['streams']
+        for canonicalname in streams:
+            stream = streams[canonicalname]
+            id = canonical2id[canonicalname]
+            stream2id[stream] = id
 
-                if src_canonical_name not in sources:
-                    sources.add(src_agent_name)
-                if dst_canonical_name not in destinations:
-                    destinations.add(dst_agent_name)
+            planned[stream] = True
 
-            start = sources.difference(destinations)
+        # how to figure out the stream of an agent for a particular output parameter
+        # 
+        # AGENT.OUTPUT --> <contex.scope>:AGENT:<id>:OUTPUT:<param>:STREAM"
+        # monitor session stream ADD_STREAM events, for any stream, where stream id matches
+        # any source node 
 
-            plan['start'] = start
-            plan['canonical2node'] = canonical2node
-            plan['id2node'] = id2node
+        # monitor message from that stream until EOS
 
+        # each interaction from user should be another stream
+        # i.e.
+        # PLATFORM:dev:SESSION:27410756:AGENT:USER:eser_AT_megagon_DOT_ai:OUTPUT:DEFAULT:<ID>:STREAM
+
+        # PLATFORM:dev:SESSION:e146cc7c:AGENT:USER:5WgRzdacRdOEvj8JBmCXFZSvWmH3:OUTPUT:TEXT:3856af67:PLAN:edd97fe5:FORM_PROFILER:b5221f29:OUTPUT:PROFILE:STREAM
+        
+        # context:
+        # PLATFORM:dev:SESSION:6bad5453:AGENT:USER:5WgRzdacRdOEvj8JBmCXFZSvWmH3:OUTPUT:TEXT:9a0e073a
+        # PLAN:edd97fe5
+        # AGENT:<ID>
+        # OUTPUT:PARAM 
+        # STREAM
+        # {"code": "ADD_STREAM", "args": {"session": "PLATFORM:dev:SESSION:e146cc7c", 
+        #                                 "stream": "", "tags": ["JSON", "FORM_PROFILER"]}}
+
+        
+        # persist plan data to agent memory
+        logging.info(str(plan))
+        logging.info(json.dumps(plan, indent=3))
+        worker.set_data(plan_id, plan)
+
+        ### start executing plan from streams
+        # create workers to planned streams to monitor progress
+        for stream in planned:
+            self.create_worker(stream, input=plan_id)
+
+
+
+    def verify_plan(self, plan):
+        #TODO: verify plan
         return plan
+    
+    def session_listener(self, message):
+        ### check if stream is in stream watch list
+        if message.getCode() == ControlCode.ADD_STREAM:
+            stream = message.getArg("stream")
+            
+            # check if stream is part of plan
+            plans = self.get_data('plans')
+            if plans:
+                for plan_id in plans:
+                    context_scope = self.get_data(plan_id + ".context.scope")
+                    prefix = context_scope + ":PLAN:" + plan_id + ":"
+                    canonical2id = self.get_data(plan_id + ".canonical2id")
+                    id2node = self.get_data(plan_id + ".id2node")
+                    if stream.find(prefix) == 0:
+                        s = stream[len(prefix):]
+                        ss = s.split(":") 
+                        agent = ss[0]
+                        param = ss[3]
+                        canonical_name = agent + "." + param
+                        if canonical_name in canonical2id:
+                            id = canonical2id[canonical_name]
+                            self.set_data(plan_id + ".stream2id." + stream, id)
+                            # create worker
+                            logging.info("create worker")
+                            logging.info(stream)
+                            self.create_worker(stream, input=plan_id)
+   
+
+        ### do regular session listening
+        return super().session_listener(message)
+
+    def transform_data(self, stream, from_agent, from_agent_param, to_agent, to_agent_param):
+        logging.info("TRANSFORM DATA:")
+        logging.info(from_agent + "." + from_agent_param)
+        logging.info(to_agent + "." + to_agent_param)
+
+        # TODO: get registry info on from_agent, from_agent_param
+
+        # TODO: get registry info on to_agent, to_agent_param
+
+        # TODO: call data planner
+
+        # TODO: call data optimizer
+
+        # TODO: execute plan
+
+        # output stream
+        return stream
 
     # node status progression
     # PLANNED, TRIGGERED, STARTED, FINISHED
-    def default_processor(self, stream, id, label, data, dtype=None, tags=None, properties=None, worker=None):
+    def default_processor(self, message, input="DEFAULT", properties=None, worker=None):
 
-        # TODO: Instructions should use TAGs not agent_name
-        agent_name = stream.split(':')[0]
+        if input == "DEFAULT":
+            # new plan 
+            stream = message.getStream()
 
-        plan = self.plan
-        logging.info(plan)
-        start = plan['start']
-        canonical2node = plan['canonical2node']
-        id2node = plan['id2node']
-        logging.info("stream {} {}".format(stream, str(id2node)))
+            logging.info("stream: " + stream)
+            if message.isData():
+                logging.info("plan:")
+                p = message.getData()
+                logging.info(type(p))
+                logging.info(json.dumps(p))
+                
+                plan = self.verify_plan(p)
+                if plan:
+                    # start plan
+                    self.initialize_plan(plan, worker=worker)
+        else:
+            # process a plan
+            plan_id = input
+            stream = message.getStream()
 
-        if label == 'EOS':
-            if stream in id2node:
-                node = id2node[stream]
-                node['status'] = 'FINISHED'
+            if message.isBOS():
+                # set planned to False
+                worker.set_data(plan_id + ".status.planned." + stream, False)
+                # set runnning to True
+                worker.set_data(plan_id + ".status.running." + stream, True)
 
-                # check if next can run
-                nexts = node['next']
+                # update node status
+                node_id = worker.get_data(plan_id + ".stream2id." + stream)
+                worker.set_data(plan_id + ".id2node." + node_id + ".status", "RUNNING")
+            elif message.isEOS():
+                # set running to False
+                worker.set_data(plan_id + ".status.running." + stream, False)
+                # set finished to True
+                worker.set_data(plan_id + ".status.finished." + stream, True)
 
-                logging.info(plan)
-                for next in nexts:
-                    proceed = True
-                    prevs = next['prev']
-                    for prev in prevs:
-                        if prev['status'] == 'FINISHED':
-                            continue
-                        else:
-                            proceed = False
-                            break
+                # update node status
+                node_id = worker.get_data(plan_id + ".stream2id." + stream)
+                worker.set_data(plan_id + ".id2node." + node_id + ".status", "FINISHED")
 
-                    if proceed:
-                        next_agent_name = next['agent']
-                        next_canonical_name = next['canonical_name']
+                context_scope = worker.get_data(plan_id + ".context.scope")
+                # get from agent
+                from_agent = worker.get_data(plan_id + ".id2node." + node_id + ".agent")
+                from_agent_param = worker.get_data(plan_id + ".id2node." + node_id + ".param")
 
-                        # assign an id to keep track
-                        next_id = next_agent_name + ":" + str(hex(uuid.uuid4().fields[0]))[2:]
-                        next['id'] = next_id
-                        id2node[next_id] = next 
+                # start nexts agents
+                next_node_ids = worker.get_data(plan_id + ".id2node." + node_id + ".next")
+                logging.info("nexts")
+                logging.info(next_node_ids)
+                logging.info(type(next_node_ids))
+                for next_node_id in next_node_ids:
+                    next_agent = worker.get_data(plan_id + ".id2node." + next_node_id + ".agent")
+                    next_agent_param = worker.get_data(plan_id + ".id2node." + next_node_id + ".param")
 
-                        next['status'] = 'TRIGGERED'
+                    # transform data utilizing planner/optimizers, if necessary
+                    output_stream = self.transform_data(stream, from_agent, from_agent_param, next_agent, next_agent_param)
 
-                        ### prepare plan data/instruction 
-                        # assign input stream
-                        instruction = {}
-                        instruction['agent'] = next_agent_name
-                        instruction['id'] = next_id
-                        instruction['stream'] = stream
-
-                        ### put instruction into plan stream
-                        logging.info(plan)
-                        return 'INSTRUCTION', instruction, 'json'
+                    # create an EXECUTE_AGENT instruction
+                    if output_stream:
+                        context_cid = context_scope + ":PLAN:" + plan_id 
+                        worker.write_control(ControlCode.EXECUTE_AGENT, {"agent": next_agent, "context": context_cid, "input": { next_agent_param: output_stream }})
+                        
             else:
-                # doesn't belong to plan
                 pass
+
+        # start = plan['start']
+        # canonical2node = plan['canonical2node']
+        # stream2node = plan['stream2node']
+        # logging.info("stream {} {}".format(stream, str(stream2node)))
+
+        # if message.isEOS():
+        #     if stream in stream2node:
+        #         node = stream2node[stream]
+        #         node['status'] = 'FINISHED'
+
+        #         # check if next can run
+        #         nexts = node['next']
+
+        #         logging.info(plan)
+        #         for next in nexts:
+        #             proceed = True
+        #             prevs = next['prev']
+        #             for prev in prevs:
+        #                 if prev['status'] == 'FINISHED':
+        #                     continue
+        #                 else:
+        #                     proceed = False
+        #                     break
+
+        #             if proceed:
+        #                 next_agent_name = next['agent']
+        #                 next_canonical_name = next['canonical_name']
+
+        #                 # assign an id to keep track
+        #                 next_id = next_agent_name + ":" + str(hex(uuid.uuid4().fields[0]))[2:]
+        #                 next['id'] = next_id
+        #                 stream2node[next_id] = next 
+
+        #                 next['status'] = 'TRIGGERED'
+
+        #                 ### prepare plan data/instruction 
+        #                 args = {}
+        #                 args['agent'] = next_agent_name
+        #                 input = {}
+        #                 input["DEFAULT"] = stream # TODO: Is this correct?
+        #                 args["input"] = input
+        #                 args['context'] = ""
+
+        #                 ### put instruction into plan stream
+        #                 logging.info(plan)
+        #                 return Message(Message.MessageType.CONTROL, {"code": ControlCode.EXECUTE_AGENT, "args": args}, ContentType.JSON)
+        #     else:
+        #         # doesn't belong to plan
+        #         pass
             
 
-        elif label == 'BOS':
-            # if a start node instantiate a plan
-            logging.info("checking agent in start {name}{start}".format(name=agent_name,start=str(start)))
-            if agent_name in start:
-                canonical_name = agent_name + ":" + "*"
-                node = canonical2node[canonical_name]
-                logging.info(node)
-                node['id'] = stream
-                node['status'] = 'STARTED'
-                id2node[stream] = node
-            elif stream in id2node:
-                node = id2node[stream]
-                node['status'] = 'STARTED'
-            else:
-                pass
+        # elif message.isBOS():
+        #     # if a start node instantiate a plan
+        #     logging.info("checking agent in start {name}{start}".format(name=agent_name,start=str(start)))
+        #     if agent_name in start:
+        #         canonical_name = agent_name + ":" + "*"
+        #         node = canonical2node[canonical_name]
+        #         logging.info(node)
+        #         node['id'] = stream
+        #         node['status'] = 'STARTED'
+        #         stream2node[stream] = node
+        #     elif stream in stream2node:
+        #         node = stream2node[stream]
+        #         node['status'] = 'STARTED'
+        #     else:
+        #         pass
 
-        elif label == 'DATA':
-            # nothing to do here, other than setting status
-            if stream in id2node:
-                node = id2node[stream]
-                node['status'] = 'PROCESSING'
+        # elif message.isData():
+        #     # nothing to do here, other than setting status
+        #     if stream in stream2node:
+        #         node = stream2node[stream]
+        #         node['status'] = 'PROCESSING'
     
         return None
 
@@ -226,22 +427,15 @@ class AgentA(Agent):
             kwargs['name'] = "A"
         super().__init__(**kwargs)
    
-    def default_processor(self, stream, id, label, data, dtype=None, properties=None, worker=None):
-        if label == 'INSTRUCTION':
-            logging.info(label)
-            logging.info(id)
-            logging.info(data)
-            logging.info(properties)
-            logging.info(worker)
-            logging.info(worker.agent)
-            instruction = json.loads(data)
-            instruction_agent = instruction['agent']
-            assigned_id = instruction['id']
-            input_stream = instruction['stream']
+    def default_processor(self, message, input="DEFAULT", properties=None, worker=None):
+        if message.getCode() == ControlCode.EXECUTE_AGENT:
+            
+            instruction_agent = message.getArg("agent")
+            input_stream = message.getArg['stream']
             if instruction_agent == self.name:
-                worker.agent.create_worker(input_stream, id=assigned_id)
+                worker.agent.create_worker(input_stream, input="DEFAULT")
                 return 
-        elif label == 'EOS':
+        elif message.isEOS():
             # compute stream data
             l = 0
             if worker:
@@ -250,13 +444,14 @@ class AgentA(Agent):
             
             # output to stream
             return l
-        elif label == 'BOS':
+        elif message.isBOS():
             # init stream to empty array
             if worker:
                 worker.set_data('stream',[])
             pass
-        elif label == 'DATA':
+        elif message.isData():
             # store data value
+            data = message.getData()
             logging.info(data)
             
             if worker:
@@ -271,22 +466,15 @@ class AgentB(Agent):
             kwargs['name'] = "B"
         super().__init__(**kwargs)
    
-    def default_processor(self, stream, id, label, data, dtype=None, properties=None, worker=None):
-        if label == 'INSTRUCTION':
-            logging.info(label)
-            logging.info(id)
-            logging.info(data)
-            logging.info(properties)
-            logging.info(worker)
-            logging.info(worker.agent)
-            instruction = json.loads(data)
-            instruction_agent = instruction['agent']
-            assigned_id = instruction['id']
-            input_stream = instruction['stream']
+    def default_processor(self, message, input="DEFAULT", properties=None, worker=None):
+        if message.getCode() == ControlCode.EXECUTE_AGENT:
+            
+            instruction_agent = message.getArg("agent")
+            input_stream = message.getArg['stream']
             if instruction_agent == self.name:
-                worker.agent.create_worker(input_stream, id=assigned_id)
+                worker.agent.create_worker(input_stream, input="DEFAULT")
                 return 
-        elif label == 'EOS':
+        elif message.isEOS():
             # compute stream data
             l = 0
             if worker:
@@ -295,13 +483,14 @@ class AgentB(Agent):
             
             # output to stream
             return l
-        elif label == 'BOS':
+        elif message.isBOS():
             # init stream to empty array
             if worker:
                 worker.set_data('stream',[])
             pass
-        elif label == 'DATA':
+        elif message.isData():
             # store data value
+            data = message.getData()
             logging.info(data)
             
             if worker:

@@ -1,3 +1,4 @@
+import AccessDeniedNonIdealState from "@/components/AccessDeniedNonIdealState";
 import { AppContext } from "@/components/contexts/app-context";
 import { AuthContext } from "@/components/contexts/auth-context";
 import { faIcon } from "@/components/icon";
@@ -111,7 +112,7 @@ export default function Data() {
                 >
                     <ControlGroup fill>
                         <InputGroup
-                            placeholder="Search"
+                            placeholder="Search data"
                             large
                             fill
                             className={

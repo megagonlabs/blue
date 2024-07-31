@@ -34,6 +34,8 @@ from websockets.sync.client import connect
 ###### Blue
 from agent import Agent, AgentFactory
 from session import Session
+from message import Message, MessageType, ContentType, ControlCode
+
 
 
 # set log level
@@ -161,9 +163,9 @@ class APIAgent(Agent):
 
         return output
 
-    def default_processor(self, stream, id, label, data, dtype=None, tags=None, properties=None, worker=None):
+    def default_processor(self, message, input="DEFAULT", properties=None, worker=None):
         
-        if label == 'EOS':
+        if message.isEOS():
             # get all data received from stream
             stream_data = ""
             if worker:
@@ -172,13 +174,14 @@ class APIAgent(Agent):
             #### call api to compute
             return self.handle_api_call(stream_data, properties=properties)
             
-        elif label == 'BOS':
+        elif message.isBOS():
             # init stream to empty array
             if worker:
                 worker.set_data('stream',[])
             pass
-        elif label == 'DATA':
+        elif message.isData():
             # store data value
+            data = message.getData()
             logging.info(data)
             
             if worker:

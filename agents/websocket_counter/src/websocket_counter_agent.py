@@ -32,6 +32,7 @@ from websockets.sync.client import connect
 ###### Blue
 from agent import Agent, AgentFactory
 from session import Session
+from message import Message, MessageType, ContentType, ControlCode
 
 
 # set log level
@@ -51,8 +52,8 @@ class CounterAgent(Agent):
 
         self.properties['counter.service'] = "ws://localhost:8001"
 
-    def default_processor(self, stream, id, label, data, dtype=None, tags=None, properties=None, worker=None):
-        if label == 'EOS':
+    def default_processor(self, message, input="DEFAULT", properties=None, worker=None):
+        if message.isEOS():
             # get all data received from stream
             stream_data = ""
             if worker:
@@ -75,19 +76,20 @@ class CounterAgent(Agent):
             # create output from response
             output_data = int(response)
             logging.info(output_data)
-            return "DATA", str(output_data), "str", True
+            return [str(output_data), Message.EOS]
 
-        elif label == 'BOS':
+        elif message.isBOS():
             # init stream to empty array
             if worker:
                 worker.set_data('stream',[])
             pass
-        elif label == 'DATA':
+        elif message.isData():
             # store data value
+            data = message.getData()
             logging.info(data)
             
             if worker:
-                worker.append_data('stream',data)
+                worker.append_data('stream', data)
     
         return None
 

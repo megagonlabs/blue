@@ -27,6 +27,8 @@ from session import Session
 from agent import Agent
 from producer import Producer
 
+from message import Message, MessageType, ContentType, ControlCode
+
 
 ###### Settings
 from settings import PROPERTIES, DEVELOPMENT
@@ -111,21 +113,20 @@ class ConnectionManager:
     def user_session_message(self, connection_id: str, session_id: str, message: str):
         user_agent = pydash.objects.get(self.session_to_client, [session_id, connection_id, "user"], None)
         if user_agent is not None:
-            user_agent.interact(message)
+            user_agent.interact(message, output="TEXT")
 
     def interactive_event_message(self, json_data):
         if json_data["stream_id"] is not None:
             event_stream = Producer(cid=json_data["stream_id"], properties=PROPERTIES)
             event_stream.start()
-            event_stream.write(
-                data={
+            event_stream.write_data(
+                {
                     "path": pydash.objects.get(json_data, "path", None),
                     "action": pydash.objects.get(json_data, "action", None),
                     "form_id": json_data['form_id'],
                     "value": pydash.objects.get(json_data, "value", None),
                     "timestamp": json_data['timestamp'],
-                },
-                dtype="json",
+                }
             )
 
     async def observer_session_message(self, connection_id: str, message):

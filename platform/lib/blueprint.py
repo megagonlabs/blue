@@ -22,6 +22,7 @@ from redis.commands.json.path import Path
 ###### Blue
 from producer import Producer
 from session import Session
+from message import Message, MessageType, ContentType, ControlCode
 
 
 class Platform:
@@ -132,10 +133,13 @@ class Platform:
     def join_session(self, session_sid, registry, agent, properties):
 
         session_cid = self.cid + ":" + session_sid
-        code = "JOIN_SESSION"
-        params = {'session': session_cid, 'registry': registry, 'agent': agent, 'properties': properties}
-
-        self._send_message(code, params)
+    
+        args = {}
+        args["session"] = session_cid
+        args["registry"] = registry
+        args["agent"] = agent
+        args["properties"] = properties
+        self.producer.write_control(ControlCode.JOIN_SESSION, args)
 
     ###### METADATA RELATED
     def create_update_user(self, user):

@@ -27,6 +27,7 @@ from tqdm import tqdm
 ###### Blue
 from agent import Agent, AgentFactory
 from session import Session
+from message import Message, MessageType, ContentType, ControlCode
 
 
 # set log level
@@ -45,18 +46,8 @@ class SQLForgeAgent(Agent):
             kwargs['name'] = "SQLFORGE"
         super().__init__(**kwargs)
 
-    def default_processor(
-        self,
-        stream,
-        id,
-        label,
-        data,
-        dtype=None,
-        tags=None,
-        properties=None,
-        worker=None,
-    ):
-        if label == "EOS":
+    def default_processor(self, message, input="DEFAULT", properties=None, worker=None):
+        if message.isEOS():
             # compute stream data
             text_query = ""
             if worker:
@@ -68,13 +59,14 @@ class SQLForgeAgent(Agent):
 
             # output to stream
             return sql_query
-        elif label == "BOS":
+        elif message.isBOS():
             # init stream to empty array
             if worker:
                 worker.set_data("text_query", [])
             pass
-        elif label == "DATA":
+        elif message.isData():
             # store data value
+            data = message.getData()
             logging.info(data)
 
             if worker:

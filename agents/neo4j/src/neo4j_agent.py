@@ -66,13 +66,17 @@ class NEO4JAgent(APIAgent):
         self.properties['output_path'] = '$.results'
 
         listeners = {}
+        default_listeners = {}
+        listeners["DEFAULT"] = default_listeners
         self.properties['listens'] = listeners
-        listeners['includes'] = ['CYPHER']
-        listeners['excludes'] = [self.name]
+        default_listeners['includes'] = ['CYPHER']
+        default_listeners['excludes'] = [self.name]
 
         ### default tags to tag output streams
-        tags = []
-        self.properties['tags'] = ['JSON']
+        tags = {}
+        default_tags = ['JSON']
+        tags["DEFAULT"] = default_tags
+        self.properties['tags'] = tags
 
    
     def validate_input(self, input_data):

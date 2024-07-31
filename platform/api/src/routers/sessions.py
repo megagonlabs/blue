@@ -10,8 +10,9 @@ sys.path.append("./lib/platform/")
 
 ###### Parsers, Formats, Utils
 import json
+import logging
 from utils import json_utils
-from constant import HTTP_EXCEPTION_403, acl_enforce, d7validate
+from constant import PermissionDenied, acl_enforce, d7validate
 from validations.base import BaseValidation
 
 ##### Typing
@@ -50,6 +51,9 @@ agent_registry = AgentRegistry(id=agent_registry_id, prefix=prefix, properties=P
 ##### ROUTER
 router = APIRouter(prefix=f"{PLATFORM_PREFIX}/sessions")
 
+# set logging
+logging.getLogger().setLevel("INFO")
+
 read_all_roles = ACL.get_implicit_users_for_permission('sessions', 'read_all')
 read_own_roles = ACL.get_implicit_users_for_permission('sessions', 'read_own')
 read_participate_roles = ACL.get_implicit_users_for_permission('sessions', 'read_participate')
@@ -72,7 +76,7 @@ def session_acl_enforce(request: Request, session: dict, read=False, write=False
         if pydash.objects.get(session, f'members.{uid}', False):
             allow = True
     if throw and not allow:
-        raise HTTP_EXCEPTION_403
+        raise PermissionDenied
     return allow
 
 
@@ -159,7 +163,9 @@ def list_session_members(request: Request, session_id):
     session_acl_enforce(request, session.to_dict(), read=True)
     created_by = session.get_metadata("created_by")
     members: dict = session.get_metadata('members')
-    results = [{'uid': created_by, 'owner': True}]
+    results = []
+    if created_by is not None:
+        results.append({'uid': created_by, 'owner': True})
     for key in members.keys():
         if key != created_by and members[key]:
             results.append({'uid': key, 'owner': False})

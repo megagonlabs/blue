@@ -64,6 +64,13 @@ export default function RegistryList({ type }) {
                     } else if (_.isEqual(type, "data")) {
                         extra = `${properties.connection.protocol}://${properties.connection.host}:${properties.connection.port}`;
                     }
+                    let icon = element.icon;
+                    if (
+                        !_.isEmpty(icon) &&
+                        !_.startsWith(icon, "data:image/")
+                    ) {
+                        icon = _.split(icon, ":");
+                    }
                     return (
                         <Col
                             key={element.name}
@@ -74,6 +81,8 @@ export default function RegistryList({ type }) {
                             style={{ paddingBottom: 20 }}
                         >
                             <RegistryCard
+                                type={type}
+                                icon={icon}
                                 title={element.name}
                                 description={element.description}
                                 extra={extra}

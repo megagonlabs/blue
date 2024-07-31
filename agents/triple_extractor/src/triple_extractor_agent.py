@@ -70,10 +70,14 @@ ${input}
     "explanation": "PERSON, JOB, and RESUME are Concepts,\nHAS is a Relation between PERSON and RESUME,  CONTAINS is a Relation between RESUME and JOB,\nname, age are properties of PERSON and  date, content are properties of RESUME, \n(PERSON {name: \"Michael Gibbons\"})--[HAS]-> (RESUME),\n(RESUME) --[CONTAINS]->(JOB {title:  \"software engineer\"}) are example triples \n",
     "example": "(PERSON {name: \"Michael Gibbons\"})--[HAS]-> (RESUME)",
     "listens": {
-        "includes": ["USER"],
-        "excludes": []
+        "DEFAULT": {
+            "includes": ["USER"],
+            "excludes": []
+        },
     },
-    "tags": ["TRIPLE"]
+    "tags": {
+        "DEFAULT": ["TRIPLE"]
+    }
 }
 
 

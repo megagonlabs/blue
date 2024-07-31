@@ -54,7 +54,7 @@ triple2CYPHERGPT_properties = {
     "input_context":"$[0]",
     "input_context_field":"content",
     "input_field":"messages",
-     "input_template": """
+    "input_template": """
 Convert below triple into a CYPHER query:
 ${input}
 """,
@@ -64,10 +64,14 @@ ${input}
   "openai.frequency_penalty":0,
   "openai.presence_penalty":0,
   "listens": {
-    "includes": ["TRIPLE"],
-    "excludes": []
+      "DEFAULT": {
+          "includes": ["TRIPLE"],
+          "excludes": []
+        }
   },
-  "tags": ["CYPHER"],
+  "tags": {
+      "DEFAULT": ["CYPHER"]
+  }
 }
 
 

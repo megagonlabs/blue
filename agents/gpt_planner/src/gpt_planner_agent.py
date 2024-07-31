@@ -66,8 +66,15 @@ ${input}
     "openai.frequency_penalty": 0,
     "openai.presence_penalty": 0,
     "registry.name": "default",
-    "listens": {"includes": ["USER"], "excludes": []},
-    "tags": ["PLAN"],
+    "listens": {
+        "DEFAULT": {
+            "includes": ["USER"],
+            "excludes": []
+        }
+    },
+    "tags": {
+        "DEFAULT": ["PLAN"]
+    }
 }
 
 

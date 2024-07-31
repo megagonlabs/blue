@@ -44,12 +44,15 @@ from consumer import Consumer
 
 from openai_agent import OpenAIAgent
 from agent_registry import AgentRegistry
-
+from message import Message, MessageType, ContentType, ControlCode
 
 # set log level
 logging.getLogger().setLevel(logging.INFO)
 logging.basicConfig(format="%(asctime)s [%(levelname)s] [%(process)d:%(threadName)s:%(thread)d](%(filename)s:%(lineno)d) %(name)s -  %(message)s", level=logging.ERROR, datefmt="%Y-%m-%d %H:%M:%S")
 
+
+def create_uuid():
+    return str(hex(uuid.uuid4().fields[0]))[2:]
 
 ## --properties '{"openai.api":"ChatCompletion","openai.model":"gpt-4","output_path":"$.choices[0].message.content","listens":{"includes":["USER"],"excludes":[]},"tags": ["TRIPLE"], "input_json":"[{\"role\":\"user\"}]","input_context":"$[0]","input_context_field":"content","input_field":"messages","input_template":"Examine the text below and identify a task plan  thatcan be fulfilled by various agents. Specify plan in JSON format, where each agent has attributes of name, description, input and output parameters with names and descriptions:\n{input}",  "openai.temperature":0,"openai.max_tokens":256,"openai.top_p":1,"openai.frequency_penalty":0,"openai.presence_penalty":0}'
 interactive_planner_properties = {
@@ -76,8 +79,15 @@ PLAN:",
     "registry.name": "default",
     "search.threshold": 0.05,
     "search.limit": 10,
-    "listens": {"includes": ["USER"], "excludes": []},
-    "tags": ["PLAN"],
+    "listens": {
+        "DEFAULT": {
+            "includes": ["USER"],
+            "excludes": []
+        }
+    },
+    "tags": {
+        "DEFAULT": ["PLAN"]
+    }
 }
 
 
@@ -434,14 +444,13 @@ class InteractivePlannerAgent(OpenAIAgent):
 
             index = index + 1
 
-        interactive_form = {
+        interactive_plan= {
             "schema": plan_schema,
             "data": { "steps": plan_data },
             "uischema": plan_ui,
             }
 
-        logging.info(json.dumps(interactive_form, indent=3))
-        return ("INTERACTION", {"type": "JSONFORM", "content": interactive_form}, "json", False)
+        return interactive_plan
 
 
     def standardize_plan(self, plan):
@@ -457,71 +466,131 @@ class InteractivePlannerAgent(OpenAIAgent):
 
         return edges
 
-    def default_processor(self, stream, id, label, data, dtype=None, tags=None, properties=None, worker=None):
-        if ":EVENT_MESSAGE:" in stream:
-            if label == "DATA":
-                if worker:
+    def default_processor(self, message, input="DEFAULT", properties=None, worker=None):
+        stream = message.getStream()
 
-                    output_stream_cid = stream[: stream.rindex("EVENT_MESSAGE") - 1]
+        if input == "EVENT":
+            if message.isData():
+                if worker:
+                    data = message.getData()
+                    stream = message.getStream()
+                    plan_id = form_id = data["form_id"]
+                    action = data["action"]
+
+                     # get form stream
+                    form_data_stream = stream.replace("EVENT", "OUTPUT:FORM")
 
                     # when the user clicked DONE
-                    if data["action"] == "DONE":
+                    if action == "DONE":
                         # get plan
-                        plan_data = worker.get_stream_data(stream=output_stream_cid, key="steps")
+                        plan_data = worker.get_stream_data("steps.value", stream=form_data_stream)
+
+                        # get context from data section
+                        plan_context = {
+                            "scope": stream[:-7], # omit ":STREAM"
+                            # "streams": {
+                            #     "USER.TEXT": stream
+                            # }
+                        }
+                        logging.info(plan_data)
+                        logging.info(type(plan_data))
                         # standardize plan
                         plan_dag = self.standardize_plan(plan_data)
                         logging.info(plan_dag)
 
+                        # get plan context
+                        plan_context = worker.get_data(plan_id)
+                        plan_context = plan_context['context']
 
-                        # get output stream with original form
-                        output_stream = Producer(cid=output_stream_cid, properties=properties)
-                        output_stream.start()
+                        plan = {
+                            "id":  plan_id,
+                            "steps": plan_dag,
+                            "context": plan_context
+                        }
+                        
 
                         # close form
-                        output_stream.write(
-                            label="INTERACTION",
-                            data={
-                                "type": "DONE",
-                                "form_id": data["form_id"],
-                            },
-                            dtype="json",
-                        )
+                        args = {
+                            "form_id": form_id
+                        }
+                        worker.write_control(ControlCode.CLOSE_FORM, args, output="FORM")
 
-                        # stream form data
-                        return ("DATA", { "plan" : plan_dag }, "json", True)
+                        # stream plan data
+                        logging.info(plan)
+                        return plan
                     else:
-                        timestamp = worker.get_stream_data(stream=output_stream_cid, key=f'{data["path"]}.timestamp')
+                        path = data["path"]
+                        timestamp = worker.get_stream_data(path + ".timestamp", stream=form_data_stream)
 
                         # TODO: timestamp should be replaced by id to determine order
                         if timestamp is None or data["timestamp"] > timestamp:
-                            
-                            
                             worker.set_stream_data(
-                                key=data["path"],
-                                value=data["value"],
-                                stream=output_stream_cid,
+                                path,
+                                {
+                                    "value": data["value"],
+                                    "timestamp": data["timestamp"],
+                                },
+                                stream=form_data_stream
                             )
         else:
-            if label == 'EOS':
+
+            if message.isEOS():
+                logging.info("MESSAGE EOS")
                 # get all data received from stream
+                stream = message.getStream()
                 stream_data = ""
                 if worker:
-                    stream_data = worker.get_data('stream')
+                    stream_data = worker.get_data(stream)
 
                 #### call api to compute, render interactive plan
-                return self.handle_api_call(stream_data)
+                interactive_plan = self.handle_api_call(stream_data)
+
+                # plan id and context 
+                plan_id = create_uuid()
+                plan_context = {
+                    "scope": stream[:-7], # omit ":STREAM"
+                    "streams": {
+                        "USER.TEXT": stream
+                    }
+                }
+                # save into data section 
+                interactive_plan['data']['context'] = plan_context
+                # save into agent memory by id
+                worker.set_data(plan_id, { "context": plan_context })
+
+                # write ui
+                worker.write_control(ControlCode.CREATE_FORM, interactive_plan, output="FORM", id=plan_id)
+
+                # # TODO: TESTING, REMOVE LATER
+                # plan_data = interactive_plan['data']['steps']
+                # plan_dag = self.standardize_plan(plan_data)
+                # plan = {
+                #     "id": create_uuid(),
+                #     "steps": plan_dag,
+                #     "context": plan_context
+                # }
+                # logging.info(plan)
+                # return plan
                 
-            elif label == 'BOS':
+            elif message.isBOS():
+                logging.info("MESSAGE BOS")
+                stream = message.getStream()
                 # init stream to empty array
                 if worker:
-                    worker.set_data('stream',[])
+                    worker.set_data(stream,[])
                 pass
-            elif label == 'DATA':
+            elif message.isData():
+                logging.info("MESSAGE DATA")
                 # store data value
+                data = message.getData()
+                stream = message.getStream()
+
+                logging.info("=====")
+                logging.info(stream)
                 logging.info(data)
-                
+                logging.info("=====")
                 if worker:
-                    worker.append_data('stream', data)
+                    worker.append_data(stream, data)
             
             return None
     

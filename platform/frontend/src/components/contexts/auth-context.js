@@ -84,7 +84,7 @@ export const AuthProvider = ({ children }) => {
         const permissions = _.get(user, "permissions", null);
         return {
             canWriteAgentRegistry: hasInteraction(
-                _.get(user, `permissions.agent_registry`, null),
+                _.get(permissions, "agent_registry", []),
                 ["write_all", "write_own"]
             ),
             canWritePlatformUsers: hasInteraction(
@@ -114,6 +114,10 @@ export const AuthProvider = ({ children }) => {
             canReadAgentRegistry: hasInteraction(
                 _.get(permissions, "agent_registry", []),
                 ["read_all"]
+            ),
+            canCreateSessions: hasInteraction(
+                _.get(permissions, "sessions", []),
+                ["write_all", "write_own"]
             ),
         };
     };

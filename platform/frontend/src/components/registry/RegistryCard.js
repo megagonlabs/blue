@@ -1,19 +1,43 @@
-import { CONTAINER_STATUS_INDICATOR } from "@/components/constant";
+import {
+    CONTAINER_STATUS_INDICATOR,
+    DEFAULT_ENTITY_ICON,
+} from "@/components/constant";
 import { faIcon } from "@/components/icon";
-import { Card, Colors, H5, Intent, Tag, Tooltip } from "@blueprintjs/core";
+import {
+    Card,
+    Classes,
+    Colors,
+    H5,
+    Intent,
+    Tag,
+    Tooltip,
+} from "@blueprintjs/core";
 import { faCircleDot } from "@fortawesome/pro-duotone-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import _ from "lodash";
+import Image from "next/image";
 import Link from "next/link";
 export default function RegistryCard({
+    type,
     title,
+    icon,
     description,
-    href,
+    href = "",
     extra,
     container,
+    previewIcon,
 }) {
     const containerStatus = _.get(container, "status", "not exist");
     return (
-        <Link className="no-link-decoration" href={href}>
+        <Link
+            style={
+                _.isEmpty(href)
+                    ? { cursor: "initial", pointerEvents: "none" }
+                    : null
+            }
+            className="no-link-decoration"
+            href={href}
+        >
             <Card
                 style={{
                     height: "100%",
@@ -21,8 +45,48 @@ export default function RegistryCard({
                     position: "relative",
                 }}
             >
-                <H5>{title}</H5>
-                <div className="multiline-ellipsis" style={{ height: 36 }}>
+                <Card
+                    style={{
+                        position: "absolute",
+                        left: 20,
+                        top: 20,
+                        overflow: "hidden",
+                        padding: 0,
+                        height: 40,
+                        width: 40,
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
+                    }}
+                >
+                    {!_.isEmpty(previewIcon) ? (
+                        previewIcon
+                    ) : _.isEmpty(icon) ? (
+                        faIcon({ icon: DEFAULT_ENTITY_ICON[type], size: 20 })
+                    ) : _.startsWith(icon, "data:image/") ? (
+                        <Image width={40} height={40} src={icon} alt="" />
+                    ) : (
+                        <FontAwesomeIcon
+                            color={icon[1]}
+                            style={{ height: 20, width: 20 }}
+                            icon={["fad", icon[0]]}
+                        />
+                    )}
+                </Card>
+                <H5
+                    className={Classes.TEXT_OVERFLOW_ELLIPSIS}
+                    style={{
+                        lineHeight: "40px",
+                        marginLeft: 50,
+                        marginBottom: 0,
+                    }}
+                >
+                    {title}
+                </H5>
+                <div
+                    className="multiline-ellipsis"
+                    style={{ height: 36, marginTop: 10 }}
+                >
                     {description}
                 </div>
                 {!_.isEmpty(extra) ? (

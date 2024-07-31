@@ -1,3 +1,4 @@
+import { ENTITY_ICON_40 } from "@/components/constant";
 import { Card, Classes, FormGroup, NonIdealState } from "@blueprintjs/core";
 import { faCircleA, faScreenUsers } from "@fortawesome/pro-duotone-svg-icons";
 import axios from "axios";
@@ -40,19 +41,7 @@ export default function SessionAgentsList() {
                 borderRadius: 2,
             }}
         >
-            <Card
-                className={Classes.SKELETON}
-                style={{
-                    borderRadius: "50%",
-                    padding: 0,
-                    overflow: "hidden",
-                    width: 40,
-                    height: 40,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                }}
-            />
+            <Card className={Classes.SKELETON} style={ENTITY_ICON_40} />
             <div className={Classes.SKELETON} style={{ width: 163.56 }}>
                 &nbsp;
             </div>
@@ -96,21 +85,10 @@ export default function SessionAgentsList() {
                                         borderRadius: 2,
                                     }}
                                 >
-                                    <Card
-                                        style={{
-                                            borderRadius: "50%",
-                                            padding: 0,
-                                            overflow: "hidden",
-                                            width: 40,
-                                            height: 40,
-                                            display: "flex",
-                                            alignItems: "center",
-                                            justifyContent: "center",
-                                        }}
-                                    >
+                                    <Card style={ENTITY_ICON_40}>
                                         {faIcon({
                                             icon: faCircleA,
-                                            style: { color: "#5f6b7c" },
+                                            size: 20,
                                         })}
                                     </Card>
                                     <div style={{ fontWeight: 600 }}>

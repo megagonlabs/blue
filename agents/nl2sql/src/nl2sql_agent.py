@@ -67,10 +67,14 @@ SELECT""",
     "openai.presence_penalty": 0.0,
     "openai.stop": ["#", ";"],
     "listens": {
-        "includes": ["USER"],
-        "excludes": []
+        "DEFAULT": {
+            "includes": ["USER"],
+            "excludes": []
+        }
     },
-    "tags": ["SQL"],
+    "tags": {
+        "DEFAULT": ["SQL"]
+    },
 }
 
 class NL2SQLAgent(OpenAIAgent):

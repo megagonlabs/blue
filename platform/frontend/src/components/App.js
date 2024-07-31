@@ -1,4 +1,4 @@
-import SupportDialog from "@/components/SupportDialog";
+import AccessDeniedNonIdealState from "@/components/AccessDeniedNonIdealState";
 import { NAVIGATION_MENU_WIDTH } from "@/components/constant";
 import { AppContext } from "@/components/contexts/app-context";
 import { AuthContext } from "@/components/contexts/auth-context";
@@ -21,9 +21,9 @@ import {
 import {
     faCircleA,
     faDatabase,
+    faGear,
     faListUl,
     faPencilRuler,
-    faQuestion,
     faUserGroup,
 } from "@fortawesome/pro-duotone-svg-icons";
 import _ from "lodash";
@@ -31,8 +31,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useContext, useMemo, useState } from "react";
-import AccessDeniedNonIdealState from "./AccessDeniedNonIdealState";
 import { hasTrue } from "./helper";
+import Settings from "./navigation/Settings";
 import UserAccountPanel from "./navigation/UserAccountPanel";
 export default function App({ children }) {
     const router = useRouter();
@@ -49,12 +49,14 @@ export default function App({ children }) {
         [sessionDetail]
     );
     const { user, permissions } = useContext(AuthContext);
-    const canWritePlatformUsers = permissions.canWritePlatformUsers;
-    const showFormDesigner = permissions.showFormDesigner;
-    const canReadPlatformAgents = permissions.canReadPlatformAgents;
-    const canReadSessions = permissions.canReadSessions;
-    const canReadDataRegistry = permissions.canReadDataRegistry;
-    const canReadAgentRegistry = permissions.canReadAgentRegistry;
+    const {
+        canWritePlatformUsers,
+        showFormDesigner,
+        canReadPlatformAgents,
+        canReadSessions,
+        canReadDataRegistry,
+        canReadAgentRegistry,
+    } = permissions;
     const MENU_ITEMS = {
         sessions: {
             href: "/sessions",
@@ -93,16 +95,9 @@ export default function App({ children }) {
             visible: canReadPlatformAgents,
         },
     };
-    const [isSupportDialogOpen, setIsSupportDialogOpen] = useState(false);
-    const openSupportDialog = () => {
-        setIsSupportDialogOpen(true);
-    };
+    const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     return (
         <div>
-            <SupportDialog
-                isOpen={isSupportDialogOpen}
-                setIsSupportDialogOpen={setIsSupportDialogOpen}
-            />
             <Navbar style={{ paddingLeft: 20, paddingRight: 20 }}>
                 <Navbar.Group align={Alignment.LEFT}>
                     <Image
@@ -121,17 +116,28 @@ export default function App({ children }) {
                     </Link>
                 </Navbar.Group>
                 <Navbar.Group align={Alignment.RIGHT}>
-                    <Tooltip placement="bottom" minimal content="Support">
+                    <Tooltip
+                        placement="bottom"
+                        minimal
+                        content="Settings"
+                        openOnTargetFocus={false}
+                    >
                         <Button
-                            minimal
+                            onClick={() => {
+                                setIsSettingsOpen(true);
+                            }}
                             large
-                            onClick={openSupportDialog}
-                            icon={faIcon({ icon: faQuestion })}
+                            minimal
+                            icon={faIcon({ icon: faGear })}
                         />
                     </Tooltip>
                     <UserAccountPanel />
                 </Navbar.Group>
             </Navbar>
+            <Settings
+                isOpen={isSettingsOpen}
+                setIsSettingsOpen={setIsSettingsOpen}
+            />
             <Card
                 interactive
                 style={{

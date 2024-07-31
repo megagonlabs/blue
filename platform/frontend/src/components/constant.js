@@ -46,12 +46,11 @@ import DateRenderer, { DateTester } from "./jsonforms/renderers/Date";
 import DateTimeRenderer, {
     DateTimeTester,
 } from "./jsonforms/renderers/DateTime";
-module.exports = {
-    REGISTRY_TYPE_LOOKUP: {
+export const REGISTRY_TYPE_LOOKUP = {
         data: { icon: faServer, key: "source" },
         agent: { icon: faCircleA, key: "agent" },
     },
-    SEARCH_LIST_TYPE_LOOKUP: {
+    SEARCH_LIST_TYPE_LOOKUP = {
         agent: { icon: faHeadSideGear },
         input: { icon: faArrowRightToArc },
         output: { icon: faArrowRightFromArc },
@@ -61,7 +60,7 @@ module.exports = {
         entity: { icon: faFile },
         relation: { icon: faProjectDiagram },
     },
-    JSONFORMS_RENDERERS: [
+    JSONFORMS_RENDERERS = [
         ...vanillaRenderers,
         { tester: GroupTester, renderer: GroupRenderer },
         { tester: LabelTester, renderer: LabelRenderer },
@@ -77,9 +76,9 @@ module.exports = {
         { tester: ArrayTester, renderer: ArrayRenderer },
         { tester: UnknownTester, renderer: UnknownRenderer },
     ],
-    CARD_LIST_CLASS_NAMES: `${Classes.CARD} ${Classes.CARD_LIST} ${Classes.CARD_LIST_BORDERED}`,
-    NAVIGATION_MENU_WIDTH: 203,
-    CONTAINER_STATUS_INDICATOR: {
+    CARD_LIST_CLASS_NAMES = `${Classes.CARD} ${Classes.CARD_LIST} ${Classes.CARD_LIST_BORDERED}`,
+    NAVIGATION_MENU_WIDTH = 203,
+    CONTAINER_STATUS_INDICATOR = {
         created: { style: { color: Colors.ORANGE5 }, intent: Intent.WARNING },
         running: { style: { color: Colors.GREEN3 }, intent: Intent.SUCCESS },
         paused: { style: { color: Colors.RED3 }, intent: Intent.DANGER },
@@ -91,20 +90,84 @@ module.exports = {
         removing: { style: { color: Colors.RED3 }, intent: Intent.DANGER },
         dead: { style: { color: Colors.RED3 }, intent: Intent.DANGER },
     },
-    PROFILE_PICTURE_40: {
+    PROFILE_PICTURE_40 = {
         borderRadius: "50%",
         padding: 0,
         overflow: "hidden",
         width: 40,
         height: 40,
     },
-    USER_ROLES_LOOKUP: {
+    ENTITY_ICON_40 = {
+        overflow: "hidden",
+        padding: 0,
+        width: 40,
+        height: 40,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+    },
+    USER_ROLES_LOOKUP = {
         admin: "Administrator",
         member: "Member",
         guest: "Guest",
         developer: "Developer",
     },
-    HEX_TRANSPARENCY: {
+    DEFAULT_ENTITY_ICON = {
+        agent: faCircleA,
+        data: faDatabase,
+        source: faDatabase,
+    },
+    COLOR_OPTIONS = [
+        "#979B9D",
+        "#FFA8A8",
+        "#FAA2C1",
+        "#E599F7",
+        "#B197FC",
+        "#91A7FF",
+        "#74C0FC",
+        "#66D9E8",
+        "#50514F",
+        "#FA5252",
+        "#E64980",
+        "#BE4BDB",
+        "#7950F2",
+        "#4C6EF5",
+        "#228BE6",
+        "#15AABF",
+        "#1C2127",
+        "#C92A2A",
+        "#A61E4D",
+        "#862E9C",
+        "#5F3DC4",
+        "#364FC7",
+        "#1864AB",
+        "#0B7285",
+        "#63E6BE",
+        "#8CE99A",
+        "#C0EB75",
+        "#FFE066",
+        "#FFC078",
+        "#F1B280",
+        "#D3B79E",
+        "#C2B9A0",
+        "#12B886",
+        "#40C057",
+        "#82C91E",
+        "#FAB005",
+        "#FD7E14",
+        "#D46E25",
+        "#A87C56",
+        "#867C65",
+        "#087F5B",
+        "#2B8A3E",
+        "#5C940D",
+        "#E67700",
+        "#D9480F",
+        "#8A4513",
+        "#6F4B2D",
+        "#4B4639",
+    ],
+    HEX_TRANSPARENCY = {
         100: "FF",
         99: "FC",
         98: "FA",
@@ -206,5 +269,4 @@ module.exports = {
         2: "05",
         1: "03",
         0: "00",
-    },
-};
+    };

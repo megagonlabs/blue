@@ -50,8 +50,8 @@ export default function Sessions() {
     const [isSessionDetailOpen, setIsSessionDetailOpen] = useState(false);
     const { socket, reconnectWs } = useSocket();
     const socketReadyState = _.get(socket, "readyState", 3);
-    const { user } = useContext(AuthContext);
-    const userRole = _.get(user, "role", null);
+    const { permissions } = useContext(AuthContext);
+    const { canCreateSessions } = permissions;
     const sendSessionMessage = (message) => {
         if (!_.isEqual(socketReadyState, 1)) {
             return;
@@ -167,8 +167,6 @@ export default function Sessions() {
             />
         );
     };
-    const [sessionDetailTooltipOpen, setSessionDetailTooltipOpen] =
-        useState(false);
     const [isAddAgentsOpen, setIsAddAgentsOpen] = useState(false);
     const [skippable, setSkippable] = useState(false);
     const sessionName = _.get(
@@ -220,10 +218,7 @@ export default function Sessions() {
                     }}
                 >
                     <ButtonGroup large>
-                        {_.includes(
-                            ["admin", "member", "developer"],
-                            userRole
-                        ) ? (
+                        {canCreateSessions ? (
                             <Tooltip
                                 minimal
                                 placement="bottom-start"
@@ -249,7 +244,9 @@ export default function Sessions() {
                             </Tooltip>
                         ) : null}
                         <Popover
-                            placement="bottom"
+                            placement={`bottom${
+                                canCreateSessions ? "" : "-start"
+                            }`}
                             onOpening={fetchExistingSessions}
                             onClose={() => {
                                 setExistingSessions(null);
@@ -259,14 +256,19 @@ export default function Sessions() {
                                 <div>
                                     <div style={{ padding: 15 }}>
                                         <InputGroup
-                                            placeholder="Session ID"
                                             large
+                                            leftElement={
+                                                <Tag minimal>SESSION:</Tag>
+                                            }
                                             autoFocus
                                             fill
+                                            style={{ width: 230 }}
                                             value={joinSessionId}
                                             onChange={(event) => {
                                                 setJoinSessionId(
-                                                    event.target.value
+                                                    _.toLower(
+                                                        event.target.value
+                                                    )
                                                 );
                                             }}
                                             rightElement={
@@ -296,8 +298,7 @@ export default function Sessions() {
                                                             return;
                                                         appActions.session.observeSession(
                                                             {
-                                                                sessionId:
-                                                                    joinSessionId,
+                                                                sessionId: `SESSION:${joinSessionId}`,
                                                                 socket: socket,
                                                             }
                                                         );
@@ -437,21 +438,12 @@ export default function Sessions() {
                 >
                     {!_.isNull(sessionIdFocus) ? (
                         <Tooltip
+                            openOnTargetFocus={false}
                             minimal
-                            isOpen={sessionDetailTooltipOpen}
                             content="Get session details"
                             placement="bottom-start"
                         >
                             <Button
-                                onMouseEnter={() => {
-                                    setSessionDetailTooltipOpen(true);
-                                }}
-                                onBlur={() => {
-                                    setSessionDetailTooltipOpen(false);
-                                }}
-                                onMouseLeave={() => {
-                                    setSessionDetailTooltipOpen(false);
-                                }}
                                 large
                                 minimal
                                 onClick={() => {
