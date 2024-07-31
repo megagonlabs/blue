@@ -154,7 +154,6 @@ export default function Agents() {
                 <ButtonGroup large minimal>
                     <Tooltip placement="bottom-start" minimal content="Refresh">
                         <Button
-                            intent={Intent.PRIMARY}
                             onClick={fetchContainerList}
                             loading={loading}
                             icon={faIcon({ icon: faRefresh })}

@@ -11,7 +11,6 @@ import {
     Card,
     Classes,
     Divider,
-    Intent,
     NonIdealState,
     Tooltip,
 } from "@blueprintjs/core";
@@ -162,7 +161,6 @@ export default function Users() {
                 <ButtonGroup large minimal>
                     <Tooltip placement="bottom-start" minimal content="Refresh">
                         <Button
-                            intent={Intent.PRIMARY}
                             onClick={fetchUserList}
                             loading={loading}
                             icon={faIcon({ icon: faRefresh })}
