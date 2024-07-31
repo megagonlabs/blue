@@ -23,9 +23,9 @@ export default function SessionAgentsList() {
                             type: _.split(agent.sid, ":")[0],
                             id: _.split(agent.sid, ":")[1],
                         };
-                        return (
-                            true ||
-                            !_.includes(["USER", "OBSERVER"], agentTypeId.type)
+                        return !_.includes(
+                            ["USER", "OBSERVER"],
+                            agentTypeId.type
                         );
                     }
                 );
