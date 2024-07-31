@@ -317,7 +317,7 @@ export default function EntityIconEditor({
                                             description={entity.description}
                                             extra={extra}
                                             container={entity.container}
-                                            previewIcon={
+                                            icon={
                                                 <canvas
                                                     ref={previewCanvasRef}
                                                     style={{

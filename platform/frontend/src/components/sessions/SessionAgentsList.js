@@ -1,13 +1,14 @@
 import { ENTITY_ICON_40 } from "@/components/constant";
 import { Card, Classes, FormGroup, NonIdealState } from "@blueprintjs/core";
-import { faCircleA, faScreenUsers } from "@fortawesome/pro-duotone-svg-icons";
+import { faScreenUsers } from "@fortawesome/pro-duotone-svg-icons";
 import axios from "axios";
 import _ from "lodash";
 import { useContext, useEffect, useState } from "react";
 import { AppContext } from "../contexts/app-context";
+import EntityIcon from "../entity/EntityIcon";
 import { faIcon } from "../icon";
 export default function SessionAgentsList() {
-    const { appState } = useContext(AppContext);
+    const { appState, appActions } = useContext(AppContext);
     const sessionIdFocus = appState.session.sessionIdFocus;
     const [agents, setAgents] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -16,18 +17,25 @@ export default function SessionAgentsList() {
         axios
             .get(`/sessions/session/${sessionIdFocus}/agents`)
             .then((response) => {
-                setAgents(
-                    _.get(response, "data.results", []).filter((agent) => {
+                const agents = _.get(response, "data.results", []).filter(
+                    (agent) => {
                         const agentTypeId = {
                             type: _.split(agent.sid, ":")[0],
                             id: _.split(agent.sid, ":")[1],
                         };
-                        return !_.includes(
-                            ["USER", "OBSERVER"],
-                            agentTypeId.type
+                        return (
+                            true ||
+                            !_.includes(["USER", "OBSERVER"], agentTypeId.type)
                         );
-                    })
+                    }
                 );
+                for (let i = 0; i < _.size(agents); i++) {
+                    const agentName = agents[i].name;
+                    if (!_.has(appState, ["agent", "icon", agentName])) {
+                        appActions.agent.fetchIcon(agentName);
+                    }
+                }
+                setAgents(agents);
                 setLoading(false);
             });
     }, []);
@@ -68,11 +76,8 @@ export default function SessionAgentsList() {
                         </>
                     ) : (
                         agents.map((agent, index) => {
-                            const agentName = _.get(
-                                agent,
-                                "sid",
-                                _.get(agent, "name", "-")
-                            );
+                            const agentName = _.get(agent, "name", "-");
+                            const agentSid = _.get(agent, "sid", agentName);
                             return (
                                 <div
                                     key={index}
@@ -86,13 +91,19 @@ export default function SessionAgentsList() {
                                     }}
                                 >
                                     <Card style={ENTITY_ICON_40}>
-                                        {faIcon({
-                                            icon: faCircleA,
-                                            size: 20,
-                                        })}
+                                        <EntityIcon
+                                            entity={{
+                                                type: "agent",
+                                                icon: _.get(appState, [
+                                                    "agent",
+                                                    "icon",
+                                                    agentName,
+                                                ]),
+                                            }}
+                                        />
                                     </Card>
                                     <div style={{ fontWeight: 600 }}>
-                                        {agentName}
+                                        {agentSid}
                                     </div>
                                 </div>
                             );

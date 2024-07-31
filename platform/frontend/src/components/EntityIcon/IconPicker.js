@@ -149,15 +149,7 @@ export default function IconPicker({
                                 description={entity.description}
                                 extra={extra}
                                 container={entity.container}
-                                previewIcon={
-                                    !_.isEmpty(icon) ? (
-                                        <FontAwesomeIcon
-                                            color={color}
-                                            style={{ height: 20, width: 20 }}
-                                            icon={["fad", icon]}
-                                        />
-                                    ) : null
-                                }
+                                icon={[icon, color]}
                             />
                         </Card>
                         <Card

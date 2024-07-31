@@ -1,4 +1,4 @@
-import { DEFAULT_ENTITY_ICON, ENTITY_ICON_40 } from "@/components/constant";
+import { ENTITY_ICON_40 } from "@/components/constant";
 import { faIcon } from "@/components/icon";
 import { AppToaster } from "@/components/toaster";
 import {
@@ -24,14 +24,13 @@ import {
     faTrash,
     faXmarkLarge,
 } from "@fortawesome/pro-duotone-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import axios from "axios";
 import _ from "lodash";
-import Image from "next/image";
 import { useRouter } from "next/router";
 import { useContext, useState } from "react";
 import { AuthContext } from "../contexts/auth-context";
 import EntityIconEditor from "../EntityIcon/EntityIconEditor";
+import EntityIcon from "./EntityIcon";
 export default function EntityMain({
     entity,
     updateEntity,
@@ -133,25 +132,7 @@ export default function EntityMain({
                                     ...ENTITY_ICON_40,
                                 }}
                             >
-                                {_.isEmpty(entity.icon) ? (
-                                    faIcon({
-                                        icon: DEFAULT_ENTITY_ICON[entity.type],
-                                        size: 20,
-                                    })
-                                ) : _.startsWith(entity.icon, "data:image/") ? (
-                                    <Image
-                                        width={40}
-                                        height={40}
-                                        src={entity.icon}
-                                        alt=""
-                                    />
-                                ) : (
-                                    <FontAwesomeIcon
-                                        color={entity.icon[1]}
-                                        style={{ height: 20, width: 20 }}
-                                        icon={["fad", entity.icon[0]]}
-                                    />
-                                )}
+                                <EntityIcon entity={entity} />
                             </Card>
                         </div>
                     ) : null}

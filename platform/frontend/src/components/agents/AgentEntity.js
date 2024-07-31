@@ -21,9 +21,11 @@ import { diff } from "deep-diff";
 import _ from "lodash";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
+import { AppContext } from "../contexts/app-context";
 export default function AgentEntity() {
     const router = useRouter();
+    const { appActions } = useContext(AppContext);
     const [entity, setEntity] = useState({});
     const [editEntity, setEditEntity] = useState({});
     const [edit, setEdit] = useState(false);
@@ -93,6 +95,10 @@ export default function AgentEntity() {
         settlePromises(tasks, (error) => {
             if (!error) {
                 setEdit(false);
+                appActions.agent.setIcon({
+                    key: entity.name,
+                    value: _.get(editEntity, "icon", null),
+                });
                 setEntity(editEntity);
             }
             setLoading(false);
