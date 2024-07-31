@@ -20,7 +20,14 @@ export default function agentReducer(state = defaultState, { type, payload }) {
     switch (type) {
         case "agent/list/set": {
             for (let i = 0; i < _.size(payload); i++) {
-                _.set(icon, payload[i].name, payload[i].icon);
+                let tempIcon = payload[i].icon;
+                if (
+                    !_.isEmpty(tempIcon) &&
+                    !_.startsWith(tempIcon, "data:image/")
+                ) {
+                    tempIcon = _.split(tempIcon, ":");
+                }
+                _.set(icon, payload[i].name, tempIcon);
             }
             return {
                 ...state,
