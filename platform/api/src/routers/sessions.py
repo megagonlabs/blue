@@ -163,7 +163,9 @@ def list_session_members(request: Request, session_id):
     session_acl_enforce(request, session.to_dict(), read=True)
     created_by = session.get_metadata("created_by")
     members: dict = session.get_metadata('members')
-    results = [{'uid': created_by, 'owner': True}]
+    results = []
+    if created_by is not None:
+        results.append({'uid': created_by, 'owner': True})
     for key in members.keys():
         if key != created_by and members[key]:
             results.append({'uid': key, 'owner': False})
