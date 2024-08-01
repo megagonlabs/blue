@@ -384,7 +384,11 @@ class Registry:
         if 'properties' in record:
             properties = record['properties']
 
-        self.register_record(name, type, scope, description=description, icon=icon, properties=properties, rebuild=rebuild)
+        created_by = None
+        if 'created_by' in record:
+            created_by = record['created_by']
+
+        self.register_record(name, type, scope, created_by=created_by, description=description, icon=icon, properties=properties, rebuild=rebuild)
 
         if recursive:
             contents = {}
