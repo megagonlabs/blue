@@ -25,13 +25,15 @@ import classNames from "classnames";
 import _ from "lodash";
 import { useContext, useEffect, useState } from "react";
 import { FixedSizeList } from "react-window";
+import { ENTITY_ICON_40 } from "../constant";
+import EntityIcon from "../entity/EntityIcon";
 export default function AddAgents({
     isOpen,
     setIsAddAgentsOpen,
     setSkippable,
     skippable = false,
 }) {
-    const { appState } = useContext(AppContext);
+    const { appState, appActions } = useContext(AppContext);
     const sessionIdFocus = appState.session.sessionIdFocus;
     const registryName = process.env.NEXT_PUBLIC_AGENT_REGISTRY_NAME;
     const [loading, setLoading] = useState(true);
@@ -73,16 +75,21 @@ export default function AddAgents({
                         [i, "container", "status"],
                         null
                     );
-                    if (!_.isEqual(containerStatus, "running")) {
+                    const agentName = list[i].name;
+                    const description = _.get(list, [i, "description"], "");
+                    if (!_.isEqual(containerStatus, "running") && false) {
                         unavailable.push({
-                            name: _.get(list, [i, "name"], ""),
-                            description: _.get(list, [i, "description"], ""),
+                            name: agentName,
+                            description: description,
                         });
                     } else {
                         options.push({
-                            name: _.get(list, [i, "name"], ""),
-                            description: _.get(list, [i, "description"], ""),
+                            name: agentName,
+                            description: description,
                         });
+                        if (!_.has(appState, ["agent", "icon", agentName])) {
+                            appActions.agent.fetchIcon(agentName);
+                        }
                     }
                 }
                 options.sort(function (a, b) {
@@ -225,23 +232,49 @@ export default function AddAgents({
                                                 : null
                                         }
                                         style={{
-                                            marginLeft: 5,
-                                            maxWidth: "calc(100% - 35px)",
+                                            maxWidth: "calc(100% - 30px)",
                                         }}
                                     >
-                                        {name}
                                         <div
-                                            className={classNames(
-                                                Classes.TEXT_MUTED,
-                                                Classes.TEXT_SMALL,
-                                                Classes.TEXT_OVERFLOW_ELLIPSIS
-                                            )}
+                                            style={{
+                                                display: "flex",
+                                                alignItems: "center",
+                                            }}
                                         >
-                                            {_.get(
-                                                agents,
-                                                [index, "description"],
-                                                ""
-                                            )}
+                                            <div style={ENTITY_ICON_40}>
+                                                <EntityIcon
+                                                    entity={{
+                                                        type: "agent",
+                                                        icon: _.get(appState, [
+                                                            "agent",
+                                                            "icon",
+                                                            name,
+                                                        ]),
+                                                    }}
+                                                />
+                                            </div>
+                                            <div
+                                                style={{
+                                                    marginLeft: 5,
+                                                    maxWidth:
+                                                        "calc(100% - 45px)",
+                                                }}
+                                            >
+                                                {name}
+                                                <div
+                                                    className={classNames(
+                                                        Classes.TEXT_MUTED,
+                                                        Classes.TEXT_SMALL,
+                                                        Classes.TEXT_OVERFLOW_ELLIPSIS
+                                                    )}
+                                                >
+                                                    {_.get(
+                                                        agents,
+                                                        [index, "description"],
+                                                        ""
+                                                    )}
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </Card>
