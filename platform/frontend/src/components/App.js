@@ -40,7 +40,7 @@ export default function App({ children }) {
     const sessionDetail = appState.session.sessionDetail;
     const sessionIdFocus = appState.session.sessionIdFocus;
     const { socket } = useSocket();
-    const pinnedSessionIds = useMemo(
+    const recentSessions = useMemo(
         () =>
             Object.values(sessionDetail)
                 .sort((a, b) => b.created_date - a.created_date)
@@ -171,49 +171,56 @@ export default function App({ children }) {
                                 style={{ marginBottom: 20 }}
                             >
                                 {canReadSessions &&
-                                    pinnedSessionIds.map((sessionId) => (
-                                        <Button
-                                            key={sessionId}
-                                            active={
-                                                _.isEqual(
-                                                    sessionIdFocus,
-                                                    sessionId
-                                                ) &&
-                                                _.startsWith(
-                                                    router.asPath,
-                                                    "/sessions"
-                                                )
-                                            }
-                                            style={{ padding: "5px 15px" }}
-                                            onClick={() => {
-                                                appActions.session.setSessionIdFocus(
-                                                    sessionId
-                                                );
-                                                appActions.session.observeSession(
-                                                    {
-                                                        sessionId,
-                                                        socket,
-                                                    }
-                                                );
-                                                router.push("/sessions");
-                                            }}
-                                            text={
-                                                <div
-                                                    style={{ width: 133 }}
-                                                    className={
-                                                        Classes.TEXT_OVERFLOW_ELLIPSIS
-                                                    }
-                                                >
-                                                    #{" "}
-                                                    {_.get(
-                                                        sessionDetail,
-                                                        [sessionId, "name"],
+                                    recentSessions.map((sessionId) => {
+                                        const active =
+                                            _.isEqual(
+                                                sessionIdFocus,
+                                                sessionId
+                                            ) &&
+                                            _.startsWith(
+                                                router.asPath,
+                                                "/sessions"
+                                            );
+                                        return (
+                                            <Button
+                                                key={sessionId}
+                                                active={active}
+                                                style={{
+                                                    padding: "5px 15px",
+                                                    backgroundColor: !active
+                                                        ? "transparent"
+                                                        : null,
+                                                }}
+                                                onClick={() => {
+                                                    appActions.session.setSessionIdFocus(
                                                         sessionId
-                                                    )}
-                                                </div>
-                                            }
-                                        />
-                                    ))}
+                                                    );
+                                                    appActions.session.observeSession(
+                                                        {
+                                                            sessionId,
+                                                            socket,
+                                                        }
+                                                    );
+                                                    router.push("/sessions");
+                                                }}
+                                                text={
+                                                    <div
+                                                        style={{ width: 133 }}
+                                                        className={
+                                                            Classes.TEXT_OVERFLOW_ELLIPSIS
+                                                        }
+                                                    >
+                                                        #{" "}
+                                                        {_.get(
+                                                            sessionDetail,
+                                                            [sessionId, "name"],
+                                                            sessionId
+                                                        )}
+                                                    </div>
+                                                }
+                                            />
+                                        );
+                                    })}
                                 {["sessions"].map((key, index) => {
                                     const { href, icon, text, visible } = _.get(
                                         MENU_ITEMS,
@@ -227,7 +234,6 @@ export default function App({ children }) {
                                         router.asPath,
                                         href
                                     );
-
                                     return (
                                         <Link href={href} key={index}>
                                             <Button
@@ -242,7 +248,7 @@ export default function App({ children }) {
                                                 }
                                                 active={
                                                     active &&
-                                                    !pinnedSessionIds.includes(
+                                                    !recentSessions.includes(
                                                         sessionIdFocus
                                                     )
                                                 }
