@@ -48,18 +48,17 @@ class ObserverAgent(Agent):
             kwargs["name"] = "OBSERVER"
         super().__init__(**kwargs)
 
-  
     def _initialize(self, properties=None):
         super()._initialize(properties=properties)
 
         # observer is not instructable
         self.properties['instructable'] = False
 
-    def response_handler(self, stream, properties=None, message={}):
+    def response_handler(self, stream, message={}):
         try:
             output = {}
-            if "output" in properties:
-                output = properties["output"]
+            if "output" in self.properties:
+                output = self.properties["output"]
             if output.get('type') == "websocket":
                 ws = create_connection(output.get("websocket"))
                 ws.send(json.dumps(message))
@@ -105,7 +104,6 @@ class ObserverAgent(Agent):
                         try:
                             self.response_handler(
                                 stream=stream,
-                                properties=properties,
                                 message={**base_message, "message": {**base_message['message'], "label": "DATA", "contents": [json.loads(json_data) for json_data in data], "content_type": 'JSON'}},
                             )
                         except Exception as exception:
@@ -114,18 +112,17 @@ class ObserverAgent(Agent):
                         if len(data) > 0:
                             self.response_handler(
                                 stream=stream,
-                                properties=properties,
                                 message={**base_message, "message": {**base_message['message'], "label": "DATA", "contents": [map(str, data)], "content_type": 'STR'}},
                             )
                 elif mode == 'streaming':
-                    self.response_handler(stream=stream, properties=properties, message=base_message)
+                    self.response_handler(stream=stream, message=base_message)
         elif message.isBOS():
             # init stream to empty array
             if worker:
                 if mode == 'batch':
                     worker.set_data(stream, [])
                 elif mode == 'streaming':
-                    self.response_handler(stream=stream, properties=properties, message=base_message)
+                    self.response_handler(stream=stream, message=base_message)
         elif message.isData():
             # store data value
             data = message.getData()
@@ -135,10 +132,10 @@ class ObserverAgent(Agent):
                     worker.set_data(f'{stream}:content_type', content_type)
                     worker.append_data(stream, str(data))
                 elif mode == 'streaming':
-                    self.response_handler(stream=stream, properties=properties, message=base_message)
+                    self.response_handler(stream=stream, message=base_message)
         elif message.getCode() in [ControlCode.CREATE_FORM, ControlCode.UPDATE_FORM, ControlCode.CLOSE_FORM]:
             # interactive messages
-            self.response_handler(stream=stream, properties=properties, message=base_message)
+            self.response_handler(stream=stream, message=base_message)
 
         return None
 
