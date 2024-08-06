@@ -209,6 +209,10 @@ def get_agent(request: Request, agent_name):
 
 @router.post("/agent/{agent_name}")
 def add_agent(request: Request, agent_name, agent: Agent):
+    agent_db = agent_registry.get_agent(agent_name)
+    # if agent already exists, return 409 conflict error
+    if not pydash.is_empty(agent_db):
+        return JSONResponse(content={"message": "The name already exists."}, status_code=409)
     acl_enforce(request.state.user['role'], 'agent_registry', ['write_all', 'write_own'])
     # TODO: properties
     agent_registry.add_agent(agent_name, request.state.user['uid'], description=agent.description, properties={}, rebuild=True)
