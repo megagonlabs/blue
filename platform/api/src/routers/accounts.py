@@ -28,7 +28,7 @@ from APIRouter import APIRouter
 from fastapi.responses import JSONResponse
 
 ###### Settings
-from settings import PROPERTIES, ROLE_PERMISSIONS, SECURE_COOKIE
+from settings import EMAIL_DOMAIN_WHITE_LIST, PROPERTIES, ROLE_PERMISSIONS, SECURE_COOKIE
 
 ### Assign from platform properties
 from blueprint import Platform
@@ -46,7 +46,6 @@ FIREBASE_SERVICE_CRED = os.getenv("FIREBASE_SERVICE_CRED", "{}")
 cert = json.loads(base64.b64decode(FIREBASE_SERVICE_CRED))
 cred = credentials.Certificate(cert)
 firebase_admin.initialize_app(cred)
-EMAIL_DOMAIN_WHITE_LIST = os.getenv("EMAIL_DOMAIN_WHITE_LIST", "megagon.ai")
 allowed_domains = EMAIL_DOMAIN_WHITE_LIST.split(",")
 
 
