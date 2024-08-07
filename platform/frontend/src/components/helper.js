@@ -7,6 +7,7 @@ const { AppToaster, ProgressToaster } = require("@/components/toaster");
 const renderProgress = (progress, requestError = false) => {
     return {
         icon: faIcon({ icon: faPenSwirl }),
+        isCloseButtonShown: false,
         message: (
             <ProgressBar
                 className={classNames("margin-top-5", {
