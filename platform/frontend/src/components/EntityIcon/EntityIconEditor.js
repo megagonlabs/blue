@@ -394,7 +394,6 @@ export default function EntityIconEditor({
                         content="Revert to default"
                     >
                         <Button
-                            disabled={_.isEmpty(icon)}
                             onClick={() => {
                                 updateEntity({ path: "icon", value: null });
                                 closeEditor();
