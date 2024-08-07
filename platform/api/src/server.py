@@ -16,7 +16,7 @@ import re
 from pathlib import Path
 
 ##### FastAPI, Web, Sockets, Authentication
-from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect, Request
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Request
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from firebase_admin import auth

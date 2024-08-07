@@ -26,7 +26,7 @@ import {
 } from "@blueprintjs/core";
 import {
     faArrowsFromLine,
-    faBinary,
+    faBinaryCircleCheck,
     faBinarySlash,
     faBookOpenCover,
     faBracketsCurly,
@@ -194,7 +194,7 @@ function FormDesigner() {
                             <Menu>
                                 <MenuDivider title="Export" />
                                 <MenuItem
-                                    icon={faIcon({ icon: faBinary })}
+                                    icon={faIcon({ icon: faBinaryCircleCheck })}
                                     text="With default data"
                                     onClick={() => {
                                         handleExportConfig(true);

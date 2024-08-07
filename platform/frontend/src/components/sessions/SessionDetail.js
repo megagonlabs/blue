@@ -14,7 +14,7 @@ import {
 import {
     faCheck,
     faCircleA,
-    faCircleInfo,
+    faInfo,
     faUserGroup,
 } from "@fortawesome/pro-duotone-svg-icons";
 import axios from "axios";
@@ -89,7 +89,7 @@ export default function SessionDetail({ isOpen, setIsSessionDetailOpen }) {
             <DialogBody className="dialog-body">
                 <Card style={{ padding: "5px 15px", borderRadius: 0 }}>
                     <Button
-                        icon={faIcon({ icon: faCircleInfo })}
+                        icon={faIcon({ icon: faInfo })}
                         minimal
                         large
                         text="About"

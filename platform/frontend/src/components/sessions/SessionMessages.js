@@ -1,5 +1,7 @@
 import { AppContext } from "@/components/contexts/app-context";
 import {
+    Button,
+    ButtonGroup,
     Callout,
     Classes,
     Colors,
@@ -8,17 +10,18 @@ import {
     Tooltip,
     mergeRefs,
 } from "@blueprintjs/core";
-import { faEllipsisH } from "@fortawesome/pro-duotone-svg-icons";
+import { faBinary, faEllipsisH } from "@fortawesome/pro-duotone-svg-icons";
 import _ from "lodash";
 import { useCallback, useContext, useEffect, useRef, useState } from "react";
 import { useResizeDetector } from "react-resize-detector";
 import AutoSizer from "react-virtualized-auto-sizer";
 import { VariableSizeList } from "react-window";
+import { AuthContext } from "../contexts/auth-context";
 import { faIcon } from "../icon";
 import JsonFormMessage from "./JsonFormMessage";
 import MessageMetadata from "./MessageMetadata";
 const Row = ({ index, data, style }) => {
-    const { messages, streams, appState, setRowHeight } = data;
+    const { messages, streams, appState, setRowHeight, settings } = data;
     const rowRef = useRef({});
     const own = _.includes(
         _.get(messages, [index, "stream"]),
@@ -41,19 +44,16 @@ const Row = ({ index, data, style }) => {
             );
         }
     }, []);
-    const streamData = _.get(streams, [messages[index].stream, "data"], []);
+    const message = messages[index];
+    const stream = message.stream;
+    const streamData = _.get(streams, [stream, "data"], []);
     const contentType = _.get(messages, [index, "contentType"], null);
     const { ref: resizeRef } = useResizeDetector({
         onResize: handleResize,
     });
-    const complete = _.get(
-        streams,
-        [messages[index].stream, "complete"],
-        false
-    );
+    const complete = _.get(streams, [stream, "complete"], false);
     const [hasError, setHasError] = useState(false);
-    const timestamp = messages[index].timestamp;
-    const stream = messages[index].stream;
+    const timestamp = message.timestamp;
     const showActions = useRef(false);
     return (
         <div
@@ -83,28 +83,33 @@ const Row = ({ index, data, style }) => {
                     position: "relative",
                     maxWidth: "min(802.2px, 100%)",
                     width: "fit-content",
-                    overflowX: "hidden",
-                    overflowY: "visible",
                 }}
             >
-                {/* <div
-                        style={{
-                            position: "absolute",
-                            left: 0,
-                            top: -10,
-                            display: showActions.current ? null : "none",
-                        }}
-                    >
-                        <ButtonGroup large>
+                <div
+                    style={{
+                        position: "absolute",
+                        left: 0,
+                        top: -10,
+                        display: showActions.current ? null : "none",
+                    }}
+                >
+                    <ButtonGroup large>
+                        {_.get(settings, "debug_mode", false) ? (
                             <Tooltip
-                                content="Pin to this session"
+                                content="Raw"
                                 minimal
                                 placement="bottom-start"
                             >
-                                <Button icon={faIcon({ icon: faThumbtack })} />
+                                <Button
+                                    icon={faIcon({ icon: faBinary })}
+                                    onClick={() =>
+                                        console.log(message, streams[stream])
+                                    }
+                                />
                             </Tooltip>
-                        </ButtonGroup>
-                    </div> */}
+                        ) : null}
+                    </ButtonGroup>
+                </div>
                 <div
                     ref={mergeRefs(rowRef, resizeRef)}
                     style={{
@@ -194,6 +199,7 @@ export default function SessionMessages() {
     const variableSizeListRef = useRef();
     const rowHeights = useRef({});
     const { appState } = useContext(AppContext);
+    const { settings } = useContext(AuthContext);
     const sessionIdFocus = appState.session.sessionIdFocus;
     const messages = appState.session.sessions[sessionIdFocus].messages;
     const streams = appState.session.sessions[sessionIdFocus].streams;
@@ -224,7 +230,13 @@ export default function SessionMessages() {
         <AutoSizer>
             {({ width, height }) => (
                 <VariableSizeList
-                    itemData={{ messages, streams, appState, setRowHeight }}
+                    itemData={{
+                        messages,
+                        streams,
+                        appState,
+                        setRowHeight,
+                        settings,
+                    }}
                     height={height}
                     itemCount={messages.length}
                     itemSize={getRowHeight}

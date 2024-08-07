@@ -174,12 +174,27 @@ async def signin_cli(request: Request):
         return ERROR_RESPONSE
 
 
+@router.post('/profile/settings/{name}')
+async def set_settings(request: Request, name):
+    payload = await request.json()
+    p.set_metadata(f'users.{request.state.user["uid"]}.settings.{name}', payload.get('value'))
+    return JSONResponse(content={"message": "Success"})
+
+
 @router.get("/profile")
 def get_profile(request: Request):
-    return JSONResponse(content={"profile": {**request.state.user, 'permissions': pydash.objects.get(ROLE_PERMISSIONS, request.state.user['role'], {})}})
+    return JSONResponse(
+        content={
+            "profile": {
+                **request.state.user,
+                'permissions': pydash.objects.get(ROLE_PERMISSIONS, request.state.user['role'], {}),
+                "settings": p.get_metadata(f'users.{request.state.user["uid"]}.settings'),
+            },
+        }
+    )
 
 
-@router.get('/profile/uid/{uid}')
+@router.get('/profile/{uid}')
 def get_profile_by_uid(request: Request, uid):
     acl_enforce(request.state.user['role'], 'platform_users', 'read_all')
     user = {}

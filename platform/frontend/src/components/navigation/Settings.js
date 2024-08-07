@@ -10,9 +10,13 @@ import {
     Tag,
     Tooltip,
 } from "@blueprintjs/core";
-import { faBug } from "@fortawesome/pro-duotone-svg-icons";
+import { faRectangleTerminal } from "@fortawesome/pro-duotone-svg-icons";
+import _ from "lodash";
+import { useContext } from "react";
+import { AuthContext } from "../contexts/auth-context";
 import { faIcon } from "../icon";
 export default function Settings({ isOpen, setIsSettingsOpen }) {
+    const { settings, updateSettings } = useContext(AuthContext);
     return (
         <Drawer
             size={DrawerSize.SMALL}
@@ -45,10 +49,24 @@ export default function Settings({ isOpen, setIsSettingsOpen }) {
                     <SectionCard padded={false}>
                         <Menu className="settings-menus" large>
                             <MenuItem
-                                text="Debugging mode"
-                                icon={faIcon({ icon: faBug })}
+                                text="Debug mode"
+                                icon={faIcon({ icon: faRectangleTerminal })}
                                 labelElement={
-                                    <Switch style={{ marginBottom: 0 }} large />
+                                    <Switch
+                                        checked={_.get(
+                                            settings,
+                                            "debug_mode",
+                                            false
+                                        )}
+                                        style={{ marginBottom: 0 }}
+                                        large
+                                        onChange={(event) => {
+                                            updateSettings(
+                                                "debug_mode",
+                                                event.target.checked
+                                            );
+                                        }}
+                                    />
                                 }
                             />
                         </Menu>
