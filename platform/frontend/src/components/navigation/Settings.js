@@ -1,4 +1,17 @@
-import { Drawer, DrawerSize, H3, Tag, Tooltip } from "@blueprintjs/core";
+import {
+    Drawer,
+    DrawerSize,
+    H3,
+    Menu,
+    MenuItem,
+    Section,
+    SectionCard,
+    Switch,
+    Tag,
+    Tooltip,
+} from "@blueprintjs/core";
+import { faBug } from "@fortawesome/pro-duotone-svg-icons";
+import { faIcon } from "../icon";
 export default function Settings({ isOpen, setIsSettingsOpen }) {
     return (
         <Drawer
@@ -28,6 +41,19 @@ export default function Settings({ isOpen, setIsSettingsOpen }) {
                         </Tag>
                     </Tooltip>
                 </div>
+                <Section compact title="Developer">
+                    <SectionCard padded={false}>
+                        <Menu className="settings-menus" large>
+                            <MenuItem
+                                text="Debugging mode"
+                                icon={faIcon({ icon: faBug })}
+                                labelElement={
+                                    <Switch style={{ marginBottom: 0 }} large />
+                                }
+                            />
+                        </Menu>
+                    </SectionCard>
+                </Section>
             </div>
         </Drawer>
     );

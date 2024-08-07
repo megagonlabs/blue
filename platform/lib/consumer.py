@@ -188,22 +188,23 @@ class Consumer:
         return self.cid
 
     async def response_handler(self, message: Message):
-        if message.isEOS() and self.pairer_task is not None:
-            await asyncio.sleep(1)
-            # wait until all items in the queue have been processed
-            if self.left_queue is not None:
-                self.left_queue.join()
-            if self.right_queue is not None:
-                self.right_queue.join()
-            self.pairer_task.cancel()
         if self.pairer_task is not None:
-            # pushing messages to pairing queue
-            left_parameter = message.getParam(self.left_param)
-            right_parameter = message.getParam(self.right_param)
-            if left_parameter is not None:
-                await self.left_queue.put(left_parameter)
-            if right_parameter is not None:
-                await self.right_queue.put(right_parameter)
+            if message.isEOS():
+                await asyncio.sleep(1)
+                # wait until all items in the queue have been processed
+                if self.left_queue is not None:
+                    self.left_queue.join()
+                if self.right_queue is not None:
+                    self.right_queue.join()
+                self.pairer_task.cancel()
+            else:
+                # pushing messages to pairing queue
+                left_parameter = message.getParam(self.left_param)
+                right_parameter = message.getParam(self.right_param)
+                if left_parameter is not None:
+                    await self.left_queue.put(left_parameter)
+                if right_parameter is not None:
+                    await self.right_queue.put(right_parameter)
         else:
             self.listener(message)
 

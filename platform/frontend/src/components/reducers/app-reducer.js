@@ -29,6 +29,7 @@ export const defaultState = {
     users: {},
     iconPickerIndex: index,
     iconPickerStore: store,
+    settings: {},
 };
 export default function appReducer(state = defaultState, { type, payload }) {
     switch (type) {

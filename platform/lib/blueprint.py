@@ -133,7 +133,7 @@ class Platform:
     def join_session(self, session_sid, registry, agent, properties):
 
         session_cid = self.cid + ":" + session_sid
-    
+
         args = {}
         args["session"] = session_cid
         args["registry"] = registry
@@ -147,13 +147,7 @@ class Platform:
         # create user profile with guest role if does not exist
         self.set_metadata(
             f'users.{uid}',
-            {
-                'uid': user['uid'],
-                'role': 'guest',
-                'email': user['email'],
-                'name': user['name'],
-                'picture': user['picture'],
-            },
+            {'uid': user['uid'], 'role': 'guest', 'email': user['email'], 'name': user['name'], 'picture': user['picture'], 'settings': {}},
             nx=True,
         )
         self.set_metadata(f'users.{uid}.email', user['email'])
