@@ -167,6 +167,7 @@ export const REGISTRY_TYPE_LOOKUP = {
         "#6F4B2D",
         "#4B4639",
     ],
+    RESIZE_DIRECTION = { BottomRight: "bottomRight" },
     HEX_TRANSPARENCY = {
         100: "FF",
         99: "FC",

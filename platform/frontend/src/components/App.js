@@ -32,6 +32,7 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { useContext, useMemo, useState } from "react";
 import { hasTrue } from "./helper";
+import DebugPanel from "./navigation/DebugPanel";
 import Settings from "./navigation/Settings";
 import UserAccountPanel from "./navigation/UserAccountPanel";
 export default function App({ children }) {
@@ -421,6 +422,7 @@ export default function App({ children }) {
             >
                 {_.isEmpty(user) ? <AccessDeniedNonIdealState /> : children}
             </div>
+            <DebugPanel />
         </div>
     );
 }

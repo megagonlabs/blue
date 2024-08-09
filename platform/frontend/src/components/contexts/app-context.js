@@ -4,20 +4,23 @@ import { appAction } from "@/components/actions/app-action";
 import { dataAction } from "@/components/actions/data-action";
 import { sessionAction } from "@/components/actions/session-action";
 import rootReducer from "@/components/reducers";
-import { defaultState as adminDefaultState } from "@/components/reducers/admin-reducer";
-import { defaultState as agentDefaultState } from "@/components/reducers/agent-reducer";
-import { defaultState as appDefaultState } from "@/components/reducers/app-reducer";
-import { defaultState as dataDefaultState } from "@/components/reducers/data-reducer";
-import { defaultState as sessionDefaultState } from "@/components/reducers/session-reducer";
+import { defaultState as adminDS } from "@/components/reducers/admin-reducer";
+import { defaultState as agentDS } from "@/components/reducers/agent-reducer";
+import { defaultState as appDS } from "@/components/reducers/app-reducer";
+import { defaultState as dataDS } from "@/components/reducers/data-reducer";
+import { defaultState as sessionDS } from "@/components/reducers/session-reducer";
 import { createContext, useMemo, useReducer } from "react";
+import { debugAction } from "../actions/debug-action";
+import { defaultState as debugDS } from "../reducers/debug-reducer";
 const AppContext = createContext();
 const AppProvider = ({ children }) => {
     const [appState, dispatch] = useReducer(rootReducer, {
-        app: appDefaultState,
-        session: sessionDefaultState,
-        agent: agentDefaultState,
-        data: dataDefaultState,
-        admin: adminDefaultState,
+        app: appDS,
+        session: sessionDS,
+        agent: agentDS,
+        data: dataDS,
+        admin: adminDS,
+        debug: debugDS,
     });
     const actions = {
         app: { ...appAction(dispatch) },
@@ -25,6 +28,7 @@ const AppProvider = ({ children }) => {
         agent: { ...agentAction(dispatch) },
         data: { ...dataAction(dispatch) },
         admin: { ...adminAction(dispatch) },
+        debug: { ...debugAction(dispatch) },
     };
     const store = useMemo(
         () => ({ appState, appActions: actions }),
