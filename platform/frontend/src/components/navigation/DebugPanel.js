@@ -1,15 +1,18 @@
 import { Classes, Overlay2, OverlaysProvider } from "@blueprintjs/core";
+import { faCode } from "@fortawesome/pro-duotone-svg-icons";
 import classNames from "classnames";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useContext, useEffect, useRef } from "react";
 import { RESIZE_DIRECTION } from "../constant";
+import { AuthContext } from "../contexts/auth-context";
 import { useFloatingWindow } from "../hooks/useFloatingWindow";
+import { faIcon } from "../icon";
 import Resizer from "./Resizer";
 const BASE_HEIGHT = 300;
 export default function DebugPanel() {
     const handleDrag = useCallback(({ x, y }) => {
         return {
-            x: Math.min(Math.max(0, x), window.innerWidth - 200),
-            y: Math.min(Math.max(0, y), window.innerHeight - 200),
+            x: Math.min(Math.max(10, x), window.innerWidth - 200),
+            y: Math.min(Math.max(10, y), window.innerHeight - 200),
         };
     }, []);
     const [dragRef, reposition] = useFloatingWindow({ onDrag: handleDrag });
@@ -39,7 +42,6 @@ export default function DebugPanel() {
                 break;
         }
     };
-    const [isOpen, setIsOpen] = useState(true);
     const handleWindowResize = () => {
         handleResize(RESIZE_DIRECTION.BottomRight, 0, 0);
         reposition();
@@ -48,13 +50,14 @@ export default function DebugPanel() {
         window.addEventListener("resize", handleWindowResize);
         return () => window.removeEventListener("resize", handleWindowResize);
     }, []);
+    const { settings } = useContext(AuthContext);
     return (
         <OverlaysProvider>
             <Overlay2
                 className="height-0"
                 childRef={resizeRef}
                 hasBackdrop={false}
-                isOpen={isOpen}
+                isOpen
                 enforceFocus={false}
                 autoFocus={false}
             >
@@ -64,6 +67,7 @@ export default function DebugPanel() {
                     style={{
                         transform: "translate(50px, 50px)",
                         position: "relative",
+                        display: settings.debug_mode ? null : "none",
                         height: BASE_HEIGHT,
                         width: BASE_HEIGHT * 1.5,
                         paddingBottom: 0,
@@ -71,7 +75,15 @@ export default function DebugPanel() {
                     }}
                 >
                     <Resizer onResize={handleResize} />
-                    <div className={Classes.DIALOG_HEADER} ref={dragRef}></div>
+                    <div
+                        className={classNames(
+                            Classes.DIALOG_HEADER,
+                            Classes.HEADING
+                        )}
+                        ref={dragRef}
+                    >
+                        {faIcon({ icon: faCode })}Debugger
+                    </div>
                 </div>
             </Overlay2>
         </OverlaysProvider>
