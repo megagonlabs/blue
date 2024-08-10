@@ -137,14 +137,7 @@ export const AuthProvider = ({ children }) => {
     };
     const updateSettings = (key, value) => {
         setSettings({ ...settings, [key]: value });
-        axios
-            .post(`/accounts/profile/settings/${key}`, { value: value })
-            .then(() => {
-                AppToaster.show({
-                    intent: Intent.SUCCESS,
-                    message: "Settings updated",
-                });
-            });
+        axios.post(`/accounts/profile/settings/${key}`, { value: value });
     };
     const signInWithGoogle = () => {
         setPopupOpen(true);

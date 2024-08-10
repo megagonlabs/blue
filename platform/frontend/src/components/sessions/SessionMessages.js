@@ -21,7 +21,8 @@ import { faIcon } from "../icon";
 import JsonFormMessage from "./JsonFormMessage";
 import MessageMetadata from "./MessageMetadata";
 const Row = ({ index, data, style }) => {
-    const { messages, streams, appState, setRowHeight, settings } = data;
+    const { messages, streams, appState, appActions, setRowHeight, settings } =
+        data;
     const rowRef = useRef({});
     const own = _.includes(
         _.get(messages, [index, "stream"]),
@@ -103,7 +104,11 @@ const Row = ({ index, data, style }) => {
                                 <Button
                                     icon={faIcon({ icon: faBinary })}
                                     onClick={() =>
-                                        console.log(message, streams[stream])
+                                        appActions.debug.addMessage({
+                                            type: "session",
+                                            message,
+                                            data: streams[stream],
+                                        })
                                     }
                                 />
                             </Tooltip>
@@ -198,7 +203,7 @@ const Row = ({ index, data, style }) => {
 export default function SessionMessages() {
     const variableSizeListRef = useRef();
     const rowHeights = useRef({});
-    const { appState } = useContext(AppContext);
+    const { appState, appActions } = useContext(AppContext);
     const { settings } = useContext(AuthContext);
     const sessionIdFocus = appState.session.sessionIdFocus;
     const messages = appState.session.sessions[sessionIdFocus].messages;
@@ -234,6 +239,7 @@ export default function SessionMessages() {
                         messages,
                         streams,
                         appState,
+                        appActions,
                         setRowHeight,
                         settings,
                     }}

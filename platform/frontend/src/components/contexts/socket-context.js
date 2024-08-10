@@ -8,8 +8,10 @@ export const SocketContext = createContext();
 export const SocketProvider = ({ children }) => {
     const [ws, setWs] = useState(null);
     const { appActions } = useContext(AppContext);
+    const [authenticating, setAuthenticating] = useState(false);
     const reconnect = () => {
         // get WS auth ticket
+        setAuthenticating(true);
         axios.get("/accounts/websocket-ticket").then((response) => {
             try {
                 let webSocket = null;
@@ -24,6 +26,8 @@ export const SocketProvider = ({ children }) => {
                         message: `Failed to initialize websocket: ${error}`,
                     });
                 }
+            } finally {
+                setAuthenticating(false);
             }
         });
     };
@@ -65,7 +69,9 @@ export const SocketProvider = ({ children }) => {
         }
     }, [ws, setWs]);
     return (
-        <SocketContext.Provider value={{ socket: ws, reconnectWs: reconnect }}>
+        <SocketContext.Provider
+            value={{ authenticating, socket: ws, reconnectWs: reconnect }}
+        >
             {children}
         </SocketContext.Provider>
     );

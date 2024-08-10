@@ -8,10 +8,10 @@ import { defaultState as adminDS } from "@/components/reducers/admin-reducer";
 import { defaultState as agentDS } from "@/components/reducers/agent-reducer";
 import { defaultState as appDS } from "@/components/reducers/app-reducer";
 import { defaultState as dataDS } from "@/components/reducers/data-reducer";
+import { defaultState as debugDS } from "@/components/reducers/debug-reducer";
 import { defaultState as sessionDS } from "@/components/reducers/session-reducer";
 import { createContext, useMemo, useReducer } from "react";
 import { debugAction } from "../actions/debug-action";
-import { defaultState as debugDS } from "../reducers/debug-reducer";
 const AppContext = createContext();
 const AppProvider = ({ children }) => {
     const [appState, dispatch] = useReducer(rootReducer, {

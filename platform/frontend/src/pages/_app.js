@@ -30,6 +30,11 @@ const Blue = ({ Component, pageProps }) => {
                     </title>
                     <link rel="icon" href="/favicon.ico" />
                 </Head>
+                <style jsx global>{`
+                    body {
+                        overflow: hidden;
+                    }
+                `}</style>
                 <AuthProvider>
                     <SocketProvider>
                         <App>

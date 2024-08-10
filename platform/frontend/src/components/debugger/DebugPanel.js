@@ -1,11 +1,10 @@
 import { Classes, Overlay2, OverlaysProvider } from "@blueprintjs/core";
-import { faCode } from "@fortawesome/pro-duotone-svg-icons";
 import classNames from "classnames";
 import { useCallback, useContext, useEffect, useRef } from "react";
 import { RESIZE_DIRECTION } from "../constant";
 import { AuthContext } from "../contexts/auth-context";
 import { useFloatingWindow } from "../hooks/useFloatingWindow";
-import { faIcon } from "../icon";
+import Debugger from "./Debugger";
 import Resizer from "./Resizer";
 const BASE_HEIGHT = 300;
 export default function DebugPanel() {
@@ -54,7 +53,7 @@ export default function DebugPanel() {
     return (
         <OverlaysProvider>
             <Overlay2
-                className="height-0"
+                className={classNames("height-0")}
                 childRef={resizeRef}
                 hasBackdrop={false}
                 isOpen
@@ -78,11 +77,19 @@ export default function DebugPanel() {
                     <div
                         className={classNames(
                             Classes.DIALOG_HEADER,
-                            Classes.HEADING
+                            Classes.HEADING,
+                            "margin-0"
                         )}
+                        style={{ cursor: "move" }}
                         ref={dragRef}
                     >
-                        {faIcon({ icon: faCode })}Debugger
+                        Debugger
+                    </div>
+                    <div
+                        style={{ height: "calc(100% - 40px)" }}
+                        className={classNames(Classes.DIALOG_BODY, "margin-0")}
+                    >
+                        <Debugger />
                     </div>
                 </div>
             </Overlay2>

@@ -1,6 +1,7 @@
 import { NAVIGATION_MENU_WIDTH } from "@/components/constant";
 import { AppContext } from "@/components/contexts/app-context";
 import { AuthContext } from "@/components/contexts/auth-context";
+import { SocketContext } from "@/components/contexts/socket-context";
 import { useSocket } from "@/components/hooks/useSocket";
 import { faIcon } from "@/components/icon";
 import AddAgents from "@/components/sessions/AddAgents";
@@ -47,6 +48,7 @@ export default function Sessions() {
     const socketReadyState = _.get(socket, "readyState", 3);
     const { permissions } = useContext(AuthContext);
     const { canCreateSessions } = permissions;
+    const { authenticating } = useContext(SocketContext);
     const sendSessionMessage = (message) => {
         if (!_.isEqual(socketReadyState, 1)) {
             return;
@@ -138,7 +140,7 @@ export default function Sessions() {
                 onClick={reconnectWs}
                 intent={Intent.PRIMARY}
                 large
-                loading={_.isEqual(socketReadyState, 0)}
+                loading={_.isEqual(socketReadyState, 0) || authenticating}
                 text="Connect"
             />
         );
