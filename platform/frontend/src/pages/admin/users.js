@@ -136,28 +136,11 @@ export default function Users() {
     }
     return (
         <>
-            {_.isEmpty(data) ? (
-                <div
-                    className="full-parent-width"
-                    style={{
-                        position: "absolute",
-                        bottom: 0,
-                        right: 0,
-                        zIndex: 1,
-                        height: "calc(100% - 50px)",
-                    }}
-                >
-                    <NonIdealState
-                        title="No User"
-                        icon={faIcon({ icon: faUserGroup, size: 50 })}
-                    />
-                </div>
-            ) : null}
             <RoleConfigurationPopover
                 setIsRoleConfigOpen={setIsRoleConfigOpen}
                 isRoleConfigOpen={isRoleConfigOpen}
             />
-            <div style={{ padding: 5, height: 50 }}>
+            <Card style={{ padding: 5 }}>
                 <ButtonGroup large minimal>
                     <Tooltip placement="bottom-start" minimal content="Refresh">
                         <Button
@@ -174,84 +157,104 @@ export default function Users() {
                         text="Update role(s)"
                     />
                 </ButtonGroup>
-            </div>
-            <div style={{ height: "calc(100% - 50px)" }}>
-                <Table2
-                    minColumnWidth={62}
-                    loadingOptions={
-                        loading
-                            ? [
-                                  TableLoadingOption.CELLS,
-                                  TableLoadingOption.ROW_HEADERS,
-                              ]
-                            : []
-                    }
-                    key={tableKey}
-                    enableRowResizing={false}
-                    numRows={data.length}
-                    enableColumnReordering
-                    onColumnsReordered={handleColumnsReordered}
-                    rowHeaderCellRenderer={(rowIndex) => (
-                        <RowHeaderCell
-                            name={
-                                <div
+            </Card>
+            {_.isEmpty(data) ? (
+                <div
+                    className="full-parent-width"
+                    style={{
+                        position: "absolute",
+                        bottom: 0,
+                        right: 0,
+                        zIndex: 1,
+                        height: "calc(100% - 50px)",
+                    }}
+                >
+                    <NonIdealState
+                        title="No User"
+                        icon={faIcon({ icon: faUserGroup, size: 50 })}
+                    />
+                </div>
+            ) : (
+                <div style={{ height: "calc(100% - 50px)" }}>
+                    <Table2
+                        minColumnWidth={62}
+                        loadingOptions={
+                            loading
+                                ? [
+                                      TableLoadingOption.CELLS,
+                                      TableLoadingOption.ROW_HEADERS,
+                                  ]
+                                : []
+                        }
+                        key={tableKey}
+                        enableRowResizing={false}
+                        numRows={data.length}
+                        enableColumnReordering
+                        onColumnsReordered={handleColumnsReordered}
+                        rowHeaderCellRenderer={(rowIndex) => (
+                            <RowHeaderCell
+                                name={
+                                    <div
+                                        style={{
+                                            textAlign: "center",
+                                            lineHeight: `${TABLE_CELL_HEIGHT}px`,
+                                        }}
+                                    >
+                                        {rowIndex + 1}
+                                    </div>
+                                }
+                            />
+                        )}
+                        defaultRowHeight={TABLE_CELL_HEIGHT}
+                    >
+                        {columns.map((col, index) => {
+                            const { name, key, cellRenderer } = col;
+                            const defaultCellRenderer = (rowIndex) => (
+                                <Cell
                                     style={{
-                                        textAlign: "center",
-                                        lineHeight: `${TABLE_CELL_HEIGHT}px`,
+                                        lineHeight: `${
+                                            TABLE_CELL_HEIGHT - 1
+                                        }px`,
                                     }}
                                 >
-                                    {rowIndex + 1}
-                                </div>
-                            }
-                        />
-                    )}
-                    defaultRowHeight={TABLE_CELL_HEIGHT}
-                >
-                    {columns.map((col, index) => {
-                        const { name, key, cellRenderer } = col;
-                        const defaultCellRenderer = (rowIndex) => (
-                            <Cell
-                                style={{
-                                    lineHeight: `${TABLE_CELL_HEIGHT - 1}px`,
-                                }}
-                            >
-                                {_.get(data, [rowIndex, key], "-")}
-                            </Cell>
-                        );
-                        const menuRenderer = null;
-                        const columnHeaderCellRenderer = () => (
-                            <ColumnHeaderCell
-                                name={
-                                    <span style={{ fontWeight: 600 }}>
-                                        {name}
-                                    </span>
-                                }
-                                menuRenderer={menuRenderer}
-                            />
-                        );
-                        return (
-                            <Column
-                                cellRenderer={(rowIndex) =>
-                                    _.isFunction(cellRenderer)
-                                        ? cellRenderer.call(null, {
-                                              rowIndex,
-                                              data,
-                                          })
-                                        : defaultCellRenderer.call(
-                                              null,
-                                              rowIndex
-                                          )
-                                }
-                                columnHeaderCellRenderer={
-                                    columnHeaderCellRenderer
-                                }
-                                key={`${key}-${index}`}
-                                name={name}
-                            />
-                        );
-                    })}
-                </Table2>
-            </div>
+                                    {_.get(data, [rowIndex, key], "-")}
+                                </Cell>
+                            );
+                            const menuRenderer = null;
+                            const columnHeaderCellRenderer = () => (
+                                <ColumnHeaderCell
+                                    name={
+                                        <span style={{ fontWeight: 600 }}>
+                                            {name}
+                                        </span>
+                                    }
+                                    menuRenderer={menuRenderer}
+                                />
+                            );
+                            return (
+                                <Column
+                                    cellRenderer={(rowIndex) =>
+                                        _.isFunction(cellRenderer)
+                                            ? cellRenderer.call(null, {
+                                                  rowIndex,
+                                                  data,
+                                              })
+                                            : defaultCellRenderer.call(
+                                                  null,
+                                                  rowIndex
+                                              )
+                                    }
+                                    columnHeaderCellRenderer={
+                                        columnHeaderCellRenderer
+                                    }
+                                    key={`${key}-${index}`}
+                                    name={name}
+                                />
+                            );
+                        })}
+                    </Table2>
+                </div>
+            )}
         </>
     );
 }

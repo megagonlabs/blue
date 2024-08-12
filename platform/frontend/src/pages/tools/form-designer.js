@@ -34,7 +34,7 @@ import {
     faClipboard,
     faDownload,
     faIndent,
-    faRotate,
+    faPlay,
     faTrash,
 } from "@fortawesome/pro-duotone-svg-icons";
 import { JsonForms } from "@jsonforms/react";
@@ -178,7 +178,7 @@ function FormDesigner() {
                             disabled={!error}
                             intent={Intent.SUCCESS}
                             onClick={resetError}
-                            icon={faIcon({ icon: faRotate })}
+                            icon={faIcon({ icon: faPlay })}
                         />
                     </Tooltip>
                     <Tooltip placement="bottom" minimal content="Format">
