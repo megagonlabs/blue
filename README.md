@@ -1,10 +1,7 @@
 # blue
 
-LLMs have demonstrated impressive capabilities in many tasks that go beyond traditional NLP problems, leading people to develop applications that exploit their capabilities in many domains. In these approaches LLMs play the key role (agent), planning tasks, executing tools, and retrieving necessary data.  
+Blue is an agent orchestration platform to coordinate data and work in an AI system comprised of agents and other components to perform complex tasks with workflows. We are building Blue to explore the design space of agent orchestration systems, to support a variety of use-cases: from fixed workflows to ad-hoc workflows with planners, from purely textual interaction to interactive agents with user interfaces, from non-interactive use cases to conversational interaction, from data and domain-agnostic to data-aware design, and beyond. Blue is designed such that it can be configured to support any of these use cases.
 
-We see a significant shift towards AI systems, where LLMs still play an important role but they are part of a large software infrastructure, with a multitude of components (agents and beyond) to plan and break-down complex tasks, to discover and query proprietary data, and to exploit proprietary models and services, all functioning properly together with an underlying system that orchestrates the flow of data and control among components. 
-
-Blue is an orchestraion platform to coordinate data and work among components of an AI system. We are building Blue to explore a design space where the LLM plays a key role but not necessarily they are the 'be-all and end-all'. This is in contrast to other approaches where everything is baked into LLMs; LLMs act as planner, LLMs act as the orchestrator, LLMs decide what and how to interface with services, tools, and data. 
 
 ![Stream](./docs/images/overview.png)
 
