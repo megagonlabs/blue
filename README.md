@@ -2,6 +2,9 @@
 
 Blue is an agent orchestration platform to coordinate data and work in an AI system comprised of agents and other components to perform complex tasks with workflows. We are building Blue to explore the design space of agent orchestration systems, to support a variety of use-cases: from fixed workflows to ad-hoc workflows with planners, from purely textual interaction to interactive agents with user interfaces, from non-interactive use cases to conversational interaction, from data and domain-agnostic to data-aware design, and beyond. Blue is designed such that it can be configured to support any of these use cases.
 
+A key target of Blue is enterprise infrastructure, i.e. complement an existing enterprise infrastructure to utilize advanced AI, LLMs, and beyond for enterprise use-cases. We aim to leverage what already exist in the enterprise infrastructure, i.e. existing APIs, models, and data, in their original source, format, and systems and integrate them with new capabilities.
+
+Below is an overview of the Blue infrastructure, with touchpoints to an enterprise infrastructure:
 
 ![Stream](./docs/images/overview.png)
 
