@@ -31,7 +31,7 @@ Below is an outline of the documentation on this repo:
 * [hello world example](#hello-world-example)
 * [development](#development)
 * [demos](#demos)
-* [generic agents](#generic-agents)
+* [Agents](#agents)
 * [production](#production)
 
 </br>
@@ -286,9 +286,9 @@ There are more demos in the [demos](demos) folder. Please try them on your own f
 
 </br>
 
-# generic agents
+# agents
 
-There are a number of generic multi-purpose agents which you can either use as templates or find direct use of them in your applications. To learn more about them follow the README under [agents](agents) directory. 
+There are a number of generic multi-purpose agents which you can either use as templates or find direct use of them in your applications. To learn more about agents and how to develop them, follow the README under [agents](agents) directory. 
 
 
 </br>
