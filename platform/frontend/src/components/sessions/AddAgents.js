@@ -77,7 +77,7 @@ export default function AddAgents({
                     );
                     const agentName = list[i].name;
                     const description = _.get(list, [i, "description"], "");
-                    if (!_.isEqual(containerStatus, "running") && false) {
+                    if (!_.isEqual(containerStatus, "running")) {
                         unavailable.push({
                             name: agentName,
                             description: description,
