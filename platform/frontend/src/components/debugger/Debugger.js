@@ -45,7 +45,7 @@ export default function Debugger() {
                 {messages.map((message, index) => {
                     return (
                         <div key={index} style={{ whiteSpace: "pre-wrap" }}>
-                            {JSON.stringify(message, null, 4)}
+                            {JSON.stringify(_.omit(message, ["type"]), null, 4)}
                             <Divider />
                         </div>
                     );
