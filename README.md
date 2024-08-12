@@ -31,7 +31,7 @@ Below is an outline of the documentation on this repo:
 * [hello world example](#hello-world-example)
 * [development](#development)
 * [demos](#demos)
-* [Agents](#agents)
+* [agents](#agents)
 * [production](#production)
 
 </br>
