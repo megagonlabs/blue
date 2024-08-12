@@ -48,7 +48,7 @@ In blue, streams are used in multiple places. Agents consume streams and produce
 
 Messages can be data and instruction messages, with supported data types of integer, string, and JSON objects.
 
-Streams are tagged by the agent which created the stream. Tags serve multiple purpose but mainly to allow other agents to determine if they are interested to listen to stream.
+Streams are tagged by the agent which created the stream. Tags serve multiple purposes but mainly to allow other agents to determine if they are interested to listen to stream.
 
 ## agents
 The central "compute" concept in blue is an agent. An agent basically spawns a worker to monitor to a stream, if it decides to act on it, can process the data and produce output in another stream(s). There might be yet another agent monitoring the output of the first agent and do something on top, and so on. 
