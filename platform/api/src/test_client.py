@@ -452,7 +452,7 @@ json_form = {
                 {
                     "type": "Label",
                     "label": "Review the proposed plan below and if necessary make appropriate adjustments",
-                    "props": {"muted": True, "style": {"marginBottom": 15, "fontStyle": "italic"}},
+                    "props": {"muted": True, "style": {"margin-bottom": '15px', "fontStyle": "italic"}},
                 },
                 {
                     "type": "VerticalLayout",
@@ -660,11 +660,11 @@ json_form = {
                 {
                     "type": "VerticalLayout",
                     "elements": [
-                        {"type": "Label", "label": "Job Search Form", "props": {"large": True, "style": {"marginBottom": 15, "fontSize": "15pt"}}},
+                        {"type": "Label", "label": "Job Search Form", "props": {"large": True, "style": {"margin-bottom": '15px', "fontSize": "15pt"}}},
                         {
                             "type": "Label",
                             "label": "Please fill out below information about yourself.",
-                            "props": {"large": True, "style": {"marginBottom": 15, "fontSize": "10pt", "fontStyle": "italic"}},
+                            "props": {"large": True, "style": {"margin-bottom": '15px', "fontSize": "10pt", "fontStyle": "italic"}},
                         },
                         {
                             "type": "HorizontalLayout",
@@ -698,12 +698,12 @@ json_form = {
                                 "formId": "a7d80949",
                             },
                         },
-                        {"type": "Label", "label": " ", "props": {"large": True, "style": {"marginBottom": 15, "fontSize": "12pt", "border-bottom": "thin solid gray"}}},
-                        {"type": "Label", "label": "Job Information", "props": {"large": True, "style": {"marginBottom": 15, "fontSize": "12pt"}}},
+                        {"type": "Label", "label": " ", "props": {"large": True, "style": {"margin-bottom": '15px', "fontSize": "12pt", "border-bottom": "thin solid gray"}}},
+                        {"type": "Label", "label": "Job Information", "props": {"large": True, "style": {"margin-bottom": '15px', "fontSize": "12pt"}}},
                         {
                             "type": "Label",
                             "label": "Please fill out below information about your desired job.",
-                            "props": {"large": True, "style": {"marginBottom": 15, "fontSize": "10pt", "fontStyle": "italic"}},
+                            "props": {"large": True, "style": {"margin-bottom": '15px', "fontSize": "10pt", "fontStyle": "italic"}},
                         },
                         {
                             "type": "Control",

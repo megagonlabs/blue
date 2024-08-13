@@ -1,3 +1,4 @@
+import { convertCss } from "@/components/helper";
 import { useSocket } from "@/components/hooks/useSocket";
 import { Checkbox, Switch } from "@blueprintjs/core";
 import { isBooleanControl, rankWith } from "@jsonforms/core";
@@ -6,7 +7,7 @@ import _ from "lodash";
 const BooleanRenderer = ({ uischema, handleChange, path, data, required }) => {
     const { socket } = useSocket();
     const socketReadyState = _.get(socket, "readyState", 3);
-    const style = _.get(uischema, "props.style", {});
+    const style = convertCss(_.get(uischema, "props.style", {}));
     const label = _.get(uischema, "label", null);
     const labelElement = _.isString(label) ? (
         <label className={required ? "required" : null}>{label}</label>

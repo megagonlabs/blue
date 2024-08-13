@@ -1,3 +1,4 @@
+import { convertCss } from "@/components/helper";
 import { useSocket } from "@/components/hooks/useSocket";
 import { rankWith, uiTypeIs } from "@jsonforms/core";
 import { withJsonFormsCellProps } from "@jsonforms/react";
@@ -27,7 +28,7 @@ const ButtonRenderer = ({ uischema, path }) => {
         <Button
             onClick={onClickHandler}
             outlined={_.get(uischema, "props.outlined", false)}
-            style={_.get(uischema, "props.style", {})}
+            style={convertCss(_.get(uischema, "props.style", {}))}
             large={_.get(uischema, "props.large", false)}
             intent={_.get(uischema, "props.intent", null)}
             text={_.get(uischema, "label", null)}

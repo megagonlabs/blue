@@ -4,6 +4,7 @@ const { ProgressBar, Classes, Intent } = require("@blueprintjs/core");
 const classNames = require("classnames");
 const _ = require("lodash");
 const { AppToaster, ProgressToaster } = require("@/components/toaster");
+const { default: transform } = require("css-to-react-native");
 const renderProgress = (progress, requestError = false) => {
     return {
         icon: faIcon({ icon: faPenSwirl }),
@@ -119,7 +120,17 @@ module.exports = {
             callback(requestError);
         })();
     },
-    hasInteraction: (array1, array2) =>
-        _.some(array1, _.ary(_.partial(_.includes, array2), 1)),
-    hasTrue: (array) => _.some(array, Boolean),
+    hasInteraction: (array1, array2) => {
+        return _.some(array1, _.ary(_.partial(_.includes, array2), 1));
+    },
+    hasTrue: (array) => {
+        return _.some(array, Boolean);
+    },
+    convertCss: (style) => {
+        try {
+            return transform(Object.entries(style));
+        } catch (error) {
+            return style;
+        }
+    },
 };

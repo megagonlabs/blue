@@ -1,3 +1,4 @@
+import { convertCss } from "@/components/helper";
 import { useSocket } from "@/components/hooks/useSocket";
 import FormCell from "@/components/jsonforms/FormCell";
 import { InputGroup, TextArea } from "@blueprintjs/core";
@@ -41,7 +42,7 @@ const StringRenderer = ({ uischema, handleChange, path, data, required }) => {
             <FormCell
                 inline={_.get(uischema, "props.inline", false)}
                 label={labelElement}
-                style={_.get(uischema, "props.style", {})}
+                style={convertCss(_.get(uischema, "props.style", {}))}
                 helperText={_.get(uischema, "props.helperText", null)}
             >
                 <TextArea
@@ -59,7 +60,7 @@ const StringRenderer = ({ uischema, handleChange, path, data, required }) => {
         <FormCell
             inline={_.get(uischema, "props.inline", false)}
             label={labelElement}
-            style={_.get(uischema, "props.style", {})}
+            style={convertCss(_.get(uischema, "props.style", {}))}
             helperText={_.get(uischema, "props.helperText", null)}
         >
             <InputGroup

@@ -1,3 +1,4 @@
+import { convertCss } from "@/components/helper";
 import { useSocket } from "@/components/hooks/useSocket";
 import FormCell from "@/components/jsonforms/FormCell";
 import { HTMLSelect } from "@blueprintjs/core";
@@ -27,7 +28,7 @@ const EnumRenderer = ({
     return (
         <FormCell
             inline={_.get(uischema, "props.inline", false)}
-            style={_.get(uischema, "props.style", {})}
+            style={convertCss(_.get(uischema, "props.style", {}))}
             label={labelElement}
             labelInfo={required ? "(required)" : null}
             helperText={_.get(uischema, "props.helperText", null)}
