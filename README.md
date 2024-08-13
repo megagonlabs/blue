@@ -412,8 +412,6 @@ and the list should contain three services running: redis, api , and frontend
 If you want to see it in action on the web, you can bring up the frontend by browsing to `http://<platform_ip_address>:3000` and the API documentation on `http://<platform_ip_address>:5050/docs#/`
 
 </br>
-</br>
----
 
 # access control
 
