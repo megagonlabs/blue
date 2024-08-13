@@ -76,7 +76,7 @@ Above picture shows the process in more detail. The user agent creates a new str
 Agents (i.e. agent workers) can store and share data among each other. Data is stored to and retrieved from the `shared memory` at three levels of scope: (a) session (b) stream (c) agent. 
 
 - A worker can put data into the `session memory` which can be seen and retrieved by any agent and its worker in the session. 
-- A worker can further limit the scope of the data to a specificc stream, where data can be seen only by agents (workers) which are working on that specific stream. This is the `stream memory`. 
+- A worker can further limit the scope of the data to a specific stream, where data can be seen only by agents (workers) which are working on that specific stream. This is the `stream memory`. 
 - Finally, a worker can put data into the private `agent memory`  where it can only be seen by the workers of the agent itself.
 
 
