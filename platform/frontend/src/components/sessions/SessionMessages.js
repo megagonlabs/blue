@@ -12,7 +12,7 @@ import {
 } from "@blueprintjs/core";
 import { faBinary, faEllipsisH } from "@fortawesome/pro-duotone-svg-icons";
 import _ from "lodash";
-import { useCallback, useContext, useEffect, useRef, useState } from "react";
+import { useCallback, useContext, useEffect, useRef } from "react";
 import { useResizeDetector } from "react-resize-detector";
 import AutoSizer from "react-virtualized-auto-sizer";
 import { VariableSizeList } from "react-window";
@@ -53,7 +53,7 @@ const Row = ({ index, data, style }) => {
         onResize: handleResize,
     });
     const complete = _.get(streams, [stream, "complete"], false);
-    const [hasError, setHasError] = useState(false);
+    const hasError = useRef(false);
     const timestamp = message.timestamp;
     const showActions = useRef(false);
     return (
@@ -78,7 +78,13 @@ const Row = ({ index, data, style }) => {
             }}
         >
             <Callout
-                intent={hasError ? Intent.DANGER : own ? Intent.PRIMARY : null}
+                intent={
+                    hasError.current
+                        ? Intent.DANGER
+                        : own
+                        ? Intent.PRIMARY
+                        : null
+                }
                 icon={null}
                 style={{
                     position: "relative",
@@ -129,7 +135,7 @@ const Row = ({ index, data, style }) => {
                     {_.isEqual(contentType, "JSON_FORM") ? (
                         <JsonFormMessage
                             content={_.last(streamData).content}
-                            setHasError={setHasError}
+                            hasError={hasError}
                         />
                     ) : (
                         streamData.map((e, index) => {
@@ -216,8 +222,8 @@ export default function SessionMessages() {
         return rowHeights.current[index] || 71 + (!own ? 15.43 : 0);
     }
     function setRowHeight(index, size) {
-        variableSizeListRef.current.resetAfterIndex(0);
         rowHeights.current = { ...rowHeights.current, [index]: size };
+        variableSizeListRef.current.resetAfterIndex(0, false);
     }
     useEffect(() => {
         setTimeout(() => {

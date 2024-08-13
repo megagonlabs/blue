@@ -7,7 +7,7 @@ import classNames from "classnames";
 import _ from "lodash";
 import { useContext, useEffect, useState } from "react";
 import { useErrorBoundary } from "react-use-error-boundary";
-export default function JsonFormMessage({ content, setHasError }) {
+export default function JsonFormMessage({ content, hasError }) {
     const { appState } = useContext(AppContext);
     const terminatedInteraction = appState.session.terminatedInteraction;
     const [error] = useErrorBoundary();
@@ -16,7 +16,7 @@ export default function JsonFormMessage({ content, setHasError }) {
         _.get(content, "form_id", null)
     );
     useEffect(() => {
-        setHasError(Boolean(error));
+        hasError.current = Boolean(error);
     }, [error]);
     return !error ? (
         <>
