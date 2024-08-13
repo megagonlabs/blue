@@ -104,11 +104,22 @@ Most of blue scripts require a number of parameters. While you can use the defau
 - `BLUE_DEPLOY_TARGET`, deployment target, `localhost` (default) or `swarm`
 - `BLUE_DEPLOY_PLATFORM`, platform name, `default` (default)
 - `BLUE_DEPLOY_VERSION`, deployment version, `latest` (default)
-- `BLUE_PUBLIC_API_SERVER`, server address for the API , for example, `localhost:5050`
+- `BLUE_DEPLOY_SECURE`, use HTTP vs HTTPS, False or True
+- `BLUE_DEPLOY_DEVELOPMENT`, set development mode, False or True
+- `BLUE_PUBLIC_API_SERVER`, server address for the API, for example, `localhost`
+- `BLUE_PUBLIC_API_SERVER_PORT`, port number for API server, for example, `5050`
+- `BLUE_PUBLIC_API_SERVER_PORT_MAPPED`, port number of API server to expose, for example, `5050`
+- `BLUE_PUBLIC_WEB_SERVER`, server address for the WEB, for example, `localhost`
+- `BLUE_PUBLIC_WEB_SERVER_PORT`, port number for WEB server, for example, `3000`
+- `BLUE_PUBLIC_WEB_SERVER_PORT_MAPPED`, port number of WEB server to expose, for example, `3000`
+- `BLUE_PUBLIC_DB_SERVER`, server address for the DB (redis), for example, `localhost`
+- `BLUE_PUBLIC_DB_SERVER_PORT`, port number for DB server, for example, `6379`
+- `BLUE_PUBLIC_DB_SERVER_PORT_MAPPED`, port number of DB server to expose, for example, `6379`
 - `BLUE_DATA_DIR`, directory hosting daa for blue services, for example `${BLUE_INSTALL_DIR}/data`
 - `BLUE_AGENT_REGISTRY`, agent registry name, `default` (default)
 - `BLUE_DATA_REGISTRY`, data registry name, `default` (default)
-
+- `BLUE_AGENT_REGISTRY_MODEL`, file path to the model file 
+- `BLUE_RBAC_CONFIG_FOLDER`, folder path to the role-based access control configurations
 
 Use of utilities such as [direnv](https://direnv.net/) is strongly encouraged to help management environment variables.
 
