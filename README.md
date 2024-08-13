@@ -69,7 +69,7 @@ The central "context" concept in Blue is a `session`. A session is initiated by 
 
 ![Session](./docs/images/session.png)
 
-Above picture shows the process in more detail. The user agent creates a new stream and announces it in the session stream through a control message, `ADD STREAM` and specifies the stream's id as well as its tags. Another agent listening to the session stream sees this event and decides to listen to the user stream as it's properties contains a listen property that includes `USER` tag.
+Above picture shows the process in more detail. The user agent creates a new stream and announces it in the session stream through a control message, `ADD STREAM` and specifies the stream's id as well as its tags. Another agent listening to the session stream sees this event and decides to listen to the user stream as its properties contains a listen property that includes `USER` tag.
 
 
 ## memory
