@@ -336,17 +336,8 @@ Each deployment of the platform is named, with a separate network so that each c
 
 ## requirements
 
-As in the `localhost` deployment mode, the production of Blue also requires docker engine to build and run the infrastructure and agents. In addition, docker swarm is used for creating a production infrasructture and docker hub is used as a repository of docker images.
+As in the `localhost` deployment mode, the production of Blue also requires docker engine to build and run the infrastructure and agents. In addition, docker swarm is used for creating a production infrastructure and docker hub is used as a repository of docker images.
 
-## configuration
-
-Below are the environment variables and typical settings for staging and production:
-
-- `BLUE_INSTALL_DIR`, directory containing blue installation, used in deployment scripts
-- `BLUE_DEPLOY_TARGET`, deployment target, swarm should be used for staging and 
-- `BLUE_DEPLOY_PLATFORM`, platform name, reflecting specific deployment/use case
-- `BLUE_PUBLIC_API_SERVER`, server address for the REST API , for example, `10.0.160.75:5050`
-- `BLUE_DATA_DIR`, directory hosting daa for blue services, for example `${BLUE_INSTALL_DIR}/data`, used in deployment scripts
   
 ## setup
 
