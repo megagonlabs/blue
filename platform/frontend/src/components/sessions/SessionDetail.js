@@ -20,6 +20,7 @@ import {
 import axios from "axios";
 import _ from "lodash";
 import { useContext, useEffect, useRef, useState } from "react";
+import { AppToaster } from "../toaster";
 import SessionAgentsList from "./SessionAgentsList";
 import SessionMembersList from "./SessionMembersList";
 export default function SessionDetail({ isOpen, setIsSessionDetailOpen }) {
@@ -54,6 +55,12 @@ export default function SessionDetail({ isOpen, setIsSessionDetailOpen }) {
             .catch(() => {
                 allowQuickClose.current = true;
                 setLoading(false);
+            })
+            .finally(() => {
+                AppToaster.show({
+                    intent: Intent.SUCCESS,
+                    message: "Saved",
+                });
             });
     };
     useEffect(() => {

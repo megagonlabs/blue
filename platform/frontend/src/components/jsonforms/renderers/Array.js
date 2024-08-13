@@ -2,6 +2,7 @@ import { useSocket } from "@/components/hooks/useSocket";
 import { faIcon } from "@/components/icon";
 import {
     Button,
+    ButtonGroup,
     Classes,
     H6,
     Intent,
@@ -13,6 +14,7 @@ import {
 import {
     faArrowDown,
     faArrowUp,
+    faCircleNodes,
     faPlus,
     faTrash,
 } from "@fortawesome/pro-duotone-svg-icons";
@@ -180,7 +182,7 @@ const ArrayRenderer = ({
                     {translations.noDataMessage}
                 </div>
             )}
-            <div>
+            <ButtonGroup>
                 <Tooltip
                     placement="top-start"
                     minimal
@@ -196,7 +198,13 @@ const ArrayRenderer = ({
                         )}
                     />
                 </Tooltip>
-            </div>
+                <Button
+                    disabled
+                    outlined
+                    text="Visualize"
+                    icon={faIcon({ icon: faCircleNodes })}
+                />
+            </ButtonGroup>
         </div>
     );
 };

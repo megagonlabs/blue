@@ -16,7 +16,7 @@ import _ from "lodash";
 import dynamic from "next/dynamic";
 import Head from "next/head";
 import "normalize.css/normalize.css";
-TimeAgo.setDefaultLocale(en);
+TimeAgo.addDefaultLocale(en);
 axios.defaults.withCredentials = true;
 axios.defaults.baseURL = `${process.env.NEXT_PUBLIC_REST_API_SERVER}/blue/platform/${process.env.NEXT_PUBLIC_PLATFORM_NAME}`;
 FocusStyleManager.onlyShowFocusOnTabs();

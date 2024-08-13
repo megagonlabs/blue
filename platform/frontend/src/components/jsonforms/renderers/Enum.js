@@ -34,13 +34,12 @@ const EnumRenderer = ({
             helperText={_.get(uischema, "props.helperText", null)}
         >
             <HTMLSelect
-                value={_.isEmpty(data) ? "-" : data}
+                value={_.isEmpty(data) ? "" : data}
                 options={[
                     {
                         label: "-",
-                        value: "-",
+                        value: "",
                         disabled: required,
-                        selected: true,
                     },
                     ..._.get(schema, "enum", []).map((value) => ({
                         label: value,
@@ -49,7 +48,7 @@ const EnumRenderer = ({
                 ]}
                 onChange={(event) => {
                     let value = event.target.value;
-                    if (_.isEqual(value, "-")) {
+                    if (_.isEqual(value, "")) {
                         value = null;
                     }
                     handleChange(path, value);

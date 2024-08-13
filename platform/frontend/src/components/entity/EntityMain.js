@@ -54,7 +54,7 @@ export default function EntityMain({
             .then(() => {
                 AppToaster.show({
                     intent: Intent.SUCCESS,
-                    message: `${entity.name} ${entity.type} deployed`,
+                    message: `Deployed ${entity.name} ${entity.type}`,
                 });
             })
             .catch((error) => {
@@ -88,7 +88,7 @@ export default function EntityMain({
                 }
                 AppToaster.show({
                     intent: Intent.SUCCESS,
-                    message: `${entity.name} ${entity.type} deleted`,
+                    message: `Deleted ${entity.name} ${entity.type}`,
                 });
                 router.push(`/${params.join("/")}`);
             })

@@ -38,7 +38,7 @@ export const SocketProvider = ({ children }) => {
         const onClose = () => {
             AppToaster.show({
                 intent: Intent.PRIMARY,
-                message: "Connected closed",
+                message: "Connection closed",
             });
             appActions.session.setState({ key: "isSocketOpen", value: false });
         };
