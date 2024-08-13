@@ -56,6 +56,8 @@ Streams are tagged by the agent which created the stream. Tags serve multiple pu
 ## agents
 The central "compute" concept in blue is an agent. An agent basically spawns a worker to monitor to a stream, if it decides to act on it, can process the data and produce output into another stream(s). There might be yet another agent monitoring the output of the first agent and do something on top, and so on. Agents can have multiple input and outputs. Each input and output is a separate stream. 
 
+![Agent](./docs/images/agents.png)
+
 Agents have a set of properties which defines options and settings regarding how an agent will operating. Most of the properties are specific to the agent, for example they can specify a model to use. There are also properties that each agent have. For example,  all agents  define a `listens` property which define `includes` and `excludes` rule to determine which streams to listen to, for each input parameter.
 
 ### worker
