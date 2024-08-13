@@ -152,7 +152,7 @@ class Agent:
     def create_worker(self, input_stream, input="DEFAULT", context=None, processor=None):
         # listen 
         logging.info(
-            "Listening stream {stream} for param {param}...".format(
+            "Creating worker for stream {stream} for param {param}...".format(
                 stream=input_stream, param=input
             )
         )
@@ -240,6 +240,11 @@ class Agent:
             
             stream = message.getArg("stream")
             tags = message.getArg("tags")
+            agent_cid = message.getArg("agent")
+
+            # ignore streams from self
+            if agent_cid == self.cid:
+                return
             
             # agent define what to listen to using include/exclude expressions
             logging.info("Checking listener tags...")
@@ -366,7 +371,6 @@ class Agent:
         worker = self.create_worker(None)
 
         # write data, automatically notify session on BOS
-        
         worker.write_data(data, output=output)
 
         if eos:

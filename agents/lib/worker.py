@@ -227,7 +227,8 @@ class Worker:
         # close consumer, if end of stream
         if message.isEOS():
             # done, stop listening to input stream
-            self.consumer.stop()
+            if self.consumer:
+                self.consumer.stop()
 
     def _start(self):
         # logging.info('Starting agent worker {name}'.format(name=self.sid))
@@ -238,6 +239,9 @@ class Worker:
 
     def _start_consumer(self):
         # start a consumer to listen to stream
+        if self.input_stream is None:
+            return
+        
         consumer = Consumer(
             self.input_stream,
             name=self.name,
@@ -275,7 +279,7 @@ class Worker:
                     tags = tags.union(set(param_tags))
             tags = list(tags)
 
-            self.session.notify(output_stream, tags)
+            self.session.notify(self.agent.cid, output_stream, tags)
         
         return producer
 

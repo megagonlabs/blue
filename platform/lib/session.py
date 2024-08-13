@@ -132,7 +132,7 @@ class Session:
 
         return list(agents.values())
 
-    def notify(self, output_stream, tags):
+    def notify(self, agent, output_stream, tags):
 
         # create data namespace to share data on stream, success = True, if not existing
         success = self._init_stream_data_namespace(output_stream)
@@ -142,6 +142,7 @@ class Session:
         if success:
             args = {}
             args["session"] = self.cid
+            args["agent"] = agent
             args["stream"] = output_stream
             args["tags"] = tags
             self.producer.write_control(ControlCode.ADD_STREAM, args)
