@@ -31,7 +31,7 @@ Below is an outline of the documentation on this repo:
 * [hello world example](#hello-world-example)
 * [development](#development)
 * [demos](#demos)
-* [production](#production)
+* [deployment](#deployment)
 
 </br>
 </br>
@@ -84,7 +84,7 @@ Want to get started? Follow the installation steps below..
 ---
 # installation
 
-Blue can be deployed in two modes: (1) `localhost` (2) `swarm` mode. `localhost` is more suitable for development and `swarm` mode is more suitable for staging and production. Below we describe how you can deploy blue in `localhost` mode and further down we will talk about `swarm` mode when we discuss production mode of deployment.
+Blue can be deployed in two modes: (1) `localhost` (2) `swarm` mode. `localhost` is more suitable for development and `swarm` mode is more suitable for staging and production deployment. Below, we describe how you can install blue in `localhost` mode and further down we will talk about `swarm` mode when we discuss production mode of deployment.
 
 ## requirements
 Blue requires docker engine to build and run the infrastructure and agents. To develop on your local machine you would need to install docker engine from 
@@ -288,8 +288,9 @@ There are more demos in the [demos](demos) folder. Please try them on your own f
 
 ---
 
-# production
+# deployment
 
+B
 The main difference between a `localhost` deployment and a `swarm` deployment is that there are multiple compute nodes where various components can be deployed to. Another key difference is that ccomponents are added as a service where each can be configure with multiple scalability configurations and other service options.
 
 ## clusters
