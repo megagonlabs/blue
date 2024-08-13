@@ -25,11 +25,12 @@ In Blue, key components of the AI system are:
 
 </br>
 
-What can you do with it? Here are a few examples:
-* build a fact-checker API to examine LLM generated text against propriery data (e.g. fact-check resume)
-* build a conversational agent that uses backend models and APIs (e.g. career support agent with predictive models and data from insight database)
-* build a sophisticated search exploiting LLMs (e.g. search jobs interfacing to ranking models)
-* build interactive graphical user experience for complex workflows (e.g. profile builder)
+What can you do with it? Here are a few examples you can build with blue:
+* a fact-checker API to examine LLM generated text against propriery data (e.g. fact-check resume)
+* a conversational agent that uses backend models and APIs (e.g. career support agent with predictive models and data from insight database)
+* a sophisticated search exploiting LLMs (e.g. search jobs interfacing to ranking models)
+* an interactive graphical user experience for complex workflows (e.g. profile builder)
+* an API to convert user text into database queryes (e.g. natural language to SQL)
 
 
 Sounds interesting? Want to learn more? 
