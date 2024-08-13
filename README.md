@@ -31,7 +31,6 @@ Below is an outline of the documentation on this repo:
 * [hello world example](#hello-world-example)
 * [development](#development)
 * [demos](#demos)
-* [agent development](#agent-development)
 * [production](#production)
 
 </br>
@@ -283,13 +282,6 @@ To learn more about developing agents yourself please go to [agents](agents) for
 # demos
 
 There are more demos in the [demos](demos) folder. Please try them on your own following the documentation in the respective folders.
-
-</br>
-
-# agent development
-
-There are a number of generic multi-purpose agents which you can either use as templates or find direct use of them in your applications. To learn more about agents and how to develop them, follow the README under [agents](agents) directory. 
-
 
 </br>
 </br>
