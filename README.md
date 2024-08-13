@@ -261,7 +261,7 @@ Session: SESSION:953b015
 Enter Text: Hello, world!
 ```
 
-Then copy the session the USER agent created (i.e. SESSION:2f6ecafe)  so that another agent can participate in the same session:
+Then copy the session the USER agent created (i.e. SESSION:953b015)  so that another agent can participate in the same session:
 
 ```
 $ cd agents/counter
