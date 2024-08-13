@@ -289,7 +289,7 @@ $ ./deploy_service.sh --service websocket_counter --port_mapping 8001:8001 --ima
 And lastly run the agent:
 ```
 $ cd agents/websocket_counter
-$ python src/websocket_counter_agent.py --session SESSION:2f6ecafe --properties='{"counter.service":"ws://localhost:8001"}'
+$ python src/websocket_counter_agent.py --session SESSION:953b015 --properties='{"counter.service":"ws://localhost:8001"}'
 ```
 
 
