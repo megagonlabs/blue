@@ -54,14 +54,13 @@ Messages in streams can be data and control messages, with supported data types 
 Streams are tagged by the agent which created the stream. Tags serve multiple purposes but mainly to allow other agents to determine if they are interested to listen to stream.
 
 ## agents
-The central "compute" concept in blue is an agent. An agent basically spawns a worker to monitor to a stream, if it decides to act on it, can process the data and produce output into another stream(s). There might be yet another agent monitoring the output of the first agent and do something on top, and so on. 
+The central "compute" concept in blue is an agent. An agent basically spawns a worker to monitor to a stream, if it decides to act on it, can process the data and produce output into another stream(s). There might be yet another agent monitoring the output of the first agent and do something on top, and so on. Agents can have multiple input and outputs. Each input and output is a separate stream. 
 
-![Agent](./docs/images/agent.png)
-
-Agents have a set of properties which defines options and settings regarding how an agent will operating. Most of the properties are specific to the agent. All agents also define a `listens` property which define `includes` and `excludes` rule to determine which streams to listen to. 
+Agents have a set of properties which defines options and settings regarding how an agent will operating. Most of the properties are specific to the agent, for example they can specify a model to use. There are also properties that each agent have. For example,  all agents  define a `listens` property which define `includes` and `excludes` rule to determine which streams to listen to, for each input parameter.
 
 ### worker
-A worker is a thread of an agent that is basically dedicated to a specific input stream and outputs to a specific output stream. How a worker should process the input stream (processor function) is passed on to the worker from the agent. Similarly an agent's properties are also passed on to any of its workers.
+A worker is a thread of an agent that is basically dedicated to a specific input stream for an input parameter. How a worker should process the input stream (processor function) is defined by the agent. Similarly an agent's properties are also passed on to any of its workers.
+
 
 ## session
 The central "context" concept in Blue is a `session`. A session is initiated by an agent, typically a user agent, and continiously expanded by other agents responding to the initial stream and other streams in the session. Agents are added to a session to orchestrate a response to the initial user input. Once added an agent can listen to any `stream` in the session and decide to follow-up and process data in the stream to produce more streams in the session.
