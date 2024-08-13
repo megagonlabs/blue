@@ -256,10 +256,8 @@ Now we can go back to the `hello world` example...
 To input some text through the user agent, run:
 ```
 $ cd agents/user
-$ python src/user_agent.py --interactive
-[...]
-INFO:root:Started consumer USER for stream SESSION:2f6ecafe
-[...]
+$ python src/user_agent.py --interactive --loglevel ERROR
+Session: SESSION:953b015
 Enter Text: Hello, world!
 ```
 
@@ -267,7 +265,7 @@ Then copy the session the USER agent created (i.e. SESSION:2f6ecafe)  so that an
 
 ```
 $ cd agents/counter
-$ python src/counter_agent.py --session SESSION:2f6ecafe --loglevel ERROR
+$ python src/counter_agent.py --session SESSION:953b015 --loglevel ERROR
 [...]
 ```
 
