@@ -169,7 +169,8 @@ In blue there are two types of messages: `DATA` and `CONTROL`. Messages have thr
 
 For `DATA` messages its content is the data itself, for example, 3 or "Hello". For content of type `JSON`, `contents` is the string version of the JSON object.
 
-For `CONTROL` messages its content is: (1) `code`, specific control code, (2) `args` JSON object containing arguments for the message. `content_type` of `CONTROL` messages is always `JSON`.
+For `CONTROL` messages its content is: (1) `code`, specific control code, (2) `args` JSON object containing arguments for the message. `content_type` of `CONTROL` messages is always `JSON`. Besides `BOS` and `EOS`, there are other control codes such as
+`JOIN_SESSION` in platform streams `ADD_AGENT`, `REMOVE_AGENT`, `ADD_STREAM`, in session streams, and `EXECUTE_AGENT`, `CREATE_FORM`, `UPDATE_FORM`, and `CLOSE_FORM` in agent streams.
 
 Message is a python class, that can be imported from `lib/platform/message`. It has a number of utility functions, to determine the type of message, such as `isData`, `isControl`, `isBOS`, `isEOS`, get parts of the message such as `getLabel`, `getData`, `getContents`, `getContentType`, `getCode`, `getArgs`, and `getArg`.
 
