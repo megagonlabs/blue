@@ -187,6 +187,17 @@ return [3, Message.EOS]
 
 ## properties
 
+Agents have a number of system specific properties as well as custom agent-specific properties. In the basic example, if you were to print the properties in the processor function, you would see:
+```
+{'db.host': 'localhost', 'db.port': 6379, 'instructable': True, 'listens': {'DEFAULT': {'includes': ['.*'], 'excludes': []}}, 'tags': {'DEFAULT': []}}
+```
+
+Above `db.host`, `db.port` would be system specific and set outside the context of agent, as part of the platform deployment. 
+There are also generic properties such as `listens` and `tags` that are defined for each agent specifying which streams to listen to and how to tag output streams. See [listeners](#listeners) and [tags](#tags) for more details. `instructable` is another generic property, which states that this agent can be instructed to execute externally by another agent (such as planner). See  [instructable agents](#instructable-agents) for more details.
+
+Beyond that any property is agent-specific and can be set to any key, value pair, and can be nested, as long as it can be serialized into JSON. Properties can be set hardcoded in code, set programmatically or interactively.
+
+
 </br>
 </br>
 
