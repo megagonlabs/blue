@@ -810,6 +810,7 @@ for _ in range(5):
             }
         )
     )
+    time.sleep(1)
     ws.send(
         json.dumps(
             {
@@ -825,6 +826,7 @@ for _ in range(5):
             }
         )
     )
+    time.sleep(1)
     ws.send(
         json.dumps(
             {
@@ -840,4 +842,5 @@ for _ in range(5):
             }
         )
     )
+    time.sleep(1)
 ws.close()

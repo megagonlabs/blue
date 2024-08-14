@@ -35,6 +35,7 @@ import DebugPanel from "./debugger/DebugPanel";
 import { hasTrue } from "./helper";
 import Settings from "./navigation/Settings";
 import UserAccountPanel from "./navigation/UserAccountPanel";
+import PlanVisualizationPanel from "./sessions/PlanVisualizationPanel";
 export default function App({ children }) {
     const router = useRouter();
     const { appState, appActions } = useContext(AppContext);
@@ -423,6 +424,7 @@ export default function App({ children }) {
                 {_.isEmpty(user) ? <AccessDeniedNonIdealState /> : children}
             </div>
             <DebugPanel />
+            <PlanVisualizationPanel />
         </div>
     );
 }

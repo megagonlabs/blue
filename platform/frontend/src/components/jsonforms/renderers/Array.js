@@ -1,3 +1,4 @@
+import { AppContext } from "@/components/contexts/app-context";
 import { useSocket } from "@/components/hooks/useSocket";
 import { faIcon } from "@/components/icon";
 import {
@@ -30,7 +31,7 @@ import {
     withJsonFormsArrayControlProps,
 } from "@jsonforms/react";
 import _, { range } from "lodash";
-import { useEffect, useMemo } from "react";
+import { useContext, useEffect, useMemo } from "react";
 const ArrayRenderer = ({
     label,
     data,
@@ -47,6 +48,7 @@ const ArrayRenderer = ({
     moveDown,
 }) => {
     const { socket } = useSocket();
+    const { appActions } = useContext(AppContext);
     const childUiSchema = useMemo(
         () =>
             findUISchema(
@@ -74,6 +76,12 @@ const ArrayRenderer = ({
             );
         }, 0);
     }, [data]);
+    const setVisualization = () => {
+        appActions.session.setState({
+            key: "visulization",
+            value: {},
+        });
+    };
     return (
         <div>
             <H6 style={{ marginTop: 0, marginBottom: 15 }}>{label}</H6>
@@ -199,9 +207,9 @@ const ArrayRenderer = ({
                     />
                 </Tooltip>
                 <Button
-                    disabled
                     outlined
                     text="Visualize"
+                    onClick={setVisualization}
                     icon={faIcon({ icon: faCircleNodes })}
                 />
             </ButtonGroup>

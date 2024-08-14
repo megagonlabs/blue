@@ -64,13 +64,13 @@ export default function SessionRow({ index, style }) {
                 } else if (_.isEqual(contentType, "JSON_FORM")) {
                     setLastMessage(
                         <Tag minimal icon={faIcon({ icon: faPenLine })}>
-                            Form
+                            FORM
                         </Tag>
                     );
                 } else {
                     setLastMessage(
                         <Tag minimal icon={faIcon({ icon: faQuestion })}>
-                            Unknown
+                            UNKNOWN
                         </Tag>
                     );
                 }

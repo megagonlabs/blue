@@ -9,7 +9,7 @@ export const sessionAction = (dispatch) => ({
     setSessionDetail: (payload) => {
         dispatch({
             type: "session/sessions/detail/set",
-            payload: payload,
+            payload,
         });
     },
     createSession: (payload) => {

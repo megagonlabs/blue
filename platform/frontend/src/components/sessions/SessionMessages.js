@@ -223,7 +223,9 @@ export default function SessionMessages() {
     }
     function setRowHeight(index, size) {
         rowHeights.current = { ...rowHeights.current, [index]: size };
-        variableSizeListRef.current.resetAfterIndex(0);
+        if (variableSizeListRef.current) {
+            variableSizeListRef.current.resetAfterIndex(0);
+        }
     }
     useEffect(() => {
         setTimeout(() => {

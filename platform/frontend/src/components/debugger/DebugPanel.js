@@ -66,7 +66,9 @@ export default function DebugPanel() {
                     style={{
                         transform: "translate(50px, 50px)",
                         position: "relative",
-                        display: settings.debug_mode ? null : "none",
+                        display: _.get(settings, "debug_mode", false)
+                            ? null
+                            : "none",
                         height: BASE_HEIGHT,
                         width: BASE_HEIGHT * 1.5,
                         paddingBottom: 0,
