@@ -117,6 +117,9 @@ Stream Data:
 
 As you can see from the output above, two DATA messages are received, followed by an `EOS` message (a CONTROL message). When the output stream is created it automatically injects a `BOS` (Begin Of Stream) message but for the purposes of this example, we are ignoring it. Once the `EOS` message is received, the `processor` functions computes the length of all the data in stream (accumulated in `stream_data` variable) and returns the result (and thereby outputing the result into a new stream)
 
+</br>
+</br>
+
 ## data processor 
 
 As you have seen above, the `processor` function is called on each message in a stream to process and as such the `processor` function is the key to an agents behavior. 
@@ -151,11 +154,19 @@ See [messages](#messages) for further details on messages and more.
 
 `properties` is another parameter to the `processor` function. It is essentially an agent's properties, which can be used in `processor` function to define the behavior of the computation. `properties` is essentially a dictionay object (can be nested) and specifici properties can be obtained simply by `properties[<property>]`, e.g. `properties["model"]`. See below [properties](#properties) for common and agent-specific properties.
 
+</br>
+</br>
 
 ## messages
 
 
+</br>
+</br>
+
 ## properties
+
+</br>
+</br>
 
 ## listeners
 So, you might ask how did the `COUNTER` agent listened to `USER` agent. Each agent joining the session listens to all events in the session stream, and start monitoring `ADD_STREAM` instructions where new data is introduced into the session. As you see above along with each stream there are `tags`, for example stream `USER:9ccad900:STREAM:b15675db` is tagged as `USER`.
@@ -165,6 +176,8 @@ To decide which agents to listen to agents (actually more like streams), each ag
 Basically, agents tag each stream they produce, as you have seen above, `USER` agent tagged its output stream as `USER`. Other agents in the session check if their `includes` and `excludes` list against the tags of the stream. Agents by default tag each stream they produce by their own name. Additional, tags can be provided as a property (`tags`).  `includes` and `excludes` lists are ordered lists of regular expressions that are evaluated on stream tags (e.g. USER, ). To decide if an agents should be listened to first the `includes` list is processed. If none of the regular expressions is matched, the stream with the tags is not listened to. If any of the regular expressions is a match, a further check is made in the `excludes` list. If none of the `excludes` regular expressions is matched the stream is listened. If any one of `excludes` is matched the stream is not listened to. Default `includes` list is ['.*'], i.e. all agents are listened to, and the default `excludes` list is `[self.name]`, i.e. self is not listened to. Both include and exclude list can include an element that is itself a list, e.g. `["A","B",["C","D"]]` to support conjunctions. For example, previous example is `A or B or (C and D)`.
 
 
+</br>
+</br>
 
 ## memory 
 The above example works if there is only one worker and that worker is solely responsible from start to end (i.e. it doesn't fail). The reason is that in the above example `stream_data` is a shared variable among all workers of the agent, even when they work on a different stream. To resolve this issue, you need to create distributed memory (uses Redis JSON) that a worker can write its private data that is only specific to a stream. 
@@ -182,6 +195,8 @@ To share data among workers processing data from the same stream, you can use `s
 
 To share data among all agent workers in the session, you can use `set_session_data(key, value)`, `append_session_data(key, value)`, `get_session_data(key)`, and `get_session_data_len(key)`.
 
+</br>
+</br>
 
 ## interactive agents
 Building interactive agents, i.e. agents that present the user an interface, for example a form to fill out, is possible through a declarative UI specification. In blue we use [JSONForms](https://jsonforms.io/) to facilitate that. Essentially the agent in its reponses sends back a form that describes the ui layout and data schema.  The web interface renders it accordingly. Along with the form, and event stream is created, where the `processor` of the agent can start consuming event from the web interface. The interactive agent then can send more messages, new user interfaces, or other events that changes the UI, accordingly. 
@@ -267,11 +282,15 @@ label: INSTRUCTION, data: {"code": "ADD_AGENT", "params": {"name": "USER", "sid"
 
 This basically illustrates the session mechanism. When an session is created, a new session stream (`SESSION:5db16fd4`) is started. Then we see a `ADD_AGENT` instruction and agent `USER` joined the session, and it created a new stream `USER:8d29992c` and announced via the `ADD_STREAM` instruction, etc. In a way the session stream announced that there is new agent and new data in the session, produced by the `USER` agent. Then, later we see similar instructions for the `COUNTER` agent.
 
+</br>
+</br>
+
 # Template Agents
 
 ## template agent
 
 Key functionality of the agent is defined in the `processor` function, the rest is template. To help develop agents you can use the [template agent](template) code as starter code.
+
 </br>
 </br>
 
