@@ -203,6 +203,20 @@ Beyond that any property is agent-specific and can be set to any key, value pair
 
 ## tags
 
+Each agent defines a `tags` property which defines what to tag each output stream. As such the `tags` property is organized by output parameter type and then for each output parameter it is a list of tags. Note the default output parameter is `DEFAULT`. 
+
+For example:
+```
+"tags": {
+    "DEFAULT": [ "A", "B" ],
+    "RESULT": ["C"]
+}
+```
+
+In the above example the `DEFAULT` output stream is tagged with `A` and `B` and `RESULT` output stream is tagged with `C`.
+
+Note, as you might recall tags on output streams can also be specified as part of the `write` functions on the `worker`.
+
 </br>
 </br>
 
