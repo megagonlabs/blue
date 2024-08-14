@@ -227,6 +227,8 @@ label: INSTRUCTION, data: {"code": "ADD_AGENT", "params": {"name": "USER", "sid"
 
 This basically illustrates the session mechanism. When an session is created, a new session stream (`SESSION:5db16fd4`) is started. Then we see a `ADD_AGENT` instruction and agent `USER` joined the session, and it created a new stream `USER:8d29992c` and announced via the `ADD_STREAM` instruction, etc. In a way the session stream announced that there is new agent and new data in the session, produced by the `USER` agent. Then, later we see similar instructions for the `COUNTER` agent.
 
+# Template Agents
+
 ## template agent
 
 Key functionality of the agent is defined in the `processor` function, the rest is template. To help develop agents you can use the [template agent](template) code as starter code.
@@ -245,7 +247,7 @@ Build interactive forms using "Form Designer" in the "Dev. Tools" section of the
 
 ---
 
-## generic agents
+# Generic Agents
 
 Below is a list of agents that you can directly use as they are generic. Also look for other agents in `agents` directory to use them as examples.
 
