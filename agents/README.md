@@ -4,21 +4,25 @@ Below you will find more information on developing your own agents as well as a 
 
 Use below links for quick accces:
 - [Agents](#agents)
-  - [agent development](#agent-development)
+  - [basics](#basics)
+  - [listeners](#listeners)
+  - [data processor](#data-processing)
   - [memory](#memory)
   - [interactive agents](#interactive-agents)
+  - [instructable agents](#instructable-agents)
+- [Template Agents](#templates)
   - [template agent](#template-agent)
   - [template interactive agent](#template-interactive-agent)
-  - [generic agents](#generic-agents)
+- [Generic agents](#generic-agents)
 
 </br>
 </br>
 
 ---
 
-## agent development
+## basics
 
-Let's dive into a bit of development of the agents. 
+Let's dive into a bit of development of the agents, starting with basics...
 
 The `agents/lib` contains an Agent class that can be used as a base class for developing new agents. While it is often the practice to use Agent class as the base class, however, you do not necessarily need to extend the base class as you can simply use the Agent class directly, and pass in different parameters (e.g. processor).
 
