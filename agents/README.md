@@ -221,9 +221,21 @@ Note, as you might recall tags on output streams can also be specified as part o
 </br>
 
 ## listeners
-So, you might ask how did the `COUNTER` agent listened to `USER` agent. Each agent joining the session listens to all events in the session stream, and start monitoring `ADD_STREAM` instructions where new data is introduced into the session. As you see above along with each stream there are `tags`, for example stream `USER:9ccad900:STREAM:b15675db` is tagged as `USER`.
+So, you might ask how did the `COUNTER` agent listened to output from the `USER` agent. 
 
-To decide which agents to listen to agents (actually more like streams), each agent defines a `listens` property and `includes` and `excludes` list. 
+To decide which agents to listen to which streams, each agent defines a `listens` property and `includes` and `excludes` list. The default values are:
+```
+"listens": {
+   "DEFAULT": {
+      "includes" = [".*"]
+      "excludes" = []
+   }
+}
+```
+
+Above specification essentially says every agent in the session listens to every stream from any other agents with no exclusions. Internally though an agent is prevented to listen to its own stream to avoid any loops.
+
+To build more complex workflows though the `listens` property can be set more specifically per input parameter of the agent. As you recall `DEFAULT` is the default input parameter.
 
 Basically, agents tag each stream they produce, as you have seen above, `USER` agent tagged its output stream as `USER`. Other agents in the session check if their `includes` and `excludes` list against the tags of the stream. Agents by default tag each stream they produce by their own name. Additional, tags can be provided as a property (`tags`).  `includes` and `excludes` lists are ordered lists of regular expressions that are evaluated on stream tags (e.g. USER, ). To decide if an agents should be listened to first the `includes` list is processed. If none of the regular expressions is matched, the stream with the tags is not listened to. If any of the regular expressions is a match, a further check is made in the `excludes` list. If none of the `excludes` regular expressions is matched the stream is listened. If any one of `excludes` is matched the stream is not listened to. Default `includes` list is ['.*'], i.e. all agents are listened to, and the default `excludes` list is `[self.name]`, i.e. self is not listened to. Both include and exclude list can include an element that is itself a list, e.g. `["A","B",["C","D"]]` to support conjunctions. For example, previous example is `A or B or (C and D)`.
 
