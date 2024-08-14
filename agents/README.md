@@ -142,6 +142,11 @@ Upon processing the messages from stream and performing agent-specific computati
 
 `processor` can also return data in a list. In this case, each element in the list is written to the stream separately.
 
+`worker` has a number of function that can be used to write to streams: `write_bos`, `write_eos`, `write_data`, `write_control`, and `write`. `write_bos` and `write_eos` functions are shorthand to output `BOS` and `EOS` control messages. `write_data` takes a data parameter and outputs a `DATA` message, e,g. `write_data(3), write_data("hello"), write_data({'a': 3})`. `write_control` take `code` and `args` parameters and outputs a `CONTROL` message. Finally, `write` function outputs any message. 
+
+Each of these functions also take optional parameters: `output="DEFAULT", id=None, tags=None` where `output` is the output parameter name, `id` is an additional specific identifier on the output parameter, `tags` specify additional tags that can be set on the output stream.
+
+
 Note messages in a stream can also be control messages. If an agent want to process such messages, they can do so, as shown below:
 ```
 ...
