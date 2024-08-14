@@ -1,36 +1,42 @@
 # Agents
 
-Below you will find more information on developing your own agents as well as a list of generic agents that you can learn from and use as a template.
+Below you will find more information on developing your own agents as well as a list of template and generic agents that you can use as a template and learn from.
 
 Use below links for quick accces:
 - [Agents](#agents)
-  - [agent development](#agent-development)
+  - [basics](#basics)
+  - [data processor](#data-processor)
+  - [properties](#properties)
+  - [listeners](#listeners)
   - [memory](#memory)
   - [interactive agents](#interactive-agents)
+  - [instructable agents](#instructable-agents)
+  - [more details](#details)
+- [Template Agents](#templates)
   - [template agent](#template-agent)
   - [template interactive agent](#template-interactive-agent)
-  - [generic agents](#generic-agents)
+- [Generic agents](#generic-agents)
 
 </br>
 </br>
 
 ---
 
-## agent development
+## basics
 
-Let's dive into a bit of development of the agents. 
+Let's dive into a bit of development of the agents, starting with basics...
 
-The `agents/lib` contains an Agent class that can be used as a base class for developing new agents. While it is often the practice to use Agent class as the base class, however, you do not necessarily need to extend the base class as you can simply use the Agent class directly, and pass in different parameters (e.g. processor).
+The `agents/lib` contains an Agent class that can be used as a base class for developing new agents. While it is often the practice to use Agent class as the base class, however, you do not necessarily need to extend the base class as you can simply use the Agent class directly, and pass in different parameters (such as `processor` function to process data).
 
-Let's go through an example that basically uses Agent class directly. You can find this example in `agents/test` directory. To setup for this example:
+Let's first go through an example that basically uses Agent class directly. You can find this example in `agents/test` directory. To setup for this example:
 
 ```
-$ cd agents/python
+$ cd agents/test
 $ pip install -r requirements.txt
 $ ./build_agent.sh
 ```
 
-Then, invoke a python interpreter (in `agents/test`):
+Then, invoke a python interpreter (in `agents/test` directory):
 ```
 $ python
 ```
@@ -38,6 +44,7 @@ $ python
 First, to import Agent class, `import sys` so that you can access classes defined in various directories under `lib`. Afterwards, import `Agent` and `Session`:
 ```
 import sys
+import logging
 
 sys.path.append('./lib/')
 sys.path.append('./lib/agent/')
@@ -45,6 +52,11 @@ sys.path.append('./lib/platform/')
 
 from agent import Agent
 from session import Session
+```
+
+Initially, let's turn off a lot of the logging, by settting logging level to `ERROR`:
+```
+logging.getLogger().setLevel(logging.ERROR)
 ```
 
 In this example, let's first create a session, then have a USER agent, simply using the existing Agent class,  input some text using the `interact` function of the Agent class.
@@ -56,67 +68,65 @@ session = Session()
 user_agent = Agent(name="USER", session=session)
 
 # user initiates an interaction
-user_agent.interact("hello world!")
+user_agent.interact("hello world!", eos=False)
+user_agent.interact("i am an agent")
 ```
-If you examine the logs (see below), you will see that we create a new stream `USER:275e2d0b` with `BOS` (begin-of-stream) and then put two `DATA` messages into the stream corresponding to the input text, and ended the stream with `EOS` (end-of-stream).
 
-```
-INFO:root:Streamed into USER:275e2d0b message {'label': 'BOS'}
-[...]
-INFO:root:Streamed into USER:275e2d0b message {'label': 'DATA', 'data': 'hello', 'type': 'str'}
-INFO:root:Streamed into USER:275e2d0b message {'label': 'DATA', 'data': 'world!', 'type': 'str'}
-INFO:root:Streamed into USER:275e2d0b message {'label': 'EOS'}
-```
+In the above code, USER agent sends two interactions (messsages). In the first `interact` function `eos` is set to `False` so that the USER ouput stream doesn't contain and `EOS` (End Of Stream) message, yet.
 
 Now, let's create a COUNTER agent, again using the base Agent class. The counter agent will listen to the streams in the same session as the USER agent. Then, we define a `processor` function to process stream data.
 
-The signature of the `processor` function is `stream`, `id`, `label`, and `data`. `stream` is the input stream to process, `id` is the data id assigned stream. `label` is the label of message in the stream, for example `BOS` for begin-of-stream, `EOS` for end-of-stream, `DATA` for a data in stream. Essentially, above `processor` function adds new data to `stream_data` when it receives new data (e.g. on `DATA` label) and returns count when all data is received (e.g. on `EOS` label). The base class `Agent` automatically creates a new stream in the session and adds the returned value from the processor function.
+The signature of the `processor` function is `(message, input=None, properties=None, worker=None)`. `message` is the message received from the stream to process, `input` is the input parameter name, default is `DEFAULT`. `properties` is the agent properties, and finally `worker` is the specific worker instance. 
 
+Let's write below code to create a COUNTER agent with a custom `processor` function as below:
 
 ```
-# sample func to process data for counter
 stream_data = []
 
-def processor(stream, id, label, data, dtype=None, tags=None, properties=None, worker=None):
-    if label == 'EOS':
+def processor(message, input=None, properties=None, worker=None):
+    if message.isEOS():
         # print all data received from stream
+        print("Stream Data:")
         print(stream_data)
-        # compute stream data
+        # compute length of the stream data
         l = len(stream_data)
+        print(l)
         # output to stream
         return l 
-    elif label == 'DATA':
+    elif message.isData():
         # store data value
+        data = message.getData()
+        print(data)
         stream_data.append(data)
         return None
 
 # create a counter agent in the same session
-counter_agent = Agent("COUNTER", session=session, processor=processor)
+counter_agent = Agent(name="COUNTER", session=session, processor=processor)
 ```
 
-Now, this time if you examine the logs you will see:
+And run it:
 ```
-[...]
-INFO:root:Streamed into COUNTER:5f1fa5a5 message {'label': 'DATA', 'data': 2, 'type': 'int'}
-[...]
-```
-
-In addition if you examine the session stream, you will see:
-
-```
-label: INSTRUCTION, data: {"code": "ADD_STREAM", "params": {"cid": "COUNTER:b55fdf56:STREAM:c80f0769", "tags": ["COUNTER"]}}, type: JSON
-label: INSTRUCTION, data: {"code": "ADD_AGENT", "params": {"name": "COUNTER", "sid": "COUNTER:b55fdf56"}}, type: JSON
-label: INSTRUCTION, data: {"code": "ADD_STREAM", "params": {"cid": "USER:9ccad900:STREAM:b15675db", "tags": ["USER"]}}, type: JSON
-label: INSTRUCTION, data: {"code": "ADD_AGENT", "params": {"name": "USER", "sid": "USER:9ccad900"}}, type: JSON
+$ python test.py 
+hello world!
+i am an agent
+Stream Data:
+['hello world!', 'i am an agent']
+2
 ```
 
-This basically illustrates the session mechanism. When an session is created, a new session stream (`SESSION:5db16fd4`) is started. Then we see a `ADD_AGENT` instruction and agent `USER` joined the session, and it created a new stream `USER:8d29992c` and announced via the `ADD_STREAM` instruction, etc. In a way the session stream announced that there is new agent and new data in the session, produced by the `USER` agent. Then, later we see similar instructions for the `COUNTER` agent.
+As you can see from the output above, two DATA messages are received, followed by an `EOS` message (a CONTROL message). When the output stream is created it automatically injects a `BOS` (Begin Of Stream) message but for the purposes of this example, we are ignoring it. Once the `EOS` message is received, the `processor` functions computes the length of all the data in stream (accumulated in `stream_data` variable) and returns the result (and thereby outputing the result into a new stream)
 
+## data processor 
+
+## properties
+
+## listeners
 So, you might ask how did the `COUNTER` agent listened to `USER` agent. Each agent joining the session listens to all events in the session stream, and start monitoring `ADD_STREAM` instructions where new data is introduced into the session. As you see above along with each stream there are `tags`, for example stream `USER:9ccad900:STREAM:b15675db` is tagged as `USER`.
 
 To decide which agents to listen to agents (actually more like streams), each agent defines a `listens` property and `includes` and `excludes` list. 
 
 Basically, agents tag each stream they produce, as you have seen above, `USER` agent tagged its output stream as `USER`. Other agents in the session check if their `includes` and `excludes` list against the tags of the stream. Agents by default tag each stream they produce by their own name. Additional, tags can be provided as a property (`tags`).  `includes` and `excludes` lists are ordered lists of regular expressions that are evaluated on stream tags (e.g. USER, ). To decide if an agents should be listened to first the `includes` list is processed. If none of the regular expressions is matched, the stream with the tags is not listened to. If any of the regular expressions is a match, a further check is made in the `excludes` list. If none of the `excludes` regular expressions is matched the stream is listened. If any one of `excludes` is matched the stream is not listened to. Default `includes` list is ['.*'], i.e. all agents are listened to, and the default `excludes` list is `[self.name]`, i.e. self is not listened to. Both include and exclude list can include an element that is itself a list, e.g. `["A","B",["C","D"]]` to support conjunctions. For example, previous example is `A or B or (C and D)`.
+
 
 
 ## memory 
@@ -152,6 +162,75 @@ To process events from the web interface, as the user interacts, you can check t
 </br>
 
 ---
+## instructable agents
+
+</br>
+</br>
+
+---
+
+## details
+et's turn on more logging to examine what is happening, by settting logging level to `INFO`:
+```
+logging.getLogger().setLevel(logging.INFO)
+```
+
+and also additionally insert more prints to output:
+```
+...
+    elif message.isData():
+        # print(input)
+        # print(properties)
+        # print(message)
+        # print(message.getID())
+        # print(message.getStream())
+        # store data value
+        data = message.getData()
+...
+```
+
+and re-run it, and examine the log created.
+```
+$ python test.py
+```
+
+There are a lot of logs created, let's pull out a few to explain what is going on:
+
+
+
+
+If you examine the logs (see below), you will see that we create a new stream `USER:275e2d0b` with `BOS` (begin-of-stream) and then put two `DATA` messages into the stream corresponding to the input text, and ended the stream with `EOS` (end-of-stream).
+
+```
+INFO:root:Streamed into USER:275e2d0b message {'label': 'BOS'}
+[...]
+INFO:root:Streamed into USER:275e2d0b message {'label': 'DATA', 'data': 'hello', 'type': 'str'}
+INFO:root:Streamed into USER:275e2d0b message {'label': 'DATA', 'data': 'world!', 'type': 'str'}
+INFO:root:Streamed into USER:275e2d0b message {'label': 'EOS'}
+```
+
+
+
+
+Now, this time if you examine the logs you will see:
+```
+[...]
+INFO:root:Streamed into COUNTER:5f1fa5a5 message {'label': 'DATA', 'data': 2, 'type': 'int'}
+[...]
+```
+
+In addition if you examine the session stream, you will see:
+
+```
+label: INSTRUCTION, data: {"code": "ADD_STREAM", "params": {"cid": "COUNTER:b55fdf56:STREAM:c80f0769", "tags": ["COUNTER"]}}, type: JSON
+label: INSTRUCTION, data: {"code": "ADD_AGENT", "params": {"name": "COUNTER", "sid": "COUNTER:b55fdf56"}}, type: JSON
+label: INSTRUCTION, data: {"code": "ADD_STREAM", "params": {"cid": "USER:9ccad900:STREAM:b15675db", "tags": ["USER"]}}, type: JSON
+label: INSTRUCTION, data: {"code": "ADD_AGENT", "params": {"name": "USER", "sid": "USER:9ccad900"}}, type: JSON
+```
+
+This basically illustrates the session mechanism. When an session is created, a new session stream (`SESSION:5db16fd4`) is started. Then we see a `ADD_AGENT` instruction and agent `USER` joined the session, and it created a new stream `USER:8d29992c` and announced via the `ADD_STREAM` instruction, etc. In a way the session stream announced that there is new agent and new data in the session, produced by the `USER` agent. Then, later we see similar instructions for the `COUNTER` agent.
+
+# Template Agents
 
 ## template agent
 
@@ -171,7 +250,7 @@ Build interactive forms using "Form Designer" in the "Dev. Tools" section of the
 
 ---
 
-## generic agents
+# Generic Agents
 
 Below is a list of agents that you can directly use as they are generic. Also look for other agents in `agents` directory to use them as examples.
 

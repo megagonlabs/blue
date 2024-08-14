@@ -256,18 +256,16 @@ Now we can go back to the `hello world` example...
 To input some text through the user agent, run:
 ```
 $ cd agents/user
-$ python src/user_agent.py --interactive
-[...]
-INFO:root:Started consumer USER for stream SESSION:2f6ecafe
-[...]
+$ python src/user_agent.py --interactive --loglevel ERROR
+Session: SESSION:953b015
 Enter Text: Hello, world!
 ```
 
-Then copy the session the USER agent created (i.e. SESSION:2f6ecafe)  so that another agent can participate in the same session:
+Then copy the session the USER agent created (i.e. SESSION:953b015)  so that another agent can participate in the same session:
 
 ```
 $ cd agents/counter
-$ python src/counter_agent.py --session SESSION:2f6ecafe --loglevel ERROR
+$ python src/counter_agent.py --session SESSION:953b015 --loglevel ERROR
 [...]
 ```
 
@@ -291,7 +289,7 @@ $ ./deploy_service.sh --service websocket_counter --port_mapping 8001:8001 --ima
 And lastly run the agent:
 ```
 $ cd agents/websocket_counter
-$ python src/websocket_counter_agent.py --session SESSION:2f6ecafe --properties='{"counter.service":"ws://localhost:8001"}'
+$ python src/websocket_counter_agent.py --session SESSION:953b015 --properties='{"counter.service":"ws://localhost:8001"}'
 ```
 
 
@@ -338,17 +336,8 @@ Each deployment of the platform is named, with a separate network so that each c
 
 ## requirements
 
-As in the `localhost` deployment mode, the production of Blue also requires docker engine to build and run the infrastructure and agents. In addition, docker swarm is used for creating a production infrasructture and docker hub is used as a repository of docker images.
+As in the `localhost` deployment mode, the production of Blue also requires docker engine to build and run the infrastructure and agents. In addition, docker swarm is used for creating a production infrastructure and docker hub is used as a repository of docker images.
 
-## configuration
-
-Below are the environment variables and typical settings for staging and production:
-
-- `BLUE_INSTALL_DIR`, directory containing blue installation, used in deployment scripts
-- `BLUE_DEPLOY_TARGET`, deployment target, swarm should be used for staging and 
-- `BLUE_DEPLOY_PLATFORM`, platform name, reflecting specific deployment/use case
-- `BLUE_PUBLIC_API_SERVER`, server address for the REST API , for example, `10.0.160.75:5050`
-- `BLUE_DATA_DIR`, directory hosting daa for blue services, for example `${BLUE_INSTALL_DIR}/data`, used in deployment scripts
   
 ## setup
 
