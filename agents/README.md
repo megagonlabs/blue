@@ -6,6 +6,7 @@ Use below links for quick accces:
 - [Agents](#agents)
   - [basics](#basics)
   - [data processor](#data-processor)
+  - [messages](#messages)
   - [properties](#properties)
   - [listeners](#listeners)
   - [memory](#memory)
@@ -117,6 +118,42 @@ Stream Data:
 As you can see from the output above, two DATA messages are received, followed by an `EOS` message (a CONTROL message). When the output stream is created it automatically injects a `BOS` (Begin Of Stream) message but for the purposes of this example, we are ignoring it. Once the `EOS` message is received, the `processor` functions computes the length of all the data in stream (accumulated in `stream_data` variable) and returns the result (and thereby outputing the result into a new stream)
 
 ## data processor 
+
+As you have seen above, the `processor` function is called on each message in a stream to process and as such the `processor` function is the key to an agents behavior. 
+
+The typical pattern of processing is as below:
+```
+if message.isBOS():
+   # initialize
+elif message.isData():
+   # process data in message
+elif message.isEOS():
+   # aggregate, return result
+   return result
+```
+
+Upon processing the messages from stream and performing agent-specific computation, the agent can output its result into a new output stream(s) for further processing by other agents. An agent can do so either by returning the result in `processor` function (as shown above). or by using the `worker` instance (passed on to the `processor` function as a parameter) to write to streams (e.g. worker.write_data(3)). 
+
+`processor` can return data either as a singleton of type int, float, str, or dict. The message `content_type` is automatically set based on the `type` of the data returned, i.e. `INT`, `FLOAT`, `STR`, or `JSON`
+
+`processor` can also return data in a list. In this case, each element in the list is written to the stream separately.
+
+Note messages in a stream can also be control messages. If an agent want to process such messages, they can do so, as shown below:
+```
+...
+elif message.isControl():
+   # process control message
+...
+```
+See [messages](#messages) for further details on messages and more.
+
+`input` is a parameter to the `processor` function. As agents can have multiple input parameters, if a stream is identified to be a particular input parameter, `input` parameter will be set to the name of the input parameter. See below [listeners](#listeners) to see how can identification is made. 
+
+`properties` is another parameter to the `processor` function. It is essentially an agent's properties, which can be used in `processor` function to define the behavior of the computation. `properties` is essentially a dictionay object (can be nested) and specifici properties can be obtained simply by `properties[<property>]`, e.g. `properties["model"]`. See below [properties](#properties) for common and agent-specific properties.
+
+
+## messages
+
 
 ## properties
 
