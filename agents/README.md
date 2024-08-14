@@ -6,6 +6,7 @@ Use below links for quick accces:
 - [Agents](#agents)
   - [basics](#basics)
   - [data processor](#data-processor)
+  - [properties](#properties)
   - [listeners](#listeners)
   - [memory](#memory)
   - [interactive agents](#interactive-agents)
@@ -116,6 +117,8 @@ Stream Data:
 As you can see from the output above, two DATA messages are received, followed by an `EOS` message (a CONTROL message). When the output stream is created it automatically injects a `BOS` (Begin Of Stream) message but for the purposes of this example, we are ignoring it. Once the `EOS` message is received, the `processor` functions computes the length of all the data in stream (accumulated in `stream_data` variable) and returns the result (and thereby outputing the result into a new stream)
 
 ## data processor 
+
+## properties
 
 ## listeners
 So, you might ask how did the `COUNTER` agent listened to `USER` agent. Each agent joining the session listens to all events in the session stream, and start monitoring `ADD_STREAM` instructions where new data is introduced into the session. As you see above along with each stream there are `tags`, for example stream `USER:9ccad900:STREAM:b15675db` is tagged as `USER`.
