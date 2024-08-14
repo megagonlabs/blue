@@ -8,6 +8,7 @@ Use below links for quick accces:
   - [data processor](#data-processor)
   - [messages](#messages)
   - [properties](#properties)
+  - [tags](#tags)
   - [listeners](#listeners)
   - [memory](#memory)
   - [interactive agents](#interactive-agents)
@@ -164,6 +165,11 @@ See [messages](#messages) for further details on messages and more.
 </br>
 
 ## properties
+
+</br>
+</br>
+
+## tags
 
 </br>
 </br>
