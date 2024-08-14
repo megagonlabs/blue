@@ -165,6 +165,21 @@ See [messages](#messages) for further details on messages and more.
 
 ## messages
 
+In blue there are two types of messages: `DATA` and `CONTROL`. Messages have three parts: (1) `label`, either `DATA` of `CONTROL` (2) `contents`, serialized content of the message, and (3) `content_type`, either `INT`, `FLOAT`, `STR`, or `JSON`. 
+
+For `DATA` messages its content is the data itself, for example, 3 or "Hello". For content of type `JSON`, `contents` is the string version of the JSON object.
+
+For `CONTROL` messages its content is: (1) `code`, specific control code, (2) `args` JSON object containing arguments for the message. `content_type` of `CONTROL` messages is always `JSON`.
+
+Message is a python class, that can be imported from `lib/platform/message`. It has a number of utility functions, to determine the type of message, such as `isData`, `isControl`, `isBOS`, `isEOS`, get parts of the message such as `getLabel`, `getData`, `getContents`, `getContentType`, `getCode`, `getArgs`, and `getArg`.
+
+Additionally when a message is received from the `processor` function it additionally has an `id` and `stream`, capturing id of the message and the id of the stream it resides. These can be obtained through `getID` and `getStream` functions.
+
+When returned from the `processor` function, message object itself can be used, for example:
+```
+return Message.EOS
+return [3, Message.EOS]
+```
 
 </br>
 </br>
