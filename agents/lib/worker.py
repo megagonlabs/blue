@@ -146,17 +146,17 @@ class Worker:
             pydash.objects.set_(form_element, "props.streamId", stream_id)
             pydash.objects.set_(form_element, "props.formId", form_id)
 
-    def write_bos(self, output="DEFAULT", id=None):
+    def write_bos(self, output="DEFAULT", id=None, tags=None):
         # producer = self._start_producer(output=output)
         # producer.write_bos()
-        self.write(Message.BOS, output=output, id=id)
+        self.write(Message.BOS, output=output, id=id, tags=tags)
 
-    def write_eos(self, output="DEFAULT", id=None):
+    def write_eos(self, output="DEFAULT", id=None, tags=None):
         # producer = self._start_producer(output=output)
         # producer.write_eos()
-        self.write(Message.EOS, output=output, id=id)
+        self.write(Message.EOS, output=output, id=id, tags=tags)
 
-    def write_data(self, data, output="DEFAULT", id=None):
+    def write_data(self, data, output="DEFAULT", id=None, tags=None):
         # producer = self._start_producer(output=output)
         # producer.write_data(data)
         if type(data) == int:
@@ -171,14 +171,14 @@ class Worker:
         elif type(data) == dict:
             contents = data
             content_type = ContentType.JSON
-        self.write(Message(MessageType.DATA, contents, content_type), output=output, id=id)
+        self.write(Message(MessageType.DATA, contents, content_type), output=output, id=id, tags=tags)
 
-    def write_control(self, code, args, output="DEFAULT", id=None):
+    def write_control(self, code, args, output="DEFAULT", id=None, tags=None):
         # producer = self._start_producer(output=output)
         # producer.write_control(code, args)
-        self.write(Message(MessageType.CONTROL, {"code": code, "args": args}, ContentType.JSON), output=output, id=id)
+        self.write(Message(MessageType.CONTROL, {"code": code, "args": args}, ContentType.JSON), output=output, id=id, tags=tags)
 
-    def write(self, message, output="DEFAULT", id=None):
+    def write(self, message, output="DEFAULT", id=None, tags=None):
         
         # TODO: This doesn't belong here..
         if message.getCode() in [ ControlCode.CREATE_FORM, ControlCode.UPDATE_FORM, ControlCode.CLOSE_FORM ]:
@@ -221,7 +221,7 @@ class Worker:
 
 
         # create producer, if not existing
-        producer = self._start_producer(output=output)
+        producer = self._start_producer(output=output, tags=tags)
         producer.write(message)
 
         # close consumer, if end of stream
@@ -253,7 +253,7 @@ class Worker:
         self.consumer = consumer
         consumer.start()
 
-    def _start_producer(self, output="DEFAULT"):
+    def _start_producer(self, output="DEFAULT", tags=None):
         # start, if not started
         if output in self.producers:
             return self.producers[output]
@@ -269,17 +269,21 @@ class Worker:
             output_stream = producer.get_stream()
 
             # notify session, get tags for output param
-            tags = set()
-            tags.add(self.agent.name)
+            all_tags = set()
+            # add agents name as a tag
+            all_tags.add(self.agent.name)
+            # add additional tags from write
+            all_tags = all_tags.union(set(tags))
+            # add tags from properties
             if "tags" in self.properties:
                 tags_by_param = self.properties["tags"]
                 # include tags from all params
                 for param in tags_by_param:
                     param_tags = tags_by_param[param]
-                    tags = tags.union(set(param_tags))
-            tags = list(tags)
+                    all_tags = all_tags.union(set(param_tags))
+            all_tags = list(all_tags)
 
-            self.session.notify(self.agent.cid, output_stream, tags)
+            self.session.notify(self.agent.cid, output_stream, all_tags)
         
         return producer
 
