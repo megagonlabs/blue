@@ -308,7 +308,7 @@ args = {
 ```
 
 Above specification would render:
-![Form](../docs/images/ui.png)
+![Form](/docs/images/ui.png)
 
 
 To process events from the web interface, as the user interacts, you can check the `stream` parameter of the `processor` function. Event messages come from a stream with `<prefix>:EVENT_MESSAGE:<form>`, where `<prefix>` is the output stream of the interactive agent, and `<form>` is the form id of the form events are received from. Typically, events as `DATA` with the contents describing the target widget and values, e.g.:
