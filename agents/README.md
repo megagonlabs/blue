@@ -307,13 +307,50 @@ args = {
   }
 ```
 
+When written each form will get a unique form id, or optionally you can set the form id, by passing in an optional parameter (`id=...`).
+
 Above specification would render:
+
 ![Form](/docs/images/ui.png)
 
+Processing events from the web interface is similar to processing any data from streams through the `processor` function. Event messages come as input paramter `EVENT`. Below is a sample:
+```
+    def processor(self, message, input="DEFAULT", properties=None, worker=None):
+        if input == "EVENT":
+            if message.isData():
+                if worker:
+                    data = message.getData()
+                    stream = message.getStream()
+                    form_id = data["form_id"]
+                    action = data["action"]
 
-To process events from the web interface, as the user interacts, you can check the `stream` parameter of the `processor` function. Event messages come from a stream with `<prefix>:EVENT_MESSAGE:<form>`, where `<prefix>` is the output stream of the interactive agent, and `<form>` is the form id of the form events are received from. Typically, events as `DATA` with the contents describing the target widget and values, e.g.:
-`{"name_id": "desired_location", "form_id": "90d46b5e", "value": "mountain view, ca", "timestamp": 1718124950421}`, where
-`name_id` is the name of the widget, `form_id` is the id of the form, and `value` is the current value of the widget. The processor, then does whathever is necessary to handle the event, as this part is application logic dependent. The widget can be disabled by sending `("INTERACTION",{"type": "DONE", "form_id": <form_id>}, "json")`.
+                    # get form stream
+                    form_data_stream = stream.replace("EVENT", "OUTPUT:FORM")
+
+                    # when the user clicked DONE
+                    if action == "DONE":
+                        # do something
+                        name = worker.get_stream_data("name", stream=form_data_stream)
+
+                        # close form
+                        args = {
+                            "form_id": form_id
+                        }
+                        worker.write_control(ControlCode.CLOSE_FORM, args, output="FORM")
+
+                    # process user input
+                    else:
+                        path = data["path"]
+                        value = data["value"]
+
+                        # save data on stream memory
+                        worker.set_stream_data(path, value, stream=form_data_stream)
+        else:
+            # do something else
+
+```
+
+In the above function, events are processed, when in the input parameter is `EVENT`. The event messages data contains `path` and `value`, where `path` is a reference to the `schema` section of the ui, as such it refers to a specific widget. `value` is the value of that widget (e.g. contents of a text element). The event message also contains `action`. In the above code, when the `action` is `DONE`, the value of the `name` is retrieved from the stream memory, and a `CONTROL` message is sent with the corresponding `form_id`. Otherwise, the latest `value` is saved to the stream memory.
 
 </br>
 </br>
