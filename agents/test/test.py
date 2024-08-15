@@ -3,10 +3,14 @@ import sys
 sys.path.append('./lib/')
 sys.path.append('./lib/agent/')
 sys.path.append('./lib/platform/')
-sys.path.append('./lib/utils/')
 
-from agent import Agent, AgentFactory
+from agent import Agent
 from session import Session
+
+import logging
+
+# set log level
+logging.getLogger().setLevel(logging.INFO)
 
 # create a session
 session = Session()
@@ -15,26 +19,36 @@ session = Session()
 user_agent = Agent(name="USER", session=session)
 
 # user initiates an interaction
-user_agent.interact("hello world!")
+user_agent.interact("hello world!", eos=False)
+user_agent.interact("i am an agent")
 
 # sample func to process data for counter
 stream_data = []
 
-def processor(stream, id, label, data, dtype=None, tags=None, properties=None, worker=None):
-    if label == 'EOS':
+def processor(message, input=None, properties=None, worker=None):
+    if message.isEOS():
         # print all data received from stream
+        print("Stream Data:")
         print(stream_data)
-        # compute stream data
+        # compute length of the stream data
         l = len(stream_data)
+        print(l)
         # output to stream
         return l 
-    elif label == 'DATA':
+    elif message.isData():
+        print(input)
+        print(properties)
+        print(message)
+        print(message.getID())
+        print(message.getStream())
         # store data value
+        data = message.getData()
+        print(data)
         stream_data.append(data)
         return None
 
 # create a counter agent in the same session
-counter_agent = Agent("COUNTER", session=session, processor=processor)
+counter_agent = Agent(name="COUNTER", session=session, processor=processor)
 
 # wait for session
 if session:

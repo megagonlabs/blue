@@ -94,6 +94,7 @@ if __name__ == "__main__":
         while (True):
             text = ""
             if args.interactive:
+                #print("Session: " + session.cid)
                 text = input('Enter Text:')
             else:
                 text = args.text
