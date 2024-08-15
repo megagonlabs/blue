@@ -270,12 +270,46 @@ To share data among all agents in the session, you can use `set_session_data(key
 </br>
 
 ## interactive agents
-Building interactive agents, i.e. agents that present the user an interface, for example a form to fill out, is possible through a declarative UI specification. In blue we use [JSONForms](https://jsonforms.io/) to facilitate that. Essentially the agent in its reponses sends back a form that describes the ui layout and data schema.  The web interface renders it accordingly. Along with the form, and event stream is created, where the `processor` of the agent can start consuming event from the web interface. The interactive agent then can send more messages, new user interfaces, or other events that changes the UI, accordingly. 
+Building interactive agents, i.e. agents that present the user a graphical user interface, for example a form to fill out, is possible through a declarative UI specification. In blue we use [JSONForms](https://jsonforms.io/) to facilitate that. 
+
+Essentially the agent in its responses sends back a form that describes the ui layout, data schema, and associated data.  The web interface renders it accordingly. Along with the form, and event stream is created, where the `processor` of the agent can start consuming event from the web interface. The interactive agent then can send more messages, new user interfaces, or other events that changes the UI, accordingly. 
 
 To support interactive agent development in the web interface there is a Form Designer tool that allows you to design ui and data schemas in an interactive manner, along with the documentation. 
 
-Assuming you now have worked out the uischema (e.g. form design) and schema (e.g. data structure), the main difference of an interactive widget is what is returned from the `processor` function. To return a UI, simply return:
-`("INTERACTION", {"type": "JSONFORM", "content": form}, "json", False)` where form is a JSON object with `uischema` and `schema` as its contents (from the Form Designer).
+To return a UI, simply return a CONTROL message or write an output stream, for example:
+`worker.write_control(ControlCode.CREATE_FORM, args, output="FORM")`
+
+where the `args` is a JSON object with `uischema`, `schema` and optionnaly `data` sections. For example:
+```
+args = {
+      "schema": {
+          "type": "object",
+          "properties": {"name": {"type": "string"}}
+      },
+      "uischema": {
+          "type": "VerticalLayout",
+          "elements": [
+              {
+                  "type": "Control",
+                  "label": "Name",
+                  "scope": "#/properties/name"
+              },
+              {
+                  "type": "Button",
+                  "label": "Done",
+                  "props": {
+                      "intent": "success",
+                      "action": "DONE"
+                  }
+              }
+          ]
+      }
+  }
+```
+
+Above specification would render:
+![Stream](./docs/images/ui.png)
+
 
 To process events from the web interface, as the user interacts, you can check the `stream` parameter of the `processor` function. Event messages come from a stream with `<prefix>:EVENT_MESSAGE:<form>`, where `<prefix>` is the output stream of the interactive agent, and `<form>` is the form id of the form events are received from. Typically, events as `DATA` with the contents describing the target widget and values, e.g.:
 `{"name_id": "desired_location", "form_id": "90d46b5e", "value": "mountain view, ca", "timestamp": 1718124950421}`, where
