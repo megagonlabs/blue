@@ -499,7 +499,7 @@ json_form = {
                                     ],
                                 }
                             },
-                            "props": {"streamId": "PLATFORM:default:SESSION:74a7ce7:AGENT:INTERACTIVEPLANNER:730d15d5:EVENT:d15ef06d:STREAM", "formId": "d15ef06d"},
+                            "props": {"visualization": "DAG", "streamId": "PLATFORM:default:SESSION:74a7ce7:AGENT:INTERACTIVEPLANNER:730d15d5:EVENT:d15ef06d:STREAM", "formId": "d15ef06d"},
                         }
                     ],
                 },

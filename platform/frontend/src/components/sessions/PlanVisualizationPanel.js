@@ -12,7 +12,7 @@ dagreGraph.setDefaultEdgeLabel(() => ({}));
 const NODE_WIDTH = 172;
 const NODE_HEIGHT = 36;
 const getLayoutedElements = (nodes, edges, direction = "TB") => {
-    const isHorizontal = direction === "LR";
+    const isHorizontal = _.isEqual(direction, "LR");
     dagreGraph.setGraph({ rankdir: direction });
     nodes.forEach((node) => {
         dagreGraph.setNode(node.id, { width: NODE_WIDTH, height: NODE_HEIGHT });
