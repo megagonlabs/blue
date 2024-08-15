@@ -13,7 +13,6 @@ Use below links for quick accces:
   - [memory](#memory)
   - [interactive agents](#interactive-agents)
   - [instructable agents](#instructable-agents)
-  - [more details](#details)
 - [Template Agents](#templates)
   - [template agent](#template-agent)
   - [template interactive agent](#template-interactive-agent)
@@ -117,6 +116,11 @@ Stream Data:
 ```
 
 As you can see from the output above, two DATA messages are received, followed by an `EOS` message (a CONTROL message). When the output stream is created it automatically injects a `BOS` (Begin Of Stream) message but for the purposes of this example, we are ignoring it. Once the `EOS` message is received, the `processor` functions computes the length of all the data in stream (accumulated in `stream_data` variable) and returns the result (and thereby outputing the result into a new stream)
+
+Now, if you like you can turn on logging level to `INFO` and see a lot more of what is happening:
+```
+logging.getLogger().setLevel(logging.INFO)
+```
 
 </br>
 </br>
@@ -374,69 +378,6 @@ The above instruction essentially triggers an execution on Agent with name `<age
 
 ---
 
-## details
-et's turn on more logging to examine what is happening, by settting logging level to `INFO`:
-```
-logging.getLogger().setLevel(logging.INFO)
-```
-
-and also additionally insert more prints to output:
-```
-...
-    elif message.isData():
-        # print(input)
-        # print(properties)
-        # print(message)
-        # print(message.getID())
-        # print(message.getStream())
-        # store data value
-        data = message.getData()
-...
-```
-
-and re-run it, and examine the log created.
-```
-$ python test.py
-```
-
-There are a lot of logs created, let's pull out a few to explain what is going on:
-
-
-
-
-If you examine the logs (see below), you will see that we create a new stream `USER:275e2d0b` with `BOS` (begin-of-stream) and then put two `DATA` messages into the stream corresponding to the input text, and ended the stream with `EOS` (end-of-stream).
-
-```
-INFO:root:Streamed into USER:275e2d0b message {'label': 'BOS'}
-[...]
-INFO:root:Streamed into USER:275e2d0b message {'label': 'DATA', 'data': 'hello', 'type': 'str'}
-INFO:root:Streamed into USER:275e2d0b message {'label': 'DATA', 'data': 'world!', 'type': 'str'}
-INFO:root:Streamed into USER:275e2d0b message {'label': 'EOS'}
-```
-
-
-
-
-Now, this time if you examine the logs you will see:
-```
-[...]
-INFO:root:Streamed into COUNTER:5f1fa5a5 message {'label': 'DATA', 'data': 2, 'type': 'int'}
-[...]
-```
-
-In addition if you examine the session stream, you will see:
-
-```
-label: INSTRUCTION, data: {"code": "ADD_STREAM", "params": {"cid": "COUNTER:b55fdf56:STREAM:c80f0769", "tags": ["COUNTER"]}}, type: JSON
-label: INSTRUCTION, data: {"code": "ADD_AGENT", "params": {"name": "COUNTER", "sid": "COUNTER:b55fdf56"}}, type: JSON
-label: INSTRUCTION, data: {"code": "ADD_STREAM", "params": {"cid": "USER:9ccad900:STREAM:b15675db", "tags": ["USER"]}}, type: JSON
-label: INSTRUCTION, data: {"code": "ADD_AGENT", "params": {"name": "USER", "sid": "USER:9ccad900"}}, type: JSON
-```
-
-This basically illustrates the session mechanism. When an session is created, a new session stream (`SESSION:5db16fd4`) is started. Then we see a `ADD_AGENT` instruction and agent `USER` joined the session, and it created a new stream `USER:8d29992c` and announced via the `ADD_STREAM` instruction, etc. In a way the session stream announced that there is new agent and new data in the session, produced by the `USER` agent. Then, later we see similar instructions for the `COUNTER` agent.
-
-</br>
-</br>
 
 # Template Agents
 
