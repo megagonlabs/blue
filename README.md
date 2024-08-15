@@ -416,12 +416,7 @@ If you want to see it in action on the web, you can bring up the frontend by bro
 </br>
 
 # access control
-To update role, go to "Users" under "Admin. Tools" menu (you need to be an administrator to do that.)
-### Notes 
-- Participants are members of a session; you can add members under "session details" dialog.
-- Session is owned by the user who created it; ownership it's not transferable.
-- `Write` operations includes `CREATE`, `UPDATE`, and `DELETE`.
-- Role permissions are not configurable through UI: update `model.conf` and `policy.csv` (based to [casbin](https://github.com/casbin/pycasbin)), then restart the API service.
+
 ### Roles
 #### Administrator
 - `Read` `Write` operations in agent registry for any agent
@@ -450,3 +445,10 @@ To update role, go to "Users" under "Admin. Tools" menu (you need to be an admin
 - `Read` operations in agent registry for any agent
 - `Read` operations in data registry for any data
 - `Read` any sessions that they participate
+
+To update role, go to "Users" under "Admin. Tools" menu (you need to be an administrator to do that.)
+### Notes 
+- Participants are members of a session; you can add members under "session details" dialog.
+- Session is owned by the user who created it; ownership it's not transferable.
+- `Write` operations includes `CREATE`, `UPDATE`, and `DELETE`.
+- Role permissions are not configurable through UI: update `model.conf` and `policy.csv` (based to [casbin](https://github.com/casbin/pycasbin)), then restart the API service.
