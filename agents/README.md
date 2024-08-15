@@ -358,6 +358,17 @@ In the above function, events are processed, when in the input parameter is `EVE
 ---
 ## instructable agents
 
+In blue by default all agents are instructable as the default value for the property `instructable` is set to `True`. If your agent isn't instructable you can set this to `False`. Other than setting the value to `True` you do not need to do anything specific to make your agents instructable.
+
+An instructable agent essentially means that the agent can be made to process data from a stream by following an instruction from another agent (such as planner / coordinator agents or other agents). Any agent stream can contain such instructions. 
+
+Sending an `EXECUTE_AGENT` message, essentially triggers execution. An example of such an instruction is:
+```
+worker.write_control(ControlCode.EXECUTE_AGENT, {"agent": <agent_name>, "context": <context>, "input": { <param>: <stream> }})
+```
+
+The above instruction essentially triggers an execution on Agent with name `<agent_name>`, with `input=<param>` on stream `<stream>`. Context is an additional parameter, typically this can be set to session id but depending on the application logic you may want to set a different id for the context.
+
 </br>
 </br>
 
