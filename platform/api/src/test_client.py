@@ -441,8 +441,8 @@ json_form = {
                 {"from_agent": "JOBSEARCH", "from_agent_param": "MATCHES", "to_agent": "RECORDER", "to_agent_param": "RESULT"},
             ],
             "context": {
-                "scope": "PLATFORM:dev:SESSION:74a7ce7:AGENT:USER:5WgRzdacRdOEvj8JBmCXFZSvWmH3:OUTPUT:TEXT:29051a4d",
-                "streams": {"USER.TEXT": "PLATFORM:dev:SESSION:74a7ce7:AGENT:USER:5WgRzdacRdOEvj8JBmCXFZSvWmH3:OUTPUT:TEXT:29051a4d:STREAM"},
+                "scope": "PLATFORM:default:SESSION:74a7ce7:AGENT:USER:5WgRzdacRdOEvj8JBmCXFZSvWmH3:OUTPUT:TEXT:29051a4d",
+                "streams": {"USER.TEXT": "PLATFORM:default:SESSION:74a7ce7:AGENT:USER:5WgRzdacRdOEvj8JBmCXFZSvWmH3:OUTPUT:TEXT:29051a4d:STREAM"},
             },
         },
         "uischema": {
@@ -471,12 +471,12 @@ json_form = {
                                                 {
                                                     "type": "Control",
                                                     "scope": "#/properties/from_agent",
-                                                    "props": {"streamId": "PLATFORM:dev:SESSION:74a7ce7:AGENT:INTERACTIVEPLANNER:730d15d5:EVENT:d15ef06d:STREAM", "formId": "d15ef06d"},
+                                                    "props": {"streamId": "PLATFORM:default:SESSION:74a7ce7:AGENT:INTERACTIVEPLANNER:730d15d5:EVENT:d15ef06d:STREAM", "formId": "d15ef06d"},
                                                 },
                                                 {
                                                     "type": "Control",
                                                     "scope": "#/properties/from_agent_param",
-                                                    "props": {"streamId": "PLATFORM:dev:SESSION:74a7ce7:AGENT:INTERACTIVEPLANNER:730d15d5:EVENT:d15ef06d:STREAM", "formId": "d15ef06d"},
+                                                    "props": {"streamId": "PLATFORM:default:SESSION:74a7ce7:AGENT:INTERACTIVEPLANNER:730d15d5:EVENT:d15ef06d:STREAM", "formId": "d15ef06d"},
                                                 },
                                             ],
                                         },
@@ -487,19 +487,19 @@ json_form = {
                                                 {
                                                     "type": "Control",
                                                     "scope": "#/properties/to_agent",
-                                                    "props": {"streamId": "PLATFORM:dev:SESSION:74a7ce7:AGENT:INTERACTIVEPLANNER:730d15d5:EVENT:d15ef06d:STREAM", "formId": "d15ef06d"},
+                                                    "props": {"streamId": "PLATFORM:default:SESSION:74a7ce7:AGENT:INTERACTIVEPLANNER:730d15d5:EVENT:d15ef06d:STREAM", "formId": "d15ef06d"},
                                                 },
                                                 {
                                                     "type": "Control",
                                                     "scope": "#/properties/to_agent_param",
-                                                    "props": {"streamId": "PLATFORM:dev:SESSION:74a7ce7:AGENT:INTERACTIVEPLANNER:730d15d5:EVENT:d15ef06d:STREAM", "formId": "d15ef06d"},
+                                                    "props": {"streamId": "PLATFORM:default:SESSION:74a7ce7:AGENT:INTERACTIVEPLANNER:730d15d5:EVENT:d15ef06d:STREAM", "formId": "d15ef06d"},
                                                 },
                                             ],
                                         },
                                     ],
                                 }
                             },
-                            "props": {"streamId": "PLATFORM:dev:SESSION:74a7ce7:AGENT:INTERACTIVEPLANNER:730d15d5:EVENT:d15ef06d:STREAM", "formId": "d15ef06d"},
+                            "props": {"streamId": "PLATFORM:default:SESSION:74a7ce7:AGENT:INTERACTIVEPLANNER:730d15d5:EVENT:d15ef06d:STREAM", "formId": "d15ef06d"},
                         }
                     ],
                 },
@@ -510,7 +510,7 @@ json_form = {
                         "intent": "success",
                         "action": "DONE",
                         "large": True,
-                        "streamId": "PLATFORM:dev:SESSION:74a7ce7:AGENT:INTERACTIVEPLANNER:730d15d5:EVENT:d15ef06d:STREAM",
+                        "streamId": "PLATFORM:default:SESSION:74a7ce7:AGENT:INTERACTIVEPLANNER:730d15d5:EVENT:d15ef06d:STREAM",
                         "formId": "d15ef06d",
                     },
                 },
@@ -597,8 +597,8 @@ ws.send(
                     "id": "d15ef06d",
                     "steps": [["USER.TEXT", "FORM_PROFILER.CRITERIA"], ["FORM_PROFILER.PROFILE", "JOBSEARCH.JOBSEEKERDATA"]],
                     "context": {
-                        "scope": "PLATFORM:dev:SESSION:74a7ce7:AGENT:USER:5WgRzdacRdOEvj8JBmCXFZSvWmH3:OUTPUT:TEXT:29051a4d",
-                        "streams": {"USER.TEXT": "PLATFORM:dev:SESSION:74a7ce7:AGENT:USER:5WgRzdacRdOEvj8JBmCXFZSvWmH3:OUTPUT:TEXT:29051a4d:STREAM"},
+                        "scope": "PLATFORM:default:SESSION:74a7ce7:AGENT:USER:5WgRzdacRdOEvj8JBmCXFZSvWmH3:OUTPUT:TEXT:29051a4d",
+                        "streams": {"USER.TEXT": "PLATFORM:default:SESSION:74a7ce7:AGENT:USER:5WgRzdacRdOEvj8JBmCXFZSvWmH3:OUTPUT:TEXT:29051a4d:STREAM"},
                     },
                 },
                 "content_type": "JSON",
@@ -674,7 +674,7 @@ json_form = {
                                     "label": "Name",
                                     "scope": "#/properties/name",
                                     "props": {
-                                        "streamId": "PLATFORM:dev:SESSION:74a7ce7:AGENT:USER:5WgRzdacRdOEvj8JBmCXFZSvWmH3:OUTPUT:TEXT:29051a4d:PLAN:d15ef06d:FORM_PROFILER:7c0b0731:EVENT:a7d80949:STREAM",
+                                        "streamId": "PLATFORM:default:SESSION:74a7ce7:AGENT:USER:5WgRzdacRdOEvj8JBmCXFZSvWmH3:OUTPUT:TEXT:29051a4d:PLAN:d15ef06d:FORM_PROFILER:7c0b0731:EVENT:a7d80949:STREAM",
                                         "formId": "a7d80949",
                                     },
                                 }
@@ -685,7 +685,7 @@ json_form = {
                             "label": "Current Title",
                             "scope": "#/properties/current_title",
                             "props": {
-                                "streamId": "PLATFORM:dev:SESSION:74a7ce7:AGENT:USER:5WgRzdacRdOEvj8JBmCXFZSvWmH3:OUTPUT:TEXT:29051a4d:PLAN:d15ef06d:FORM_PROFILER:7c0b0731:EVENT:a7d80949:STREAM",
+                                "streamId": "PLATFORM:default:SESSION:74a7ce7:AGENT:USER:5WgRzdacRdOEvj8JBmCXFZSvWmH3:OUTPUT:TEXT:29051a4d:PLAN:d15ef06d:FORM_PROFILER:7c0b0731:EVENT:a7d80949:STREAM",
                                 "formId": "a7d80949",
                             },
                         },
@@ -694,7 +694,7 @@ json_form = {
                             "label": "Skills",
                             "scope": "#/properties/skills",
                             "props": {
-                                "streamId": "PLATFORM:dev:SESSION:74a7ce7:AGENT:USER:5WgRzdacRdOEvj8JBmCXFZSvWmH3:OUTPUT:TEXT:29051a4d:PLAN:d15ef06d:FORM_PROFILER:7c0b0731:EVENT:a7d80949:STREAM",
+                                "streamId": "PLATFORM:default:SESSION:74a7ce7:AGENT:USER:5WgRzdacRdOEvj8JBmCXFZSvWmH3:OUTPUT:TEXT:29051a4d:PLAN:d15ef06d:FORM_PROFILER:7c0b0731:EVENT:a7d80949:STREAM",
                                 "formId": "a7d80949",
                             },
                         },
@@ -710,7 +710,7 @@ json_form = {
                             "label": "Desired Title",
                             "scope": "#/properties/desired_title",
                             "props": {
-                                "streamId": "PLATFORM:dev:SESSION:74a7ce7:AGENT:USER:5WgRzdacRdOEvj8JBmCXFZSvWmH3:OUTPUT:TEXT:29051a4d:PLAN:d15ef06d:FORM_PROFILER:7c0b0731:EVENT:a7d80949:STREAM",
+                                "streamId": "PLATFORM:default:SESSION:74a7ce7:AGENT:USER:5WgRzdacRdOEvj8JBmCXFZSvWmH3:OUTPUT:TEXT:29051a4d:PLAN:d15ef06d:FORM_PROFILER:7c0b0731:EVENT:a7d80949:STREAM",
                                 "formId": "a7d80949",
                             },
                         },
@@ -719,7 +719,7 @@ json_form = {
                             "label": "Desired Location",
                             "scope": "#/properties/desired_location",
                             "props": {
-                                "streamId": "PLATFORM:dev:SESSION:74a7ce7:AGENT:USER:5WgRzdacRdOEvj8JBmCXFZSvWmH3:OUTPUT:TEXT:29051a4d:PLAN:d15ef06d:FORM_PROFILER:7c0b0731:EVENT:a7d80949:STREAM",
+                                "streamId": "PLATFORM:default:SESSION:74a7ce7:AGENT:USER:5WgRzdacRdOEvj8JBmCXFZSvWmH3:OUTPUT:TEXT:29051a4d:PLAN:d15ef06d:FORM_PROFILER:7c0b0731:EVENT:a7d80949:STREAM",
                                 "formId": "a7d80949",
                             },
                         },
@@ -732,7 +732,7 @@ json_form = {
                         "intent": "success",
                         "action": "DONE",
                         "large": True,
-                        "streamId": "PLATFORM:dev:SESSION:74a7ce7:AGENT:USER:5WgRzdacRdOEvj8JBmCXFZSvWmH3:OUTPUT:TEXT:29051a4d:PLAN:d15ef06d:FORM_PROFILER:7c0b0731:EVENT:a7d80949:STREAM",
+                        "streamId": "PLATFORM:default:SESSION:74a7ce7:AGENT:USER:5WgRzdacRdOEvj8JBmCXFZSvWmH3:OUTPUT:TEXT:29051a4d:PLAN:d15ef06d:FORM_PROFILER:7c0b0731:EVENT:a7d80949:STREAM",
                         "formId": "a7d80949",
                     },
                 },
@@ -791,56 +791,4 @@ ws.send(
     )
 )
 time.sleep(1)
-for _ in range(5):
-    stream_id = f"local-test-client-{int(time.time() * 1000)}"
-    sentence_string = sentence()
-    words_string = words(random.randint(4, 11))
-    ws.send(
-        json.dumps(
-            {
-                "type": "OBSERVER_SESSION_MESSAGE",
-                "session_id": session_id,
-                "connection_id": connection_id,
-                "message": {'label': "CONTROL", 'contents': {"code": "BOS"}, 'content_type': None},
-                "stream": stream_id,
-                "mode": "streaming",
-                "timestamp": int(time.time() * 1000),
-                "id": str(uuid.uuid4()),
-                "order": 0,
-            }
-        )
-    )
-    time.sleep(1)
-    ws.send(
-        json.dumps(
-            {
-                "type": "OBSERVER_SESSION_MESSAGE",
-                "connection_id": connection_id,
-                "session_id": session_id,
-                "message": {"label": "DATA", "contents": random.choice([sentence_string, words_string]), "content_type": "STR"},
-                "stream": stream_id,
-                "mode": "streaming",
-                "timestamp": int(time.time() * 1000),
-                "id": str(uuid.uuid4()),
-                "order": 0,
-            }
-        )
-    )
-    time.sleep(1)
-    ws.send(
-        json.dumps(
-            {
-                "type": "OBSERVER_SESSION_MESSAGE",
-                "session_id": session_id,
-                "connection_id": connection_id,
-                "message": {'label': "CONTROL", 'contents': {"code": 'EOS'}, 'content_type': None},
-                "stream": stream_id,
-                "mode": "streaming",
-                "timestamp": int(time.time() * 1000),
-                "id": str(uuid.uuid4()),
-                "order": 0,
-            }
-        )
-    )
-    time.sleep(1)
 ws.close()

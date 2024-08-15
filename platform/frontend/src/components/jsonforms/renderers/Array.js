@@ -30,7 +30,7 @@ import {
     JsonFormsDispatch,
     withJsonFormsArrayControlProps,
 } from "@jsonforms/react";
-import _, { range } from "lodash";
+import _ from "lodash";
 import { useContext, useEffect, useMemo } from "react";
 const ArrayRenderer = ({
     label,
@@ -77,16 +77,136 @@ const ArrayRenderer = ({
         }, 0);
     }, [data]);
     const setVisualization = () => {
+        const position = { x: 0, y: 0 };
+        const edgeType = "smoothstep";
+        let nodes = [
+            {
+                id: "1",
+                data: { label: "input" },
+                position,
+            },
+            {
+                id: "2",
+                data: { label: "node 2" },
+                position,
+            },
+            {
+                id: "2a",
+                data: { label: "node 2a" },
+                position,
+            },
+            {
+                id: "2b",
+                data: { label: "node 2b" },
+                position,
+            },
+            {
+                id: "2c",
+                data: { label: "node 2c" },
+                position,
+            },
+            {
+                id: "2d",
+                data: { label: "node 2d" },
+                position,
+            },
+            {
+                id: "3",
+                data: { label: "node 3" },
+                position,
+            },
+            {
+                id: "4",
+                data: { label: "node 4" },
+                position,
+            },
+            {
+                id: "5",
+                data: { label: "node 5" },
+                position,
+            },
+            {
+                id: "6",
+                data: { label: "output" },
+                position,
+            },
+            { id: "7", type: "output", data: { label: "output" }, position },
+        ];
+        let edges = [
+            {
+                id: "e12",
+                source: "1",
+                target: "2",
+                type: edgeType,
+                animated: true,
+            },
+            {
+                id: "e13",
+                source: "1",
+                target: "3",
+                type: edgeType,
+                animated: true,
+            },
+            {
+                id: "e22a",
+                source: "2",
+                target: "2a",
+                type: edgeType,
+                animated: true,
+            },
+            {
+                id: "e22b",
+                source: "2",
+                target: "2b",
+                type: edgeType,
+                animated: true,
+            },
+            {
+                id: "e22c",
+                source: "2",
+                target: "2c",
+                type: edgeType,
+                animated: true,
+            },
+            {
+                id: "e2c2d",
+                source: "2c",
+                target: "2d",
+                type: edgeType,
+                animated: true,
+            },
+            {
+                id: "e45",
+                source: "4",
+                target: "5",
+                type: edgeType,
+                animated: true,
+            },
+            {
+                id: "e56",
+                source: "5",
+                target: "6",
+                type: edgeType,
+                animated: true,
+            },
+            {
+                id: "e57",
+                source: "5",
+                target: "7",
+                type: edgeType,
+                animated: true,
+            },
+        ];
         appActions.session.setState({
-            key: "visulization",
-            value: {},
+            key: "visualization",
+            value: { nodes, edges },
         });
     };
     return (
         <div>
             <H6 style={{ marginTop: 0, marginBottom: 15 }}>{label}</H6>
             {!_.isEmpty(data) ? (
-                range(0, data.length).map((index) => {
+                _.range(0, data.length).map((index) => {
                     const childPath = composePaths(path, String(index));
                     const content = (
                         <JsonFormsDispatch

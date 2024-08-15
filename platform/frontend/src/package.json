@@ -33,6 +33,7 @@
         "codemirror-json-schema": "^0.7.0",
         "copy-to-clipboard": "^3.3.3",
         "css-to-react-native": "^3.2.0",
+        "dagre": "^0.8.5",
         "deep-diff": "^1.0.2",
         "firebase": "^10.11.0",
         "flexsearch": "^0.7.43",
