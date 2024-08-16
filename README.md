@@ -451,4 +451,4 @@ To update role, go to "Users" under "Admin. Tools" menu (you need to be an admin
 - Participants are members of a session; you can add members under "session details" dialog.
 - Session is owned by the user who created it; ownership it's not transferable.
 - `Write` operations includes `CREATE`, `UPDATE`, and `DELETE`.
-- Role permissions are not configurable through UI: update `model.conf` and `policy.csv` (based to [casbin](https://github.com/casbin/pycasbin)), then restart the API service.
+- Role permissions are not configurable through UI: update `model.conf` and `policy.csv` (based on [casbin](https://github.com/casbin/pycasbin)), then restart the API service.
