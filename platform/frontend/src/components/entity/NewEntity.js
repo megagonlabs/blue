@@ -1,12 +1,6 @@
-import { AppContext } from "@/components/contexts/app-context";
 import EntityDescription from "@/components/entity/EntityDescription";
 import EntityProperties from "@/components/entity/EntityProperties";
-import {
-    constructSavePropertyRequests,
-    settlePromises,
-} from "@/components/helper";
 import { faIcon } from "@/components/icon";
-import { AppToaster } from "@/components/toaster";
 import {
     Button,
     Classes,
@@ -18,89 +12,40 @@ import {
 import { faCheck } from "@fortawesome/pro-duotone-svg-icons";
 import axios from "axios";
 import classNames from "classnames";
-import { diff } from "deep-diff";
 import _ from "lodash";
+import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/router";
-import { useContext, useEffect, useState } from "react";
-export default function NewEntity({ type }) {
-    const { appState } = useContext(AppContext);
+import { useEffect } from "react";
+export default function NewEntity({
+    type,
+    entity,
+    updateEntity,
+    saveEntity,
+    loading,
+    jsonError,
+    setJsonError,
+    setLoading,
+    urlPrefix,
+    setEntity,
+}) {
     const router = useRouter();
-    const [entity, setEntity] = useState({
-        name: "",
-        properties: {},
-        description: "",
-    });
-    const [created, setCreated] = useState(false);
-    const [loading, setLoading] = useState(false);
-    const [jsonError, setJsonError] = useState(false);
-    const updateEntity = ({ path, value }) => {
-        let newEntity = _.cloneDeep(entity);
-        _.set(newEntity, path, value);
-        setEntity(newEntity);
-    };
+    const searchParams = useSearchParams();
     useEffect(() => {
         if (!router.isReady) {
             return;
         }
-        const entity = _.cloneDeep(_.get(router, "query.entity", null));
+        const entity = searchParams.get("entity");
         if (_.isEmpty(entity)) {
             return;
         }
-        axios
-            .get(`/registry/${appState[type].registryName}/agents/${entity}`)
-            .then((response) => {
-                let result = _.get(response, "data.result", {});
-                _.set(result, "name", "");
-                if (!_.isEmpty(result)) {
-                    setEntity(_.get(response, "data.result", {}));
-                }
-            });
-    }, [router]);
-    const saveEntity = () => {
-        if (!router.isReady) {
-            return;
-        }
-        setLoading(true);
-        axios[created ? "put" : "post"](
-            `/registry/${appState[type].registryName}/agents/${entity.name}`,
-            {
-                name: entity.name,
-                description: entity.description,
+        axios.get(`${urlPrefix}/${entity}`).then((response) => {
+            let result = _.get(response, "data.result", {});
+            _.set(result, "name", "");
+            if (!_.isEmpty(result)) {
+                setEntity(_.get(response, "data.result", {}));
             }
-        )
-            .then(() => {
-                setCreated(true);
-                AppToaster.show({
-                    intent: Intent.SUCCESS,
-                    message: `${entity.name} ${type} created`,
-                });
-                const difference = diff({}, entity.properties);
-                settlePromises(
-                    constructSavePropertyRequests({
-                        axios,
-                        difference,
-                        appState,
-                        entity,
-                        editEntity: entity,
-                    }),
-                    (error) => {
-                        if (!error) {
-                            router.push(
-                                `/registry/${appState[type].registryName}/agents/${entity.name}`
-                            );
-                        }
-                        setLoading(false);
-                    }
-                );
-            })
-            .catch((error) => {
-                AppToaster.show({
-                    intent: Intent.DANGER,
-                    message: `${error.name}: ${error.message}`,
-                });
-                setLoading(false);
-            });
-    };
+        });
+    }, [router]);
     return (
         <div style={{ padding: "10px 20px 20px" }}>
             <Section compact style={{ position: "relative" }}>

@@ -1,7 +1,10 @@
 ###### OS / Systems
 from curses import noecho
-import os
 import sys
+
+from fastapi import Request
+import pydash
+from constant import PermissionDenied, acl_enforce
 
 ###### Add lib path
 sys.path.append("./lib/")
@@ -10,29 +13,21 @@ sys.path.append("./lib/data_registry/")
 sys.path.append("./lib/platform/")
 
 
-######
-import time
-import argparse
-import logging
-import time
-import uuid
-import random
-
 ###### Parsers, Formats, Utils
-import re
-import csv
 import json
+import logging
 from utils import json_utils
 
 ###### Docker
 import docker
 
-###### FastAPI
+##### Typing
+from typing import Union, Any, Dict, List
+
+###### FastAPI, Web, Auth
 from APIRouter import APIRouter
 from fastapi.responses import JSONResponse
-from typing import Union, Any, Dict, AnyStr, List
-from pydantic import BaseModel, Json
-from server import PLATFORM_PREFIX
+
 
 ###### Schema
 JSONObject = Dict[str, Any]
@@ -42,19 +37,20 @@ JSONStructure = Union[JSONArray, JSONObject, Any]
 
 
 ###### Blue
-from session import Session
 from blueprint import Platform
 from agent_registry import AgentRegistry
 
 
 ###### Properties
-PROPERTIES = os.getenv("BLUE__PROPERTIES")
-PROPERTIES = json.loads(PROPERTIES)
+from settings import ACL, PROPERTIES
+
+### Assign from platform properties
 platform_id = PROPERTIES["platform.name"]
 prefix = 'PLATFORM:' + platform_id
 agent_registry_id = PROPERTIES["agent_registry.name"]
 data_registry_id = PROPERTIES["data_registry.name"]
-db_host = PROPERTIES["db.host"]
+PLATFORM_PREFIX = f'/blue/platform/{platform_id}'
+
 
 ###### Initialization
 p = Platform(id=platform_id, properties=PROPERTIES)
@@ -67,16 +63,36 @@ router = APIRouter(prefix=f"{PLATFORM_PREFIX}/containers")
 # set logging
 logging.getLogger().setLevel("INFO")
 
+write_all_roles = ACL.get_implicit_users_for_permission('platform_agents', 'write_all')
+write_own_roles = ACL.get_implicit_users_for_permission('platform_agents', 'write_own')
+read_all_roles = ACL.get_implicit_users_for_permission('platform_agents', 'read_all')
+read_own_roles = ACL.get_implicit_users_for_permission('platform_agents', 'read_own')
+
+
+def container_acl_enforce(request: Request, agent: dict, read=False, write=False, throw=True):
+    user_role = request.state.user['role']
+    uid = request.state.user['uid']
+    allow = False
+    if (read and user_role in read_all_roles) or (write and user_role in write_all_roles):
+        allow = True
+    elif (read and user_role in read_own_roles) and (write and user_role in write_own_roles):
+        if pydash.objects.get(agent, 'created_by', None) == uid:
+            allow = True
+    if throw and not allow:
+        raise PermissionDenied
+    return allow
+
+
 @router.get("/agents/")
 # get the list of agent running agents on the platform
-def list_agent_containers():
+def list_agent_containers(request: Request):
+    acl_enforce(request.state.user['role'], 'platform_agents', ['read_all', 'read_own'])
     # connect to docker
     client = docker.from_env()
-
-    # get list of containers based on deploy target
+    results = []
+    # get list of docker containers based on deploy target
     if PROPERTIES["platform.deploy.target"] == "localhost":
         containers = client.containers.list()
-        results = []
         for container in containers:
             c = {}
             c["id"] = container.attrs["Id"]
@@ -90,10 +106,11 @@ def list_agent_containers():
                 la = l.split(".")
                 c["agent"] = la[2]
                 c["registry"] = la[1]
-                results.append(c)
+                c["platform"] = la[0]
+                if c["platform"] == platform_id:
+                    results.append(c)
     elif PROPERTIES["platform.deploy.target"] == "swarm":
         services = client.services.list()
-        results = []
         for service in services:
             c = {}
             c["id"] = service.attrs["ID"]
@@ -101,28 +118,38 @@ def list_agent_containers():
             c["created_date"] = service.attrs["CreatedAt"]
             c["image"] = service.attrs["Spec"]["TaskTemplate"]["ContainerSpec"]["Image"]
             tasks = service.tasks()
-            status = []
+            status = None
             for task in tasks:
-                status.append(task["Status"]["State"])
-            c["status"] = ",".join(status)
+                s = task["Status"]["State"]
+                status = s
+                if status == "running":
+                    break
+            c["status"] = status
             labels = service.attrs["Spec"]["TaskTemplate"]["ContainerSpec"]["Labels"]
             if 'blue.agent' in labels:
                 l = labels['blue.agent']
                 la = l.split(".")
                 c["agent"] = la[2]
                 c["registry"] = la[1]
-                results.append(c)
+                c["platform"] = la[0]
+                if c["platform"] == platform_id:
+                    results.append(c)
 
     # close connection
     client.close()
-
-    return JSONResponse(content={"results": results})
+    temp = []
+    for container in results:
+        agent = agent_registry.get_agent(container['agent'])
+        if container_acl_enforce(request, agent, read=True, throw=False):
+            temp.append(container)
+    return JSONResponse(content={"results": temp})
 
 
 @router.post("/agents/agent/{agent_name}")
 # deploy an agent container with the name {agent_name} to the agent registry with the name
-def deploy_agent_container(agent_name):
-   
+def deploy_agent_container(request: Request, agent_name):
+    agent = agent_registry.get_agent(agent_name)
+    container_acl_enforce(request, agent, write=True)
     agent_registry_properties = agent_registry.get_agent_properties(agent_name)
     image = agent_registry_properties["image"]
 
@@ -142,8 +169,9 @@ def deploy_agent_container(agent_name):
     if PROPERTIES["platform.deploy.target"] == "localhost":
         client.containers.run(
             image,
-            "--serve " + agent_name + " " + "--properties " + "'" + json.dumps(agent_properties) + "'",
+            "--serve " + agent_name + " " + "--platform " + platform_id + " " + "--registry " + agent_registry_id + " " + "--properties " + "'" + json.dumps(agent_properties) + "'",
             network="blue_platform_" + PROPERTIES["platform.name"] + "_network_bridge",
+            name="blue_agent_" + platform_id + "_" + agent_registry_id + "_" + agent_name.lower(),
             hostname="blue_agent_" + agent_registry_id + "_" + agent_name,
             volumes=["blue_" + platform_id + "_data:/blue_data"],
             labels={"blue.agent": PROPERTIES["platform.name"] + "." + agent_registry_id + "." + agent_name},
@@ -154,9 +182,10 @@ def deploy_agent_container(agent_name):
         constraints = ["node.labels.target==agent"]
         client.services.create(
             image,
-            args=["--serve", agent_name, "--properties", json.dumps(agent_properties)],
+            args=["--serve", agent_name, "--platform", platform_id, "--registry", agent_registry_id, "--properties", json.dumps(agent_properties)],
             networks=["blue_platform_" + PROPERTIES["platform.name"] + "_network_overlay"],
             constraints=constraints,
+            name="blue_agent_" + platform_id + "_" + agent_registry_id + "_" + agent_name.lower(),
             hostname="blue_agent_" + agent_registry_id + "_" + agent_name,
             mounts=["blue_" + platform_id + "_data:/blue_data"],
             container_labels={"blue.agent": PROPERTIES["platform.name"] + "." + agent_registry_id + "." + agent_name},
@@ -171,8 +200,9 @@ def deploy_agent_container(agent_name):
 
 @router.put("/agents/agent/{agent_name}")
 # update the agent container with the name {agent_name} in the agent registry with the name, pulling in new image
-def update_agent_container(registry_name, agent_name):
-    agent = agent_registry.get_agent_properties(agent_name)
+def update_agent_container(request: Request, registry_name, agent_name):
+    agent = agent_registry.get_agent(agent_name)
+    container_acl_enforce(request, agent, write=True)
     properties = agent_registry.get_agent_properties(agent_name)
     image = properties["image"]
 
@@ -194,15 +224,15 @@ def update_agent_container(registry_name, agent_name):
 
 @router.delete("/agents/agent/{agent_name}")
 # shutdown the agent container with the name {agent_name} from the agent registry with the name
-def shutdown_agent_container(registry_name, agent_name):
-    platform = Platform(id=platform_id, properties=PROPERTIES)
+def shutdown_agent_container(request: Request, registry_name, agent_name):
+    agent = agent_registry.get_agent(agent_name)
+    container_acl_enforce(request, agent, write=True)
 
     # connect to docker
     client = docker.from_env()
 
     if PROPERTIES["platform.deploy.target"] == "localhost":
         containers = client.containers.list()
-        results = []
         for container in containers:
             h = container.attrs["Config"]["Hostname"]
             if h.find("blue_agent") < 0:

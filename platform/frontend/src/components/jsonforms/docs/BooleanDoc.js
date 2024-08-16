@@ -24,7 +24,6 @@ export default function BooleanDoc({ closePanel }) {
             props: {
                 switch: false,
                 style: {},
-                nameId: null,
             },
             scope: "",
             required: false,
@@ -34,7 +33,7 @@ export default function BooleanDoc({ closePanel }) {
     );
     return (
         <>
-            <div className="bp-border-bottom" style={{ padding: 10 }}>
+            <div className="bp-border-bottom" style={{ padding: "10px 20px" }}>
                 <Button
                     outlined
                     text="Back"
@@ -126,7 +125,6 @@ export default function BooleanDoc({ closePanel }) {
                             </td>
                         </tr>
                         {docProps.style}
-                        {docProps.nameId}
                     </tbody>
                 </HTMLTable>
             </div>

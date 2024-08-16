@@ -26,7 +26,7 @@ export default function SourceEntity() {
     }, [router]);
     return (
         <div style={{ padding: "10px 20px 20px" }}>
-            <EntityMain entity={entity} />
+            <EntityMain enableIcon entity={entity} />
             <EntityDescription entity={entity} />
             <EntityProperties entity={entity} />
             <Section
@@ -53,9 +53,7 @@ export default function SourceEntity() {
                                     return null;
                                 }
                                 return (
-                                    <tr
-                                        key={`data-entity-table-database-${index}`}
-                                    >
+                                    <tr key={index}>
                                         <td>
                                             <Link
                                                 href={`${router.asPath}/database/${element.name}`}

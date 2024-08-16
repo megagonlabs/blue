@@ -1,9 +1,8 @@
 ###### OS / Systems
 from curses import noecho
-import os
 import sys
+import logging
 
-IS_DEVELOPMENT = os.getenv("DEVELOPMENT", "False").lower() == "true"
 ###### Add lib path
 sys.path.append("./lib/")
 sys.path.append("./lib/agent_registry/")
@@ -16,43 +15,46 @@ import json
 import re
 from pathlib import Path
 
+##### FastAPI, Web, Sockets, Authentication
+from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect, Request
 from fastapi.responses import JSONResponse
-import pydash
+from fastapi.middleware.cors import CORSMiddleware
+from firebase_admin import auth
 
-###### Properties
-PROPERTIES = os.getenv("BLUE__PROPERTIES")
-PROPERTIES = json.loads(PROPERTIES)
-platform_id = PROPERTIES["platform.name"]
-prefix = 'PLATFORM:' + platform_id
-agent_registry_id = PROPERTIES["agent_registry.name"]
-data_registry_id = PROPERTIES["data_registry.name"]
-PLATFORM_PREFIX = f'/blue/platform/{platform_id}'
-
-##### Web / Sockets
-from ConnectionManager import ConnectionManager
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Request
+###### Settings
+from settings import PROPERTIES
 
 ###### API Routers
-from constant import EMAIL_DOMAIN_ADDRESS_REGEXP, InvalidRequestJson
+from constant import EMAIL_DOMAIN_ADDRESS_REGEXP, InvalidRequestJson, PermissionDenied
 from routers import agents
 from routers import data
 from routers import sessions
 from routers import platform
 from routers import accounts
-from firebase_admin import auth
 
-from fastapi.middleware.cors import CORSMiddleware
-
-####### Version
-_VERSION_PATH = Path(__file__).parent / "version"
-version = Path(_VERSION_PATH).read_text().strip()
-print("blue-platform-api: " + version)
+from ConnectionManager import ConnectionManager
 
 ###### Blue
 from session import Session
 from blueprint import Platform
 from agent_registry import AgentRegistry
 from data_registry import DataRegistry
+
+### Assign from platform properties
+platform_id = PROPERTIES["platform.name"]
+prefix = 'PLATFORM:' + platform_id
+agent_registry_id = PROPERTIES["agent_registry.name"]
+data_registry_id = PROPERTIES["data_registry.name"]
+PLATFORM_PREFIX = f'/blue/platform/{platform_id}'
+
+####### Version
+_VERSION_PATH = Path(__file__).parent / "version"
+version = Path(_VERSION_PATH).read_text().strip()
+print("blue-platform-api: " + version)
+
+
+# set logging
+logging.getLogger().setLevel("INFO")
 
 ###### Initialization
 p = Platform(id=platform_id, properties=PROPERTIES)
@@ -66,13 +68,14 @@ data_registry.load("/blue_data/config/" + data_registry_id + ".data.json")
 
 ###  Get API server address from properties to white list
 api_server = PROPERTIES["api.server"]
-api_server_host = ":".join(api_server.split(":")[:1])
-api_server_port = ":".join(api_server.split(":")[1:])
+api_server_port = PROPERTIES["api.server.port"]
+
+web_server = PROPERTIES["web.server"]
+web_server_port = PROPERTIES["web.server.port"]
 
 # only allow https or localhost connection; port must be specified
-# 1: local frontend
-# 2: cloud frontend
-allowed_origins = ["http://localhost:3000", "http://localhost:25830", "https://" + api_server_host]
+# local & cloud frontend
+allowed_origins = ["http://localhost:3000", "http://localhost:25830", "https://" + web_server, "http://" + web_server + ":" + web_server_port]
 
 app = FastAPI()
 app.include_router(agents.router)
@@ -92,7 +95,7 @@ async def session_verification(request: Request, call_next):
     if not session_cookie:
         if not request.url.path.startswith(f"{PLATFORM_PREFIX}/accounts/sign-in"):
             # Session cookie is unavailable. Force user to login.
-            return JSONResponse(status_code=401, content={"message": "Session cookie is unavailable", "error_code": "session_cookie_unavailable"})
+            return JSONResponse(status_code=401, content={"message": "Session cookie is unavailable"})
     # Verify the session cookie. In this case an additional check is added to detect
     # if the user's Firebase session was revoked, user deleted/disabled, etc.
     else:
@@ -100,7 +103,7 @@ async def session_verification(request: Request, call_next):
             decoded_claims = auth.verify_session_cookie(session_cookie, check_revoked=True)
             email = decoded_claims["email"]
             email_domain = re.search(EMAIL_DOMAIN_ADDRESS_REGEXP, email).group(1)
-            request.state.user = {
+            profile = {
                 "name": decoded_claims["name"],
                 "picture": decoded_claims["picture"],
                 "uid": decoded_claims["uid"],
@@ -108,9 +111,12 @@ async def session_verification(request: Request, call_next):
                 "email": email,
                 "exp": decoded_claims["exp"],
             }
+            user_role = p.get_metadata(f'users.{profile["uid"]}.role')
+            profile['role'] = user_role
+            request.state.user = profile
         except auth.InvalidSessionCookieError:
             # Session cookie is invalid, expired or revoked. Force user to login.
-            response = JSONResponse(content={"message": "Session cookie is invalid, epxpired or revoked", "error_code": "session_cookie_invalid"}, status_code=401)
+            response = JSONResponse(content={"message": "Session cookie is invalid, epxpired or revoked"}, status_code=401)
             response.set_cookie("session", expires=0, path="/")
             return response
     return await call_next(request)
@@ -129,8 +135,13 @@ app.add_middleware(CORSMiddleware, allow_origins=allowed_origins, allow_credenti
 
 
 @app.exception_handler(InvalidRequestJson)
-async def unicorn_exception_handler(request: Request, exc: InvalidRequestJson):
+async def unicorn_exception_handler_invalid_request_json(request: Request, exc: InvalidRequestJson):
     return JSONResponse(status_code=exc.status_code, content={"json_errors": exc.errors})
+
+
+@app.exception_handler(PermissionDenied)
+async def unicorn_exception_handler_permission_denied(request: Request, exc: PermissionDenied):
+    return JSONResponse(status_code=403, content={"message": "You don't have permission for this request."})
 
 
 @app.websocket(f"{PLATFORM_PREFIX}/sessions/ws")
@@ -150,9 +161,9 @@ async def websocket_endpoint(websocket: WebSocket, ticket: str = None):
             elif json_data["type"] == "USER_SESSION_MESSAGE":
                 connection_manager.user_session_message(connection_id, json_data["session_id"], json_data["message"])
             elif json_data["type"] == "INTERACTIVE_EVENT_MESSAGE":
-                connection_manager.interactive_event_message(json_data["stream_id"], json_data["name_id"], json_data["form_id"], json_data["timestamp"], pydash.objects.get(json_data, "value", None))
+                connection_manager.interactive_event_message(json_data)
             elif json_data["type"] == "OBSERVER_SESSION_MESSAGE":
-                await connection_manager.observer_session_message(json_data["connection_id"], json_data["session_id"], json_data["message"], json_data["stream"], json_data['timestamp'])
+                await connection_manager.observer_session_message(json_data["connection_id"], json_data)
     except WebSocketDisconnect:
         # Remove the connection from the list of active connections
         connection_manager.disconnect(websocket)

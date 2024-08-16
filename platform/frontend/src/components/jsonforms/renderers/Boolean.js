@@ -17,15 +17,14 @@ const BooleanRenderer = ({ uischema, handleChange, path, data, required }) => {
             return;
         }
         setTimeout(() => {
-            const dataId = _.last(_.split(_.get(uischema, "scope", ""), "/"));
             socket.send(
                 JSON.stringify({
                     type: "INTERACTIVE_EVENT_MESSAGE",
                     stream_id: _.get(uischema, "props.streamId", null),
-                    name_id: _.get(uischema, "props.nameId", dataId),
+                    path: path,
                     form_id: _.get(uischema, "props.formId", null),
                     value: event.target.checked,
-                    timestamp: Date.now(),
+                    timestamp: performance.timeOrigin + performance.now(),
                 })
             );
         }, 0);

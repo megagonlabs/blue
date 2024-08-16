@@ -1,21 +1,46 @@
-import base64
-import json
+###### OS / Systems
+import os
+import sys
+
+###### Add lib path
+sys.path.append("./lib/")
+sys.path.append("./lib/agent_registry/")
+sys.path.append("./lib/data_registry/")
+sys.path.append("./lib/platform/")
+
+###### Parsers, Formats, Utils
 import re
+import json
+import base64
 import time
 import datetime
-
 import pydash
-from constant import EMAIL_DOMAIN_ADDRESS_REGEXP, redisReplace
+
+###### FastAPI, Auth, Web
+from APIRouter import APIRouter
+from fastapi.responses import JSONResponse
+import firebase_admin
+from firebase_admin import auth, credentials, exceptions
+
+from constant import EMAIL_DOMAIN_ADDRESS_REGEXP, acl_enforce
 from fastapi import Request
 from APIRouter import APIRouter
 from fastapi.responses import JSONResponse
-from server import PLATFORM_PREFIX
 
+###### Settings
+from settings import PROPERTIES, ROLE_PERMISSIONS, SECURE_COOKIE
+
+### Assign from platform properties
+from blueprint import Platform
+
+platform_id = PROPERTIES["platform.name"]
+PLATFORM_PREFIX = f'/blue/platform/{platform_id}'
+
+p = Platform(id=platform_id, properties=PROPERTIES)
+
+
+##### ROUTER
 router = APIRouter(prefix=f"{PLATFORM_PREFIX}/accounts")
-import os
-
-import firebase_admin
-from firebase_admin import auth, credentials, exceptions
 
 FIREBASE_SERVICE_CRED = os.getenv("FIREBASE_SERVICE_CRED", "{}")
 cert = json.loads(base64.b64decode(FIREBASE_SERVICE_CRED))
@@ -42,10 +67,7 @@ def signout(request: Request):
         return response
     except auth.InvalidSessionCookieError:
         return JSONResponse(
-            content={
-                "message": "Session cookie is invalid, epxpired or revoked",
-                "error_code": "session_cookie_invalid",
-            },
+            content={"message": "Session cookie is invalid, epxpired or revoked"},
             status_code=401,
         )
 
@@ -109,7 +131,8 @@ async def signin(request: Request):
             # Set cookie policy for session cookie.
             expires = datetime.datetime.now(datetime.timezone.utc) + expires_in
             # samesite - lax: allow GET requests across origin
-            response.set_cookie("session", session_cookie, expires=expires, httponly=True, secure=True, samesite="lax", path="/")
+            response.set_cookie("session", session_cookie, expires=expires, httponly=True, secure=SECURE_COOKIE, samesite="lax", path="/")
+            p.create_update_user(decoded_claims)
             return response
         return ERROR_RESPONSE
     except auth.InvalidIdTokenError:
@@ -143,28 +166,60 @@ async def signin_cli(request: Request):
         if time.time() - decoded_claims["auth_time"] < 5 * 60:
             expires_in = datetime.timedelta(hours=10)
             session_cookie = auth.create_session_cookie(id_token, expires_in=expires_in)
+            p.create_update_user(decoded_claims)
             return JSONResponse(content={"cookie": session_cookie})
         return ERROR_RESPONSE
     except auth.InvalidIdTokenError:
-        return JSONResponse(
-            content={"message": "The provided ID token is not a valid Firebase ID token."},
-            status_code=401,
-        )
+        return JSONResponse(content={"message": "The provided ID token is not a valid Firebase ID token."}, status_code=401)
     except exceptions.FirebaseError:
         return ERROR_RESPONSE
 
 
 @router.get("/profile")
 def get_profile(request: Request):
-    return JSONResponse(content={"profile": request.state.user})
+    return JSONResponse(content={"profile": {**request.state.user, 'permissions': pydash.objects.get(ROLE_PERMISSIONS, request.state.user['role'], {})}})
 
 
-@router.get("/profile/email/{email}")
-def get_profil_by_email(email):
-    user = {'id': email}
+@router.get('/profile/uid/{uid}')
+def get_profile_by_uid(request: Request, uid):
+    acl_enforce(request.state.user['role'], 'platform_users', 'read_all')
+    user = {}
     try:
-        user_record = auth.get_user_by_email(redisReplace(email, reverse=True))
-        user.update({'uid': user_record.uid, 'email': user_record.email, 'picture': user_record.photo_url, 'display_name': user_record.display_name})
+        if uid is not None:
+            user_record = auth.get_user(uid)
+            user.update({'uid': user_record.uid, 'email': user_record.email, 'picture': user_record.photo_url, 'name': user_record.display_name})
     except ValueError as ex:
         print(ex)
     return JSONResponse(content={"user": user})
+
+
+@router.get("/users")
+def get_users(request: Request, keyword: str = ""):
+    acl_enforce(request.state.user['role'], 'platform_users', 'read_all')
+    users: dict = p.get_metadata('users')
+    result = []
+    rx = re.compile(f'(?<!\w)\s*({keyword})', re.IGNORECASE)
+    for key in users.keys():
+        user = users[key]
+        temp = {
+            'uid': user['uid'],
+            'email': user['email'],
+            'name': user['name'],
+            'picture': user['picture'],
+        }
+        if re.search(rx, user['name']) is not None:
+            # add user role value when querying with admin role
+            if request.state.user['role'] == 'admin':
+                temp['role'] = user['role']
+            result.append(temp)
+    return JSONResponse(content={"users": result})
+
+
+@router.put('/users/{uid}/role/{role_name}')
+def update_user_role(request: Request, uid, role_name):
+    acl_enforce(request.state.user['role'], 'platform_users', 'write_all')
+    # preventive measure
+    if uid == pydash.objects.get(request, 'state.user.uid', None):
+        return JSONResponse(content={"message": "You can't modify your own role."}, status_code=400)
+    p.set_metadata(f'users.{uid}.role', role_name)
+    return JSONResponse(content={"message": "Success"})

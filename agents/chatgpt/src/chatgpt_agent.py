@@ -36,7 +36,7 @@ from agent import Agent, AgentFactory
 from api_agent import APIAgent
 from session import Session
 from openai_agent import OpenAIAgent
-
+from message import Message, MessageType, ContentType, ControlCode
 
 # set log level
 logging.getLogger().setLevel(logging.INFO)
@@ -56,10 +56,14 @@ chatGPT_properties = {
     "input_context_field":"content",
     "input_field":"messages",
     "listens": {
-        "includes": ["USER"],
-        "excludes": []
+        "DEFAULT": {
+            "includes": ["USER"],
+            "excludes": []
+        }
     },
-    "tags": ["CHAT"],
+    "tags": {
+        "DEFAULT": ["CHAT"]
+    }
 }
    
 class ChatGPTAgent(OpenAIAgent):

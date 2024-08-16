@@ -54,11 +54,11 @@ nl2SQLGPT_properties = {
     "input_template": """
 ### Postgres SQL tables, with their properties:
 #
-{schema}
+${schema}
 #
-### A query to {input}
+### A query to ${input}
 SELECT""",
-    "output_template": "SELECT {output}",
+    "output_template": "SELECT ${output}",
     "openai.max_tokens": 100, 
     "openai.temperature": 0,
     "openai.max_tokens": 150,
@@ -67,10 +67,14 @@ SELECT""",
     "openai.presence_penalty": 0.0,
     "openai.stop": ["#", ";"],
     "listens": {
-        "includes": ["USER"],
-        "excludes": []
+        "DEFAULT": {
+            "includes": ["USER"],
+            "excludes": []
+        }
     },
-    "tags": ["SQL"],
+    "tags": {
+        "DEFAULT": ["SQL"]
+    },
 }
 
 class NL2SQLAgent(OpenAIAgent):

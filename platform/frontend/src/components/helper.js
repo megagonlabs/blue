@@ -30,7 +30,7 @@ module.exports = {
         let agent = {};
         try {
             const agentTypeId = stream
-                .match(/(?<=:AGENT:\s*).*?(?=\s*:STREAM:)/gs)[0]
+                .match(/(?<=:AGENT:\s*).*?(?=\s*:OUTPUT:)/gs)[0]
                 .split(":");
             agent = {
                 type: _.get(agentTypeId, 0, null),
@@ -39,13 +39,7 @@ module.exports = {
         } catch (error) {}
         return agent;
     },
-    constructSavePropertyRequests: ({
-        axios,
-        difference,
-        appState,
-        entity,
-        editEntity,
-    }) => {
+    constructSavePropertyRequests: ({ axios, url, difference, editEntity }) => {
         let tasks = [];
         if (_.isArray(difference)) {
             for (var i = 0; i < difference.length; i++) {
@@ -55,9 +49,7 @@ module.exports = {
                     tasks.push(
                         new Promise((resolve, reject) => {
                             axios
-                                .delete(
-                                    `/registry/${appState.agent.registryName}/agents/${entity.name}/property/${path}`
-                                )
+                                .delete(url + "/" + path)
                                 .then(() => {
                                     resolve(true);
                                 })
@@ -75,7 +67,7 @@ module.exports = {
                         new Promise((resolve, reject) => {
                             axios
                                 .post(
-                                    `/registry/${appState.agent.registryName}/agents/${entity.name}/property/${path}`,
+                                    url + "/" + path,
                                     editEntity.properties[path],
                                     {
                                         headers: {
@@ -126,4 +118,7 @@ module.exports = {
             callback(requestError);
         })();
     },
+    hasInteraction: (array1, array2) =>
+        _.some(array1, _.ary(_.partial(_.includes, array2), 1)),
+    hasTrue: (array) => _.some(array, Boolean),
 };

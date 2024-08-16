@@ -14,7 +14,6 @@ export default function GroupDoc({ closePanel }) {
                 defaultIsOpen: true,
                 compact: false,
                 style: {},
-                nameId: null,
             },
             elements: [],
         },
@@ -23,7 +22,7 @@ export default function GroupDoc({ closePanel }) {
     );
     return (
         <>
-            <div className="bp-border-bottom" style={{ padding: 10 }}>
+            <div className="bp-border-bottom" style={{ padding: "10px 20px" }}>
                 <Button
                     outlined
                     text="Back"
@@ -129,7 +128,6 @@ export default function GroupDoc({ closePanel }) {
                             </td>
                         </tr>
                         {docProps.style}
-                        {docProps.nameId}
                     </tbody>
                 </HTMLTable>
             </div>

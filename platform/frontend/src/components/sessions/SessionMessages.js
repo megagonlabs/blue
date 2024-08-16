@@ -1,112 +1,98 @@
 import { AppContext } from "@/components/contexts/app-context";
-import InteractiveMessage from "@/components/sessions/InteractiveMessage";
 import {
-    Button,
-    ButtonGroup,
     Callout,
     Classes,
+    Colors,
     Intent,
+    Tag,
     Tooltip,
+    mergeRefs,
 } from "@blueprintjs/core";
-import { faThumbtack } from "@fortawesome/pro-duotone-svg-icons";
+import { faEllipsisH } from "@fortawesome/pro-duotone-svg-icons";
 import _ from "lodash";
-import { useContext, useEffect, useRef, useState } from "react";
+import { useCallback, useContext, useEffect, useRef, useState } from "react";
+import { useResizeDetector } from "react-resize-detector";
 import AutoSizer from "react-virtualized-auto-sizer";
 import { VariableSizeList } from "react-window";
 import { faIcon } from "../icon";
+import JsonFormMessage from "./JsonFormMessage";
 import MessageMetadata from "./MessageMetadata";
-export default function SessionMessages() {
-    const variableSizeListRef = useRef();
-    const rowHeights = useRef({});
-    const { appState } = useContext(AppContext);
-    const sessionIdFocus = appState.session.sessionIdFocus;
-    const messages = appState.session.sessions[sessionIdFocus];
-    function getRowHeight(index) {
-        const own = _.includes(
-            _.get(messages, [index, "stream"]),
-            `USER:${appState.session.connectionId}`
-        );
-        return (
-            rowHeights.current[index] + 20 + (_.isEqual(index, 0) ? 20 : 0) ||
-            51 + (!own ? 15.43 : 0)
-        );
-    }
-    function setRowHeight(index, size, shouldForceUpdate = true) {
-        variableSizeListRef.current.resetAfterIndex(0, shouldForceUpdate);
-        rowHeights.current = { ...rowHeights.current, [index]: size };
-    }
-    function Row({ index, style }) {
-        const rowRef = useRef({});
-        const own = _.includes(
-            _.get(messages, [index, "stream"]),
-            `USER:${appState.session.connectionId}`
-        );
-        useEffect(() => {
-            if (rowRef.current) {
-                setRowHeight(
-                    index,
-                    rowRef.current.clientHeight + 30 + (!own ? 20.43 : 0)
-                );
-            }
-        }, [rowRef]);
-        useEffect(() => {
-            const handleResize = () => {
-                // do magic for resize
-                if (rowRef.current) {
-                    setRowHeight(
-                        index,
-                        rowRef.current.clientHeight + 30 + (!own ? 20.43 : 0),
-                        false
-                    );
-                }
-            };
-            window.addEventListener("resize", handleResize);
-            return () => {
-                window.removeEventListener("resize", handleResize);
-            };
-        }, []);
-        const messageType = _.get(messages[index].message, "type", "STRING"),
-            messageContent = _.get(messages[index].message, "content", null);
-        const [hasError, setHasError] = useState(false);
-        const timestamp = messages[index].timestamp;
-        const stream = messages[index].stream;
-        const [showActions, setShowActions] = useState(false);
-        return (
-            <div
-                key={`session-message-${index}`}
+const Row = ({ index, data, style }) => {
+    const { messages, streams, appState, setRowHeight } = data;
+    const rowRef = useRef({});
+    const own = _.includes(
+        _.get(messages, [index, "stream"]),
+        `USER:${appState.session.connectionId}`
+    );
+    useEffect(() => {
+        if (rowRef.current) {
+            setRowHeight(
+                index,
+                rowRef.current.clientHeight + 30 + (!own ? 20.43 : 0) + 20
+            );
+        }
+    }, [rowRef]);
+    const handleResize = useCallback(() => {
+        // do magic for resize
+        if (rowRef.current) {
+            setRowHeight(
+                index,
+                rowRef.current.clientHeight + 30 + (!own ? 20.43 : 0) + 20
+            );
+        }
+    }, []);
+    const streamData = _.get(streams, [messages[index].stream, "data"], []);
+    const contentType = _.get(messages, [index, "contentType"], null);
+    const { ref: resizeRef } = useResizeDetector({
+        onResize: handleResize,
+    });
+    const complete = _.get(
+        streams,
+        [messages[index].stream, "complete"],
+        false
+    );
+    const [hasError, setHasError] = useState(false);
+    const timestamp = messages[index].timestamp;
+    const stream = messages[index].stream;
+    const showActions = useRef(false);
+    return (
+        <div
+            key={index}
+            onMouseEnter={() => {
+                showActions.current = true;
+            }}
+            onMouseLeave={() => {
+                showActions.current = false;
+            }}
+            style={{
+                ...style,
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "flex-start",
+                padding: "10px 20px",
+                marginTop: 10,
+                backgroundColor: showActions.current
+                    ? Colors.LIGHT_GRAY5
+                    : null,
+            }}
+        >
+            <Callout
+                intent={hasError ? Intent.DANGER : own ? Intent.PRIMARY : null}
+                icon={null}
                 style={{
-                    ...style,
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "flex-start",
-                    padding: `${_.isEqual(index, 0) ? 20 : 0}px 20px 20px`,
+                    position: "relative",
+                    maxWidth: "min(802.2px, 100%)",
+                    width: "fit-content",
+                    overflowX: "hidden",
+                    overflowY: "visible",
                 }}
             >
-                <Callout
-                    intent={
-                        hasError ? Intent.DANGER : own ? Intent.PRIMARY : null
-                    }
-                    icon={null}
-                    onMouseEnter={() => {
-                        setShowActions(true);
-                    }}
-                    onMouseLeave={() => {
-                        setShowActions(false);
-                    }}
-                    style={{
-                        backgroundColor: "rgba(143, 153, 168, 0.1)",
-                        position: "relative",
-                        maxWidth: "min(802.2px, 100%)",
-                        minWidth: 50,
-                        width: "fit-content",
-                    }}
-                >
-                    <div
+                {/* <div
                         style={{
                             position: "absolute",
                             left: 0,
-                            top: 0,
-                            display: showActions ? null : "none",
+                            top: -10,
+                            display: showActions.current ? null : "none",
                         }}
                     >
                         <ButtonGroup large>
@@ -118,73 +104,127 @@ export default function SessionMessages() {
                                 <Button icon={faIcon({ icon: faThumbtack })} />
                             </Tooltip>
                         </ButtonGroup>
-                    </div>
-                    <div
-                        ref={rowRef}
-                        style={{
-                            maxWidth: "min(802.2px, 100%)",
-                            minWidth: 50,
-                            whiteSpace: "pre-wrap",
-                            wordBreak: "break-all",
-                            width: "fit-content",
-                            overflow: "hidden",
-                        }}
-                    >
-                        {_.isEqual(messageType, "STRING") ? (
-                            messageContent
-                        ) : _.isEqual(messageType, "JSON") ? (
-                            <pre
-                                className="margin-0"
-                                style={{ overflowX: "auto" }}
-                            >
-                                {JSON.stringify(messageContent, null, 4)}
-                            </pre>
-                        ) : _.isEqual(messageType, "INTERACTION") ? (
-                            <InteractiveMessage
-                                stream={stream}
-                                setHasError={setHasError}
-                                content={messageContent}
-                            />
-                        ) : null}
-                    </div>
-                </Callout>
-                {!own ? (
-                    <div
-                        style={{ maxWidth: "100%", marginTop: 5 }}
-                        className={`${Classes.TEXT_DISABLED} ${Classes.TEXT_SMALL} ${Classes.TEXT_OVERFLOW_ELLIPSIS}`}
-                    >
-                        <Tooltip
-                            targetProps={{ className: "full-parent-width" }}
-                            minimal
-                            placement="bottom-start"
-                            content={
-                                <MessageMetadata
-                                    timestamp={timestamp}
-                                    stream={stream}
-                                />
+                    </div> */}
+                <div
+                    ref={mergeRefs(rowRef, resizeRef)}
+                    style={{
+                        maxWidth: "min(802.2px, 100%)",
+                        minWidth: 50,
+                        whiteSpace: "pre-wrap",
+                        wordBreak: "break-all",
+                        width: "fit-content",
+                        minHeight: 21,
+                    }}
+                >
+                    {_.isEqual(contentType, "JSON_FORM") ? (
+                        <JsonFormMessage
+                            content={_.last(streamData).content}
+                            setHasError={setHasError}
+                        />
+                    ) : (
+                        streamData.map((e, index) => {
+                            const { dataType, content, id } = e;
+                            if (_.includes(["STR", "INT", "FLOAT"], dataType)) {
+                                return (
+                                    <span key={id}>
+                                        {(index ? " " : "") + content}
+                                    </span>
+                                );
+                            } else if (_.isEqual(dataType, "JSON")) {
+                                return (
+                                    <pre
+                                        key={id}
+                                        className="margin-0"
+                                        style={{ overflowX: "auto" }}
+                                    >
+                                        {JSON.stringify(content, null, 4)}
+                                    </pre>
+                                );
                             }
-                        >
-                            {stream}
-                        </Tooltip>
-                    </div>
-                ) : null}
-            </div>
+                            return null;
+                        })
+                    )}
+                    {!complete ? (
+                        <>
+                            <div style={{ height: 20.5, marginTop: 7.5 }}>
+                                &nbsp;
+                            </div>
+                            <Tag
+                                minimal
+                                style={{
+                                    position: "absolute",
+                                    bottom: 15,
+                                    left: 15,
+                                }}
+                                icon={faIcon({
+                                    icon: faEllipsisH,
+                                    size: 16.5,
+                                    className: "fa-fade",
+                                    style: { color: Colors.BLACK },
+                                })}
+                            />
+                        </>
+                    ) : null}
+                </div>
+            </Callout>
+            {!own ? (
+                <div
+                    style={{ maxWidth: "100%", marginTop: 5 }}
+                    className={`${Classes.TEXT_DISABLED} ${Classes.TEXT_SMALL} ${Classes.TEXT_OVERFLOW_ELLIPSIS}`}
+                >
+                    <Tooltip
+                        targetProps={{ className: "full-parent-width" }}
+                        minimal
+                        placement="bottom-start"
+                        content={
+                            <MessageMetadata
+                                timestamp={timestamp}
+                                stream={stream}
+                            />
+                        }
+                    >
+                        {stream}
+                    </Tooltip>
+                </div>
+            ) : null}
+        </div>
+    );
+};
+export default function SessionMessages() {
+    const variableSizeListRef = useRef();
+    const rowHeights = useRef({});
+    const { appState } = useContext(AppContext);
+    const sessionIdFocus = appState.session.sessionIdFocus;
+    const messages = appState.session.sessions[sessionIdFocus].messages;
+    const streams = appState.session.sessions[sessionIdFocus].streams;
+    function getRowHeight(index) {
+        const own = _.includes(
+            _.get(messages, [index, "stream"]),
+            `USER:${appState.session.connectionId}`
         );
+        return rowHeights.current[index] || 71 + (!own ? 15.43 : 0);
+    }
+    function setRowHeight(index, size) {
+        variableSizeListRef.current.resetAfterIndex(0);
+        rowHeights.current = { ...rowHeights.current, [index]: size };
     }
     useEffect(() => {
         setTimeout(() => {
-            if (variableSizeListRef.current) {
-                variableSizeListRef.current.scrollToItem(
-                    messages.length,
-                    "end"
-                );
-            }
+            requestAnimationFrame(() => {
+                if (variableSizeListRef.current) {
+                    variableSizeListRef.current.scrollToItem(
+                        messages.length,
+                        "end"
+                    );
+                }
+            });
         }, 0);
     }, [variableSizeListRef, sessionIdFocus]);
     return (
         <AutoSizer>
             {({ width, height }) => (
                 <VariableSizeList
+                    itemData={{ messages, streams, appState, setRowHeight }}
                     height={height}
                     itemCount={messages.length}
                     itemSize={getRowHeight}

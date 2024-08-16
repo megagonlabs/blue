@@ -58,7 +58,7 @@ plannerGPT_properties = {
     "input_field": "messages",
     "input_template": """
 Examine the text below and identify a task plan  thatcan be fulfilled by various agents. Specify plan in JSON format, where each agent has attributes of name, description, input and output parameters with names and descriptions:
-{input}
+${input}
 """,
     "openai.temperature": 0,
     "openai.max_tokens": 1024,
@@ -66,8 +66,15 @@ Examine the text below and identify a task plan  thatcan be fulfilled by various
     "openai.frequency_penalty": 0,
     "openai.presence_penalty": 0,
     "registry.name": "default",
-    "listens": {"includes": ["USER"], "excludes": []},
-    "tags": ["PLAN"],
+    "listens": {
+        "DEFAULT": {
+            "includes": ["USER"],
+            "excludes": []
+        }
+    },
+    "tags": {
+        "DEFAULT": ["PLAN"]
+    }
 }
 
 
@@ -81,8 +88,11 @@ class GPTPlannerAgent(OpenAIAgent):
         super()._initialize(properties=properties)
 
         # connect to registry
+        platform_id = self.properties["platform.name"]
+        prefix = 'PLATFORM:' + platform_id
+
         logging.info("Using agent registry:" + self.properties['registry.name'])
-        self.registry = AgentRegistry(self.properties['registry.name'])
+        self.registry = AgentRegistry(id=self.properties['registry.name'], prefix=prefix, properties=self.properties)
 
         agents = self.registry.list_records()
         logging.info('Registry contents:')
@@ -105,6 +115,9 @@ class GPTPlannerAgent(OpenAIAgent):
 
         # extract, standardize json plan
         extracted_plan = self.extract_plan(gpt_plan)
+        logging.info('Standardized Plan:')
+        logging.info(json.dumps(extracted_plan, indent=4))
+        logging.info('========================================================================================================')
 
         # search, find related agents
         searched_plan = self.search_plan(extracted_plan)
@@ -477,6 +490,7 @@ class GPTPlannerAgent(OpenAIAgent):
         indices = []
         sp = prefix.split('.')
         for spi in sp:
+            spi = spi.lower()
             n = None
             try:
                 n = int(spi)
@@ -499,7 +513,7 @@ class GPTPlannerAgent(OpenAIAgent):
         for s, i in zip(scope, indices[:-1]):
             path = path + str(s) + '[' + str(i) + ']' + '.'
         if len(indices) > 0:
-            path = path + indices[-1]
+            path = path + str(indices[-1])
         return path
 
     def _set_plan_data(self, path, value, plan):

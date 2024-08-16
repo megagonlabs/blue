@@ -25,7 +25,9 @@ const Blue = ({ Component, pageProps }) => {
         return (
             <AppProvider>
                 <Head>
-                    <title>Blue</title>
+                    <title>
+                        Blue &#91;{process.env.NEXT_PUBLIC_PLATFORM_NAME}&#93;
+                    </title>
                     <link rel="icon" href="/favicon.ico" />
                 </Head>
                 <AuthProvider>

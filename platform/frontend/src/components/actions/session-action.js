@@ -12,7 +12,7 @@ export const sessionAction = (dispatch) => ({
             payload: payload,
         });
     },
-    createSession: () => {
+    createSession: (payload) => {
         axios.post(`/sessions/session`).then((response) => {
             try {
                 const session = _.get(response, "data.result", {});
@@ -24,14 +24,30 @@ export const sessionAction = (dispatch) => ({
                     type: "session/sessions/add",
                     payload: session.id,
                 });
+                payload.send(
+                    JSON.stringify({
+                        type: "OBSERVE_SESSION",
+                        session_id: session.id,
+                    })
+                );
                 dispatch({
-                    type: "session/state/set",
-                    payload: { key: "openAgentsDialogTrigger", value: true },
-                });
+                    type: "session/sessionIdFocus/set",
+                    payload: session.id,
+                }),
+                    dispatch({
+                        type: "session/state/set",
+                        payload: {
+                            key: "openAgentsDialogTrigger",
+                            value: true,
+                        },
+                    });
             } catch (error) {
                 console.log(error);
             }
         });
+    },
+    addSession: (payload) => {
+        dispatch({ type: "session/sessions/add", payload });
     },
     observeSession: (payload) => {
         dispatch({ type: "session/sessions/add", payload: payload.sessionId });
@@ -42,8 +58,10 @@ export const sessionAction = (dispatch) => ({
             })
         );
     },
-    addSessionMessage: (payload) =>
-        dispatch({ type: "session/sessions/message/add", payload }),
-    setSessionIdFocus: (payload) =>
-        dispatch({ type: "session/sessionIdFocus/set", payload }),
+    addSessionMessage: (payload) => {
+        dispatch({ type: "session/sessions/message/add", payload });
+    },
+    setSessionIdFocus: (payload) => {
+        dispatch({ type: "session/sessionIdFocus/set", payload });
+    },
 });

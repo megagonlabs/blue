@@ -31,6 +31,7 @@ from agent import Agent, AgentFactory
 from api_agent import APIAgent
 from session import Session
 from openai_agent import OpenAIAgent
+from message import Message, MessageType, ContentType, ControlCode
 
 
 # set log level
@@ -75,24 +76,26 @@ class RationalizerAgent(OpenAIAgent):
                 '''
         
         listeners = {}
+        default_listeners = {}
+        listeners["DEFAULT"] = default_listeners
         self.properties['listens'] = listeners
-        listeners['includes'] = ['RECORDER']
-        listeners['excludes'] = [self.name]
+        default_listeners['includes'] = ['RECORDER']
+        default_listeners['excludes'] = [self.name]
 
         # rationalizer config
         self.properties['requires'] = ['title', 'top_title_recommendation', 'resume_skills', 'top_title_skills']
 
-    def default_processor(self, stream, id, label, data, dtype=None, tags=None, properties=None, worker=None):    
-        if label == 'EOS':
+    def default_processor(self, message, input="DEFAULT", properties=None, worker=None):
+        if message.isEOS():
             if worker:
                 processed = worker.get_agent_data('processed')
                 if processed:
-                    return 'EOS', None, None
+                    return Message.EOS
             return None
                 
-        elif label == 'BOS':
+        elif message.isBOS():
             pass
-        elif label == 'DATA':
+        elif message.isData():
             # check if a required variable is seen
             requires = properties['requires']
 
@@ -119,12 +122,12 @@ class RationalizerAgent(OpenAIAgent):
                     
                     #### call service to compute
 
-                    message = self.create_message("", properties=properties)
+                    service_message = self.create_message("", properties=properties)
 
                     logging.info("::::: Message :::::")
                     logging.info(self.properties["input_template"])
                     # serialize message, call service
-                    m = json.dumps(message)
+                    m = json.dumps(service_message)
                     r = self.call_service(m)
 
                     response = json.loads(r)
@@ -137,7 +140,7 @@ class RationalizerAgent(OpenAIAgent):
                     worker.set_agent_data('processed', True)
 
                     # output to stream
-                    return "DATA", output_data, "str", True
+                    return [output_data, Message.EOS]
     
         return None
 

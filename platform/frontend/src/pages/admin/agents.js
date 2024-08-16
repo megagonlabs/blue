@@ -1,4 +1,6 @@
+import AccessDeniedNonIdealState from "@/components/AccessDeniedNonIdealState";
 import { CONTAINER_STATUS_INDICATOR } from "@/components/constant";
+import { AuthContext } from "@/components/contexts/auth-context";
 import { faIcon } from "@/components/icon";
 import {
     Button,
@@ -26,7 +28,7 @@ import {
 } from "@fortawesome/pro-duotone-svg-icons";
 import axios from "axios";
 import _ from "lodash";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import ReactTimeAgo from "react-time-ago";
 export default function Agents() {
     const [tableKey, setTableKey] = useState(Date.now());
@@ -125,6 +127,10 @@ export default function Agents() {
         );
         setColumns(nextChildren);
     };
+    const { permissions } = useContext(AuthContext);
+    if (!permissions.canReadPlatformAgents) {
+        return <AccessDeniedNonIdealState />;
+    }
     return (
         <>
             {_.isEmpty(data) ? (
@@ -146,17 +152,16 @@ export default function Agents() {
             ) : null}
             <div style={{ padding: 5, height: 50 }}>
                 <ButtonGroup large minimal>
-                    <Tooltip placement="bottom-start" minimal content="Stop">
-                        <Button disabled icon={faIcon({ icon: faStop })} />
-                    </Tooltip>
-                    <Divider />
-                    <Tooltip placement="bottom" minimal content="Refresh">
+                    <Tooltip placement="bottom-start" minimal content="Refresh">
                         <Button
-                            intent={Intent.PRIMARY}
                             onClick={fetchContainerList}
                             loading={loading}
                             icon={faIcon({ icon: faRefresh })}
                         />
+                    </Tooltip>
+                    <Divider />
+                    <Tooltip placement="bottom" minimal content="Stop">
+                        <Button disabled icon={faIcon({ icon: faStop })} />
                     </Tooltip>
                 </ButtonGroup>
             </div>
@@ -195,19 +200,15 @@ export default function Agents() {
                 >
                     {columns.map((col, index) => {
                         const { name, key, cellRenderer } = col;
-                        const defaultCellRenderer = (rowIndex) => {
-                            return (
-                                <Cell
-                                    style={{
-                                        lineHeight: `${
-                                            TABLE_CELL_HEIGHT - 1
-                                        }px`,
-                                    }}
-                                >
-                                    {_.get(data, [rowIndex, key], "-")}
-                                </Cell>
-                            );
-                        };
+                        const defaultCellRenderer = (rowIndex) => (
+                            <Cell
+                                style={{
+                                    lineHeight: `${TABLE_CELL_HEIGHT - 1}px`,
+                                }}
+                            >
+                                {_.get(data, [rowIndex, key], "-")}
+                            </Cell>
+                        );
                         const menuRenderer = null;
                         const columnHeaderCellRenderer = () => (
                             <ColumnHeaderCell

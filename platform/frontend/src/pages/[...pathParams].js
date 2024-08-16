@@ -42,19 +42,18 @@ export default function RegistryEntity() {
                 end: i + 2 >= pathParams.length,
             });
         }
-        if (_.isEqual(type, "/new")) {
-            crumbs = crumbs.slice(0, 1);
-            _.set(crumbs, "0.href", null);
-        }
         setEntityType(type);
         const crumb0 = _.get(crumbs, 0, {});
-        _.set(crumbs, 0, { ...crumb0, href: crumb0.href + type });
+        _.set(crumbs, 0, {
+            ...crumb0,
+            href: crumb0.href + "/" + _.nth(_.split(type, "/"), 1),
+        });
         setBreadcrumbs(crumbs);
     }, [router]);
     const ENTITY_TYPE_TO_COMPONENT = {
-        "/agents": <AgentEntity />,
-        "/agents/input": <InputEntity />,
-        "/agents/output": <OutputEntity />,
+        "/agent": <AgentEntity />,
+        "/agent/input": <InputEntity />,
+        "/agent/output": <OutputEntity />,
         "/data": <SourceEntity />,
         "/data/database": <DatabaseEntity />,
         "/data/database/collection": <CollectionEntity />,

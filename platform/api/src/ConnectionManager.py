@@ -1,23 +1,25 @@
-import json
-import secrets
-import time
-import uuid
-from dataclasses import dataclass
-
-from fastapi import WebSocket
-import sys
+###### OS / Systems
 import os
-import pydash
-
-from server import IS_DEVELOPMENT, PLATFORM_PREFIX
+import sys
 
 ###### Add lib path
 sys.path.append("./lib/")
 sys.path.append("./lib/agents")
 sys.path.append("./lib/platform/")
 
+
+###### Parsers, Formats, Utils
+import json
+import time
+import uuid
+import pydash
+import secrets
+
+##### FastAPI, Web, Sockets, Authentication
+from fastapi import WebSocket
+from dataclasses import dataclass
+
 ###### Blue
-from constant import redisReplace
 from session import Session
 from blueprint import Platform
 from observer import ObserverAgent
@@ -25,13 +27,18 @@ from session import Session
 from agent import Agent
 from producer import Producer
 
-###### Properties
-PROPERTIES = os.getenv("BLUE__PROPERTIES")
-PROPERTIES = json.loads(PROPERTIES)
+from message import Message, MessageType, ContentType, ControlCode
+
+
+###### Settings
+from settings import PROPERTIES, DEVELOPMENT
+
+### Assign from platform properties
 platform_id = PROPERTIES["platform.name"]
 prefix = 'PLATFORM:' + platform_id
 agent_registry_id = PROPERTIES["agent_registry.name"]
 data_registry_id = PROPERTIES["data_registry.name"]
+PLATFORM_PREFIX = f'/blue/platform/{platform_id}'
 
 ###### Initialization
 p = Platform(id=platform_id, properties=PROPERTIES)
@@ -62,12 +69,12 @@ class ConnectionManager:
         # validate ticket
         set_on = pydash.objects.get(self.tickets, [ticket, 'set_on'], None)
         single_use = pydash.objects.get(self.tickets, [ticket, 'single_use'], True)
-        if (not pydash.is_none(set_on) and time.time() - set_on < 5 * 60) or (not single_use) or (IS_DEVELOPMENT):
+        if (not pydash.is_none(set_on) and time.time() - set_on < 5 * 60) or (not single_use) or (DEVELOPMENT):
             connection_id = str(hex(uuid.uuid4().fields[0]))[2:]
             pydash.objects.set_(self.active_connections, connection_id, {'websocket': websocket, 'user': pydash.objects.get(self.tickets, ticket, {})})
             await self.send_message_to(
                 websocket,
-                json.dumps({"type": "CONNECTED", "id": redisReplace(pydash.objects.get(self.tickets, [ticket, 'email'], connection_id)), 'connection_id': connection_id}),
+                json.dumps({"type": "CONNECTED", "id": pydash.objects.get(self.tickets, [ticket, 'uid'], connection_id), 'connection_id': connection_id}),
             )
         else:
             await websocket.close()
@@ -90,8 +97,11 @@ class ConnectionManager:
                         prefix=agent_prefix,
                         properties={
                             **PROPERTIES,
-                            "output": "websocket",
-                            "websocket": f"ws://localhost:5050{PLATFORM_PREFIX}/sessions/ws?ticket={ticket}",
+                            "output": {
+                                'type': "websocket",
+                                "mode": "streaming",
+                                "websocket": f"ws://localhost:5050{PLATFORM_PREFIX}/sessions/ws?ticket={ticket}",
+                            },
                             "session_id": session_sid,
                             "connection_id": connection_id,
                         },
@@ -103,18 +113,28 @@ class ConnectionManager:
     def user_session_message(self, connection_id: str, session_id: str, message: str):
         user_agent = pydash.objects.get(self.session_to_client, [session_id, connection_id, "user"], None)
         if user_agent is not None:
-            user_agent.interact(message)
+            user_agent.interact(message, output="TEXT")
 
-    def interactive_event_message(self, stream_id: str, name_id: str, form_id: str, timestamp: int, value):
-        event_stream = Producer(cid=stream_id, properties=PROPERTIES)
-        event_stream.start()
-        event_stream.write(data={"name_id": name_id, "form_id": form_id, "value": value, "timestamp": timestamp}, dtype="json")
+    def interactive_event_message(self, json_data):
+        if json_data["stream_id"] is not None:
+            event_stream = Producer(cid=json_data["stream_id"], properties=PROPERTIES)
+            event_stream.start()
+            event_stream.write_data(
+                {
+                    "path": pydash.objects.get(json_data, "path", None),
+                    "action": pydash.objects.get(json_data, "action", None),
+                    "form_id": json_data['form_id'],
+                    "value": pydash.objects.get(json_data, "value", None),
+                    "timestamp": json_data['timestamp'],
+                }
+            )
 
-    async def observer_session_message(self, connection_id: str, session_id: str, message: str, stream: str, timestamp):
+    async def observer_session_message(self, connection_id: str, message):
         # stream is an agent identifier
         try:
             await self.send_message_to(
-                self.active_connections[connection_id]['websocket'], json.dumps({"type": "SESSION_MESSAGE", "session_id": session_id, "message": message, "stream": stream, "timestamp": timestamp})
+                self.active_connections[connection_id]['websocket'],
+                json.dumps({**message, "type": "SESSION_MESSAGE"}),
             )
         except Exception as ex:
             print(ex)
@@ -139,13 +159,13 @@ class ConnectionManager:
 
     def get_ticket(self, user: dict = {}, single_use: bool = True):
         # default 32 nbytes ~ 43 chars
-        ticket = secrets.token_urlsafe()
+        ticket = secrets.token_urlsafe() + str(int(time.time()))
         # ticket is key and metadata information as value
         pydash.objects.set_(self.tickets, ticket, {**user, "set_on": time.time(), "single_use": single_use})
         return ticket
 
     def get_user_agent_id(self, connection_id: str):
-        return redisReplace(pydash.objects.get(self.active_connections, [connection_id, "user", 'email'], connection_id))
+        return pydash.objects.get(self.active_connections, [connection_id, "user", 'uid'], connection_id)
 
     def find_connection_id(self, websocket: WebSocket):
         key_list = list(self.active_connections.keys())

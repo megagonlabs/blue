@@ -67,12 +67,12 @@ if [ $BLUE_DEPLOY_TARGET == swarm ]
 then
    echo "Deploying to swarm..."
    envsubst < ${BLUE_INSTALL_DIR}/services/postgres/docker-compose-swarm-service-template.yaml > ${BLUE_INSTALL_DIR}/services/postgres/docker-compose-swarm-service-${BLUE_DEPLOY_PLATFORM}-${SERVICE}.yaml
-   docker stack deploy -c ${BLUE_INSTALL_DIR}/services/postgres/docker-compose-swarm-service-${BLUE_DEPLOY_PLATFORM}-${SERVICE}.yaml blue_service_${SERVICE_LOWERCASE}
+   docker stack deploy -c ${BLUE_INSTALL_DIR}/services/postgres/docker-compose-swarm-service-${BLUE_DEPLOY_PLATFORM}-${SERVICE}.yaml blue_service_${BLUE_DEPLOY_PLATFORM}
 elif [ $BLUE_DEPLOY_TARGET == localhost ]
 then
    echo "Deploying to localhost..."
    envsubst < ${BLUE_INSTALL_DIR}/services/postgres/docker-compose-localhost-service-template.yaml > ${BLUE_INSTALL_DIR}/services/postgres/docker-compose-localhost-service-${BLUE_DEPLOY_PLATFORM}-${SERVICE}.yaml
-   docker compose --project-directory ${BLUE_INSTALL_DIR}/services/postgres -f ${BLUE_INSTALL_DIR}/services/postgres/docker-compose-localhost-service-${BLUE_DEPLOY_PLATFORM}-${SERVICE}.yaml -p blue_service_${SERVICE_LOWERCASE} up -d
+   docker compose --project-directory ${BLUE_INSTALL_DIR}/services/postgres -f ${BLUE_INSTALL_DIR}/services/postgres/docker-compose-localhost-service-${BLUE_DEPLOY_PLATFORM}-${SERVICE}.yaml -p blue_service_${BLUE_DEPLOY_PLATFORM} up -d
 fi
 
 

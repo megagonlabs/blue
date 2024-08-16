@@ -56,10 +56,10 @@ tripleExtractorGPT_properties = {
     "input_field": "messages",
     "input_template": """
 Given below schema that describe an ontology:
-{schema}
-where  {explanation}
+${schema}
+where  ${explanation}
 extract one triple from the below sentence in the above format in a list using only above ontology concepts, entities, relations, and properties:
-{input}
+${input}
 """,
     "openai.temperature": 0,
     "openai.max_tokens": 256,
@@ -70,10 +70,14 @@ extract one triple from the below sentence in the above format in a list using o
     "explanation": "PERSON, JOB, and RESUME are Concepts,\nHAS is a Relation between PERSON and RESUME,  CONTAINS is a Relation between RESUME and JOB,\nname, age are properties of PERSON and  date, content are properties of RESUME, \n(PERSON {name: \"Michael Gibbons\"})--[HAS]-> (RESUME),\n(RESUME) --[CONTAINS]->(JOB {title:  \"software engineer\"}) are example triples \n",
     "example": "(PERSON {name: \"Michael Gibbons\"})--[HAS]-> (RESUME)",
     "listens": {
-        "includes": ["USER"],
-        "excludes": []
+        "DEFAULT": {
+            "includes": ["USER"],
+            "excludes": []
+        },
     },
-    "tags": ["TRIPLE"]
+    "tags": {
+        "DEFAULT": ["TRIPLE"]
+    }
 }
 
 

@@ -14,6 +14,7 @@ a.no-link-decoration {
 .multiline-ellipsis {
     display: -webkit-box;
     -webkit-line-clamp: 2;
+    line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
 }
@@ -40,6 +41,10 @@ table.entity-section-card-table tr td {
 }
 .z-index-36 {
     z-index: 36;
+}
+.dialog-body {
+    padding: 0px !important;
+    margin-top: 1px !important;
 }
 .glassmorphism-5 {
     /* From https://css.glass */
@@ -68,4 +73,7 @@ table.entity-section-card-table tr td {
     -moz-transition: none !important;
     -o-transition: none !important;
     transition: none !important;
+}
+.role-configuration-permission-list li span[class^="bp"][class*="-tag"] {
+    margin-right: 5px;
 }

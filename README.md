@@ -1,6 +1,12 @@
 # blue
 
-Blue is an agent orchestration platform to coordinate data and work in an AI system comprised of agents and other components to perform complex tasks with workflows. We are building Blue to explore the design space of agent orchestration systems, to support a variety of use-cases: from fixed workflows to ad-hoc workflows with planners, from purely textual interaction to interactive agents with user interfaces, from non-interactive use cases to conversational interaction, from data and domain-agnostic to data-aware design, and beyond. Blue is designed such that it can be configured to support any of these use cases. 
+Blue is an agent orchestration platform to coordinate data and work in an enterprise AI system, comprised of agents and other components to perform complex tasks with workflows, accessing data, models, and APIs in the enterprise. 
+
+We are building Blue to explore the design space of agent orchestration systems, to support a variety of use-cases: from data and domain-agnostic to data-aware design, from non-interactive use cases to conversational interaction, from fixed workflows to ad-hoc workflows with planners, from purely textual interaction to interactive agents with user interfaces, and beyond. Blue is designed such that it can be configured to support any of these use cases.
+
+A key target use-case of Blue is enterprise, i.e. integrate an existing enterprise infrastructure with advanced AI, LLMs, and beyond for a wide-variety of enterprise use-cases. We aim to leverage what already exist in the enterprise infrastructure, i.e. existing APIs, models, and data in their original source, format, and systems and couple them with new capabilities.
+
+Below is an overview of the Blue infrastructure, with the key touchpoints to an enterprise infrastructure:
 
 ![Stream](./docs/images/overview.png)
 
@@ -19,6 +25,17 @@ In Blue, key components of the AI system are:
 
 </br>
 
+What can you do with it? 
+
+Here are a few examples you can build with blue:
+* a fact-checker API to examine LLM generated text against propriery data (e.g. fact-check resume)
+* a conversational agent that uses backend models and APIs (e.g. career support agent with predictive models and data from insight database)
+* a sophisticated search exploiting LLMs (e.g. search jobs interfacing to ranking models)
+* an interactive graphical user experience for complex workflows (e.g. profile builder)
+* an API to convert user text into database queryes (e.g. natural language to SQL)
+
+</br>
+
 Sounds interesting? Want to learn more? 
 
 Below is an outline of the documentation on this repo:
@@ -27,8 +44,8 @@ Below is an outline of the documentation on this repo:
 * [hello world example](#hello-world-example)
 * [development](#development)
 * [demos](#demos)
-* [generic agents](#generic-agents)
-* [production](#production)
+* [deployment](#deployment)
+* [access control](#access-control)
 
 </br>
 </br>
@@ -42,32 +59,38 @@ Let's start with introducing concepts in blue.
 ## streams
 The central "orchestration" concept in Blue is a `stream`. A stream is essentially a continuous sequence of messages (data, instructions) that can be dynamically produced, monitored, and consumed. For example, a temperature sensor can spit out the current temperature every minute to a stream. In our context, a user typing in text in a chat, for example, asking a question can be a stream, where each word is transmitted as they are typed. An LLM generating text can be another stream, and generated text can be output as they are being generated. 
 
-![Stream](./docs/images/stream.png)
+![Stream](./docs/images/streams.png)
 
-In blue, streams are used in multiple places. Agents consume streams and produce their output into streams. Sessions are also streams, with agents announcing  joining and leaving a session and producing output as a message in the session stream. Planners (or any other agent) instructing other agents to do work is also a message in the stream. As such streams are the main way of passing data and instructions between agents, where an agent can produce a stream (data and instructions) and another agent can consume from the stream. 
+In blue, streams are used in multiple places. Agents consume streams and produce their output into streams. Sessions are also streams, capturing events in the session as a sequence, for example agents joining and leaving a session, producing output data,  are announced as a message in the session stream. Planners (or any other agent) instructing other agents to do work is also a message in the stream. As such streams are the main way of passing data and instructions between agents, where an agent can produce a stream (data and instructions) and another agent can consume from the stream.
 
-Messages can be data and instruction messages, with supported data types of integer, string, and JSON objects.
+Messages in streams can be data and control messages, with supported data types of integer, string, and JSON objects. Messages contain three parts: (1) Label: DATA or CONTROL (2) Contents: Data (3) Content Type. For example, to output a string, the label of the message will be `DATA`, content type will be `STR`, and with the content as the string. 
 
 Streams are tagged by the agent which created the stream. Tags serve multiple purposes but mainly to allow other agents to determine if they are interested to listen to stream.
 
 ## agents
-The central "compute" concept in blue is an agent. An agent basically spawns a worker to monitor to a stream, if it decides to act on it, can process the data and produce output in another stream(s). There might be yet another agent monitoring the output of the first agent and do something on top, and so on. 
+The central "compute" concept in blue is an agent. An agent basically spawns a worker to monitor to a stream, if it decides to act on it, can process the data and produce output into another stream(s). There might be yet another agent monitoring the output of the first agent and do something on top, and so on. Agents can have multiple input and outputs. Each input and output is a separate stream. 
 
-![Agent](./docs/images/agent.png)
+![Agent](./docs/images/agents.png)
 
-Agents have a set of properties which defines options and settings regarding how an agent will operating. Most of the properties are specific to the agent. All agents also define a `listens` property which define `includes` and `excludes` rule to determine which streams to listen to. 
+Agents have a set of properties which defines options and settings regarding how an agent will operating. Most of the properties are specific to the agent, for example they can specify a model to use. There are also properties that each agent have. For example,  all agents  define a `listens` property which define `includes` and `excludes` rule to determine which streams to listen to, for each input parameter.
 
 ### worker
-A worker is a thread of an agent that is basically dedicated to a specific input stream and outputs to a specific output stream. How a worker should process the input stream (processor function) is passed on to the worker from the agent. Similarly an agent's properties are also passed on to any of its workers.
+A worker is a thread of an agent that is basically dedicated to a specific input stream for an input parameter. How a worker should process the input stream (processor function) is defined by the agent. Similarly an agent's properties are also passed on to any of its workers.
+
 
 ## session
 The central "context" concept in Blue is a `session`. A session is initiated by an agent, typically a user agent, and continiously expanded by other agents responding to the initial stream and other streams in the session. Agents are added to a session to orchestrate a response to the initial user input. Once added an agent can listen to any `stream` in the session and decide to follow-up and process data in the stream to produce more streams in the session.
+
+![Session](./docs/images/session.png)
+
+Above picture shows the process in more detail. The user agent creates a new stream and announces it in the session stream through a control message, `ADD STREAM` and specifies the stream's id as well as its tags. Another agent listening to the session stream sees this event and decides to listen to the user stream as its properties contains a listen property that includes `USER` tag.
+
 
 ## memory
 Agents (i.e. agent workers) can store and share data among each other. Data is stored to and retrieved from the `shared memory` at three levels of scope: (a) session (b) stream (c) agent. 
 
 - A worker can put data into the `session memory` which can be seen and retrieved by any agent and its worker in the session. 
-- A worker can further limit the scope of the data to a specificc stream, where data can be seen only by agents (workers) which are working on that specific stream. This is the `stream memory`. 
+- A worker can further limit the scope of the data to a specific stream, where data can be seen only by agents (workers) which are working on that specific stream. This is the `stream memory`. 
 - Finally, a worker can put data into the private `agent memory`  where it can only be seen by the workers of the agent itself.
 
 
@@ -81,7 +104,7 @@ Want to get started? Follow the installation steps below..
 ---
 # installation
 
-Blue can be deployed in two modes: (1) `localhost` (2) `swarm` mode. `localhost` is more suitable for development and `swarm` mode is more suitable for staging and production. Below we describe how you can deploy blue in `localhost` mode and further down we will talk about `swarm` mode when we discuss production mode of deployment.
+Blue can be deployed in two modes: (1) `localhost` (2) `swarm` mode. `localhost` is more suitable for development and `swarm` mode is more suitable for staging and production deployment. Below, we describe how you can install blue in `localhost` mode and further down we will talk about `swarm` mode when we discuss production mode of deployment.
 
 ## requirements
 Blue requires docker engine to build and run the infrastructure and agents. To develop on your local machine you would need to install docker engine from 
@@ -95,11 +118,22 @@ Most of blue scripts require a number of parameters. While you can use the defau
 - `BLUE_DEPLOY_TARGET`, deployment target, `localhost` (default) or `swarm`
 - `BLUE_DEPLOY_PLATFORM`, platform name, `default` (default)
 - `BLUE_DEPLOY_VERSION`, deployment version, `latest` (default)
-- `BLUE_PUBLIC_API_SERVER`, server address for the API , for example, `localhost:5050`
+- `BLUE_DEPLOY_SECURE`, use HTTP vs HTTPS, False or True
+- `BLUE_DEPLOY_DEVELOPMENT`, set development mode, False or True
+- `BLUE_PUBLIC_API_SERVER`, server address for the API, for example, `localhost`
+- `BLUE_PUBLIC_API_SERVER_PORT`, port number for API server, for example, `5050`
+- `BLUE_PUBLIC_API_SERVER_PORT_MAPPED`, port number of API server to expose, for example, `5050`
+- `BLUE_PUBLIC_WEB_SERVER`, server address for the WEB, for example, `localhost`
+- `BLUE_PUBLIC_WEB_SERVER_PORT`, port number for WEB server, for example, `3000`
+- `BLUE_PUBLIC_WEB_SERVER_PORT_MAPPED`, port number of WEB server to expose, for example, `3000`
+- `BLUE_PUBLIC_DB_SERVER`, server address for the DB (redis), for example, `localhost`
+- `BLUE_PUBLIC_DB_SERVER_PORT`, port number for DB server, for example, `6379`
+- `BLUE_PUBLIC_DB_SERVER_PORT_MAPPED`, port number of DB server to expose, for example, `6379`
 - `BLUE_DATA_DIR`, directory hosting daa for blue services, for example `${BLUE_INSTALL_DIR}/data`
 - `BLUE_AGENT_REGISTRY`, agent registry name, `default` (default)
 - `BLUE_DATA_REGISTRY`, data registry name, `default` (default)
-
+- `BLUE_AGENT_REGISTRY_MODEL`, file path to the model file 
+- `BLUE_RBAC_CONFIG_FOLDER`, folder path to the role-based access control configurations
 
 Use of utilities such as [direnv](https://direnv.net/) is strongly encouraged to help management environment variables.
 
@@ -222,18 +256,16 @@ Now we can go back to the `hello world` example...
 To input some text through the user agent, run:
 ```
 $ cd agents/user
-$ python src/user_agent.py --interactive
-[...]
-INFO:root:Started consumer USER for stream SESSION:2f6ecafe
-[...]
+$ python src/user_agent.py --interactive --loglevel ERROR
+Session: SESSION:953b015
 Enter Text: Hello, world!
 ```
 
-Then copy the session the USER agent created (i.e. SESSION:2f6ecafe)  so that another agent can participate in the same session:
+Then copy the session the USER agent created (i.e. SESSION:953b015)  so that another agent can participate in the same session:
 
 ```
 $ cd agents/counter
-$ python src/counter_agent.py --session SESSION:2f6ecafe --loglevel ERROR
+$ python src/counter_agent.py --session SESSION:953b015 --loglevel ERROR
 [...]
 ```
 
@@ -257,7 +289,7 @@ $ ./deploy_service.sh --service websocket_counter --port_mapping 8001:8001 --ima
 And lastly run the agent:
 ```
 $ cd agents/websocket_counter
-$ python src/websocket_counter_agent.py --session SESSION:2f6ecafe --properties='{"counter.service":"ws://localhost:8001"}'
+$ python src/websocket_counter_agent.py --session SESSION:953b015 --properties='{"counter.service":"ws://localhost:8001"}'
 ```
 
 
@@ -281,19 +313,13 @@ To learn more about developing agents yourself please go to [agents](agents) for
 There are more demos in the [demos](demos) folder. Please try them on your own following the documentation in the respective folders.
 
 </br>
-
-# generic agents
-
-There are a number of generic multi-purpose agents which you can either use as templates or find direct use of them in your applications. To learn more about them follow the README under [agents](agents) directory. 
-
-
-</br>
 </br>
 
 ---
 
-# production
+# deployment
 
+B
 The main difference between a `localhost` deployment and a `swarm` deployment is that there are multiple compute nodes where various components can be deployed to. Another key difference is that ccomponents are added as a service where each can be configure with multiple scalability configurations and other service options.
 
 ## clusters
@@ -310,17 +336,8 @@ Each deployment of the platform is named, with a separate network so that each c
 
 ## requirements
 
-As in the `localhost` deployment mode, the production of Blue also requires docker engine to build and run the infrastructure and agents. In addition, docker swarm is used for creating a production infrasructture and docker hub is used as a repository of docker images.
+As in the `localhost` deployment mode, the production of Blue also requires docker engine to build and run the infrastructure and agents. In addition, docker swarm is used for creating a production infrastructure and docker hub is used as a repository of docker images.
 
-## configuration
-
-Below are the environment variables and typical settings for staging and production:
-
-- `BLUE_INSTALL_DIR`, directory containing blue installation, used in deployment scripts
-- `BLUE_DEPLOY_TARGET`, deployment target, swarm should be used for staging and 
-- `BLUE_DEPLOY_PLATFORM`, platform name, reflecting specific deployment/use case
-- `BLUE_PUBLIC_API_SERVER`, server address for the REST API , for example, `10.0.160.75:5050`
-- `BLUE_DATA_DIR`, directory hosting daa for blue services, for example `${BLUE_INSTALL_DIR}/data`, used in deployment scripts
   
 ## setup
 
@@ -396,3 +413,42 @@ and the list should contain three services running: redis, api , and frontend
 
 If you want to see it in action on the web, you can bring up the frontend by browsing to `http://<platform_ip_address>:3000` and the API documentation on `http://<platform_ip_address>:5050/docs#/`
 
+</br>
+
+# access control
+
+### Roles
+#### Administrator
+- `Read` `Write` operations in agent registry for any agent
+- `Read` `Write` operations in data registry for any data
+- administrator tools
+  - deploy and stop agents
+  - update user roles
+- development tools
+  - form designer
+- `Read` `Write` any sessions
+#### Member
+- `Read` operations in agent registry for any agent
+- `Read` operations in data registry for any data
+- `Read` `Write` any sessions that they own / participate
+  - add and modify agent properties for sessions only
+#### Developer
+- `Read` operations in agent registry for any agent
+- `Read` operations in data registry for any data
+- `Write` operations in agent / data registries for any agent / data they created
+  - deploy and stop agents
+- development tools
+  - form designer
+- `Read` `Write` any sessions that they own / participate
+  - add and modify agent properties for sessions only
+#### Guest
+- `Read` operations in agent registry for any agent
+- `Read` operations in data registry for any data
+- `Read` any sessions that they participate
+
+To update role, go to "Users" under "Admin. Tools" menu (you need to be an administrator to do that.)
+### Notes 
+- Participants are members of a session; you can add members under "session details" dialog.
+- Session is owned by the user who created it; ownership it's not transferable.
+- `Write` operations includes `CREATE`, `UPDATE`, and `DELETE`.
+- Role permissions are not configurable through UI: update `model.conf` and `policy.csv` (based on [casbin](https://github.com/casbin/pycasbin)), then restart the API service.

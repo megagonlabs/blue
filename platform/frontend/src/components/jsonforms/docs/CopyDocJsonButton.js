@@ -3,7 +3,10 @@ import { AppToaster } from "@/components/toaster";
 import { Button, Tooltip } from "@blueprintjs/core";
 import { faClipboard, faCopy } from "@fortawesome/pro-duotone-svg-icons";
 import copy from "copy-to-clipboard";
-export default function CopyDocJsonButton({ docJson, copyMessage }) {
+export default function CopyDocJsonButton({
+    docJson,
+    copyMessage = "Copied JSON",
+}) {
     return (
         <Tooltip
             usePortal={false}
@@ -12,8 +15,8 @@ export default function CopyDocJsonButton({ docJson, copyMessage }) {
             content="Copy JSON"
         >
             <Button
-                icon={faIcon({ icon: faCopy })}
                 minimal
+                icon={faIcon({ icon: faCopy })}
                 large
                 onClick={() => {
                     copy(docJson);

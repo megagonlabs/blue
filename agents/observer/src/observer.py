@@ -29,6 +29,7 @@ from agent import Agent, AgentFactory
 from session import Session
 from tqdm import tqdm
 from websocket import create_connection
+from message import Message, MessageType, ContentType, ControlCode
 
 
 # set log level
@@ -47,62 +48,97 @@ class ObserverAgent(Agent):
             kwargs["name"] = "OBSERVER"
         super().__init__(**kwargs)
 
-    def default_processor(self, stream, id, label, value, dtype=None, tags=None, properties=None, worker=None):
+  
+    def _initialize(self, properties=None):
+        super()._initialize(properties=properties)
+
+        # observer is not instructable
+        self.properties['instructable'] = False
+
+    def response_handler(self, stream, properties=None, message={}):
+        try:
+            output = {}
+            if "output" in properties:
+                output = properties["output"]
+            if output.get('type') == "websocket":
+                ws = create_connection(output.get("websocket"))
+                ws.send(json.dumps(message))
+                ws.close()
+            else:
+                logging.info("{} : {}".format(stream, message))
+        except Exception as exception:
+            logging.error("{}: {}".format(stream, exception))
+
+    def default_processor(self, message, input="DEFAULT", properties=None, worker=None):
+        mode = None
+        if 'output' in properties:
+            mode = properties['output'].get('mode', 'batch')
+
+        id = message.getID()
+        stream = message.getStream()
+
+        message_json = json.loads(message.toJSON())
+        label = message_json["label"]
+        contents = message_json["contents"]
+        content_type = message_json["content_type"]
+        if content_type == 'JSON':
+            contents = json.loads(contents)
+
         base_message = {
             "type": "OBSERVER_SESSION_MESSAGE",
             "session_id": properties["session_id"],
             "connection_id": properties["connection_id"],
-            "message": {"type": label, "content": value},
+            "message": {"label": label, "contents": contents, "content_type": content_type},
             "stream": stream,
-            "timestamp": int(str(id).split("-")[0]),
+            "mode": mode,
+            "timestamp": int(id.split("-")[0]),
+            "order": int(id.split("-")[1]),
+            "id": id,
         }
-        if label == "EOS":
+        if message.isEOS():
             # compute stream data
             if worker:
-                data = worker.get_data(stream)
-                if dtype == "json":
-                    json_data = ""
-                    if data is not None:
-                        json_data = json.loads("".join(data))
-                    if len(str_data.strip()) > 0:
+                if mode == 'batch':
+                    data = worker.get_data(stream)
+                    stream_dtype = worker.get_data(f'{stream}:content_type')
+                    if stream_dtype == 'json' and data is not None:
                         try:
-                            if "output" in properties and properties["output"] == "websocket":
-                                ws = create_connection(properties["websocket"])
-                                ws.send(json.dumps({**base_message, "message": {"type": "JSON", "content": json.loads(json_data)}}))
-                                time.sleep(1)
-                                ws.close()
-                            else:
-                                logging.info("{} [{}]: {}".format(stream, ",".join(tags), json_data))
+                            self.response_handler(
+                                stream=stream,
+                                properties=properties,
+                                message={**base_message, "message": {**base_message['message'], "label": "DATA", "contents": [json.loads(json_data) for json_data in data], "content_type": 'JSON'}},
+                            )
                         except Exception as exception:
-                            logging.error("{} [{}]: {}".format(stream, ",".join(tags), exception))
-                else:
-                    str_data = ""
-                    if data is not None:
-                        str_data = str(" ".join(data))
-                    if len(str_data.strip()) > 0:
-                        if "output" in properties and properties["output"] == "websocket":
-                            ws = create_connection(properties["websocket"])
-                            ws.send(json.dumps({**base_message, "message": {"type": "STRING", "content": str_data}}))
-                            time.sleep(1)
-                            ws.close()
-                        else:
-                            logging.info("{} [{}]: {}".format(stream, ",".join(tags), str_data))
-        elif label == "BOS":
+                            logging.error("{} : {}".format(stream, exception))
+                    else:
+                        if len(data) > 0:
+                            self.response_handler(
+                                stream=stream,
+                                properties=properties,
+                                message={**base_message, "message": {**base_message['message'], "label": "DATA", "contents": [map(str, data)], "content_type": 'STR'}},
+                            )
+                elif mode == 'streaming':
+                    self.response_handler(stream=stream, properties=properties, message=base_message)
+        elif message.isBOS():
             # init stream to empty array
             if worker:
-                worker.set_data(stream, [])
-            pass
-        elif label == "DATA":
+                if mode == 'batch':
+                    worker.set_data(stream, [])
+                elif mode == 'streaming':
+                    self.response_handler(stream=stream, properties=properties, message=base_message)
+        elif message.isData():
             # store data value
+            data = message.getData()
+
             if worker:
-                worker.append_data(stream, str(value))
-        elif label == "INTERACTION":
+                if mode == 'batch':
+                    worker.set_data(f'{stream}:content_type', content_type)
+                    worker.append_data(stream, str(data))
+                elif mode == 'streaming':
+                    self.response_handler(stream=stream, properties=properties, message=base_message)
+        elif message.getCode() in [ControlCode.CREATE_FORM, ControlCode.UPDATE_FORM, ControlCode.CLOSE_FORM]:
             # interactive messages
-            if "output" in properties and properties["output"] == "websocket":
-                ws = create_connection(properties["websocket"])
-                ws.send(json.dumps(base_message))
-                time.sleep(1)
-                ws.close()
+            self.response_handler(stream=stream, properties=properties, message=base_message)
 
         return None
 

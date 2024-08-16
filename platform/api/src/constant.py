@@ -1,4 +1,3 @@
-import re
 from jsonschema.validators import Draft7Validator
 import pydash
 
@@ -8,11 +7,9 @@ EMAIL_DOMAIN_ADDRESS_REGEXP = r"@((\w+?\.)+\w+)"
 class InvalidRequestJson(Exception):
     status_code = 422
 
-    def __init__(self, errors, status_code=None):
+    def __init__(self, errors):
         super().__init__()
         self.errors = errors
-        if status_code is not None:
-            self.status_code = status_code
 
 
 def d7validate(validations, payload):
@@ -31,9 +28,16 @@ def d7validate(validations, payload):
         raise InvalidRequestJson(errors)
 
 
-def redisReplace(value, reverse=False):
-    replacements = {'@': '_AT_', '.': '_DOT_'}
-    if reverse:
-        replacements = {'_AT_': '@', '_DOT_': '.'}
-    pattern = '|'.join(sorted(re.escape(char) for char in replacements))
-    return re.sub(pattern, lambda m: replacements.get(m.group(0).upper()), value, flags=re.IGNORECASE)
+from settings import ACL
+
+
+class PermissionDenied(Exception):
+    def __init__(self):
+        super().__init__()
+
+
+def acl_enforce(role, resource, action, throw=True):
+    result = ACL.enforce(role, resource, action)
+    if not result and throw:
+        raise PermissionDenied
+    return result

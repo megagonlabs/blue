@@ -21,6 +21,7 @@ import re
 import csv
 import json
 from utils import json_utils
+from string import Template
 
 import itertools
 from tqdm import tqdm
@@ -33,6 +34,8 @@ from websockets.sync.client import connect
 ###### Blue
 from agent import Agent, AgentFactory
 from session import Session
+from message import Message, MessageType, ContentType, ControlCode
+
 
 
 # set log level
@@ -77,7 +80,13 @@ class APIAgent(Agent):
                 merged_properties[p] = properties[p]
 
         return merged_properties
-
+    
+    def extract_input_params(self, input_data):
+        return {}
+    
+    def extract_output_params(self, output_data):
+        return {}
+    
     def create_message(self, input_data, properties=None):
         message = {}
 
@@ -96,7 +105,9 @@ class APIAgent(Agent):
 
        
         if 'input_template' in properties and properties['input_template'] is not None:
-            input_data = properties['input_template'].format(**properties, input=input_data)
+            input_template = Template(properties['input_template'])
+            input_params = self.extract_input_params(input_data)
+            input_data = input_template.substitute(**properties, **input_params, input=input_data)
 
         # set input text to message
         input_object = input_data
@@ -118,7 +129,9 @@ class APIAgent(Agent):
            
         # apply output template
         if 'output_template' in properties and properties['output_template'] is not None:
-            output_data = properties['output_template'].format(**properties, output=output_data)
+            output_template = Template(properties['output_template'])
+            output_params = self.extract_output_params(output_data)
+            output_data = output_template.substitute(**properties, **output_params, output=output_data)
         return output_data
 
     def validate_input(self, input_data):
@@ -127,54 +140,48 @@ class APIAgent(Agent):
     def process_output(self, output_data):
         return output_data
 
-    def default_processor(self, stream, id, label, data, dtype=None, tags=None, properties=None, worker=None):
+    def handle_api_call(self, stream_data, properties=None):
+        # create message, copying API specific properties
+        input_data = " ".join(stream_data)
+        if not self.validate_input(input_data):
+            return 
+
+        logging.info(input_data)
+        message = self.create_message(input_data, properties=properties)
+
+        # serialize message, call service
+        m = json.dumps(message)
+        r = self.call_service(m)
+
+        response = json.loads(r)
+
+        # create output from response
+        output_data = self.create_output(response)
+
+        # process output data
+        output = self.process_output(output_data)
+
+        return output
+
+    def default_processor(self, message, input="DEFAULT", properties=None, worker=None):
         
-        if label == 'EOS':
+        if message.isEOS():
             # get all data received from stream
             stream_data = ""
             if worker:
                 stream_data = worker.get_data('stream')
 
-            #### call service to compute
-
-            # create message, copying API specific properties
-            input_data = " ".join(stream_data)
-            if not self.validate_input(input_data):
-                return 
-
-            logging.info(input_data)
-            message = self.create_message(input_data, properties=properties)
-
-            # serialize message, call service
-            m = json.dumps(message)
-            r = self.call_service(m)
-
-            response = json.loads(r)
-
-            # create output from response
-            output_data = self.create_output(response)
-
-            # process output data
-            output_data = self.process_output(output_data)
-
-            output_dtype = None
-
-            if type(output_data) == int:
-                output_dtype = 'int'
-            elif type(output_data) == str:
-                output_dtype = 'str'
-            elif type(output_data) == dict:
-                output_dtype = 'json'
-
-            return "DATA", output_data, output_dtype, True
+            #### call api to compute
+            return self.handle_api_call(stream_data, properties=properties)
             
-        elif label == 'BOS':
+        elif message.isBOS():
             # init stream to empty array
             if worker:
                 worker.set_data('stream',[])
             pass
-        elif label == 'DATA':
+        elif message.isData():
             # store data value
+            data = message.getData()
             logging.info(data)
             
             if worker:

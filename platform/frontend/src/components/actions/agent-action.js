@@ -7,6 +7,25 @@ export const agentAction = (dispatch) => ({
             payload,
         });
     },
+    fetchIcon: (payload) => {
+        axios
+            .get(
+                `/registry/${process.env.NEXT_PUBLIC_AGENT_REGISTRY_NAME}/agent/${payload}`
+            )
+            .then((response) => {
+                let icon = _.get(response, "data.result.icon", null);
+                if (!_.isEmpty(icon) && !_.startsWith(icon, "data:image/")) {
+                    icon = _.split(icon, ":");
+                }
+                dispatch({
+                    type: "agent/icon/set",
+                    payload: { key: payload, value: icon },
+                });
+            });
+    },
+    setIcon: (payload) => {
+        dispatch({ type: "agent/icon/set", payload });
+    },
     getList: (payload) => {
         axios
             .get(`/registry/${payload}/agents`)

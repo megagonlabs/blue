@@ -22,7 +22,6 @@ export default function LabelDoc({ closePanel }) {
                 small: false,
                 large: false,
                 style: {},
-                nameId: null,
             },
         },
         null,
@@ -30,7 +29,7 @@ export default function LabelDoc({ closePanel }) {
     );
     return (
         <>
-            <div className="bp-border-bottom" style={{ padding: 10 }}>
+            <div className="bp-border-bottom" style={{ padding: "10px 20px" }}>
                 <Button
                     outlined
                     text="Back"
@@ -145,7 +144,6 @@ export default function LabelDoc({ closePanel }) {
                             </td>
                         </tr>
                         {docProps.style}
-                        {docProps.nameId}
                     </tbody>
                 </HTMLTable>
             </div>

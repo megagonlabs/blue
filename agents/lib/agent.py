@@ -32,7 +32,11 @@ from producer import Producer
 from consumer import Consumer
 from session import Session
 from worker import Worker
+from message import Message, MessageType, ContentType, ControlCode
 
+
+def create_uuid():
+    return str(hex(uuid.uuid4().fields[0]))[2:]
 
 class Agent:
     def __init__(
@@ -83,9 +87,10 @@ class Agent:
         if session:
             self.join_session(session)
 
-        self.aggregate_producer_id = None
-        self.consumer = None
+        # consumer for session stream
+        self.session_consumer = None
 
+        # workers of an agent in a session
         self.workers = []
 
         self._start()
@@ -102,19 +107,28 @@ class Agent:
         self.properties["db.host"] = "localhost"
         self.properties["db.port"] = 6379
 
-        # aggregator (have a single producer for all workers)
-        self.properties["aggregator"] = False
-        self.properties["aggregator.eos"] = "FIRST"
+        # instructable
+        self.properties["instructable"] = True
 
         ### include/exclude list of rules to listen to agents/tags
         listeners = {}
         self.properties["listens"] = listeners
-        listeners["includes"] = [".*"]
-        listeners["excludes"] = [self.name]
+        
+
+        # DEFAULT is the default input parameter
+        default_listeners = {}
+        listeners["DEFAULT"] = default_listeners
+        default_listeners["includes"] = [".*"]
+        default_listeners["excludes"] = []
 
         ### default tags to tag output streams
-        tags = []
+        tags = {}
         self.properties["tags"] = tags
+        
+        # DEFAULT is the default output parameter
+        default_tags = []
+        tags["DEFAULT"] = default_tags
+        
 
     def _update_properties(self, properties=None):
         if properties is None:
@@ -134,47 +148,77 @@ class Agent:
         self.connection = redis.Redis(host=host, port=port, decode_responses=True)
 
     ###### worker
-    def create_worker(self, input_stream, tags=None, id=None):
-        # TODO: REVISE AS PART OF MI/MO
-        # if self.properties['aggregator']:
-        #     # generate unique id for aggregate producer
-        #     if self.aggregate_producer_id is None:
-        #         self.aggregate_producer_id = self.name + ":" + str(hex(uuid.uuid4().fields[0]))[2:]
-        #     # if id not set use aggregate_producer
-        #     if id is None:
-        #         id = self.aggregate_producer_id
+    # input_stream is data stream for input param, default 'DEFAULT' 
+    def create_worker(self, input_stream, input="DEFAULT", context=None, processor=None):
+        # listen 
+        logging.info(
+            "Creating worker for stream {stream} for param {param}...".format(
+                stream=input_stream, param=input
+            )
+        )
+
+        if processor == None:
+            processor = lambda *args, **kwargs: self.processor(*args, **kwargs)
+
+        # set prefix if context provided
+        if context:
+            p = context + ":" + self.sid
+        else:
+            # default agent's cid is prefix
+            p = self.cid
 
         worker = Worker(
             input_stream,
-            prefix=self.cid,
+            input=input,
+            prefix=p,
             agent=self,
-            processor=lambda *args, **kwargs: self.processor(*args, **kwargs, tags=tags),
+            processor=processor,
             session=self.session,
             properties=self.properties,
         )
+
+        self.workers.append(worker)
 
         return worker
 
     ###### default processor, override
     def default_processor(
         self,
-        stream,
-        id,
-        label,
-        data,
-        dtype=None,
-        tags=None,
+        message,
+        input=None,
         properties=None,
         worker=None,
     ):
-        logging.info("default processor: override")
-        logging.info(stream)
-        logging.info(tags)
-        logging.info(id)
-        logging.info(label)
-        logging.info(data)
+        logging.info("default_processor: override")
+        logging.info(message)
+        logging.info(input)
         logging.info(properties)
         logging.info(worker)
+
+    ###### default processor, do not override
+    def _instruction_processor(
+        self,
+        message,
+        input=None,
+        properties=None,
+        worker=None,
+    ):
+        logging.info("instruction processor")
+        logging.info(message)
+        logging.info(input)
+        logging.info(properties)
+        logging.info(worker)
+
+        if message.getCode() == ControlCode.EXECUTE_AGENT:
+            agent = message.getArg("agent")
+            if agent == self.name:
+                context = message.getArg("context")
+                input_streams = message.getArg("input")
+                for input_param in input_streams:
+                    logging.info("l")
+                    self.create_worker(input_streams[input_param], input=input_param, context=context)
+            
+        
 
     ###### session
     def join_session(self, session):
@@ -190,131 +234,164 @@ class Agent:
         if self.session:
             self.session.remove_agent(self)
 
-    def session_listener(self, id, message):
+    def session_listener(self, message):
         # listen to session stream
+        if message.getCode() == ControlCode.ADD_STREAM:
+            
+            stream = message.getArg("stream")
+            tags = message.getArg("tags")
+            agent_cid = message.getArg("agent")
 
-        label = message["label"]
+            # ignore streams from self
+            if agent_cid == self.cid:
+                return
+            
+            # agent define what to listen to using include/exclude expressions
+            logging.info("Checking listener tags...")
+            matched_params = self._match_listen_to_tags(tags)
+            logging.info("Done.")
 
-        if label == "INSTRUCTION":
-            data = json.loads(message["data"])
+            # instructable
+            logging.info("instructable? " + str(self.properties['instructable']))
+            if self.properties['instructable']:
+                if 'INSTRUCTION' in set(tags):
+                    # create a special worker to list to streams with instructions
+                    instruction_worker = self.create_worker(stream, input="INSTRUCTION", processor=lambda *args, **kwargs: self._instruction_processor(*args, **kwargs))
 
-            code = data["code"]
+            # skip
+            if len(matched_params) == 0:
+                logging.info("Skipping stream {stream} with {tags}...".format(stream=stream, tags=tags))
+                return
 
-            if code == "ADD_STREAM":
-                params = data["params"]
+            for param in matched_params:
+                tags = matched_params[param]
+                
 
-                input_stream = params["cid"]
-                tags = params["tags"]
-               
+                # create worker
+                worker = self.create_worker(stream, input=param)
 
-                # agent define what to listen to using include/exclude expressions
-                logging.info("checking match.")
-                matches = self._match_listen_to_tags(tags)
-                logging.info("Done checking match.")
-                if len(matches) == 0:
-                    logging.info("Not listening to {stream} with {tags}...".format(stream=input_stream, tags=tags))
-                    return
-
-                logging.info(
-                    "Spawning worker for stream {stream} with matching tags {matches}...".format(
-                        stream=input_stream, matches=matches
-                    )
-                )
-                session_stream = self.session.get_stream()
-
-                # create and start worker
-                # TODO; pass tag to worker, with parameters
-                worker = self.create_worker(input_stream, tags=matches)
-                self.workers.append(worker)
-
-                logging.info("Spawned worker for stream {stream}...".format(stream=input_stream))
+                logging.info("Spawned worker for stream {stream}...".format(stream=stream))
 
     def _match_listen_to_tags(self, tags):
-        matches = set()
+        matched_params = {}
 
-        includes = self.properties["listens"]["includes"]
-        excludes = self.properties["listens"]["excludes"]
+        # default listeners
+        listeners_by_param = self.properties["listens"]
+        logging.info(json.dumps(listeners_by_param, indent=3))
+        for param in listeners_by_param:
+            matched_tags = set()
 
-        logging.info("includes")
-        for i in includes:
-            logging.info(i)
-            p = None
-            if type(i) == str:
-                p = re.compile(i)
-                for tag in tags:
+            param_listeners = listeners_by_param[param]
+            if 'includes' not in param_listeners:
+                continue
+            includes = param_listeners["includes"]
+            excludes = []
+            if 'excludes' in param_listeners:
+                excludes = param_listeners["excludes"]
+
+            for i in includes:
+                p = None
+                if type(i) == str:
+                    p = re.compile(i)
+                    for tag in tags:
+                        if p.match(tag):
+                            matched_tags.add(tag)
+                            logging.info("Matched include rule: {rule} for param: {param}".format(rule=str(i),param=param))
+                elif type(i) == list:
+                    m = set()
+                    a = True
+                    for ii in i:
+                        logging.info(ii)
+                        p = re.compile(ii)
+                        b = False
+                        for tag in tags:
+                            if p.match(tag):
+                                m.add(tag)
+                                b = True
+                                break
+                        if b:
+                            continue
+                        else:
+                            a = False
+                            break
+                    if a:
+                        matched_tags = matched_tags.union(m)
+                        logging.info("Matched include rule: {rule} for param: {param}".format(rule=str(i),param=param))
+
+            # no matches for param
+            if len(matched_tags) == 0:
+                continue
+
+            # found matched_tags for param
+            matched_params[param] = list(matched_tags)
+
+            for x in excludes:
+                p = None
+                if type(x) == str:
+                    p = re.compile(x)
                     if p.match(tag):
-                        matches.add(tag)
-                        logging.info("Matched include rule: {rule}".format(rule=str(i)))
-            elif type(i) == list:
-                m = set()
-                a = True
-                for ii in i:
-                    logging.info(ii)
-                    p = re.compile(ii)
-                    b = False
-                    for tag in tags:
-                        if p.match(tag):
-                            m.add(tag)
-                            b = True
-                            break
-                    if b:
-                        continue
-                    else:
-                        a = False
+                        logging.info("Matched exclude rule: {rule} for param: {param}".format(rule=str(x),param=param))
+                        # delete match
+                        del matched_params[param] 
                         break
-                if a:
-                    matches = matches.union(m)
-                    logging.info("Matched include rule: {rule}".format(rule=str(i)))
-
-        if len(matches) == 0:
-            return list(matches)
-
-        logging.info("excludes")
-        for x in excludes:
-            logging.info(x)
-            p = None
-            if type(x) == str:
-                p = re.compile(x)
-                if p.match(tag):
-                    logging.info("Matched exclude rule: {rule}".format(rule=str(x)))
-                    return []
-            elif type(x) == list:
-                a = True
-                if len(x) == 0:
-                    a = False
-                for xi in x:
-                    p = re.compile(xi)
-                    b = False
-                    for tag in tags:
-                        if p.match(tag):
-                            b = True
-                            break
-                    if b:
-                        continue
-                    else:
+                elif type(x) == list:
+                    a = True
+                    if len(x) == 0:
                         a = False
+                    for xi in x:
+                        p = re.compile(xi)
+                        b = False
+                        for tag in tags:
+                            if p.match(tag):
+                                b = True
+                                break
+                        if b:
+                            continue
+                        else:
+                            a = False
+                            break
+                    if a:
+                        logging.info("Matched exclude rule: {rule} for param: {param}".format(rule=str(x),param=param))
+                        # delete match
+                        del matched_params[param] 
                         break
-                if a:
-                    logging.info("Matched exclude rule: {rule}".format(rule=str(x)))
-                    return []
 
-        return list(matches)
+        return matched_params
 
-    def interact(self, data):
+    def interact(self, data, output="DEFAULT", unique=True, eos=True):
         if self.session is None:
             logging.error("No current session to interact with.")
             return
+
+        # update output, if unique
+        if unique:
+            output = output + ":" + create_uuid()
 
         # create worker to emit data for session
         worker = self.create_worker(None)
 
         # write data, automatically notify session on BOS
-        worker.write(data)
+        worker.write_data(data, output=output)
+
+        if eos:
+            worker.write_eos(output=output)
+
+    ## data
+    def set_data(self, key, value):
+        self.session.set_agent_data(self, key, value)
+
+    def get_data(self, key):
+        return self.session.get_agent_data(self, key)
+
+    def append_data(self, key, value):
+        self.session.append_agent_data(self, key, value)
+
+    def get_data_len(self, key):
+        return self.session.get_agent_data_len(self, key)
+
 
     def _start(self):
         self._start_connection()
-
-        # logging.info('Starting agent {name}'.format(name=self.name))
 
         # if agent is associated with a session
         if self.session:
@@ -328,13 +405,13 @@ class Agent:
             session_stream = self.session.get_stream()
 
             if session_stream:
-                self.consumer = Consumer(
+                self.session_consumer = Consumer(
                     session_stream,
                     name=self.name,
-                    listener=lambda id, message: self.session_listener(id, message),
+                    listener=lambda message: self.session_listener(message),
                     properties=self.properties,
                 )
-                self.consumer.start()
+                self.session_consumer.start()
 
     def stop(self):
         # leave session
@@ -348,6 +425,8 @@ class Agent:
         # send wait to each worker
         for w in self.workers:
             w.wait()
+        
+    
 
 
 class AgentFactory:
@@ -367,7 +446,7 @@ class AgentFactory:
 
         self._initialize(properties=properties)
 
-        self.consumer = None
+        self.session_consumer = None
 
         # creation time
         self.ct = math.floor(time.time_ns() / 1000000)
@@ -423,43 +502,41 @@ class AgentFactory:
         )
 
     def wait(self):
-        self.consumer.wait()
+        self.session_consumer.wait()
 
     def _start_consumer(self):
         # platform stream
         stream = "PLATFORM:" + self.platform + ":STREAM"
-        self.consumer = Consumer(
+        self.session_consumer = Consumer(
             stream,
             name=self.agent_name + "_FACTORY",
-            listener=lambda id, message: self.platform_listener(id, message),
+            listener=lambda message: self.platform_listener(message),
             properties=self.properties,
         )
-        self.consumer.start()
+        self.session_consumer.start()
 
-    def platform_listener(self, id, message):
+    def platform_listener(self, message):
         # listen to platform stream
 
         logging.info("Processing: " + str(message))
-
-        label = message["label"]
+        id = message.getID()
 
         # only process newer instructions
         mt = int(id.split("-")[0])
+
+        # ignore past instructions
         if mt < self.ct:
             return
 
-        if label == "INSTRUCTION":
-            data = json.loads(message["data"])
-
-            code = data["code"]
-            params = data["params"]
-
-            session = params["session"]
-            registry = params["registry"]
-            agent = params["agent"]
+        # check if join session
+        if message.getCode() == ControlCode.JOIN_SESSION:
+            session = message.getArg("session")
+            registry = message.getArg("registry")
+            agent = message.getArg("agent")
+            
 
             # start with factory properties, merge properties from API call
-            properties_from_api = params["properties"]
+            properties_from_api = message.getArg("properties")
             properties_from_factory = self.properties
             agent_properties = {}
             agent_properties = json_utils.merge_json(agent_properties, properties_from_factory)

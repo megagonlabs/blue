@@ -1,5 +1,4 @@
 ###### OS / Systems
-import os
 import sys
 
 import pydash
@@ -9,20 +8,12 @@ sys.path.append("./lib/")
 sys.path.append("./lib/utils/")
 
 ######
-import time
 import argparse
 import logging
-import time
 import uuid
-import random
 
 ###### Parsers, Formats, Utils
 import re
-import csv
-import json
-
-import itertools
-from tqdm import tqdm
 
 ###### Backend, Databases
 import redis
@@ -31,6 +22,7 @@ from redis.commands.json.path import Path
 ###### Blue
 from producer import Producer
 from session import Session
+from message import Message, MessageType, ContentType, ControlCode
 
 
 class Platform:
@@ -105,15 +97,7 @@ class Platform:
         result = []
         for session_sid in session_sids:
             session = self.get_session(session_sid)
-            metadata = session.get_metadata()
-            result.append(
-                {
-                    "id": session_sid,
-                    "name": pydash.objects.get(metadata, "name", session_sid),
-                    "description": pydash.objects.get(metadata, "description", ""),
-                    "created_date": pydash.objects.get(metadata, "created_date", None),
-                }
-            )
+            result.append(session.to_dict())
         return result
 
     def get_session(self, session_sid):
@@ -126,8 +110,7 @@ class Platform:
 
     def create_session(self):
         session = Session(prefix=self.cid, properties=self.properties)
-        created_date = session.get_metadata('created_date')
-        return {"id": session.sid, "name": session.sid, "description": "", 'created_date': created_date}
+        return session
 
     def delete_session(self, session_sid):
         session_cid = self.cid + ":" + session_sid
@@ -150,12 +133,33 @@ class Platform:
     def join_session(self, session_sid, registry, agent, properties):
 
         session_cid = self.cid + ":" + session_sid
-        code = "JOIN_SESSION"
-        params = {'session': session_cid, 'registry': registry, 'agent': agent, 'properties': properties}
-
-        self._send_message(code, params)
+    
+        args = {}
+        args["session"] = session_cid
+        args["registry"] = registry
+        args["agent"] = agent
+        args["properties"] = properties
+        self.producer.write_control(ControlCode.JOIN_SESSION, args)
 
     ###### METADATA RELATED
+    def create_update_user(self, user):
+        uid = user['uid']
+        # create user profile with guest role if does not exist
+        self.set_metadata(
+            f'users.{uid}',
+            {
+                'uid': user['uid'],
+                'role': 'guest',
+                'email': user['email'],
+                'name': user['name'],
+                'picture': user['picture'],
+            },
+            nx=True,
+        )
+        self.set_metadata(f'users.{uid}.email', user['email'])
+        self.set_metadata(f'users.{uid}.name', user['name'])
+        self.set_metadata(f'users.{uid}.picture', user['picture'])
+
     def __get_json_value(self, value):
         if value is None:
             return None
@@ -172,15 +176,15 @@ class Platform:
         self.connection.json().set(
             self._get_metadata_namespace(),
             "$",
-            {},
+            {'users': {}},
             nx=True,
         )
 
     def _get_metadata_namespace(self):
         return self.cid + ":METADATA"
 
-    def set_metadata(self, key, value):
-        self.connection.json().set(self._get_metadata_namespace(), "$." + key, value)
+    def set_metadata(self, key, value, nx=False):
+        self.connection.json().set(self._get_metadata_namespace(), "$." + key, value, nx=nx)
 
     def get_metadata(self, key=""):
         value = self.connection.json().get(
@@ -193,7 +197,6 @@ class Platform:
     def _start_producer(self):
         # start, if not started
         if self.producer == None:
-            print(self.cid)
             producer = Producer(sid="STREAM", prefix=self.cid, properties=self.properties)
             producer.start()
             self.producer = producer

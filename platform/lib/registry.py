@@ -337,14 +337,15 @@ class Registry:
         return embedding.astype(np.float32).tobytes()
 
     ###### registry functions
-    def register_record(self, name, type, scope, description="", properties={}, rebuild=False):
+    def register_record(self, name, type, scope, icon=None, created_by=None, description="", properties={}, rebuild=False):
         record = {}
         record['name'] = name
         record['type'] = type
         record['scope'] = scope
         record['description'] = description
-
+        record['created_by'] = created_by
         record['properties'] = properties
+        record['icon'] = icon
 
         # default contents
         record['contents'] = {}
@@ -375,11 +376,19 @@ class Registry:
         if 'description' in record:
             description = record['description']
 
+        icon = None
+        if 'icon' in record:
+            icon = record['icon']
+
         properties = {}
         if 'properties' in record:
             properties = record['properties']
 
-        self.register_record(name, type, scope, description=description, properties=properties, rebuild=rebuild)
+        created_by = None
+        if 'created_by' in record:
+            created_by = record['created_by']
+
+        self.register_record(name, type, scope, created_by=created_by, description=description, icon=icon, properties=properties, rebuild=rebuild)
 
         if recursive:
             contents = {}
@@ -389,13 +398,13 @@ class Registry:
                 content = contents[key]
                 self.register_record_json(content, recursive=recursive, rebuild=rebuild)
 
-    def update_record(self, name, type, scope, description="", properties={}, rebuild=False):
+    def update_record(self, name, type, scope, description="", icon=None, properties={}, rebuild=False):
         record = {}
         record['name'] = name
         record['type'] = type
         record['scope'] = scope
         record['description'] = description
-
+        record['icon'] = icon
         record['properties'] = properties
 
         return self.update_record_json(record, rebuild=rebuild)
@@ -412,7 +421,6 @@ class Registry:
 
         # merge
         merged_record = json_utils.merge_json(original_record, record)
-
         # re-register
         self.register_record_json(merged_record, recursive=recursive, rebuild=rebuild)
 

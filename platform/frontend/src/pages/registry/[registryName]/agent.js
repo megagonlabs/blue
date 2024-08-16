@@ -1,4 +1,6 @@
+import AccessDeniedNonIdealState from "@/components/AccessDeniedNonIdealState";
 import { AppContext } from "@/components/contexts/app-context";
+import { AuthContext } from "@/components/contexts/auth-context";
 import { faIcon } from "@/components/icon";
 import Pagination from "@/components/registry/Pagination";
 import RegistryList from "@/components/registry/RegistryList";
@@ -23,7 +25,7 @@ import {
 } from "@fortawesome/pro-duotone-svg-icons";
 import _ from "lodash";
 import { useCallback, useContext, useEffect, useState } from "react";
-export default function Agents() {
+export default function Agent() {
     const { appState, appActions } = useContext(AppContext);
     const [hybrid, setHybrid] = useState(appState.agent.filter.hybrid);
     const [approximate, setApproximate] = useState(
@@ -33,7 +35,7 @@ export default function Agents() {
     const [keywords, setKeywords] = useState(appState.agent.filter.keywords);
     const [page, setPage] = useState(appState.agent.filter.page);
     const [pageSize, setPageSize] = useState(appState.agent.filter.page_size);
-    const agentRegistryName = appState.agent.registryName;
+    const agentRegistryName = process.env.NEXT_PUBLIC_AGENT_REGISTRY_NAME;
     useEffect(() => {
         if (appState.agent.search) {
             return;
@@ -81,6 +83,10 @@ export default function Agents() {
             pageSize,
         });
     }, [hybrid, approximate, type, page, pageSize]);
+    const { permissions } = useContext(AuthContext);
+    if (!permissions.canReadAgentRegistry) {
+        return <AccessDeniedNonIdealState />;
+    }
     return (
         <>
             <div style={{ padding: "20px 20px 10px 20px", display: "flex" }}>
@@ -106,7 +112,7 @@ export default function Agents() {
                 >
                     <ControlGroup fill>
                         <InputGroup
-                            placeholder="Search"
+                            placeholder="Search agents"
                             className={
                                 appState.agent.loading ? Classes.SKELETON : null
                             }
@@ -215,7 +221,7 @@ export default function Agents() {
                                         ].map(({ value, text }, index) => {
                                             return (
                                                 <Radio
-                                                    key={`agent-registry-filter-type-${index}`}
+                                                    key={index}
                                                     className={
                                                         appState.agent.loading
                                                             ? Classes.SKELETON

@@ -1,5 +1,4 @@
 ###### OS / Systems
-import os
 import sys
 from xml.sax.handler import property_dom_node
 
@@ -15,15 +14,9 @@ import argparse
 import logging
 import time
 import uuid
-import random
 
 ###### Parsers, Formats, Utils
-import re
-import csv
 import json
-
-import itertools
-from tqdm import tqdm
 
 ###### Backend, Databases
 import redis
@@ -31,6 +24,7 @@ from redis.commands.json.path import Path
 
 ###### Blue
 from producer import Producer
+from message import Message, MessageType, ContentType, ControlCode
 
 
 class Session:
@@ -97,14 +91,13 @@ class Session:
         self.agents[agent.name] = agent
 
         # add join message
-        label = "INSTRUCTION"
-        data = {}
-        data["code"] = "ADD_AGENT"
-        data["params"] = {}
-        data["params"]["name"] = agent.name
-        data["params"]["sid"] = agent.sid
+        args = {}
+        args["agent"] = agent.name
+        args["session"] = self.cid
+        args["sid"] = agent.sid
+        args["cid"] = agent.cid
 
-        self.producer.write(data=data, dtype="json", label=label, eos=False)
+        self.producer.write_control(ControlCode.ADD_AGENT, args)
 
     def remove_agent(self, agent):
         ### TODO: Purge agent memory, probably not..
@@ -113,15 +106,13 @@ class Session:
             del self.agents[agent.name]
 
         # add leave message
-        label = "INSTRUCTION"
-        data = {}
-        data["code"] = "REMOVE_AGENT"
-        data["params"] = {}
-        data["params"]["name"] = agent.name
-        data["params"]["sid"] = agent.sid
-        data["params"]["cid"] = agent.cid
+        args = {}
+        args["agent"] = agent.name
+        args["session"] = self.cid
+        args["sid"] = agent.sid
+        args["cid"] = agent.cid
 
-        self.producer.write(data=data, dtype="json", label=label, eos=False)
+        self.producer.write_control(ControlCode.REMOVE_AGENT, args)
 
     def list_agents(self):
         ## read stream in producer, scan join/leave events
@@ -129,43 +120,32 @@ class Session:
 
         m = self.producer.read_all()
         for message in m:
-            label = message["label"]
-            if label == "INSTRUCTION":
-                data = json.loads(message["data"])
-                code = data["code"]
-
-                if code == "ADD_AGENT":
-                    params = data["params"]
-                    name = params.get('name', None)
-                    sid = params.get('sid', None)
-                    cid = params.get('cid', None)
-                    agents[sid] = {"name": name, "sid": sid, "cid": cid}
-                if code == "REMOVE_AGENT":
-                    params = data["params"]
-                    sid = params["sid"]
-                    if sid in agents:
-                        del agents[sid]
+            if message.getCode() == ControlCode.ADD_AGENT:
+                name = message.getArg('agent')
+                sid = message.getArg('sid')
+                cid = message.getArg('cid')
+                agents[sid] = {"name": name, "sid": sid, "cid": cid}
+            elif message.getCode() == ControlCode.REMOVE_AGENT:
+                sid = message.getArg('sid')
+                if sid in agents:
+                    del agents[sid]
 
         return list(agents.values())
 
-    def notify(self, worker_stream, tags):
-        # # start producer on first write
-        # self._start_producer()
+    def notify(self, agent, output_stream, tags):
 
         # create data namespace to share data on stream, success = True, if not existing
-        success = self._init_stream_data_namespace(worker_stream)
-        logging.info("inited stream data namespace {} {}".format(worker_stream, success))
+        success = self._init_stream_data_namespace(output_stream)
+        logging.info("inited stream data namespace {} {}".format(output_stream, success))
 
         # add to stream to notify others, unless it exists
         if success:
-            label = "INSTRUCTION"
-            data = {}
-            data["code"] = "ADD_STREAM"
-            data["params"] = {}
-            data["params"]["cid"] = worker_stream
-            data["params"]["tags"] = tags
-
-            self.producer.write(data=data, dtype="json", label=label, eos=False)
+            args = {}
+            args["session"] = self.cid
+            args["agent"] = agent
+            args["stream"] = output_stream
+            args["tags"] = tags
+            self.producer.write_control(ControlCode.ADD_STREAM, args)
 
     ###### DATA/METADATA RELATED
     def __get_json_value(self, value):
@@ -185,19 +165,18 @@ class Session:
         self.connection.json().set(
             self._get_metadata_namespace(),
             "$",
-            {},
+            {"members": {}},
             nx=True,
         )
 
-        if self.get_metadata("created_date") is None:
-            # add created
-            self.set_metadata("created_date", int(time.time()))
+        # add created_date
+        self.set_metadata("created_date", int(time.time()), nx=True)
 
     def _get_metadata_namespace(self):
         return self.cid + ":METADATA"
 
-    def set_metadata(self, key, value):
-        self.connection.json().set(self._get_metadata_namespace(), "$." + key, value)
+    def set_metadata(self, key, value, nx=False):
+        self.connection.json().set(self._get_metadata_namespace(), "$." + key, value, nx=nx)
 
     def get_metadata(self, key=""):
         value = self.connection.json().get(
@@ -312,6 +291,17 @@ class Session:
             Path("$." + key),
         )
 
+    def to_dict(self):
+        metadata = self.get_metadata()
+        return {
+            "id": self.sid,
+            "name": pydash.objects.get(metadata, "name", self.sid),
+            "description": pydash.objects.get(metadata, "description", ""),
+            "created_date": pydash.objects.get(metadata, "created_date", None),
+            "created_by": pydash.objects.get(metadata, "created_by", None),
+            "members": pydash.objects.get(metadata, "members", {}),
+        }
+
     # ## session stream worker data
     # def _init_stream_agent_data_namespace(self, stream, agent):
     #     # create namespaces for stream-specific data
@@ -388,7 +378,7 @@ class Session:
             self.agents[agent_name].stop()
 
         # put EOS to stream
-        self.producer.write(label="EOS")
+        self.producer.write_eos()
 
     def wait(self):
         for agent_name in self.agents:

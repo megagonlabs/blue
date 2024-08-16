@@ -3,7 +3,7 @@ import { rankWith, uiTypeIs } from "@jsonforms/core";
 import { withJsonFormsCellProps } from "@jsonforms/react";
 import _ from "lodash";
 const { Button } = require("@blueprintjs/core");
-const ButtonRenderer = ({ uischema }) => {
+const ButtonRenderer = ({ uischema, path }) => {
     const { socket } = useSocket();
     const socketReadyState = _.get(socket, "readyState", 3);
     const onClickHandler = () => {
@@ -11,14 +11,14 @@ const ButtonRenderer = ({ uischema }) => {
             return;
         }
         setTimeout(() => {
-            const dataId = _.last(_.split(_.get(uischema, "scope", ""), "/"));
             socket.send(
                 JSON.stringify({
                     type: "INTERACTIVE_EVENT_MESSAGE",
                     stream_id: _.get(uischema, "props.streamId", null),
-                    name_id: _.get(uischema, "props.nameId", dataId),
+                    path: path,
+                    action: _.get(uischema, "props.action", null),
                     form_id: _.get(uischema, "props.formId", null),
-                    timestamp: Date.now(),
+                    timestamp: performance.timeOrigin + performance.now(),
                 })
             );
         }, 0);

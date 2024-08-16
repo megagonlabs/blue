@@ -17,11 +17,13 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { useContext } from "react";
 import { Col, Container, Row } from "react-grid-system";
+import { AuthContext } from "../contexts/auth-context";
 export default function RegistryList({ type }) {
     const { appState } = useContext(AppContext);
     const list = appState[type].list;
     const loading = appState[type].loading;
     const router = useRouter();
+    const { permissions } = useContext(AuthContext);
     if (_.isEmpty(list))
         return (
             <div style={{ padding: "0px 20px 20px", height: "100%" }}>
@@ -62,9 +64,16 @@ export default function RegistryList({ type }) {
                     } else if (_.isEqual(type, "data")) {
                         extra = `${properties.connection.protocol}://${properties.connection.host}:${properties.connection.port}`;
                     }
+                    let icon = element.icon;
+                    if (
+                        !_.isEmpty(icon) &&
+                        !_.startsWith(icon, "data:image/")
+                    ) {
+                        icon = _.split(icon, ":");
+                    }
                     return (
                         <Col
-                            key={`registry-list-${element.name}`}
+                            key={element.name}
                             sm={12}
                             md={6}
                             lg={4}
@@ -72,6 +81,8 @@ export default function RegistryList({ type }) {
                             style={{ paddingBottom: 20 }}
                         >
                             <RegistryCard
+                                type={type}
+                                icon={icon}
                                 title={element.name}
                                 description={element.description}
                                 extra={extra}
@@ -81,7 +92,8 @@ export default function RegistryList({ type }) {
                         </Col>
                     );
                 })}
-                {_.includes(["agent"], type) ? (
+                {_.includes(["agent"], type) &&
+                permissions.canWriteAgentRegistry ? (
                     <Col
                         sm={12}
                         md={6}
@@ -89,7 +101,10 @@ export default function RegistryList({ type }) {
                         xxl={3}
                         style={{ paddingBottom: 20 }}
                     >
-                        <Link href={`${router.asPath}/new`}>
+                        <Link
+                            className="no-link-decoration"
+                            href={`${router.asPath}/new`}
+                        >
                             <Card
                                 style={{
                                     minHeight: 127,

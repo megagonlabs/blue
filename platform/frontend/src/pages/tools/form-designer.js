@@ -51,6 +51,14 @@ const DEFAULT_SCHEMA = JSON.stringify(
     null,
     4
 );
+const DEFAULT_UI_SCHEMA = JSON.stringify(
+    {
+        type: "VerticalLayout",
+        elements: [],
+    },
+    null,
+    4
+);
 function FormDesigner() {
     const [error, resetError] = useErrorBoundary();
     const leftPaneRef = createRef();
@@ -58,7 +66,7 @@ function FormDesigner() {
     const [schema, setSchema] = useState({});
     const ssData = sessionStorage.getItem("data");
     const [data, setData] = useState(_.isNil(ssData) ? {} : JSON.parse(ssData));
-    const [jsonUischema, setJsonUischema] = useState("{}");
+    const [jsonUischema, setJsonUischema] = useState(DEFAULT_UI_SCHEMA);
     const [jsonSchema, setJsonSchema] = useState(DEFAULT_SCHEMA);
     const [uiSchemaError, setUiSchemaError] = useState(false);
     const [schemaError, setSchemaError] = useState(false);
@@ -69,6 +77,7 @@ function FormDesigner() {
     useEffect(() => {
         if (error) {
             setIsDocOpen(false);
+            sessionStorage.setItem("isDocOpen", "false");
         }
     }, [error]);
     useEffect(() => {
@@ -150,7 +159,7 @@ function FormDesigner() {
         leftPaneRef.current.resize([50, 50]);
         setUiSchemaError(false);
         setSchemaError(false);
-        setJsonUischema("{}");
+        setJsonUischema(DEFAULT_UI_SCHEMA);
         setJsonSchema(DEFAULT_SCHEMA);
         setResultPanel(true);
         sessionStorage.removeItem("jsonUischema");
@@ -415,11 +424,14 @@ function FormDesigner() {
                                         icon={null}
                                         intent={error ? Intent.DANGER : null}
                                         style={{
+                                            position: "relative",
                                             maxWidth: "min(802.2px, 100%)",
+                                            overflowX: "hidden",
+                                            minWidth: 50,
                                             whiteSpace: "pre-wrap",
                                             wordBreak: "break-all",
                                             width: "fit-content",
-                                            overflow: "hidden",
+                                            minHeight: 21,
                                         }}
                                     >
                                         {!error ? (

@@ -6,7 +6,19 @@ x-blue-common:
   image: python:3.9.0
   environment:
     &blue-common-env
-    BLUE__PROPERTIES: '{"platform.name":"${BLUE_DEPLOY_PLATFORM}", "platform.version":"${BLUE_DEPLOY_VERSION}", "platform.deploy.target":"${BLUE_DEPLOY_TARGET}", "api.server":"${BLUE_PUBLIC_API_SERVER}", "db.host":"blue_db_redis",  "agent_registry.name":"${BLUE_AGENT_REGISTRY}", "data_registry.name":"${BLUE_DATA_REGISTRY}", "embeddings_model":"/blue_data/models/paraphrase-MiniLM-L6-v2"}'
+    BLUE_DEPLOY_PLATFORM: "${BLUE_DEPLOY_PLATFORM}"
+    BLUE_DEPLOY_VERSION: "${BLUE_DEPLOY_VERSION}"
+    BLUE_DEPLOY_TARGET: "${BLUE_DEPLOY_TARGET}"
+    BLUE_DEPLOY_SECURE: "${BLUE_DEPLOY_SECURE}"
+    BLUE_DEPLOY_DEVELOPMENT: "${BLUE_DEPLOY_DEVELOPMENT}"
+    BLUE_PUBLIC_API_SERVER: "${BLUE_PUBLIC_API_SERVER}"
+    BLUE_PUBLIC_API_SERVER_PORT: "${BLUE_PUBLIC_API_SERVER_PORT}"
+    BLUE_PUBLIC_WEB_SERVER: "${BLUE_PUBLIC_WEB_SERVER}"
+    BLUE_PUBLIC_WEB_SERVER_PORT: "${BLUE_PUBLIC_WEB_SERVER_PORT}"
+    BLUE_AGENT_REGISTRY: "${BLUE_AGENT_REGISTRY}"
+    BLUE_DATA_REGISTRY: "${BLUE_DATA_REGISTRY}"
+    BLUE_AGENT_REGISTRY_MODEL: "${BLUE_AGENT_REGISTRY_MODEL}"
+    BLUE_RBAC_CONFIG_FOLDER: "${BLUE_RBAC_CONFIG_FOLDER}"
   depends_on:
     &blue-common-depends-on
     redis:
@@ -21,8 +33,7 @@ services:
         constraints:
           - node.labels.target == db
     ports:
-      - "8000:8000"
-      - "6379:6379"
+      - "${BLUE_PUBLIC_DB_SERVER_PORT_MAPPED}:6379"
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
@@ -40,14 +51,16 @@ services:
     restart: always
 
   api:
-    image: megagonlabs/blue-platform-api:${BLUE_DEPLOY_VERSION}
-    hostname: blue_platform_api:${BLUE_DEPLOY_VERSION}
+    image: blue-platform-api:${BLUE_DEPLOY_VERSION}
+    hostname: blue_platform_api
     deploy:
       placement:
         constraints:
           - node.labels.target == platform
+    depends_on:
+      - redis
     ports:
-      - "5050:5050"
+      - "${BLUE_PUBLIC_API_SERVER_PORT_MAPPED}:5050"
     networks:
       - network_overlay
     volumes:
@@ -62,24 +75,20 @@ services:
     restart: always
 
   frontend:
-    image: megagonlabs/blue-platform-frontend:${BLUE_DEPLOY_VERSION}
-    hostname: blue_platform_frontend:${BLUE_DEPLOY_VERSION}
+    image: blue-platform-frontend:${BLUE_DEPLOY_VERSION}
+    hostname: blue_platform_frontend
     deploy:
       placement:
         constraints:
           - node.labels.target == platform
     ports:
-      - "3000:3000"
+      - "${BLUE_PUBLIC_WEB_SERVER_PORT_MAPPED}:3000"
     networks:
       - network_overlay
     labels:
       blue.platform: "${BLUE_DEPLOY_PLATFORM}.frontend"
     environment:
       <<: *blue-common-env
-      BLUE_PUBLIC_API_SERVER: "${BLUE_PUBLIC_API_SERVER}"
-      BLUE_AGENT_REGISTRY: "${BLUE_AGENT_REGISTRY}"
-      BLUE_DATA_REGISTRY: "${BLUE_DATA_REGISTRY}"
-      BLUE_DEPLOY_PLATFORM: "${BLUE_DEPLOY_PLATFORM}"
     restart: always
 
 networks:

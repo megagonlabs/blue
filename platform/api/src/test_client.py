@@ -1,6 +1,7 @@
 import json
 import random
 import time
+import uuid
 
 from websocket import create_connection
 
@@ -225,20 +226,51 @@ def words(count):
 session_id = input("session_id: ")
 connection_id = input("connection_id: ")
 for _ in range(1):
+    stream_id = f"local-test-client-{int(time.time() * 1000)}"
     sentence_string = sentence()
     words_string = words(random.randint(4, 11))
     ws.send(
         json.dumps(
             {
                 "type": "OBSERVER_SESSION_MESSAGE",
+                "session_id": session_id,
+                "connection_id": connection_id,
+                "message": {'label': "CONTROL", 'contents': {"code": "BOS"}, 'content_type': None},
+                "stream": stream_id,
+                "mode": "streaming",
+                "timestamp": int(time.time() * 1000),
+                "id": str(uuid.uuid4()),
+                "order": 0,
+            }
+        )
+    )
+    ws.send(
+        json.dumps(
+            {
+                "type": "OBSERVER_SESSION_MESSAGE",
                 "connection_id": connection_id,
                 "session_id": session_id,
-                "message": {
-                    "type": "STRING",
-                    "content": random.choice([sentence_string, words_string]),
-                },
-                "stream": f"local-test-client-{int(time.time() * 1000)}",
+                "message": {"label": "DATA", "contents": random.choice([sentence_string, words_string]), "content_type": "STR"},
+                "stream": stream_id,
+                "mode": "streaming",
                 "timestamp": int(time.time() * 1000),
+                "id": str(uuid.uuid4()),
+                "order": 0,
+            }
+        )
+    )
+    ws.send(
+        json.dumps(
+            {
+                "type": "OBSERVER_SESSION_MESSAGE",
+                "session_id": session_id,
+                "connection_id": connection_id,
+                "message": {'label': "CONTROL", 'contents': {"code": 'EOS'}, 'content_type': None},
+                "stream": stream_id,
+                "mode": "streaming",
+                "timestamp": int(time.time() * 1000),
+                "id": str(uuid.uuid4()),
+                "order": 0,
             }
         )
     )
@@ -250,39 +282,59 @@ ws.send(
             "type": "OBSERVER_SESSION_MESSAGE",
             "session_id": session_id,
             "connection_id": connection_id,
-            "message": {
-                "type": "INTERACTION",
-                "content": {
-                    "type": "JSONFORM",
-                    "form_id": 'local-test-client-form-1',
-                    "content": {
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "first_name": {"type": "string"},
-                                "last_name": {"type": "string"},
-                            },
-                        },
-                        "uischema": {
-                            "type": "HorizontalLayout",
-                            "elements": [
-                                {
-                                    "type": "Control",
-                                    "label": "First Name",
-                                    "scope": "#/properties/first_name",
-                                },
-                                {
-                                    "type": "Control",
-                                    "label": "Last Name",
-                                    "scope": "#/properties/last_name",
-                                },
-                            ],
-                        },
-                    },
+            "message": {'label': "CONTROL", 'contents': {"code": "BOS"}, 'content_type': None},
+            "stream": stream_id,
+            "mode": "streaming",
+            "timestamp": int(time.time() * 1000),
+            "id": str(uuid.uuid4()),
+            "order": 0,
+        }
+    )
+)
+json_form = {
+    "code": "CREATE_FORM",
+    "args": {
+        "form_id": 'local-test-client-form-1',
+        "schema": {
+            "type": "object",
+            "properties": {
+                "first_name": {"type": "string"},
+                "last_name": {"type": "string"},
+            },
+        },
+        "uischema": {
+            "type": "HorizontalLayout",
+            "elements": [
+                {
+                    "type": "Control",
+                    "label": "First Name",
+                    "scope": "#/properties/first_name",
                 },
+                {
+                    "type": "Control",
+                    "label": "Last Name",
+                    "scope": "#/properties/last_name",
+                },
+            ],
+        },
+    },
+}
+ws.send(
+    json.dumps(
+        {
+            "type": "OBSERVER_SESSION_MESSAGE",
+            "session_id": session_id,
+            "connection_id": connection_id,
+            "message": {
+                "label": "CONTROL",
+                "contents": json_form,
+                "content_type": 'JSON',
             },
             "stream": stream_id,
+            "mode": "streaming",
             "timestamp": int(time.time() * 1000),
+            "id": str(uuid.uuid4()),
+            "order": 0,
         }
     )
 )
@@ -296,11 +348,14 @@ ws.send(
             "session_id": session_id,
             "connection_id": connection_id,
             "message": {
-                "type": "INTERACTION",
-                "content": {"type": "DONE", "form_id": 'local-test-client-form-1'},
+                "label": "CONTROL",
+                "contents": {"code": "CLOSE_FORM", "args": {"form_id": 'local-test-client-form-1'}},
             },
             "stream": stream_id,
+            "mode": "streaming",
             "timestamp": int(time.time() * 1000),
+            "id": str(uuid.uuid4()),
+            "order": 0,
         }
     )
 )
@@ -311,17 +366,478 @@ ws.send(
             "type": "OBSERVER_SESSION_MESSAGE",
             "session_id": session_id,
             "connection_id": connection_id,
-            "message": {
-                "type": "JSON",
-                "content": {
-                    "type": "DONE",
-                    "form_id": (random.choice([sentence_string, words_string]) + " ") * 3,
-                },
-            },
+            "message": {'label': "CONTROL", 'contents': {"code": "EOS"}, 'content_type': None},
             "stream": stream_id,
+            "mode": "streaming",
             "timestamp": int(time.time() * 1000),
+            "id": str(uuid.uuid4()),
+            "order": 0,
         }
     )
 )
 time.sleep(1)
+stream_id = f"local-test-client-{int(time.time() * 1000)}"
+json_form = {
+    "code": "CREATE_FORM",
+    "args": {
+        "schema": {
+            "type": "object",
+            "properties": {
+                "steps": {
+                    "type": "array",
+                    "title": "Steps",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "from_agent": {
+                                "type": "string",
+                                "enum": [
+                                    "USER",
+                                    "RECORDER",
+                                    "OBSERVER",
+                                    "COORDINATOR",
+                                    "INTERACTIVEPLANNER",
+                                    "GPTPLANNER",
+                                    "NEO4J",
+                                    "POSTGRES",
+                                    "OPENAI",
+                                    "OPENAI_SQLQUERY",
+                                    "FORM",
+                                    "JOBSEARCH",
+                                    "FORM_PROFILER",
+                                    "OPENAI_PLANNER",
+                                ],
+                            },
+                            "from_agent_param": {"type": "string", "enum": ["QUERY", "PROFILE", "RESULT", "JOBSEEKERDATA", "OUTPUT", "CRITERIA", "PROMPT", "TEXT", "JOBS", "DATA", "MATCHES"]},
+                            "to_agent": {
+                                "type": "string",
+                                "enum": [
+                                    "USER",
+                                    "RECORDER",
+                                    "OBSERVER",
+                                    "COORDINATOR",
+                                    "INTERACTIVEPLANNER",
+                                    "GPTPLANNER",
+                                    "NEO4J",
+                                    "POSTGRES",
+                                    "OPENAI",
+                                    "OPENAI_SQLQUERY",
+                                    "FORM",
+                                    "JOBSEARCH",
+                                    "FORM_PROFILER",
+                                    "OPENAI_PLANNER",
+                                ],
+                            },
+                            "to_agent_param": {"type": "string", "enum": ["QUERY", "PROFILE", "RESULT", "JOBSEEKERDATA", "OUTPUT", "CRITERIA", "PROMPT", "TEXT", "JOBS", "DATA", "MATCHES"]},
+                        },
+                    },
+                }
+            },
+        },
+        "data": {
+            "steps": [
+                {"from_agent": "USER", "from_agent_param": "TEXT", "to_agent": "FORM_PROFILER", "to_agent_param": "PROFILE"},
+                {"from_agent": "FORM_PROFILER", "from_agent_param": "PROFILE", "to_agent": "JOBSEARCH", "to_agent_param": "JOBSEEKERDATA"},
+                {"from_agent": "JOBSEARCH", "from_agent_param": "MATCHES", "to_agent": "RECORDER", "to_agent_param": "RESULT"},
+            ],
+            "context": {
+                "scope": "PLATFORM:dev:SESSION:74a7ce7:AGENT:USER:5WgRzdacRdOEvj8JBmCXFZSvWmH3:OUTPUT:TEXT:29051a4d",
+                "streams": {"USER.TEXT": "PLATFORM:dev:SESSION:74a7ce7:AGENT:USER:5WgRzdacRdOEvj8JBmCXFZSvWmH3:OUTPUT:TEXT:29051a4d:STREAM"},
+            },
+        },
+        "uischema": {
+            "type": "VerticalLayout",
+            "elements": [
+                {"type": "Label", "label": "PROPOSED PLAN", "props": {"style": {"fontWeight": "bold"}}},
+                {
+                    "type": "Label",
+                    "label": "Review the proposed plan below and if necessary make appropriate adjustments",
+                    "props": {"muted": True, "style": {"marginBottom": 15, "fontStyle": "italic"}},
+                },
+                {
+                    "type": "VerticalLayout",
+                    "elements": [
+                        {
+                            "type": "Control",
+                            "scope": "#/properties/steps",
+                            "options": {
+                                "detail": {
+                                    "type": "VerticalLayout",
+                                    "elements": [
+                                        {"type": "Label", "label": "From"},
+                                        {
+                                            "type": "HorizontalLayout",
+                                            "elements": [
+                                                {
+                                                    "type": "Control",
+                                                    "scope": "#/properties/from_agent",
+                                                    "props": {"streamId": "PLATFORM:dev:SESSION:74a7ce7:AGENT:INTERACTIVEPLANNER:730d15d5:EVENT:d15ef06d:STREAM", "formId": "d15ef06d"},
+                                                },
+                                                {
+                                                    "type": "Control",
+                                                    "scope": "#/properties/from_agent_param",
+                                                    "props": {"streamId": "PLATFORM:dev:SESSION:74a7ce7:AGENT:INTERACTIVEPLANNER:730d15d5:EVENT:d15ef06d:STREAM", "formId": "d15ef06d"},
+                                                },
+                                            ],
+                                        },
+                                        {"type": "Label", "label": "To"},
+                                        {
+                                            "type": "HorizontalLayout",
+                                            "elements": [
+                                                {
+                                                    "type": "Control",
+                                                    "scope": "#/properties/to_agent",
+                                                    "props": {"streamId": "PLATFORM:dev:SESSION:74a7ce7:AGENT:INTERACTIVEPLANNER:730d15d5:EVENT:d15ef06d:STREAM", "formId": "d15ef06d"},
+                                                },
+                                                {
+                                                    "type": "Control",
+                                                    "scope": "#/properties/to_agent_param",
+                                                    "props": {"streamId": "PLATFORM:dev:SESSION:74a7ce7:AGENT:INTERACTIVEPLANNER:730d15d5:EVENT:d15ef06d:STREAM", "formId": "d15ef06d"},
+                                                },
+                                            ],
+                                        },
+                                    ],
+                                }
+                            },
+                            "props": {"streamId": "PLATFORM:dev:SESSION:74a7ce7:AGENT:INTERACTIVEPLANNER:730d15d5:EVENT:d15ef06d:STREAM", "formId": "d15ef06d"},
+                        }
+                    ],
+                },
+                {
+                    "type": "Button",
+                    "label": "Submit",
+                    "props": {
+                        "intent": "success",
+                        "action": "DONE",
+                        "large": True,
+                        "streamId": "PLATFORM:dev:SESSION:74a7ce7:AGENT:INTERACTIVEPLANNER:730d15d5:EVENT:d15ef06d:STREAM",
+                        "formId": "d15ef06d",
+                    },
+                },
+            ],
+        },
+        "form_id": "d15ef06d",
+    },
+}
+ws.send(
+    json.dumps(
+        {
+            "type": "OBSERVER_SESSION_MESSAGE",
+            "session_id": session_id,
+            "connection_id": connection_id,
+            "message": {'label': "CONTROL", 'contents': {"code": "BOS"}, 'content_type': None},
+            "stream": stream_id,
+            "mode": "streaming",
+            "timestamp": int(time.time() * 1000),
+            "id": str(uuid.uuid4()),
+            "order": 0,
+        }
+    )
+)
+ws.send(
+    json.dumps(
+        {
+            "type": "OBSERVER_SESSION_MESSAGE",
+            "session_id": session_id,
+            "connection_id": connection_id,
+            "message": {
+                "label": "CONTROL",
+                "contents": json_form,
+                "content_type": 'JSON',
+            },
+            "stream": stream_id,
+            "mode": "streaming",
+            "timestamp": int(time.time() * 1000),
+            "id": str(uuid.uuid4()),
+            "order": 0,
+        }
+    )
+)
+ws.send(
+    json.dumps(
+        {
+            "type": "OBSERVER_SESSION_MESSAGE",
+            "session_id": session_id,
+            "connection_id": connection_id,
+            "message": {'label': "CONTROL", 'contents': {"code": "EOS"}, 'content_type': None},
+            "stream": stream_id,
+            "mode": "streaming",
+            "timestamp": int(time.time() * 1000),
+            "id": str(uuid.uuid4()),
+            "order": 0,
+        }
+    )
+)
+time.sleep(1)
+stream_id = f"local-test-client-{int(time.time() * 1000)}"
+ws.send(
+    json.dumps(
+        {
+            "type": "OBSERVER_SESSION_MESSAGE",
+            "session_id": session_id,
+            "connection_id": connection_id,
+            "message": {'label': "CONTROL", 'contents': {"code": "BOS"}, 'content_type': None},
+            "stream": stream_id,
+            "mode": "streaming",
+            "timestamp": int(time.time() * 1000),
+            "id": str(uuid.uuid4()),
+            "order": 0,
+        }
+    )
+)
+ws.send(
+    json.dumps(
+        {
+            "type": "OBSERVER_SESSION_MESSAGE",
+            "session_id": session_id,
+            "connection_id": connection_id,
+            "message": {
+                "label": "DATA",
+                "contents": {
+                    "id": "d15ef06d",
+                    "steps": [["USER.TEXT", "FORM_PROFILER.CRITERIA"], ["FORM_PROFILER.PROFILE", "JOBSEARCH.JOBSEEKERDATA"]],
+                    "context": {
+                        "scope": "PLATFORM:dev:SESSION:74a7ce7:AGENT:USER:5WgRzdacRdOEvj8JBmCXFZSvWmH3:OUTPUT:TEXT:29051a4d",
+                        "streams": {"USER.TEXT": "PLATFORM:dev:SESSION:74a7ce7:AGENT:USER:5WgRzdacRdOEvj8JBmCXFZSvWmH3:OUTPUT:TEXT:29051a4d:STREAM"},
+                    },
+                },
+                "content_type": "JSON",
+            },
+            "stream": stream_id,
+            "mode": "streaming",
+            "timestamp": int(time.time() * 1000),
+            "id": str(uuid.uuid4()),
+            "order": 0,
+        }
+    )
+)
+ws.send(
+    json.dumps(
+        {
+            "type": "OBSERVER_SESSION_MESSAGE",
+            "session_id": session_id,
+            "connection_id": connection_id,
+            "message": {
+                "label": "DATA",
+                "contents": {"name": "John", "current_title": "engineer", "desired_title": "engineer", "desired_location": "mountan view", "skills": "python"},
+                "content_type": "JSON",
+            },
+            "stream": stream_id,
+            "mode": "streaming",
+            "timestamp": int(time.time() * 1000),
+            "id": str(uuid.uuid4()),
+            "order": 0,
+        }
+    )
+)
+ws.send(
+    json.dumps(
+        {
+            "type": "OBSERVER_SESSION_MESSAGE",
+            "session_id": session_id,
+            "connection_id": connection_id,
+            "message": {'label': "CONTROL", 'contents': {"code": 'EOS'}, 'content_type': None},
+            "stream": stream_id,
+            "mode": "streaming",
+            "timestamp": int(time.time() * 1000),
+            "id": str(uuid.uuid4()),
+            "order": 0,
+        }
+    )
+)
+time.sleep(1)
+stream_id = f"local-test-client-{int(time.time() * 1000)}"
+json_form = {
+    "code": "CREATE_FORM",
+    "args": {
+        "schema": {
+            "type": "object",
+            "properties": {"name": {"type": "string"}, "current_title": {"type": "string"}, "desired_title": {"type": "string"}, "desired_location": {"type": "string"}, "skills": {"type": "string"}},
+        },
+        "uischema": {
+            "type": "VerticalLayout",
+            "elements": [
+                {
+                    "type": "VerticalLayout",
+                    "elements": [
+                        {"type": "Label", "label": "Job Search Form", "props": {"large": True, "style": {"marginBottom": 15, "fontSize": "15pt"}}},
+                        {
+                            "type": "Label",
+                            "label": "Please fill out below information about yourself.",
+                            "props": {"large": True, "style": {"marginBottom": 15, "fontSize": "10pt", "fontStyle": "italic"}},
+                        },
+                        {
+                            "type": "HorizontalLayout",
+                            "elements": [
+                                {
+                                    "type": "Control",
+                                    "label": "Name",
+                                    "scope": "#/properties/name",
+                                    "props": {
+                                        "streamId": "PLATFORM:dev:SESSION:74a7ce7:AGENT:USER:5WgRzdacRdOEvj8JBmCXFZSvWmH3:OUTPUT:TEXT:29051a4d:PLAN:d15ef06d:FORM_PROFILER:7c0b0731:EVENT:a7d80949:STREAM",
+                                        "formId": "a7d80949",
+                                    },
+                                }
+                            ],
+                        },
+                        {
+                            "type": "Control",
+                            "label": "Current Title",
+                            "scope": "#/properties/current_title",
+                            "props": {
+                                "streamId": "PLATFORM:dev:SESSION:74a7ce7:AGENT:USER:5WgRzdacRdOEvj8JBmCXFZSvWmH3:OUTPUT:TEXT:29051a4d:PLAN:d15ef06d:FORM_PROFILER:7c0b0731:EVENT:a7d80949:STREAM",
+                                "formId": "a7d80949",
+                            },
+                        },
+                        {
+                            "type": "Control",
+                            "label": "Skills",
+                            "scope": "#/properties/skills",
+                            "props": {
+                                "streamId": "PLATFORM:dev:SESSION:74a7ce7:AGENT:USER:5WgRzdacRdOEvj8JBmCXFZSvWmH3:OUTPUT:TEXT:29051a4d:PLAN:d15ef06d:FORM_PROFILER:7c0b0731:EVENT:a7d80949:STREAM",
+                                "formId": "a7d80949",
+                            },
+                        },
+                        {"type": "Label", "label": " ", "props": {"large": True, "style": {"marginBottom": 15, "fontSize": "12pt", "border-bottom": "thin solid gray"}}},
+                        {"type": "Label", "label": "Job Information", "props": {"large": True, "style": {"marginBottom": 15, "fontSize": "12pt"}}},
+                        {
+                            "type": "Label",
+                            "label": "Please fill out below information about your desired job.",
+                            "props": {"large": True, "style": {"marginBottom": 15, "fontSize": "10pt", "fontStyle": "italic"}},
+                        },
+                        {
+                            "type": "Control",
+                            "label": "Desired Title",
+                            "scope": "#/properties/desired_title",
+                            "props": {
+                                "streamId": "PLATFORM:dev:SESSION:74a7ce7:AGENT:USER:5WgRzdacRdOEvj8JBmCXFZSvWmH3:OUTPUT:TEXT:29051a4d:PLAN:d15ef06d:FORM_PROFILER:7c0b0731:EVENT:a7d80949:STREAM",
+                                "formId": "a7d80949",
+                            },
+                        },
+                        {
+                            "type": "Control",
+                            "label": "Desired Location",
+                            "scope": "#/properties/desired_location",
+                            "props": {
+                                "streamId": "PLATFORM:dev:SESSION:74a7ce7:AGENT:USER:5WgRzdacRdOEvj8JBmCXFZSvWmH3:OUTPUT:TEXT:29051a4d:PLAN:d15ef06d:FORM_PROFILER:7c0b0731:EVENT:a7d80949:STREAM",
+                                "formId": "a7d80949",
+                            },
+                        },
+                    ],
+                },
+                {
+                    "type": "Button",
+                    "label": "Submit",
+                    "props": {
+                        "intent": "success",
+                        "action": "DONE",
+                        "large": True,
+                        "streamId": "PLATFORM:dev:SESSION:74a7ce7:AGENT:USER:5WgRzdacRdOEvj8JBmCXFZSvWmH3:OUTPUT:TEXT:29051a4d:PLAN:d15ef06d:FORM_PROFILER:7c0b0731:EVENT:a7d80949:STREAM",
+                        "formId": "a7d80949",
+                    },
+                },
+            ],
+        },
+        "form_id": "a7d80949",
+    },
+}
+ws.send(
+    json.dumps(
+        {
+            "type": "OBSERVER_SESSION_MESSAGE",
+            "session_id": session_id,
+            "connection_id": connection_id,
+            "message": {'label': "CONTROL", 'contents': {"code": "BOS"}, 'content_type': None},
+            "stream": stream_id,
+            "mode": "streaming",
+            "timestamp": int(time.time() * 1000),
+            "id": str(uuid.uuid4()),
+            "order": 0,
+        }
+    )
+)
+ws.send(
+    json.dumps(
+        {
+            "type": "OBSERVER_SESSION_MESSAGE",
+            "session_id": session_id,
+            "connection_id": connection_id,
+            "message": {
+                "label": "CONTROL",
+                "contents": json_form,
+                "content_type": 'JSON',
+            },
+            "stream": stream_id,
+            "mode": "streaming",
+            "timestamp": int(time.time() * 1000),
+            "id": str(uuid.uuid4()),
+            "order": 0,
+        }
+    )
+)
+ws.send(
+    json.dumps(
+        {
+            "type": "OBSERVER_SESSION_MESSAGE",
+            "session_id": session_id,
+            "connection_id": connection_id,
+            "message": {'label': "CONTROL", 'contents': {"code": "EOS"}, 'content_type': None},
+            "stream": stream_id,
+            "mode": "streaming",
+            "timestamp": int(time.time() * 1000),
+            "id": str(uuid.uuid4()),
+            "order": 0,
+        }
+    )
+)
+time.sleep(1)
+for _ in range(5):
+    stream_id = f"local-test-client-{int(time.time() * 1000)}"
+    sentence_string = sentence()
+    words_string = words(random.randint(4, 11))
+    ws.send(
+        json.dumps(
+            {
+                "type": "OBSERVER_SESSION_MESSAGE",
+                "session_id": session_id,
+                "connection_id": connection_id,
+                "message": {'label': "CONTROL", 'contents': {"code": "BOS"}, 'content_type': None},
+                "stream": stream_id,
+                "mode": "streaming",
+                "timestamp": int(time.time() * 1000),
+                "id": str(uuid.uuid4()),
+                "order": 0,
+            }
+        )
+    )
+    ws.send(
+        json.dumps(
+            {
+                "type": "OBSERVER_SESSION_MESSAGE",
+                "connection_id": connection_id,
+                "session_id": session_id,
+                "message": {"label": "DATA", "contents": random.choice([sentence_string, words_string]), "content_type": "STR"},
+                "stream": stream_id,
+                "mode": "streaming",
+                "timestamp": int(time.time() * 1000),
+                "id": str(uuid.uuid4()),
+                "order": 0,
+            }
+        )
+    )
+    ws.send(
+        json.dumps(
+            {
+                "type": "OBSERVER_SESSION_MESSAGE",
+                "session_id": session_id,
+                "connection_id": connection_id,
+                "message": {'label': "CONTROL", 'contents': {"code": 'EOS'}, 'content_type': None},
+                "stream": stream_id,
+                "mode": "streaming",
+                "timestamp": int(time.time() * 1000),
+                "id": str(uuid.uuid4()),
+                "order": 0,
+            }
+        )
+    )
 ws.close()

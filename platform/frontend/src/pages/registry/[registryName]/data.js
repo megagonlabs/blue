@@ -1,4 +1,6 @@
+import AccessDeniedNonIdealState from "@/components/AccessDeniedNonIdealState";
 import { AppContext } from "@/components/contexts/app-context";
+import { AuthContext } from "@/components/contexts/auth-context";
 import { faIcon } from "@/components/icon";
 import Pagination from "@/components/registry/Pagination";
 import RegistryList from "@/components/registry/RegistryList";
@@ -33,7 +35,7 @@ export default function Data() {
     const [keywords, setKeywords] = useState(appState.data.filter.keywords);
     const [page, setPage] = useState(appState.data.filter.page);
     const [pageSize, setPageSize] = useState(appState.data.filter.page_size);
-    const dataRegistryName = appState.data.registryName;
+    const dataRegistryName = process.env.NEXT_PUBLIC_DATA_REGISTRY_NAME;
     useEffect(() => {
         if (appState.data.search) {
             return;
@@ -81,6 +83,10 @@ export default function Data() {
             pageSize,
         });
     }, [hybrid, approximate, type, page, pageSize]);
+    const { permissions } = useContext(AuthContext);
+    if (!permissions.canReadDataRegistry) {
+        return <AccessDeniedNonIdealState />;
+    }
     return (
         <>
             <div style={{ padding: "20px 20px 10px 20px", display: "flex" }}>
@@ -106,7 +112,7 @@ export default function Data() {
                 >
                     <ControlGroup fill>
                         <InputGroup
-                            placeholder="Search"
+                            placeholder="Search data"
                             large
                             fill
                             className={
@@ -228,7 +234,7 @@ export default function Data() {
                                         ].map(({ value, text }, index) => {
                                             return (
                                                 <Radio
-                                                    key={`data-registry-filter-type-${index}`}
+                                                    key={index}
                                                     className={
                                                         appState.data.loading
                                                             ? Classes.SKELETON

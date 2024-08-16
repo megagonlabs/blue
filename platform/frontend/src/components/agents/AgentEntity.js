@@ -1,4 +1,3 @@
-import { AppContext } from "@/components/contexts/app-context";
 import EntityDescription from "@/components/entity/EntityDescription";
 import EntityMain from "@/components/entity/EntityMain";
 import EntityProperties from "@/components/entity/EntityProperties";
@@ -6,38 +5,49 @@ import {
     constructSavePropertyRequests,
     settlePromises,
 } from "@/components/helper";
+import { faIcon } from "@/components/icon";
 import { AppToaster } from "@/components/toaster";
 import {
+    Button,
     HTMLTable,
     Intent,
     Section,
     SectionCard,
     Tag,
 } from "@blueprintjs/core";
+import { faPlus } from "@fortawesome/pro-duotone-svg-icons";
 import axios from "axios";
 import { diff } from "deep-diff";
 import _ from "lodash";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useContext, useEffect, useState } from "react";
+import { AppContext } from "../contexts/app-context";
 export default function AgentEntity() {
-    const { appState } = useContext(AppContext);
     const router = useRouter();
+    const { appActions } = useContext(AppContext);
     const [entity, setEntity] = useState({});
     const [editEntity, setEditEntity] = useState({});
     const [edit, setEdit] = useState(false);
     const [loading, setLoading] = useState(true);
     const [jsonError, setJsonError] = useState(false);
+    const discard = () => {
+        setEdit(false);
+        setEditEntity(entity);
+    };
     useEffect(() => {
         if (!router.isReady) {
             return;
         }
-        if (_.includes(router.asPath, "/default/new?entity=")) {
-            return;
-        }
         axios.get(router.asPath).then((response) => {
-            setEntity(_.get(response, "data.result", {}));
-            setEditEntity(_.get(response, "data.result", {}));
+            const result = _.get(response, "data.result", {});
+            let icon = _.get(result, "icon", null);
+            if (!_.isEmpty(icon) && !_.startsWith(icon, "data:image/")) {
+                icon = _.split(icon, ":");
+            }
+            _.set(result, "icon", icon);
+            setEntity(result);
+            setEditEntity(result);
             setLoading(false);
         });
     }, [router]);
@@ -47,17 +57,20 @@ export default function AgentEntity() {
         setEditEntity(newEntity);
     };
     const saveEntity = () => {
+        const urlPrefix = `/registry/${process.env.NEXT_PUBLIC_AGENT_REGISTRY_NAME}/agent`;
         setLoading(true);
+        let icon = _.get(editEntity, "icon", null);
+        if (!_.isEmpty(icon) && !_.startsWith(icon, "data:image/")) {
+            icon = _.join(icon, ":");
+        }
         let tasks = [
             new Promise((resolve, reject) => {
                 axios
-                    .put(
-                        `/registry/${appState.agent.registryName}/agents/${entity.name}`,
-                        {
-                            name: entity.name,
-                            description: editEntity.description,
-                        }
-                    )
+                    .put(`${urlPrefix}/${entity.name}`, {
+                        name: entity.name,
+                        description: editEntity.description,
+                        icon: icon,
+                    })
                     .then(() => {
                         resolve(true);
                     })
@@ -74,27 +87,40 @@ export default function AgentEntity() {
         tasks.concat(
             constructSavePropertyRequests({
                 axios,
+                url: `${urlPrefix}/${entity.name}/property`,
                 difference,
-                appState,
-                entity,
                 editEntity,
             })
         );
         settlePromises(tasks, (error) => {
             if (!error) {
                 setEdit(false);
+                appActions.agent.setIcon({
+                    key: entity.name,
+                    value: _.get(editEntity, "icon", null),
+                });
                 setEntity(editEntity);
             }
             setLoading(false);
         });
     };
+    const addInputOutput = (type) => {
+        if (!router.isReady) {
+            return;
+        }
+        let params = _.cloneDeep(_.get(router, "query.pathParams", []));
+        router.push(`/${params.join("/")}/${type}/new`);
+    };
     return (
         <div style={{ padding: "10px 20px 20px" }}>
             <EntityMain
+                enableIcon
                 edit={edit}
                 setEdit={setEdit}
-                entity={entity}
+                entity={editEntity}
+                updateEntity={updateEntity}
                 saveEntity={saveEntity}
+                discard={discard}
                 loading={loading}
                 jsonError={jsonError}
             />
@@ -137,9 +163,7 @@ export default function AgentEntity() {
                                     return null;
                                 }
                                 return (
-                                    <tr
-                                        key={`agent-entity-table-input-${index}`}
-                                    >
+                                    <tr key={index}>
                                         <td>
                                             <Link
                                                 href={`${router.asPath}/input/${element.name}`}
@@ -161,6 +185,18 @@ export default function AgentEntity() {
                                     </tr>
                                 );
                             })}
+                            <tr>
+                                <td colSpan={2}>
+                                    <Button
+                                        icon={faIcon({ icon: faPlus })}
+                                        outlined
+                                        text="Add input"
+                                        onClick={() => {
+                                            addInputOutput("input");
+                                        }}
+                                    />
+                                </td>
+                            </tr>
                         </tbody>
                     </HTMLTable>
                 </SectionCard>
@@ -189,9 +225,7 @@ export default function AgentEntity() {
                                     return null;
                                 }
                                 return (
-                                    <tr
-                                        key={`agent-entity-table-output-${index}`}
-                                    >
+                                    <tr key={index}>
                                         <td>
                                             <Link
                                                 href={`${router.asPath}/output/${element.name}`}
@@ -213,6 +247,18 @@ export default function AgentEntity() {
                                     </tr>
                                 );
                             })}
+                            <tr>
+                                <td colSpan={2}>
+                                    <Button
+                                        icon={faIcon({ icon: faPlus })}
+                                        outlined
+                                        text="Add output"
+                                        onClick={() => {
+                                            addInputOutput("output");
+                                        }}
+                                    />
+                                </td>
+                            </tr>
                         </tbody>
                     </HTMLTable>
                 </SectionCard>

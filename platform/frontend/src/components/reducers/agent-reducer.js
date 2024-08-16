@@ -1,8 +1,11 @@
+import _ from "lodash";
+
 export const defaultState = {
     registryName: process.env.NEXT_PUBLIC_AGENT_REGISTRY_NAME,
     list: [],
     search: false,
     loading: true,
+    icon: {},
     filter: {
         keywords: "",
         hybrid: false,
@@ -13,14 +16,32 @@ export const defaultState = {
     },
 };
 export default function agentReducer(state = defaultState, { type, payload }) {
+    let icon = state.icon;
     switch (type) {
         case "agent/list/set": {
+            for (let i = 0; i < _.size(payload); i++) {
+                let tempIcon = payload[i].icon;
+                if (
+                    !_.isEmpty(tempIcon) &&
+                    !_.startsWith(tempIcon, "data:image/")
+                ) {
+                    tempIcon = _.split(tempIcon, ":");
+                }
+                _.set(icon, payload[i].name, tempIcon);
+            }
             return {
                 ...state,
                 list: payload,
+                icon: icon,
                 filter: defaultState.filter,
                 search: false,
                 loading: false,
+            };
+        }
+        case "agent/icon/set": {
+            return {
+                ...state,
+                icon: { ...state.icon, [payload.key]: payload.value },
             };
         }
         case "agent/search/set": {

@@ -25,10 +25,10 @@ export default function SearchList({ type }) {
                         let link = "",
                             path = [];
                         if (_.isEqual(type, "agent")) {
-                            link = `/agents/${registryName}`;
+                            link = `/registry/${registryName}`;
                             path = ["agent"];
                         } else if (_.isEqual(type, "data")) {
-                            link = `/data/${registryName}`;
+                            link = `/registry/${registryName}`;
                             path = ["source", "database"];
                         }
                         const scopes = item.scope.split("/");

@@ -31,6 +31,7 @@ from agent import Agent, AgentFactory
 from session import Session
 from producer import Producer
 from consumer import Consumer
+from message import Message, MessageType, ContentType, ControlCode
 
 # set log level
 logging.getLogger().setLevel(logging.INFO)
@@ -48,51 +49,54 @@ class TemplateInteractiveAgent(Agent):
             kwargs['name'] = "TEMPLATE_INTERACTIVE"
         super().__init__(**kwargs)
 
-    def default_processor(self, stream, id, label, data, dtype=None, tags=None, properties=None, worker=None):
-        if ":EVENT_MESSAGE:" in stream:
-            if label == "DATA":
-                if worker:
-                    # get INTERACTION stream
-                    # TODO: Instead of figuring out the stream where the ui resided, it should be in the message..
+    def default_processor(self, message, input="DEFAULT", properties=None, worker=None):
+        stream = message.getStream()
 
-                    interaction_stream = stream[:stream.rindex("EVENT_MESSAGE")-1] 
+        if input == "EVENT":
+            if message.isData():
+                if worker:
+                    data = message.getData()
+                    stream = message.getStream()
+                    form_id = data["form_id"]
+                    action = data["action"]
+
+                
+                    # get form stream
+                    form_data_stream = stream.replace("EVENT", "OUTPUT:FORM")
 
                     # when the user clicked DONE
-                    if data["name_id"] == "DONE":
+                    if action == "DONE":
                         # gather all data, check if first_name is set
-                        first_name = worker.get_stream_data(stream=interaction_stream, key="first_name.value")
-                        last_name = worker.get_stream_data(stream=interaction_stream, key="last_name.value")
+                        first_name = worker.get_stream_data("first_name.value", stream=form_data_stream)
+                        last_name = worker.get_stream_data("last_name.value", stream=form_data_stream)
                         first_name_filled = not pydash.is_empty(pydash.strings.trim(first_name))
                         last_name_filled = not pydash.is_empty(pydash.strings.trim(last_name))
-                        
-                        # close previous form and send a new one asking for last_name, in a new form
-                        interactive_stream_producer = Producer(cid=interaction_stream, properties=properties)
-                        interactive_stream_producer.start()
 
                         if not first_name_filled:
-                            return (
-                                "INTERACTION",
-                                {
-                                    "type": "CALLOUT",
-                                    "content": {
-                                        "message": "First name cannot be empty.",
-                                        "intent": "warning",
-                                    },
-                                },
-                                "json",
-                                False,
-                            )
+                            # TODO: REVISE THIS
+                            # Is CALLOUT an UPDATE_FORM event?
+                            # return (
+                            #     "INTERACTION",
+                            #     {
+                            #         "type": "CALLOUT",
+                            #         "content": {
+                            #             "message": "First name cannot be empty.",
+                            #             "intent": "warning",
+                            #         },
+                            #     },
+                            #     "json",
+                            #     False,
+                            # )
+                            pass
                         else:
-                            interactive_stream_producer.write(
-                                label="INTERACTION",
-                                data={
-                                    "type": "DONE",
-                                    "form_id": data["form_id"],
-                                },
-                                dtype="json",
-                            )
+                            # close form
+                            args = {
+                                "form_id": form_id
+                            }
+                            worker.write_control(ControlCode.CLOSE_FORM, args, output="FORM")
+
                             if first_name_filled and not last_name_filled:
-                                interactive_form = {
+                                args = {
                                     "schema": {
                                         "type": "object",
                                         "properties": {"last_name": {"type": "string"}},
@@ -126,45 +130,39 @@ class TemplateInteractiveAgent(Agent):
                                                 "label": "Done",
                                                 "props": {
                                                     "intent": "success",
-                                                    "nameId": "DONE",
+                                                    "action": "DONE",
                                                     "large": True,
                                                 },
                                             },
                                         ],
                                     },
                                 }
-                                return (
-                                    "INTERACTION",
-                                    {
-                                        "type": "JSONFORM",
-                                        "content": interactive_form,
-                                    },
-                                    "json",
-                                    False,
-                                )
+                                
+                                # write ui
+                                worker.write_control(ControlCode.CREATE_FORM, args, output="FORM")
                             elif first_name_filled and last_name_filled:
-                                return ("DATA", f"Hello, {first_name} {last_name}.", "str", True)
+                                return [ "Hello, " + first_name + " " + last_name, Message.EOS ]
                     else:
-                        timestamp = worker.get_stream_data(
-                            stream=interaction_stream, key=f'{data["name_id"]}.timestamp'
-                        )
+                        path = data["path"]
+                        timestamp = worker.get_stream_data(path + ".timestamp", stream=form_data_stream)
                         if timestamp is None or data["timestamp"] > timestamp:
                             worker.set_stream_data(
-                                key=data["name_id"],
-                                value={
+                                path,
+                                {
                                     "value": data["value"],
                                     "timestamp": data["timestamp"],
                                 },
-                                stream=interaction_stream,
+                                stream=form_data_stream
                             )
         else:
-            if label == "EOS":
+            if message.isEOS():
                 stream_message = ""
                 if worker:
                     stream_message = pydash.to_lower(" ".join(worker.get_data(stream)))
+
                 # compute and output to stream
                 if pydash.is_equal(stream_message, "knock knock"):
-                    interactive_form = {
+                    args = {
                         "schema": {
                             "type": "object",
                             "properties": {"first_name": {"type": "string"}},
@@ -198,21 +196,24 @@ class TemplateInteractiveAgent(Agent):
                                     "label": "Done",
                                     "props": {
                                         "intent": "success",
-                                        "nameId": "DONE",
+                                        "action": "DONE",
                                         "large": True,
                                     },
                                 },
                             ],
                         },
                     }
-                    return ("INTERACTION", {"type": "JSONFORM", "content": interactive_form}, "json", False)
-            elif label == "BOS":
+                    # write ui
+                    worker.write_control(ControlCode.CREATE_FORM, args, output="FORM")
+
+            elif message.isBOS():
                 # init stream to empty array
                 if worker:
                     worker.set_data(stream, [])
                 pass
-            elif label == "DATA":
+            elif message.isData():
                 # store data value
+                data = message.getData()
                 logging.info(data)
 
                 if worker:

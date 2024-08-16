@@ -20,7 +20,6 @@ export default function EnumDoc({ closePanel }) {
                 inline: false,
                 helperText: null,
                 style: {},
-                nameId: null,
             },
             scope: "",
             required: false,
@@ -30,7 +29,7 @@ export default function EnumDoc({ closePanel }) {
     );
     return (
         <>
-            <div className="bp-border-bottom" style={{ padding: 10 }}>
+            <div className="bp-border-bottom" style={{ padding: "10px 20px" }}>
                 <Button
                     outlined
                     text="Back"
@@ -86,7 +85,6 @@ export default function EnumDoc({ closePanel }) {
                         {docProps.inline}
                         {docProps.helperText}
                         {docProps.style}
-                        {docProps.nameId}
                     </tbody>
                 </HTMLTable>
             </div>

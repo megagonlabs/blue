@@ -17,57 +17,149 @@ export default function sessionReducer(
     let unreadSessionIds = state.unreadSessionIds;
     let sessionIds = state.sessionIds;
     let terminatedInteraction = state.terminatedInteraction;
+    let sessions = _.cloneDeep(state.sessions);
     switch (type) {
         case "session/sessions/message/add": {
-            const messageType = _.get(payload, "message.type", null);
-            const contentType = _.get(payload, "message.content.type", null);
-            // non-conversational message; not adding to session messages
-            if (
-                _.isEqual(messageType, "INTERACTION") &&
-                _.isEqual(contentType, "DONE")
-            ) {
-                const stream = _.get(payload, "stream", null);
-                const formId = _.get(payload, "message.content.form_id", null);
-                if (!_.isEmpty(stream) && !_.isEmpty(formId)) {
-                    terminatedInteraction.add(`${stream},${formId}`);
-                }
-                return { ...state, terminatedInteraction };
-            } else {
-                if (
-                    !_.startsWith(payload.stream, `USER:${state.connectionId}`)
-                ) {
-                    unreadSessionIds.add(payload.session_id);
-                }
-                if (!_.includes(state.sessionIds, payload.session_id)) {
-                    sessionIds.push(payload.session_id);
-                }
-                // timestamp is unique redis stream entry id
-                let nextMessages = _.unionBy(
-                    [
-                        ..._.get(state, `sessions.${payload.session_id}`, []),
-                        {
-                            message: payload.message,
+            const messageLabel = _.get(payload, "message.label", null);
+            const contentType = _.get(payload, "message.content_type", null);
+            const mode = _.get(payload, "mode", "batch");
+            if (!_.includes(sessionIds, payload.session_id)) {
+                sessionIds.push(payload.session_id);
+            }
+            if (_.isEqual(mode, "streaming")) {
+                let messages = _.get(
+                    sessions,
+                    [payload.session_id, "messages"],
+                    []
+                );
+                let data = _.get(
+                    sessions,
+                    [payload.session_id, "streams", payload.stream, "data"],
+                    []
+                );
+                if (_.isEqual(messageLabel, "CONTROL")) {
+                    const messageContentsCode = _.get(
+                        payload,
+                        "message.contents.code",
+                        null
+                    );
+                    if (_.isEqual(messageContentsCode, "BOS")) {
+                        messages.push({
                             stream: payload.stream,
                             timestamp: payload.timestamp,
-                        },
-                    ],
-                    (element) => element.timestamp
-                );
-                return {
-                    ...state,
-                    sessions: {
-                        ...state.sessions,
-                        [payload.session_id]: _.sortBy(
-                            nextMessages,
-                            function (o) {
-                                return o.timestamp;
+                            order: payload.order,
+                        });
+                        let streams = _.get(
+                            sessions,
+                            [payload.session_id, "streams"],
+                            {}
+                        );
+                        _.set(streams, payload.stream, {
+                            data: [],
+                            contentType: null,
+                            complete: false,
+                        });
+                        _.set(sessions, payload.session_id, {
+                            messages,
+                            streams,
+                        });
+                    } else if (_.isEqual(messageContentsCode, "EOS")) {
+                        if (
+                            !_.includes(
+                                payload.stream,
+                                `USER:${state.connectionId}`
+                            )
+                        ) {
+                            unreadSessionIds.add(payload.session_id);
+                        }
+                        _.set(
+                            sessions,
+                            [
+                                payload.session_id,
+                                "streams",
+                                payload.stream,
+                                "complete",
+                            ],
+                            true
+                        );
+                    } else if (
+                        _.includes(
+                            ["CREATE_FORM", "UPDATE_FORM"],
+                            messageContentsCode
+                        )
+                    ) {
+                        for (let i = _.size(messages) - 1; i >= 0; i--) {
+                            if (_.isEqual(messages[i].stream, payload.stream)) {
+                                messages[i].contentType = "JSON_FORM";
+                                break;
                             }
-                        ),
-                    },
-                    sessionIds,
-                    unreadSessionIds,
-                };
+                        }
+                        data.push({
+                            timestamp: payload.timestamp,
+                            content: _.get(
+                                payload,
+                                "message.contents.args",
+                                null
+                            ),
+                            order: payload.order,
+                            id: payload.id,
+                            dataType: contentType,
+                        });
+                    } else if (_.isEqual(messageContentsCode, "CLOSE_FORM")) {
+                        terminatedInteraction.add(
+                            _.get(
+                                payload,
+                                "message.contents.args.form_id",
+                                null
+                            )
+                        );
+                    }
+                } else if (_.isEqual(messageLabel, "DATA")) {
+                    for (let i = _.size(messages) - 1; i >= 0; i--) {
+                        if (_.isEqual(messages[i].stream, payload.stream)) {
+                            messages[i].contentType = contentType;
+                            break;
+                        }
+                    }
+                    _.set(
+                        sessions,
+                        [
+                            payload.session_id,
+                            "streams",
+                            payload.stream,
+                            "contentType",
+                        ],
+                        contentType
+                    );
+                    data.push({
+                        timestamp: payload.timestamp,
+                        content: _.get(payload, "message.contents", null),
+                        order: payload.order,
+                        id: payload.id,
+                        dataType: contentType,
+                    });
+                }
+                _.set(
+                    sessions,
+                    [payload.session_id, "messages"],
+                    _.sortBy(_.uniqBy(messages, "stream"), [
+                        "timestamp",
+                        "order",
+                    ])
+                );
+                _.set(
+                    sessions,
+                    [payload.session_id, "streams", payload.stream, "data"],
+                    _.sortBy(_.uniqBy(data, "id"), ["timestamp", "order"])
+                );
             }
+            return {
+                ...state,
+                sessions,
+                sessionIds,
+                unreadSessionIds,
+                terminatedInteraction,
+            };
         }
         case "session/state/set": {
             return { ...state, [payload.key]: payload.value };
@@ -90,9 +182,8 @@ export default function sessionReducer(
                 ...state,
                 sessions: {
                     ...state.sessions,
-                    [payload]: [],
+                    [payload]: { messages: [], streams: {} },
                 },
-                sessionIdFocus: payload,
                 sessionIds: [payload, ...state.sessionIds],
             };
         }
