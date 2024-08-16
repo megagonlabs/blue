@@ -26,6 +26,7 @@ import {
     faPencilRuler,
     faUserGroup,
 } from "@fortawesome/pro-duotone-svg-icons";
+import { ReactFlowProvider } from "@xyflow/react";
 import _ from "lodash";
 import Image from "next/image";
 import Link from "next/link";
@@ -424,7 +425,9 @@ export default function App({ children }) {
                 {_.isEmpty(user) ? <AccessDeniedNonIdealState /> : children}
             </div>
             <DebugPanel />
-            <PlanVisualizationPanel />
+            <ReactFlowProvider>
+                <PlanVisualizationPanel />
+            </ReactFlowProvider>
         </div>
     );
 }

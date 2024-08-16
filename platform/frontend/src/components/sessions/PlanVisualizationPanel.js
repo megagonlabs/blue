@@ -1,6 +1,16 @@
-import { Dialog, DialogBody } from "@blueprintjs/core";
-import { faCompassDrafting } from "@fortawesome/pro-duotone-svg-icons";
-import { Background, Panel, ReactFlow } from "@xyflow/react";
+import {
+    Button,
+    ButtonGroup,
+    Card,
+    Dialog,
+    DialogBody,
+    Tooltip,
+} from "@blueprintjs/core";
+import {
+    faCompassDrafting,
+    faExpand,
+} from "@fortawesome/pro-duotone-svg-icons";
+import { Background, Panel, ReactFlow, useReactFlow } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import dagre from "dagre";
 import _ from "lodash";
@@ -40,6 +50,7 @@ const getLayoutedElements = (nodes, edges, direction = "TB") => {
     return { nodes: newNodes, edges };
 };
 export default function PlanVisualizationPanel() {
+    const { fitView } = useReactFlow();
     const { appState, appActions } = useContext(AppContext);
     const initialNodes = _.get(appState, "session.visualization.nodes", []);
     const initialEdges = _.get(appState, "session.visualization.edges", []);
@@ -84,16 +95,33 @@ export default function PlanVisualizationPanel() {
                         edges={edges}
                     >
                         <Background />
-                        {loading ? (
-                            <Panel position="top-left">
-                                {faIcon({
+                        <Panel position="top-left">
+                            {loading ? (
+                                faIcon({
                                     icon: faCompassDrafting,
                                     className: "fa-fade",
                                     style: { color: "#999" },
                                     size: 40,
-                                })}
-                            </Panel>
-                        ) : null}
+                                })
+                            ) : (
+                                <Card style={{ padding: 5 }}>
+                                    <ButtonGroup vertical minimal>
+                                        <Tooltip
+                                            content="Fit view"
+                                            minimal
+                                            placement="right"
+                                        >
+                                            <Button
+                                                onClick={fitView}
+                                                icon={faIcon({
+                                                    icon: faExpand,
+                                                })}
+                                            />
+                                        </Tooltip>
+                                    </ButtonGroup>
+                                </Card>
+                            )}
+                        </Panel>
                     </ReactFlow>
                 </div>
             </DialogBody>
