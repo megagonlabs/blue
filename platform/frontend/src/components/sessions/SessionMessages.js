@@ -26,7 +26,7 @@ const Row = ({ index, data, style }) => {
     const rowRef = useRef({});
     const own = _.includes(
         _.get(messages, [index, "stream"]),
-        `USER:${appState.session.connectionId}`
+        `USER:${appState.session.userId}`
     );
     useEffect(() => {
         if (rowRef.current) {
@@ -217,7 +217,7 @@ export default function SessionMessages() {
     function getRowHeight(index) {
         const own = _.includes(
             _.get(messages, [index, "stream"]),
-            `USER:${appState.session.connectionId}`
+            `USER:${appState.session.userId}`
         );
         return rowHeights.current[index] || 71 + (!own ? 15.43 : 0);
     }

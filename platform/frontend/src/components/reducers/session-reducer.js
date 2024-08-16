@@ -6,7 +6,7 @@ export const defaultState = {
     sessionIds: [],
     sessionIdFocus: null,
     sessionDetail: {},
-    connectionId: null,
+    userId: null,
     unreadSessionIds: new Set(),
     terminatedInteraction: new Set(),
 };
@@ -65,10 +65,7 @@ export default function sessionReducer(
                         });
                     } else if (_.isEqual(messageContentsCode, "EOS")) {
                         if (
-                            !_.includes(
-                                payload.stream,
-                                `USER:${state.connectionId}`
-                            )
+                            !_.includes(payload.stream, `USER:${state.userId}`)
                         ) {
                             unreadSessionIds.add(payload.session_id);
                         }

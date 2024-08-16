@@ -1,4 +1,5 @@
 import { AppContext } from "@/components/contexts/app-context";
+import { Queue } from "@/components/helper";
 import { useSocket } from "@/components/hooks/useSocket";
 import { faIcon } from "@/components/icon";
 import { AppToaster } from "@/components/toaster";
@@ -82,131 +83,75 @@ const ArrayRenderer = ({
         try {
             let visualValue = null;
             if (_.isEqual(visualization, "DAG")) {
-                const position = { x: 0, y: 0 };
-                const edgeType = "smoothstep";
-                let nodes = [
-                    {
-                        id: "1",
-                        data: { label: "input" },
-                        position,
-                    },
-                    {
-                        id: "2",
-                        data: { label: "node 2" },
-                        position,
-                    },
-                    {
-                        id: "2a",
-                        data: { label: "node 2a" },
-                        position,
-                    },
-                    {
-                        id: "2b",
-                        data: { label: "node 2b" },
-                        position,
-                    },
-                    {
-                        id: "2c",
-                        data: { label: "node 2c" },
-                        position,
-                    },
-                    {
-                        id: "2d",
-                        data: { label: "node 2d" },
-                        position,
-                    },
-                    {
-                        id: "3",
-                        data: { label: "node 3" },
-                        position,
-                    },
-                    {
-                        id: "4",
-                        data: { label: "node 4" },
-                        position,
-                    },
-                    {
-                        id: "5",
-                        data: { label: "node 5" },
-                        position,
-                    },
-                    {
-                        id: "6",
-                        data: { label: "output" },
-                        position,
-                    },
-                    {
-                        id: "7",
-                        type: "output",
-                        data: { label: "output" },
-                        position,
-                    },
-                ];
-                let edges = [
-                    {
-                        id: "e12",
-                        source: "1",
-                        target: "2",
+                const edgeType = "agent-param-edge";
+                let fromTo = {},
+                    toFrom = {},
+                    uniqueNodes = new Set();
+                let edges = [];
+                for (let i = 0; i < _.size(data); i++) {
+                    const fromNode = data[i].from_agent,
+                        toNode = data[i].to_agent;
+                    uniqueNodes.add(fromNode);
+                    uniqueNodes.add(toNode);
+                    edges.push({
+                        id: `${fromNode}-${toNode}`,
+                        source: fromNode,
+                        target: toNode,
+                        data: {
+                            fromParam: data[i].from_agent_param,
+                            toParam: data[i].to_agent_param,
+                        },
                         type: edgeType,
                         animated: true,
-                    },
-                    {
-                        id: "e13",
-                        source: "1",
-                        target: "3",
-                        type: edgeType,
-                        animated: true,
-                    },
-                    {
-                        id: "e22a",
-                        source: "2",
-                        target: "2a",
-                        type: edgeType,
-                        animated: true,
-                    },
-                    {
-                        id: "e22b",
-                        source: "2",
-                        target: "2b",
-                        type: edgeType,
-                        animated: true,
-                    },
-                    {
-                        id: "e22c",
-                        source: "2",
-                        target: "2c",
-                        type: edgeType,
-                        animated: true,
-                    },
-                    {
-                        id: "e2c2d",
-                        source: "2c",
-                        target: "2d",
-                        type: edgeType,
-                        animated: true,
-                    },
-                    {
-                        id: "e45",
-                        source: "4",
-                        target: "5",
-                        type: edgeType,
-                        animated: true,
-                    },
-                    {
-                        id: "e56",
-                        source: "5",
-                        target: "6",
-                        type: edgeType,
-                        animated: true,
-                    },
-                    {
-                        id: "e57",
-                        source: "5",
-                        target: "7",
-                        type: edgeType,
-                        animated: true,
-                    },
-                ];
+                    });
+                    if (_.has(fromTo, fromNode)) {
+                        fromTo[fromNode].push(toNode);
+                    } else {
+                        fromTo[fromNode] = [toNode];
+                    }
+                    if (_.has(toFrom, toNode)) {
+                        toFrom[toNode].push(fromNode);
+                    } else {
+                        toFrom[toNode] = [fromNode];
+                    }
+                }
+                const getEndNodes = (dag) => {
+                    let endNodes = new Set(),
+                        visited = new Set(),
+                        next = new Queue();
+                    const nodes = Object.keys(dag);
+                    for (let i = 0; i < _.size(nodes); i++) {
+                        next.enqueue(nodes[i]);
+                    }
+                    while (!next.isEmpty()) {
+                        const current = next.dequeue();
+                        if (visited.has(current)) {
+                            continue;
+                        }
+                        const connected = _.get(dag, current, []);
+                        if (_.isEmpty(connected)) {
+                            // nothing connected to the node
+                            endNodes.add(current);
+                        } else {
+                            for (let i = 0; i < _.size(connected); i++) {
+                                next.enqueue(connected[i]);
+                            }
+                        }
+                        visited.add(current);
+                    }
+                    return endNodes;
+                };
+                let inputNodes = getEndNodes(toFrom),
+                    outputNodes = getEndNodes(fromTo);
+                let nodes = _.toArray(uniqueNodes).map((node) => {
+                    let nodeProps = { id: node, data: { label: node } };
+                    if (inputNodes.has(node)) {
+                        _.set(nodeProps, "type", "input");
+                    } else if (outputNodes.has(node)) {
+                        _.set(nodeProps, "type", "output");
+                    }
+                    return nodeProps;
+                });
                 visualValue = { nodes, edges };
             }
             appActions.session.setState({
@@ -346,6 +291,7 @@ const ArrayRenderer = ({
                 </Tooltip>
                 {_.includes(["DAG"], visualization) ? (
                     <Button
+                        disabled={_.isEmpty(data)}
                         outlined
                         text="Visualize"
                         onClick={setVisualization}

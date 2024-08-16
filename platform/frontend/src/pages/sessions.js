@@ -20,12 +20,14 @@ import {
     MenuItem,
     NonIdealState,
     Popover,
+    Tag,
     TextArea,
     Tooltip,
 } from "@blueprintjs/core";
 import {
     faCaretDown,
     faCircleA,
+    faClipboard,
     faInboxIn,
     faInboxOut,
     faMessages,
@@ -35,6 +37,7 @@ import {
     faSignalStreamSlash,
 } from "@fortawesome/pro-duotone-svg-icons";
 import axios from "axios";
+import copy from "copy-to-clipboard";
 import _ from "lodash";
 import { useCallback, useContext, useEffect, useRef, useState } from "react";
 export default function Sessions() {
@@ -46,7 +49,7 @@ export default function Sessions() {
     const [isSessionDetailOpen, setIsSessionDetailOpen] = useState(false);
     const { socket, reconnectWs } = useSocket();
     const socketReadyState = _.get(socket, "readyState", 3);
-    const { permissions } = useContext(AuthContext);
+    const { permissions, settings } = useContext(AuthContext);
     const { canCreateSessions } = permissions;
     const { authenticating } = useContext(SocketContext);
     const sendSessionMessage = (message) => {
@@ -73,8 +76,12 @@ export default function Sessions() {
                     appActions.session.addSessionMessage(data);
                 } else if (_.isEqual(data["type"], "CONNECTED")) {
                     appActions.session.setState({
-                        key: "connectionId",
+                        key: "userId",
                         value: data.id,
+                    });
+                    appActions.session.setState({
+                        key: "connectionId",
+                        value: data.connection_id,
                     });
                 } else if (_.isEqual(data["type"], "NEW_SESSION_BROADCAST")) {
                     appActions.session.addSession(_.get(data, "session.id"));
@@ -234,7 +241,31 @@ export default function Sessions() {
                             </Tooltip>
                         ) : null}
                     </ButtonGroup>
-                    {!isSocketOpen ? <ReconnectButton /> : null}
+                    {!isSocketOpen ? (
+                        <ReconnectButton />
+                    ) : _.get(settings, "debug_mode", false) ? (
+                        <Tooltip
+                            content="Copy connection ID"
+                            minimal
+                            placement="bottom-end"
+                        >
+                            <Tag
+                                minimal
+                                large
+                                interactive
+                                onClick={() => {
+                                    copy(appState.session.connectionId);
+                                    AppToaster.show({
+                                        icon: faIcon({ icon: faClipboard }),
+                                        message: `Copied "${appState.session.connectionId}"`,
+                                        timeout: 2000,
+                                    });
+                                }}
+                            >
+                                {appState.session.connectionId}
+                            </Tag>
+                        </Tooltip>
+                    ) : null}
                 </div>
                 {_.isEmpty(appState.session.sessionIds) ? (
                     <Card

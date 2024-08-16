@@ -28,6 +28,29 @@ const renderProgress = (progress, requestError = false) => {
     };
 };
 module.exports = {
+    Queue: class Queue {
+        constructor() {
+            this.items = {};
+            this.front = 0;
+            this.back = 0;
+        }
+        enqueue(item) {
+            this.items[this.back] = item;
+            this.back++;
+        }
+        isEmpty() {
+            return _.isEmpty(this.items);
+        }
+        dequeue() {
+            const item = this.items[this.front];
+            delete this.items[this.front];
+            this.front++;
+            return item;
+        }
+        peek() {
+            return this.items[this.front];
+        }
+    },
     getAgentFromStream: (stream) => {
         let agent = {};
         try {

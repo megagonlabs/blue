@@ -7,11 +7,12 @@ import _ from "lodash";
 import { useContext, useState } from "react";
 import { AppContext } from "../contexts/app-context";
 import { faIcon } from "../icon";
-const dagreGraph = new dagre.graphlib.Graph();
-dagreGraph.setDefaultEdgeLabel(() => ({}));
-const NODE_WIDTH = 172;
-const NODE_HEIGHT = 36;
+import AgentParamEdge from "./visualization/AgentParamEdge";
 const getLayoutedElements = (nodes, edges, direction = "TB") => {
+    const dagreGraph = new dagre.graphlib.Graph();
+    dagreGraph.setDefaultEdgeLabel(() => ({}));
+    const NODE_WIDTH = 150;
+    const NODE_HEIGHT = 75;
     const isHorizontal = _.isEqual(direction, "LR");
     dagreGraph.setGraph({ rankdir: direction });
     nodes.forEach((node) => {
@@ -45,6 +46,9 @@ export default function PlanVisualizationPanel() {
     const [loading, setLoading] = useState(false);
     const [nodes, setNodes] = useState([]);
     const [edges, setEdges] = useState([]);
+    const edgeTypes = {
+        "agent-param-edge": AgentParamEdge,
+    };
     return (
         <Dialog
             onOpening={() => {
@@ -52,7 +56,7 @@ export default function PlanVisualizationPanel() {
             }}
             onOpened={() => {
                 const { nodes: layoutedNodes, edges: layoutedEdges } =
-                    getLayoutedElements(initialNodes, initialEdges, "LR");
+                    getLayoutedElements(initialNodes, initialEdges);
                 setNodes(layoutedNodes);
                 setEdges(layoutedEdges);
                 setLoading(false);
@@ -71,11 +75,10 @@ export default function PlanVisualizationPanel() {
             <DialogBody className="dialog-body">
                 <div style={{ height: 500, width: "100%", padding: 15 }}>
                     <ReactFlow
+                        edgeTypes={edgeTypes}
                         nodesDraggable={false}
                         nodesConnectable={false}
                         nodesFocusable={false}
-                        edgesFocusable={false}
-                        elementsSelectable={false}
                         fitView
                         nodes={nodes}
                         edges={edges}
