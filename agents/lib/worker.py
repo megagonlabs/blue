@@ -273,7 +273,8 @@ class Worker:
             # add agents name as a tag
             all_tags.add(self.agent.name)
             # add additional tags from write
-            all_tags = all_tags.union(set(tags))
+            if tags:
+                all_tags = all_tags.union(set(tags))
             # add tags from properties
             if "tags" in self.properties:
                 tags_by_param = self.properties["tags"]
