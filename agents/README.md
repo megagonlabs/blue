@@ -13,10 +13,10 @@ Use below links for quick accces:
   - [memory](#memory)
   - [interactive agents](#interactive-agents)
   - [instructable agents](#instructable-agents)
-- [Template Agents](#templates)
+- [Template Agents](#template-agents)
   - [template agent](#template-agent)
   - [template interactive agent](#template-interactive-agent)
-- [Generic agents](#generic-agents)
+- [Generic Agents](#generic-agents)
 
 </br>
 </br>
@@ -311,7 +311,7 @@ args = {
   }
 ```
 
-When written each form will get a unique form id, or optionally you can set the form id, by passing in an optional parameter (`id=...`).
+When written each form will get a unique form id, or optionally you can set the form id, by passing in an optional parameter (`form_id=...`).
 
 Above specification would render:
 
