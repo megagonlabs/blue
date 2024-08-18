@@ -10,8 +10,8 @@ const BASE_HEIGHT = 300;
 export default function DebugPanel() {
     const handleDrag = useCallback(({ x, y }) => {
         return {
-            x: Math.min(Math.max(10, x), window.innerWidth - 200),
-            y: Math.min(Math.max(10, y), window.innerHeight - 200),
+            x: Math.min(Math.max(100, x), window.innerWidth - 100),
+            y: Math.min(Math.max(100, y), window.innerHeight - 100),
         };
     }, []);
     const [dragRef, reposition] = useFloatingWindow({ onDrag: handleDrag });
@@ -23,13 +23,13 @@ export default function DebugPanel() {
         const resizeRight = () => {
             dialog.style.width = `${Math.min(
                 Math.max(BASE_HEIGHT * 1.5, width + movementX),
-                window.innerWidth - 50
+                window.innerWidth - 200
             )}px`;
         };
         const resizeBottom = () => {
             dialog.style.height = `${Math.min(
                 Math.max(BASE_HEIGHT, height + movementY),
-                window.innerHeight - 50
+                window.innerHeight - 200
             )}px`;
         };
         switch (direction) {
@@ -64,7 +64,7 @@ export default function DebugPanel() {
                     className={classNames(Classes.DIALOG, "margin-0")}
                     ref={resizeRef}
                     style={{
-                        transform: "translate(50px, 50px)",
+                        transform: "translate(100px, 100px)",
                         position: "relative",
                         display: _.get(settings, "debug_mode", false)
                             ? null

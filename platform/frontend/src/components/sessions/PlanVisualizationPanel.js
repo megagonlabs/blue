@@ -17,16 +17,33 @@ import _ from "lodash";
 import { useContext, useState } from "react";
 import { AppContext } from "../contexts/app-context";
 import { faIcon } from "../icon";
-import AgentParamEdge from "./visualization/AgentParamEdge";
+import AgentNode from "./visualization/AgentNode";
+import TransitionEdgeNode from "./visualization/TransitionEdgeNode";
+const getNodeDimension = (node) => {
+    if (_.isEqual(node.type, "agent-node")) {
+        const NODE_PADDING = 10;
+        return {
+            nodeWidth:
+                8.45 * _.size(_.get(node, "data.label", "")) + NODE_PADDING * 2,
+            nodeHeight: 18 + NODE_PADDING * 2,
+        };
+    } else if (_.isEqual(node.type, "transition-edge-node")) {
+        const fromParam = _.get(node, "data.fromParam", null);
+        const toParam = _.get(node, "data.toParam", null);
+        return {
+            nodeWidth: Math.max(_.size(fromParam), _.size(toParam)) * 10 + 12,
+            nodeHeight: 55,
+        };
+    }
+};
 const getLayoutedElements = (nodes, edges, direction = "TB") => {
     const dagreGraph = new dagre.graphlib.Graph();
     dagreGraph.setDefaultEdgeLabel(() => ({}));
-    const NODE_WIDTH = 150;
-    const NODE_HEIGHT = 75;
     const isHorizontal = _.isEqual(direction, "LR");
     dagreGraph.setGraph({ rankdir: direction });
     nodes.forEach((node) => {
-        dagreGraph.setNode(node.id, { width: NODE_WIDTH, height: NODE_HEIGHT });
+        const { nodeWidth, nodeHeight } = getNodeDimension(node);
+        dagreGraph.setNode(node.id, { width: nodeWidth, height: nodeHeight });
     });
     edges.forEach((edge) => {
         dagreGraph.setEdge(edge.source, edge.target);
@@ -34,6 +51,7 @@ const getLayoutedElements = (nodes, edges, direction = "TB") => {
     dagre.layout(dagreGraph);
     const newNodes = nodes.map((node) => {
         const nodeWithPosition = dagreGraph.node(node.id);
+        const { nodeWidth, nodeHeight } = getNodeDimension(node);
         const newNode = {
             ...node,
             targetPosition: isHorizontal ? "left" : "top",
@@ -41,8 +59,8 @@ const getLayoutedElements = (nodes, edges, direction = "TB") => {
             // We are shifting the dagre node position (anchor=center center) to the top left
             // so it matches the React Flow node anchor point (top left).
             position: {
-                x: nodeWithPosition.x - NODE_WIDTH / 2,
-                y: nodeWithPosition.y - NODE_HEIGHT / 2,
+                x: nodeWithPosition.x - nodeWidth / 2,
+                y: nodeWithPosition.y - nodeHeight / 2,
             },
         };
         return newNode;
@@ -57,8 +75,9 @@ export default function PlanVisualizationPanel() {
     const [loading, setLoading] = useState(false);
     const [nodes, setNodes] = useState([]);
     const [edges, setEdges] = useState([]);
-    const edgeTypes = {
-        "agent-param-edge": AgentParamEdge,
+    const nodeTypes = {
+        "agent-node": AgentNode,
+        "transition-edge-node": TransitionEdgeNode,
     };
     return (
         <Dialog
@@ -86,7 +105,7 @@ export default function PlanVisualizationPanel() {
             <DialogBody className="dialog-body">
                 <div style={{ height: 500, width: "100%", padding: 15 }}>
                     <ReactFlow
-                        edgeTypes={edgeTypes}
+                        nodeTypes={nodeTypes}
                         nodesDraggable={false}
                         nodesConnectable={false}
                         nodesFocusable={false}

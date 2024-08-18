@@ -34,6 +34,7 @@ import {
 } from "@jsonforms/react";
 import _ from "lodash";
 import { useContext, useEffect, useMemo } from "react";
+import { v4 as uuidv4 } from "uuid";
 const ArrayRenderer = ({
     label,
     data,
@@ -83,26 +84,45 @@ const ArrayRenderer = ({
         try {
             let visualValue = null;
             if (_.isEqual(visualization, "DAG")) {
-                const edgeType = "agent-param-edge";
                 let fromTo = {},
                     toFrom = {},
-                    uniqueNodes = new Set();
+                    uniqueNodes = new Set(),
+                    nodeIds = {},
+                    transitionNodes = [];
                 let edges = [];
                 for (let i = 0; i < _.size(data); i++) {
                     const fromNode = data[i].from_agent,
                         toNode = data[i].to_agent;
                     uniqueNodes.add(fromNode);
                     uniqueNodes.add(toNode);
-                    edges.push({
-                        id: `${fromNode}-${toNode}`,
-                        source: fromNode,
-                        target: toNode,
+                    if (!_.has(nodeIds, fromNode)) {
+                        nodeIds[fromNode] = uuidv4();
+                    }
+                    if (!_.has(nodeIds, toNode)) {
+                        nodeIds[toNode] = uuidv4();
+                    }
+                    const transitionNodeId = uuidv4();
+                    transitionNodes.push({
+                        id: transitionNodeId,
                         data: {
                             fromParam: data[i].from_agent_param,
                             toParam: data[i].to_agent_param,
                         },
-                        type: edgeType,
+                        type: "transition-edge-node",
+                    });
+                    edges.push({
+                        id: uuidv4(),
+                        source: nodeIds[fromNode],
+                        target: transitionNodeId,
                         animated: true,
+                        style: { strokeWidth: 2 },
+                    });
+                    edges.push({
+                        id: uuidv4(),
+                        source: transitionNodeId,
+                        target: nodeIds[toNode],
+                        animated: true,
+                        style: { strokeWidth: 2 },
                     });
                     if (_.has(fromTo, fromNode)) {
                         fromTo[fromNode].push(toNode);
@@ -144,14 +164,22 @@ const ArrayRenderer = ({
                 let inputNodes = getEndNodes(toFrom),
                     outputNodes = getEndNodes(fromTo);
                 let nodes = _.toArray(uniqueNodes).map((node) => {
-                    let nodeProps = { id: node, data: { label: node } };
+                    let nodeProps = {
+                        id: nodeIds[node],
+                        data: { label: node },
+                        type: "agent-node",
+                    };
                     if (inputNodes.has(node)) {
-                        _.set(nodeProps, "type", "input");
+                        _.set(nodeProps, "data.input", true);
                     } else if (outputNodes.has(node)) {
-                        _.set(nodeProps, "type", "output");
+                        _.set(nodeProps, "data.output", true);
+                    } else {
+                        _.set(nodeProps, "data.input", true);
+                        _.set(nodeProps, "data.output", true);
                     }
                     return nodeProps;
                 });
+                nodes = nodes.concat(transitionNodes);
                 visualValue = { nodes, edges };
             }
             appActions.session.setState({
