@@ -67,8 +67,9 @@ const getLayoutedElements = (nodes, edges, direction = "TB") => {
     });
     return { nodes: newNodes, edges };
 };
+const TRANSITION_OPTION = { duration: 300 };
 export default function PlanVisualizationPanel() {
-    const { fitView } = useReactFlow();
+    const { fitView, zoomIn, setViewport } = useReactFlow();
     const { appState, appActions } = useContext(AppContext);
     const initialNodes = _.get(appState, "session.visualization.nodes", []);
     const initialEdges = _.get(appState, "session.visualization.edges", []);
@@ -131,7 +132,9 @@ export default function PlanVisualizationPanel() {
                                             placement="right"
                                         >
                                             <Button
-                                                onClick={fitView}
+                                                onClick={() => {
+                                                    fitView(TRANSITION_OPTION);
+                                                }}
                                                 icon={faIcon({
                                                     icon: faExpand,
                                                 })}
