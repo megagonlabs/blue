@@ -21,10 +21,10 @@ import AgentNode from "./visualization/AgentNode";
 import TransitionEdgeNode from "./visualization/TransitionEdgeNode";
 const getNodeDimension = (node) => {
     if (_.isEqual(node.type, "agent-node")) {
+        const label = _.get(node, "data.label", "");
         const NODE_PADDING = 10;
         return {
-            nodeWidth:
-                8.45 * _.size(_.get(node, "data.label", "")) + NODE_PADDING * 2,
+            nodeWidth: 8.45 * _.size(label) + NODE_PADDING * 2,
             nodeHeight: 18 + NODE_PADDING * 2,
         };
     } else if (_.isEqual(node.type, "transition-edge-node")) {
@@ -41,10 +41,13 @@ const getLayoutedElements = (nodes, edges, direction = "TB") => {
     dagreGraph.setDefaultEdgeLabel(() => ({}));
     const isHorizontal = _.isEqual(direction, "LR");
     dagreGraph.setGraph({ rankdir: direction });
-    nodes.forEach((node) => {
+    for (let i = 0; i < _.size(nodes); i++) {
+        const node = nodes[i];
         const { nodeWidth, nodeHeight } = getNodeDimension(node);
         dagreGraph.setNode(node.id, { width: nodeWidth, height: nodeHeight });
-    });
+        _.set(nodes, [i, "style", "width"], nodeWidth);
+        _.set(nodes, [i, "style", "height"], nodeHeight);
+    }
     edges.forEach((edge) => {
         dagreGraph.setEdge(edge.source, edge.target);
     });
@@ -69,7 +72,7 @@ const getLayoutedElements = (nodes, edges, direction = "TB") => {
 };
 const TRANSITION_OPTION = { duration: 300 };
 export default function PlanVisualizationPanel() {
-    const { fitView, zoomIn, setViewport } = useReactFlow();
+    const { fitView } = useReactFlow();
     const { appState, appActions } = useContext(AppContext);
     const initialNodes = _.get(appState, "session.visualization.nodes", []);
     const initialEdges = _.get(appState, "session.visualization.edges", []);

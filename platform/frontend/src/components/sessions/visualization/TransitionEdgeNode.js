@@ -1,4 +1,4 @@
-import { Tag } from "@blueprintjs/core";
+import { Intent, Tag } from "@blueprintjs/core";
 import { Handle, Position } from "@xyflow/react";
 import _ from "lodash";
 export default function TransitionEdgeNode({ data }) {
@@ -14,8 +14,12 @@ export default function TransitionEdgeNode({ data }) {
                     padding: 5,
                 }}
             >
-                <Tag minimal>{_.get(data, "fromParam", null)}</Tag>
-                <Tag minimal>{_.get(data, "toParam", null)}</Tag>
+                <Tag minimal intent={Intent.PRIMARY}>
+                    {_.get(data, "fromParam", null)}
+                </Tag>
+                <Tag minimal intent={Intent.PRIMARY}>
+                    {_.get(data, "toParam", null)}
+                </Tag>
             </div>
             <Handle type="source" position={Position.Bottom} />
         </>

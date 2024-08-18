@@ -88,7 +88,8 @@ const ArrayRenderer = ({
                     toFrom = {},
                     uniqueNodes = new Set(),
                     nodeIds = {},
-                    transitionNodes = [];
+                    transitionNodes = [],
+                    edgeType = "smoothstep";
                 let edges = [];
                 for (let i = 0; i < _.size(data); i++) {
                     const fromNode = data[i].from_agent,
@@ -115,6 +116,7 @@ const ArrayRenderer = ({
                         source: nodeIds[fromNode],
                         target: transitionNodeId,
                         animated: true,
+                        type: edgeType,
                         style: { strokeWidth: 2 },
                     });
                     edges.push({
@@ -122,6 +124,7 @@ const ArrayRenderer = ({
                         source: transitionNodeId,
                         target: nodeIds[toNode],
                         animated: true,
+                        type: edgeType,
                         style: { strokeWidth: 2 },
                     });
                     if (_.has(fromTo, fromNode)) {
