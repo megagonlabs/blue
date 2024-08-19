@@ -51,7 +51,7 @@ const ArrayRenderer = ({
     moveDown,
 }) => {
     const { socket } = useSocket();
-    const { appActions } = useContext(AppContext);
+    const { appState, appActions } = useContext(AppContext);
     const childUiSchema = useMemo(
         () =>
             findUISchema(
@@ -94,6 +94,12 @@ const ArrayRenderer = ({
                 for (let i = 0; i < _.size(data); i++) {
                     const fromNode = data[i].from_agent,
                         toNode = data[i].to_agent;
+                    if (!_.has(appState, ["agent", "icon", fromNode])) {
+                        appActions.agent.fetchIcon(fromNode);
+                    }
+                    if (!_.has(appState, ["agent", "icon", toNode])) {
+                        appActions.agent.fetchIcon(toNode);
+                    }
                     uniqueNodes.add(fromNode);
                     uniqueNodes.add(toNode);
                     if (!_.has(nodeIds, fromNode)) {

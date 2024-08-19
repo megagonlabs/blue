@@ -24,8 +24,8 @@ const getNodeDimension = (node) => {
         const label = _.get(node, "data.label", "");
         const NODE_PADDING = 10;
         return {
-            nodeWidth: 8.45 * _.size(label) + NODE_PADDING * 2,
-            nodeHeight: 18 + NODE_PADDING * 2,
+            nodeWidth: 8.45 * _.size(label) + NODE_PADDING * 2 + 40 + 15,
+            nodeHeight: 40 + NODE_PADDING * 2,
         };
     } else if (_.isEqual(node.type, "transition-edge-node")) {
         const fromParam = _.get(node, "data.fromParam", null);
