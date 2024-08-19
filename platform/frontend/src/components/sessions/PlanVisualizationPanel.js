@@ -31,7 +31,8 @@ const getNodeDimension = (node) => {
         const fromParam = _.get(node, "data.fromParam", null);
         const toParam = _.get(node, "data.toParam", null);
         return {
-            nodeWidth: Math.max(_.size(fromParam), _.size(toParam)) * 10 + 12,
+            nodeWidth:
+                Math.max(_.size(fromParam), _.size(toParam)) * 10 + 12 + 10,
             nodeHeight: 55,
         };
     }
