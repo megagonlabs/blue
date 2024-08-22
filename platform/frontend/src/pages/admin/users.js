@@ -151,7 +151,9 @@ export default function Users() {
                     </Tooltip>
                     <Divider />
                     <Button
-                        disabled={_.isEmpty(appState.admin.selectedUsers)}
+                        disabled={
+                            _.isEmpty(appState.admin.selectedUsers) || loading
+                        }
                         onClick={() => setIsRoleConfigOpen(true)}
                         icon={faIcon({ icon: faStamp })}
                         text="Update role(s)"

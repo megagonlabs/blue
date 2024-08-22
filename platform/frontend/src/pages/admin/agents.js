@@ -1,12 +1,14 @@
 import AccessDeniedNonIdealState from "@/components/AccessDeniedNonIdealState";
+import AdminAgentListCheckbox from "@/components/admin/AdminAgentListCheckbox";
 import { CONTAINER_STATUS_INDICATOR } from "@/components/constant";
+import { AppContext } from "@/components/contexts/app-context";
 import { AuthContext } from "@/components/contexts/auth-context";
 import { faIcon } from "@/components/icon";
+import { AppToaster } from "@/components/toaster";
 import {
     Button,
     ButtonGroup,
     Card,
-    Checkbox,
     Divider,
     Intent,
     NonIdealState,
@@ -32,9 +34,47 @@ import _ from "lodash";
 import { useContext, useEffect, useState } from "react";
 import ReactTimeAgo from "react-time-ago";
 export default function Agents() {
+    const { appState } = useContext(AppContext);
     const [tableKey, setTableKey] = useState(Date.now());
     const [loading, setLoading] = useState(true);
     const [data, setData] = useState([]);
+    const stopSelectedAgents = async () => {
+        const selectedAgents = _.toArray(appState.admin.selectedAgents);
+        let tasks = [];
+        for (let i = 0; i < _.size(selectedAgents); i++) {
+            tasks.push(
+                new Promise((resolve, reject) => {
+                    axios
+                        .delete(`/containers/agents/agent/${selectedAgents[i]}`)
+                        .then(() => {
+                            resolve(selectedAgents[i]);
+                        })
+                        .catch((error) => {
+                            AppToaster.show({
+                                intent: Intent.DANGER,
+                                message: `${error.name}: ${error.message}`,
+                            });
+                            reject(selectedAgents[i]);
+                        });
+                })
+            );
+        }
+        const result = await Promise.allSettled(tasks);
+        let stoppedAgents = new Set();
+        for (let i = 0; i < _.size(result); i++) {
+            if (_.isEqual(result[i].status, "fulfilled")) {
+                stoppedAgents.add(result[i].value);
+            }
+        }
+        if (!_.isEmpty(stoppedAgents)) {
+            const size = _.size(stoppedAgents);
+            let message = `Stopped ${size} agents`;
+            if (size == 1) {
+                message = `Stopped ${_.toArray(stoppedAgents)[0]} agent`;
+            }
+            AppToaster.show({ intent: Intent.SUCCESS, message });
+        }
+    };
     const fetchContainerList = () => {
         setLoading(true);
         axios.get("/containers/agents").then((response) => {
@@ -50,9 +90,9 @@ export default function Agents() {
         {
             name: <div>&nbsp;</div>,
             key: "checkbox",
-            cellRenderer: () => (
+            cellRenderer: ({ rowIndex, data }) => (
                 <Cell style={{ lineHeight: `${TABLE_CELL_HEIGHT - 1}px` }}>
-                    <Checkbox large className="margin-0" />
+                    <AdminAgentListCheckbox rowIndex={rowIndex} data={data} />
                 </Cell>
             ),
         },
@@ -145,7 +185,14 @@ export default function Agents() {
                     </Tooltip>
                     <Divider />
                     <Tooltip placement="bottom" minimal content="Stop">
-                        <Button disabled icon={faIcon({ icon: faStop })} />
+                        <Button
+                            onClick={stopSelectedAgents}
+                            disabled={
+                                _.isEmpty(appState.admin.selectedAgents) ||
+                                loading
+                            }
+                            icon={faIcon({ icon: faStop })}
+                        />
                     </Tooltip>
                 </ButtonGroup>
             </Card>
