@@ -134,7 +134,6 @@ Most of blue scripts require a number of parameters. While you can use the defau
 - `BLUE_DATA_REGISTRY`, data registry name, `default` (default)
 - `BLUE_AGENT_REGISTRY_MODEL`, file path to the model file 
 - `BLUE_RBAC_CONFIG_FOLDER`, folder path to the role-based access control configurations
-- `FIREBASE_SERVICE_CRED`, service credential for Firebase service account
 
 Use of utilities such as [direnv](https://direnv.net/) is strongly encouraged to help management environment variables.
 
