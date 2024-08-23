@@ -134,6 +134,7 @@ Most of blue scripts require a number of parameters. While you can use the defau
 - `BLUE_DATA_REGISTRY`, data registry name, `default` (default)
 - `BLUE_AGENT_REGISTRY_MODEL`, file path to the model file 
 - `BLUE_RBAC_CONFIG_FOLDER`, folder path to the role-based access control configurations
+- `FIREBASE_SERVICE_CRED`, service credential for Firebase service account
 
 Use of utilities such as [direnv](https://direnv.net/) is strongly encouraged to help management environment variables.
 
@@ -319,7 +320,6 @@ There are more demos in the [demos](demos) folder. Please try them on your own f
 
 # deployment
 
-B
 The main difference between a `localhost` deployment and a `swarm` deployment is that there are multiple compute nodes where various components can be deployed to. Another key difference is that ccomponents are added as a service where each can be configure with multiple scalability configurations and other service options.
 
 ## clusters
