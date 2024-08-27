@@ -9,7 +9,6 @@ from constant import PermissionDenied, acl_enforce
 ###### Add lib path
 sys.path.append("./lib/")
 sys.path.append("./lib/agent_registry/")
-sys.path.append("./lib/data_registry/")
 sys.path.append("./lib/platform/")
 
 
@@ -48,7 +47,6 @@ from settings import ACL, PROPERTIES
 platform_id = PROPERTIES["platform.name"]
 prefix = 'PLATFORM:' + platform_id
 agent_registry_id = PROPERTIES["agent_registry.name"]
-data_registry_id = PROPERTIES["data_registry.name"]
 PLATFORM_PREFIX = f'/blue/platform/{platform_id}'
 
 
