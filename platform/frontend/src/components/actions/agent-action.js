@@ -21,6 +21,17 @@ export const agentAction = (dispatch) => ({
                     type: "agent/icon/set",
                     payload: { key: payload, value: icon },
                 });
+                dispatch({
+                    type: "agent/systemAgents/set",
+                    payload: {
+                        key: payload,
+                        value: _.get(
+                            response,
+                            "data.result.properties.system_agent",
+                            false
+                        ),
+                    },
+                });
             });
     },
     setIcon: (payload) => {

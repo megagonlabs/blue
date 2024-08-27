@@ -10,30 +10,20 @@ export default function adminReducer(state = defaultState, { type, payload }) {
     let selectedAgents = state.selectedAgents;
     switch (type) {
         case "admin/selectedUsers/add": {
-            return {
-                ...state,
-                selectedUsers: selectedUsers.add(payload),
-            };
+            selectedUsers.add(payload);
+            return { ...state, selectedUsers };
         }
         case "admin/selectedUsers/remove": {
             selectedUsers.delete(payload);
-            return {
-                ...state,
-                selectedUsers,
-            };
+            return { ...state, selectedUsers };
         }
         case "admin/selectedAgents/add": {
-            return {
-                ...state,
-                selectedAgents: selectedAgents.add(payload),
-            };
+            selectedAgents.add(payload);
+            return { ...state, selectedAgents };
         }
         case "admin/selectedAgents/remove": {
             selectedAgents.delete(payload);
-            return {
-                ...state,
-                selectedAgents,
-            };
+            return { ...state, selectedAgents };
         }
         case "admin/users/set": {
             let usersMap = {};

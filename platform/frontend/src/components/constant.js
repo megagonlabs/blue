@@ -96,6 +96,9 @@ export const REGISTRY_TYPE_LOOKUP = {
         overflow: "hidden",
         width: 40,
         height: 40,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
     },
     ENTITY_ICON_40 = {
         overflow: "hidden",

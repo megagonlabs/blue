@@ -10,8 +10,8 @@ const BASE_HEIGHT = 300;
 export default function DebugPanel() {
     const handleDrag = useCallback(({ x, y }) => {
         return {
-            x: Math.min(Math.max(100, x), window.innerWidth - 100),
-            y: Math.min(Math.max(100, y), window.innerHeight - 100),
+            x: Math.min(Math.max(40, x), window.innerWidth - 100),
+            y: Math.min(Math.max(40, y), window.innerHeight - 100),
         };
     }, []);
     const [dragRef, reposition] = useFloatingWindow({ onDrag: handleDrag });
@@ -64,7 +64,7 @@ export default function DebugPanel() {
                     className={classNames(Classes.DIALOG, "margin-0")}
                     ref={resizeRef}
                     style={{
-                        transform: "translate(100px, 100px)",
+                        transform: "translate(40px, 40px)",
                         position: "relative",
                         display: _.get(settings, "debug_mode", false)
                             ? null

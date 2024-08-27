@@ -21,7 +21,7 @@ export const useFloatingWindow = ({ onDrag = id } = {}) => {
     // do not store position in useState! even if you useEffect on
     // it and update `transform` CSS property, React still rerenders
     // on every state change, and it LAGS
-    const position = useRef({ x: 100, y: 100 });
+    const position = useRef({ x: 40, y: 40 });
     const ref = useRef();
     // we've moved the code into the hook, and it would be weird to
     // return `ref` and `handleMouseDown` to be set on the same element

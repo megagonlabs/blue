@@ -2,7 +2,7 @@ import json
 import random
 import time
 import uuid
-
+import sys
 from websocket import create_connection
 
 ws = create_connection("ws://localhost:5050/blue/platform/default/sessions/ws")
@@ -237,6 +237,7 @@ for _ in range(1):
                 "connection_id": connection_id,
                 "message": {'label': "CONTROL", 'contents': {"code": "BOS"}, 'content_type': None},
                 "stream": stream_id,
+                "metadata": {'created_by': 'OBSERVER'},
                 "mode": "streaming",
                 "timestamp": int(time.time() * 1000),
                 "id": str(uuid.uuid4()),
@@ -252,6 +253,7 @@ for _ in range(1):
                 "session_id": session_id,
                 "message": {"label": "DATA", "contents": random.choice([sentence_string, words_string]), "content_type": "STR"},
                 "stream": stream_id,
+                "metadata": {'created_by': 'OBSERVER'},
                 "mode": "streaming",
                 "timestamp": int(time.time() * 1000),
                 "id": str(uuid.uuid4()),
@@ -267,6 +269,7 @@ for _ in range(1):
                 "connection_id": connection_id,
                 "message": {'label': "CONTROL", 'contents': {"code": 'EOS'}, 'content_type': None},
                 "stream": stream_id,
+                "metadata": {'created_by': 'OBSERVER'},
                 "mode": "streaming",
                 "timestamp": int(time.time() * 1000),
                 "id": str(uuid.uuid4()),
@@ -275,6 +278,7 @@ for _ in range(1):
         )
     )
 time.sleep(2)
+# sys.exit()
 stream_id = f"local-test-client-{int(time.time() * 1000)}"
 ws.send(
     json.dumps(

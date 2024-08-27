@@ -1,11 +1,11 @@
 import _ from "lodash";
-
 export const defaultState = {
     registryName: process.env.NEXT_PUBLIC_AGENT_REGISTRY_NAME,
     list: [],
     search: false,
     loading: true,
     icon: {},
+    systemAgents: {},
     filter: {
         keywords: "",
         hybrid: false,
@@ -36,6 +36,15 @@ export default function agentReducer(state = defaultState, { type, payload }) {
                 filter: defaultState.filter,
                 search: false,
                 loading: false,
+            };
+        }
+        case "agent/systemAgents/set": {
+            return {
+                ...state,
+                systemAgents: {
+                    ...state.systemAgents,
+                    [payload.key]: payload.value,
+                },
             };
         }
         case "agent/icon/set": {

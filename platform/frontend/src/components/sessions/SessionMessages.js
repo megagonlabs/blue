@@ -3,7 +3,6 @@ import {
     Button,
     ButtonGroup,
     Callout,
-    Classes,
     Colors,
     Intent,
     Tag,
@@ -19,32 +18,35 @@ import { VariableSizeList } from "react-window";
 import { AuthContext } from "../contexts/auth-context";
 import { faIcon } from "../icon";
 import JsonFormMessage from "./JsonFormMessage";
+import MessageIcon from "./MessageIcon";
 import MessageMetadata from "./MessageMetadata";
 const Row = ({ index, data, style }) => {
     const { messages, streams, appState, appActions, setRowHeight, settings } =
         data;
     const rowRef = useRef({});
-    const own = _.includes(
-        _.get(messages, [index, "stream"]),
-        `USER:${appState.session.userId}`
-    );
-    useEffect(() => {
-        if (rowRef.current) {
-            setRowHeight(
-                index,
-                rowRef.current.clientHeight + 30 + (!own ? 20.43 : 0) + 20
-            );
-        }
-    }, [rowRef]);
+    const debugMode = _.get(settings, "debug_mode", false);
+    const isOwnMessage = () => {
+        const uid = _.get(messages, [index, "metadata", "id"], null);
+        const created_by = _.get(
+            messages,
+            [index, "metadata", "created_by"],
+            null
+        );
+        return (
+            _.isEqual(uid, appState.session.userId) &&
+            _.isEqual(created_by, "USER")
+        );
+    };
+    const own = isOwnMessage();
     const handleResize = useCallback(() => {
         // do magic for resize
         if (rowRef.current) {
             setRowHeight(
                 index,
-                rowRef.current.clientHeight + 30 + (!own ? 20.43 : 0) + 20
+                rowRef.current.clientHeight + 75 + (debugMode ? 25 : 0)
             );
         }
-    }, []);
+    }, [rowRef, debugMode]);
     const message = messages[index];
     const stream = message.stream;
     const streamData = _.get(streams, [stream, "data"], []);
@@ -54,7 +56,6 @@ const Row = ({ index, data, style }) => {
     });
     const complete = _.get(streams, [stream, "complete"], false);
     const hasError = useRef(false);
-    const timestamp = message.timestamp;
     const showActions = useRef(false);
     return (
         <div
@@ -68,7 +69,6 @@ const Row = ({ index, data, style }) => {
             style={{
                 ...style,
                 display: "flex",
-                flexDirection: "column",
                 alignItems: "flex-start",
                 padding: "10px 20px",
                 marginTop: 10,
@@ -77,26 +77,15 @@ const Row = ({ index, data, style }) => {
                     : null,
             }}
         >
-            <Callout
-                intent={
-                    hasError.current
-                        ? Intent.DANGER
-                        : own
-                        ? Intent.PRIMARY
-                        : null
-                }
-                icon={null}
-                style={{
-                    position: "relative",
-                    maxWidth: "min(802.2px, 100%)",
-                    width: "fit-content",
-                }}
+            <div
+                className="full-parent-width"
+                style={{ display: "flex", gap: 10, position: "relative" }}
             >
                 <div
                     style={{
                         position: "absolute",
-                        left: 0,
-                        top: -10,
+                        right: 0,
+                        top: 0,
                         display: showActions.current ? null : "none",
                     }}
                 >
@@ -105,7 +94,7 @@ const Row = ({ index, data, style }) => {
                             <Tooltip
                                 content="Raw"
                                 minimal
-                                placement="bottom-start"
+                                placement="bottom-end"
                             >
                                 <Button
                                     icon={faIcon({ icon: faBinary })}
@@ -121,88 +110,98 @@ const Row = ({ index, data, style }) => {
                         ) : null}
                     </ButtonGroup>
                 </div>
-                <div
-                    ref={mergeRefs(rowRef, resizeRef)}
-                    style={{
-                        maxWidth: "min(802.2px, 100%)",
-                        minWidth: 50,
-                        whiteSpace: "pre-wrap",
-                        wordBreak: "break-all",
-                        width: "fit-content",
-                        minHeight: 21,
-                    }}
-                >
-                    {_.isEqual(contentType, "JSON_FORM") ? (
-                        <JsonFormMessage
-                            content={_.last(streamData).content}
-                            hasError={hasError}
-                        />
-                    ) : (
-                        streamData.map((e, index) => {
-                            const { dataType, content, id } = e;
-                            if (_.includes(["STR", "INT", "FLOAT"], dataType)) {
-                                return (
-                                    <span key={id}>
-                                        {(index ? " " : "") + content}
-                                    </span>
-                                );
-                            } else if (_.isEqual(dataType, "JSON")) {
-                                return (
-                                    <pre
-                                        key={id}
-                                        className="margin-0"
-                                        style={{ overflowX: "auto" }}
-                                    >
-                                        {JSON.stringify(content, null, 4)}
-                                    </pre>
-                                );
-                            }
-                            return null;
-                        })
-                    )}
-                    {!complete ? (
-                        <>
-                            <div style={{ height: 20.5, marginTop: 7.5 }}>
-                                &nbsp;
-                            </div>
-                            <Tag
-                                minimal
-                                style={{
-                                    position: "absolute",
-                                    bottom: 15,
-                                    left: 15,
-                                }}
-                                icon={faIcon({
-                                    icon: faEllipsisH,
-                                    size: 16.5,
-                                    className: "fa-fade",
-                                    style: { color: Colors.BLACK },
-                                })}
-                            />
-                        </>
-                    ) : null}
-                </div>
-            </Callout>
-            {!own ? (
-                <div
-                    style={{ maxWidth: "100%", marginTop: 5 }}
-                    className={`${Classes.TEXT_DISABLED} ${Classes.TEXT_SMALL} ${Classes.TEXT_OVERFLOW_ELLIPSIS}`}
-                >
-                    <Tooltip
-                        targetProps={{ className: "full-parent-width" }}
-                        minimal
-                        placement="bottom-start"
-                        content={
-                            <MessageMetadata
-                                timestamp={timestamp}
-                                stream={stream}
-                            />
+                <MessageIcon message={messages[index]} />
+                <div style={{ width: "min(802.2px, 100% - 50px)" }}>
+                    <MessageMetadata message={messages[index]} />
+                    <Callout
+                        intent={
+                            hasError.current
+                                ? Intent.DANGER
+                                : own
+                                ? Intent.PRIMARY
+                                : null
                         }
+                        icon={null}
+                        style={{
+                            maxWidth: "100%",
+                            width: "fit-content",
+                        }}
                     >
-                        {stream}
-                    </Tooltip>
+                        <div
+                            ref={mergeRefs(rowRef, resizeRef)}
+                            style={{
+                                maxWidth: "min(802.2px, 100%)",
+                                minWidth: 50,
+                                whiteSpace: "pre-wrap",
+                                wordBreak: "break-all",
+                                width: "fit-content",
+                                minHeight: 21,
+                            }}
+                        >
+                            {_.isEqual(contentType, "JSON_FORM") ? (
+                                <JsonFormMessage
+                                    content={_.last(streamData).content}
+                                    hasError={hasError}
+                                />
+                            ) : (
+                                streamData.map((e, index) => {
+                                    const { dataType, content, id } = e;
+                                    if (
+                                        _.includes(
+                                            ["STR", "INT", "FLOAT"],
+                                            dataType
+                                        )
+                                    ) {
+                                        return (
+                                            <span key={id}>
+                                                {(index ? " " : "") + content}
+                                            </span>
+                                        );
+                                    } else if (_.isEqual(dataType, "JSON")) {
+                                        return (
+                                            <pre
+                                                key={id}
+                                                className="margin-0"
+                                                style={{ overflowX: "auto" }}
+                                            >
+                                                {JSON.stringify(
+                                                    content,
+                                                    null,
+                                                    4
+                                                )}
+                                            </pre>
+                                        );
+                                    }
+                                    return null;
+                                })
+                            )}
+                            {!complete ? (
+                                <>
+                                    <div
+                                        style={{ height: 20.5, marginTop: 7.5 }}
+                                    >
+                                        &nbsp;
+                                    </div>
+                                    <Tag
+                                        minimal
+                                        style={{
+                                            position: "absolute",
+                                            bottom: 15,
+                                            left: 15,
+                                        }}
+                                        icon={faIcon({
+                                            icon: faEllipsisH,
+                                            size: 16.5,
+                                            className: "fa-fade",
+                                            style: { color: Colors.BLACK },
+                                        })}
+                                    />
+                                </>
+                            ) : null}
+                        </div>
+                    </Callout>
                 </div>
-            ) : null}
+            </div>
         </div>
     );
 };
@@ -213,13 +212,10 @@ export default function SessionMessages() {
     const { settings } = useContext(AuthContext);
     const sessionIdFocus = appState.session.sessionIdFocus;
     const messages = appState.session.sessions[sessionIdFocus].messages;
+    const debugMode = _.get(settings, "debug_mode", false);
     const streams = appState.session.sessions[sessionIdFocus].streams;
     function getRowHeight(index) {
-        const own = _.includes(
-            _.get(messages, [index, "stream"]),
-            `USER:${appState.session.userId}`
-        );
-        return rowHeights.current[index] || 71 + (!own ? 15.43 : 0);
+        return rowHeights.current[index] || 96 + (debugMode ? 25 : 0);
     }
     function setRowHeight(index, size) {
         rowHeights.current = { ...rowHeights.current, [index]: size };

@@ -1,56 +1,75 @@
-import { PROFILE_PICTURE_40 } from "@/components/constant";
-import { AppContext } from "@/components/contexts/app-context";
-import { getAgentFromStream } from "@/components/helper";
-import { Card, Classes } from "@blueprintjs/core";
+import { Classes, Tag, Tooltip } from "@blueprintjs/core";
+import classNames from "classnames";
 import _ from "lodash";
-import Image from "next/image";
-import { memo, useContext, useEffect } from "react";
+import { memo, useContext } from "react";
 import ReactTimeAgo from "react-time-ago";
-function MessageMetadata({ timestamp, stream }) {
-    const { appState, appActions } = useContext(AppContext);
-    const agent = getAgentFromStream(stream);
-    const agentType = _.get(agent, "type", null);
-    const agentId = _.get(agent, "id", null);
-    const hasUserProfile = _.has(appState, ["app", "users", agentId]);
-    const user = _.get(appState, ["app", "users", agentId], {});
-    useEffect(() => {
-        if (!hasUserProfile && _.isEqual(agentType, "USER")) {
-            appActions.app.getUserProfile(agentId);
-        }
-    }, []);
+import { AppContext } from "../contexts/app-context";
+import { AuthContext } from "../contexts/auth-context";
+function MessageMetadata({ message }) {
+    const { appState } = useContext(AppContext);
+    const { settings } = useContext(AuthContext);
+    const debugMode = _.get(settings, "debug_mode", false);
+    const uid = _.get(message, "metadata.id", null);
+    const created_by = _.get(message, "metadata.created_by", null);
+    const hasUserProfile = _.has(appState, ["app", "users", uid]);
+    const user = _.get(appState, ["app", "users", uid], {});
+    const timestamp = message.timestamp;
     return (
         <>
-            <ReactTimeAgo date={new Date(timestamp)} locale="en-US" />
-            <div className={Classes.TEXT_DISABLED}>
-                {new Date(timestamp).toLocaleDateString()}
-                &nbsp;at&nbsp;
-                {new Date(timestamp).toLocaleTimeString()}
-            </div>
-            {_.isEqual(agentType, "USER") ? (
-                <>
-                    <br />
-                    <div
-                        className={!hasUserProfile ? Classes.SKELETON : null}
-                        style={{ display: "flex", alignItems: "center" }}
-                    >
-                        <Card className="margin-0" style={PROFILE_PICTURE_40}>
-                            <Image
-                                alt=""
-                                src={_.get(user, "picture", "")}
-                                width={40}
-                                height={40}
-                            />
-                        </Card>
-                        <div
-                            className={Classes.TEXT_MUTED}
-                            style={{ marginLeft: 12 }}
-                        >
-                            {_.get(user, "name", "-")}
-                            <br />
-                            {_.get(user, "email", "-")}
+            <div
+                className={classNames(Classes.TEXT_OVERFLOW_ELLIPSIS)}
+                style={{
+                    marginBottom: 5,
+                    lineHeight: "20px",
+                    display: "flex",
+                    gap: 5,
+                }}
+            >
+                <span style={{ fontWeight: 600 }}>
+                    {_.isEqual(created_by, "USER")
+                        ? hasUserProfile
+                            ? user.name
+                            : uid
+                        : created_by}
+                </span>
+                {_.get(
+                    appState,
+                    ["agent", "systemAgents", created_by],
+                    false
+                ) ? (
+                    <Tag minimal style={{ minWidth: 60.16 }}>
+                        SYSTEM
+                    </Tag>
+                ) : null}
+                <Tooltip
+                    className={Classes.TEXT_MUTED}
+                    placement="bottom"
+                    content={
+                        <div className={Classes.TEXT_MUTED}>
+                            {new Date(timestamp).toLocaleDateString()}
+                            &nbsp;at&nbsp;
+                            {new Date(timestamp).toLocaleTimeString()}
                         </div>
-                    </div>
-                </>
+                    }
+                >
+                    <ReactTimeAgo
+                        tooltip={false}
+                        date={new Date(timestamp)}
+                        locale="en-US"
+                    />
+                </Tooltip>
+            </div>
+            {debugMode ? (
+                <div
+                    style={{ marginBottom: 10, lineHeight: "15px" }}
+                    className={classNames(
+                        Classes.TEXT_DISABLED,
+                        Classes.TEXT_SMALL,
+                        Classes.TEXT_OVERFLOW_ELLIPSIS
+                    )}
+                >
+                    {message.stream}
+                </div>
             ) : null}
         </>
     );

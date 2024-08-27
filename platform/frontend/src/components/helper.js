@@ -51,19 +51,6 @@ module.exports = {
             return this.items[this.front];
         }
     },
-    getAgentFromStream: (stream) => {
-        let agent = {};
-        try {
-            const agentTypeId = stream
-                .match(/(?<=:AGENT:\s*).*?(?=\s*:OUTPUT:)/gs)[0]
-                .split(":");
-            agent = {
-                type: _.get(agentTypeId, 0, null),
-                id: _.get(agentTypeId, 1, null),
-            };
-        } catch (error) {}
-        return agent;
-    },
     constructSavePropertyRequests: ({ axios, url, difference, editEntity }) => {
         let tasks = [];
         if (_.isArray(difference)) {

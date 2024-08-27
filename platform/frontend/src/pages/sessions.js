@@ -110,7 +110,7 @@ export default function Sessions() {
             sessionMessageTextArea.current.focus();
         }
     }, [sessionIdFocus]);
-    const SESSION_LISTL_PANEL_WIDTH = 376.02;
+    const SESSION_LISTL_PANEL_WIDTH = 327.92;
     const initialFetchAll = useRef(true);
     const [loading, setLoading] = useState(false);
     const fetchAllSessions = () => {

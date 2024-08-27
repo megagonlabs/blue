@@ -46,6 +46,7 @@ export default function sessionReducer(
                     if (_.isEqual(messageContentsCode, "BOS")) {
                         messages.push({
                             stream: payload.stream,
+                            metadata: payload.metadata,
                             timestamp: payload.timestamp,
                             order: payload.order,
                         });
@@ -186,11 +187,7 @@ export default function sessionReducer(
         }
         case "session/sessionIdFocus/set": {
             unreadSessionIds.delete(payload);
-            return {
-                ...state,
-                sessionIdFocus: payload,
-                unreadSessionIds: unreadSessionIds,
-            };
+            return { ...state, sessionIdFocus: payload, unreadSessionIds };
         }
         default:
             return state;
