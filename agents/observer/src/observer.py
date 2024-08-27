@@ -26,6 +26,7 @@ from tqdm import tqdm
 
 ###### Blue
 from agent import Agent, AgentFactory
+from stream import Stream
 from session import Session
 from tqdm import tqdm
 from websocket import create_connection
@@ -83,12 +84,14 @@ class ObserverAgent(Agent):
         if content_type == 'JSON':
             contents = json.loads(contents)
 
+        stream_metadata = Stream(cid=stream, properties=properties).get_metadata()
         base_message = {
             "type": "OBSERVER_SESSION_MESSAGE",
             "session_id": properties["session_id"],
             "connection_id": properties["connection_id"],
             "message": {"label": label, "contents": contents, "content_type": content_type},
             "stream": stream,
+            "metadata": stream_metadata,
             "mode": mode,
             "timestamp": int(id.split("-")[0]),
             "order": int(id.split("-")[1]),
