@@ -319,7 +319,6 @@ There are more demos in the [demos](demos) folder. Please try them on your own f
 
 # deployment
 
-B
 The main difference between a `localhost` deployment and a `swarm` deployment is that there are multiple compute nodes where various components can be deployed to. Another key difference is that ccomponents are added as a service where each can be configure with multiple scalability configurations and other service options.
 
 ## clusters
