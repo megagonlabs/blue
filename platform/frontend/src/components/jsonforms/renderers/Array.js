@@ -95,10 +95,10 @@ const ArrayRenderer = ({
                     const fromNode = data[i].from_agent,
                         toNode = data[i].to_agent;
                     if (!_.has(appState, ["agent", "icon", fromNode])) {
-                        appActions.agent.fetchIcon(fromNode);
+                        appActions.agent.fetchAttributes(fromNode);
                     }
                     if (!_.has(appState, ["agent", "icon", toNode])) {
-                        appActions.agent.fetchIcon(toNode);
+                        appActions.agent.fetchAttributes(toNode);
                     }
                     uniqueNodes.add(fromNode);
                     uniqueNodes.add(toNode);

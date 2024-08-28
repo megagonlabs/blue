@@ -11,7 +11,7 @@ import {
 } from "@blueprintjs/core";
 import { faBinary, faEllipsisH } from "@fortawesome/pro-duotone-svg-icons";
 import _ from "lodash";
-import { useCallback, useContext, useEffect, useRef } from "react";
+import { useCallback, useContext, useEffect, useMemo, useRef } from "react";
 import { useResizeDetector } from "react-resize-detector";
 import AutoSizer from "react-virtualized-auto-sizer";
 import { VariableSizeList } from "react-window";
@@ -25,19 +25,26 @@ const Row = ({ index, data, style }) => {
         data;
     const rowRef = useRef({});
     const debugMode = _.get(settings, "debug_mode", false);
-    const isOwnMessage = () => {
+    const own = useMemo(() => {
         const uid = _.get(messages, [index, "metadata", "id"], null);
         const created_by = _.get(
             messages,
             [index, "metadata", "created_by"],
             null
         );
+        const hasUserProfile = _.has(appState, ["app", "users", uid]);
+        if (_.isEqual(created_by, "USER")) {
+            if (!hasUserProfile) {
+                appActions.app.getUserProfile(uid);
+            }
+        } else if (!_.has(appState, ["agent", "icon", created_by])) {
+            appActions.agent.fetchAttributes(created_by);
+        }
         return (
             _.isEqual(uid, appState.session.userId) &&
             _.isEqual(created_by, "USER")
         );
-    };
-    const own = isOwnMessage();
+    }, [appState.session.userId]);
     const handleResize = useCallback(() => {
         // do magic for resize
         if (rowRef.current) {

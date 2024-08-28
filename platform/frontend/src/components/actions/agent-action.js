@@ -7,7 +7,7 @@ export const agentAction = (dispatch) => ({
             payload,
         });
     },
-    fetchIcon: (payload) => {
+    fetchAttributes: (payload) => {
         axios
             .get(
                 `/registry/${process.env.NEXT_PUBLIC_AGENT_REGISTRY_NAME}/agent/${payload}`

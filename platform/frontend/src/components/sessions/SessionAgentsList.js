@@ -32,7 +32,7 @@ export default function SessionAgentsList() {
                 for (let i = 0; i < _.size(agents); i++) {
                     const agentName = agents[i].name;
                     if (!_.has(appState, ["agent", "icon", agentName])) {
-                        appActions.agent.fetchIcon(agentName);
+                        appActions.agent.fetchAttributes(agentName);
                     }
                 }
                 setAgents(agents);
