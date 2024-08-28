@@ -18,9 +18,11 @@ x-blue-common:
     BLUE_AGENT_REGISTRY: "${BLUE_AGENT_REGISTRY}"
     BLUE_DATA_REGISTRY: "${BLUE_DATA_REGISTRY}"
     BLUE_MODEL_REGISTRY: "${BLUE_MODEL_REGISTRY}"
+    BLUE_OPERATOR_REGISTRY: "${BLUE_OPERATOR_REGISTRY}"
     BLUE_AGENT_REGISTRY_MODEL: "${BLUE_AGENT_REGISTRY_MODEL}"
     BLUE_DATA_REGISTRY_MODEL: "${BLUE_DATA_REGISTRY_MODEL}"
     BLUE_MODEL_REGISTRY_MODEL: "${BLUE_MODEL_REGISTRY_MODEL}"
+    BLUE_OPERATOR_REGISTRY_MODEL: "${BLUE_OPERATOR_REGISTRY_MODEL}"
     BLUE_RBAC_CONFIG_FOLDER: "${BLUE_RBAC_CONFIG_FOLDER}"
   depends_on:
     &blue-common-depends-on
@@ -54,7 +56,7 @@ services:
     restart: always
 
   api:
-    image: megagonlabs/blue-platform-api:${BLUE_DEPLOY_VERSION}
+    image: blue-platform-api:${BLUE_DEPLOY_VERSION}
     hostname: blue_platform_api
     deploy:
       placement:
@@ -78,7 +80,7 @@ services:
     restart: always
 
   frontend:
-    image: megagonlabs/blue-platform-frontend:${BLUE_DEPLOY_VERSION}
+    image: blue-platform-frontend:${BLUE_DEPLOY_VERSION}
     hostname: blue_platform_frontend
     deploy:
       placement:

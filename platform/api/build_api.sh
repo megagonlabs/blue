@@ -17,6 +17,12 @@ mkdir -p lib/agent_registry; cp -r ../agent_registry/src/* lib/agent_registry/
 # copy from data_registry shared lib
 mkdir -p lib/data_registry; cp -r ../data_registry/src/* lib/data_registry/
 
+# copy from model_registry shared lib
+mkdir -p lib/model_registry; cp -r ../model_registry/src/* lib/model_registry/
+
+# copy from operator_registry shared lib
+mkdir -p lib/operator_registry; cp -r ../operator_registry/src/* lib/operator_registry/
+
 # copy from utils shared lib
 mkdir -p lib/utils; cp -r ../../utils/lib/* lib/utils/
 

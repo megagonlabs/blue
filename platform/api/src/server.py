@@ -8,6 +8,7 @@ sys.path.append("./lib/")
 sys.path.append("./lib/agent_registry/")
 sys.path.append("./lib/data_registry/")
 sys.path.append("./lib/model_registry/")
+sys.path.append("./lib/operator_registry/")
 sys.path.append("./lib/platform/")
 
 
@@ -30,6 +31,7 @@ from constant import EMAIL_DOMAIN_ADDRESS_REGEXP, InvalidRequestJson, Permission
 from routers import agents
 from routers import data
 from routers import models
+from routers import operators
 from routers import sessions
 from routers import platform
 from routers import accounts
@@ -42,6 +44,7 @@ from blueprint import Platform
 from agent_registry import AgentRegistry
 from data_registry import DataRegistry
 from model_registry import ModelRegistry
+from operator_registry import OperatorRegistry
 
 ### Assign from platform properties
 platform_id = PROPERTIES["platform.name"]
@@ -49,6 +52,7 @@ prefix = 'PLATFORM:' + platform_id
 agent_registry_id = PROPERTIES["agent_registry.name"]
 data_registry_id = PROPERTIES["data_registry.name"]
 model_registry_id = PROPERTIES["model_registry.name"]
+operator_registry_id = PROPERTIES["operator_registry.name"]
 PLATFORM_PREFIX = f'/blue/platform/{platform_id}'
 
 ####### Version
@@ -72,6 +76,9 @@ data_registry.load("/blue_data/config/" + data_registry_id + ".data.json")
 
 model_registry = ModelRegistry(id=model_registry_id, prefix=prefix, properties=PROPERTIES)
 model_registry.load("/blue_data/config/" + model_registry_id + ".models.json")
+
+operator_registry = OperatorRegistry(id=operator_registry_id, prefix=prefix, properties=PROPERTIES)
+operator_registry.load("/blue_data/config/" + operator_registry_id + ".operators.json")
 
 ###  Get API server address from properties to white list
 api_server = PROPERTIES["api.server"]
