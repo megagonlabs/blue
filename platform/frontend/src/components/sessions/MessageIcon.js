@@ -6,7 +6,7 @@ import Image from "next/image";
 import { memo, useContext } from "react";
 import EntityIcon from "../entity/EntityIcon";
 function MessageIcon({ message }) {
-    const { appState, appActions } = useContext(AppContext);
+    const { appState } = useContext(AppContext);
     const uid = _.get(message, "metadata.id", null);
     const created_by = _.get(message, "metadata.created_by", null);
     const hasUserProfile = _.has(appState, ["app", "users", uid]);
