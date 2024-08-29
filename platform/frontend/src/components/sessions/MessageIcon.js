@@ -16,12 +16,9 @@ function MessageIcon({ message }) {
             style={PROFILE_PICTURE_40}
             className={!hasUserProfile ? Classes.SKELETON : null}
         >
-            <Image
-                alt=""
-                src={_.get(user, "picture", "")}
-                width={40}
-                height={40}
-            />
+            {_.isEmpty(user) ? null : (
+                <Image alt="" src={user.picture} width={40} height={40} />
+            )}
         </Card>
     ) : (
         <Card style={ENTITY_ICON_40}>

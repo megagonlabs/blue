@@ -27,12 +27,18 @@ for (let i = 0; i < _.size(searchTagKeys); i++) {
 }
 export const defaultState = {
     users: {},
+    pendingRequests: {},
     iconPickerIndex: index,
     iconPickerStore: store,
     settings: {},
 };
 export default function appReducer(state = defaultState, { type, payload }) {
+    let pendingRequests = state.pendingRequests;
     switch (type) {
+        case "app/pendingRequests/set": {
+            _.set(pendingRequests, payload.key, payload.value);
+            return { ...state, pendingRequests };
+        }
         case "app/users/profile/add": {
             if (_.isEmpty(payload)) {
                 return { ...state };

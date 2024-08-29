@@ -35,7 +35,14 @@ const Row = ({ index, data, style }) => {
         const hasUserProfile = _.has(appState, ["app", "users", uid]);
         if (_.isEqual(created_by, "USER")) {
             if (!hasUserProfile) {
-                appActions.app.getUserProfile(uid);
+                const pendingRquest = _.get(
+                    appState,
+                    ["app", "pendingRequests", `getUserProfile ${uid}`],
+                    false
+                );
+                if (!pendingRquest) {
+                    appActions.app.getUserProfile(uid);
+                }
             }
         } else if (!_.has(appState, ["agent", "icon", created_by])) {
             appActions.agent.fetchAttributes(created_by);
