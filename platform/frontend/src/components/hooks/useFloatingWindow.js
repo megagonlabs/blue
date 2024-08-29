@@ -18,6 +18,7 @@ const id = (x) => x;
 export const useFloatingWindow = ({ onDrag = id } = {}) => {
     // this state doesn't change often, so it's fine
     const [pressed, setPressed] = useState(false);
+    const [offset, setOffset] = useState(null);
     // do not store position in useState! even if you useEffect on
     // it and update `transform` CSS property, React still rerenders
     // on every state change, and it LAGS
@@ -46,6 +47,8 @@ export const useFloatingWindow = ({ onDrag = id } = {}) => {
             // don't forget to disable text selection during drag and drop
             // operations
             e.target.style.userSelect = "none";
+            const rect = event.target.getBoundingClientRect();
+            setOffset({ x: e.clientX - rect.left, y: e.clientY - rect.top });
             setPressed(true);
         };
         elem.addEventListener("mousedown", handleMouseDown);
@@ -84,8 +87,14 @@ export const useFloatingWindow = ({ onDrag = id } = {}) => {
             // needed to handle that case. TODO
             const elem = ref.current;
             position.current = onDrag({
-                x: pos.x + event.movementX,
-                y: pos.y + event.movementY,
+                x: Math.min(
+                    Math.max(40, event.clientX - offset.x),
+                    window.innerWidth - 100
+                ),
+                y: Math.min(
+                    Math.max(40, event.clientY - offset.y),
+                    window.innerHeight - 100
+                ),
             });
             elem.closest(
                 `.${Classes.DIALOG}`
