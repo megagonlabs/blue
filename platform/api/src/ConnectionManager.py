@@ -64,14 +64,14 @@ class ConnectionManager:
 
         self.tickets: dict = {}
 
-    async def connect(self, websocket: WebSocket, ticket):
+    async def connect(self, websocket: WebSocket, ticket, debug_mode):
         await websocket.accept()
         # validate ticket
         set_on = pydash.objects.get(self.tickets, [ticket, 'set_on'], None)
         single_use = pydash.objects.get(self.tickets, [ticket, 'single_use'], True)
         if (not pydash.is_none(set_on) and time.time() - set_on < 5 * 60) or (not single_use) or (DEVELOPMENT):
             connection_id = str(hex(uuid.uuid4().fields[0]))[2:]
-            pydash.objects.set_(self.active_connections, connection_id, {'websocket': websocket, 'user': pydash.objects.get(self.tickets, ticket, {})})
+            pydash.objects.set_(self.active_connections, connection_id, {'websocket': websocket, 'debug_mode': debug_mode, 'user': pydash.objects.get(self.tickets, ticket, {})})
             await self.send_message_to(
                 websocket,
                 json.dumps({"type": "CONNECTED", "id": pydash.objects.get(self.tickets, [ticket, 'uid'], connection_id), 'connection_id': connection_id}),
@@ -109,6 +109,7 @@ class ConnectionManager:
                                 },
                                 "session_id": session_sid,
                                 "connection_id": connection_id,
+                                "debug_mode": pydash.objects.get(self.active_connections, [connection_id, 'debug_mode'], False),
                             },
                         ),
                         "user": Agent(name="USER", id=uid, session=session, prefix=agent_prefix, properties=PROPERTIES),

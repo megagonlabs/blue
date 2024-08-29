@@ -145,9 +145,9 @@ async def unicorn_exception_handler_permission_denied(request: Request, exc: Per
 
 
 @app.websocket(f"{PLATFORM_PREFIX}/sessions/ws")
-async def websocket_endpoint(websocket: WebSocket, ticket: str = None):
+async def websocket_endpoint(websocket: WebSocket, ticket: str = None, debug_mode: bool = False):
     # Accept the connection from the client
-    await connection_manager.connect(websocket, ticket)
+    await connection_manager.connect(websocket, ticket, debug_mode)
     try:
         while True:
             # Receive the message from the client

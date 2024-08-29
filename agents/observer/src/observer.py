@@ -2,6 +2,8 @@
 import os
 import sys
 
+import pydash
+
 ###### Add lib path
 sys.path.append("./lib/")
 sys.path.append("./lib/agent/")
@@ -9,26 +11,19 @@ sys.path.append("./lib/platform/")
 sys.path.append("./lib/utils/")
 
 ######
-import time
 import argparse
 import logging
-import uuid
-import random
 
 ###### Parsers, Formats, Utils
-import re
-import csv
 import json
 from utils import json_utils
 
 import itertools
-from tqdm import tqdm
 
 ###### Blue
 from agent import Agent, AgentFactory
 from stream import Stream
 from session import Session
-from tqdm import tqdm
 from websocket import create_connection
 from message import Message, MessageType, ContentType, ControlCode
 
@@ -57,10 +52,12 @@ class ObserverAgent(Agent):
 
     def response_handler(self, stream, message={}):
         try:
-            output = {}
-            if "output" in self.properties:
-                output = self.properties["output"]
+            output = pydash.objects.get(self.properties, 'output', {})
+            is_hidden = pydash.objects.get(message, 'metadata.tags.hidden', False)
+            debug_mode = pydash.objects.get(self.properties, 'debug_mode', False)
             if output.get('type') == "websocket":
+                if is_hidden and not debug_mode:
+                    return
                 ws = create_connection(output.get("websocket"))
                 ws.send(json.dumps(message))
                 ws.close()
