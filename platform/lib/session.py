@@ -139,7 +139,7 @@ class Session:
         logging.info("inited stream data namespace {} {}".format(output_stream, data_success))
 
         # create metadata namespace for stream, metadata_success = True, if not existing
-        metadata_success = self._init_stream_metadata_namespace(output_stream, agent)
+        metadata_success = self._init_stream_metadata_namespace(output_stream, agent, tags)
         logging.info("inited stream metadata namespace {} {}".format(output_stream, metadata_success))
 
         # add to stream to notify others, unless it exists
@@ -258,14 +258,13 @@ class Session:
     def _get_stream_metadata_namespace(self, stream):
         return stream + ":METADATA"
 
-    def _init_stream_metadata_namespace(self, stream, agent):
+    def _init_stream_metadata_namespace(self, stream, agent, tags):
         # create metadata namespaces for stream
-        return self.connection.json().set(
-            self._get_stream_metadata_namespace(stream),
-            "$",
-            {'created_by': agent.name, 'id': agent.id},
-            nx=True,
-        )
+        metadata_tags = {}
+        for tag in tags:
+            metadata_tags.update({tag: True})
+        metadata = {'created_by': agent.name, 'id': agent.id, 'tags': metadata_tags}
+        return self.connection.json().set(self._get_stream_metadata_namespace(stream), "$", metadata, nx=True)
 
     ## session stream data
     def _get_stream_data_namespace(self, stream):

@@ -53,7 +53,7 @@ class ObserverAgent(Agent):
     def response_handler(self, stream, message={}):
         try:
             output = pydash.objects.get(self.properties, 'output', {})
-            is_hidden = pydash.objects.get(message, 'metadata.tags.hidden', False)
+            is_hidden = pydash.objects.get(message, 'metadata.tags.HIDDEN', False)
             debug_mode = pydash.objects.get(self.properties, 'debug_mode', False)
             if output.get('type') == "websocket":
                 if is_hidden and not debug_mode:
