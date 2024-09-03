@@ -21,7 +21,7 @@ from utils import json_utils
 
 
 ##### Typing
-from pydantic import Baseoperator
+from pydantic import BaseModel
 from typing import Union, Any, Dict, List
 
 ###### FastAPI
@@ -30,12 +30,12 @@ from fastapi.responses import JSONResponse
 
 
 ###### Schema
-class Operator(Baseoperator):
+class Operator(BaseModel):
     name: str
     description: Union[str, None] = None
 
 
-class Parameter(Baseoperator):
+class Parameter(BaseModel):
     name: str
     description: Union[str, None] = None
 

@@ -432,15 +432,15 @@ class Agent:
 class AgentFactory:
     def __init__(
         self,
-        agent_class=Agent,
-        agent_name="Agent",
-        agent_registry="default",
+        _class=Agent,
+        _name="Agent",
+        _registry="default",
         platform="default",
         properties={},
     ):
-        self.agent_class = agent_class
-        self.agent_name = agent_name
-        self.agent_registry = agent_registry
+        self._class = _class
+        self._name = _name
+        self._registry = _registry
 
         self.platform = platform
 
@@ -485,7 +485,7 @@ class AgentFactory:
     ###### factory functions
     def create(self, **kwargs):
         print(kwargs)
-        klasse = self.agent_class
+        klasse = self._class
         instanz = klasse(**kwargs)
         return instanz
 
@@ -495,8 +495,8 @@ class AgentFactory:
         self._start_consumer()
         logging.info(
             "Started agent factory for agent: {name} in registry: {registry} on platform: {platform} ".format(
-                name=self.agent_name,
-                registry=self.agent_registry,
+                name=self._name,
+                registry=self._registry,
                 platform=self.platform,
             )
         )
@@ -509,7 +509,7 @@ class AgentFactory:
         stream = "PLATFORM:" + self.platform + ":STREAM"
         self.session_consumer = Consumer(
             stream,
-            name=self.agent_name + "_FACTORY",
+            name=self._name + "_FACTORY",
             listener=lambda message: self.platform_listener(message),
             properties=self.properties,
         )
@@ -548,16 +548,16 @@ class AgentFactory:
                 del agent_properties["input"]
 
             # check match in canonical name space, i.e.
-            # <agent_name> or <agent_name>.<derivative_agent_name>
+            # <_name> or <_name>.<derivative__name>
             ca = agent.split("_")
-            parent_agent_name = ca[0]
-            child_agent_name = ca[0]
+            parent_name = ca[0]
+            child_name = ca[0]
 
-            # if derivative_agent_name 
+            # if derivative__name 
             if len(ca) > 1:
-                child_agent_name = ca[1]
+                child_name = ca[1]
 
-            if self.agent_name == ca[0]:
+            if self._name == ca[0]:
                 name = agent
 
                 logging.info("Launching Agent: " + name + "...")
@@ -605,9 +605,9 @@ if __name__ == "__main__":
         platform = args.platform
 
         af = AgentFactory(
-            agent_class=Agent,
-            agent_name=args.serve,
-            agent_registry=args.registry,
+            _class=Agent,
+            _name=args.serve,
+            _registry=args.registry,
             platform=platform,
             properties=properties,
         )
