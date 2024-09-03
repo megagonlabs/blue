@@ -269,6 +269,8 @@ class CoordinatorAgent(Agent):
 
         # TODO: get registry info on to_agent, to_agent_param
 
+        # TODO: fetch data from stream
+
         # TODO: call data planner
 
         # TODO: call data optimizer
