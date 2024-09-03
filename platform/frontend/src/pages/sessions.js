@@ -48,12 +48,12 @@ export default function Sessions() {
     const sessionMessageTextArea = useRef(null);
     const [isSessionDetailOpen, setIsSessionDetailOpen] = useState(false);
     const { socket, reconnectWs } = useSocket();
-    const socketReadyState = _.get(socket, "readyState", 3);
+    const isSocketOpen = appState.session.isSocketOpen;
     const { permissions, settings } = useContext(AuthContext);
     const { canCreateSessions } = permissions;
     const { authenticating } = useContext(SocketContext);
     const sendSessionMessage = (message) => {
-        if (!_.isEqual(socketReadyState, 1)) {
+        if (!isSocketOpen) {
             return;
         }
         setMessage("");
@@ -130,7 +130,7 @@ export default function Sessions() {
             .catch(() => {});
     };
     useEffect(() => {
-        if (!_.isEqual(socketReadyState, 1)) {
+        if (!isSocketOpen) {
             return;
         }
         if (initialFetchAll.current) {
@@ -138,8 +138,7 @@ export default function Sessions() {
             socket.send(JSON.stringify({ type: "REQUEST_USER_AGENT_ID" }));
             fetchAllSessions();
         }
-    }, [socketReadyState]);
-    const isSocketOpen = appState.session.isSocketOpen;
+    }, [isSocketOpen]);
     const ReconnectButton = () => {
         return (
             <Button
@@ -147,7 +146,10 @@ export default function Sessions() {
                 onClick={reconnectWs}
                 intent={Intent.PRIMARY}
                 large
-                loading={_.isEqual(socketReadyState, 0) || authenticating}
+                loading={
+                    _.isEqual(socket.readyState, WebSocket.CONNECTING) ||
+                    authenticating
+                }
                 text="Connect"
             />
         );
@@ -176,7 +178,7 @@ export default function Sessions() {
             <NonIdealState
                 icon={faIcon({ icon: faSignalStreamSlash, size: 50 })}
                 title={
-                    _.isEqual(socketReadyState, 0)
+                    _.isEqual(socket.readyState, WebSocket.CONNECTING)
                         ? "Connecting"
                         : "No connection"
                 }
@@ -222,13 +224,13 @@ export default function Sessions() {
                                 content="Start a new session"
                             >
                                 <Button
-                                    disabled={!_.isEqual(socketReadyState, 1)}
+                                    disabled={!isSocketOpen}
                                     text="New"
                                     outlined
                                     loading={isCreatingSession}
                                     intent={Intent.PRIMARY}
                                     onClick={() => {
-                                        if (!_.isEqual(socketReadyState, 1)) {
+                                        if (!isSocketOpen) {
                                             return;
                                         }
                                         setIsCreatingSession(true);

@@ -17,7 +17,6 @@ export default function NumberInput({
     precision = 11,
 }) {
     const { socket } = useSocket();
-    const socketReadyState = _.get(socket, "readyState", 3);
     const [, forceUpdate] = useReducer((x) => x + 1, 0);
     const expandScientificNotationTerms = (value) => {
         // leave empty strings empty
@@ -129,7 +128,7 @@ export default function NumberInput({
         // the same value. force the update to ensure a render triggers even if
         // this is the case.
         forceUpdate();
-        if (!_.isEqual(socketReadyState, 1)) {
+        if (!_.isEqual(socket.readyState, WebSocket.OPEN)) {
             return;
         }
         setTimeout(() => {

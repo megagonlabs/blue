@@ -14,7 +14,6 @@ const EnumRenderer = ({
     data,
 }) => {
     const { socket } = useSocket();
-    const socketReadyState = _.get(socket, "readyState", 3);
     const label = _.get(uischema, "label", null);
     const labelElement =
         !_.isString(label) && !required ? null : (
@@ -52,7 +51,7 @@ const EnumRenderer = ({
                         value = null;
                     }
                     handleChange(path, value);
-                    if (!_.isEqual(socketReadyState, 1)) {
+                    if (!_.isEqual(socket.readyState, WebSocket.OPEN)) {
                         return;
                     }
                     setTimeout(() => {
