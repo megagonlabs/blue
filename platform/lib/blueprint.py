@@ -124,7 +124,7 @@ class Platform:
 
         # TODO: delete more
 
-        # TOOO: remove, stop all agents
+        # TODO: remove, stop all agents
 
     def _send_message(self, code, params):
         message = {'code': code, 'params': params}

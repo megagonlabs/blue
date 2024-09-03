@@ -446,7 +446,7 @@ class AgentFactory:
 
         self._initialize(properties=properties)
 
-        self.session_consumer = None
+        self.platform_consumer = None
 
         # creation time
         self.ct = math.floor(time.time_ns() / 1000000)
@@ -502,18 +502,18 @@ class AgentFactory:
         )
 
     def wait(self):
-        self.session_consumer.wait()
+        self.platform_consumer.wait()
 
     def _start_consumer(self):
         # platform stream
         stream = "PLATFORM:" + self.platform + ":STREAM"
-        self.session_consumer = Consumer(
+        self.platform_consumer = Consumer(
             stream,
             name=self._name + "_FACTORY",
             listener=lambda message: self.platform_listener(message),
             properties=self.properties,
         )
-        self.session_consumer.start()
+        self.platform_consumer.start()
 
     def platform_listener(self, message):
         # listen to platform stream
@@ -612,22 +612,3 @@ if __name__ == "__main__":
             properties=properties,
         )
         af.wait()
-
-    else:
-        # sample func to process data from
-        # return a value other than None
-        # to create a stream
-        def processor(stream, id, label, data, dtype=None):
-            logging.into(stream)
-            logging.info(id)
-            logging.info(label)
-            logging.info(data)
-
-            return None
-
-        # create an agent and then create a session, and add agents
-        a = Agent(args.name, processor=processor, session=None, properties=properties)
-        s = a.start_session()
-
-        # optionally you can create an agent in a session directly
-        b = Agent(args.name, processor=processor, session=s, properties=properties)
