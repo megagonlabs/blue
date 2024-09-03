@@ -2,9 +2,13 @@ import axios from "axios";
 import _ from "lodash";
 export const appAction = (dispatch) => ({
     getUserProfile: (payload) => {
+        if (_.isEmpty(payload)) {
+            return;
+        }
+        const requestKey = `getUserProfile ${payload}`;
         dispatch({
             type: "app/pendingRequests/set",
-            payload: { key: `getUserProfile ${payload}`, value: true },
+            payload: { key: requestKey, value: true },
         });
         axios.get(`/accounts/profile/${payload}`).then((response) => {
             const user = _.get(response, "data.user", null);
@@ -13,7 +17,7 @@ export const appAction = (dispatch) => ({
             }
             dispatch({
                 type: "app/pendingRequests/set",
-                payload: { key: `getUserProfile ${payload}`, value: false },
+                payload: { key: requestKey, value: false },
             });
         });
     },

@@ -14,7 +14,15 @@ export const SocketProvider = ({ children }) => {
     const reconnectWs = () => {
         // close existing WS connection
         try {
-            ws.close();
+            if (
+                ws != null &&
+                _.includes(
+                    [WebSocket.OPEN, WebSocket.CONNECTING],
+                    ws.readyState
+                )
+            ) {
+                ws.close();
+            }
         } catch (error) {
             console.log(error);
         }
@@ -65,7 +73,6 @@ export const SocketProvider = ({ children }) => {
             AppToaster.show({
                 intent: Intent.SUCCESS,
                 message: "Connection established",
-                timeout: 2000,
             });
             appActions.session.setState({ key: "isSocketOpen", value: true });
         };

@@ -33,7 +33,7 @@ export const defaultState = {
     settings: {},
 };
 export default function appReducer(state = defaultState, { type, payload }) {
-    let pendingRequests = state.pendingRequests;
+    let { pendingRequests } = state;
     switch (type) {
         case "app/pendingRequests/set": {
             _.set(pendingRequests, payload.key, payload.value);

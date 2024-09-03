@@ -258,7 +258,6 @@ export default function Sessions() {
                                     AppToaster.show({
                                         icon: faIcon({ icon: faClipboard }),
                                         message: `Copied "${appState.session.connectionId}"`,
-                                        timeout: 2000,
                                     });
                                 }}
                             >

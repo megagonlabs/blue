@@ -159,7 +159,6 @@ export default function SessionRow({ index, style }) {
                             AppToaster.show({
                                 icon: faIcon({ icon: faClipboard }),
                                 message: `Copied "${sessionId}"`,
-                                timeout: 2000,
                             });
                             event.stopPropagation();
                         }}

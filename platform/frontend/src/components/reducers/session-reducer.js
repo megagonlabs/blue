@@ -14,9 +14,7 @@ export default function sessionReducer(
     state = defaultState,
     { type, payload }
 ) {
-    let unreadSessionIds = state.unreadSessionIds;
-    let sessionIds = state.sessionIds;
-    let terminatedInteraction = state.terminatedInteraction;
+    let { unreadSessionIds, sessionIds, terminatedInteraction } = state;
     let sessions = _.cloneDeep(state.sessions);
     switch (type) {
         case "session/sessions/message/add": {

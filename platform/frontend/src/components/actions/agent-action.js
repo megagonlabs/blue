@@ -8,6 +8,14 @@ export const agentAction = (dispatch) => ({
         });
     },
     fetchAttributes: (payload) => {
+        if (_.isEmpty(payload)) {
+            return;
+        }
+        const requestKey = `fetchAttributes ${payload}`;
+        dispatch({
+            type: "agent/pendingAttributesRequests/set",
+            payload: { key: requestKey, value: true },
+        });
         axios
             .get(
                 `/registry/${process.env.NEXT_PUBLIC_AGENT_REGISTRY_NAME}/agent/${payload}`
@@ -31,6 +39,10 @@ export const agentAction = (dispatch) => ({
                             false
                         ),
                     },
+                });
+                dispatch({
+                    type: "agent/pendingAttributesRequests/set",
+                    payload: { key: requestKey, value: false },
                 });
             });
     },

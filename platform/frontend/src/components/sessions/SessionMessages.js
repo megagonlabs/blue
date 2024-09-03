@@ -35,7 +35,7 @@ const Row = ({ index, data, style }) => {
         const hasUserProfile = _.has(appState, ["app", "users", uid]);
         if (_.isEqual(created_by, "USER")) {
             if (!hasUserProfile) {
-                const pendingRquest = _.get(
+                let pendingRquest = _.get(
                     appState,
                     ["app", "pendingRequests", `getUserProfile ${uid}`],
                     false
@@ -44,8 +44,22 @@ const Row = ({ index, data, style }) => {
                     appActions.app.getUserProfile(uid);
                 }
             }
-        } else if (!_.has(appState, ["agent", "icon", created_by])) {
-            appActions.agent.fetchAttributes(created_by);
+        } else if (
+            !_.has(appState, ["agent", "icon", created_by]) ||
+            !_.has(appState, ["agent", "systemAgents", created_by])
+        ) {
+            let pendingAttributesRquest = _.get(
+                appState,
+                [
+                    "agent",
+                    "pendingAttributesRequests",
+                    `fetchAttributes ${created_by}`,
+                ],
+                false
+            );
+            if (!pendingAttributesRquest) {
+                appActions.agent.fetchAttributes(created_by);
+            }
         }
         return (
             _.isEqual(uid, appState.session.userId) &&

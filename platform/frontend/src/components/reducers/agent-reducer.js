@@ -14,10 +14,15 @@ export const defaultState = {
         page: 0,
         page_size: 10,
     },
+    pendingAttributesRequests: {},
 };
 export default function agentReducer(state = defaultState, { type, payload }) {
-    let icon = state.icon;
+    let { icon, pendingAttributesRequests } = state;
     switch (type) {
+        case "agent/pendingAttributesRequests/set": {
+            _.set(pendingAttributesRequests, payload.key, payload.value);
+            return { ...state, pendingAttributesRequests };
+        }
         case "agent/list/set": {
             for (let i = 0; i < _.size(payload); i++) {
                 let tempIcon = payload[i].icon;

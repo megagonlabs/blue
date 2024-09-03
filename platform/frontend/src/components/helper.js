@@ -24,7 +24,6 @@ const renderProgress = (progress, requestError = false) => {
                 value={progress / 100}
             />
         ),
-        timeout: progress < 100 ? 0 : 2000,
     };
 };
 module.exports = {

@@ -6,8 +6,7 @@ export const defaultState = {
     usersMap: {},
 };
 export default function adminReducer(state = defaultState, { type, payload }) {
-    let selectedUsers = state.selectedUsers;
-    let selectedAgents = state.selectedAgents;
+    let { selectedUsers, selectedAgents } = state;
     switch (type) {
         case "admin/selectedUsers/add": {
             selectedUsers.add(payload);
