@@ -59,7 +59,7 @@ export default function RegistryList({ type }) {
                 {list.map((element) => {
                     const properties = element.properties;
                     let extra = null;
-                    if (_.isEqual(type, "agent")) {
+                    if (_.includes(["agent", "operator"], type)) {
                         extra = properties.image;
                     } else if (_.isEqual(type, "data")) {
                         extra = `${properties.connection.protocol}://${properties.connection.host}:${properties.connection.port}`;

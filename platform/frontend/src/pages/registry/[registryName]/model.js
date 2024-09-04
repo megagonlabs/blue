@@ -36,12 +36,6 @@ export default function Model() {
     const [page, setPage] = useState(appState.model.filter.page);
     const [pageSize, setPageSize] = useState(appState.model.filter.page_size);
     const modelRegistryName = process.env.NEXT_PUBLIC_MODEL_REGISTRY_NAME;
-    useEffect(() => {
-        if (appState.model.search) {
-            return;
-        }
-        appActions.model.getList(modelRegistryName);
-    }, []);
     const debounceOnKeywordsChange = useCallback(
         _.debounce(
             ({

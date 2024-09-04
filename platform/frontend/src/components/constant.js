@@ -123,6 +123,8 @@ export const REGISTRY_TYPE_LOOKUP = {
         agent: faCircleA,
         data: faDatabase,
         source: faDatabase,
+        operator: faFunction,
+        model: faCube,
     },
     COLOR_OPTIONS = [
         "#979B9D",

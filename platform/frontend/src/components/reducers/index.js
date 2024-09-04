@@ -12,7 +12,7 @@ export default function rootReducer(state = {}, action) {
         session: sessionReducer(state.session, action),
         agent: agentReducer(state.agent, action),
         data: dataReducer(state.data, action),
-        operator: operatorReducer(state.data, action),
+        operator: operatorReducer(state.operator, action),
         admin: adminReducer(state.admin, action),
         debug: debugReducer(state.debug, action),
         model: modelReducer(state.model, action),

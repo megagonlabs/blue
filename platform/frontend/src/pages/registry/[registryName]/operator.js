@@ -38,12 +38,6 @@ export default function Operator() {
         appState.operator.filter.page_size
     );
     const operatorRegistryName = process.env.NEXT_PUBLIC_OPERATOR_REGISTRY_NAME;
-    useEffect(() => {
-        if (appState.operator.search) {
-            return;
-        }
-        appActions.operator.getList(operatorRegistryName);
-    }, []);
     const debounceOnKeywordsChange = useCallback(
         _.debounce(
             ({
@@ -221,9 +215,10 @@ export default function Operator() {
                                     >
                                         {[
                                             { value: "", text: "All" },
-                                            { value: "agent", text: "Agent" },
-                                            { value: "input", text: "Input" },
-                                            { value: "output", text: "Output" },
+                                            {
+                                                value: "operator",
+                                                text: "Operator",
+                                            },
                                         ].map(({ value, text }, index) => {
                                             return (
                                                 <Radio
