@@ -37,7 +37,6 @@ from settings import PROPERTIES, DEVELOPMENT
 platform_id = PROPERTIES["platform.name"]
 prefix = 'PLATFORM:' + platform_id
 agent_registry_id = PROPERTIES["agent_registry.name"]
-data_registry_id = PROPERTIES["data_registry.name"]
 PLATFORM_PREFIX = f'/blue/platform/{platform_id}'
 
 ###### Initialization

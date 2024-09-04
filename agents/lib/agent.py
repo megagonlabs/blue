@@ -421,21 +421,21 @@ class Agent:
 class AgentFactory:
     def __init__(
         self,
-        agent_class=Agent,
-        agent_name="Agent",
-        agent_registry="default",
+        _class=Agent,
+        _name="Agent",
+        _registry="default",
         platform="default",
         properties={},
     ):
-        self.agent_class = agent_class
-        self.agent_name = agent_name
-        self.agent_registry = agent_registry
+        self._class = _class
+        self._name = _name
+        self._registry = _registry
 
         self.platform = platform
 
         self._initialize(properties=properties)
 
-        self.session_consumer = None
+        self.platform_consumer = None
 
         # creation time
         self.ct = math.floor(time.time_ns() / 1000000)
@@ -474,7 +474,7 @@ class AgentFactory:
     ###### factory functions
     def create(self, **kwargs):
         print(kwargs)
-        klasse = self.agent_class
+        klasse = self._class
         instanz = klasse(**kwargs)
         return instanz
 
@@ -484,25 +484,25 @@ class AgentFactory:
         self._start_consumer()
         logging.info(
             "Started agent factory for agent: {name} in registry: {registry} on platform: {platform} ".format(
-                name=self.agent_name,
-                registry=self.agent_registry,
+                name=self._name,
+                registry=self._registry,
                 platform=self.platform,
             )
         )
 
     def wait(self):
-        self.session_consumer.wait()
+        self.platform_consumer.wait()
 
     def _start_consumer(self):
         # platform stream
         stream = "PLATFORM:" + self.platform + ":STREAM"
-        self.session_consumer = Consumer(
+        self.platform_consumer = Consumer(
             stream,
-            name=self.agent_name + "_FACTORY",
+            name=self._name + "_FACTORY",
             listener=lambda message: self.platform_listener(message),
             properties=self.properties,
         )
-        self.session_consumer.start()
+        self.platform_consumer.start()
 
     def platform_listener(self, message):
         # listen to platform stream
@@ -536,16 +536,16 @@ class AgentFactory:
                 del agent_properties["input"]
 
             # check match in canonical name space, i.e.
-            # <agent_name> or <agent_name>.<derivative_agent_name>
+            # <_name> or <_name>.<derivative__name>
             ca = agent.split("_")
-            parent_agent_name = ca[0]
-            child_agent_name = ca[0]
+            parent_name = ca[0]
+            child_name = ca[0]
 
-            # if derivative_agent_name
+            # if derivative__name
             if len(ca) > 1:
-                child_agent_name = ca[1]
+                child_name = ca[1]
 
-            if self.agent_name == ca[0]:
+            if self._name == ca[0]:
                 name = agent
 
                 logging.info("Launching Agent: " + name + "...")
@@ -593,29 +593,10 @@ if __name__ == "__main__":
         platform = args.platform
 
         af = AgentFactory(
-            agent_class=Agent,
-            agent_name=args.serve,
-            agent_registry=args.registry,
+            _class=Agent,
+            _name=args.serve,
+            _registry=args.registry,
             platform=platform,
             properties=properties,
         )
         af.wait()
-
-    else:
-        # sample func to process data from
-        # return a value other than None
-        # to create a stream
-        def processor(stream, id, label, data, dtype=None):
-            logging.into(stream)
-            logging.info(id)
-            logging.info(label)
-            logging.info(data)
-
-            return None
-
-        # create an agent and then create a session, and add agents
-        a = Agent(args.name, processor=processor, session=None, properties=properties)
-        s = a.start_session()
-
-        # optionally you can create an agent in a session directly
-        b = Agent(args.name, processor=processor, session=s, properties=properties)

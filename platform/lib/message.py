@@ -64,6 +64,7 @@ class ControlCode(Constant):
 ControlCode.BOS = ControlCode("BOS")
 ControlCode.EOS = ControlCode("EOS")
 # platform codes
+ControlCode.CREATE_SESSION = ControlCode("CREATE_SESSION")
 ControlCode.JOIN_SESSION = ControlCode("JOIN_SESSION")
 # session codes
 ControlCode.ADD_AGENT = ControlCode("ADD_AGENT")
@@ -74,6 +75,10 @@ ControlCode.ADD_STREAM = ControlCode("ADD_STREAM")
 ControlCode.CREATE_FORM = ControlCode("CREATE_FORM")
 ControlCode.UPDATE_FORM = ControlCode("UPDATE_FORM")
 ControlCode.CLOSE_FORM = ControlCode("CLOSE_FORM")
+# operators
+ControlCode.CREATE_PIPELINE= ControlCode("CREATE_PIPELINE")
+ControlCode.JOIN_PIPELINE= ControlCode("JOIN_PIPELINE")
+ControlCode.EXECUTE_OPERATOR = ControlCode("EXECUTE_OPERATOR")
 
 
 ###############

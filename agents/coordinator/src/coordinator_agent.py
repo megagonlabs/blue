@@ -260,6 +260,8 @@ class CoordinatorAgent(Agent):
 
         # TODO: get registry info on to_agent, to_agent_param
 
+        # TODO: fetch data from stream
+
         # TODO: call data planner
 
         # TODO: call data optimizer
@@ -515,7 +517,7 @@ if __name__ == "__main__":
     if args.serve:
         platform = args.platform
 
-        af = AgentFactory(agent_class=CoordinatorAgent, agent_name=args.serve, agent_registry=args.registry, platform=platform, properties=properties)
+        af = AgentFactory(_class=CoordinatorAgent, _name=args.serve, _registry=args.registry, platform=platform, properties=properties)
         af.wait()
     else:
         a = None

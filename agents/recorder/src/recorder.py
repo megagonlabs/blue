@@ -142,7 +142,7 @@ if __name__ == "__main__":
     if args.serve:
         platform = args.platform
         
-        af = AgentFactory(agent_class=RecorderAgent, agent_name=args.serve, agent_registry=args.registry, platform=platform, properties=properties)
+        af = AgentFactory(_class=RecorderAgent, _name=args.serve, _registry=args.registry, platform=platform, properties=properties)
         af.wait()
     else:
         a = None

@@ -111,7 +111,7 @@ if __name__ == "__main__":
     if args.serve:
         platform = args.platform
         
-        af = AgentFactory(agent_class=NEO4JAgent, agent_name=args.serve, agent_registry=args.registry, platform=platform, properties=properties)
+        af = AgentFactory(_class=NEO4JAgent, _name=args.serve, _registry=args.registry, platform=platform, properties=properties)
         af.wait()
     else:
         a = None
