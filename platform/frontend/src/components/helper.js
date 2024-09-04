@@ -26,6 +26,23 @@ const renderProgress = (progress, requestError = false) => {
         ),
     };
 };
+const waitForOpenConnection = (socket) => {
+    return new Promise((resolve, reject) => {
+        const maxNumberOfAttempts = 10;
+        const intervalTime = 200; //ms
+        let currentAttempt = 0;
+        const interval = setInterval(() => {
+            if (currentAttempt > maxNumberOfAttempts - 1) {
+                clearInterval(interval);
+                reject(new Error("Maximum number of attempts exceeded"));
+            } else if (_.isEqual(socket.readyState, WebSocket.OPEN)) {
+                clearInterval(interval);
+                resolve();
+            }
+            currentAttempt++;
+        }, intervalTime);
+    });
+};
 module.exports = {
     Queue: class Queue {
         constructor() {
@@ -140,6 +157,18 @@ module.exports = {
             return transform(Object.entries(style));
         } catch (error) {
             return style;
+        }
+    },
+    sendSocketMessage: async (socket, message) => {
+        if (_.isEqual(socket.readyState, WebSocket.OPEN)) {
+            try {
+                await waitForOpenConnection(socket);
+                socket.send(message);
+            } catch (err) {
+                console.error(err);
+            }
+        } else {
+            socket.send(message);
         }
     },
 };

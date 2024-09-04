@@ -2,9 +2,11 @@ import { NAVIGATION_MENU_WIDTH } from "@/components/constant";
 import { AppContext } from "@/components/contexts/app-context";
 import { AuthContext } from "@/components/contexts/auth-context";
 import { SocketContext } from "@/components/contexts/socket-context";
+import { sendSocketMessage } from "@/components/helper";
 import { useSocket } from "@/components/hooks/useSocket";
 import { faIcon } from "@/components/icon";
 import AddAgents from "@/components/sessions/AddAgents";
+import PlanVisualizationPanel from "@/components/sessions/PlanVisualizationPanel";
 import SessionDetail from "@/components/sessions/SessionDetail";
 import SessionList from "@/components/sessions/SessionList";
 import SessionMessages from "@/components/sessions/SessionMessages";
@@ -36,6 +38,7 @@ import {
     faSatelliteDish,
     faSignalStreamSlash,
 } from "@fortawesome/pro-duotone-svg-icons";
+import { ReactFlowProvider } from "@xyflow/react";
 import axios from "axios";
 import copy from "copy-to-clipboard";
 import _ from "lodash";
@@ -56,7 +59,8 @@ export default function Sessions() {
             return;
         }
         setMessage("");
-        socket.send(
+        sendSocketMessage(
+            socket,
             JSON.stringify({
                 type: "USER_SESSION_MESSAGE",
                 session_id: sessionIdFocus,
@@ -134,7 +138,10 @@ export default function Sessions() {
         }
         if (initialFetchAll.current) {
             initialFetchAll.current = false;
-            socket.send(JSON.stringify({ type: "REQUEST_USER_AGENT_ID" }));
+            sendSocketMessage(
+                socket,
+                JSON.stringify({ type: "REQUEST_USER_AGENT_ID" })
+            );
             fetchAllSessions();
         }
     }, [isSocketOpen]);
@@ -426,6 +433,9 @@ export default function Sessions() {
                 setIsAddAgentsOpen={setIsAddAgentsOpen}
                 isOpen={isAddAgentsOpen}
             />
+            <ReactFlowProvider>
+                <PlanVisualizationPanel />
+            </ReactFlowProvider>
         </>
     );
 }

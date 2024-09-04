@@ -27,7 +27,6 @@ import {
     faPencilRuler,
     faUserGroup,
 } from "@fortawesome/pro-duotone-svg-icons";
-import { ReactFlowProvider } from "@xyflow/react";
 import _ from "lodash";
 import Image from "next/image";
 import Link from "next/link";
@@ -37,7 +36,6 @@ import DebugPanel from "./debugger/DebugPanel";
 import { hasTrue } from "./helper";
 import Settings from "./navigation/Settings";
 import UserAccountPanel from "./navigation/UserAccountPanel";
-import PlanVisualizationPanel from "./sessions/PlanVisualizationPanel";
 export default function App({ children }) {
     const router = useRouter();
     const { appState, appActions } = useContext(AppContext);
@@ -442,9 +440,6 @@ export default function App({ children }) {
                 {_.isEmpty(user) ? <AccessDeniedNonIdealState /> : children}
             </div>
             <DebugPanel />
-            <ReactFlowProvider>
-                <PlanVisualizationPanel />
-            </ReactFlowProvider>
         </div>
     );
 }
