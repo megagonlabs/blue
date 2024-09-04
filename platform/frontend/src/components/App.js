@@ -20,6 +20,7 @@ import {
 } from "@blueprintjs/core";
 import {
     faCircleA,
+    faCube,
     faDatabase,
     faFunction,
     faGear,
@@ -59,6 +60,7 @@ export default function App({ children }) {
         canReadDataRegistry,
         canReadAgentRegistry,
         canReadOperatorRegistry,
+        canReadModelRegistry,
     } = permissions;
     const MENU_ITEMS = {
         sessions: {
@@ -80,10 +82,16 @@ export default function App({ children }) {
             visible: canReadAgentRegistry,
         },
         operator_registry: {
-            href: `/registry/${process.env.NEXT_PUBLIC_AGENT_REGISTRY_NAME}/operator`,
+            href: `/registry/${process.env.NEXT_PUBLIC_OPERATOR_REGISTRY_NAME}/operator`,
             text: "Operator",
             icon: faFunction,
             visible: canReadOperatorRegistry,
+        },
+        model_registry: {
+            href: `/registry/${process.env.NEXT_PUBLIC_MODEL_REGISTRY_NAME}/model`,
+            text: "Model",
+            icon: faCube,
+            visible: canReadModelRegistry,
         },
         form_designer: {
             href: "/tools/form-designer",
@@ -288,6 +296,7 @@ export default function App({ children }) {
                                     "agent_registry",
                                     "data_registry",
                                     "operator_registry",
+                                    "model_registry",
                                 ].map((key, index) => {
                                     const { href, icon, text, visible } = _.get(
                                         MENU_ITEMS,

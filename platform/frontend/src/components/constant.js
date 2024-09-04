@@ -8,6 +8,8 @@ const {
     faProjectDiagram,
     faArrowRightToArc,
     faArrowRightFromArc,
+    faFunction,
+    faCube,
 } = require("@fortawesome/pro-duotone-svg-icons");
 const { vanillaRenderers } = require("@jsonforms/vanilla-renderers");
 import BooleanRenderer, {
@@ -49,6 +51,8 @@ import DateTimeRenderer, {
 export const REGISTRY_TYPE_LOOKUP = {
         data: { icon: faServer, key: "source" },
         agent: { icon: faCircleA, key: "agent" },
+        operator: { icon: faFunction, key: "operator" },
+        model: { icon: faCube, key: "model" },
     },
     SEARCH_LIST_TYPE_LOOKUP = {
         agent: { icon: faHeadSideGear },

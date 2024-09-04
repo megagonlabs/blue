@@ -64,7 +64,7 @@ p = Platform(id=platform_id, properties=PROPERTIES)
 model_registry = ModelRegistry(id=model_registry_id, prefix=prefix, properties=PROPERTIES)
 
 ##### ROUTER
-router = APIRouter(prefix=f"{PLATFORM_PREFIX}/registry/{model_registry_id}/models")
+router = APIRouter(prefix=f"{PLATFORM_PREFIX}/registry/{model_registry_id}")
 
 # set logging
 logging.getLogger().setLevel("INFO")

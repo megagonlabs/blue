@@ -121,7 +121,11 @@ export const AuthProvider = ({ children }) => {
                 ["write_all", "write_own"]
             ),
             canReadOperatorRegistry: hasInteraction(
-                _.get(permissions, "opeartor_registry", []),
+                _.get(permissions, "operator_registry", []),
+                ["read_all"]
+            ),
+            canReadModelRegistry: hasInteraction(
+                _.get(permissions, "model_registry", []),
                 ["read_all"]
             ),
         };
