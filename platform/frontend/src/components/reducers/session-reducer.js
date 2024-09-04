@@ -9,14 +9,24 @@ export const defaultState = {
     userId: null,
     unreadSessionIds: new Set(),
     terminatedInteraction: new Set(),
+    expandedMessageStream: new Set(),
 };
 export default function sessionReducer(
     state = defaultState,
     { type, payload }
 ) {
-    let { unreadSessionIds, sessionIds, terminatedInteraction } = state;
+    let {
+        unreadSessionIds,
+        sessionIds,
+        terminatedInteraction,
+        expandedMessageStream,
+    } = state;
     let sessions = _.cloneDeep(state.sessions);
     switch (type) {
+        case "session/expandedMessageStream/add": {
+            expandedMessageStream.add(payload);
+            return { ...state, expandedMessageStream };
+        }
         case "session/sessions/message/add": {
             const messageLabel = _.get(payload, "message.label", null);
             const contentType = _.get(payload, "message.content_type", null);

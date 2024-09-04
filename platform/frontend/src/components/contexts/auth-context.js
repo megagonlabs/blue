@@ -120,6 +120,10 @@ export const AuthProvider = ({ children }) => {
                 _.get(permissions, "sessions", []),
                 ["write_all", "write_own"]
             ),
+            canReadOperatorRegistry: hasInteraction(
+                _.get(permissions, "opeartor_registry", []),
+                ["read_all"]
+            ),
         };
     };
     const fetchAccountProfile = () => {

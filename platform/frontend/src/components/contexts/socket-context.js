@@ -1,4 +1,3 @@
-import { AppContext } from "@/components/contexts/app-context";
 import { AppToaster } from "@/components/toaster";
 import { Intent } from "@blueprintjs/core";
 import axios from "axios";
@@ -8,19 +7,13 @@ import { AuthContext } from "./auth-context";
 export const SocketContext = createContext();
 export const SocketProvider = ({ children }) => {
     const [ws, setWs] = useState(null);
-    const { appActions } = useContext(AppContext);
     const { settings } = useContext(AuthContext);
     const [authenticating, setAuthenticating] = useState(false);
+    const [isSocketOpen, setIsSocketOpen] = useState(false);
     const reconnectWs = () => {
         // close existing WS connection
         try {
-            if (
-                ws != null &&
-                _.includes(
-                    [WebSocket.OPEN, WebSocket.CONNECTING],
-                    ws.readyState
-                )
-            ) {
+            if (isSocketOpen) {
                 ws.close();
             }
         } catch (error) {
@@ -62,21 +55,22 @@ export const SocketProvider = ({ children }) => {
     }, [settings.debug_mode]);
     useEffect(() => {
         const onClose = () => {
+            setIsSocketOpen(false);
             AppToaster.show({
                 intent: Intent.PRIMARY,
                 message: "Connection closed",
             });
-            appActions.session.setState({ key: "isSocketOpen", value: false });
         };
         // Adding an event listener to when the connection is opened
         const onOpen = () => {
+            setIsSocketOpen(true);
             AppToaster.show({
                 intent: Intent.SUCCESS,
                 message: "Connection established",
             });
-            appActions.session.setState({ key: "isSocketOpen", value: true });
         };
         const onError = () => {
+            setIsSocketOpen(false);
             AppToaster.show({
                 intent: Intent.DANGER,
                 message: `Failed to connect to websocket (onerror)`,
@@ -92,10 +86,11 @@ export const SocketProvider = ({ children }) => {
                 ws.removeEventListener("error", onError);
             };
         }
+        setIsSocketOpen(ws != null && _.isEqual(ws.readyState, WebSocket.OPEN));
     }, [ws, setWs]);
     return (
         <SocketContext.Provider
-            value={{ authenticating, socket: ws, reconnectWs }}
+            value={{ authenticating, socket: ws, reconnectWs, isSocketOpen }}
         >
             {children}
         </SocketContext.Provider>

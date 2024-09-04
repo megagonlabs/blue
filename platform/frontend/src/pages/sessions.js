@@ -47,8 +47,7 @@ export default function Sessions() {
     const [message, setMessage] = useState("");
     const sessionMessageTextArea = useRef(null);
     const [isSessionDetailOpen, setIsSessionDetailOpen] = useState(false);
-    const { socket, reconnectWs } = useSocket();
-    const isSocketOpen = appState.session.isSocketOpen;
+    const { socket, reconnectWs, isSocketOpen } = useSocket();
     const { permissions, settings } = useContext(AuthContext);
     const { canCreateSessions } = permissions;
     const { authenticating } = useContext(SocketContext);
@@ -147,7 +146,8 @@ export default function Sessions() {
                 intent={Intent.PRIMARY}
                 large
                 loading={
-                    _.isEqual(socket.readyState, WebSocket.CONNECTING) ||
+                    (socket != null &&
+                        _.isEqual(socket.readyState, WebSocket.CONNECTING)) ||
                     authenticating
                 }
                 text="Connect"
@@ -178,6 +178,7 @@ export default function Sessions() {
             <NonIdealState
                 icon={faIcon({ icon: faSignalStreamSlash, size: 50 })}
                 title={
+                    socket != null &&
                     _.isEqual(socket.readyState, WebSocket.CONNECTING)
                         ? "Connecting"
                         : "No connection"

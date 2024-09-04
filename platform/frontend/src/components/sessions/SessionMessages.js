@@ -66,17 +66,35 @@ const Row = ({ index, data, style }) => {
             _.isEqual(created_by, "USER")
         );
     }, [appState.session.userId]);
+    const isOverflown = useRef(false);
+    const message = messages[index];
+    const stream = message.stream;
+    const MESSAGE_OVERFLOW_THRESHOLD = 200;
     const handleResize = useCallback(() => {
         // do magic for resize
         if (rowRef.current) {
+            const { clientWidth, clientHeight, scrollWidth, scrollHeight } =
+                rowRef.current;
+            isOverflown.current = false;
+            if (_.has(appState.session.expandedMessageStream, stream)) {
+                isOverflown.current = false;
+            } else if (
+                scrollHeight > clientHeight ||
+                scrollWidth > clientWidth
+            ) {
+                isOverflown.current = true;
+            }
             setRowHeight(
                 index,
-                rowRef.current.clientHeight + 75 + (debugMode ? 25 : 0)
+                (isOverflown.current
+                    ? MESSAGE_OVERFLOW_THRESHOLD
+                    : rowRef.current.clientHeight) +
+                    75 +
+                    (debugMode ? 25 : 0) +
+                    (isOverflown.current ? 35 : 0)
             );
         }
     }, [rowRef, debugMode]);
-    const message = messages[index];
-    const stream = message.stream;
     const streamData = _.get(streams, [stream, "data"], []);
     const contentType = _.get(messages, [index, "contentType"], null);
     const { ref: resizeRef } = useResizeDetector({
@@ -164,6 +182,13 @@ const Row = ({ index, data, style }) => {
                                 wordBreak: "break-all",
                                 width: "fit-content",
                                 minHeight: 21,
+                                overflow: "hidden",
+                                maxHeight:
+                                    !appState.session.expandedMessageStream.has(
+                                        stream
+                                    )
+                                        ? MESSAGE_OVERFLOW_THRESHOLD
+                                        : null,
                             }}
                         >
                             {_.isEqual(contentType, "JSON_FORM") ? (
@@ -227,6 +252,20 @@ const Row = ({ index, data, style }) => {
                                 </>
                             ) : null}
                         </div>
+                        {isOverflown.current ? (
+                            <Tag
+                                onClick={() => {
+                                    appActions.session.expandMessageStream(
+                                        stream
+                                    );
+                                }}
+                                interactive
+                                minimal
+                                style={{ marginTop: 15 }}
+                            >
+                                Show more
+                            </Tag>
+                        ) : null}
                     </Callout>
                 </div>
             </div>
