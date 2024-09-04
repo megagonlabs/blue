@@ -9,6 +9,7 @@ from this import d
 sys.path.append('./lib/')
 sys.path.append('./lib/agent/')
 sys.path.append('./lib/platform/')
+sys.path.append('./lib/data_planner/')
 sys.path.append('./lib/utils/')
 ######
 import time
@@ -28,6 +29,8 @@ from tqdm import tqdm
 
 ###### Blue
 from agent import Agent, AgentFactory
+from data_planner import DataPlanner
+from pipeline import Pipeline
 from session import Session
 from message import Message, MessageType, ContentType, ControlCode
 
@@ -184,28 +187,6 @@ class CoordinatorAgent(Agent):
 
             planned[stream] = True
 
-        # how to figure out the stream of an agent for a particular output parameter
-        #
-        # AGENT.OUTPUT --> <contex.scope>:AGENT:<id>:OUTPUT:<param>:STREAM"
-        # monitor session stream ADD_STREAM events, for any stream, where stream id matches
-        # any source node
-
-        # monitor message from that stream until EOS
-
-        # each interaction from user should be another stream
-        # i.e.
-        # PLATFORM:dev:SESSION:27410756:AGENT:USER:eser_AT_megagon_DOT_ai:OUTPUT:DEFAULT:<ID>:STREAM
-
-        # PLATFORM:dev:SESSION:e146cc7c:AGENT:USER:5WgRzdacRdOEvj8JBmCXFZSvWmH3:OUTPUT:TEXT:3856af67:PLAN:edd97fe5:FORM_PROFILER:b5221f29:OUTPUT:PROFILE:STREAM
-
-        # context:
-        # PLATFORM:dev:SESSION:6bad5453:AGENT:USER:5WgRzdacRdOEvj8JBmCXFZSvWmH3:OUTPUT:TEXT:9a0e073a
-        # PLAN:edd97fe5
-        # AGENT:<ID>
-        # OUTPUT:PARAM
-        # STREAM
-        # {"code": "ADD_STREAM", "args": {"session": "PLATFORM:dev:SESSION:e146cc7c",
-        #                                 "stream": "", "tags": ["JSON", "FORM_PROFILER"]}}
 
         # persist plan data to agent memory
         logging.info(str(plan))
@@ -251,26 +232,53 @@ class CoordinatorAgent(Agent):
         ### do regular session listening
         return super().session_listener(message)
 
-    def transform_data(self, stream, from_agent, from_agent_param, to_agent, to_agent_param):
+    def transform_data(self, input_stream, from_agent, from_agent_param, to_agent, to_agent_param):
         logging.info("TRANSFORM DATA:")
         logging.info(from_agent + "." + from_agent_param)
         logging.info(to_agent + "." + to_agent_param)
 
+        context = {}
         # TODO: get registry info on from_agent, from_agent_param
 
         # TODO: get registry info on to_agent, to_agent_param
 
-        # TODO: fetch data from stream
+        # fetch data from stream
+        input_data = self.fetch_stream_data(input_stream)
 
-        # TODO: call data planner
+        # TODO: retrieve budget
+        budget = {}
 
-        # TODO: call data optimizer
+        # TODO: call data planner, plan, optimize
+        dp = DataPlanner()
+        plan = dp.plan(input_data, "TRANSFORM", context)
+        plan = dp.optimize(plan, budget)
 
         # TODO: execute plan
+        pipeline = Pipeline()
+        output_data = pipeline.execute(plan)
 
-        # output stream
-        return stream
+        # persist data to stream
+        output_stream = self.persist_stream_data(output_data)
 
+        # TODO: OVERRIDE 
+        output_stream = input_stream
+
+        return output_stream
+
+    # TODO: fetch data from stream
+    def fetch_stream_data(input_stream):
+        # get input data 
+        input_data = None 
+
+        return input_data
+    
+    # TODO: persist data to stream
+    def persist_stream_data(input_data):
+        # return output stream
+        output_stream = None
+
+        return output_stream 
+    
     # node status progression
     # PLANNED, TRIGGERED, STARTED, FINISHED
     def default_processor(self, message, input="DEFAULT", properties=None, worker=None):

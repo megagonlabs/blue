@@ -124,10 +124,6 @@ class Pipeline:
         )
         return self.__get_json_value(value)
 
-
-
-   
-
     def to_dict(self):
         metadata = self.get_metadata()
         return {
@@ -137,6 +133,10 @@ class Pipeline:
             "created_date": pydash.objects.get(metadata, "created_date", None),
             "created_by": pydash.objects.get(metadata, "created_by", None)
         }
+    
+    # TODO:
+    def execute(self, plan):
+        return None
 
     ###### OPERATIONS
     def _start(self):
