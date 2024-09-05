@@ -1,6 +1,8 @@
 **/blue/web/auth/out/cache/
 blue-firebase-adminsdk.json
 agents/*/lib
+services/*/lib
+operators/*/lib
 platform/*/lib
 .DS_Store
 .vscode/
