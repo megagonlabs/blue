@@ -76,8 +76,8 @@ ControlCode.CREATE_FORM = ControlCode("CREATE_FORM")
 ControlCode.UPDATE_FORM = ControlCode("UPDATE_FORM")
 ControlCode.CLOSE_FORM = ControlCode("CLOSE_FORM")
 # operators
-ControlCode.CREATE_PIPELINE= ControlCode("CREATE_PIPELINE")
-ControlCode.JOIN_PIPELINE= ControlCode("JOIN_PIPELINE")
+ControlCode.CREATE_PIPELINE = ControlCode("CREATE_PIPELINE")
+ControlCode.JOIN_PIPELINE = ControlCode("JOIN_PIPELINE")
 ControlCode.EXECUTE_OPERATOR = ControlCode("EXECUTE_OPERATOR")
 
 
@@ -117,8 +117,7 @@ class Message:
     def getData(self):
         if self.isData():
             return self.contents
-        else:
-            return None
+        return None
 
     def getContents(self):
         return self.contents
@@ -141,38 +140,31 @@ class Message:
     def getCode(self):
         if self.isControl():
             return self.contents['code']
-        else:
-            return None
+        return None
 
     def getArgs(self):
         if self.isControl():
             return self.contents['args']
-        else:
-            return None
+        return None
 
     def getParam(self, param):
-        if self.isData():
-            if param in self.contents['params']:
-                return self.contents['params'][param]
-            else:
-                return None
-        else:
-            return None
+        if self.isControl():
+            if self.getCode() == ControlCode.EXECUTE_AGENT:
+                if param in self.contents['params']:
+                    return self.contents['params'][param]
+        return None
 
     def getParams(self):
-        if self.isData():
-            return self.contents['args']['params']
-        else:
-            return None
+        if self.isControl():
+            if self.getCode() == ControlCode.EXECUTE_AGENT:
+                return self.contents['args']['params']
+        return None
 
     def getArg(self, arg):
         if self.isControl():
             if arg in self.contents['args']:
                 return self.contents['args'][arg]
-            else:
-                return None
-        else:
-            return None
+        return None
 
     def setArg(self, arg, value):
         if self.isControl():

@@ -18,6 +18,7 @@ import csv
 import json
 
 import itertools
+import pydash
 from tqdm import tqdm
 
 ###### Backend, Databases
@@ -90,7 +91,8 @@ class Consumer:
         #         right: <param>
         #     }
         # }
-        if 'output' in properties and properties["output"].get('type') == 'pair':
+        output_type = pydash.objects.get(properties, 'output.type', None)
+        if pydash.is_equal(output_type, 'pair'):
             self.pairer_task = asyncio.get_event_loop().create_task(self.pairer(self.left_queue, self.right_queue))
             self.left_param = properties["output"].get('left')
             self.left_queue = Queue()
