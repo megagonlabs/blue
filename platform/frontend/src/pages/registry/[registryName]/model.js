@@ -209,9 +209,7 @@ export default function Model() {
                                     >
                                         {[
                                             { value: "", text: "All" },
-                                            { value: "agent", text: "Agent" },
-                                            { value: "input", text: "Input" },
-                                            { value: "output", text: "Output" },
+                                            { value: "model", text: "Model" },
                                         ].map(({ value, text }, index) => {
                                             return (
                                                 <Radio

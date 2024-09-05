@@ -1,4 +1,4 @@
-import { SEARCH_LIST_TYPE_LOOKUP } from "@/components/constant";
+import { ENTITY_TYPE_LOOKUP } from "@/components/constant";
 import { AppContext } from "@/components/contexts/app-context";
 import { faIcon } from "@/components/icon";
 import { Card, Classes } from "@blueprintjs/core";
@@ -24,9 +24,9 @@ export default function SearchList({ type }) {
                         const registryName = appState[type].registryName;
                         let link = "",
                             path = [];
-                        if (_.isEqual(type, "agent")) {
+                        if (_.includes(["agent", "model", "operator"], type)) {
                             link = `/registry/${registryName}`;
-                            path = ["agent"];
+                            path = [type];
                         } else if (_.isEqual(type, "data")) {
                             link = `/registry/${registryName}`;
                             path = ["source", "database"];
@@ -65,7 +65,7 @@ export default function SearchList({ type }) {
                                                 style={{ marginRight: 20 }}
                                             >
                                                 {faIcon({
-                                                    icon: SEARCH_LIST_TYPE_LOOKUP[
+                                                    icon: ENTITY_TYPE_LOOKUP[
                                                         item.type
                                                     ].icon,
                                                     size: 21,

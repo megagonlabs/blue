@@ -1,4 +1,4 @@
-import { REGISTRY_TYPE_LOOKUP } from "@/components/constant";
+import { ENTITY_TYPE_LOOKUP } from "@/components/constant";
 import { AppContext } from "@/components/contexts/app-context";
 import { faIcon } from "@/components/icon";
 import RegistryCard from "@/components/registry/RegistryCard";
@@ -51,10 +51,10 @@ export default function RegistryList({ type }) {
                 <NonIdealState
                     className={loading ? Classes.SKELETON : null}
                     icon={faIcon({
-                        icon: REGISTRY_TYPE_LOOKUP[type].icon,
+                        icon: ENTITY_TYPE_LOOKUP[type].icon,
                         size: 50,
                     })}
-                    title={`No ${_.capitalize(REGISTRY_TYPE_LOOKUP[type].key)}`}
+                    title={`No ${_.capitalize(ENTITY_TYPE_LOOKUP[type].key)}`}
                     action={
                         canAddEntity ? (
                             <Link href={`${router.asPath}/new`}>
@@ -63,7 +63,7 @@ export default function RegistryList({ type }) {
                                     large
                                     outlined
                                     icon={faIcon({ icon: faPlusLarge })}
-                                    text={`Add ${REGISTRY_TYPE_LOOKUP[type].key}`}
+                                    text={`Add ${ENTITY_TYPE_LOOKUP[type].key}`}
                                 />
                             </Link>
                         ) : null

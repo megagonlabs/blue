@@ -48,14 +48,9 @@ import DateRenderer, { DateTester } from "./jsonforms/renderers/Date";
 import DateTimeRenderer, {
     DateTimeTester,
 } from "./jsonforms/renderers/DateTime";
-export const REGISTRY_TYPE_LOOKUP = {
-        data: { icon: faServer, key: "source" },
+export const ENTITY_TYPE_LOOKUP = {
         agent: { icon: faCircleA, key: "agent" },
-        operator: { icon: faFunction, key: "operator" },
-        model: { icon: faCube, key: "model" },
-    },
-    SEARCH_LIST_TYPE_LOOKUP = {
-        agent: { icon: faHeadSideGear },
+        data: { icon: faServer, key: "source" },
         input: { icon: faArrowRightToArc },
         output: { icon: faArrowRightFromArc },
         source: { icon: faServer },
@@ -63,8 +58,8 @@ export const REGISTRY_TYPE_LOOKUP = {
         collection: { icon: faFolderOpen },
         entity: { icon: faFile },
         relation: { icon: faProjectDiagram },
-        model: { icon: faCube },
-        operator: { icon: faFunction },
+        model: { icon: faCube, key: "model" },
+        operator: { icon: faFunction, key: "operator" },
     },
     JSONFORMS_RENDERERS = [
         ...vanillaRenderers,

@@ -1,4 +1,4 @@
-import { SEARCH_LIST_TYPE_LOOKUP } from "@/components/constant";
+import { ENTITY_TYPE_LOOKUP } from "@/components/constant";
 import Breadcrumbs from "@/components/entity/Breadcrumbs";
 import NewEntity from "@/components/entity/NewEntity";
 import {
@@ -98,8 +98,8 @@ export default function New() {
             crumbs.push({
                 href: basePath,
                 text: `${key}/ ${value}`,
-                icon: _.has(SEARCH_LIST_TYPE_LOOKUP, key)
-                    ? SEARCH_LIST_TYPE_LOOKUP[key].icon
+                icon: _.has(ENTITY_TYPE_LOOKUP, key)
+                    ? ENTITY_TYPE_LOOKUP[key].icon
                     : null,
                 start: _.isEqual(i, 0),
                 end: false,
