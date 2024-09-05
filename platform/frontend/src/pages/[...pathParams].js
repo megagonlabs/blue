@@ -8,6 +8,8 @@ import EntityEntity from "@/components/data/EntityEntity";
 import RelationEntity from "@/components/data/RelationEntity";
 import SourceEntity from "@/components/data/SourceEntity";
 import Breadcrumbs from "@/components/entity/Breadcrumbs";
+import ModelEntity from "@/components/model/ModelEntity";
+import OperatorEntity from "@/components/operator/OperatorEntity";
 import _ from "lodash";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
@@ -54,6 +56,8 @@ export default function RegistryEntity() {
         "/agent": <AgentEntity />,
         "/agent/input": <InputEntity />,
         "/agent/output": <OutputEntity />,
+        "/operator": <OperatorEntity />,
+        "/model": <ModelEntity />,
         "/data": <SourceEntity />,
         "/data/database": <DatabaseEntity />,
         "/data/database/collection": <CollectionEntity />,

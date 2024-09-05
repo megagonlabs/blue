@@ -43,7 +43,6 @@ export default function EntityMain({
     enableIcon = false,
 }) {
     const router = useRouter();
-    const { permissions } = useContext(AuthContext);
     const containerStatus = _.get(entity, "container.status", "not exist");
     const deployAgent = () => {
         if (!router.isReady) {
@@ -80,8 +79,11 @@ export default function EntityMain({
             .delete(router.asPath)
             .then(() => {
                 let params = _.cloneDeep(_.get(router, "query.pathParams", []));
-                if (["agent", "data"].includes(_.nth(params, -2))) {
-                    // keep /agent, /data
+                if (
+                    ["agent", "data", "operator", "model"].includes(
+                        _.nth(params, -2)
+                    )
+                ) {
                     params.pop();
                 } else {
                     params.splice(params.length - 2, 2);
@@ -100,6 +102,31 @@ export default function EntityMain({
             });
     };
     const [isIconEditorOpen, setIsIconEditorOpen] = useState(false);
+    const { permissions } = useContext(AuthContext);
+    const canDuplicateEntity = (() => {
+        if (
+            _.isEqual(entity.type, "agent") &&
+            permissions.canWriteAgentRegistry
+        ) {
+            return true;
+        } else if (
+            _.isEqual(entity.type, "source") &&
+            permissions.canWriteDataRegistry
+        ) {
+            return true;
+        } else if (
+            _.isEqual(entity.type, "operator") &&
+            permissions.canWriteOperatorRegistry
+        ) {
+            return true;
+        } else if (
+            _.isEqual(entity.type, "model") &&
+            permissions.canWriteModelRegistry
+        ) {
+            return true;
+        }
+        return false;
+    })();
     return (
         <>
             <EntityIconEditor
@@ -254,10 +281,7 @@ export default function EntityMain({
                                                     text="Edit"
                                                 />
                                             ) : null}
-                                            {_.includes(
-                                                ["agent", "input", "output"],
-                                                entity.type
-                                            ) ? (
+                                            {canDuplicateEntity ? (
                                                 <MenuItem
                                                     icon={faIcon({
                                                         icon: faClone,
@@ -287,7 +311,9 @@ export default function EntityMain({
                                                 </MenuItem>
                                             ) : null}
                                             {_.isFunction(setEdit) ||
-                                            _.isEqual(entity.type, "agent") ? (
+                                            canDuplicateEntity ||
+                                            (_.isEqual(entity.type, "agent") &&
+                                                permissions.canWritePlatformAgents) ? (
                                                 <MenuDivider />
                                             ) : null}
                                             <MenuItem

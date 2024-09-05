@@ -24,6 +24,27 @@ export default function RegistryList({ type }) {
     const loading = appState[type].loading;
     const router = useRouter();
     const { permissions } = useContext(AuthContext);
+    const canAddEntity = (() => {
+        if (_.isEqual(type, "agent") && permissions.canWriteAgentRegistry) {
+            return true;
+        } else if (
+            _.isEqual(type, "data") &&
+            permissions.canWriteDataRegistry
+        ) {
+            return true;
+        } else if (
+            _.isEqual(type, "operator") &&
+            permissions.canWriteOperatorRegistry
+        ) {
+            return true;
+        } else if (
+            _.isEqual(type, "model") &&
+            permissions.canWriteModelRegistry
+        ) {
+            return true;
+        }
+        return false;
+    })();
     if (_.isEmpty(list))
         return (
             <div style={{ padding: "0px 20px 20px", height: "100%" }}>
@@ -35,7 +56,7 @@ export default function RegistryList({ type }) {
                     })}
                     title={`No ${_.capitalize(REGISTRY_TYPE_LOOKUP[type].key)}`}
                     action={
-                        _.includes(["agent"], type) ? (
+                        canAddEntity ? (
                             <Link href={`${router.asPath}/new`}>
                                 <Button
                                     intent={Intent.PRIMARY}
@@ -92,8 +113,7 @@ export default function RegistryList({ type }) {
                         </Col>
                     );
                 })}
-                {_.includes(["agent"], type) &&
-                permissions.canWriteAgentRegistry ? (
+                {canAddEntity ? (
                     <Col
                         sm={12}
                         md={6}

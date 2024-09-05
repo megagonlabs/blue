@@ -33,6 +33,7 @@ from fastapi.responses import JSONResponse
 class Model(BaseModel):
     name: str
     description: Union[str, None] = None
+    icon: Union[str, dict, None] = None
 
 
 class Parameter(BaseModel):

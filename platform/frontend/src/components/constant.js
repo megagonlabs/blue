@@ -63,6 +63,8 @@ export const REGISTRY_TYPE_LOOKUP = {
         collection: { icon: faFolderOpen },
         entity: { icon: faFile },
         relation: { icon: faProjectDiagram },
+        model: { icon: faCube },
+        operator: { icon: faFunction },
     },
     JSONFORMS_RENDERERS = [
         ...vanillaRenderers,

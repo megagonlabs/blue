@@ -88,6 +88,18 @@ export const AuthProvider = ({ children }) => {
                 _.get(permissions, "agent_registry", []),
                 ["write_all", "write_own"]
             ),
+            canWriteDataRegistry: hasInteraction(
+                _.get(permissions, "data_registry", []),
+                ["write_all", "write_own"]
+            ),
+            canWriteOperatorRegistry: hasInteraction(
+                _.get(permissions, "operator_registry", []),
+                ["write_all", "write_own"]
+            ),
+            canWriteModelRegistry: hasInteraction(
+                _.get(permissions, "model_registry", []),
+                ["write_all", "write_own"]
+            ),
             canWritePlatformUsers: hasInteraction(
                 _.get(permissions, "platform_users", []),
                 ["write_all"]
