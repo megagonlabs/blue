@@ -134,7 +134,7 @@ export const AuthProvider = ({ children }) => {
                 setUser(profile);
                 setPermissions(getPermissions(profile));
                 let profileSettings = _.get(profile, "settings", {});
-                if (_.isNull(profileSettings)) {
+                if (_.isEmpty(profileSettings)) {
                     profileSettings = {};
                 }
                 setSettings(profileSettings);
