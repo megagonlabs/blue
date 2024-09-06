@@ -55,8 +55,8 @@ class NEO4JSource(DataSource):
         host = connection['host']
         port = connection['port']
 
-        user = self.properties['user'] 
-        pwd = self.properties['password'] 
+        user = connection['user'] 
+        pwd = connection['password'] 
         connection_url = self.properties['protocol'] + "://" + host + ":" + str(port)    
        
         return neo4j_connection.NEO4J_Connection(connection_url, user, pwd)
