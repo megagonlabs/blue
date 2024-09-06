@@ -1,9 +1,18 @@
-import { Classes, Overlay2, OverlaysProvider } from "@blueprintjs/core";
+import {
+    Button,
+    Classes,
+    Intent,
+    Overlay2,
+    OverlaysProvider,
+    Tooltip,
+} from "@blueprintjs/core";
+import { faBug, faWindowMinimize } from "@fortawesome/pro-duotone-svg-icons";
 import classNames from "classnames";
-import { useCallback, useContext, useEffect, useRef } from "react";
+import { useCallback, useContext, useEffect, useRef, useState } from "react";
 import { RESIZE_DIRECTION } from "../constant";
 import { AuthContext } from "../contexts/auth-context";
 import { useFloatingWindow } from "../hooks/useFloatingWindow";
+import { faIcon } from "../icon";
 import Debugger from "./Debugger";
 import Resizer from "./Resizer";
 const BASE_HEIGHT = 300;
@@ -50,6 +59,7 @@ export default function DebugPanel() {
         return () => window.removeEventListener("resize", handleWindowResize);
     }, []);
     const { settings } = useContext(AuthContext);
+    const [isMinimized, setIsMinimized] = useState(false);
     return (
         <OverlaysProvider>
             <Overlay2
@@ -66,9 +76,10 @@ export default function DebugPanel() {
                     style={{
                         transform: "translate(40px, 40px)",
                         position: "relative",
-                        display: _.get(settings, "debug_mode", false)
-                            ? null
-                            : "none",
+                        display:
+                            _.get(settings, "debug_mode", false) && !isMinimized
+                                ? null
+                                : "none",
                         height: BASE_HEIGHT,
                         width: BASE_HEIGHT * 1.5,
                         paddingBottom: 0,
@@ -82,7 +93,7 @@ export default function DebugPanel() {
                             Classes.HEADING,
                             "margin-0"
                         )}
-                        style={{ cursor: "move" }}
+                        style={{ cursor: "move", paddingLeft: 52.5 }}
                         ref={dragRef}
                     >
                         Debugger
@@ -92,6 +103,48 @@ export default function DebugPanel() {
                         className={classNames(Classes.DIALOG_BODY, "margin-0")}
                     >
                         <Debugger />
+                    </div>
+                    <div style={{ position: "absolute", top: 5, left: 15 }}>
+                        <Tooltip
+                            content="Minimize"
+                            placement="bottom-start"
+                            minimal
+                        >
+                            <Button
+                                minimal
+                                intent={Intent.WARNING}
+                                icon={faIcon({ icon: faWindowMinimize })}
+                                onClick={() => setIsMinimized(true)}
+                            />
+                        </Tooltip>
+                    </div>
+                </div>
+                <div
+                    className={`${Classes.DIALOG} margin-0`}
+                    style={{
+                        position: "absolute",
+                        top: "calc(100vh - 40px)",
+                        overflow: "hidden",
+                        borderBottomLeftRadius: 0,
+                        borderBottomRightRadius: 0,
+                        width: 250,
+                        right: 40,
+                        display:
+                            _.get(settings, "debug_mode", false) && isMinimized
+                                ? null
+                                : "none",
+                        cursor: "pointer",
+                    }}
+                    onClick={() => setIsMinimized(false)}
+                >
+                    <div
+                        className={classNames(
+                            Classes.DIALOG_HEADER,
+                            Classes.HEADING
+                        )}
+                    >
+                        {faIcon({ icon: faBug })}
+                        Debugger
                     </div>
                 </div>
             </Overlay2>
