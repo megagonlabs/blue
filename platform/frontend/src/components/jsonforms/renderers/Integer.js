@@ -1,3 +1,4 @@
+import { convertCss } from "@/components/helper";
 import FormCell from "@/components/jsonforms/FormCell";
 import NumberInput from "@/components/jsonforms/NumberInput";
 import { isIntegerControl, rankWith } from "@jsonforms/core";
@@ -16,7 +17,7 @@ const IntegerRenderer = ({ uischema, handleChange, path, data, required }) => {
     return (
         <FormCell
             inline={_.get(uischema, "props.inline", false)}
-            style={_.get(uischema, "props.style", {})}
+            style={convertCss(_.get(uischema, "props.style", {}))}
             label={labelElement}
             helperText={_.get(uischema, "props.helperText", null)}
         >

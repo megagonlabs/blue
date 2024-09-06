@@ -8,6 +8,7 @@ import { FocusStyleManager } from "@blueprintjs/core";
 import "@blueprintjs/core/lib/css/blueprint.css";
 import "@blueprintjs/icons/lib/css/blueprint-icons.css";
 import "@blueprintjs/table/lib/css/table.css";
+import "@xyflow/react/dist/style.css";
 import "allotment/dist/style.css";
 import axios from "axios";
 import TimeAgo from "javascript-time-ago";
@@ -30,6 +31,11 @@ const Blue = ({ Component, pageProps }) => {
                     </title>
                     <link rel="icon" href="/favicon.ico" />
                 </Head>
+                <style jsx global>{`
+                    body {
+                        overflow: hidden;
+                    }
+                `}</style>
                 <AuthProvider>
                     <SocketProvider>
                         <App>

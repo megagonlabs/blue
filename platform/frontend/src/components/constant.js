@@ -96,6 +96,9 @@ export const REGISTRY_TYPE_LOOKUP = {
         overflow: "hidden",
         width: 40,
         height: 40,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
     },
     ENTITY_ICON_40 = {
         overflow: "hidden",
@@ -167,6 +170,7 @@ export const REGISTRY_TYPE_LOOKUP = {
         "#6F4B2D",
         "#4B4639",
     ],
+    RESIZE_DIRECTION = { BottomRight: "bottomRight" },
     HEX_TRANSPARENCY = {
         100: "FF",
         99: "FC",

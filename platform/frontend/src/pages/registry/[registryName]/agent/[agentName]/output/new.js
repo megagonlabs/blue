@@ -43,7 +43,7 @@ export default function New() {
                 setCreated(true);
                 AppToaster.show({
                     intent: Intent.SUCCESS,
-                    message: `${entity.name} output created`,
+                    message: `Created ${entity.name} output`,
                 });
                 const difference = diff({}, entity.properties);
                 settlePromises(

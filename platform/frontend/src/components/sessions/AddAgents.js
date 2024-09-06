@@ -88,7 +88,7 @@ export default function AddAgents({
                             description: description,
                         });
                         if (!_.has(appState, ["agent", "icon", agentName])) {
-                            appActions.agent.fetchIcon(agentName);
+                            appActions.agent.fetchAttributes(agentName);
                         }
                     }
                 }

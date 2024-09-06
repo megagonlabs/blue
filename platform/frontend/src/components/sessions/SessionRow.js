@@ -64,13 +64,13 @@ export default function SessionRow({ index, style }) {
                 } else if (_.isEqual(contentType, "JSON_FORM")) {
                     setLastMessage(
                         <Tag minimal icon={faIcon({ icon: faPenLine })}>
-                            Form
+                            FORM
                         </Tag>
                     );
                 } else {
                     setLastMessage(
                         <Tag minimal icon={faIcon({ icon: faQuestion })}>
-                            Unknown
+                            UNKNOWN
                         </Tag>
                     );
                 }
@@ -114,7 +114,12 @@ export default function SessionRow({ index, style }) {
                       })
                     : null}
             </div>
-            <div style={{ width: "calc(100% - 31px)" }}>
+            <div
+                style={{
+                    width: "calc(100% - 31px)",
+                    paddingRight: showActions ? 50 : 0,
+                }}
+            >
                 <H5
                     style={{ marginBottom: 5 }}
                     className={Classes.TEXT_OVERFLOW_ELLIPSIS}
@@ -128,11 +133,7 @@ export default function SessionRow({ index, style }) {
                 </H5>
                 <div
                     className={`${Classes.TEXT_OVERFLOW_ELLIPSIS} ${Classes.TEXT_MUTED}`}
-                    style={{
-                        paddingRight: showActions ? 50 : 0,
-                        height: 20,
-                        lineHeight: "20px",
-                    }}
+                    style={{ height: 20, lineHeight: "20px" }}
                 >
                     {lastMessage}
                 </div>
@@ -158,7 +159,6 @@ export default function SessionRow({ index, style }) {
                             AppToaster.show({
                                 icon: faIcon({ icon: faClipboard }),
                                 message: `Copied "${sessionId}"`,
-                                timeout: 2000,
                             });
                             event.stopPropagation();
                         }}

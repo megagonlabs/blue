@@ -1,9 +1,12 @@
 import { NAVIGATION_MENU_WIDTH } from "@/components/constant";
 import { AppContext } from "@/components/contexts/app-context";
 import { AuthContext } from "@/components/contexts/auth-context";
+import { SocketContext } from "@/components/contexts/socket-context";
+import { sendSocketMessage } from "@/components/helper";
 import { useSocket } from "@/components/hooks/useSocket";
 import { faIcon } from "@/components/icon";
 import AddAgents from "@/components/sessions/AddAgents";
+import PlanVisualizationPanel from "@/components/sessions/PlanVisualizationPanel";
 import SessionDetail from "@/components/sessions/SessionDetail";
 import SessionList from "@/components/sessions/SessionList";
 import SessionMessages from "@/components/sessions/SessionMessages";
@@ -19,12 +22,14 @@ import {
     MenuItem,
     NonIdealState,
     Popover,
+    Tag,
     TextArea,
     Tooltip,
 } from "@blueprintjs/core";
 import {
     faCaretDown,
     faCircleA,
+    faClipboard,
     faInboxIn,
     faInboxOut,
     faMessages,
@@ -33,7 +38,9 @@ import {
     faSatelliteDish,
     faSignalStreamSlash,
 } from "@fortawesome/pro-duotone-svg-icons";
+import { ReactFlowProvider } from "@xyflow/react";
 import axios from "axios";
+import copy from "copy-to-clipboard";
 import _ from "lodash";
 import { useCallback, useContext, useEffect, useRef, useState } from "react";
 export default function Sessions() {
@@ -43,16 +50,17 @@ export default function Sessions() {
     const [message, setMessage] = useState("");
     const sessionMessageTextArea = useRef(null);
     const [isSessionDetailOpen, setIsSessionDetailOpen] = useState(false);
-    const { socket, reconnectWs } = useSocket();
-    const socketReadyState = _.get(socket, "readyState", 3);
-    const { permissions } = useContext(AuthContext);
+    const { socket, reconnectWs, isSocketOpen } = useSocket();
+    const { permissions, settings } = useContext(AuthContext);
     const { canCreateSessions } = permissions;
+    const { authenticating } = useContext(SocketContext);
     const sendSessionMessage = (message) => {
-        if (!_.isEqual(socketReadyState, 1)) {
+        if (!isSocketOpen) {
             return;
         }
         setMessage("");
-        socket.send(
+        sendSocketMessage(
+            socket,
             JSON.stringify({
                 type: "USER_SESSION_MESSAGE",
                 session_id: sessionIdFocus,
@@ -71,8 +79,12 @@ export default function Sessions() {
                     appActions.session.addSessionMessage(data);
                 } else if (_.isEqual(data["type"], "CONNECTED")) {
                     appActions.session.setState({
-                        key: "connectionId",
+                        key: "userId",
                         value: data.id,
+                    });
+                    appActions.session.setState({
+                        key: "connectionId",
+                        value: data.connection_id,
                     });
                 } else if (_.isEqual(data["type"], "NEW_SESSION_BROADCAST")) {
                     appActions.session.addSession(_.get(data, "session.id"));
@@ -101,7 +113,7 @@ export default function Sessions() {
             sessionMessageTextArea.current.focus();
         }
     }, [sessionIdFocus]);
-    const SESSION_LISTL_PANEL_WIDTH = 376.02;
+    const SESSION_LISTL_PANEL_WIDTH = 327.92;
     const initialFetchAll = useRef(true);
     const [loading, setLoading] = useState(false);
     const fetchAllSessions = () => {
@@ -121,16 +133,18 @@ export default function Sessions() {
             .catch(() => {});
     };
     useEffect(() => {
-        if (!_.isEqual(socketReadyState, 1)) {
+        if (!isSocketOpen) {
             return;
         }
         if (initialFetchAll.current) {
             initialFetchAll.current = false;
-            socket.send(JSON.stringify({ type: "REQUEST_USER_AGENT_ID" }));
+            sendSocketMessage(
+                socket,
+                JSON.stringify({ type: "REQUEST_USER_AGENT_ID" })
+            );
             fetchAllSessions();
         }
-    }, [socketReadyState]);
-    const isSocketOpen = appState.session.isSocketOpen;
+    }, [isSocketOpen]);
     const ReconnectButton = () => {
         return (
             <Button
@@ -138,7 +152,11 @@ export default function Sessions() {
                 onClick={reconnectWs}
                 intent={Intent.PRIMARY}
                 large
-                loading={_.isEqual(socketReadyState, 0)}
+                loading={
+                    (socket != null &&
+                        _.isEqual(socket.readyState, WebSocket.CONNECTING)) ||
+                    authenticating
+                }
                 text="Connect"
             />
         );
@@ -167,7 +185,8 @@ export default function Sessions() {
             <NonIdealState
                 icon={faIcon({ icon: faSignalStreamSlash, size: 50 })}
                 title={
-                    _.isEqual(socketReadyState, 0)
+                    socket != null &&
+                    _.isEqual(socket.readyState, WebSocket.CONNECTING)
                         ? "Connecting"
                         : "No connection"
                 }
@@ -213,13 +232,13 @@ export default function Sessions() {
                                 content="Start a new session"
                             >
                                 <Button
-                                    disabled={!_.isEqual(socketReadyState, 1)}
+                                    disabled={!isSocketOpen}
                                     text="New"
                                     outlined
                                     loading={isCreatingSession}
                                     intent={Intent.PRIMARY}
                                     onClick={() => {
-                                        if (!_.isEqual(socketReadyState, 1)) {
+                                        if (!isSocketOpen) {
                                             return;
                                         }
                                         setIsCreatingSession(true);
@@ -232,7 +251,30 @@ export default function Sessions() {
                             </Tooltip>
                         ) : null}
                     </ButtonGroup>
-                    {!isSocketOpen ? <ReconnectButton /> : null}
+                    {!isSocketOpen ? (
+                        <ReconnectButton />
+                    ) : _.get(settings, "debug_mode", false) ? (
+                        <Tooltip
+                            content="Copy connection ID"
+                            minimal
+                            placement="bottom-end"
+                        >
+                            <Tag
+                                minimal
+                                large
+                                interactive
+                                onClick={() => {
+                                    copy(appState.session.connectionId);
+                                    AppToaster.show({
+                                        icon: faIcon({ icon: faClipboard }),
+                                        message: `Copied "${appState.session.connectionId}"`,
+                                    });
+                                }}
+                            >
+                                {appState.session.connectionId}
+                            </Tag>
+                        </Tooltip>
+                    ) : null}
                 </div>
                 {_.isEmpty(appState.session.sessionIds) ? (
                     <Card
@@ -391,6 +433,9 @@ export default function Sessions() {
                 setIsAddAgentsOpen={setIsAddAgentsOpen}
                 isOpen={isAddAgentsOpen}
             />
+            <ReactFlowProvider>
+                <PlanVisualizationPanel />
+            </ReactFlowProvider>
         </>
     );
 }

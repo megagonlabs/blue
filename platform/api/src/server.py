@@ -18,7 +18,7 @@ import re
 from pathlib import Path
 
 ##### FastAPI, Web, Sockets, Authentication
-from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect, Request
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Request
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from firebase_admin import auth
@@ -161,9 +161,9 @@ async def unicorn_exception_handler_permission_denied(request: Request, exc: Per
 
 
 @app.websocket(f"{PLATFORM_PREFIX}/sessions/ws")
-async def websocket_endpoint(websocket: WebSocket, ticket: str = None):
+async def websocket_endpoint(websocket: WebSocket, ticket: str = None, debug_mode: bool = False):
     # Accept the connection from the client
-    await connection_manager.connect(websocket, ticket)
+    await connection_manager.connect(websocket, ticket, debug_mode)
     try:
         while True:
             # Receive the message from the client

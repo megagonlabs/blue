@@ -28,7 +28,7 @@ from APIRouter import APIRouter
 from fastapi.responses import JSONResponse
 
 ###### Settings
-from settings import PROPERTIES, ROLE_PERMISSIONS, SECURE_COOKIE
+from settings import EMAIL_DOMAIN_WHITE_LIST, PROPERTIES, ROLE_PERMISSIONS, SECURE_COOKIE
 
 ### Assign from platform properties
 from blueprint import Platform
@@ -46,7 +46,6 @@ FIREBASE_SERVICE_CRED = os.getenv("FIREBASE_SERVICE_CRED", "{}")
 cert = json.loads(base64.b64decode(FIREBASE_SERVICE_CRED))
 cred = credentials.Certificate(cert)
 firebase_admin.initialize_app(cred)
-EMAIL_DOMAIN_WHITE_LIST = os.getenv("EMAIL_DOMAIN_WHITE_LIST", "megagon.ai")
 allowed_domains = EMAIL_DOMAIN_WHITE_LIST.split(",")
 
 
@@ -175,12 +174,27 @@ async def signin_cli(request: Request):
         return ERROR_RESPONSE
 
 
+@router.post('/profile/settings/{name}')
+async def set_settings(request: Request, name):
+    payload = await request.json()
+    p.set_metadata(f'users.{request.state.user["uid"]}.settings.{name}', payload.get('value'))
+    return JSONResponse(content={"message": "Success"})
+
+
 @router.get("/profile")
 def get_profile(request: Request):
-    return JSONResponse(content={"profile": {**request.state.user, 'permissions': pydash.objects.get(ROLE_PERMISSIONS, request.state.user['role'], {})}})
+    return JSONResponse(
+        content={
+            "profile": {
+                **request.state.user,
+                'permissions': pydash.objects.get(ROLE_PERMISSIONS, request.state.user['role'], {}),
+                "settings": p.get_metadata(f'users.{request.state.user["uid"]}.settings'),
+            },
+        }
+    )
 
 
-@router.get('/profile/uid/{uid}')
+@router.get('/profile/{uid}')
 def get_profile_by_uid(request: Request, uid):
     acl_enforce(request.state.user['role'], 'platform_users', 'read_all')
     user = {}

@@ -105,20 +105,19 @@ class Worker:
             self.properties[p] = properties[p]
 
     def listener(self, message, input="DEFAULT"):
-        
+
         r = None
         if self.processor is not None:
             r = self.processor(message, input=input)
 
         if r is None:
             return
-        
+
         results = []
         if type(r) == list:
             results = r
         else:
             results = [r]
-
 
         for result in results:
             out_param = "DEFAULT"
@@ -132,7 +131,6 @@ class Worker:
                 # error
                 logging.error("Unknown return type from processor function: " + str(result))
                 return
-
 
     # TODO: this seems out of place...
     def _update_form_ids(self, form_element: dict, stream_id: str, form_id: str):
@@ -179,9 +177,9 @@ class Worker:
         self.write(Message(MessageType.CONTROL, {"code": code, "args": args}, ContentType.JSON), output=output, id=id, tags=tags)
 
     def write(self, message, output="DEFAULT", id=None, tags=None):
-        
+
         # TODO: This doesn't belong here..
-        if message.getCode() in [ ControlCode.CREATE_FORM, ControlCode.UPDATE_FORM, ControlCode.CLOSE_FORM ]:
+        if message.getCode() in [ControlCode.CREATE_FORM, ControlCode.UPDATE_FORM, ControlCode.CLOSE_FORM]:
             if message.getCode() == ControlCode.CREATE_FORM:
                 # create a new form id
                 if id == None:
@@ -193,7 +191,7 @@ class Worker:
                 event_producer = Producer(
                     name="EVENT",
                     id=id,
-                    prefix=self.prefix, 
+                    prefix=self.prefix,
                     suffix="STREAM",
                     properties=self.properties,
                 )
@@ -219,7 +217,6 @@ class Worker:
             # append output variable with id
             output = output + ":" + id
 
-
         # create producer, if not existing
         producer = self._start_producer(output=output, tags=tags)
         producer.write(message)
@@ -241,7 +238,7 @@ class Worker:
         # start a consumer to listen to stream
         if self.input_stream is None:
             return
-        
+
         consumer = Consumer(
             self.input_stream,
             name=self.name,
@@ -257,7 +254,7 @@ class Worker:
         # start, if not started
         if output in self.producers:
             return self.producers[output]
-        
+
         # create producer for output
         producer = Producer(name="OUTPUT", id=output, prefix=self.prefix, suffix="STREAM", properties=self.properties)
         producer.start()
@@ -284,8 +281,7 @@ class Worker:
                     all_tags = all_tags.union(set(param_tags))
             all_tags = list(all_tags)
 
-            self.session.notify(self.agent.cid, output_stream, all_tags)
-        
+            self.session.notify(self.agent, output_stream, all_tags)
         return producer
 
     ###### DATA RELATED
@@ -330,7 +326,6 @@ class Worker:
             return self.session.get_stream_data_len(stream, key)
 
         return None
-
 
     ## agent data
     def set_data(self, key, value):
