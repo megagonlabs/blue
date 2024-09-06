@@ -107,6 +107,10 @@ def get_operator(request: Request, operator_name):
 
 @router.post("/operator/{operator_name}")
 def add_operator(request: Request, operator_name, operator: Operator):
+    operator_db = operator_registry.get_operator(operator_name)
+    # if operator already exists, return 409 conflict error
+    if not pydash.is_empty(operator_db):
+        return JSONResponse(content={"message": "The name already exists."}, status_code=409)
     acl_enforce(request.state.user['role'], 'operator_registry', ['write_all', 'write_own'])
     # TODO: properties
     operator_registry.add_operator(operator_name, request.state.user['uid'], description=operator.description, properties={}, rebuild=True)

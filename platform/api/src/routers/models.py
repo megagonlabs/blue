@@ -107,6 +107,10 @@ def get_model(request: Request, model_name):
 
 @router.post("/model/{model_name}")
 def add_model(request: Request, model_name, model: Model):
+    model_db = model_registry.get_model(model_name)
+    # if model already exists, return 409 conflict error
+    if not pydash.is_empty(model_db):
+        return JSONResponse(content={"message": "The name already exists."}, status_code=409)
     acl_enforce(request.state.user['role'], 'model_registry', ['write_all', 'write_own'])
     # TODO: properties
     model_registry.add_model(model_name, request.state.user['uid'], description=model.description, properties={}, rebuild=True)
