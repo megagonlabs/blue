@@ -111,10 +111,10 @@ class JobSearchPlannerAgent(Agent):
                 plan_dag = [
                     [
                         "USER.TEXT",
-                        "EXTRACTOR.INPUT"
+                        "OPENAI_EXTRACTOR.DEFAULT"
                     ],
                     [
-                        "EXTRACTOR.OUTPUT",
+                        "OPENAI_EXTRACTOR.DEFAULT",
                         "JOBSEARCHPLANNER.EXTRACTIONS"
                     ]
                 ]
@@ -149,7 +149,12 @@ class JobSearchPlannerAgent(Agent):
                     worker.append_data(stream, data)
         elif input == "EXTRACTIONS":
             # process and update 
-            pass
+            extractions = message.getData()
+            logging.info(extractions)
+
+            ### DECIDE NEXT STEPS
+            # e.g. ask a question
+            worker.write_data("where do you want to work?", output="QUESTION")
         elif input == "EVENT":
             if message.isData():
                 if worker:
@@ -164,13 +169,116 @@ class JobSearchPlannerAgent(Agent):
                     # when the user clicked DONE
                     if action == "DONE":
                         # get form data
-                        v = worker.get_stream_data("variable", stream=form_data_stream)
-
+                        skills = worker.get_stream_data("skills.value", stream=form_data_stream)
+                        logging.info(skills)
                         # close form
                         args = {
                             "form_id": form_id
                         }
                         worker.write_control(ControlCode.CLOSE_FORM, args, output="FORM")
+
+                        ### DECIDE NEXT STEPS
+                        # e.g. present a form to ask about skills
+                        
+                        # design form
+                        skills_ui = {
+                            "type": "Control",
+                            "scope": "#/properties/skills",
+                            "options": {
+                                "detail": {
+                                    "type": "VerticalLayout",
+                                    "elements": [
+                                        {
+                                            "type": "Label",
+                                            "label": "Skills"
+                                        },
+                                        {
+                                            "type": "HorizontalLayout",
+                                            "elements": [
+                                                {
+                                                    "type": "Control",
+                                                    "scope": "#/properties/skill"
+                                                },
+                                                {
+                                                    "type": "Control",
+                                                    "scope": "#/properties/duration"
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+
+                        form_ui = {
+                            "type": "VerticalLayout",
+                            "elements": [
+                                {
+                                    "type": "Label",
+                                    "label": "Skills Profile",
+                                    "props": {
+                                        "style": {
+                                            "fontWeight": "bold"
+                                        }
+                                    }
+                                },
+                                {
+                                    "type": "Label",
+                                    "label": "List your skills and determine a duration for each skill",
+                                    "props": {
+                                        "muted": True,
+                                        "style": {
+                                            "marginBottom": 15,
+                                            "fontStyle": "italic"
+                                        }
+                                    }
+                                },
+                                {
+                                    "type": "VerticalLayout",
+                                    "elements": [ skills_ui ]
+                                },
+                                {
+                                    "type": "Button",
+                                    "label": "Submit",
+                                    "props": {
+                                        "intent": "success",
+                                        "action": "DONE",
+                                        "large": True,
+                                    },
+                                }
+                            ]
+                        }
+
+
+                        form_schema = {
+                            "type": "object",
+                            "properties": {
+                                "skills": {
+                                    "type": "array",
+                                    "title": "Skills",
+                                    "items": {
+                                        "type": "object",
+                                        "properties": {
+                                            "skill": {
+                                                "type": "string"
+                                            },
+                                            "duration": {
+                                                "type": "string"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+
+                        form = {
+                            "schema": form_schema,
+                            "data": { "skills": [] },
+                            "uischema": form_ui
+                        }
+                        # write form
+                        worker.write_control(ControlCode.CREATE_FORM, form, output="FORM")
 
                         return None
                     else:
@@ -188,7 +296,9 @@ class JobSearchPlannerAgent(Agent):
                                 },
                                 stream=form_data_stream
                             )
-        
+
+                        
+
             
         return None
     
@@ -235,3 +345,4 @@ if __name__ == "__main__":
         # wait for session
         if session:
             session.wait()
+
