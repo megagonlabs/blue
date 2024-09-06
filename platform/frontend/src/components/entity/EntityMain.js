@@ -28,6 +28,7 @@ import axios from "axios";
 import _ from "lodash";
 import { useRouter } from "next/router";
 import { useContext, useState } from "react";
+import { AppContext } from "../contexts/app-context";
 import { AuthContext } from "../contexts/auth-context";
 import EntityIconEditor from "../EntityIcon/EntityIconEditor";
 import EntityIcon from "./EntityIcon";
@@ -44,6 +45,7 @@ export default function EntityMain({
 }) {
     const router = useRouter();
     const containerStatus = _.get(entity, "container.status", "not exist");
+    const { appState } = useContext(AppContext);
     const deployAgent = () => {
         if (!router.isReady) {
             return;
@@ -102,7 +104,30 @@ export default function EntityMain({
             });
     };
     const [isIconEditorOpen, setIsIconEditorOpen] = useState(false);
-    const { permissions } = useContext(AuthContext);
+    const { user, permissions } = useContext(AuthContext);
+    const canEditEntity = (() => {
+        // write_own
+        const created_by = _.get(entity, "created_by", null);
+        if (_.isEqual(created_by, appState.session.userId)) {
+            return true;
+        }
+        // write_all
+        const typeToPermissionKey = {
+            agent: "agent_registry",
+            source: "data_registry",
+            model: "model_registry",
+            operator: "operator_registry",
+        };
+        const writePermissions = _.get(
+            user,
+            ["permissions", typeToPermissionKey[entity.type]],
+            []
+        );
+        if (_.includes(writePermissions, "write_all")) {
+            return true;
+        }
+        return false;
+    })();
     const canDuplicateEntity = (() => {
         if (
             _.isEqual(entity.type, "agent") &&
@@ -127,6 +152,11 @@ export default function EntityMain({
         }
         return false;
     })();
+    const showActionMenuDivider =
+        (_.isFunction(setEdit) && canEditEntity) ||
+        canDuplicateEntity ||
+        (_.isEqual(entity.type, "agent") && permissions.canWritePlatformAgents);
+    const showActionMenu = showActionMenuDivider || canEditEntity;
     return (
         <>
             <EntityIconEditor
@@ -269,7 +299,8 @@ export default function EntityMain({
                                     placement="bottom-end"
                                     content={
                                         <Menu large>
-                                            {_.isFunction(setEdit) ? (
+                                            {_.isFunction(setEdit) &&
+                                            canEditEntity ? (
                                                 <MenuItem
                                                     onClick={() => {
                                                         setEdit(true);
@@ -310,23 +341,24 @@ export default function EntityMain({
                                                     />
                                                 </MenuItem>
                                             ) : null}
-                                            {_.isFunction(setEdit) ||
-                                            canDuplicateEntity ||
-                                            (_.isEqual(entity.type, "agent") &&
-                                                permissions.canWritePlatformAgents) ? (
+                                            {showActionMenuDivider ? (
                                                 <MenuDivider />
                                             ) : null}
-                                            <MenuItem
-                                                intent={Intent.DANGER}
-                                                icon={faIcon({ icon: faTrash })}
-                                                text="Delete"
-                                            >
+                                            {canEditEntity ? (
                                                 <MenuItem
                                                     intent={Intent.DANGER}
-                                                    text="Confirm"
-                                                    onClick={deleteEntity}
-                                                />
-                                            </MenuItem>
+                                                    icon={faIcon({
+                                                        icon: faTrash,
+                                                    })}
+                                                    text="Delete"
+                                                >
+                                                    <MenuItem
+                                                        intent={Intent.DANGER}
+                                                        text="Confirm"
+                                                        onClick={deleteEntity}
+                                                    />
+                                                </MenuItem>
+                                            ) : null}
                                         </Menu>
                                     }
                                 >

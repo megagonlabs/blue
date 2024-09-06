@@ -197,7 +197,18 @@ export default function EntityIconEditor({
             if (_.isEqual(type, "agent")) {
                 temp = properties.image;
             } else if (_.isEqual(type, "data")) {
-                temp = `${properties.connection.protocol}://${properties.connection.host}:${properties.connection.port}`;
+                let protocol = _.get(properties, "connection.protocol");
+                let host = _.get(properties, "connection.host");
+                let port = _.get(properties, "connection.port");
+                if (!_.isEmpty(protocol)) {
+                    temp = String(protocol);
+                }
+                if (!_.isEmpty(host)) {
+                    temp += `://${host}`;
+                }
+                if (!_.isEmpty(port)) {
+                    temp += `:${port}`;
+                }
             }
             setExtra(temp);
             if (!_.isEmpty(entity.icon)) {
