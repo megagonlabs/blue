@@ -166,9 +166,9 @@ if __name__ == "__main__":
         platform = args.platform
 
         af = AgentFactory(
-            agent_class=ObserverAgent,
-            agent_name=args.serve,
-            agent_registry=args.registry,
+            _class=ObserverAgent,
+            _name=args.serve,
+            _registry=args.registry,
             platform=platform,
             properties=properties,
         )

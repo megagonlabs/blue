@@ -149,7 +149,11 @@ export const AuthProvider = ({ children }) => {
                 const profile = _.get(response, "data.profile", null);
                 setUser(profile);
                 setPermissions(getPermissions(profile));
-                setSettings(_.get(profile, "settings", {}));
+                let profileSettings = _.get(profile, "settings", {});
+                if (_.isEmpty(profileSettings)) {
+                    profileSettings = {};
+                }
+                setSettings(profileSettings);
             })
             .finally(() => {
                 setAuthInitialized(true);

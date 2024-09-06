@@ -65,15 +65,32 @@ class DataPlanner():
 
         self._initialize(properties=properties)
 
-        self._start()   ###### initialization
+        self._start()   
+        
+    ###### initialization
+    def _initialize(self, properties=None):
+        self._initialize_properties()
+        self._update_properties(properties=properties)
 
     def _initialize_properties(self):
-        super()._initialize_properties()
+        self.properties = {}
 
-    def plan(input_data, task, context):
+        # db connectivity
+        self.properties['db.host'] = 'localhost'
+        self.properties['db.port'] = 6379
+
+    def _update_properties(self, properties=None):
+        if properties is None:
+            return
+
+        # override
+        for p in properties:
+            self.properties[p] = properties[p]
+
+    def plan(self, input_data, task, context):
         return None
     
-    def optimize(plan, budget):
+    def optimize(self, plan, budget):
         return None
 
     ######
@@ -84,9 +101,6 @@ class DataPlanner():
         self.connection = redis.Redis(host=host, port=port, decode_responses=True)
         
     def _start(self):
-        super()._start()
-
-        # logging.info('Starting session {name}'.format(name=self.name))
         self._start_connection()
 
         logging.info('Started data planner {name}'.format(name=self.name))

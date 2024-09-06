@@ -249,12 +249,13 @@ class CoordinatorAgent(Agent):
         budget = {}
 
         # TODO: call data planner, plan, optimize
-        dp = DataPlanner()
+        pid = str(hex(uuid.uuid4().fields[0]))[2:]
+        dp = DataPlanner(id=pid, properties=self.properties)
         plan = dp.plan(input_data, "TRANSFORM", context)
         plan = dp.optimize(plan, budget)
 
         # TODO: execute plan
-        pipeline = Pipeline()
+        pipeline = Pipeline(id=pid, properties=self.properties)
         output_data = pipeline.execute(plan)
 
         # persist data to stream
@@ -266,14 +267,14 @@ class CoordinatorAgent(Agent):
         return output_stream
 
     # TODO: fetch data from stream
-    def fetch_stream_data(input_stream):
+    def fetch_stream_data(self, input_stream):
         # get input data 
         input_data = None 
 
         return input_data
     
     # TODO: persist data to stream
-    def persist_stream_data(input_data):
+    def persist_stream_data(self, input_data):
         # return output stream
         output_stream = None
 

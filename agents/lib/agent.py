@@ -507,7 +507,7 @@ class AgentFactory:
     def platform_listener(self, message):
         # listen to platform stream
 
-        logging.info("Processing: " + str(message))
+        # logging.info("Processing: " + str(message))
         id = message.getID()
 
         # only process newer instructions

@@ -247,9 +247,9 @@ if __name__ == "__main__":
         platform = args.platform
 
         af = AgentFactory(
-            agent_class=TemplateInteractiveAgent,
-            agent_name=args.serve,
-            agent_registry=args.registry,
+            _class=TemplateInteractiveAgent,
+            _name=args.serve,
+            _registry=args.registry,
             platform=platform,
             properties=properties,
         )
