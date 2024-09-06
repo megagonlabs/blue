@@ -172,7 +172,8 @@ class APIAgent(Agent):
                 stream_data = worker.get_data('stream')
 
             #### call api to compute
-            return self.handle_api_call(stream_data, properties=properties)
+            worker.write_data(self.handle_api_call(stream_data, properties=properties))
+            worker.write_eos()
             
         elif message.isBOS():
             # init stream to empty array
