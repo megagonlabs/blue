@@ -260,7 +260,7 @@ class Agent:
                 tags = matched_params[param]
 
                 # create worker
-                worker = self.create_worker(stream, input=param)
+                worker = self.create_worker(stream, input=param, context=stream)
 
                 logging.info("Spawned worker for stream {stream}...".format(stream=stream))
 

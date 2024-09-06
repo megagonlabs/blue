@@ -183,13 +183,12 @@ async def set_settings(request: Request, name):
 
 @router.get("/profile")
 def get_profile(request: Request):
+    user_settings = p.get_metadata(f'users.{request.state.user["uid"]}.settings')
+    if user_settings is None:
+        user_settings = {}
     return JSONResponse(
         content={
-            "profile": {
-                **request.state.user,
-                'permissions': pydash.objects.get(ROLE_PERMISSIONS, request.state.user['role'], {}),
-                "settings": p.get_metadata(f'users.{request.state.user["uid"]}.settings'),
-            },
+            "profile": {**request.state.user, 'permissions': pydash.objects.get(ROLE_PERMISSIONS, request.state.user['role'], {}), "settings": user_settings},
         }
     )
 
