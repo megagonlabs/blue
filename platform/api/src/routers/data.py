@@ -33,6 +33,7 @@ from fastapi.responses import JSONResponse
 class Data(BaseModel):
     name: str
     description: Union[str, None] = None
+    icon: Union[str, dict, None] = None
 
 
 JSONObject = Dict[str, Any]
@@ -91,13 +92,6 @@ def get_data(request: Request):
     return JSONResponse(content={"results": list(results.values())})
 
 
-@router.get("/sources")
-def get_data_sources(request: Request):
-    acl_enforce(request.state.user['role'], 'data_registry', 'read_all')
-    results = data_registry.get_sources()
-    return JSONResponse(content={"results": list(results.values())})
-
-
 @router.get("/{source_name}")
 def get_data_source(request: Request, source_name):
     acl_enforce(request.state.user['role'], 'data_registry', 'read_all')
@@ -138,6 +132,41 @@ def delete_source(request: Request, source_name):
     source = data_registry.get_source(source_name)
     source_acl_enforce(request, source, write=True)
     data_registry.deregister_source(source_name, rebuild=True)
+    # save
+    data_registry.dump("/blue_data/config/" + data_registry_id + ".data.json")
+    return JSONResponse(content={"message": "Success"})
+
+
+##### properties
+@router.get("/{source_name}/properties")
+def get_source_properties(request: Request, source_name):
+    acl_enforce(request.state.user['role'], 'data_registry', 'read_all')
+    results = data_registry.get_source_properties(source_name)
+    return JSONResponse(content={"results": results})
+
+
+@router.get("/{source_name}/property/{property_name}")
+def get_source_property(request: Request, source_name, property_name):
+    acl_enforce(request.state.user['role'], 'data_registry', 'read_all')
+    result = data_registry.get_source_property(source_name, property_name)
+    return JSONResponse(content={"result": result})
+
+
+@router.post("/{source_name}/property/{property_name}")
+def set_source_property(request: Request, source_name, property_name, property: JSONStructure):
+    source_db = data_registry.get_source(source_name)
+    source_acl_enforce(request, source_db, write=True)
+    data_registry.set_source_property(source_name, property_name, property, rebuild=True)
+    # save
+    data_registry.dump("/blue_data/config/" + data_registry_id + ".data.json")
+    return JSONResponse(content={"message": "Success"})
+
+
+@router.delete("/{source_name}/property/{property_name}")
+def delete_source_property(request: Request, source_name, property_name):
+    source_db = data_registry.get_source(source_name)
+    source_acl_enforce(request, source_db, write=True)
+    data_registry.delete_source_property(source_name, property_name, rebuild=True)
     # save
     data_registry.dump("/blue_data/config/" + data_registry_id + ".data.json")
     return JSONResponse(content={"message": "Success"})

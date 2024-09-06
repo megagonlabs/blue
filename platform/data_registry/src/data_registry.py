@@ -87,6 +87,9 @@ class DataRegistry(Registry):
     def set_source_property(self, source, key, value, rebuild=False):
         super().set_record_property(source, '/', key, value, rebuild=rebuild)
 
+    def delete_source_property(self, source, key, rebuild=False):
+        super().delete_record_property(source, '/', key, rebuild=rebuild)
+
     ######### source/database
     def register_source_database(self, source, database, description="", properties={}, rebuild=False):
         self.register_record(database, 'database', '/' + source, description=description, properties=properties, rebuild=rebuild)
