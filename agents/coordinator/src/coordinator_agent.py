@@ -11,7 +11,7 @@ sys.path.append('./lib/agent/')
 sys.path.append('./lib/platform/')
 sys.path.append('./lib/data_planner/')
 sys.path.append('./lib/utils/')
-###### 
+######
 import time
 import argparse
 import logging
@@ -42,9 +42,10 @@ logging.basicConfig(format="%(asctime)s [%(levelname)s] [%(process)d:%(threadNam
 def create_uuid():
     return str(hex(uuid.uuid4().fields[0]))[2:]
 
+
 #######################
 ### planner plan is passed as a property, e.g.
-# "plan": [ 
+# "plan": [
 #     ["user.text","a.default"],
 #     ["a","b"],
 #     ["a","c"],
@@ -53,7 +54,7 @@ def create_uuid():
 # ]
 # in the above agents can be further specified with a suffix that represents an identified, for example: a:1, a:2
 #
-# where the plan is to take data in user stream and pass it on to agent a first, 
+# where the plan is to take data in user stream and pass it on to agent a first,
 # next, agent a's result is then passed on to agents b and c,
 # and lastly agent d will take results from b and c to produce it's results
 #
@@ -62,7 +63,6 @@ class CoordinatorAgent(Agent):
         if 'name' not in kwargs:
             kwargs['name'] = "COORDINATOR"
         super().__init__(**kwargs)
-
 
     def _initialize(self, properties=None):
         super()._initialize(properties=properties)
@@ -75,7 +75,6 @@ class CoordinatorAgent(Agent):
             plan = self.properties['plan']
             self.initialize_plan(plan)
 
-
     def _initialize_properties(self):
         super()._initialize_properties()
 
@@ -87,12 +86,12 @@ class CoordinatorAgent(Agent):
         default_listeners['excludes'] = []
 
     def initialize_plan(self, plan, worker=None):
-      
+
         # create worker if None
         if worker == None:
             # TODO: Create worker
             return
-        
+
         # init id if None
         if 'id' not in plan:
             plan["id"] = create_uuid()
@@ -114,14 +113,12 @@ class CoordinatorAgent(Agent):
 
         # node access by name, stream
         canonical2id = {}
-        plan["canonical2id"] = canonical2id 
+        plan["canonical2id"] = canonical2id
         stream2id = {}
         plan["stream2id"] = stream2id
         id2node = {}
         plan["id2node"] = id2node
-        
 
-        
         # plan status
         status = {}
         planned = {}
@@ -145,10 +142,8 @@ class CoordinatorAgent(Agent):
             src_agent_name = src_canonical_name[0]
             src_agent_param = src_canonical_name[1]
 
-
             dst_agent_name = dst_canonical_name[0]
             dst_agaent_param = dst_canonical_name[1]
-            
 
             src_canonical_name = ".".join([src_agent_name, src_agent_param])
             dst_canonical_name = ".".join([dst_agent_name, dst_agaent_param])
@@ -161,7 +156,7 @@ class CoordinatorAgent(Agent):
             else:
                 src_id = create_uuid()
 
-                src_node = { 'agent': src_agent_name,  'param': src_agent_param, 'canonical_name': src_canonical_name, 'id': src_id, 'next': [], 'prev': [], 'params': {}, 'status': 'PLANNED' }
+                src_node = {'agent': src_agent_name, 'param': src_agent_param, 'canonical_name': src_canonical_name, 'id': src_id, 'next': [], 'prev': [], 'params': {}, 'status': 'PLANNED'}
                 canonical2id[src_canonical_name] = src_id
                 id2node[src_id] = src_node
 
@@ -173,7 +168,7 @@ class CoordinatorAgent(Agent):
             else:
                 dst_id = create_uuid()
 
-                dst_node = { 'agent': dst_agent_name,  'param': dst_agaent_param, 'canonical_name': dst_canonical_name, 'id': dst_id, 'next': [], 'prev': [], 'params': {}, 'status': 'PLANNED' }
+                dst_node = {'agent': dst_agent_name, 'param': dst_agaent_param, 'canonical_name': dst_canonical_name, 'id': dst_id, 'next': [], 'prev': [], 'params': {}, 'status': 'PLANNED'}
                 canonical2id[dst_canonical_name] = dst_id
                 id2node[dst_id] = dst_node
 
@@ -182,7 +177,7 @@ class CoordinatorAgent(Agent):
 
         plan['canonical2id'] = canonical2id
         plan['id2node'] = id2node
-        
+
         # process context.streams
         streams = context['streams']
         for canonicalname in streams:
@@ -192,7 +187,7 @@ class CoordinatorAgent(Agent):
 
             planned[stream] = True
 
-        
+
         # persist plan data to agent memory
         logging.info(str(plan))
         logging.info(json.dumps(plan, indent=3))
@@ -203,17 +198,15 @@ class CoordinatorAgent(Agent):
         for stream in planned:
             self.create_worker(stream, input=plan_id)
 
-
-
     def verify_plan(self, plan):
-        #TODO: verify plan
+        # TODO: verify plan
         return plan
-    
+
     def session_listener(self, message):
         ### check if stream is in stream watch list
         if message.getCode() == ControlCode.ADD_STREAM:
             stream = message.getArg("stream")
-            
+
             # check if stream is part of plan
             plans = self.get_data('plans')
             if plans:
@@ -223,8 +216,8 @@ class CoordinatorAgent(Agent):
                     canonical2id = self.get_data(plan_id + ".canonical2id")
                     id2node = self.get_data(plan_id + ".id2node")
                     if stream.find(prefix) == 0:
-                        s = stream[len(prefix):]
-                        ss = s.split(":") 
+                        s = stream[len(prefix) :]
+                        ss = s.split(":")
                         agent = ss[0]
                         param = ss[3]
                         canonical_name = agent + "." + param
@@ -235,7 +228,6 @@ class CoordinatorAgent(Agent):
                             logging.info("create worker")
                             logging.info(stream)
                             self.create_worker(stream, input=plan_id)
-   
 
         ### do regular session listening
         return super().session_listener(message)
@@ -293,7 +285,7 @@ class CoordinatorAgent(Agent):
     def default_processor(self, message, input="DEFAULT", properties=None, worker=None):
 
         if input == "DEFAULT":
-            # new plan 
+            # new plan
             stream = message.getStream()
 
             logging.info("stream: " + stream)
@@ -302,7 +294,7 @@ class CoordinatorAgent(Agent):
                 p = message.getData()
                 logging.info(type(p))
                 logging.info(json.dumps(p))
-                
+
                 plan = self.verify_plan(p)
                 if plan:
                     # start plan
@@ -350,9 +342,9 @@ class CoordinatorAgent(Agent):
 
                     # create an EXECUTE_AGENT instruction
                     if output_stream:
-                        context_cid = context_scope + ":PLAN:" + plan_id 
-                        worker.write_control(ControlCode.EXECUTE_AGENT, {"agent": next_agent, "context": context_cid, "input": { next_agent_param: output_stream }})
-                        
+                        context_cid = context_scope + ":PLAN:" + plan_id
+                        worker.write_control(ControlCode.EXECUTE_AGENT, {"agent": next_agent, "context": context_cid, "params": {next_agent_param: output_stream}})
+
             else:
                 pass
 
@@ -387,11 +379,11 @@ class CoordinatorAgent(Agent):
         #                 # assign an id to keep track
         #                 next_id = next_agent_name + ":" + str(hex(uuid.uuid4().fields[0]))[2:]
         #                 next['id'] = next_id
-        #                 stream2node[next_id] = next 
+        #                 stream2node[next_id] = next
 
         #                 next['status'] = 'TRIGGERED'
 
-        #                 ### prepare plan data/instruction 
+        #                 ### prepare plan data/instruction
         #                 args = {}
         #                 args['agent'] = next_agent_name
         #                 input = {}
@@ -405,7 +397,6 @@ class CoordinatorAgent(Agent):
         #     else:
         #         # doesn't belong to plan
         #         pass
-            
 
         # elif message.isBOS():
         #     # if a start node instantiate a plan
@@ -428,45 +419,46 @@ class CoordinatorAgent(Agent):
         #     if stream in stream2node:
         #         node = stream2node[stream]
         #         node['status'] = 'PROCESSING'
-    
+
         return None
+
 
 class AgentA(Agent):
     def __init__(self, **kwargs):
         if 'name' not in kwargs:
             kwargs['name'] = "A"
         super().__init__(**kwargs)
-   
+
     def default_processor(self, message, input="DEFAULT", properties=None, worker=None):
         if message.getCode() == ControlCode.EXECUTE_AGENT:
-            
+
             instruction_agent = message.getArg("agent")
             input_stream = message.getArg['stream']
             if instruction_agent == self.name:
                 worker.agent.create_worker(input_stream, input="DEFAULT")
-                return 
+                return
         elif message.isEOS():
             # compute stream data
             l = 0
             if worker:
                 l = worker.get_data_len('stream')
             time.sleep(4)
-            
+
             # output to stream
             return l
         elif message.isBOS():
             # init stream to empty array
             if worker:
-                worker.set_data('stream',[])
+                worker.set_data('stream', [])
             pass
         elif message.isData():
             # store data value
             data = message.getData()
             logging.info(data)
-            
+
             if worker:
                 worker.append_data('stream', data)
-    
+
         return None
 
 
@@ -475,38 +467,39 @@ class AgentB(Agent):
         if 'name' not in kwargs:
             kwargs['name'] = "B"
         super().__init__(**kwargs)
-   
+
     def default_processor(self, message, input="DEFAULT", properties=None, worker=None):
         if message.getCode() == ControlCode.EXECUTE_AGENT:
-            
+
             instruction_agent = message.getArg("agent")
             input_stream = message.getArg['stream']
             if instruction_agent == self.name:
                 worker.agent.create_worker(input_stream, input="DEFAULT")
-                return 
+                return
         elif message.isEOS():
             # compute stream data
             l = 0
             if worker:
                 l = worker.get_data_len('stream')
             time.sleep(4)
-            
+
             # output to stream
             return l
         elif message.isBOS():
             # init stream to empty array
             if worker:
-                worker.set_data('stream',[])
+                worker.set_data('stream', [])
             pass
         elif message.isData():
             # store data value
             data = message.getData()
             logging.info(data)
-            
+
             if worker:
                 worker.append_data('stream', data)
-    
+
         return None
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -517,9 +510,9 @@ if __name__ == "__main__":
     parser.add_argument('--serve', type=str)
     parser.add_argument('--platform', type=str, default='default')
     parser.add_argument('--registry', type=str, default='default')
- 
+
     args = parser.parse_args()
-   
+
     # set logging
     logging.getLogger().setLevel(args.loglevel.upper())
 
@@ -529,10 +522,10 @@ if __name__ == "__main__":
     if p:
         # decode json
         properties = json.loads(p)
-    
+
     if args.serve:
         platform = args.platform
-        
+
         af = AgentFactory(_class=CoordinatorAgent, _name=args.serve, _registry=args.registry, platform=platform, properties=properties)
         af.wait()
     else:
@@ -551,6 +544,3 @@ if __name__ == "__main__":
         # wait for session
         if session:
             session.wait()
-
-
-

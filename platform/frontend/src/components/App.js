@@ -21,6 +21,7 @@ import {
 import {
     faCircleA,
     faDatabase,
+    faFunction,
     faGear,
     faListUl,
     faPencilRuler,
@@ -31,6 +32,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useContext, useMemo, useState } from "react";
+import DebugPanel from "./debugger/DebugPanel";
 import { hasTrue } from "./helper";
 import Settings from "./navigation/Settings";
 import UserAccountPanel from "./navigation/UserAccountPanel";
@@ -56,6 +58,7 @@ export default function App({ children }) {
         canReadSessions,
         canReadDataRegistry,
         canReadAgentRegistry,
+        canReadOperatorRegistry,
     } = permissions;
     const MENU_ITEMS = {
         sessions: {
@@ -75,6 +78,12 @@ export default function App({ children }) {
             text: "Agent",
             icon: faCircleA,
             visible: canReadAgentRegistry,
+        },
+        operator_registry: {
+            href: `/registry/${process.env.NEXT_PUBLIC_AGENT_REGISTRY_NAME}/operator`,
+            text: "Operator",
+            icon: faFunction,
+            visible: canReadOperatorRegistry,
         },
         form_designer: {
             href: "/tools/form-designer",
@@ -261,7 +270,11 @@ export default function App({ children }) {
                             </ButtonGroup>
                         </>
                     ) : null}
-                    {hasTrue([canReadAgentRegistry, canReadDataRegistry]) ? (
+                    {hasTrue([
+                        canReadAgentRegistry,
+                        canReadDataRegistry,
+                        canReadOperatorRegistry,
+                    ]) ? (
                         <>
                             <MenuDivider title="Registries" />
                             <ButtonGroup
@@ -271,38 +284,43 @@ export default function App({ children }) {
                                 large
                                 className="full-parent-width"
                             >
-                                {["agent_registry", "data_registry"].map(
-                                    (key, index) => {
-                                        const { href, icon, text, visible } =
-                                            _.get(MENU_ITEMS, key, {});
-                                        if (!visible) {
-                                            return null;
-                                        }
-                                        const active = _.startsWith(
-                                            router.asPath,
-                                            href
-                                        );
-                                        return (
-                                            <Link href={href} key={index}>
-                                                <Button
-                                                    style={
-                                                        !active
-                                                            ? {
-                                                                  backgroundColor:
-                                                                      "transparent",
-                                                              }
-                                                            : null
-                                                    }
-                                                    active={active}
-                                                    text={text}
-                                                    icon={faIcon({
-                                                        icon: icon,
-                                                    })}
-                                                />
-                                            </Link>
-                                        );
+                                {[
+                                    "agent_registry",
+                                    "data_registry",
+                                    "operator_registry",
+                                ].map((key, index) => {
+                                    const { href, icon, text, visible } = _.get(
+                                        MENU_ITEMS,
+                                        key,
+                                        {}
+                                    );
+                                    if (!visible) {
+                                        return null;
                                     }
-                                )}
+                                    const active = _.startsWith(
+                                        router.asPath,
+                                        href
+                                    );
+                                    return (
+                                        <Link href={href} key={index}>
+                                            <Button
+                                                style={
+                                                    !active
+                                                        ? {
+                                                              backgroundColor:
+                                                                  "transparent",
+                                                          }
+                                                        : null
+                                                }
+                                                active={active}
+                                                text={text}
+                                                icon={faIcon({
+                                                    icon: icon,
+                                                })}
+                                            />
+                                        </Link>
+                                    );
+                                })}
                             </ButtonGroup>
                         </>
                     ) : null}
@@ -421,6 +439,7 @@ export default function App({ children }) {
             >
                 {_.isEmpty(user) ? <AccessDeniedNonIdealState /> : children}
             </div>
+            <DebugPanel />
         </div>
     );
 }

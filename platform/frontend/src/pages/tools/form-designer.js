@@ -26,7 +26,7 @@ import {
 } from "@blueprintjs/core";
 import {
     faArrowsFromLine,
-    faBinary,
+    faBinaryCircleCheck,
     faBinarySlash,
     faBookOpenCover,
     faBracketsCurly,
@@ -34,7 +34,7 @@ import {
     faClipboard,
     faDownload,
     faIndent,
-    faRotate,
+    faPlay,
     faTrash,
 } from "@fortawesome/pro-duotone-svg-icons";
 import { JsonForms } from "@jsonforms/react";
@@ -178,7 +178,7 @@ function FormDesigner() {
                             disabled={!error}
                             intent={Intent.SUCCESS}
                             onClick={resetError}
-                            icon={faIcon({ icon: faRotate })}
+                            icon={faIcon({ icon: faPlay })}
                         />
                     </Tooltip>
                     <Tooltip placement="bottom" minimal content="Format">
@@ -194,7 +194,7 @@ function FormDesigner() {
                             <Menu>
                                 <MenuDivider title="Export" />
                                 <MenuItem
-                                    icon={faIcon({ icon: faBinary })}
+                                    icon={faIcon({ icon: faBinaryCircleCheck })}
                                     text="With default data"
                                     onClick={() => {
                                         handleExportConfig(true);

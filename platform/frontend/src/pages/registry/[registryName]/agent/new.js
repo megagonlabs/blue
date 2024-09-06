@@ -9,6 +9,7 @@ import { AppToaster } from "@/components/toaster";
 import { Intent } from "@blueprintjs/core";
 import axios from "axios";
 import { diff } from "deep-diff";
+import _ from "lodash";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 export default function New() {
@@ -41,7 +42,7 @@ export default function New() {
                 setCreated(true);
                 AppToaster.show({
                     intent: Intent.SUCCESS,
-                    message: `${entity.name} agent created`,
+                    message: `Created ${entity.name} agent`,
                 });
                 const difference = diff({}, entity.properties);
                 settlePromises(
@@ -62,7 +63,14 @@ export default function New() {
             .catch((error) => {
                 AppToaster.show({
                     intent: Intent.DANGER,
-                    message: `${error.name}: ${error.message}`,
+                    message: (
+                        <>
+                            <div>{_.get(error, "response.data.message")}</div>
+                            <div>
+                                {error.name}: {error.message}
+                            </div>
+                        </>
+                    ),
                 });
                 setLoading(false);
             });

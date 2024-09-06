@@ -72,6 +72,7 @@ export const useAuthContext = () => useContext(AuthContext);
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [permissions, setPermissions] = useState({});
+    const [settings, setSettings] = useState({});
     const [popupOpen, setPopupOpen] = useState(false);
     const [authInitialized, setAuthInitialized] = useState(false);
     const signOut = () => {
@@ -119,6 +120,10 @@ export const AuthProvider = ({ children }) => {
                 _.get(permissions, "sessions", []),
                 ["write_all", "write_own"]
             ),
+            canReadOperatorRegistry: hasInteraction(
+                _.get(permissions, "opeartor_registry", []),
+                ["read_all"]
+            ),
         };
     };
     const fetchAccountProfile = () => {
@@ -128,10 +133,15 @@ export const AuthProvider = ({ children }) => {
                 const profile = _.get(response, "data.profile", null);
                 setUser(profile);
                 setPermissions(getPermissions(profile));
+                setSettings(_.get(profile, "settings", {}));
             })
             .finally(() => {
                 setAuthInitialized(true);
             });
+    };
+    const updateSettings = (key, value) => {
+        setSettings({ ...settings, [key]: value });
+        axios.post(`/accounts/profile/settings/${key}`, { value: value });
     };
     const signInWithGoogle = () => {
         setPopupOpen(true);
@@ -163,7 +173,9 @@ export const AuthProvider = ({ children }) => {
         fetchAccountProfile();
     }, []);
     return (
-        <AuthContext.Provider value={{ user, permissions, signOut }}>
+        <AuthContext.Provider
+            value={{ user, permissions, settings, updateSettings, signOut }}
+        >
             <Drawer
                 size={DrawerSize.SMALL}
                 portalClassName="z-index-36"

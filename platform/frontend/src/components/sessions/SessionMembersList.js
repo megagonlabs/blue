@@ -143,7 +143,7 @@ export default function SessionMembersList() {
                 setRecentlyAdded(temp);
                 AppToaster.show({
                     intent: Intent.SUCCESS,
-                    message: `Added ${_.get(user, "name", "-")} to the session`,
+                    message: `Added ${_.get(user, "name", "-")} to session`,
                 });
             });
     };

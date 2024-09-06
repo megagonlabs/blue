@@ -24,10 +24,11 @@ import { useRouter } from "next/router";
 import { useContext, useEffect, useState } from "react";
 import { AppContext } from "../contexts/app-context";
 export default function AgentEntity() {
+    const BLANK_ENTITY = { type: "agent" };
     const router = useRouter();
     const { appActions } = useContext(AppContext);
-    const [entity, setEntity] = useState({});
-    const [editEntity, setEditEntity] = useState({});
+    const [entity, setEntity] = useState(BLANK_ENTITY);
+    const [editEntity, setEditEntity] = useState(BLANK_ENTITY);
     const [edit, setEdit] = useState(false);
     const [loading, setLoading] = useState(true);
     const [jsonError, setJsonError] = useState(false);

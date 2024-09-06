@@ -9,8 +9,11 @@ export const sessionAction = (dispatch) => ({
     setSessionDetail: (payload) => {
         dispatch({
             type: "session/sessions/detail/set",
-            payload: payload,
+            payload,
         });
+    },
+    expandMessageStream: (payload) => {
+        dispatch({ type: "session/expandedMessageStream/add", payload });
     },
     createSession: (payload) => {
         axios.post(`/sessions/session`).then((response) => {

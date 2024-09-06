@@ -1,11 +1,11 @@
 import _ from "lodash";
-
 export const defaultState = {
     registryName: process.env.NEXT_PUBLIC_AGENT_REGISTRY_NAME,
     list: [],
     search: false,
     loading: true,
     icon: {},
+    systemAgents: {},
     filter: {
         keywords: "",
         hybrid: false,
@@ -14,10 +14,15 @@ export const defaultState = {
         page: 0,
         page_size: 10,
     },
+    pendingAttributesRequests: {},
 };
 export default function agentReducer(state = defaultState, { type, payload }) {
-    let icon = state.icon;
+    let { icon, pendingAttributesRequests } = state;
     switch (type) {
+        case "agent/pendingAttributesRequests/set": {
+            _.set(pendingAttributesRequests, payload.key, payload.value);
+            return { ...state, pendingAttributesRequests };
+        }
         case "agent/list/set": {
             for (let i = 0; i < _.size(payload); i++) {
                 let tempIcon = payload[i].icon;
@@ -36,6 +41,15 @@ export default function agentReducer(state = defaultState, { type, payload }) {
                 filter: defaultState.filter,
                 search: false,
                 loading: false,
+            };
+        }
+        case "agent/systemAgents/set": {
+            return {
+                ...state,
+                systemAgents: {
+                    ...state.systemAgents,
+                    [payload.key]: payload.value,
+                },
             };
         }
         case "agent/icon/set": {

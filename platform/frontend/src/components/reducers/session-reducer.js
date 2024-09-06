@@ -6,19 +6,27 @@ export const defaultState = {
     sessionIds: [],
     sessionIdFocus: null,
     sessionDetail: {},
-    connectionId: null,
+    userId: null,
     unreadSessionIds: new Set(),
     terminatedInteraction: new Set(),
+    expandedMessageStream: new Set(),
 };
 export default function sessionReducer(
     state = defaultState,
     { type, payload }
 ) {
-    let unreadSessionIds = state.unreadSessionIds;
-    let sessionIds = state.sessionIds;
-    let terminatedInteraction = state.terminatedInteraction;
+    let {
+        unreadSessionIds,
+        sessionIds,
+        terminatedInteraction,
+        expandedMessageStream,
+    } = state;
     let sessions = _.cloneDeep(state.sessions);
     switch (type) {
+        case "session/expandedMessageStream/add": {
+            expandedMessageStream.add(payload);
+            return { ...state, expandedMessageStream };
+        }
         case "session/sessions/message/add": {
             const messageLabel = _.get(payload, "message.label", null);
             const contentType = _.get(payload, "message.content_type", null);
@@ -46,6 +54,7 @@ export default function sessionReducer(
                     if (_.isEqual(messageContentsCode, "BOS")) {
                         messages.push({
                             stream: payload.stream,
+                            metadata: payload.metadata,
                             timestamp: payload.timestamp,
                             order: payload.order,
                         });
@@ -65,10 +74,7 @@ export default function sessionReducer(
                         });
                     } else if (_.isEqual(messageContentsCode, "EOS")) {
                         if (
-                            !_.includes(
-                                payload.stream,
-                                `USER:${state.connectionId}`
-                            )
+                            !_.includes(payload.stream, `USER:${state.userId}`)
                         ) {
                             unreadSessionIds.add(payload.session_id);
                         }
@@ -189,11 +195,7 @@ export default function sessionReducer(
         }
         case "session/sessionIdFocus/set": {
             unreadSessionIds.delete(payload);
-            return {
-                ...state,
-                sessionIdFocus: payload,
-                unreadSessionIds: unreadSessionIds,
-            };
+            return { ...state, sessionIdFocus: payload, unreadSessionIds };
         }
         default:
             return state;

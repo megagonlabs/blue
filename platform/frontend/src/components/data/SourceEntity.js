@@ -14,8 +14,9 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 export default function SourceEntity() {
+    const BLANK_ENTITY = { type: "data" };
     const router = useRouter();
-    const [entity, setEntity] = useState({});
+    const [entity, setEntity] = useState(BLANK_ENTITY);
     useEffect(() => {
         if (!router.isReady) {
             return;

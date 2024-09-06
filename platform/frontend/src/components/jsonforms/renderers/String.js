@@ -1,3 +1,4 @@
+import { convertCss } from "@/components/helper";
 import { useSocket } from "@/components/hooks/useSocket";
 import FormCell from "@/components/jsonforms/FormCell";
 import { InputGroup, TextArea } from "@blueprintjs/core";
@@ -6,7 +7,6 @@ import { withJsonFormsControlProps } from "@jsonforms/react";
 import _ from "lodash";
 const StringRenderer = ({ uischema, handleChange, path, data, required }) => {
     const { socket } = useSocket();
-    const socketReadyState = _.get(socket, "readyState", 3);
     const multiline = _.get(uischema, "options.multi", false);
     const placeholder = _.get(uischema, "props.placeholder", null);
     const label = _.get(uischema, "label", null);
@@ -20,7 +20,7 @@ const StringRenderer = ({ uischema, handleChange, path, data, required }) => {
     ) : null;
     const handleOnChange = (event) => {
         handleChange(path, event.target.value);
-        if (!_.isEqual(socketReadyState, 1)) {
+        if (!_.isEqual(socket.readyState, WebSocket.OPEN)) {
             return;
         }
         setTimeout(() => {
@@ -41,7 +41,7 @@ const StringRenderer = ({ uischema, handleChange, path, data, required }) => {
             <FormCell
                 inline={_.get(uischema, "props.inline", false)}
                 label={labelElement}
-                style={_.get(uischema, "props.style", {})}
+                style={convertCss(_.get(uischema, "props.style", {}))}
                 helperText={_.get(uischema, "props.helperText", null)}
             >
                 <TextArea
@@ -59,7 +59,7 @@ const StringRenderer = ({ uischema, handleChange, path, data, required }) => {
         <FormCell
             inline={_.get(uischema, "props.inline", false)}
             label={labelElement}
-            style={_.get(uischema, "props.style", {})}
+            style={convertCss(_.get(uischema, "props.style", {}))}
             helperText={_.get(uischema, "props.helperText", null)}
         >
             <InputGroup

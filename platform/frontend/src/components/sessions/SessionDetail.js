@@ -14,12 +14,13 @@ import {
 import {
     faCheck,
     faCircleA,
-    faCircleInfo,
+    faSquareInfo,
     faUserGroup,
 } from "@fortawesome/pro-duotone-svg-icons";
 import axios from "axios";
 import _ from "lodash";
 import { useContext, useEffect, useRef, useState } from "react";
+import { AppToaster } from "../toaster";
 import SessionAgentsList from "./SessionAgentsList";
 import SessionMembersList from "./SessionMembersList";
 export default function SessionDetail({ isOpen, setIsSessionDetailOpen }) {
@@ -54,6 +55,12 @@ export default function SessionDetail({ isOpen, setIsSessionDetailOpen }) {
             .catch(() => {
                 allowQuickClose.current = true;
                 setLoading(false);
+            })
+            .finally(() => {
+                AppToaster.show({
+                    intent: Intent.SUCCESS,
+                    message: "Saved",
+                });
             });
     };
     useEffect(() => {
@@ -84,12 +91,11 @@ export default function SessionDetail({ isOpen, setIsSessionDetailOpen }) {
                 setIsSessionDetailOpen(false);
             }}
             isOpen={isOpen}
-            style={{ padding: 0 }}
         >
             <DialogBody className="dialog-body">
                 <Card style={{ padding: "5px 15px", borderRadius: 0 }}>
                     <Button
-                        icon={faIcon({ icon: faCircleInfo })}
+                        icon={faIcon({ icon: faSquareInfo })}
                         minimal
                         large
                         text="About"

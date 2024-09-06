@@ -4,9 +4,11 @@ const { ProgressBar, Classes, Intent } = require("@blueprintjs/core");
 const classNames = require("classnames");
 const _ = require("lodash");
 const { AppToaster, ProgressToaster } = require("@/components/toaster");
+const { default: transform } = require("css-to-react-native");
 const renderProgress = (progress, requestError = false) => {
     return {
         icon: faIcon({ icon: faPenSwirl }),
+        isCloseButtonShown: false,
         message: (
             <ProgressBar
                 className={classNames("margin-top-5", {
@@ -22,22 +24,48 @@ const renderProgress = (progress, requestError = false) => {
                 value={progress / 100}
             />
         ),
-        timeout: progress < 100 ? 0 : 2000,
     };
 };
+const waitForOpenConnection = (socket) => {
+    return new Promise((resolve, reject) => {
+        const maxNumberOfAttempts = 10;
+        const intervalTime = 200; //ms
+        let currentAttempt = 0;
+        const interval = setInterval(() => {
+            if (currentAttempt > maxNumberOfAttempts - 1) {
+                clearInterval(interval);
+                reject(new Error("Maximum number of attempts exceeded"));
+            } else if (_.isEqual(socket.readyState, WebSocket.OPEN)) {
+                clearInterval(interval);
+                resolve();
+            }
+            currentAttempt++;
+        }, intervalTime);
+    });
+};
 module.exports = {
-    getAgentFromStream: (stream) => {
-        let agent = {};
-        try {
-            const agentTypeId = stream
-                .match(/(?<=:AGENT:\s*).*?(?=\s*:OUTPUT:)/gs)[0]
-                .split(":");
-            agent = {
-                type: _.get(agentTypeId, 0, null),
-                id: _.get(agentTypeId, 1, null),
-            };
-        } catch (error) {}
-        return agent;
+    Queue: class Queue {
+        constructor() {
+            this.items = {};
+            this.front = 0;
+            this.back = 0;
+        }
+        enqueue(item) {
+            this.items[this.back] = item;
+            this.back++;
+        }
+        isEmpty() {
+            return _.isEmpty(this.items);
+        }
+        dequeue() {
+            const item = this.items[this.front];
+            delete this.items[this.front];
+            this.front++;
+            return item;
+        }
+        peek() {
+            return this.items[this.front];
+        }
     },
     constructSavePropertyRequests: ({ axios, url, difference, editEntity }) => {
         let tasks = [];
@@ -118,7 +146,29 @@ module.exports = {
             callback(requestError);
         })();
     },
-    hasInteraction: (array1, array2) =>
-        _.some(array1, _.ary(_.partial(_.includes, array2), 1)),
-    hasTrue: (array) => _.some(array, Boolean),
+    hasInteraction: (array1, array2) => {
+        return _.some(array1, _.ary(_.partial(_.includes, array2), 1));
+    },
+    hasTrue: (array) => {
+        return _.some(array, Boolean);
+    },
+    convertCss: (style) => {
+        try {
+            return transform(Object.entries(style));
+        } catch (error) {
+            return style;
+        }
+    },
+    sendSocketMessage: async (socket, message) => {
+        if (_.isEqual(socket.readyState, WebSocket.OPEN)) {
+            try {
+                await waitForOpenConnection(socket);
+                socket.send(message);
+            } catch (err) {
+                console.error(err);
+            }
+        } else {
+            socket.send(message);
+        }
+    },
 };

@@ -71,6 +71,7 @@ module.exports = {
                     streamId: { type: "string", minLength: 1 },
                     formId: { type: "string", minLength: 1 },
                     action: { type: "string", minLength: 1 },
+                    visualization: { type: "boolean" },
                 },
                 additionalProperties: false,
             },

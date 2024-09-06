@@ -38,6 +38,7 @@ from message import Message, MessageType, ContentType, ControlCode
 def create_uuid():
     return str(hex(uuid.uuid4().fields[0]))[2:]
 
+
 class Agent:
     def __init__(
         self,
@@ -113,7 +114,6 @@ class Agent:
         ### include/exclude list of rules to listen to agents/tags
         listeners = {}
         self.properties["listens"] = listeners
-        
 
         # DEFAULT is the default input parameter
         default_listeners = {}
@@ -124,11 +124,10 @@ class Agent:
         ### default tags to tag output streams
         tags = {}
         self.properties["tags"] = tags
-        
+
         # DEFAULT is the default output parameter
         default_tags = []
         tags["DEFAULT"] = default_tags
-        
 
     def _update_properties(self, properties=None):
         if properties is None:
@@ -148,14 +147,10 @@ class Agent:
         self.connection = redis.Redis(host=host, port=port, decode_responses=True)
 
     ###### worker
-    # input_stream is data stream for input param, default 'DEFAULT' 
+    # input_stream is data stream for input param, default 'DEFAULT'
     def create_worker(self, input_stream, input="DEFAULT", context=None, processor=None):
-        # listen 
-        logging.info(
-            "Creating worker for stream {stream} for param {param}...".format(
-                stream=input_stream, param=input
-            )
-        )
+        # listen
+        logging.info("Creating worker for stream {stream} for param {param}...".format(stream=input_stream, param=input))
 
         if processor == None:
             processor = lambda *args, **kwargs: self.processor(*args, **kwargs)
@@ -213,12 +208,10 @@ class Agent:
             agent = message.getArg("agent")
             if agent == self.name:
                 context = message.getArg("context")
-                input_streams = message.getArg("input")
+                input_streams = message.getArg("params")
                 for input_param in input_streams:
                     logging.info("l")
                     self.create_worker(input_streams[input_param], input=input_param, context=context)
-            
-        
 
     ###### session
     def join_session(self, session):
@@ -237,7 +230,7 @@ class Agent:
     def session_listener(self, message):
         # listen to session stream
         if message.getCode() == ControlCode.ADD_STREAM:
-            
+
             stream = message.getArg("stream")
             tags = message.getArg("tags")
             agent_cid = message.getArg("agent")
@@ -245,7 +238,7 @@ class Agent:
             # ignore streams from self
             if agent_cid == self.cid:
                 return
-            
+
             # agent define what to listen to using include/exclude expressions
             logging.info("Checking listener tags...")
             matched_params = self._match_listen_to_tags(tags)
@@ -265,7 +258,6 @@ class Agent:
 
             for param in matched_params:
                 tags = matched_params[param]
-                
 
                 # create worker
                 worker = self.create_worker(stream, input=param)
@@ -296,7 +288,7 @@ class Agent:
                     for tag in tags:
                         if p.match(tag):
                             matched_tags.add(tag)
-                            logging.info("Matched include rule: {rule} for param: {param}".format(rule=str(i),param=param))
+                            logging.info("Matched include rule: {rule} for param: {param}".format(rule=str(i), param=param))
                 elif type(i) == list:
                     m = set()
                     a = True
@@ -316,7 +308,7 @@ class Agent:
                             break
                     if a:
                         matched_tags = matched_tags.union(m)
-                        logging.info("Matched include rule: {rule} for param: {param}".format(rule=str(i),param=param))
+                        logging.info("Matched include rule: {rule} for param: {param}".format(rule=str(i), param=param))
 
             # no matches for param
             if len(matched_tags) == 0:
@@ -330,9 +322,9 @@ class Agent:
                 if type(x) == str:
                     p = re.compile(x)
                     if p.match(tag):
-                        logging.info("Matched exclude rule: {rule} for param: {param}".format(rule=str(x),param=param))
+                        logging.info("Matched exclude rule: {rule} for param: {param}".format(rule=str(x), param=param))
                         # delete match
-                        del matched_params[param] 
+                        del matched_params[param]
                         break
                 elif type(x) == list:
                     a = True
@@ -351,9 +343,9 @@ class Agent:
                             a = False
                             break
                     if a:
-                        logging.info("Matched exclude rule: {rule} for param: {param}".format(rule=str(x),param=param))
+                        logging.info("Matched exclude rule: {rule} for param: {param}".format(rule=str(x), param=param))
                         # delete match
-                        del matched_params[param] 
+                        del matched_params[param]
                         break
 
         return matched_params
@@ -388,7 +380,6 @@ class Agent:
 
     def get_data_len(self, key):
         return self.session.get_agent_data_len(self, key)
-
 
     def _start(self):
         self._start_connection()
@@ -425,8 +416,6 @@ class Agent:
         # send wait to each worker
         for w in self.workers:
             w.wait()
-        
-    
 
 
 class AgentFactory:
@@ -533,7 +522,6 @@ class AgentFactory:
             session = message.getArg("session")
             registry = message.getArg("registry")
             agent = message.getArg("agent")
-            
 
             # start with factory properties, merge properties from API call
             properties_from_api = message.getArg("properties")
@@ -553,7 +541,7 @@ class AgentFactory:
             parent_name = ca[0]
             child_name = ca[0]
 
-            # if derivative__name 
+            # if derivative__name
             if len(ca) > 1:
                 child_name = ca[1]
 

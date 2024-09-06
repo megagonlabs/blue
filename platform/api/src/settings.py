@@ -24,6 +24,7 @@ PROPERTIES["rbac.config.folder"] = os.getenv("BLUE_RBAC_CONFIG_FOLDER")
 ##### Other Settings
 DEVELOPMENT = os.getenv("BLUE_DEPLOY_DEVELOPMENT", "False").lower() == "true"
 SECURE_COOKIE = os.getenv("BLUE_DEPLOY_SECURE", "True").lower() == "true"
+EMAIL_DOMAIN_WHITE_LIST = os.getenv("BLUE_EMAIL_DOMAIN_WHITE_LIST", "megagon.ai")
 
 ##### RBAC
 import casbin

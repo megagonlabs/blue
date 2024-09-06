@@ -1,3 +1,4 @@
+import { convertCss } from "@/components/helper";
 import { useSocket } from "@/components/hooks/useSocket";
 import FormCell from "@/components/jsonforms/FormCell";
 import { HTMLSelect } from "@blueprintjs/core";
@@ -13,7 +14,6 @@ const EnumRenderer = ({
     data,
 }) => {
     const { socket } = useSocket();
-    const socketReadyState = _.get(socket, "readyState", 3);
     const label = _.get(uischema, "label", null);
     const labelElement =
         !_.isString(label) && !required ? null : (
@@ -27,19 +27,18 @@ const EnumRenderer = ({
     return (
         <FormCell
             inline={_.get(uischema, "props.inline", false)}
-            style={_.get(uischema, "props.style", {})}
+            style={convertCss(_.get(uischema, "props.style", {}))}
             label={labelElement}
             labelInfo={required ? "(required)" : null}
             helperText={_.get(uischema, "props.helperText", null)}
         >
             <HTMLSelect
-                value={_.isEmpty(data) ? "-" : data}
+                value={_.isEmpty(data) ? "" : data}
                 options={[
                     {
                         label: "-",
-                        value: "-",
+                        value: "",
                         disabled: required,
-                        selected: true,
                     },
                     ..._.get(schema, "enum", []).map((value) => ({
                         label: value,
@@ -48,11 +47,11 @@ const EnumRenderer = ({
                 ]}
                 onChange={(event) => {
                     let value = event.target.value;
-                    if (_.isEqual(value, "-")) {
+                    if (_.isEqual(value, "")) {
                         value = null;
                     }
                     handleChange(path, value);
-                    if (!_.isEqual(socketReadyState, 1)) {
+                    if (!_.isEqual(socket.readyState, WebSocket.OPEN)) {
                         return;
                     }
                     setTimeout(() => {

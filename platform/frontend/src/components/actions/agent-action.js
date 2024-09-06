@@ -7,7 +7,15 @@ export const agentAction = (dispatch) => ({
             payload,
         });
     },
-    fetchIcon: (payload) => {
+    fetchAttributes: (payload) => {
+        if (_.isEmpty(payload)) {
+            return;
+        }
+        const requestKey = `fetchAttributes ${payload}`;
+        dispatch({
+            type: "agent/pendingAttributesRequests/set",
+            payload: { key: requestKey, value: true },
+        });
         axios
             .get(
                 `/registry/${process.env.NEXT_PUBLIC_AGENT_REGISTRY_NAME}/agent/${payload}`
@@ -20,6 +28,21 @@ export const agentAction = (dispatch) => ({
                 dispatch({
                     type: "agent/icon/set",
                     payload: { key: payload, value: icon },
+                });
+                dispatch({
+                    type: "agent/systemAgents/set",
+                    payload: {
+                        key: payload,
+                        value: _.get(
+                            response,
+                            "data.result.properties.system_agent",
+                            false
+                        ),
+                    },
+                });
+                dispatch({
+                    type: "agent/pendingAttributesRequests/set",
+                    payload: { key: requestKey, value: false },
                 });
             });
     },

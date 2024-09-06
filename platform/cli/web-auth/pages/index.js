@@ -77,7 +77,7 @@ export default function Index() {
             setLoading(false);
             AppToaster.show({
                 intent: Intent.SUCCESS,
-                message: `Connectied to Blue CLI`,
+                message: `Connected to Blue CLI`,
             });
         };
         socket.onmessage = (event) => {
