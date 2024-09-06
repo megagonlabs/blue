@@ -6,7 +6,7 @@ import {
     OverlaysProvider,
     Tooltip,
 } from "@blueprintjs/core";
-import { faBug, faWindowMinimize } from "@fortawesome/pro-duotone-svg-icons";
+import { faWindowMinimize } from "@fortawesome/pro-duotone-svg-icons";
 import classNames from "classnames";
 import { useCallback, useContext, useEffect, useRef, useState } from "react";
 import { RESIZE_DIRECTION } from "../constant";
@@ -143,7 +143,6 @@ export default function DebugPanel() {
                             Classes.HEADING
                         )}
                     >
-                        {faIcon({ icon: faBug })}
                         Debugger
                     </div>
                 </div>
