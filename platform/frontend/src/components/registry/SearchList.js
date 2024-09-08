@@ -24,12 +24,10 @@ export default function SearchList({ type }) {
                         const registryName = appState[type].registryName;
                         let link = "",
                             path = [];
-                        if (_.includes(["agent", "model", "operator"], type)) {
-                            link = `/registry/${registryName}`;
-                            path = [type];
-                        } else if (_.isEqual(type, "data")) {
-                            link = `/registry/${registryName}`;
-                            path = ["source", "database"];
+                        link = `/registry/${registryName}`;
+                        path = [type];
+                        if (_.isEqual(type, "data")) {
+                            path = [type, "database", "collection"];
                         }
                         const scopes = item.scope.split("/");
                         for (var i = 0; i < scopes.length; i++) {
@@ -37,7 +35,11 @@ export default function SearchList({ type }) {
                             link += `/${path.shift()}`;
                             link += `/${scopes[i]}`;
                         }
-                        link += `/${item.type}/${item.name}`;
+                        let itemType = item.type;
+                        if (_.isEqual(itemType, "source")) {
+                            itemType = "data";
+                        }
+                        link += `/${itemType}/${item.name}`;
                         return (
                             <div style={style}>
                                 <Link

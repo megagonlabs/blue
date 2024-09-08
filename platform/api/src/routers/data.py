@@ -125,10 +125,9 @@ def update_source(request: Request, source_name, data: Data, sync: bool = False,
     source = data_registry.get_source(source_name)
     source_acl_enforce(request, source, write=True)
     # TODO: properties
-    data_registry.update_source(source_name, description=data.description, properties={}, rebuild=True)
+    data_registry.update_source(source_name, description=data.description, icon=data.icon, properties={}, rebuild=True)
     if sync:
         data_registry.sync_source(source_name, recursive=recursive, rebuild=True)
-
     # save
     data_registry.dump("/blue_data/config/" + data_registry_id + ".data.json")
     return JSONResponse(content={"message": "Success"})

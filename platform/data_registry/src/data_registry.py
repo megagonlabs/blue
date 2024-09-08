@@ -57,8 +57,8 @@ class DataRegistry(Registry):
     def register_source(self, source, created_by, description="", properties={}, rebuild=False):
         self.register_record(source, 'source', '/', created_by=created_by, description=description, properties=properties, rebuild=rebuild)
 
-    def update_source(self, source, description=None, properties=None, rebuild=False):
-        self.update_record(source, 'source', '/', description=description, properties=properties, rebuild=rebuild)
+    def update_source(self, source, description=None, icon=None,properties=None, rebuild=False):
+        self.update_record(source, 'source', '/', description=description, icon=icon,properties=properties, rebuild=rebuild)
 
     def deregister_source(self, source, rebuild=False):
         record = self.get_record(source, '/')

@@ -1,7 +1,6 @@
 const {
     faCircleA,
     faServer,
-    faHeadSideGear,
     faDatabase,
     faFolderOpen,
     faFile,
@@ -115,13 +114,6 @@ export const ENTITY_TYPE_LOOKUP = {
         member: "Member",
         guest: "Guest",
         developer: "Developer",
-    },
-    DEFAULT_ENTITY_ICON = {
-        agent: faCircleA,
-        data: faDatabase,
-        source: faDatabase,
-        operator: faFunction,
-        model: faCube,
     },
     COLOR_OPTIONS = [
         "#979B9D",

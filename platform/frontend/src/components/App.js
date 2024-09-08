@@ -71,7 +71,7 @@ export default function App({ children }) {
         data_registry: {
             href: `/registry/${process.env.NEXT_PUBLIC_DATA_REGISTRY_NAME}/data`,
             text: "Data",
-            icon: ENTITY_TYPE_LOOKUP.database.icon,
+            icon: ENTITY_TYPE_LOOKUP.source.icon,
             visible: canReadDataRegistry,
         },
         agent_registry: {
