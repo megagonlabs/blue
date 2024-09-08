@@ -92,6 +92,13 @@ def get_data(request: Request):
     return JSONResponse(content={"results": list(results.values())})
 
 
+@router.get("/search")
+def search_data(request: Request, keywords, approximate: bool = False, hybrid: bool = False, type: str = None, scope: str = None, page: int = 0, page_size: int = 10):
+    acl_enforce(request.state.user['role'], 'data_registry', 'read_all')
+    results = data_registry.search_records(keywords, type=type, scope=scope, approximate=approximate, hybrid=hybrid, page=page, page_size=page_size)
+    return JSONResponse(content={"results": results})
+
+
 @router.get("/{source_name}")
 def get_data_source(request: Request, source_name):
     acl_enforce(request.state.user['role'], 'data_registry', 'read_all')
@@ -266,10 +273,3 @@ def delete_source_database_collection(request: Request, source_name, database_na
     # save
     data_registry.dump("/blue_data/config/" + data_registry_id + ".data.json")
     return JSONResponse(content={"message": "Success"})
-
-
-@router.get("/search")
-def search_data(request: Request, keywords, approximate: bool = False, hybrid: bool = False, type: str = None, scope: str = None, page: int = 0, page_size: int = 10):
-    acl_enforce(request.state.user['role'], 'data_registry', 'read_all')
-    results = data_registry.search_records(keywords, type=type, scope=scope, approximate=approximate, hybrid=hybrid, page=page, page_size=page_size)
-    return JSONResponse(content={"results": results})
