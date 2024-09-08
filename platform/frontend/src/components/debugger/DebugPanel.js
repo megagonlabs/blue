@@ -6,7 +6,7 @@ import {
     OverlaysProvider,
     Tooltip,
 } from "@blueprintjs/core";
-import { faWindowMinimize } from "@fortawesome/pro-duotone-svg-icons";
+import { faMinus } from "@fortawesome/pro-duotone-svg-icons";
 import classNames from "classnames";
 import { useCallback, useContext, useEffect, useRef, useState } from "react";
 import { RESIZE_DIRECTION } from "../constant";
@@ -113,7 +113,7 @@ export default function DebugPanel() {
                             <Button
                                 minimal
                                 intent={Intent.WARNING}
-                                icon={faIcon({ icon: faWindowMinimize })}
+                                icon={faIcon({ icon: faMinus })}
                                 onClick={() => setIsMinimized(true)}
                             />
                         </Tooltip>

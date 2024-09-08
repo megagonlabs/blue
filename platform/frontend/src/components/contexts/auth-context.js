@@ -15,6 +15,7 @@ import { GoogleAuthProvider, getAuth, signInWithPopup } from "firebase/auth";
 import _ from "lodash";
 import { createContext, useContext, useEffect, useState } from "react";
 import { hasInteraction } from "../helper";
+import { AppContext } from "./app-context";
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -72,6 +73,7 @@ export const useAuthContext = () => useContext(AuthContext);
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [permissions, setPermissions] = useState({});
+    const { appActions } = useContext(AppContext);
     const [settings, setSettings] = useState({});
     const [popupOpen, setPopupOpen] = useState(false);
     const [authInitialized, setAuthInitialized] = useState(false);
@@ -148,6 +150,10 @@ export const AuthProvider = ({ children }) => {
             .then((response) => {
                 const profile = _.get(response, "data.profile", null);
                 setUser(profile);
+                appActions.session.setState({
+                    key: "userId",
+                    value: profile.uid,
+                });
                 setPermissions(getPermissions(profile));
                 let profileSettings = _.get(profile, "settings", {});
                 if (_.isEmpty(profileSettings)) {

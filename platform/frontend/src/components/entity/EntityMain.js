@@ -108,7 +108,7 @@ export default function EntityMain({
     const canEditEntity = (() => {
         // write_own
         const created_by = _.get(entity, "created_by", null);
-        if (_.isEqual(created_by, appState.session.userId)) {
+        if (_.isEqual(created_by, user.uid)) {
             return true;
         }
         // write_all
@@ -208,8 +208,12 @@ export default function EntityMain({
                         <div
                             className={Classes.TEXT_OVERFLOW_ELLIPSIS}
                             style={{
-                                width: "calc(100% - 112.16px - 82.7px)",
-                                padding: "15px 20px 5px 10px",
+                                width: `calc(100% - ${
+                                    showActionMenu ? 112.16 + 82.7 : 82.7
+                                }px)`,
+                                padding: `15px ${
+                                    showActionMenu ? 20 : 0
+                                }px 5px 10px`,
                             }}
                         >
                             {entity.name}
@@ -230,149 +234,170 @@ export default function EntityMain({
                         <div
                             className={Classes.TEXT_OVERFLOW_ELLIPSIS}
                             style={{
-                                width: "calc(100% - 112.16px - 82.7px)",
-                                padding: "0px 20px 5px 10px",
+                                width: `calc(100% - ${
+                                    showActionMenu ? 112.16 + 82.7 : 82.7
+                                }px)`,
+                                padding: `0px ${
+                                    showActionMenu ? 20 : 0
+                                }px 5px 10px`,
                             }}
                         >
                             {entity.type}
                         </div>
                     </div>
-                    <div
-                        style={{
-                            position: "absolute",
-                            right: 15,
-                            top: "50%",
-                            transform: "translateY(-50%)",
-                            msTransform: "translateY(-50%)",
-                        }}
-                    >
-                        {edit ? (
-                            <ButtonGroup large>
-                                <Popover
-                                    placement="bottom"
-                                    content={
-                                        <div style={{ padding: 15 }}>
-                                            <Button
-                                                className={
-                                                    Classes.POPOVER_DISMISS
-                                                }
-                                                text="Confirm"
-                                                onClick={discard}
-                                                intent={Intent.DANGER}
-                                            />
-                                        </div>
-                                    }
-                                >
-                                    <Tooltip
-                                        minimal
+                    {showActionMenu ? (
+                        <div
+                            style={{
+                                position: "absolute",
+                                right: 15,
+                                top: "50%",
+                                transform: "translateY(-50%)",
+                                msTransform: "translateY(-50%)",
+                            }}
+                        >
+                            {edit ? (
+                                <ButtonGroup large>
+                                    <Popover
                                         placement="bottom"
-                                        content="Discard"
+                                        content={
+                                            <div style={{ padding: 15 }}>
+                                                <Button
+                                                    className={
+                                                        Classes.POPOVER_DISMISS
+                                                    }
+                                                    text="Confirm"
+                                                    onClick={discard}
+                                                    intent={Intent.DANGER}
+                                                />
+                                            </div>
+                                        }
                                     >
-                                        <Button
+                                        <Tooltip
                                             minimal
-                                            icon={faIcon({
-                                                icon: faXmarkLarge,
-                                            })}
-                                        />
-                                    </Tooltip>
-                                </Popover>
-                                <Button
+                                            placement="bottom"
+                                            content="Discard"
+                                        >
+                                            <Button
+                                                minimal
+                                                icon={faIcon({
+                                                    icon: faXmarkLarge,
+                                                })}
+                                            />
+                                        </Tooltip>
+                                    </Popover>
+                                    <Button
+                                        className={
+                                            loading ? Classes.SKELETON : null
+                                        }
+                                        large
+                                        disabled={jsonError}
+                                        intent={Intent.SUCCESS}
+                                        text="Save"
+                                        onClick={saveEntity}
+                                        icon={faIcon({ icon: faCheck })}
+                                    />
+                                </ButtonGroup>
+                            ) : (
+                                <ButtonGroup
+                                    large
+                                    minimal
                                     className={
                                         loading ? Classes.SKELETON : null
                                     }
-                                    large
-                                    disabled={jsonError}
-                                    intent={Intent.SUCCESS}
-                                    text="Save"
-                                    onClick={saveEntity}
-                                    icon={faIcon({ icon: faCheck })}
-                                />
-                            </ButtonGroup>
-                        ) : (
-                            <ButtonGroup
-                                large
-                                minimal
-                                className={loading ? Classes.SKELETON : null}
-                            >
-                                <Popover
-                                    minimal
-                                    placement="bottom-end"
-                                    content={
-                                        <Menu large>
-                                            {_.isFunction(setEdit) &&
-                                            canEditEntity ? (
-                                                <MenuItem
-                                                    onClick={() => {
-                                                        setEdit(true);
-                                                    }}
-                                                    intent={Intent.PRIMARY}
-                                                    icon={faIcon({
-                                                        icon: faPen,
-                                                    })}
-                                                    text="Edit"
-                                                />
-                                            ) : null}
-                                            {canDuplicateEntity ? (
-                                                <MenuItem
-                                                    icon={faIcon({
-                                                        icon: faClone,
-                                                    })}
-                                                    text="Duplicate"
-                                                    onClick={duplicateEntity}
-                                                />
-                                            ) : null}
-                                            {_.isEqual(entity.type, "agent") &&
-                                            permissions.canWritePlatformAgents ? (
-                                                <MenuItem
-                                                    intent={Intent.SUCCESS}
-                                                    icon={faIcon({
-                                                        icon: faPlay,
-                                                    })}
-                                                    disabled={_.isEqual(
-                                                        containerStatus,
-                                                        "running"
-                                                    )}
-                                                    text="Deploy"
-                                                >
+                                >
+                                    <Popover
+                                        minimal
+                                        placement="bottom-end"
+                                        content={
+                                            <Menu large>
+                                                {_.isFunction(setEdit) &&
+                                                canEditEntity ? (
+                                                    <MenuItem
+                                                        onClick={() => {
+                                                            setEdit(true);
+                                                        }}
+                                                        intent={Intent.PRIMARY}
+                                                        icon={faIcon({
+                                                            icon: faPen,
+                                                        })}
+                                                        text="Edit"
+                                                    />
+                                                ) : null}
+                                                {canDuplicateEntity ? (
+                                                    <MenuItem
+                                                        icon={faIcon({
+                                                            icon: faClone,
+                                                        })}
+                                                        text="Duplicate"
+                                                        onClick={
+                                                            duplicateEntity
+                                                        }
+                                                    />
+                                                ) : null}
+                                                {_.isEqual(
+                                                    entity.type,
+                                                    "agent"
+                                                ) &&
+                                                permissions.canWritePlatformAgents ? (
                                                     <MenuItem
                                                         intent={Intent.SUCCESS}
-                                                        text="Confirm"
-                                                        onClick={deployAgent}
-                                                    />
-                                                </MenuItem>
-                                            ) : null}
-                                            {showActionMenuDivider ? (
-                                                <MenuDivider />
-                                            ) : null}
-                                            {canEditEntity ? (
-                                                <MenuItem
-                                                    intent={Intent.DANGER}
-                                                    icon={faIcon({
-                                                        icon: faTrash,
-                                                    })}
-                                                    text="Delete"
-                                                >
+                                                        icon={faIcon({
+                                                            icon: faPlay,
+                                                        })}
+                                                        disabled={_.isEqual(
+                                                            containerStatus,
+                                                            "running"
+                                                        )}
+                                                        text="Deploy"
+                                                    >
+                                                        <MenuItem
+                                                            intent={
+                                                                Intent.SUCCESS
+                                                            }
+                                                            text="Confirm"
+                                                            onClick={
+                                                                deployAgent
+                                                            }
+                                                        />
+                                                    </MenuItem>
+                                                ) : null}
+                                                {showActionMenuDivider ? (
+                                                    <MenuDivider />
+                                                ) : null}
+                                                {canEditEntity ? (
                                                     <MenuItem
                                                         intent={Intent.DANGER}
-                                                        text="Confirm"
-                                                        onClick={deleteEntity}
-                                                    />
-                                                </MenuItem>
-                                            ) : null}
-                                        </Menu>
-                                    }
-                                >
-                                    <Button
-                                        outlined
-                                        text="Actions"
-                                        rightIcon={faIcon({
-                                            icon: faListDropdown,
-                                        })}
-                                    />
-                                </Popover>
-                            </ButtonGroup>
-                        )}
-                    </div>
+                                                        icon={faIcon({
+                                                            icon: faTrash,
+                                                        })}
+                                                        text="Delete"
+                                                    >
+                                                        <MenuItem
+                                                            intent={
+                                                                Intent.DANGER
+                                                            }
+                                                            text="Confirm"
+                                                            onClick={
+                                                                deleteEntity
+                                                            }
+                                                        />
+                                                    </MenuItem>
+                                                ) : null}
+                                            </Menu>
+                                        }
+                                    >
+                                        <Button
+                                            outlined
+                                            text="Actions"
+                                            rightIcon={faIcon({
+                                                icon: faListDropdown,
+                                            })}
+                                        />
+                                    </Popover>
+                                </ButtonGroup>
+                            )}
+                        </div>
+                    ) : null}
                 </SectionCard>
             </Section>
         </>
