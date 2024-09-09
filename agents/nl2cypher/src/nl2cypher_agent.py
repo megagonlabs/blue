@@ -55,14 +55,14 @@ Question: ${input}
 Cypher Query:
 """
 
-NBA_SCHEMA = """
-Node properties are the following:
-Player {name: STRING, date_of_birth: DATE, height_cm: FLOAT, eid: STRING, mass_kg: FLOAT, aliases: LIST, description: STRING},Team {name: STRING, eid: STRING, description: STRING, head_coach: STRING, aliases: LIST},Venue {aliases: LIST, name: STRING, description: STRING, eid: STRING},Position {name: STRING, eid: STRING, description: STRING, aliases: LIST},Award {name: STRING, eid: STRING, aliases: LIST, description: STRING},Division {aliases: LIST, name: STRING, description: STRING, eid: STRING},Conference {aliases: LIST, name: STRING, description: STRING, eid: STRING}
-Relationship properties are the following:
-playsFor {end_year: INTEGER, start_year: INTEGER},draftedBy {year: INTEGER},receivesAward {year: INTEGER},hasHomeVenue {end_year: INTEGER, start_year: INTEGER}
-The relationships are the following:
-(:Player)-[:playsPosition]->(:Position),(:Player)-[:playsFor]->(:Team),(:Player)-[:draftedBy]->(:Team),(:Player)-[:receivesAward]->(:Award),(:Team)-[:hasHomeVenue]->(:Venue),(:Team)-[:partOfDivision]->(:Division),(:Division)-[:partOfConference]->(:Conference)
-"""
+# NBA_SCHEMA = """
+# Node properties are the following:
+# Player {name: STRING, date_of_birth: DATE, height_cm: FLOAT, eid: STRING, mass_kg: FLOAT, aliases: LIST, description: STRING},Team {name: STRING, eid: STRING, description: STRING, head_coach: STRING, aliases: LIST},Venue {aliases: LIST, name: STRING, description: STRING, eid: STRING},Position {name: STRING, eid: STRING, description: STRING, aliases: LIST},Award {name: STRING, eid: STRING, aliases: LIST, description: STRING},Division {aliases: LIST, name: STRING, description: STRING, eid: STRING},Conference {aliases: LIST, name: STRING, description: STRING, eid: STRING}
+# Relationship properties are the following:
+# playsFor {end_year: INTEGER, start_year: INTEGER},draftedBy {year: INTEGER},receivesAward {year: INTEGER},hasHomeVenue {end_year: INTEGER, start_year: INTEGER}
+# The relationships are the following:
+# (:Player)-[:playsPosition]->(:Position),(:Player)-[:playsFor]->(:Team),(:Player)-[:draftedBy]->(:Team),(:Player)-[:receivesAward]->(:Award),(:Team)-[:hasHomeVenue]->(:Venue),(:Team)-[:partOfDivision]->(:Division),(:Division)-[:partOfConference]->(:Conference)
+# """
 
 nl2cypher_properties = {
     "openai.api": "ChatCompletion",
@@ -97,12 +97,6 @@ class Nl2CypherAgent(OpenAIAgent):
         prefix = 'PLATFORM:' + platform_id
         self.registry = DataRegistry(id=self.properties['data_registry.name'], prefix=prefix,
                                      properties=self.properties)
-        # self.registry.sync_source('megagon_hr_insights')
-
-        logging.info('sucess')
-        logging.info('sucess')
-        logging.info('sucess')
-        logging.info('sucess')
 
     def _initialize_properties(self):
         super()._initialize_properties()
