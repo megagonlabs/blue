@@ -64,7 +64,14 @@ export default function New() {
             .catch((error) => {
                 AppToaster.show({
                     intent: Intent.DANGER,
-                    message: `${error.name}: ${error.message}`,
+                    message: (
+                        <>
+                            <div>{_.get(error, "response.data.message")}</div>
+                            <div>
+                                {error.name}: {error.message}
+                            </div>
+                        </>
+                    ),
                 });
                 setLoading(false);
             });
