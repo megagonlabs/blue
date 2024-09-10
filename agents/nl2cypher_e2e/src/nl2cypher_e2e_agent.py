@@ -107,6 +107,7 @@ class Nl2CypherE2EAgent(OpenAIAgent):
         source = self.registry.connect_source('megagon_hr_insights')
         result = source.connection.run_query(query)
         return {
+            'source': 'megagon_hr_insights',
             'query': query,
             'result': result
         }

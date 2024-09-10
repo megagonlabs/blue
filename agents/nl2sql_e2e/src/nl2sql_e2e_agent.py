@@ -108,6 +108,7 @@ class Nl2SqlE2EAgent(OpenAIAgent):
         cursor.execute(query)
         data = cursor.fetchall()
         return {
+            'source': 'jobs_db_sample',
             'query': query,
             'result': data
         }
