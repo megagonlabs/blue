@@ -1,4 +1,5 @@
-## Nl2Cypher Agent
+## NL2SQL_E2E Agent
+
 
 ### Testing Prompts
 
