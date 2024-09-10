@@ -102,12 +102,13 @@ class Nl2SqlE2EAgent(OpenAIAgent):
         return {'schema': schema}
 
     def process_output(self, output_data):
+        query = output_data.replace('```sql', '').replace('```', '').strip()
         source = self.registry.connect_source('jobs_db_sample')
         cursor = source.connection.cursor()
-        cursor.execute(output_data)
+        cursor.execute(query)
         data = cursor.fetchall()
         return {
-            'query': output_data,
+            'query': query,
             'result': data
         }
 

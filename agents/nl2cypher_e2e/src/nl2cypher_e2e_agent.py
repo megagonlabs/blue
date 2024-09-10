@@ -103,10 +103,11 @@ class Nl2CypherE2EAgent(OpenAIAgent):
         return {'schema': schema}
 
     def process_output(self, output_data):
+        query = output_data.replace('```cypher', '').replace('```', '').strip()
         source = self.registry.connect_source('megagon_hr_insights')
-        result = source.connection.run_query(output_data)
+        result = source.connection.run_query(query)
         return {
-            'query': output_data,
+            'query': query,
             'result': result
         }
 
