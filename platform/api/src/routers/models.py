@@ -33,6 +33,7 @@ from fastapi.responses import JSONResponse
 class Model(BaseModel):
     name: str
     description: Union[str, None] = None
+    icon: Union[str, dict, None] = None
 
 
 class Parameter(BaseModel):
@@ -64,7 +65,7 @@ p = Platform(id=platform_id, properties=PROPERTIES)
 model_registry = ModelRegistry(id=model_registry_id, prefix=prefix, properties=PROPERTIES)
 
 ##### ROUTER
-router = APIRouter(prefix=f"{PLATFORM_PREFIX}/registry/{model_registry_id}/models")
+router = APIRouter(prefix=f"{PLATFORM_PREFIX}/registry/{model_registry_id}")
 
 # set logging
 logging.getLogger().setLevel("INFO")
@@ -106,6 +107,10 @@ def get_model(request: Request, model_name):
 
 @router.post("/model/{model_name}")
 def add_model(request: Request, model_name, model: Model):
+    model_db = model_registry.get_model(model_name)
+    # if model already exists, return 409 conflict error
+    if not pydash.is_empty(model_db):
+        return JSONResponse(content={"message": "The name already exists."}, status_code=409)
     acl_enforce(request.state.user['role'], 'model_registry', ['write_all', 'write_own'])
     # TODO: properties
     model_registry.add_model(model_name, request.state.user['uid'], description=model.description, properties={}, rebuild=True)

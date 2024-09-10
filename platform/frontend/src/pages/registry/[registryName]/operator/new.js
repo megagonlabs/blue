@@ -23,7 +23,7 @@ export default function New() {
     const [created, setCreated] = useState(false);
     const [loading, setLoading] = useState(false);
     const [jsonError, setJsonError] = useState(false);
-    const urlPrefix = `/registry/${process.env.NEXT_PUBLIC_AGENT_REGISTRY_NAME}/agent`;
+    const urlPrefix = `/registry/${process.env.NEXT_PUBLIC_OPERATOR_REGISTRY_NAME}/operator`;
     const updateEntity = ({ path, value }) => {
         let newEntity = _.cloneDeep(entity);
         _.set(newEntity, path, value);
@@ -42,7 +42,7 @@ export default function New() {
                 setCreated(true);
                 AppToaster.show({
                     intent: Intent.SUCCESS,
-                    message: `Created ${entity.name} agent`,
+                    message: `Created ${entity.name} operator`,
                 });
                 const difference = diff({}, entity.properties);
                 settlePromises(
@@ -107,7 +107,7 @@ export default function New() {
         }
         const crumb0 = _.get(crumbs, 0, {});
         // special case
-        _.set(crumbs, 0, { ...crumb0, href: crumb0.href + "/agent" });
+        _.set(crumbs, 0, { ...crumb0, href: crumb0.href + "/operator" });
         setBreadcrumbs(crumbs);
     }, [router]);
     return (
@@ -116,7 +116,7 @@ export default function New() {
                 <Breadcrumbs breadcrumbs={breadcrumbs} />
             </div>
             <NewEntity
-                type="agent"
+                type="operator"
                 updateEntity={updateEntity}
                 saveEntity={saveEntity}
                 entity={entity}

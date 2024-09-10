@@ -1,5 +1,8 @@
 import AccessDeniedNonIdealState from "@/components/AccessDeniedNonIdealState";
-import { NAVIGATION_MENU_WIDTH } from "@/components/constant";
+import {
+    ENTITY_TYPE_LOOKUP,
+    NAVIGATION_MENU_WIDTH,
+} from "@/components/constant";
 import { AppContext } from "@/components/contexts/app-context";
 import { AuthContext } from "@/components/contexts/auth-context";
 import { useSocket } from "@/components/hooks/useSocket";
@@ -19,9 +22,6 @@ import {
     Tooltip,
 } from "@blueprintjs/core";
 import {
-    faCircleA,
-    faDatabase,
-    faFunction,
     faGear,
     faListUl,
     faPencilRuler,
@@ -59,6 +59,7 @@ export default function App({ children }) {
         canReadDataRegistry,
         canReadAgentRegistry,
         canReadOperatorRegistry,
+        canReadModelRegistry,
     } = permissions;
     const MENU_ITEMS = {
         sessions: {
@@ -70,20 +71,26 @@ export default function App({ children }) {
         data_registry: {
             href: `/registry/${process.env.NEXT_PUBLIC_DATA_REGISTRY_NAME}/data`,
             text: "Data",
-            icon: faDatabase,
+            icon: ENTITY_TYPE_LOOKUP.source.icon,
             visible: canReadDataRegistry,
         },
         agent_registry: {
             href: `/registry/${process.env.NEXT_PUBLIC_AGENT_REGISTRY_NAME}/agent`,
             text: "Agent",
-            icon: faCircleA,
+            icon: ENTITY_TYPE_LOOKUP.agent.icon,
             visible: canReadAgentRegistry,
         },
         operator_registry: {
-            href: `/registry/${process.env.NEXT_PUBLIC_AGENT_REGISTRY_NAME}/operator`,
+            href: `/registry/${process.env.NEXT_PUBLIC_OPERATOR_REGISTRY_NAME}/operator`,
             text: "Operator",
-            icon: faFunction,
+            icon: ENTITY_TYPE_LOOKUP.operator.icon,
             visible: canReadOperatorRegistry,
+        },
+        model_registry: {
+            href: `/registry/${process.env.NEXT_PUBLIC_MODEL_REGISTRY_NAME}/model`,
+            text: "Model",
+            icon: ENTITY_TYPE_LOOKUP.model.icon,
+            visible: canReadModelRegistry,
         },
         form_designer: {
             href: "/tools/form-designer",
@@ -100,7 +107,7 @@ export default function App({ children }) {
         admin_agents: {
             href: "/admin/agents",
             text: "Agents",
-            icon: faCircleA,
+            icon: ENTITY_TYPE_LOOKUP.agent.icon,
             visible: canReadPlatformAgents,
         },
     };
@@ -288,6 +295,7 @@ export default function App({ children }) {
                                     "agent_registry",
                                     "data_registry",
                                     "operator_registry",
+                                    "model_registry",
                                 ].map((key, index) => {
                                     const { href, icon, text, visible } = _.get(
                                         MENU_ITEMS,

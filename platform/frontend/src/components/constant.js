@@ -1,13 +1,14 @@
 const {
     faCircleA,
     faServer,
-    faHeadSideGear,
     faDatabase,
     faFolderOpen,
     faFile,
     faProjectDiagram,
     faArrowRightToArc,
     faArrowRightFromArc,
+    faFunction,
+    faCube,
 } = require("@fortawesome/pro-duotone-svg-icons");
 const { vanillaRenderers } = require("@jsonforms/vanilla-renderers");
 import BooleanRenderer, {
@@ -46,12 +47,9 @@ import DateRenderer, { DateTester } from "./jsonforms/renderers/Date";
 import DateTimeRenderer, {
     DateTimeTester,
 } from "./jsonforms/renderers/DateTime";
-export const REGISTRY_TYPE_LOOKUP = {
-        data: { icon: faServer, key: "source" },
+export const ENTITY_TYPE_LOOKUP = {
         agent: { icon: faCircleA, key: "agent" },
-    },
-    SEARCH_LIST_TYPE_LOOKUP = {
-        agent: { icon: faHeadSideGear },
+        data: { icon: faServer, key: "source" },
         input: { icon: faArrowRightToArc },
         output: { icon: faArrowRightFromArc },
         source: { icon: faServer },
@@ -59,6 +57,8 @@ export const REGISTRY_TYPE_LOOKUP = {
         collection: { icon: faFolderOpen },
         entity: { icon: faFile },
         relation: { icon: faProjectDiagram },
+        model: { icon: faCube, key: "model" },
+        operator: { icon: faFunction, key: "operator" },
     },
     JSONFORMS_RENDERERS = [
         ...vanillaRenderers,
@@ -114,11 +114,6 @@ export const REGISTRY_TYPE_LOOKUP = {
         member: "Member",
         guest: "Guest",
         developer: "Developer",
-    },
-    DEFAULT_ENTITY_ICON = {
-        agent: faCircleA,
-        data: faDatabase,
-        source: faDatabase,
     },
     COLOR_OPTIONS = [
         "#979B9D",

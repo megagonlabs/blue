@@ -15,6 +15,7 @@ import { GoogleAuthProvider, getAuth, signInWithPopup } from "firebase/auth";
 import _ from "lodash";
 import { createContext, useContext, useEffect, useState } from "react";
 import { hasInteraction } from "../helper";
+import { AppContext } from "./app-context";
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -72,6 +73,7 @@ export const useAuthContext = () => useContext(AuthContext);
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [permissions, setPermissions] = useState({});
+    const { appActions } = useContext(AppContext);
     const [settings, setSettings] = useState({});
     const [popupOpen, setPopupOpen] = useState(false);
     const [authInitialized, setAuthInitialized] = useState(false);
@@ -86,6 +88,18 @@ export const AuthProvider = ({ children }) => {
         return {
             canWriteAgentRegistry: hasInteraction(
                 _.get(permissions, "agent_registry", []),
+                ["write_all", "write_own"]
+            ),
+            canWriteDataRegistry: hasInteraction(
+                _.get(permissions, "data_registry", []),
+                ["write_all", "write_own"]
+            ),
+            canWriteOperatorRegistry: hasInteraction(
+                _.get(permissions, "operator_registry", []),
+                ["write_all", "write_own"]
+            ),
+            canWriteModelRegistry: hasInteraction(
+                _.get(permissions, "model_registry", []),
                 ["write_all", "write_own"]
             ),
             canWritePlatformUsers: hasInteraction(
@@ -121,7 +135,11 @@ export const AuthProvider = ({ children }) => {
                 ["write_all", "write_own"]
             ),
             canReadOperatorRegistry: hasInteraction(
-                _.get(permissions, "opeartor_registry", []),
+                _.get(permissions, "operator_registry", []),
+                ["read_all"]
+            ),
+            canReadModelRegistry: hasInteraction(
+                _.get(permissions, "model_registry", []),
                 ["read_all"]
             ),
         };
@@ -132,6 +150,10 @@ export const AuthProvider = ({ children }) => {
             .then((response) => {
                 const profile = _.get(response, "data.profile", null);
                 setUser(profile);
+                appActions.session.setState({
+                    key: "userId",
+                    value: profile.uid,
+                });
                 setPermissions(getPermissions(profile));
                 let profileSettings = _.get(profile, "settings", {});
                 if (_.isEmpty(profileSettings)) {

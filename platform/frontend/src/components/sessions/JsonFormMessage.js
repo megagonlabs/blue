@@ -52,6 +52,7 @@ export default function JsonFormMessage({ content, hasError }) {
                             position: "absolute",
                             top: 0,
                             left: 0,
+                            zIndex: 5,
                             backgroundColor: `${Colors.LIGHT_GRAY3}${HEX_TRANSPARENCY[50]}`,
                         }}
                         className={classNames(

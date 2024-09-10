@@ -1,4 +1,4 @@
-import { SEARCH_LIST_TYPE_LOOKUP } from "@/components/constant";
+import { ENTITY_TYPE_LOOKUP } from "@/components/constant";
 import { AppContext } from "@/components/contexts/app-context";
 import { faIcon } from "@/components/icon";
 import { Card, Classes } from "@blueprintjs/core";
@@ -24,12 +24,10 @@ export default function SearchList({ type }) {
                         const registryName = appState[type].registryName;
                         let link = "",
                             path = [];
-                        if (_.isEqual(type, "agent")) {
-                            link = `/registry/${registryName}`;
-                            path = ["agent"];
-                        } else if (_.isEqual(type, "data")) {
-                            link = `/registry/${registryName}`;
-                            path = ["source", "database"];
+                        link = `/registry/${registryName}`;
+                        path = [type];
+                        if (_.isEqual(type, "data")) {
+                            path = [type, "database", "collection"];
                         }
                         const scopes = item.scope.split("/");
                         for (var i = 0; i < scopes.length; i++) {
@@ -37,7 +35,11 @@ export default function SearchList({ type }) {
                             link += `/${path.shift()}`;
                             link += `/${scopes[i]}`;
                         }
-                        link += `/${item.type}/${item.name}`;
+                        let itemType = item.type;
+                        if (_.isEqual(itemType, "source")) {
+                            itemType = "data";
+                        }
+                        link += `/${itemType}/${item.name}`;
                         return (
                             <div style={style}>
                                 <Link
@@ -65,7 +67,7 @@ export default function SearchList({ type }) {
                                                 style={{ marginRight: 20 }}
                                             >
                                                 {faIcon({
-                                                    icon: SEARCH_LIST_TYPE_LOOKUP[
+                                                    icon: ENTITY_TYPE_LOOKUP[
                                                         item.type
                                                     ].icon,
                                                     size: 21,

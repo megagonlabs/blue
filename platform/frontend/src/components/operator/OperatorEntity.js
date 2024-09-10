@@ -1,25 +1,16 @@
-import EntityDescription from "@/components/entity/EntityDescription";
-import EntityMain from "@/components/entity/EntityMain";
-import EntityProperties from "@/components/entity/EntityProperties";
-import {
-    HTMLTable,
-    Intent,
-    Section,
-    SectionCard,
-    Tag,
-} from "@blueprintjs/core";
+import { Intent } from "@blueprintjs/core";
 import axios from "axios";
 import { diff } from "deep-diff";
-import _ from "lodash";
-import Link from "next/link";
 import { useRouter } from "next/router";
-import { useContext, useEffect, useState } from "react";
-import { AppContext } from "../contexts/app-context";
+import { useEffect, useState } from "react";
+import EntityDescription from "../entity/EntityDescription";
+import EntityMain from "../entity/EntityMain";
+import EntityProperties from "../entity/EntityProperties";
 import { constructSavePropertyRequests, settlePromises } from "../helper";
-export default function SourceEntity() {
-    const BLANK_ENTITY = { type: "data" };
+import { AppToaster } from "../toaster";
+export default function OperatorEntity() {
+    const BLANK_ENTITY = { type: "operator" };
     const router = useRouter();
-    const { appActions } = useContext(AppContext);
     const [entity, setEntity] = useState(BLANK_ENTITY);
     const [editEntity, setEditEntity] = useState(BLANK_ENTITY);
     const [edit, setEdit] = useState(false);
@@ -51,7 +42,7 @@ export default function SourceEntity() {
         setEditEntity(newEntity);
     };
     const saveEntity = () => {
-        const urlPrefix = `/registry/${process.env.NEXT_PUBLIC_DATA_REGISTRY_NAME}/data`;
+        const urlPrefix = `/registry/${process.env.NEXT_PUBLIC_OPERATOR_REGISTRY_NAME}/operator`;
         setLoading(true);
         let icon = _.get(editEntity, "icon", null);
         if (!_.isEmpty(icon) && !_.startsWith(icon, "data:image/")) {
@@ -89,10 +80,6 @@ export default function SourceEntity() {
         settlePromises(tasks, (error) => {
             if (!error) {
                 setEdit(false);
-                appActions.agent.setIcon({
-                    key: entity.name,
-                    value: _.get(editEntity, "icon", null),
-                });
                 setEntity(editEntity);
             }
             setLoading(false);
@@ -126,56 +113,6 @@ export default function SourceEntity() {
                 updateEntity={updateEntity}
                 setLoading={setLoading}
             />
-            <Section
-                compact
-                collapsible
-                title="Databases"
-                style={{ marginTop: 20 }}
-            >
-                <SectionCard padded={false}>
-                    <HTMLTable
-                        className="entity-section-card-table"
-                        bordered
-                        style={{ width: "100%" }}
-                    >
-                        <thead>
-                            <tr>
-                                <th>Name</th>
-                                <th>Description</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {_.values(entity.contents).map((element, index) => {
-                                if (!_.isEqual(element.type, "database")) {
-                                    return null;
-                                }
-                                return (
-                                    <tr key={index}>
-                                        <td>
-                                            <Link
-                                                href={`${router.asPath}/database/${element.name}`}
-                                            >
-                                                <Tag
-                                                    style={{
-                                                        pointerEvents: "none",
-                                                    }}
-                                                    minimal
-                                                    interactive
-                                                    large
-                                                    intent={Intent.PRIMARY}
-                                                >
-                                                    {element.name}
-                                                </Tag>
-                                            </Link>
-                                        </td>
-                                        <td>{element.description}</td>
-                                    </tr>
-                                );
-                            })}
-                        </tbody>
-                    </HTMLTable>
-                </SectionCard>
-            </Section>
         </div>
     );
 }

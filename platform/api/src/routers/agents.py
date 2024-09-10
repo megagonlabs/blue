@@ -294,6 +294,11 @@ def get_agent_input(request: Request, agent_name, param_name):
 
 @router.post("/agent/{agent_name}/input/{param_name}")
 def add_agent_input(request: Request, agent_name, param_name, parameter: Parameter):
+    input = agent_registry.get_agent_input(agent_name, param_name)
+    output = agent_registry.get_agent_output(agent_name, param_name)
+    # if name already exists, return 409 conflict error
+    if not pydash.is_empty(input) or not pydash.is_empty(output):
+        return JSONResponse(content={"message": "The name already exists."}, status_code=409)
     agent_db = agent_registry.get_agent(agent_name)
     agent_acl_enforce(request, agent_db, write=True)
     # TODO: properties
@@ -375,6 +380,11 @@ def get_agent_output(request: Request, agent_name, param_name):
 
 @router.post("/agent/{agent_name}/output/{param_name}")
 def add_agent_output(request: Request, agent_name, param_name, parameter: Parameter):
+    input = agent_registry.get_agent_input(agent_name, param_name)
+    output = agent_registry.get_agent_output(agent_name, param_name)
+    # if name already exists, return 409 conflict error
+    if not pydash.is_empty(input) or not pydash.is_empty(output):
+        return JSONResponse(content={"message": "The name already exists."}, status_code=409)
     agent_db = agent_registry.get_agent(agent_name)
     agent_acl_enforce(request, agent_db, write=True)
     # TODO: properties

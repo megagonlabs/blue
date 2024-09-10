@@ -79,10 +79,6 @@ export default function Sessions() {
                     appActions.session.addSessionMessage(data);
                 } else if (_.isEqual(data["type"], "CONNECTED")) {
                     appActions.session.setState({
-                        key: "userId",
-                        value: data.id,
-                    });
-                    appActions.session.setState({
                         key: "connectionId",
                         value: data.connection_id,
                     });

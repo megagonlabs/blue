@@ -36,12 +36,6 @@ export default function Data() {
     const [page, setPage] = useState(appState.data.filter.page);
     const [pageSize, setPageSize] = useState(appState.data.filter.page_size);
     const dataRegistryName = process.env.NEXT_PUBLIC_DATA_REGISTRY_NAME;
-    useEffect(() => {
-        if (appState.data.search) {
-            return;
-        }
-        appActions.data.getList(dataRegistryName);
-    }, []);
     const debounceOnKeywordsChange = useCallback(
         _.debounce(
             ({

@@ -21,8 +21,15 @@ import JsonFormMessage from "./JsonFormMessage";
 import MessageIcon from "./MessageIcon";
 import MessageMetadata from "./MessageMetadata";
 const Row = ({ index, data, style }) => {
-    const { messages, streams, appState, appActions, setRowHeight, settings } =
-        data;
+    const {
+        messages,
+        streams,
+        appState,
+        appActions,
+        setRowHeight,
+        user,
+        settings,
+    } = data;
     const rowRef = useRef({});
     const debugMode = _.get(settings, "debug_mode", false);
     const own = useMemo(() => {
@@ -61,11 +68,8 @@ const Row = ({ index, data, style }) => {
                 appActions.agent.fetchAttributes(created_by);
             }
         }
-        return (
-            _.isEqual(uid, appState.session.userId) &&
-            _.isEqual(created_by, "USER")
-        );
-    }, [appState.session.userId]);
+        return _.isEqual(uid, user.uid) && _.isEqual(created_by, "USER");
+    }, [user.uid]);
     const isOverflown = useRef(false);
     const message = messages[index];
     const stream = message.stream;
@@ -276,7 +280,7 @@ export default function SessionMessages() {
     const variableSizeListRef = useRef();
     const rowHeights = useRef({});
     const { appState, appActions } = useContext(AppContext);
-    const { settings } = useContext(AuthContext);
+    const { user, settings } = useContext(AuthContext);
     const sessionIdFocus = appState.session.sessionIdFocus;
     const messages = appState.session.sessions[sessionIdFocus].messages;
     const debugMode = _.get(settings, "debug_mode", false);
@@ -312,6 +316,7 @@ export default function SessionMessages() {
                         appState,
                         appActions,
                         setRowHeight,
+                        user,
                         settings,
                     }}
                     height={height}
