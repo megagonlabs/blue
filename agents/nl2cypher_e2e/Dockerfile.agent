@@ -1,0 +1,22 @@
+FROM python:3.9
+
+# Set workdir
+WORKDIR /app
+
+# Build requirements first
+ADD src/requirements.txt /app/requirements.txt
+RUN pip install -r requirements.txt
+
+ADD src/requirements.common.txt /app/requirements.common.txt
+RUN pip install -r requirements.common.txt
+
+ADD src/requirements.data_registry.txt /app/requirements.data_registry.txt
+RUN pip install -r requirements.data_registry.txt
+
+# Copy libs 
+ADD /lib /app/lib/
+
+# Copy service files
+ADD /src /app/
+
+ENTRYPOINT ["python", "nl2cypher_e2e_agent.py"]
