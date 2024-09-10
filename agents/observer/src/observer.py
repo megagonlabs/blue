@@ -47,6 +47,15 @@ class ObserverAgent(Agent):
     def _initialize(self, properties=None):
         super()._initialize(properties=properties)
 
+        # observer listens to everything
+        listeners = {}
+        self.properties["listens"] = listeners
+
+        default_listeners = {}
+        listeners["DEFAULT"] = default_listeners
+        default_listeners["includes"] = [".*"]
+        default_listeners["excludes"] = []
+
         # observer is not instructable
         self.properties['instructable'] = False
 
