@@ -68,7 +68,7 @@ class PostgresDBSource(DataSource):
     ######### database
     def fetch_databases(self):
         query = "SELECT datname FROM pg_database;"
-        cursor = self.conncection.cursor()
+        cursor = self.connection.cursor()
         cursor.execute(query)
         data = cursor.fetchall()
         dbs = []
@@ -86,7 +86,7 @@ class PostgresDBSource(DataSource):
     def fetch_database_collections(self, database):
         # TODO: tables to specific database?
         query = "SELECT * from information_schema.tables WHERE table_schema = 'public';"
-        cursor = self.conncection.cursor()
+        cursor = self.connection.cursor()
         cursor.execute(query)
         data = cursor.fetchall()
         collections = []
@@ -100,7 +100,7 @@ class PostgresDBSource(DataSource):
     def fetch_database_collection_schema(self, database, collection):
         # TODO: Do better ER extraction from tables, columns, exploiting column semantics, foreign keys, etc.
         query = "SELECT table_name, column_name  from information_schema.columns WHERE table_schema = 'public';"
-        cursor = self.conncection.cursor()
+        cursor = self.connection.cursor()
         cursor.execute(query)
         data = cursor.fetchall()
 
