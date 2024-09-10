@@ -210,7 +210,7 @@ class Consumer:
         else:
             self.listener(message)
 
-    async def _consume_stream(self, c) -> asyncio.coroutine:
+    async def _consume_stream(self, c):
         s = self.stream
         g = self.cid
         r = self.connection
