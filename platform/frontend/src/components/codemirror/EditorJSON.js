@@ -50,10 +50,7 @@ export default function EditorJSON({
     });
     const [codeEditorView, setCodeEditorView] = useState(null);
     useEffect(() => {
-        if (_.isEqual(code, doc)) {
-            return;
-        }
-        if (_.isNil(codeEditorView)) {
+        if (_.isEqual(code, doc) || _.isNil(codeEditorView)) {
             return;
         }
         codeEditorView.dispatch({
@@ -83,6 +80,19 @@ export default function EditorJSON({
         const view = new EditorView({
             state,
             parent: editor.current,
+        });
+        view.contentDOM.addEventListener("blur", () => {
+            var editableFix = document.createElement("input");
+            editableFix.style =
+                "position: absolute; width: 1px; left: 0px; top: 0px;";
+            editableFix.tabIndex = -1;
+            view.contentDOM.appendChild(editableFix);
+            editableFix.focus();
+            editableFix.setSelectionRange(0, 0);
+            editableFix.blur();
+            setTimeout(() => {
+                editableFix.remove();
+            }, 0);
         });
         setCodeEditorView(view);
         return () => {
