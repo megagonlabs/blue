@@ -118,7 +118,7 @@ class Agent:
         # DEFAULT is the default input parameter
         default_listeners = {}
         listeners["DEFAULT"] = default_listeners
-        default_listeners["includes"] = [".*"]
+        default_listeners["includes"] = []
         default_listeners["excludes"] = []
 
         ### default tags to tag output streams
