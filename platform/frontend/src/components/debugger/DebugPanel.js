@@ -64,13 +64,14 @@ export default function DebugPanel() {
         <OverlaysProvider>
             <Overlay2
                 className={classNames("height-0")}
-                childRef={resizeRef}
+                childRefs={{ debugger: resizeRef }}
                 hasBackdrop={false}
                 isOpen
                 enforceFocus={false}
                 autoFocus={false}
             >
                 <div
+                    key="debugger"
                     className={classNames(Classes.DIALOG, "margin-0")}
                     ref={resizeRef}
                     style={{
@@ -120,6 +121,7 @@ export default function DebugPanel() {
                     </div>
                 </div>
                 <div
+                    key="debugger-minimized"
                     className={`${Classes.DIALOG} margin-0`}
                     style={{
                         position: "absolute",
