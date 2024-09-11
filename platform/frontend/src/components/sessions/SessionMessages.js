@@ -32,6 +32,7 @@ const Row = ({ index, data, style }) => {
     } = data;
     const rowRef = useRef({});
     const debugMode = _.get(settings, "debug_mode", false);
+    const expandMessage = _.get(settings, "expand_message", false);
     const own = useMemo(() => {
         const uid = _.get(messages, [index, "metadata", "id"], null);
         const created_by = _.get(
@@ -80,13 +81,10 @@ const Row = ({ index, data, style }) => {
             const { clientWidth, clientHeight, scrollWidth, scrollHeight } =
                 rowRef.current;
             isOverflown.current = false;
-            if (_.has(appState.session.expandedMessageStream, stream)) {
-                isOverflown.current = false;
-            } else if (
-                scrollHeight > clientHeight ||
-                scrollWidth > clientWidth
-            ) {
-                isOverflown.current = true;
+            if (!expandMessage) {
+                if (scrollHeight > clientHeight || scrollWidth > clientWidth) {
+                    isOverflown.current = true;
+                }
             }
             setRowHeight(
                 index,
@@ -98,7 +96,7 @@ const Row = ({ index, data, style }) => {
                     (isOverflown.current ? 35 : 0)
             );
         }
-    }, [rowRef, debugMode]);
+    }, [rowRef, debugMode, expandMessage]);
     const streamData = _.get(streams, [stream, "data"], []);
     const contentType = _.get(messages, [index, "contentType"], null);
     const { ref: resizeRef } = useResizeDetector({
@@ -188,11 +186,12 @@ const Row = ({ index, data, style }) => {
                                 minHeight: 21,
                                 overflow: "hidden",
                                 maxHeight:
-                                    !appState.session.expandedMessageStream.has(
+                                    expandMessage ||
+                                    appState.session.expandedMessageStream.has(
                                         stream
                                     )
-                                        ? MESSAGE_OVERFLOW_THRESHOLD
-                                        : null,
+                                        ? null
+                                        : MESSAGE_OVERFLOW_THRESHOLD,
                             }}
                         >
                             {_.isEqual(contentType, "JSON_FORM") ? (
@@ -233,19 +232,9 @@ const Row = ({ index, data, style }) => {
                                 })
                             )}
                             {!complete ? (
-                                <>
-                                    <div
-                                        style={{ height: 20.5, marginTop: 7.5 }}
-                                    >
-                                        &nbsp;
-                                    </div>
+                                <div style={{ marginTop: 7.5 }}>
                                     <Tag
                                         minimal
-                                        style={{
-                                            position: "absolute",
-                                            bottom: 15,
-                                            left: 15,
-                                        }}
                                         icon={faIcon({
                                             icon: faEllipsisH,
                                             size: 16.5,
@@ -253,7 +242,7 @@ const Row = ({ index, data, style }) => {
                                             style: { color: Colors.BLACK },
                                         })}
                                     />
-                                </>
+                                </div>
                             ) : null}
                         </div>
                         {isOverflown.current ? (

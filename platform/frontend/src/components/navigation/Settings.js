@@ -10,13 +10,23 @@ import {
     Tag,
     Tooltip,
 } from "@blueprintjs/core";
-import { faRectangleTerminal } from "@fortawesome/pro-duotone-svg-icons";
+import {
+    faArrowsFromDottedLine,
+    faCode,
+    faMessages,
+    faRectangleTerminal,
+} from "@fortawesome/pro-duotone-svg-icons";
 import _ from "lodash";
 import { useContext } from "react";
 import { AuthContext } from "../contexts/auth-context";
 import { faIcon } from "../icon";
 export default function Settings({ isOpen, setIsSettingsOpen }) {
     const { settings, updateSettings } = useContext(AuthContext);
+    const SECTION_PROPS = {
+        collapsible: true,
+        collapseProps: { defaultIsOpen: false },
+        compact: true,
+    };
     return (
         <Drawer
             size={DrawerSize.SMALL}
@@ -45,7 +55,43 @@ export default function Settings({ isOpen, setIsSettingsOpen }) {
                         </Tag>
                     </Tooltip>
                 </div>
-                <Section compact title="Developer">
+                <Section
+                    {...SECTION_PROPS}
+                    icon={faIcon({ icon: faMessages })}
+                    title="Messages"
+                    style={{ marginBottom: 10 }}
+                >
+                    <SectionCard padded={false}>
+                        <Menu className="settings-menus" large>
+                            <MenuItem
+                                text="Expand to show more"
+                                icon={faIcon({ icon: faArrowsFromDottedLine })}
+                                labelElement={
+                                    <Switch
+                                        checked={_.get(
+                                            settings,
+                                            "expand_message",
+                                            false
+                                        )}
+                                        style={{ marginBottom: 0 }}
+                                        large
+                                        onChange={(event) => {
+                                            updateSettings(
+                                                "expand_message",
+                                                event.target.checked
+                                            );
+                                        }}
+                                    />
+                                }
+                            />
+                        </Menu>
+                    </SectionCard>
+                </Section>
+                <Section
+                    {...SECTION_PROPS}
+                    icon={faIcon({ icon: faCode })}
+                    title="Developer"
+                >
                     <SectionCard padded={false}>
                         <Menu className="settings-menus" large>
                             <MenuItem
