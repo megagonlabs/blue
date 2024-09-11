@@ -28,7 +28,6 @@ import axios from "axios";
 import _ from "lodash";
 import { useRouter } from "next/router";
 import { useContext, useState } from "react";
-import { AppContext } from "../contexts/app-context";
 import { AuthContext } from "../contexts/auth-context";
 import EntityIconEditor from "../EntityIcon/EntityIconEditor";
 import EntityIcon from "./EntityIcon";
@@ -45,7 +44,6 @@ export default function EntityMain({
 }) {
     const router = useRouter();
     const containerStatus = _.get(entity, "container.status", "not exist");
-    const { appState } = useContext(AppContext);
     const deployAgent = () => {
         if (!router.isReady) {
             return;
