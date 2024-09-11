@@ -159,17 +159,17 @@ class APIAgent(Agent):
         if type(output_data) == str:
 
             # strip
-            if 'strip' in properties:
+            if 'output_strip' in properties:
                 if properties['strip']:
                     output_data = output_data.strip()
 
             # cast
-            if 'cast' in properties:
-                if properties['cast'].lower() == "int":
+            if 'output_cast' in properties:
+                if properties['output_cast'].lower() == "int":
                     output_data = int(output_data)
-                elif properties['cast'].lower() == "float":
+                elif properties['output_cast'].lower() == "float":
                     output_data = float(output_data)
-                elif properties['cast'].lower() == "json":
+                elif properties['output_cast'].lower() == "json":
                     output_data = json.loads(output_data)
                 
         return output_data
@@ -194,12 +194,12 @@ class APIAgent(Agent):
         output_data = self.create_output(response, properties=properties)
 
         # process output data
-        output = self.process_output(output_data, properties=properties)
+        output_data = self.process_output(output_data, properties=properties)
 
         # transform output data type
-        output = self.transform_output(output_data, properties=properties)
+        output_data = self.transform_output(output_data, properties=properties)
 
-        return output
+        return output_data
 
     def default_processor(self, message, input="DEFAULT", properties=None, worker=None):
         
