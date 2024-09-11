@@ -233,19 +233,9 @@ const Row = ({ index, data, style }) => {
                                 })
                             )}
                             {!complete ? (
-                                <>
-                                    <div
-                                        style={{ height: 20.5, marginTop: 7.5 }}
-                                    >
-                                        &nbsp;
-                                    </div>
+                                <div style={{ marginTop: 7.5 }}>
                                     <Tag
                                         minimal
-                                        style={{
-                                            position: "absolute",
-                                            bottom: 15,
-                                            left: 15,
-                                        }}
                                         icon={faIcon({
                                             icon: faEllipsisH,
                                             size: 16.5,
@@ -253,7 +243,7 @@ const Row = ({ index, data, style }) => {
                                             style: { color: Colors.BLACK },
                                         })}
                                     />
-                                </>
+                                </div>
                             ) : null}
                         </div>
                         {isOverflown.current ? (
