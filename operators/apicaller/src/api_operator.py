@@ -83,7 +83,7 @@ class APIOperator(Operator):
 
         return {}
     
-    def extract_output_params(self, output_dataproperties=None):
+    def extract_output_params(self, output_data, properties=None):
         # get properties, overriding with properties provided
         properties = self.get_properties(properties=properties)
 
