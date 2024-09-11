@@ -93,7 +93,10 @@ class Nl2SqlE2EAgent(OpenAIAgent):
         for key in agent_properties:
             self.properties[key] = agent_properties[key]
 
-    def extract_input_params(self, input_data):
+    def extract_input_params(self, input_data, properties=None):
+        # get properties, overriding with properties provided
+        properties = self.get_properties(properties=properties)
+
         source = self.registry.connect_source('jobs_db_sample')
         schema = source.fetch_database_collection_schema('', '')
         logging.info(type(schema))
@@ -101,7 +104,10 @@ class Nl2SqlE2EAgent(OpenAIAgent):
         # self.schema = schema
         return {'schema': schema}
 
-    def process_output(self, output_data):
+    def process_output(self, output_data, properties=None):
+        # get properties, overriding with properties provided
+        properties = self.get_properties(properties=properties)
+        
         query = output_data.replace('```sql', '').replace('```', '').strip()
         source = self.registry.connect_source('jobs_db_sample')
         cursor = source.connection.cursor()

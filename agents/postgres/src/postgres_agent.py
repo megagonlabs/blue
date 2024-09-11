@@ -68,7 +68,10 @@ class PostgresAgent(APIAgent):
         self.properties['input_template'] = 'select row_to_json(row) from ({input}) row;'
         self.properties['output_path'] = '$.results'
    
-    def validate_input(self, input_data):
+    def validate_input(self, input_data, properties=None):
+        # get properties, overriding with properties provided
+        properties = self.get_properties(properties=properties)
+        
         isValid = False
         try:
             sql_query = sqlvalidator.parse(input_data)

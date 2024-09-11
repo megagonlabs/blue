@@ -103,7 +103,10 @@ class Nl2CypherAgent(OpenAIAgent):
         for key in nl2cypher_properties:
             self.properties[key] = nl2cypher_properties[key]
 
-    def extract_input_params(self, input_data):
+    def extract_input_params(self, input_data, properties=None):
+        # get properties, overriding with properties provided
+        properties = self.get_properties(properties=properties)
+
         neo4j_source = self.registry.connect_source('megagon_hr_insights')
         schema = neo4j_source.fetch_database_collection_schema('neo4j', 'neo4j')
         logging.info(type(schema))
@@ -111,7 +114,9 @@ class Nl2CypherAgent(OpenAIAgent):
         # self.schema = schema
         return {'schema': schema}
 
-    # def process_output(self, output_data):
+    # def process_output(self, output_data, properties=None):
+    # get properties, overriding with properties provided
+    # properties = self.get_properties(properties=properties)
     #     return output_data + '<schema>' + self.schema
 
 
