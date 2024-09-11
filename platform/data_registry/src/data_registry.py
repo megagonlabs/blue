@@ -55,14 +55,14 @@ class DataRegistry(Registry):
 
     ######### source
     def register_source(self, source, created_by, description="", properties={}, rebuild=False):
-        self.register_record(source, 'source', '/', created_by=created_by, description=description, properties=properties, rebuild=rebuild)
+        super().register_record(source, 'source', '/', created_by=created_by, description=description, properties=properties, rebuild=rebuild)
 
-    def update_source(self, source, description=None, icon=None,properties=None, rebuild=False):
-        self.update_record(source, 'source', '/', description=description, icon=icon,properties=properties, rebuild=rebuild)
+    def update_source(self, source, description=None, icon=None, properties=None, rebuild=False):
+        super().update_record(source, 'source', '/', description=description, icon=icon, properties=properties, rebuild=rebuild)
 
     def deregister_source(self, source, rebuild=False):
-        record = self.get_record(source, '/')
-        self.deregister(record, rebuild=rebuild)
+        record = self.get_source(source)
+        super().deregister(record, rebuild=rebuild)
 
     def get_sources(self):
         return super().list_records(type="source", scope="/")
@@ -92,27 +92,20 @@ class DataRegistry(Registry):
 
     ######### source/database
     def register_source_database(self, source, database, description="", properties={}, rebuild=False):
-        self.register_record(database, 'database', '/' + source, description=description, properties=properties, rebuild=rebuild)
+        super().register_record(database, 'database', '/' + source, description=description, properties=properties, rebuild=rebuild)
 
     def update_source_database(self, source, database, description=None, properties=None, rebuild=False):
-        self.update_record(database, 'database', '/' + source, description=description, properties=properties, rebuild=rebuild)
+        super().update_record(database, 'database', '/' + source, description=description, properties=properties, rebuild=rebuild)
 
     def deregister_source_database(self, source, database, rebuild=False):
-        record = self.get_record(database, '/' + source)
-        self.deregister(record, rebuild=rebuild)
+        record = self.get_source_database(source, database)
+        super().deregister(record, rebuild=rebuild)
 
     def get_source_databases(self, source):
         return super().get_record_contents(source, '/', type='database')
 
     def get_source_database(self, source, database):
         return super().get_record_content(source, '/', database, type='database')
-
-    def register_source_database(self, source, database, description, properties={}, rebuild=False):
-        super().register_record(database, 'database', '/' + source, description=description, properties=properties, rebuild=rebuild)
-
-    def deregister_source_database(self, source, database, rebuild=False):
-        record = self.get_source_database(source, database)
-        super().deregister(record, rebuild=rebuild)
 
     # description
     def get_source_database_description(self, source, database):
@@ -133,15 +126,15 @@ class DataRegistry(Registry):
 
     ######### source/database/collection
     def register_source_database_collection(self, source, database, collection, description="", properties={}, rebuild=False):
-        self.register_record(collection, 'collection', '/' + source + '/' + database, description=description, properties=properties, rebuild=rebuild)
+        super().register_record(collection, 'collection', '/' + source + '/' + database, description=description, properties=properties, rebuild=rebuild)
 
     def update_source_database_collection(self, source, database, collection, description=None, properties=None, rebuild=False):
-        original_record, merged_record = self.update_record(collection, 'collection', '/' + source + '/' + database, description=description, properties=properties, rebuild=rebuild)
+        original_record, merged_record = super().update_record(collection, 'collection', '/' + source + '/' + database, description=description, properties=properties, rebuild=rebuild)
         return original_record, merged_record
 
     def deregister_source_database_collection(self, source, database, collection, rebuild=False):
-        record = self.get_record(collection, '/' + source + '/' + database)
-        self.deregister(record, rebuild=rebuild)
+        record = self.get_source_database_collection(source, database, collection)
+        super().deregister(record, rebuild=rebuild)
 
     def get_source_database_collections(self, source, database):
         return super().get_record_contents(database, '/' + source, type='collection')
@@ -168,15 +161,15 @@ class DataRegistry(Registry):
 
     ######### source/database/collection/entity
     def register_source_database_collection_entity(self, source, database, collection, entity, description="", properties={}, rebuild=False):
-        self.register_record(entity, 'entity', '/' + source + '/' + database + '/' + collection, description=description, properties=properties, rebuild=rebuild)
+        super().register_record(entity, 'entity', '/' + source + '/' + database + '/' + collection, description=description, properties=properties, rebuild=rebuild)
 
     def update_source_database_collection_entity(self, source, database, collection, entity, description=None, properties=None, rebuild=False):
-        original_record, merged_record = self.update_record(entity, 'entity', '/' + source + '/' + database + '/' + collection, description=description, properties=properties, rebuild=rebuild)
+        original_record, merged_record = super().update_record(entity, 'entity', '/' + source + '/' + database + '/' + collection, description=description, properties=properties, rebuild=rebuild)
         return original_record, merged_record
 
     def deregister_source_database_collection_entity(self, source, database, collection, entity, rebuild=False):
-        record = self.get_record(entity, '/' + source + '/' + database + '/' + collection)
-        self.deregister(record, rebuild=rebuild)
+        record = self.get_source_database_collection_entity(source, database, collection, entity)
+        super().deregister(record, rebuild=rebuild)
 
     def get_source_database_collection_entities(self, source, database, collection):
         return super().get_record_contents(collection, '/' + source + '/' + database, type='entity')
@@ -203,15 +196,15 @@ class DataRegistry(Registry):
 
     ######### source/database/collection/relation
     def register_source_database_collection_relation(self, source, database, collection, relation, description="", properties={}, rebuild=False):
-        self.register_record(relation, 'relation', '/' + source + '/' + database + '/' + collection, description=description, properties=properties, rebuild=rebuild)
+        super().register_record(relation, 'relation', '/' + source + '/' + database + '/' + collection, description=description, properties=properties, rebuild=rebuild)
 
     def update_source_database_collection_relation(self, source, database, collection, relation, description=None, properties=None, rebuild=False):
-        original_record, merged_record = self.update_record(relation, 'relation', '/' + source + '/' + database + '/' + collection, description=description, properties=properties, rebuild=rebuild)
+        original_record, merged_record = super().update_record(relation, 'relation', '/' + source + '/' + database + '/' + collection, description=description, properties=properties, rebuild=rebuild)
         return original_record, merged_record
 
     def deregister_source_database_collection_relation(self, source, database, collection, relation, rebuild=False):
-        record = self.get_record(relation, '/' + source + '/' + database + '/' + collection)
-        self.deregister(record, rebuild=rebuild)
+        record = self.get_source_database_collection_relation(source, database, collection, relation)
+        super().deregister(record, rebuild=rebuild)
 
     def get_source_database_collection_relations(self, source, database, collection):
         return super().get_record_contents(collection, '/' + source + '/' + database, type='relation')
@@ -405,6 +398,7 @@ class DataRegistry(Registry):
 
             #### fetch collection schema
             schema = source_connection.fetch_database_collection_schema(database, collection)
+            print(schema)
             entities = schema['entities']
             relations = schema['relations']
 

@@ -115,7 +115,7 @@ class PostgresDBSource(DataSource):
                 schema.add_entity(c)
             schema.add_relation(t, t + ":" + c, c)
         
-        return schema
+        return schema.to_json()
 
 
 #######################
