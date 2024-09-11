@@ -79,7 +79,10 @@ class NEO4JAgent(APIAgent):
         self.properties['tags'] = tags
 
    
-    def validate_input(self, input_data):
+    def validate_input(self, input_data, properties=None):
+        # get properties, overriding with properties provided
+        properties = self.get_properties(properties=properties)
+        
         # TODO
         isValid = True
             

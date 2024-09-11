@@ -105,7 +105,10 @@ class GPTPlannerAgent(OpenAIAgent):
         for key in plannerGPT_properties:
             self.properties[key] = plannerGPT_properties[key]
 
-    def process_output(self, output_data):
+    def process_output(self, output_data, properties=None):
+        # get properties, overriding with properties provided
+        properties = self.get_properties(properties=properties)
+        
         # logging.info(output_data)
         # get gpt plan as json
         gpt_plan = json.loads(output_data)

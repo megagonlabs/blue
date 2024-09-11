@@ -203,16 +203,19 @@ class InteractivePlannerAgent(OpenAIAgent):
         for key in interactive_planner_properties:
             self.properties[key] = interactive_planner_properties[key]
 
-    def extract_input_params(self, input_data):
+    def extract_input_params(self, input_data, properties=None):
+        # get properties, overriding with properties provided
+        properties = self.get_properties(properties=properties)
+
         ### given input data, find potentially relevant agents
         # query agent registry
-        results = self.registry.search_records(input_data, type='agent', approximate=True, page_size=self.properties["search.limit"])
+        results = self.registry.search_records(input_data, type='agent', approximate=True, page_size=properties["search.limit"])
 
         logging.info(json.dumps(results, indent=4))
         agents = set()
 
         # threshold
-        threshold = self.properties["search.threshold"]
+        threshold = properties["search.threshold"]
 
         # process results in order, to get a list of agents
         prev_score = None 
@@ -254,10 +257,16 @@ class InteractivePlannerAgent(OpenAIAgent):
 
         return {"agents": agents_data}
     
-    def extract_output_params(self, output_data):
+    def extract_output_params(self, output_data, properties=None):
+        # get properties, overriding with properties provided
+        properties = self.get_properties(properties=properties)
+
         return {}
     
-    def process_output(self, output_data):
+    def process_output(self, output_data, properties=None):
+        # get properties, overriding with properties provided
+        properties = self.get_properties(properties=properties)
+
         # logging.info(output_data)
         # get gpt plan as json
         plan = json.loads(output_data)

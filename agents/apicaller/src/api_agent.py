@@ -81,10 +81,15 @@ class APIAgent(Agent):
 
         return merged_properties
     
-    def extract_input_params(self, input_data):
+    def extract_input_params(self, input_data, properties=None):
+        # get properties, overriding with properties provided
+        properties = self.get_properties(properties=properties)
+
         return {}
     
-    def extract_output_params(self, output_data):
+    def extract_output_params(self, output_data, properties=None):
+        # get properties, overriding with properties provided
+        properties = self.get_properties(properties=properties)
         return {}
     
     def create_message(self, input_data, properties=None):
@@ -106,7 +111,7 @@ class APIAgent(Agent):
        
         if 'input_template' in properties and properties['input_template'] is not None:
             input_template = Template(properties['input_template'])
-            input_params = self.extract_input_params(input_data)
+            input_params = self.extract_input_params(input_data, properties=properties)
             input_data = input_template.substitute(**properties, **input_params, input=input_data)
 
         # set input text to message
@@ -130,20 +135,50 @@ class APIAgent(Agent):
         # apply output template
         if 'output_template' in properties and properties['output_template'] is not None:
             output_template = Template(properties['output_template'])
-            output_params = self.extract_output_params(output_data)
+            output_params = self.extract_output_params(output_data, properties=properties)
             output_data = output_template.substitute(**properties, **output_params, output=output_data)
         return output_data
 
-    def validate_input(self, input_data):
+    def validate_input(self, input_data, properties=None):
+        # get properties, overriding with properties provided
+        properties = self.get_properties(properties=properties)
+
         return True 
 
-    def process_output(self, output_data):
+    def process_output(self, output_data, properties=None):
+        # get properties, overriding with properties provided
+        properties = self.get_properties(properties=properties)
+
         return output_data
+
+    def transform_output(self, output_data, properties=None):
+        # get properties, overriding with properties provided
+        properties = self.get_properties(properties=properties)
+
+        # string transformations
+        if type(output_data) == str:
+
+            # strip
+            if 'strip' in properties:
+                if properties['strip']:
+                    output_data = output_data.strip()
+
+            # cast
+            if 'cast' in properties:
+                if properties['cast'].lower() == "int":
+                    output_data = int(output_data)
+                elif properties['cast'].lower() == "float":
+                    output_data = float(output_data)
+                elif properties['cast'].lower() == "json":
+                    output_data = json.loads(output_data)
+                
+        return output_data
+
 
     def handle_api_call(self, stream_data, properties=None):
         # create message, copying API specific properties
         input_data = " ".join(stream_data)
-        if not self.validate_input(input_data):
+        if not self.validate_input(input_data, properties=properties):
             return 
 
         logging.info(input_data)
@@ -156,10 +191,13 @@ class APIAgent(Agent):
         response = json.loads(r)
 
         # create output from response
-        output_data = self.create_output(response)
+        output_data = self.create_output(response, properties=properties)
 
         # process output data
-        output = self.process_output(output_data)
+        output = self.process_output(output_data, properties=properties)
+
+        # transform output data type
+        output = self.transform_output(output_data, properties=properties)
 
         return output
 

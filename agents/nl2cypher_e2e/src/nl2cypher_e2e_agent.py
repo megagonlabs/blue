@@ -94,7 +94,10 @@ class Nl2CypherE2EAgent(OpenAIAgent):
         for key in agent_properties:
             self.properties[key] = agent_properties[key]
 
-    def extract_input_params(self, input_data):
+    def extract_input_params(self, input_data, properties=None):
+        # get properties, overriding with properties provided
+        properties = self.get_properties(properties=properties)
+
         neo4j_source = self.registry.connect_source('megagon_hr_insights')
         schema = neo4j_source.fetch_database_collection_schema('', '')
         logging.info(type(schema))
@@ -102,7 +105,10 @@ class Nl2CypherE2EAgent(OpenAIAgent):
         # self.schema = schema
         return {'schema': schema}
 
-    def process_output(self, output_data):
+    def process_output(self, output_data, properties=None):
+        # get properties, overriding with properties provided
+        properties = self.get_properties(properties=properties)
+        
         query = output_data.replace('```cypher', '').replace('```', '').strip()
         source = self.registry.connect_source('megagon_hr_insights')
         result = source.connection.run_query(query)
