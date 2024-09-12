@@ -26,10 +26,10 @@ from tqdm import tqdm
 
 
 class Schema():
-    def __init__(self, entities={}, relations={}):
+    def __init__(self):
 
-        self.entities = entities
-        self.relations = relations
+        self.entities = {}
+        self.relations = {}
 
     def has_entity(self, key):
         return key in self.entities
