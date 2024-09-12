@@ -126,6 +126,9 @@ class Nl2SqlE2EAgent(OpenAIAgent):
         return res
 
     def extract_input_params(self, input_data, properties=None):
+        # get properties, overriding with properties provided
+        properties = self.get_properties(properties=properties)
+
         sources = [{
             'source': key,
             'schema': self._format_schema(schema)
@@ -135,6 +138,9 @@ class Nl2SqlE2EAgent(OpenAIAgent):
         return {'sources': sources, 'question': input_data}
 
     def process_output(self, output_data, properties=None):
+        # get properties, overriding with properties provided
+        properties = self.get_properties(properties=properties)
+
         logging.info(f'output_data: {output_data}')
         response = output_data.replace('```json', '').replace('```', '').strip()
         key, query, result, error = None, None, None, None
