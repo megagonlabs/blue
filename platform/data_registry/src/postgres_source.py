@@ -31,16 +31,17 @@ from schema import Schema
 # source specific libs
 import psycopg2
 
+
 #### Helper Functions
 class JSONEncoder(json.JSONEncoder):
     def default(self, o):
         return json.JSONEncoder.default(self, o)
 
+
 #### DataSource for Postgres
 class PostgresDBSource(DataSource):
     def __init__(self, name, properties={}):
         super().__init__(name, properties=properties)
-        
 
     ###### initialization
     def _initialize_properties(self):
@@ -78,7 +79,7 @@ class PostgresDBSource(DataSource):
         for datum in data:
             db = datum[0]
             # ignore template<d> databases
-            if  db.find("template") == 0:
+            if db.find("template") == 0:
                 continue
             dbs.append(db)
         return dbs
@@ -96,7 +97,7 @@ class PostgresDBSource(DataSource):
         if 'protocol' in c:
             del c['protocol']
         # override database
-        c['database'] = database 
+        c['database'] = database
 
         db_connection = self._connect(**c)
         return db_connection
@@ -104,12 +105,13 @@ class PostgresDBSource(DataSource):
     def _db_disconnect(self, connection):
         # TODO:
         return None
-    
+
     def fetch_database_collections(self, database):
         # connect to specific database (not source directly)
         db_connection = self._db_connect(database)
 
-        query = "SELECT DISTINCT table_name from information_schema.columns WHERE table_schema NOT IN ('pg_catalog', 'information_schema')"
+        # exclude 'pg_catalog', 'information_schema'
+        query = "SELECT DISTINCT table_schema FROM information_schema.tables WHERE table_schema NOT IN ('pg_catalog', 'information_schema');"
         cursor = db_connection.cursor()
         cursor.execute(query)
         data = cursor.fetchall()
@@ -129,22 +131,18 @@ class PostgresDBSource(DataSource):
         db_connection = self._db_connect(database)
 
         # TODO: Do better ER extraction from tables, columns, exploiting column semantics, foreign keys, etc.
-        query = "SELECT table_name, column_name  from information_schema.columns WHERE table_schema NOT IN ('pg_catalog', 'information_schema') AND table_name = '" + collection + "';"
+        query = "SELECT table_name, column_name, data_type  from information_schema.columns WHERE table_schema = %s"
         cursor = db_connection.cursor()
-        cursor.execute(query)
+        cursor.execute(query, (collection,))
         data = cursor.fetchall()
 
         schema = Schema()
-        
-        for datum in data:
-            t = datum[0]
-            c = datum[1]
-            if not schema.has_entity(t):
-                schema.add_entity(t)
-            if not schema.has_entity(c):
-                schema.add_entity(c)
-            schema.add_relation(t, t + ":" + c, c)
-        
+
+        for table_name, column_name, data_type in data:
+            if not schema.has_entity(table_name):
+                schema.add_entity(table_name)
+            schema.add_entity_property(table_name, column_name, data_type)
+
         # disconnect
         self._db_disconnect(db_connection)
 
@@ -158,14 +156,14 @@ if __name__ == "__main__":
     parser.add_argument('--properties', type=str, help='properties in json format')
     parser.add_argument('--loglevel', default="INFO", type=str, help='log level')
     parser.add_argument('--list', type=bool, default=False, action=argparse.BooleanOptionalAction, help='list contents')
-    parser.add_argument('--metadata', type=bool, default=False, action=argparse.BooleanOptionalAction, help='get metadata')
+    parser.add_argument('--metadata', type=bool, default=False, action=argparse.BooleanOptionalAction,
+                        help='get metadata')
     parser.add_argument('--schema', type=bool, default=False, action=argparse.BooleanOptionalAction, help='get schema')
     parser.add_argument('--database', type=str, default=None, help='database name')
     parser.add_argument('--collection', type=str, default=None, help='collection name')
-    
- 
+
     args = parser.parse_args()
-   
+
     # set logging
     logging.getLogger().setLevel(args.loglevel.upper())
 
@@ -189,7 +187,7 @@ if __name__ == "__main__":
             results = source.fetch_database_collections(args.database)
         else:
             results = source.fetch_databases()
-    
+
     #### SCHEMA
     elif args.schema:
         if args.database:
