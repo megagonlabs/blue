@@ -115,8 +115,8 @@ class MageSQLAgent(OpenAIAgent):
         return demo_str
 
     def extract_input_params(self, input_data, properties=None):
-        question = input_data.split('#')[0]
-        db_id = input_data.split('#')[1]
+        question = input_data.split('#')[0].strip()
+        db_id = input_data.split('#')[1].strip()
         print(db_id)
         demos = self._select_demo_jac(question)
         schema = self.schemas[db_id]
