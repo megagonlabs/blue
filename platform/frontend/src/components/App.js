@@ -165,138 +165,224 @@ export default function App({ children }) {
                     borderRadius: 0,
                     display: "flex",
                     flexDirection: "column",
-                    justifyContent: "space-between",
                     zIndex: 1,
-                    padding: 0,
+                    padding: 20,
+                    overflowY: "auto",
                 }}
             >
-                <div
-                    style={{
-                        overflowY: "auto",
-                        padding: 20,
-                    }}
-                >
-                    {hasTrue([canReadSessions]) ? (
-                        <>
-                            <MenuDivider title="Sessions" />
-                            <ButtonGroup
-                                alignText={Alignment.LEFT}
-                                vertical
-                                minimal
-                                className="full-parent-width"
-                                style={{ marginBottom: 20 }}
-                            >
-                                {canReadSessions &&
-                                    recentSessions.map((sessionId) => {
-                                        const active =
-                                            _.isEqual(
-                                                sessionIdFocus,
-                                                sessionId
-                                            ) &&
-                                            _.startsWith(
-                                                router.asPath,
-                                                "/sessions"
-                                            );
-                                        return (
-                                            <Button
-                                                key={sessionId}
-                                                active={active}
-                                                style={{
-                                                    padding: "5px 15px",
-                                                    backgroundColor: !active
-                                                        ? "transparent"
-                                                        : null,
-                                                }}
-                                                onClick={() => {
-                                                    appActions.session.setSessionIdFocus(
-                                                        sessionId
-                                                    );
-                                                    appActions.session.observeSession(
-                                                        {
-                                                            sessionId,
-                                                            socket,
-                                                        }
-                                                    );
-                                                    router.push("/sessions");
-                                                }}
-                                                text={
-                                                    <div
-                                                        style={{ width: 133 }}
-                                                        className={
-                                                            Classes.TEXT_OVERFLOW_ELLIPSIS
-                                                        }
-                                                    >
-                                                        #{" "}
-                                                        {_.get(
-                                                            sessionDetail,
-                                                            [sessionId, "name"],
-                                                            sessionId
-                                                        )}
-                                                    </div>
-                                                }
-                                            />
+                {hasTrue([canReadSessions]) ? (
+                    <>
+                        <MenuDivider title="Sessions" />
+                        <ButtonGroup
+                            alignText={Alignment.LEFT}
+                            vertical
+                            minimal
+                            className="full-parent-width"
+                        >
+                            {canReadSessions &&
+                                recentSessions.map((sessionId) => {
+                                    const active =
+                                        _.isEqual(sessionIdFocus, sessionId) &&
+                                        _.startsWith(
+                                            router.asPath,
+                                            "/sessions"
                                         );
-                                    })}
-                                {["sessions"].map((key, index) => {
-                                    const { href, icon, text, visible } = _.get(
-                                        MENU_ITEMS,
-                                        key,
-                                        {}
-                                    );
-                                    if (!visible) {
-                                        return null;
-                                    }
-                                    const active = _.startsWith(
-                                        router.asPath,
-                                        href
-                                    );
                                     return (
-                                        <Link href={href} key={index}>
-                                            <Button
-                                                large
-                                                style={
-                                                    !active
-                                                        ? {
-                                                              backgroundColor:
-                                                                  "transparent",
-                                                          }
-                                                        : null
-                                                }
-                                                active={
-                                                    active &&
-                                                    !recentSessions.includes(
-                                                        sessionIdFocus
-                                                    )
-                                                }
-                                                text={text}
-                                                icon={faIcon({ icon: icon })}
-                                            />
-                                        </Link>
+                                        <Button
+                                            key={sessionId}
+                                            active={active}
+                                            style={{
+                                                padding: "5px 15px",
+                                                backgroundColor: !active
+                                                    ? "transparent"
+                                                    : null,
+                                            }}
+                                            onClick={() => {
+                                                appActions.session.setSessionIdFocus(
+                                                    sessionId
+                                                );
+                                                appActions.session.observeSession(
+                                                    {
+                                                        sessionId,
+                                                        socket,
+                                                    }
+                                                );
+                                                router.push("/sessions");
+                                            }}
+                                            text={
+                                                <div
+                                                    style={{ width: 133 }}
+                                                    className={
+                                                        Classes.TEXT_OVERFLOW_ELLIPSIS
+                                                    }
+                                                >
+                                                    #{" "}
+                                                    {_.get(
+                                                        sessionDetail,
+                                                        [sessionId, "name"],
+                                                        sessionId
+                                                    )}
+                                                </div>
+                                            }
+                                        />
                                     );
                                 })}
-                            </ButtonGroup>
-                        </>
-                    ) : null}
-                    {hasTrue([
-                        canReadAgentRegistry,
-                        canReadDataRegistry,
-                        canReadOperatorRegistry,
-                    ]) ? (
-                        <>
-                            <MenuDivider title="Registries" />
-                            <ButtonGroup
-                                alignText={Alignment.LEFT}
-                                vertical
-                                minimal
-                                large
-                                className="full-parent-width"
-                            >
-                                {[
-                                    "agent_registry",
-                                    "data_registry",
-                                    "operator_registry",
-                                    "model_registry",
-                                ].map((key, index) => {
+                            {["sessions"].map((key, index) => {
+                                const { href, icon, text, visible } = _.get(
+                                    MENU_ITEMS,
+                                    key,
+                                    {}
+                                );
+                                if (!visible) {
+                                    return null;
+                                }
+                                const active = _.startsWith(
+                                    router.asPath,
+                                    href
+                                );
+                                return (
+                                    <Link href={href} key={index}>
+                                        <Button
+                                            large
+                                            style={
+                                                !active
+                                                    ? {
+                                                          backgroundColor:
+                                                              "transparent",
+                                                      }
+                                                    : null
+                                            }
+                                            active={
+                                                active &&
+                                                !recentSessions.includes(
+                                                    sessionIdFocus
+                                                )
+                                            }
+                                            text={text}
+                                            icon={faIcon({ icon: icon })}
+                                        />
+                                    </Link>
+                                );
+                            })}
+                        </ButtonGroup>
+                    </>
+                ) : null}
+                {hasTrue([
+                    canReadAgentRegistry,
+                    canReadDataRegistry,
+                    canReadOperatorRegistry,
+                ]) ? (
+                    <>
+                        <div>&nbsp;</div>
+                        <MenuDivider title="Registries" />
+                        <ButtonGroup
+                            alignText={Alignment.LEFT}
+                            vertical
+                            minimal
+                            large
+                            className="full-parent-width"
+                        >
+                            {[
+                                "agent_registry",
+                                "data_registry",
+                                "operator_registry",
+                                "model_registry",
+                            ].map((key, index) => {
+                                const { href, icon, text, visible } = _.get(
+                                    MENU_ITEMS,
+                                    key,
+                                    {}
+                                );
+                                if (!visible) {
+                                    return null;
+                                }
+                                const active = _.startsWith(
+                                    router.asPath,
+                                    href
+                                );
+                                return (
+                                    <Link href={href} key={index}>
+                                        <Button
+                                            style={
+                                                !active
+                                                    ? {
+                                                          backgroundColor:
+                                                              "transparent",
+                                                      }
+                                                    : null
+                                            }
+                                            active={active}
+                                            text={text}
+                                            icon={faIcon({
+                                                icon: icon,
+                                            })}
+                                        />
+                                    </Link>
+                                );
+                            })}
+                        </ButtonGroup>
+                    </>
+                ) : null}
+                {hasTrue([showFormDesigner]) ? (
+                    <>
+                        <div>&nbsp;</div>
+                        <MenuDivider title="Dev. Tools" />
+                        <ButtonGroup
+                            alignText={Alignment.LEFT}
+                            vertical
+                            minimal
+                            large
+                            className="full-parent-width"
+                        >
+                            {["form_designer"].map((key, index) => {
+                                const { href, icon, text, visible } = _.get(
+                                    MENU_ITEMS,
+                                    key,
+                                    {}
+                                );
+                                if (!visible) {
+                                    return null;
+                                }
+                                const active = _.startsWith(
+                                    router.asPath,
+                                    href
+                                );
+                                return (
+                                    <Link href={href} key={index}>
+                                        <Button
+                                            style={
+                                                !active
+                                                    ? {
+                                                          backgroundColor:
+                                                              "transparent",
+                                                      }
+                                                    : null
+                                            }
+                                            active={active}
+                                            text={text}
+                                            icon={faIcon({
+                                                icon: icon,
+                                            })}
+                                        />
+                                    </Link>
+                                );
+                            })}
+                        </ButtonGroup>
+                    </>
+                ) : null}
+                {hasTrue([canReadPlatformAgents, canWritePlatformUsers]) ? (
+                    <>
+                        <div>&nbsp;</div>
+                        <MenuDivider title="Admin. Tools" />
+                        <ButtonGroup
+                            alignText={Alignment.LEFT}
+                            vertical
+                            minimal
+                            large
+                            className="full-parent-width"
+                        >
+                            {["admin_agents", "admin_users"].map(
+                                (key, index) => {
                                     const { href, icon, text, visible } = _.get(
                                         MENU_ITEMS,
                                         key,
@@ -328,114 +414,10 @@ export default function App({ children }) {
                                             />
                                         </Link>
                                     );
-                                })}
-                            </ButtonGroup>
-                        </>
-                    ) : null}
-                </div>
-                {hasTrue([
-                    canReadPlatformAgents,
-                    canWritePlatformUsers,
-                    showFormDesigner,
-                ]) ? (
-                    <div className="bp-border-top" style={{ padding: 20 }}>
-                        {hasTrue([showFormDesigner]) ? (
-                            <>
-                                <MenuDivider title="Dev. Tools" />
-                                <ButtonGroup
-                                    alignText={Alignment.LEFT}
-                                    vertical
-                                    minimal
-                                    large
-                                    className="full-parent-width"
-                                >
-                                    {["form_designer"].map((key, index) => {
-                                        const { href, icon, text, visible } =
-                                            _.get(MENU_ITEMS, key, {});
-                                        if (!visible) {
-                                            return null;
-                                        }
-                                        const active = _.startsWith(
-                                            router.asPath,
-                                            href
-                                        );
-                                        return (
-                                            <Link href={href} key={index}>
-                                                <Button
-                                                    style={
-                                                        !active
-                                                            ? {
-                                                                  backgroundColor:
-                                                                      "transparent",
-                                                              }
-                                                            : null
-                                                    }
-                                                    active={active}
-                                                    text={text}
-                                                    icon={faIcon({
-                                                        icon: icon,
-                                                    })}
-                                                />
-                                            </Link>
-                                        );
-                                    })}
-                                </ButtonGroup>
-                            </>
-                        ) : null}
-                        {hasTrue([
-                            canReadPlatformAgents,
-                            canWritePlatformUsers,
-                        ]) ? (
-                            <>
-                                <div>&nbsp;</div>
-                                <MenuDivider title="Admin. Tools" />
-                                <ButtonGroup
-                                    alignText={Alignment.LEFT}
-                                    vertical
-                                    minimal
-                                    large
-                                    className="full-parent-width"
-                                >
-                                    {["admin_agents", "admin_users"].map(
-                                        (key, index) => {
-                                            const {
-                                                href,
-                                                icon,
-                                                text,
-                                                visible,
-                                            } = _.get(MENU_ITEMS, key, {});
-                                            if (!visible) {
-                                                return null;
-                                            }
-                                            const active = _.startsWith(
-                                                router.asPath,
-                                                href
-                                            );
-                                            return (
-                                                <Link href={href} key={index}>
-                                                    <Button
-                                                        style={
-                                                            !active
-                                                                ? {
-                                                                      backgroundColor:
-                                                                          "transparent",
-                                                                  }
-                                                                : null
-                                                        }
-                                                        active={active}
-                                                        text={text}
-                                                        icon={faIcon({
-                                                            icon: icon,
-                                                        })}
-                                                    />
-                                                </Link>
-                                            );
-                                        }
-                                    )}
-                                </ButtonGroup>
-                            </>
-                        ) : null}
-                    </div>
+                                }
+                            )}
+                        </ButtonGroup>
+                    </>
                 ) : null}
             </Card>
             <div
