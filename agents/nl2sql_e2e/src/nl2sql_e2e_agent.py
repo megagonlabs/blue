@@ -41,17 +41,22 @@ logging.basicConfig(
     datefmt="%Y-%m-%d %H:%M:%S",
 )
 
-NL2SQL_PROMPT = """Your task is to translate a natural language question into a SQL query based on the schema of the database.
+NL2SQL_PROMPT = """Your task is to translate a natural language question into a SQL query based on a list of provided data sources.
+For each source you will be provided with a list of table schemas that specify the columns and their types.
 
 Here are the requirements:
-- The SQL query should be compatible with the provided schema.
-- Output the SQL query directly without ```. Do not generate explanation or other additional output.
+- The output should be a JSON object with the following fields
+  - "source": the name of the data source that the query will be executed on
+  - "query": the SQL query that is translated from the natural language question
+- The SQL query should be compatible with the schema of the datasource.
+- Output the JSON directly. Do not generate explanation or other additional output.
 
-Graph Schema: ${schema}
-
-Question: ${input}
-
-SQL Query:
+Data sources:
+```
+${sources}
+```
+Question: ${question}
+Output:
 """
 
 agent_properties = {
@@ -87,42 +92,76 @@ class Nl2SqlE2EAgent(OpenAIAgent):
         prefix = 'PLATFORM:' + platform_id
         self.registry = DataRegistry(id=self.properties['data_registry.name'], prefix=prefix,
                                      properties=self.properties)
+        self.schemas = {}
+        logging.info('<sources>' + json.dumps(self.registry.get_sources(), indent=2) + '</sources>')
+        for source in self.registry.get_sources():
+            properties = self.registry.get_source_properties(source)
+            if 'connection' not in properties or properties['connection']['protocol'] != 'postgres':
+                continue
+            source_db = self.registry.connect_source(source)
+            for db in self.registry.get_source_databases(source):
+                db = db['name']
+                # Note: collection refers to schema in postgres (the level between database and table)
+                for collection in self.registry.get_source_database_collections(source, db):
+                    collection = collection['name']
+                    assert all('/' not in s for s in [source, db, collection])
+                    key = f'/{source}/{db}/{collection}'
+                    if 'sample' in key or 'template' in key:
+                        continue
+                    schema = source_db.fetch_database_collection_schema(db, collection)
+                    self.schemas[key] = schema
 
     def _initialize_properties(self):
         super()._initialize_properties()
         for key in agent_properties:
             self.properties[key] = agent_properties[key]
 
-    def extract_input_params(self, input_data, properties=None):
-        # get properties, overriding with properties provided
-        properties = self.get_properties(properties=properties)
+    def _format_schema(self, schema):
+        res = []
+        for table_name, record in schema['entities'].items():
+            res.append({
+                'table_name': table_name,
+                'columns': record['properties']
+            })
+        return res
 
-        source = self.registry.connect_source('jobs_db_sample')
-        schema = source.fetch_database_collection_schema('', '')
-        logging.info(type(schema))
-        schema = str(schema)
-        # self.schema = schema
-        return {'schema': schema}
+    def extract_input_params(self, input_data, properties=None):
+        sources = [{
+            'source': key,
+            'schema': self._format_schema(schema)
+        } for key, schema in self.schemas.items()]
+        sources = json.dumps(sources, indent=2)
+        logging.info(f'<sources>{sources}</sources>')
+        return {'sources': sources, 'question': input_data}
 
     def process_output(self, output_data, properties=None):
-        # get properties, overriding with properties provided
-        properties = self.get_properties(properties=properties)
-        
-        query = output_data.replace('```sql', '').replace('```', '').strip()
-        source = self.registry.connect_source('jobs_db_sample')
-        cursor = source.connection.cursor()
-        cursor.execute(query)
-        data = cursor.fetchall()
+        logging.info(f'output_data: {output_data}')
+        response = output_data.replace('```json', '').replace('```', '').strip()
+        key, query, result, error = None, None, None, None
+        try:
+            response = json.loads(response)
+            key = response['source']
+            query = response['query']
+            source, db, collection = key.split('/')
+            source_db = self.registry.connect_source(source)
+            cursor = source_db._db_connect(db).cursor()
+            # Note: collection refers to schema in postgres (the level between database and table)
+            cursor.execute(f'SET search_path TO {collection}')
+            cursor.execute(query)
+            result = cursor.fetchall()
+        except Exception as e:
+            error = str(e)
         return {
-            'source': 'jobs_db_sample',
+            'source': key,
             'query': query,
-            'result': data
+            'result': result,
+            'error': error
         }
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--name', default="SQLFORGE", type=str)
+    parser.add_argument('--name', default="NL2SQL_E2E", type=str)
     parser.add_argument('--session', type=str)
     parser.add_argument('--properties', type=str)
     parser.add_argument('--loglevel', default="INFO", type=str)
