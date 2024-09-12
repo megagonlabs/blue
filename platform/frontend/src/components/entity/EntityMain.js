@@ -21,6 +21,7 @@ import {
     faListDropdown,
     faPen,
     faPlay,
+    faRefresh,
     faTrash,
     faXmarkLarge,
 } from "@fortawesome/pro-duotone-svg-icons";
@@ -101,6 +102,22 @@ export default function EntityMain({
                 });
             });
     };
+    const syncData = () => {
+        axios
+            .put(router.asPath + "/sync")
+            .then(() => {
+                AppToaster.show({
+                    intent: Intent.SUCCESS,
+                    message: `Syncing ${entity.name} ${entity.type}`,
+                });
+            })
+            .catch((error) => {
+                AppToaster.show({
+                    intent: Intent.DANGER,
+                    message: `${error.name}: ${error.message}`,
+                });
+            });
+    };
     const [isIconEditorOpen, setIsIconEditorOpen] = useState(false);
     const { user, permissions } = useContext(AuthContext);
     const canEditEntity = (() => {
@@ -150,11 +167,18 @@ export default function EntityMain({
         }
         return false;
     })();
+    const canDeployAgent =
+        _.isEqual(entity.type, "agent") && permissions.canWritePlatformAgents;
     const showActionMenuDivider =
         (_.isFunction(setEdit) && canEditEntity) ||
         canDuplicateEntity ||
-        (_.isEqual(entity.type, "agent") && permissions.canWritePlatformAgents);
-    const showActionMenu = showActionMenuDivider || canEditEntity;
+        canDeployAgent;
+    const canSyncData = _.includes(
+        ["source", "database", "collection"],
+        entity.type
+    );
+    const showActionMenu =
+        showActionMenuDivider || canEditEntity || canSyncData;
     return (
         <>
             <EntityIconEditor
@@ -332,11 +356,17 @@ export default function EntityMain({
                                                         }
                                                     />
                                                 ) : null}
-                                                {_.isEqual(
-                                                    entity.type,
-                                                    "agent"
-                                                ) &&
-                                                permissions.canWritePlatformAgents ? (
+                                                {canSyncData ? (
+                                                    <MenuItem
+                                                        intent={Intent.SUCCESS}
+                                                        icon={faIcon({
+                                                            icon: faRefresh,
+                                                        })}
+                                                        text="Sync"
+                                                        onClick={syncData}
+                                                    />
+                                                ) : null}
+                                                {canDeployAgent ? (
                                                     <MenuItem
                                                         intent={Intent.SUCCESS}
                                                         icon={faIcon({
