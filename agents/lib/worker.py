@@ -147,12 +147,12 @@ class Worker:
     def write_bos(self, output="DEFAULT", id=None, tags=None):
         # producer = self._start_producer(output=output)
         # producer.write_bos()
-        self.write(Message.BOS, output=output, id=id, tags=tags)
+        return self.write(Message.BOS, output=output, id=id, tags=tags)
 
     def write_eos(self, output="DEFAULT", id=None, tags=None):
         # producer = self._start_producer(output=output)
         # producer.write_eos()
-        self.write(Message.EOS, output=output, id=id, tags=tags)
+        return self.write(Message.EOS, output=output, id=id, tags=tags)
 
     def write_data(self, data, output="DEFAULT", id=None, tags=None):
         # producer = self._start_producer(output=output)
@@ -169,12 +169,12 @@ class Worker:
         elif type(data) == dict:
             contents = data
             content_type = ContentType.JSON
-        self.write(Message(MessageType.DATA, contents, content_type), output=output, id=id, tags=tags)
+        return self.write(Message(MessageType.DATA, contents, content_type), output=output, id=id, tags=tags)
 
     def write_control(self, code, args, output="DEFAULT", id=None, tags=None):
         # producer = self._start_producer(output=output)
         # producer.write_control(code, args)
-        self.write(Message(MessageType.CONTROL, {"code": code, "args": args}, ContentType.JSON), output=output, id=id, tags=tags)
+        return self.write(Message(MessageType.CONTROL, {"code": code, "args": args}, ContentType.JSON), output=output, id=id, tags=tags)
 
     def write(self, message, output="DEFAULT", id=None, tags=None):
 
@@ -226,6 +226,9 @@ class Worker:
             # done, stop listening to input stream
             if self.consumer:
                 self.consumer.stop()
+
+        # return stream
+        stream = producer.get_stream()
 
     def _start(self):
         # logging.info('Starting agent worker {name}'.format(name=self.sid))
