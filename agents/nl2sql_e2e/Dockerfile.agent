@@ -3,6 +3,11 @@ FROM python:3.9
 # Set workdir
 WORKDIR /app
 
+# This is a hack to avoid huge docker image by installing sentence-transformers with CPU-only pytorch first
+RUN pip install --no-cache-dir torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
+RUN pip install --no-cache-dir transformers tqdm numpy scikit-learn scipy nltk sentencepiece
+RUN pip install --no-cache-dir --no-deps sentence-transformers==2.2.2
+
 # Build requirements first
 ADD src/requirements.txt /app/requirements.txt
 RUN pip install -r requirements.txt
