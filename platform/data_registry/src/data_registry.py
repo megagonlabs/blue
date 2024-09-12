@@ -398,7 +398,7 @@ class DataRegistry(Registry):
 
             #### fetch collection schema
             schema = source_connection.fetch_database_collection_schema(database, collection)
-            print(schema)
+            
             entities = schema['entities']
             relations = schema['relations']
 

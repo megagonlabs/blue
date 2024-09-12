@@ -61,6 +61,10 @@ class NEO4JSource(DataSource):
        
         return neo4j_connection.NEO4J_Connection(connection_url, user, pwd)
 
+    def _disconnect(self):
+        # TODO:
+        return None
+    
     ######### source
     def fetch_metadata(self):
         return {}

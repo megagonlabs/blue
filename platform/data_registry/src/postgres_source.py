@@ -19,6 +19,7 @@ import re
 import csv
 import json
 from utils import json_utils
+import copy
 
 import itertools
 from tqdm import tqdm
@@ -50,13 +51,15 @@ class PostgresDBSource(DataSource):
 
     ###### connection
     def _connect(self, **connection):
-        host = connection['host']
-        port = connection['port']
-        
-        user = connection['user'] 
-        pwd = connection['password'] 
-        return psycopg2.connect(user=user, password=pwd, host=host) 
+        c = copy.deepcopy(connection)
+        if 'protocol' in c:
+            del c['protocol']
 
+        return psycopg2.connect(**c)
+
+    def _disconnect(self):
+        # TODO:
+        return None
 
     ######### source
     def fetch_metadata(self):
@@ -73,7 +76,11 @@ class PostgresDBSource(DataSource):
         data = cursor.fetchall()
         dbs = []
         for datum in data:
-            dbs.append(datum[0])
+            db = datum[0]
+            # ignore template<d> databases
+            if  db.find("template") == 0:
+                continue
+            dbs.append(db)
         return dbs
 
     def fetch_database_metadata(self, database):
@@ -82,25 +89,48 @@ class PostgresDBSource(DataSource):
     def fetch_database_schema(self, database):
         return {}
 
-   ######### database/collection
+    ######### database/collection
+    def _db_connect(self, database):
+        # connect to database
+        c = copy.deepcopy(self.properties['connection'])
+        if 'protocol' in c:
+            del c['protocol']
+        # override database
+        c['database'] = database 
+
+        db_connection = self._connect(**c)
+        return db_connection
+
+    def _db_disconnect(self, connection):
+        # TODO:
+        return None
+    
     def fetch_database_collections(self, database):
-        # TODO: tables to specific database?
-        query = "SELECT * from information_schema.tables WHERE table_schema = 'public';"
-        cursor = self.connection.cursor()
+        # connect to specific database (not source directly)
+        db_connection = self._db_connect(database)
+
+        query = "SELECT DISTINCT table_name from information_schema.columns WHERE table_schema NOT IN ('pg_catalog', 'information_schema')"
+        cursor = db_connection.cursor()
         cursor.execute(query)
         data = cursor.fetchall()
         collections = []
         for datum in data:
             collections.append(datum[0])
+
+        # disconnect
+        self._db_disconnect(db_connection)
         return collections
 
     def fetch_database_collection_metadata(self, database, collection):
         return {}
 
     def fetch_database_collection_schema(self, database, collection):
+        # connect to specific database (not source directly)
+        db_connection = self._db_connect(database)
+
         # TODO: Do better ER extraction from tables, columns, exploiting column semantics, foreign keys, etc.
-        query = "SELECT table_name, column_name  from information_schema.columns WHERE table_schema = 'public';"
-        cursor = self.connection.cursor()
+        query = "SELECT table_name, column_name  from information_schema.columns WHERE table_schema NOT IN ('pg_catalog', 'information_schema') AND table_name = '" + collection + "';"
+        cursor = db_connection.cursor()
         cursor.execute(query)
         data = cursor.fetchall()
 
@@ -115,6 +145,9 @@ class PostgresDBSource(DataSource):
                 schema.add_entity(c)
             schema.add_relation(t, t + ":" + c, c)
         
+        # disconnect
+        self._db_disconnect(db_connection)
+
         return schema.to_json()
 
 
