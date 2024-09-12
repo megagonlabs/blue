@@ -76,7 +76,9 @@ class Worker:
         self.input_stream = input_stream
         self.processor = processor
         if processor is not None:
-            self.processor = lambda *args, **kwargs,: processor(*args, **kwargs, worker=self)
+            self.processor = lambda *args, **kwargs,: processor(
+                *args, **kwargs, worker=self
+            )
 
         self.properties = properties
 
@@ -129,7 +131,9 @@ class Worker:
 
             else:
                 # error
-                logging.error("Unknown return type from processor function: " + str(result))
+                logging.error(
+                    "Unknown return type from processor function: " + str(result)
+                )
                 return
 
     # TODO: this seems out of place...
@@ -139,8 +143,12 @@ class Worker:
                 self._update_form_ids(element, stream_id, form_id)
         elif pydash.includes(["Control", "Button"], form_element["type"]):
             if form_element["type"] == "Control":
-                if pydash.objects.has(form_element, 'options.detail.type'):
-                    self._update_form_ids(pydash.objects.get(form_element, 'options.detail', {}), stream_id, form_id)
+                if pydash.objects.has(form_element, "options.detail.type"):
+                    self._update_form_ids(
+                        pydash.objects.get(form_element, "options.detail", {}),
+                        stream_id,
+                        form_id,
+                    )
             pydash.objects.set_(form_element, "props.streamId", stream_id)
             pydash.objects.set_(form_element, "props.formId", form_id)
 
@@ -169,17 +177,33 @@ class Worker:
         elif type(data) == dict:
             contents = data
             content_type = ContentType.JSON
-        return self.write(Message(MessageType.DATA, contents, content_type), output=output, id=id, tags=tags)
+        return self.write(
+            Message(MessageType.DATA, contents, content_type),
+            output=output,
+            id=id,
+            tags=tags,
+        )
 
     def write_control(self, code, args, output="DEFAULT", id=None, tags=None):
         # producer = self._start_producer(output=output)
         # producer.write_control(code, args)
-        return self.write(Message(MessageType.CONTROL, {"code": code, "args": args}, ContentType.JSON), output=output, id=id, tags=tags)
+        return self.write(
+            Message(
+                MessageType.CONTROL, {"code": code, "args": args}, ContentType.JSON
+            ),
+            output=output,
+            id=id,
+            tags=tags,
+        )
 
     def write(self, message, output="DEFAULT", id=None, tags=None):
 
         # TODO: This doesn't belong here..
-        if message.getCode() in [ControlCode.CREATE_FORM, ControlCode.UPDATE_FORM, ControlCode.CLOSE_FORM]:
+        if message.getCode() in [
+            ControlCode.CREATE_FORM,
+            ControlCode.UPDATE_FORM,
+            ControlCode.CLOSE_FORM,
+        ]:
             if message.getCode() == ControlCode.CREATE_FORM:
                 # create a new form id
                 if id == None:
@@ -212,7 +236,7 @@ class Worker:
                 event_consumer.start()
 
             else:
-                id = message.getArg('form_id')
+                id = message.getArg("form_id")
 
             # append output variable with id
             output = output + ":" + id
@@ -229,6 +253,7 @@ class Worker:
 
         # return stream
         stream = producer.get_stream()
+        return stream
 
     def _start(self):
         # logging.info('Starting agent worker {name}'.format(name=self.sid))
@@ -259,7 +284,13 @@ class Worker:
             return self.producers[output]
 
         # create producer for output
-        producer = Producer(name="OUTPUT", id=output, prefix=self.prefix, suffix="STREAM", properties=self.properties)
+        producer = Producer(
+            name="OUTPUT",
+            id=output,
+            prefix=self.prefix,
+            suffix="STREAM",
+            properties=self.properties,
+        )
         producer.start()
         self.producers[output] = producer
 
@@ -358,4 +389,3 @@ class Worker:
         # send wait to consumer(s)
         if self.consumer:
             self.consumer.wait()
-
