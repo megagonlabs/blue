@@ -41,18 +41,22 @@ logging.basicConfig(
     datefmt="%Y-%m-%d %H:%M:%S",
 )
 
-NL2CYPHER_PROMPT = """Your task is to translate a natural language question into a Cypher query based on the schema of a Neo4j knowledge graph.
+NL2CYPHER_PROMPT = """Your task is to translate a natural language question into a Cypher query based on a list of provided data sources.
+Each source is a Neo4j graph with a schema.
 
 Here are the requirements:
-- The Cypher query should be compatible with the graph schema. In the graph schema you will be provided with the node properties for each type of node in the graph, the relationship properties for each type of relationship, as well as all unique relationship schemas.
-- Pay attention to the datatypes of the properties in the graph schema.
-- Output the Cyper query directly without ```. Do not generate explanation or other additional output.
+- The output should be a JSON object with the following fields
+  - "source": the name of the data source that the query will be executed on
+  - "query": the Cypher query that is translated from the natural language question
+- The Cypher query should be compatible with the graph schema of the data source.
+- Output the JSON directly. Do not generate explanation or other additional output.
 
-Graph Schema: ${schema}
-
-Question: ${input}
-
-Cypher Query:
+Data sources:
+```
+${sources}
+```
+Question: ${question}
+Output:
 """
 
 agent_properties = {
@@ -88,6 +92,21 @@ class Nl2CypherE2EAgent(OpenAIAgent):
         prefix = 'PLATFORM:' + platform_id
         self.registry = DataRegistry(id=self.properties['data_registry.name'], prefix=prefix,
                                      properties=self.properties)
+        self.schemas = {}
+        logging.info('<sources>' + json.dumps(self.registry.get_sources(), indent=2) + '</sources>')
+        for source in self.registry.get_sources():
+            properties = self.registry.get_source_properties(source)
+            if 'connection' not in properties or properties['connection']['protocol'] != 'bolt':
+                continue
+            logging.info(f'Connecting to source: {source}')
+            try:
+                source_db = self.registry.connect_source(source)
+            except Exception as e:
+                logging.error(f'Error connecting to source: {source}, {str(e)}')
+                continue
+            # Note: the `database` and `collection` parameters are not used by neo4j_source.py
+            schema = source_db.fetch_database_collection_schema('', '')
+            self.schemas[source] = schema
 
     def _initialize_properties(self):
         super()._initialize_properties()
@@ -98,24 +117,33 @@ class Nl2CypherE2EAgent(OpenAIAgent):
         # get properties, overriding with properties provided
         properties = self.get_properties(properties=properties)
 
-        neo4j_source = self.registry.connect_source('megagon_hr_insights')
-        schema = neo4j_source.fetch_database_collection_schema('', '')
-        logging.info(type(schema))
-        schema = str(schema)
-        # self.schema = schema
-        return {'schema': schema}
+        sources = [{
+            'source': source,
+            'schema': schema
+        } for source, schema in self.schemas.items()]
+        sources = json.dumps(sources, indent=2)
+        logging.info(f'<sources>{sources}</sources>')
+        return {'sources': sources, 'question': input_data}
 
     def process_output(self, output_data, properties=None):
         # get properties, overriding with properties provided
         properties = self.get_properties(properties=properties)
-        
-        query = output_data.replace('```cypher', '').replace('```', '').strip()
-        source = self.registry.connect_source('megagon_hr_insights')
-        result = source.connection.run_query(query)
+
+        response = output_data.replace('```json', '').replace('```', '').strip()
+        source, query, result, error = None, None, None, None
+        try:
+            response = json.loads(response)
+            source = response['source']
+            query = response['query']
+            source_db = self.registry.connect_source(source)
+            result = source_db.connection.run_query(query)
+        except Exception as e:
+            error = str(e)
         return {
-            'source': 'megagon_hr_insights',
+            'source': source,
             'query': query,
-            'result': result
+            'result': result,
+            'error': error
         }
 
 
