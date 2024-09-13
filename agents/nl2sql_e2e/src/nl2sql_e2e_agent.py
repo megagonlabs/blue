@@ -148,7 +148,7 @@ class Nl2SqlE2EAgent(OpenAIAgent):
             response = json.loads(response)
             key = response['source']
             query = response['query']
-            source, db, collection = key.split('/')
+            _, source, db, collection = key.split('/')
             source_db = self.registry.connect_source(source)
             cursor = source_db._db_connect(db).cursor()
             # Note: collection refers to schema in postgres (the level between database and table)
