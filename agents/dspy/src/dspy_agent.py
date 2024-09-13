@@ -78,11 +78,19 @@ class DSPyAgent(Agent):
             if worker:
                 stream_data = " ".join(worker.get_data('stream_data'))
 
+            ### get budget
+            budget = worker.session.get_budget()
+            logging.info("BUDGET:")
+            logging.info(json.dumps(budget, indent=3))
+
             ### apply dspy operator
             llm = dspy.OpenAI(model=self.properties["model"], api_key=self.properties["OPENAI_API_KEY"])
             dspy.settings.configure(lm=llm, rm=None)
             output = worker.agent.dspy_operator(text=stream_data)
 
+            ### update budget
+            worker.session.set_budget_use(cost=0.3)
+            
             # output to stream
             return output.annotated_text
         
