@@ -272,3 +272,28 @@ def delete_source_database_collection(request: Request, source_name, database_na
     # save
     data_registry.dump("/blue_data/config/" + data_registry_id + ".data.json")
     return JSONResponse(content={"message": "Success"})
+
+
+### sync entities
+@router.put('/{source_name}/sync')
+def sync_source(request: Request, source_name, recursive: bool = False):
+    source = data_registry.get_source(source_name)
+    source_acl_enforce(request, source, write=True)
+    data_registry.sync_source(source_name, recursive=recursive, rebuild=True)
+    return JSONResponse(content={"message": "Success"})
+
+
+@router.put("/{source_name}/database/{database_name}/sync")
+def sync_source_database(request: Request, source_name, database_name, recursive: bool = False):
+    source = data_registry.get_source(source_name)
+    source_acl_enforce(request, source, write=True)
+    data_registry.sync_source_database(source_name, database_name, recursive=recursive, rebuild=True)
+    return JSONResponse(content={"message": "Success"})
+
+
+@router.put("/{source_name}/database/{database_name}/collection/{collection_name}/sync")
+def sync_source_database_collection(request: Request, source_name, database_name, collection_name, recursive: bool = False):
+    source = data_registry.get_source(source_name)
+    source_acl_enforce(request, source, write=True)
+    data_registry.sync_source_database_collection(source_name, database_name, collection_name, recursive=recursive, rebuild=True)
+    return JSONResponse(content={"message": "Success"})

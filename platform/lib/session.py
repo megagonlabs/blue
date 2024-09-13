@@ -176,6 +176,9 @@ class Session:
         # add created_date
         self.set_metadata("created_date", int(time.time()), nx=True)
 
+        # init budget
+        self._init_budget()
+
     def _get_metadata_namespace(self):
         return self.cid + ":METADATA"
 
@@ -188,6 +191,38 @@ class Session:
             Path("$" + ("" if pydash.is_empty(key) else ".") + key),
         )
         return self.__get_json_value(value)
+
+    ## budget
+    def _init_budget(self):
+        self.set_metadata('budget', {})
+        self.set_metadata('budget.allocation', {})
+        self.set_metadata('budget.use', {})
+        self.set_budget_allocation(cost=-1, accuracy=-1, latency=-1)
+
+    def get_budget(self):
+        return self.get_metadata('budget')
+    
+    def set_budget_allocation(self, cost=None, accuracy=None, latency=None):
+        if cost:
+            self.set_metadata('budget.allocation.cost', cost)
+        if accuracy:
+            self.set_metadata('budget.allocation.accuracy', accuracy)
+        if latency:
+            self.set_metadata('budget.allocation.latency', latency)
+    
+    def get_budget_allocation(self):
+        return self.get_metadata(key='budget.allocation')
+    
+    def set_budget_use(self, cost=None, accuracy=None, latency=None):
+        if cost:
+            self.set_metadata('budget.use.cost', cost)
+        if accuracy:
+            self.set_metadata('budget.use.accuracy', accuracy)
+        if latency:
+            self.set_metadata('budget.use.latency', latency)
+    
+    def get_budget_use(self):
+        return self.get_metadata(key='budget.use') 
 
     ## session data (shared by all agents)
     def _init_data_namespace(self):
