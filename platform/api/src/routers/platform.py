@@ -309,12 +309,14 @@ def list_service_containers(request: Request):
 
     # close connection
     client.close()
-    temp = []
-    for container in results:
-        agent = agent_registry.get_agent(container['agent'])
-        if container_acl_enforce(request, agent, read=True, throw=False):
-            temp.append(container)
-    return JSONResponse(content={"results": temp})
+
+    # TODO:
+    # temp = []
+    # for container in results:
+    #     agent = agent_registry.get_agent(container['agent'])
+    #     if container_acl_enforce(request, agent, read=True, throw=False):
+    #         temp.append(container)
+    return JSONResponse(content={"results": results})
 
 
 @router.delete("/services/service/{service_name}")
