@@ -108,7 +108,7 @@ export default function EntityMain({
             .then(() => {
                 AppToaster.show({
                     intent: Intent.SUCCESS,
-                    message: `Syncing ${entity.name} ${entity.type}`,
+                    message: `Synced ${entity.name} ${entity.type}`,
                 });
             })
             .catch((error) => {
