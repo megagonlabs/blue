@@ -57,10 +57,14 @@ class DSPyAgent(Agent):
         super()._initialize(properties=properties)
 
         self.dspy_operator = dspy.Predict(ExtractOperator)
+        llm = dspy.OpenAI(model=self.properties["model"], api_key=self.properties["OPENAI_API_KEY"])
 
-        llm = dspy.OpenAI(model=self.properties["model"])
         dspy.settings.configure(lm=llm, rm=None)
-        
+
+        output = self.dspy_operator(text="testing: data scientist positions at Google")
+        logging.info("ANNOTATIONS:" + str(output.annotated_text))
+        logging.info("TESTING-----")
+
     def _initialize_properties(self):
         super()._initialize_properties()
 
@@ -75,7 +79,9 @@ class DSPyAgent(Agent):
                 stream_data = " ".join(worker.get_data('stream_data'))
 
             ### apply dspy operator
-            output = self.dspy_operator(text=stream_data)
+            llm = dspy.OpenAI(model=self.properties["model"], api_key=self.properties["OPENAI_API_KEY"])
+            dspy.settings.configure(lm=llm, rm=None)
+            output = worker.agent.dspy_operator(text=stream_data)
 
             # output to stream
             return output.annotated_text
