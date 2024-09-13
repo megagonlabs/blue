@@ -80,7 +80,7 @@ def container_acl_enforce(request: Request, agent: dict, read=False, write=False
         raise PermissionDenied
     return allow
 
-
+### AGENTS
 @router.get("/agents/")
 # get the list of agent running agents on the platform
 def list_agent_containers(request: Request):
@@ -238,6 +238,103 @@ def shutdown_agent_container(request: Request, agent_name):
             hs = h.split("_")
             a = hs[3]
             if a == agent_name:
+                container.stop()
+    elif PROPERTIES["platform.deploy.target"] == "swarm":
+        services = client.services.list()
+        for service in services:
+            # TODO:
+            print(service)
+            # service.remove()
+
+    result = ""
+
+    # close connection
+    client.close()
+
+    return JSONResponse(content={"result": result, "message": "Success"})
+
+
+## SERVICES
+@router.get("/services/")
+# get the list of services running on the platform
+def list_service_containers(request: Request):
+    #TODO: 
+    #acl_enforce(request.state.user['role'], 'platform_services', ['read_all', 'read_own'])
+
+    # connect to docker
+    client = docker.from_env()
+    results = []
+    # get list of docker containers based on deploy target
+    if PROPERTIES["platform.deploy.target"] == "localhost":
+        containers = client.containers.list()
+        for container in containers:
+            c = {}
+            c["id"] = container.attrs["Id"]
+            c["hostname"] = container.attrs["Config"]["Hostname"]
+            c["created_date"] = container.attrs["Created"]
+            c["image"] = container.attrs["Config"]["Image"]
+            c["status"] = container.attrs["State"]["Status"]
+            labels = container.attrs["Config"]["Labels"]
+            if 'blue.agent' in labels:
+                l = labels['blue.service']
+                la = l.split(".")
+                c["service"] = la[1]
+                c["platform"] = la[0]
+                if c["platform"] == platform_id:
+                    results.append(c)
+    elif PROPERTIES["platform.deploy.target"] == "swarm":
+        services = client.services.list()
+        for service in services:
+            c = {}
+            c["id"] = service.attrs["ID"]
+            c["hostname"] = service.attrs["Spec"]["TaskTemplate"]["ContainerSpec"]["Hostname"]
+            c["created_date"] = service.attrs["CreatedAt"]
+            c["image"] = service.attrs["Spec"]["TaskTemplate"]["ContainerSpec"]["Image"]
+            tasks = service.tasks()
+            status = None
+            for task in tasks:
+                s = task["Status"]["State"]
+                status = s
+                if status == "running":
+                    break
+            c["status"] = status
+            labels = service.attrs["Spec"]["TaskTemplate"]["ContainerSpec"]["Labels"]
+            if 'blue.service' in labels:
+                l = labels['blue.service']
+                la = l.split(".")
+                c["service"] = la[1]
+                c["platform"] = la[0]
+                if c["platform"] == platform_id:
+                    results.append(c)
+
+    # close connection
+    client.close()
+    temp = []
+    for container in results:
+        agent = agent_registry.get_agent(container['agent'])
+        if container_acl_enforce(request, agent, read=True, throw=False):
+            temp.append(container)
+    return JSONResponse(content={"results": temp})
+
+
+@router.delete("/services/service/{service_name}")
+# shutdown the service container with the name {service_name} 
+def shutdown_service_container(request: Request, service_name):
+    #TODO:
+    #container_acl_enforce(request, service_name, write=True)
+
+    # connect to docker
+    client = docker.from_env()
+
+    if PROPERTIES["platform.deploy.target"] == "localhost":
+        containers = client.containers.list()
+        for container in containers:
+            h = container.attrs["Config"]["Hostname"]
+            if h.find("blue_service") < 0:
+                continue
+            hs = h.split("_")
+            s = hs[3]
+            if s == service_name:
                 container.stop()
     elif PROPERTIES["platform.deploy.target"] == "swarm":
         services = client.services.list()
