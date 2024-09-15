@@ -1,4 +1,6 @@
 import { ENTITY_ICON_40 } from "@/components/constant";
+import { AuthContext } from "@/components/contexts/auth-context";
+import EntityIconEditor from "@/components/entity/icon/EntityIconEditor";
 import { faIcon } from "@/components/icon";
 import { AppToaster } from "@/components/toaster";
 import {
@@ -29,8 +31,6 @@ import axios from "axios";
 import _ from "lodash";
 import { useRouter } from "next/router";
 import { useContext, useState } from "react";
-import { AuthContext } from "../contexts/auth-context";
-import EntityIconEditor from "../EntityIcon/EntityIconEditor";
 import EntityIcon from "./EntityIcon";
 export default function EntityMain({
     entity,

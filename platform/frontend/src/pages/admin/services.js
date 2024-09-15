@@ -1,4 +1,5 @@
 import AccessDeniedNonIdealState from "@/components/AccessDeniedNonIdealState";
+import AdminServiceListCheckbox from "@/components/admin/AdminServiceListCheckbox";
 import { CONTAINER_STATUS_INDICATOR } from "@/components/constant";
 import { AppContext } from "@/components/contexts/app-context";
 import { AuthContext } from "@/components/contexts/auth-context";
@@ -92,9 +93,9 @@ export default function Services() {
             name: <div>&nbsp;</div>,
             key: "checkbox",
             cellRenderer: ({ rowIndex, data }) => (
-                <Cell
-                    style={{ lineHeight: `${TABLE_CELL_HEIGHT - 1}px` }}
-                ></Cell>
+                <Cell style={{ lineHeight: `${TABLE_CELL_HEIGHT - 1}px` }}>
+                    <AdminServiceListCheckbox rowIndex={rowIndex} data={data} />
+                </Cell>
             ),
         },
         { name: "ID", key: "id" },
