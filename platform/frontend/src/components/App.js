@@ -215,6 +215,9 @@ export default function App({ children }) {
                                                         socket,
                                                     }
                                                 );
+                                                if (!router.isReady) {
+                                                    return;
+                                                }
                                                 router.push("/sessions");
                                             }}
                                             text={
