@@ -23,6 +23,7 @@ import {
 } from "@blueprintjs/core";
 import {
     faGear,
+    faLayerGroup,
     faListUl,
     faPencilRuler,
     faUserGroup,
@@ -53,6 +54,7 @@ export default function App({ children }) {
     const { user, permissions } = useContext(AuthContext);
     const {
         canWritePlatformUsers,
+        canReadPlatformServices,
         showFormDesigner,
         canReadPlatformAgents,
         canReadSessions,
@@ -103,6 +105,12 @@ export default function App({ children }) {
             text: "Users",
             icon: faUserGroup,
             visible: canWritePlatformUsers,
+        },
+        admin_services: {
+            href: "/admin/services",
+            text: "Services",
+            icon: faLayerGroup,
+            visible: canReadPlatformServices,
         },
         admin_agents: {
             href: "/admin/agents",
@@ -370,7 +378,11 @@ export default function App({ children }) {
                         </ButtonGroup>
                     </>
                 ) : null}
-                {hasTrue([canReadPlatformAgents, canWritePlatformUsers]) ? (
+                {hasTrue([
+                    canReadPlatformAgents,
+                    canWritePlatformUsers,
+                    canReadPlatformServices,
+                ]) ? (
                     <>
                         <div>&nbsp;</div>
                         <MenuDivider title="Admin. Tools" />
@@ -381,41 +393,43 @@ export default function App({ children }) {
                             large
                             className="full-parent-width"
                         >
-                            {["admin_agents", "admin_users"].map(
-                                (key, index) => {
-                                    const { href, icon, text, visible } = _.get(
-                                        MENU_ITEMS,
-                                        key,
-                                        {}
-                                    );
-                                    if (!visible) {
-                                        return null;
-                                    }
-                                    const active = _.startsWith(
-                                        router.asPath,
-                                        href
-                                    );
-                                    return (
-                                        <Link href={href} key={index}>
-                                            <Button
-                                                style={
-                                                    !active
-                                                        ? {
-                                                              backgroundColor:
-                                                                  "transparent",
-                                                          }
-                                                        : null
-                                                }
-                                                active={active}
-                                                text={text}
-                                                icon={faIcon({
-                                                    icon: icon,
-                                                })}
-                                            />
-                                        </Link>
-                                    );
+                            {[
+                                "admin_services",
+                                "admin_agents",
+                                "admin_users",
+                            ].map((key, index) => {
+                                const { href, icon, text, visible } = _.get(
+                                    MENU_ITEMS,
+                                    key,
+                                    {}
+                                );
+                                if (!visible) {
+                                    return null;
                                 }
-                            )}
+                                const active = _.startsWith(
+                                    router.asPath,
+                                    href
+                                );
+                                return (
+                                    <Link href={href} key={index}>
+                                        <Button
+                                            style={
+                                                !active
+                                                    ? {
+                                                          backgroundColor:
+                                                              "transparent",
+                                                      }
+                                                    : null
+                                            }
+                                            active={active}
+                                            text={text}
+                                            icon={faIcon({
+                                                icon: icon,
+                                            })}
+                                        />
+                                    </Link>
+                                );
+                            })}
                         </ButtonGroup>
                     </>
                 ) : null}
