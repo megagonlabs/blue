@@ -3,6 +3,7 @@ import { CONTAINER_STATUS_INDICATOR } from "@/components/constant";
 import { AppContext } from "@/components/contexts/app-context";
 import { AuthContext } from "@/components/contexts/auth-context";
 import { faIcon } from "@/components/icon";
+import { AppToaster } from "@/components/toaster";
 import {
     Button,
     ButtonGroup,
@@ -36,6 +37,45 @@ export default function Services() {
     const [tableKey, setTableKey] = useState(Date.now());
     const [loading, setLoading] = useState(true);
     const [data, setData] = useState([]);
+    const stopSelectedServices = async () => {
+        const selectedServices = _.toArray(appState.admin.selectedServices);
+        let tasks = [];
+        for (let i = 0; i < _.size(selectedServices); i++) {
+            tasks.push(
+                new Promise((resolve, reject) => {
+                    axios
+                        .delete(
+                            `/containers/services/service/${selectedServices[i]}`
+                        )
+                        .then(() => {
+                            resolve(selectedServices[i]);
+                        })
+                        .catch((error) => {
+                            AppToaster.show({
+                                intent: Intent.DANGER,
+                                message: `${error.name}: ${error.message}`,
+                            });
+                            reject(selectedServices[i]);
+                        });
+                })
+            );
+        }
+        const result = await Promise.allSettled(tasks);
+        let stoppedServices = new Set();
+        for (let i = 0; i < _.size(result); i++) {
+            if (_.isEqual(result[i].status, "fulfilled")) {
+                stoppedServices.add(result[i].value);
+            }
+        }
+        if (!_.isEmpty(stoppedServices)) {
+            const size = _.size(stoppedServices);
+            let message = `Stopped ${size} services`;
+            if (size == 1) {
+                message = `Stopped ${_.toArray(stoppedServices)[0]} service`;
+            }
+            AppToaster.show({ intent: Intent.SUCCESS, message });
+        }
+    };
     const fetchServiceList = () => {
         setLoading(true);
         axios.get("/containers/services").then((response) => {
@@ -147,6 +187,7 @@ export default function Services() {
                     <Divider />
                     <Tooltip placement="bottom" minimal content="Stop">
                         <Button
+                            onClick={stopSelectedServices}
                             disabled={
                                 _.isEmpty(appState.admin.selectedServices) ||
                                 loading
