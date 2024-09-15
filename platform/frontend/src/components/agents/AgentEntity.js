@@ -36,11 +36,13 @@ export default function AgentEntity() {
         setEdit(false);
         setEditEntity(entity);
     };
+    const routerQueryPath =
+        "/" + _.get(router, "query.pathParams", []).join("/");
     useEffect(() => {
         if (!router.isReady) {
             return;
         }
-        axios.get(router.asPath).then((response) => {
+        axios.get(routerQueryPath).then((response) => {
             const result = _.get(response, "data.result", {});
             let icon = _.get(result, "icon", null);
             if (!_.isEmpty(icon) && !_.startsWith(icon, "data:image/")) {
@@ -109,8 +111,7 @@ export default function AgentEntity() {
         if (!router.isReady) {
             return;
         }
-        let params = _.cloneDeep(_.get(router, "query.pathParams", []));
-        router.push(`/${params.join("/")}/${type}/new`);
+        router.push(`${routerQueryPath}/${type}/new`);
     };
     return (
         <div style={{ padding: "10px 20px 20px" }}>
@@ -167,7 +168,7 @@ export default function AgentEntity() {
                                     <tr key={index}>
                                         <td>
                                             <Link
-                                                href={`${router.asPath}/input/${element.name}`}
+                                                href={`${routerQueryPath}/input/${element.name}`}
                                             >
                                                 <Tag
                                                     style={{
@@ -229,7 +230,7 @@ export default function AgentEntity() {
                                     <tr key={index}>
                                         <td>
                                             <Link
-                                                href={`${router.asPath}/output/${element.name}`}
+                                                href={`${routerQueryPath}/output/${element.name}`}
                                             >
                                                 <Tag
                                                     style={{

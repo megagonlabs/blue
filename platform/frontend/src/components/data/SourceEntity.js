@@ -1,6 +1,7 @@
 import EntityDescription from "@/components/entity/EntityDescription";
 import EntityMain from "@/components/entity/EntityMain";
 import EntityProperties from "@/components/entity/EntityProperties";
+import { AppToaster } from "@/components/toaster";
 import {
     HTMLTable,
     Intent,
@@ -12,7 +13,6 @@ import axios from "axios";
 import { diff } from "deep-diff";
 import _ from "lodash";
 import Link from "next/link";
-import { AppToaster } from "@/components/toaster";
 import { useRouter } from "next/router";
 import { useContext, useEffect, useState } from "react";
 import { AppContext } from "../contexts/app-context";
@@ -30,11 +30,13 @@ export default function SourceEntity() {
         setEdit(false);
         setEditEntity(entity);
     };
+    const routerQueryPath =
+        "/" + _.get(router, "query.pathParams", []).join("/");
     useEffect(() => {
         if (!router.isReady) {
             return;
         }
-        axios.get(router.asPath).then((response) => {
+        axios.get(routerQueryPath).then((response) => {
             const result = _.get(response, "data.result", {});
             let icon = _.get(result, "icon", null);
             if (!_.isEmpty(icon) && !_.startsWith(icon, "data:image/")) {
@@ -154,7 +156,7 @@ export default function SourceEntity() {
                                     <tr key={index}>
                                         <td>
                                             <Link
-                                                href={`${router.asPath}/database/${element.name}`}
+                                                href={`${routerQueryPath}/database/${element.name}`}
                                             >
                                                 <Tag
                                                     style={{

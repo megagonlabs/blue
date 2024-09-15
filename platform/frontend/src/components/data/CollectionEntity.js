@@ -16,11 +16,13 @@ import { useEffect, useState } from "react";
 export default function CollectionEntity() {
     const router = useRouter();
     const [entity, setEntity] = useState({});
+    const routerQueryPath =
+        "/" + _.get(router, "query.pathParams", []).join("/");
     useEffect(() => {
         if (!router.isReady) {
             return;
         }
-        axios.get(router.asPath).then((response) => {
+        axios.get(routerQueryPath).then((response) => {
             setEntity(_.get(response, "data.result", {}));
         });
     }, [router]);
@@ -56,7 +58,7 @@ export default function CollectionEntity() {
                                     <tr key={index}>
                                         <td>
                                             <Link
-                                                href={`${router.asPath}/entity/${element.name}`}
+                                                href={`${routerQueryPath}/entity/${element.name}`}
                                             >
                                                 <Tag
                                                     style={{
@@ -106,7 +108,7 @@ export default function CollectionEntity() {
                                     <tr key={index}>
                                         <td>
                                             <Link
-                                                href={`${router.asPath}/relation/${element.name}`}
+                                                href={`${routerQueryPath}/relation/${element.name}`}
                                             >
                                                 <Tag
                                                     style={{

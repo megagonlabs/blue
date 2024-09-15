@@ -8,11 +8,13 @@ import { useEffect, useState } from "react";
 export default function EntityEntity() {
     const router = useRouter();
     const [entity, setEntity] = useState({});
+    const routerQueryPath =
+        "/" + _.get(router, "query.pathParams", []).join("/");
     useEffect(() => {
         if (!router.isReady) {
             return;
         }
-        axios.get(router.asPath).then((response) => {
+        axios.get(routerQueryPath).then((response) => {
             setEntity(_.get(response, "data.result", {}));
         });
     }, [router]);

@@ -20,11 +20,13 @@ export default function ModelEntity() {
         setEdit(false);
         setEditEntity(entity);
     };
+    const routerQueryPath =
+        "/" + _.get(router, "query.pathParams", []).join("/");
     useEffect(() => {
         if (!router.isReady) {
             return;
         }
-        axios.get(router.asPath).then((response) => {
+        axios.get(routerQueryPath).then((response) => {
             const result = _.get(response, "data.result", {});
             let icon = _.get(result, "icon", null);
             if (!_.isEmpty(icon) && !_.startsWith(icon, "data:image/")) {
