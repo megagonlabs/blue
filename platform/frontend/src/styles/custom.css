@@ -42,6 +42,9 @@ table.entity-section-card-table tr td {
 .bp-border-bottom {
     border-bottom: 1px solid rgba(17, 20, 24, 0.15);
 }
+.bp-border-right {
+    border-right: 1px solid rgba(17, 20, 24, 0.15);
+}
 .z-index-36 {
     z-index: 36;
 }

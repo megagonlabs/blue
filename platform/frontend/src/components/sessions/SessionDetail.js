@@ -29,13 +29,13 @@ export default function SessionDetail({ isOpen, setIsSessionDetailOpen }) {
     const { appState, appActions } = useContext(AppContext);
     const sessionIdFocus = appState.session.sessionIdFocus;
     const allowQuickClose = useRef(true);
-    const sessionDetail = _.get(
+    const sessionDetails = _.get(
         appState,
-        ["session", "sessionDetail", sessionIdFocus],
+        ["session", "sessionDetails", sessionIdFocus],
         {}
     );
-    const sessionName = _.get(sessionDetail, "name", "");
-    const sessionDescription = _.get(sessionDetail, "description", "");
+    const sessionName = _.get(sessionDetails, "name", "");
+    const sessionDescription = _.get(sessionDetails, "description", "");
     const [name, setName] = useState(sessionName);
     const [description, setDescription] = useState(sessionDescription);
     const [loading, setLoading] = useState(false);
@@ -50,8 +50,8 @@ export default function SessionDetail({ isOpen, setIsSessionDetailOpen }) {
             .then(() => {
                 allowQuickClose.current = true;
                 setLoading(false);
-                appActions.session.setSessionDetail([
-                    { ...sessionDetail, ...payload, id: sessionIdFocus },
+                appActions.session.setSessionDetails([
+                    { ...sessionDetails, ...payload, id: sessionIdFocus },
                 ]);
             })
             .catch(() => {

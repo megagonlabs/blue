@@ -84,7 +84,7 @@ export default function Sessions() {
                     });
                 } else if (_.isEqual(data["type"], "NEW_SESSION_BROADCAST")) {
                     appActions.session.addSession(_.get(data, "session.id"));
-                    appActions.session.setSessionDetail([data["session"]]);
+                    appActions.session.setSessionDetails([data["session"]]);
                 }
             } catch (e) {
                 AppToaster.show({
@@ -118,8 +118,8 @@ export default function Sessions() {
         axios
             .get("/sessions")
             .then((response) => {
-                const sessions = _.get(response, "data.results", []);
-                appActions.session.setSessionDetail(sessions);
+                let sessions = _.get(response, "data.results", []);
+                appActions.session.setSessionDetails(sessions);
                 for (let i = 0; i < sessions.length; i++) {
                     const sessionId = sessions[i].id;
                     appActions.session.addSession(sessionId);
@@ -161,7 +161,7 @@ export default function Sessions() {
     const [skippable, setSkippable] = useState(false);
     const sessionName = _.get(
         appState,
-        ["session", "sessionDetail", sessionIdFocus, "name"],
+        ["session", "sessionDetails", sessionIdFocus, "name"],
         sessionIdFocus
     );
     useEffect(() => {
@@ -288,7 +288,58 @@ export default function Sessions() {
                         />
                     </Card>
                 ) : (
-                    <SessionList />
+                    <div style={{ height: "100%" }}>
+                        <div
+                            className="bp-border-top bp-border-right"
+                            style={{
+                                padding: "5px 20px",
+                                borderRadius: 0,
+                            }}
+                        >
+                            <ButtonGroup fill minimal>
+                                <Button
+                                    text="All"
+                                    onClick={() => {
+                                        appActions.session.setState({
+                                            key: "sessionGroupBy",
+                                            value: "all",
+                                        });
+                                    }}
+                                    active={_.isEqual(
+                                        appState.session.sessionGroupBy,
+                                        "all"
+                                    )}
+                                />
+                                <Button
+                                    text="Owner"
+                                    onClick={() => {
+                                        appActions.session.setState({
+                                            key: "sessionGroupBy",
+                                            value: "owner",
+                                        });
+                                    }}
+                                    active={_.isEqual(
+                                        appState.session.sessionGroupBy,
+                                        "owner"
+                                    )}
+                                />
+                                <Button
+                                    text="Member"
+                                    onClick={() => {
+                                        appActions.session.setState({
+                                            key: "sessionGroupBy",
+                                            value: "member",
+                                        });
+                                    }}
+                                    active={_.isEqual(
+                                        appState.session.sessionGroupBy,
+                                        "member"
+                                    )}
+                                />
+                            </ButtonGroup>
+                        </div>
+                        <SessionList />
+                    </div>
                 )}
             </div>
             <div

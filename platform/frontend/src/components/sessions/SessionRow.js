@@ -32,6 +32,7 @@ export default function SessionRow({ index, style }) {
     const streams = appState.session.sessions[sessionId].streams;
     const [showActions, setShowActions] = useState(false);
     const [lastMessage, setLastMessage] = useState("-");
+    const sessionGroupBy = appState.session.sessionGroupBy;
     useEffect(() => {
         const last = _.last(messages);
         if (_.isEmpty(last)) {
@@ -85,6 +86,20 @@ export default function SessionRow({ index, style }) {
         });
         appActions.session.setSessionIdFocus(sessionId);
     };
+    const groupByFlag = _.get(
+        appState,
+        ["session", "sessionDetails", sessionId],
+        null
+    );
+    if (_.isEqual(sessionGroupBy, "owner")) {
+        if (!_.get(groupByFlag, "group_by.owner", false)) {
+            return null;
+        }
+    } else if (_.isEqual(sessionGroupBy, "member")) {
+        if (!_.get(groupByFlag, "group_by.member", false)) {
+            return null;
+        }
+    }
     return (
         <Card
             interactive
@@ -127,7 +142,7 @@ export default function SessionRow({ index, style }) {
                     #&nbsp;
                     {_.get(
                         appState,
-                        ["session", "sessionDetail", sessionId, "name"],
+                        ["session", "sessionDetails", sessionId, "name"],
                         sessionId
                     )}
                 </H5>
