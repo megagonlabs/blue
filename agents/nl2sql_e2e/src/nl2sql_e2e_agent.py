@@ -125,6 +125,8 @@ class Nl2SqlE2EAgent(OpenAIAgent):
     def _format_schema(self, schema):
         res = []
         for table_name, record in schema['entities'].items():
+            if len(res) >= 10:
+                break
             res.append({
                 'table_name': table_name,
                 'columns': record['properties']
