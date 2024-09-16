@@ -1,5 +1,5 @@
 import { AppContext } from "@/components/contexts/app-context";
-import { Queue } from "@/components/helper";
+import { Queue, sendSocketMessage } from "@/components/helper";
 import { useSocket } from "@/components/hooks/useSocket";
 import { faIcon } from "@/components/icon";
 import { AppToaster } from "@/components/toaster";
@@ -68,7 +68,8 @@ const ArrayRenderer = ({
     const visualization = _.get(uischema, "props.visualization", null);
     useEffect(() => {
         setTimeout(() => {
-            socket.send(
+            sendSocketMessage(
+                socket,
                 JSON.stringify({
                     type: "INTERACTIVE_EVENT_MESSAGE",
                     stream_id: _.get(uischema, "props.streamId", null),

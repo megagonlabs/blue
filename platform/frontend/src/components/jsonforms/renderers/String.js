@@ -1,4 +1,4 @@
-import { convertCss } from "@/components/helper";
+import { convertCss, sendSocketMessage } from "@/components/helper";
 import { useSocket } from "@/components/hooks/useSocket";
 import FormCell from "@/components/jsonforms/FormCell";
 import { InputGroup, TextArea } from "@blueprintjs/core";
@@ -24,7 +24,8 @@ const StringRenderer = ({ uischema, handleChange, path, data, required }) => {
             return;
         }
         setTimeout(() => {
-            socket.send(
+            sendSocketMessage(
+                socket,
                 JSON.stringify({
                     type: "INTERACTIVE_EVENT_MESSAGE",
                     stream_id: _.get(uischema, "props.streamId", null),

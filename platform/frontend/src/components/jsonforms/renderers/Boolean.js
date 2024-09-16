@@ -1,4 +1,4 @@
-import { convertCss } from "@/components/helper";
+import { convertCss, sendSocketMessage } from "@/components/helper";
 import { useSocket } from "@/components/hooks/useSocket";
 import { Checkbox, Switch } from "@blueprintjs/core";
 import { isBooleanControl, rankWith } from "@jsonforms/core";
@@ -17,7 +17,8 @@ const BooleanRenderer = ({ uischema, handleChange, path, data, required }) => {
             return;
         }
         setTimeout(() => {
-            socket.send(
+            sendSocketMessage(
+                socket,
                 JSON.stringify({
                     type: "INTERACTIVE_EVENT_MESSAGE",
                     stream_id: _.get(uischema, "props.streamId", null),
