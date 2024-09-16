@@ -99,17 +99,23 @@ class Nl2SqlE2EAgent(OpenAIAgent):
             if 'connection' not in properties or properties['connection']['protocol'] != 'postgres':
                 continue
             source_db = self.registry.connect_source(source)
-            for db in self.registry.get_source_databases(source):
-                db = db['name']
-                # Note: collection refers to schema in postgres (the level between database and table)
-                for collection in self.registry.get_source_database_collections(source, db):
-                    collection = collection['name']
-                    assert all('/' not in s for s in [source, db, collection])
-                    key = f'/{source}/{db}/{collection}'
-                    if 'sample' in key or 'template' in key:
-                        continue
-                    schema = source_db.fetch_database_collection_schema(db, collection)
-                    self.schemas[key] = schema
+            try:
+                for db in self.registry.get_source_databases(source):
+                    try:
+                        db = db['name']
+                        # Note: collection refers to schema in postgres (the level between database and table)
+                        for collection in self.registry.get_source_database_collections(source, db):
+                            collection = collection['name']
+                            assert all('/' not in s for s in [source, db, collection])
+                            key = f'/{source}/{db}/{collection}'
+                            if 'sample' in key or 'template' in key:
+                                continue
+                            schema = source_db.fetch_database_collection_schema(db, collection)
+                            self.schemas[key] = schema
+                    except Exception as e:
+                        logging.error(f'Error fetching schema for database: {db}, {str(e)}')
+            except Exception as e:
+                logging.error(f'Error fetching schema for source: {source}, {str(e)}')
 
     def _initialize_properties(self):
         super()._initialize_properties()
