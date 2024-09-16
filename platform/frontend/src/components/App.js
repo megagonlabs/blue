@@ -23,6 +23,7 @@ import {
 } from "@blueprintjs/core";
 import {
     faGear,
+    faInboxArrowUp,
     faLayerGroup,
     faListUl,
     faPencilRuler,
@@ -32,7 +33,7 @@ import _ from "lodash";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useContext, useMemo, useState } from "react";
+import { useContext, useEffect, useMemo, useState } from "react";
 import DebugPanel from "./debugger/DebugPanel";
 import { hasTrue } from "./helper";
 import Settings from "./navigation/Settings";
@@ -42,7 +43,7 @@ export default function App({ children }) {
     const { appState, appActions } = useContext(AppContext);
     const sessionDetails = appState.session.sessionDetails;
     const sessionIdFocus = appState.session.sessionIdFocus;
-    const { socket } = useSocket();
+    const { socket, isSocketOpen } = useSocket();
     const recentSessions = useMemo(
         () =>
             Object.values(sessionDetails)
@@ -63,6 +64,7 @@ export default function App({ children }) {
         canReadOperatorRegistry,
         canReadModelRegistry,
     } = permissions;
+    const [isCreatingSession, setIsCreatingSession] = useState(false);
     const MENU_ITEMS = {
         sessions: {
             href: "/sessions",
@@ -120,6 +122,11 @@ export default function App({ children }) {
         },
     };
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+    useEffect(() => {
+        if (appState.session.openAgentsDialogTrigger) {
+            setIsCreatingSession(false);
+        }
+    }, [appState.session.openAgentsDialogTrigger]);
     return (
         <div>
             <Navbar style={{ paddingLeft: 20, paddingRight: 20 }}>
@@ -180,6 +187,33 @@ export default function App({ children }) {
             >
                 {hasTrue([canReadSessions]) ? (
                     <>
+                        <div style={{ marginBottom: 10 }}>
+                            <Tooltip
+                                minimal
+                                placement="bottom-start"
+                                content="Start a new session"
+                            >
+                                <Button
+                                    disabled={!isSocketOpen}
+                                    large
+                                    text="New"
+                                    outlined
+                                    intent={Intent.PRIMARY}
+                                    loading={isCreatingSession}
+                                    rightIcon={faIcon({ icon: faInboxArrowUp })}
+                                    onClick={() => {
+                                        if (!isSocketOpen) {
+                                            return;
+                                        }
+                                        router.push("/sessions");
+                                        setIsCreatingSession(true);
+                                        appActions.session.createSession(
+                                            socket
+                                        );
+                                    }}
+                                />
+                            </Tooltip>
+                        </div>
                         <MenuDivider title="Sessions" />
                         <ButtonGroup
                             alignText={Alignment.LEFT}
