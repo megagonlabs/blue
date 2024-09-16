@@ -1,4 +1,5 @@
 import {
+    Classes,
     Drawer,
     DrawerSize,
     H3,
@@ -16,6 +17,7 @@ import {
     faMessages,
     faRectangleTerminal,
 } from "@fortawesome/pro-duotone-svg-icons";
+import classNames from "classnames";
 import _ from "lodash";
 import { useContext } from "react";
 import { AuthContext } from "../contexts/auth-context";
@@ -64,7 +66,19 @@ export default function Settings({ isOpen, setIsSettingsOpen }) {
                     <SectionCard padded={false}>
                         <Menu className="settings-menus" large>
                             <MenuItem
-                                text="Expand to show more"
+                                text={
+                                    <div style={{ marginLeft: 3 }}>
+                                        <div>Expand to show more</div>
+                                        <div
+                                            className={classNames(
+                                                Classes.TEXT_SMALL,
+                                                Classes.TEXT_MUTED
+                                            )}
+                                        >
+                                            Always expand all messages
+                                        </div>
+                                    </div>
+                                }
                                 icon={faIcon({ icon: faArrowsFromDottedLine })}
                                 labelElement={
                                     <Switch
@@ -95,7 +109,19 @@ export default function Settings({ isOpen, setIsSettingsOpen }) {
                     <SectionCard padded={false}>
                         <Menu className="settings-menus" large>
                             <MenuItem
-                                text="Debug mode"
+                                text={
+                                    <div style={{ marginLeft: 3 }}>
+                                        <div>Debug mode</div>
+                                        <div
+                                            className={classNames(
+                                                Classes.TEXT_SMALL,
+                                                Classes.TEXT_MUTED
+                                            )}
+                                        >
+                                            Show debugger window
+                                        </div>
+                                    </div>
+                                }
                                 icon={faIcon({ icon: faRectangleTerminal })}
                                 labelElement={
                                     <Switch

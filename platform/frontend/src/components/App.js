@@ -40,16 +40,16 @@ import UserAccountPanel from "./navigation/UserAccountPanel";
 export default function App({ children }) {
     const router = useRouter();
     const { appState, appActions } = useContext(AppContext);
-    const sessionDetail = appState.session.sessionDetail;
+    const sessionDetails = appState.session.sessionDetails;
     const sessionIdFocus = appState.session.sessionIdFocus;
     const { socket } = useSocket();
     const recentSessions = useMemo(
         () =>
-            Object.values(sessionDetail)
+            Object.values(sessionDetails)
                 .sort((a, b) => b.created_date - a.created_date)
                 .slice(0, 5)
                 .map((session) => session.id),
-        [sessionDetail]
+        [sessionDetails]
     );
     const { user, permissions } = useContext(AuthContext);
     const {
@@ -229,7 +229,7 @@ export default function App({ children }) {
                                                 >
                                                     #{" "}
                                                     {_.get(
-                                                        sessionDetail,
+                                                        sessionDetails,
                                                         [sessionId, "name"],
                                                         sessionId
                                                     )}
