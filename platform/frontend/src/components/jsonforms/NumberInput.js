@@ -2,6 +2,7 @@ import { useSocket } from "@/components/hooks/useSocket";
 import { NumericInput } from "@blueprintjs/core";
 import _ from "lodash";
 import { useReducer } from "react";
+import { sendSocketMessage } from "../helper";
 const NumberAbbreviation = {
     BILLION: "b",
     MILLION: "m",
@@ -132,7 +133,8 @@ export default function NumberInput({
             return;
         }
         setTimeout(() => {
-            socket.send(
+            sendSocketMessage(
+                socket,
                 JSON.stringify({
                     type: "INTERACTIVE_EVENT_MESSAGE",
                     stream_id: _.get(uischema, "props.streamId", null),

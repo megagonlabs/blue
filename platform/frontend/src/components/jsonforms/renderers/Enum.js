@@ -1,4 +1,4 @@
-import { convertCss } from "@/components/helper";
+import { convertCss, sendSocketMessage } from "@/components/helper";
 import { useSocket } from "@/components/hooks/useSocket";
 import FormCell from "@/components/jsonforms/FormCell";
 import { HTMLSelect } from "@blueprintjs/core";
@@ -55,7 +55,8 @@ const EnumRenderer = ({
                         return;
                     }
                     setTimeout(() => {
-                        socket.send(
+                        sendSocketMessage(
+                            socket,
                             JSON.stringify({
                                 type: "INTERACTIVE_EVENT_MESSAGE",
                                 stream_id: _.get(

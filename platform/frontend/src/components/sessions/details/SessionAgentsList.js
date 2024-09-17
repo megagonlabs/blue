@@ -1,12 +1,12 @@
 import { ENTITY_ICON_40 } from "@/components/constant";
+import { AppContext } from "@/components/contexts/app-context";
+import EntityIcon from "@/components/entity/EntityIcon";
+import { faIcon } from "@/components/icon";
 import { Card, Classes, FormGroup, NonIdealState } from "@blueprintjs/core";
 import { faScreenUsers } from "@fortawesome/pro-duotone-svg-icons";
 import axios from "axios";
 import _ from "lodash";
 import { useContext, useEffect, useState } from "react";
-import { AppContext } from "../contexts/app-context";
-import EntityIcon from "../entity/EntityIcon";
-import { faIcon } from "../icon";
 export default function SessionAgentsList() {
     const { appState, appActions } = useContext(AppContext);
     const sessionIdFocus = appState.session.sessionIdFocus;

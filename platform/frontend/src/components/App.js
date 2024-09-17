@@ -23,6 +23,8 @@ import {
 } from "@blueprintjs/core";
 import {
     faGear,
+    faInboxArrowUp,
+    faLayerGroup,
     faListUl,
     faPencilRuler,
     faUserGroup,
@@ -31,7 +33,7 @@ import _ from "lodash";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useContext, useMemo, useState } from "react";
+import { useContext, useEffect, useMemo, useState } from "react";
 import DebugPanel from "./debugger/DebugPanel";
 import { hasTrue } from "./helper";
 import Settings from "./navigation/Settings";
@@ -39,20 +41,21 @@ import UserAccountPanel from "./navigation/UserAccountPanel";
 export default function App({ children }) {
     const router = useRouter();
     const { appState, appActions } = useContext(AppContext);
-    const sessionDetail = appState.session.sessionDetail;
+    const sessionDetails = appState.session.sessionDetails;
     const sessionIdFocus = appState.session.sessionIdFocus;
-    const { socket } = useSocket();
+    const { socket, isSocketOpen } = useSocket();
     const recentSessions = useMemo(
         () =>
-            Object.values(sessionDetail)
+            Object.values(sessionDetails)
                 .sort((a, b) => b.created_date - a.created_date)
                 .slice(0, 5)
                 .map((session) => session.id),
-        [sessionDetail]
+        [sessionDetails]
     );
     const { user, permissions } = useContext(AuthContext);
     const {
         canWritePlatformUsers,
+        canReadPlatformServices,
         showFormDesigner,
         canReadPlatformAgents,
         canReadSessions,
@@ -61,6 +64,7 @@ export default function App({ children }) {
         canReadOperatorRegistry,
         canReadModelRegistry,
     } = permissions;
+    const [isCreatingSession, setIsCreatingSession] = useState(false);
     const MENU_ITEMS = {
         sessions: {
             href: "/sessions",
@@ -104,6 +108,12 @@ export default function App({ children }) {
             icon: faUserGroup,
             visible: canWritePlatformUsers,
         },
+        admin_services: {
+            href: "/admin/services",
+            text: "Services",
+            icon: faLayerGroup,
+            visible: canReadPlatformServices,
+        },
         admin_agents: {
             href: "/admin/agents",
             text: "Agents",
@@ -112,6 +122,11 @@ export default function App({ children }) {
         },
     };
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+    useEffect(() => {
+        if (appState.session.openAgentsDialogTrigger) {
+            setIsCreatingSession(false);
+        }
+    }, [appState.session.openAgentsDialogTrigger]);
     return (
         <div>
             <Navbar style={{ paddingLeft: 20, paddingRight: 20 }}>
@@ -172,6 +187,33 @@ export default function App({ children }) {
             >
                 {hasTrue([canReadSessions]) ? (
                     <>
+                        <div style={{ marginBottom: 10 }}>
+                            <Tooltip
+                                minimal
+                                placement="bottom-start"
+                                content="Start a new session"
+                            >
+                                <Button
+                                    disabled={!isSocketOpen}
+                                    large
+                                    text="New"
+                                    outlined
+                                    intent={Intent.PRIMARY}
+                                    loading={isCreatingSession}
+                                    rightIcon={faIcon({ icon: faInboxArrowUp })}
+                                    onClick={() => {
+                                        if (!isSocketOpen) {
+                                            return;
+                                        }
+                                        router.push("/sessions");
+                                        setIsCreatingSession(true);
+                                        appActions.session.createSession(
+                                            socket
+                                        );
+                                    }}
+                                />
+                            </Tooltip>
+                        </div>
                         <MenuDivider title="Sessions" />
                         <ButtonGroup
                             alignText={Alignment.LEFT}
@@ -207,6 +249,9 @@ export default function App({ children }) {
                                                         socket,
                                                     }
                                                 );
+                                                if (!router.isReady) {
+                                                    return;
+                                                }
                                                 router.push("/sessions");
                                             }}
                                             text={
@@ -218,7 +263,7 @@ export default function App({ children }) {
                                                 >
                                                     #{" "}
                                                     {_.get(
-                                                        sessionDetail,
+                                                        sessionDetails,
                                                         [sessionId, "name"],
                                                         sessionId
                                                     )}
@@ -370,7 +415,11 @@ export default function App({ children }) {
                         </ButtonGroup>
                     </>
                 ) : null}
-                {hasTrue([canReadPlatformAgents, canWritePlatformUsers]) ? (
+                {hasTrue([
+                    canReadPlatformAgents,
+                    canWritePlatformUsers,
+                    canReadPlatformServices,
+                ]) ? (
                     <>
                         <div>&nbsp;</div>
                         <MenuDivider title="Admin. Tools" />
@@ -381,41 +430,43 @@ export default function App({ children }) {
                             large
                             className="full-parent-width"
                         >
-                            {["admin_agents", "admin_users"].map(
-                                (key, index) => {
-                                    const { href, icon, text, visible } = _.get(
-                                        MENU_ITEMS,
-                                        key,
-                                        {}
-                                    );
-                                    if (!visible) {
-                                        return null;
-                                    }
-                                    const active = _.startsWith(
-                                        router.asPath,
-                                        href
-                                    );
-                                    return (
-                                        <Link href={href} key={index}>
-                                            <Button
-                                                style={
-                                                    !active
-                                                        ? {
-                                                              backgroundColor:
-                                                                  "transparent",
-                                                          }
-                                                        : null
-                                                }
-                                                active={active}
-                                                text={text}
-                                                icon={faIcon({
-                                                    icon: icon,
-                                                })}
-                                            />
-                                        </Link>
-                                    );
+                            {[
+                                "admin_services",
+                                "admin_agents",
+                                "admin_users",
+                            ].map((key, index) => {
+                                const { href, icon, text, visible } = _.get(
+                                    MENU_ITEMS,
+                                    key,
+                                    {}
+                                );
+                                if (!visible) {
+                                    return null;
                                 }
-                            )}
+                                const active = _.startsWith(
+                                    router.asPath,
+                                    href
+                                );
+                                return (
+                                    <Link href={href} key={index}>
+                                        <Button
+                                            style={
+                                                !active
+                                                    ? {
+                                                          backgroundColor:
+                                                              "transparent",
+                                                      }
+                                                    : null
+                                            }
+                                            active={active}
+                                            text={text}
+                                            icon={faIcon({
+                                                icon: icon,
+                                            })}
+                                        />
+                                    </Link>
+                                );
+                            })}
                         </ButtonGroup>
                     </>
                 ) : null}

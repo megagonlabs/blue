@@ -24,9 +24,10 @@ import json
 import itertools
 from tqdm import tqdm
 
+###### Communication
+import asyncio
+from websockets.sync.client import connect
 
-###### dspy
-import dspy
 
 ###### Blue
 from agent import Agent, AgentFactory
@@ -39,12 +40,7 @@ logging.getLogger().setLevel(logging.INFO)
 logging.basicConfig(format="%(asctime)s [%(levelname)s] [%(process)d:%(threadName)s:%(thread)d](%(filename)s:%(lineno)d) %(name)s -  %(message)s", level=logging.ERROR, datefmt="%Y-%m-%d %H:%M:%S")
 
 
-#######################    
-class ExtractOperator(dspy.Signature):
-    """Given a natural language text, tag the named entities with [MEN] and [/MEN]"""
 
-    text = dspy.InputField(desc="natural language text without entity annotations")
-    annotated_text = dspy.OutputField(desc="natural language text with annotations", prefix='')
 
 class DSPyAgent(Agent):
     def __init__(self, **kwargs):
@@ -56,20 +52,11 @@ class DSPyAgent(Agent):
     def _initialize(self, properties=None):
         super()._initialize(properties=properties)
 
-        self.dspy_operator = dspy.Predict(ExtractOperator)
-        llm = dspy.OpenAI(model=self.properties["model"], api_key=self.properties["OPENAI_API_KEY"])
-
-        dspy.settings.configure(lm=llm, rm=None)
-
-        output = self.dspy_operator(text="testing: data scientist positions at Google")
-        logging.info("ANNOTATIONS:" + str(output.annotated_text))
-        logging.info("TESTING-----")
-
     def _initialize_properties(self):
         super()._initialize_properties()
 
-        # dspy properties 
-        self.properties["model"] = "gpt-4o"
+        self.properties['dspy.service'] = "ws://localhost:8001"
+
 
     def default_processor(self, message, input="DEFAULT", properties=None, worker=None):
         if message.isEOS():
@@ -83,16 +70,20 @@ class DSPyAgent(Agent):
             logging.info("BUDGET:")
             logging.info(json.dumps(budget, indent=3))
 
-            ### apply dspy operator
-            llm = dspy.OpenAI(model=self.properties["model"], api_key=self.properties["OPENAI_API_KEY"])
-            dspy.settings.configure(lm=llm, rm=None)
-            output = worker.agent.dspy_operator(text=stream_data)
+            ### call dspy service
+            message = {}
+            message['budget'] = budget
+            message['input'] = stream_data
 
-            ### update budget
-            worker.session.set_budget_use(cost=0.3)
-            
-            # output to stream
-            return output.annotated_text
+            m = json.dumps(message)
+            r = self.call_service(m)
+
+            response = json.loads(r)
+
+            # create output from response
+            output_data = int(response)
+            logging.info(output_data)
+            return [str(output_data), Message.EOS]
         
         elif message.isBOS():
             # init stream to empty array
@@ -109,6 +100,19 @@ class DSPyAgent(Agent):
     
         return None
 
+    def get_service_address(self):
+        service_address = self.properties['dspy.service']
+        
+        return service_address
+
+    def call_service(self, data):
+        with connect(self.get_service_address()) as websocket:
+            logging.info("Sending to service {service}: {data}".format(service=self.get_service_address(),data=data))
+            websocket.send(data)
+            message = websocket.recv()
+            logging.info("Received from service: {message}".format(message=message))
+            return message
+        
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--name', default="DSPY", type=str)

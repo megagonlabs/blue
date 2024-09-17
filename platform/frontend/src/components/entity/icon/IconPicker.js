@@ -1,4 +1,7 @@
 import { COLOR_OPTIONS, ENTITY_ICON_40 } from "@/components/constant";
+import { AppContext } from "@/components/contexts/app-context";
+import { faIcon } from "@/components/icon";
+import RegistryCard from "@/components/registry/RegistryCard";
 import {
     Button,
     Card,
@@ -17,9 +20,6 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import _ from "lodash";
 import Link from "next/link";
 import { useCallback, useContext, useEffect, useRef, useState } from "react";
-import { AppContext } from "../contexts/app-context";
-import { faIcon } from "../icon";
-import RegistryCard from "../registry/RegistryCard";
 export default function IconPicker({
     icon,
     color,

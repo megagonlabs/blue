@@ -5,11 +5,12 @@ export const defaultState = {
     platform: "default",
     sessionIds: [],
     sessionIdFocus: null,
-    sessionDetail: {},
+    sessionDetails: {},
     userId: null,
     unreadSessionIds: new Set(),
     terminatedInteraction: new Set(),
     expandedMessageStream: new Set(),
+    sessionGroupBy: "all",
 };
 export default function sessionReducer(
     state = defaultState,
@@ -171,14 +172,14 @@ export default function sessionReducer(
             return { ...state, [payload.key]: payload.value };
         }
         case "session/sessions/detail/set": {
-            let nextSessionDetail = { ...state.sessionDetail };
+            let nextSessionDetail = { ...state.sessionDetails };
             for (let i = 0; i < _.size(payload); i++) {
                 const detail = payload[i];
                 if (!_.isNil(detail.id)) {
                     _.set(nextSessionDetail, [detail.id], detail);
                 }
             }
-            return { ...state, sessionDetail: nextSessionDetail };
+            return { ...state, sessionDetails: nextSessionDetail };
         }
         case "session/sessions/add": {
             if (_.includes(sessionIds, payload)) {

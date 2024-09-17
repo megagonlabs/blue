@@ -1,4 +1,4 @@
-import { convertCss } from "@/components/helper";
+import { convertCss, sendSocketMessage } from "@/components/helper";
 import { useSocket } from "@/components/hooks/useSocket";
 import { rankWith, uiTypeIs } from "@jsonforms/core";
 import { withJsonFormsCellProps } from "@jsonforms/react";
@@ -11,7 +11,8 @@ const ButtonRenderer = ({ uischema, path }) => {
             return;
         }
         setTimeout(() => {
-            socket.send(
+            sendSocketMessage(
+                socket,
                 JSON.stringify({
                     type: "INTERACTIVE_EVENT_MESSAGE",
                     stream_id: _.get(uischema, "props.streamId", null),

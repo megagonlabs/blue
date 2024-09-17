@@ -1,3 +1,8 @@
+import { canvasPreview } from "@/components/entity/icon/canvasPreview";
+import IconPicker from "@/components/entity/icon/IconPicker";
+import { useDebounceEffect } from "@/components/hooks/useDebounceEffect";
+import { faIcon } from "@/components/icon";
+import RegistryCard from "@/components/registry/RegistryCard";
 import {
     Button,
     ButtonGroup,
@@ -29,11 +34,6 @@ import ReactCrop, {
     makeAspectCrop,
 } from "react-image-crop";
 import "react-image-crop/dist/ReactCrop.css";
-import { useDebounceEffect } from "../hooks/useDebounceEffect";
-import { faIcon } from "../icon";
-import RegistryCard from "../registry/RegistryCard";
-import { canvasPreview } from "./canvasPreview";
-import IconPicker from "./IconPicker";
 export default function EntityIconEditor({
     isOpen,
     setIsIconEditorOpen,

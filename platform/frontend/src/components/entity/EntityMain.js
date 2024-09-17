@@ -1,4 +1,6 @@
 import { ENTITY_ICON_40 } from "@/components/constant";
+import { AuthContext } from "@/components/contexts/auth-context";
+import EntityIconEditor from "@/components/entity/icon/EntityIconEditor";
 import { faIcon } from "@/components/icon";
 import { AppToaster } from "@/components/toaster";
 import {
@@ -29,8 +31,6 @@ import axios from "axios";
 import _ from "lodash";
 import { useRouter } from "next/router";
 import { useContext, useState } from "react";
-import { AuthContext } from "../contexts/auth-context";
-import EntityIconEditor from "../EntityIcon/EntityIconEditor";
 import EntityIcon from "./EntityIcon";
 export default function EntityMain({
     entity,
@@ -64,11 +64,13 @@ export default function EntityMain({
                 });
             });
     };
+    const routerQueryParams = _.get(router, "query.pathParams", []);
+    const routerQueryPath = "/" + routerQueryParams.join("/");
     const duplicateEntity = () => {
         if (!router.isReady) {
             return;
         }
-        let params = _.cloneDeep(_.get(router, "query.pathParams", []));
+        let params = _.cloneDeep(routerQueryParams);
         params.pop();
         router.push(`/${params.join("/")}/new?entity=${entity.name}`);
     };
@@ -77,9 +79,9 @@ export default function EntityMain({
             return;
         }
         axios
-            .delete(router.asPath)
+            .delete(routerQueryPath)
             .then(() => {
-                let params = _.cloneDeep(_.get(router, "query.pathParams", []));
+                let params = _.cloneDeep(routerQueryParams);
                 if (
                     ["agent", "data", "operator", "model"].includes(
                         _.nth(params, -2)
@@ -104,7 +106,7 @@ export default function EntityMain({
     };
     const syncData = () => {
         axios
-            .put(router.asPath + "/sync")
+            .put(routerQueryPath + "/sync")
             .then(() => {
                 AppToaster.show({
                     intent: Intent.SUCCESS,
@@ -129,6 +131,8 @@ export default function EntityMain({
         // write_all
         const typeToPermissionKey = {
             agent: "agent_registry",
+            input: "agent_registry",
+            output: "agent_registry",
             source: "data_registry",
             model: "model_registry",
             operator: "operator_registry",

@@ -14,7 +14,7 @@ import { initializeApp } from "firebase/app";
 import { GoogleAuthProvider, getAuth, signInWithPopup } from "firebase/auth";
 import _ from "lodash";
 import { createContext, useContext, useEffect, useState } from "react";
-import { hasInteraction } from "../helper";
+import { hasIntersection } from "../helper";
 import { AppContext } from "./app-context";
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
@@ -86,60 +86,64 @@ export const AuthProvider = ({ children }) => {
     const getPermissions = (user) => {
         const permissions = _.get(user, "permissions", null);
         return {
-            canWriteAgentRegistry: hasInteraction(
+            canWriteAgentRegistry: hasIntersection(
                 _.get(permissions, "agent_registry", []),
                 ["write_all", "write_own"]
             ),
-            canWriteDataRegistry: hasInteraction(
+            canWriteDataRegistry: hasIntersection(
                 _.get(permissions, "data_registry", []),
                 ["write_all", "write_own"]
             ),
-            canWriteOperatorRegistry: hasInteraction(
+            canWriteOperatorRegistry: hasIntersection(
                 _.get(permissions, "operator_registry", []),
                 ["write_all", "write_own"]
             ),
-            canWriteModelRegistry: hasInteraction(
+            canWriteModelRegistry: hasIntersection(
                 _.get(permissions, "model_registry", []),
                 ["write_all", "write_own"]
             ),
-            canWritePlatformUsers: hasInteraction(
+            canWritePlatformUsers: hasIntersection(
                 _.get(permissions, "platform_users", []),
                 ["write_all"]
             ),
-            showFormDesigner: hasInteraction(
+            showFormDesigner: hasIntersection(
                 _.get(permissions, "form_designer", []),
                 ["visible"]
             ),
-            canReadPlatformAgents: hasInteraction(
+            canReadPlatformAgents: hasIntersection(
                 _.get(permissions, "platform_agents", []),
                 ["read_all", "read_own"]
             ),
-            canWritePlatformAgents: hasInteraction(
+            canWritePlatformAgents: hasIntersection(
                 _.get(permissions, "platform_agents", []),
                 ["write_all", "write_own"]
             ),
-            canReadSessions: hasInteraction(
+            canReadSessions: hasIntersection(
                 _.get(permissions, "sessions", []),
                 ["read_all", "read_own", "read_participate"]
             ),
-            canReadDataRegistry: hasInteraction(
+            canReadDataRegistry: hasIntersection(
                 _.get(permissions, "data_registry", []),
                 ["read_all"]
             ),
-            canReadAgentRegistry: hasInteraction(
+            canReadAgentRegistry: hasIntersection(
                 _.get(permissions, "agent_registry", []),
                 ["read_all"]
             ),
-            canCreateSessions: hasInteraction(
+            canCreateSessions: hasIntersection(
                 _.get(permissions, "sessions", []),
                 ["write_all", "write_own"]
             ),
-            canReadOperatorRegistry: hasInteraction(
+            canReadOperatorRegistry: hasIntersection(
                 _.get(permissions, "operator_registry", []),
                 ["read_all"]
             ),
-            canReadModelRegistry: hasInteraction(
+            canReadModelRegistry: hasIntersection(
                 _.get(permissions, "model_registry", []),
+                ["read_all"]
+            ),
+            canReadPlatformServices: hasIntersection(
+                _.get(permissions, "platform_services", []),
                 ["read_all"]
             ),
         };

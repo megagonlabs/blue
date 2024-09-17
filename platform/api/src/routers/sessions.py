@@ -86,9 +86,10 @@ def get_sessions(request: Request):
     acl_enforce(request.state.user['role'], 'sessions', ['read_all', 'read_own', 'read_participate'])
     sessions = p.get_sessions()
     results = []
+    uid = request.state.user['uid']
     for session in sessions:
         if session_acl_enforce(request, session, read=True, throw=False):
-            results.append(session)
+            results.append({**session, 'group_by': {'owner': pydash.is_equal(pydash.objects.get(session, 'created_by', None), uid), 'member': pydash.objects.get(session, f'members.{uid}', False)}})
     return JSONResponse(content={"results": results})
 
 
@@ -156,6 +157,7 @@ async def update_session(request: Request, session_id):
 
     return JSONResponse(content={"message": "Success"})
 
+
 ## members
 @router.get("/session/{session_id}/members")
 def list_session_members(request: Request, session_id):
@@ -187,6 +189,7 @@ def remove_member_from_session(request: Request, session_id, uid):
     session.set_metadata(f'members.{uid}', False)
     return JSONResponse(content={"message": "Success"})
 
+
 ## budget
 @router.get("/session/{session_id}/budget")
 def get_budget(request: Request, session_id):
@@ -195,6 +198,7 @@ def get_budget(request: Request, session_id):
     budget = session.get_budget()
     return JSONResponse(content={"result": budget})
 
+
 @router.get("/session/{session_id}/budget/allocation")
 def get_budget_allocation(request: Request, session_id):
     session = p.get_session(session_id)
@@ -202,12 +206,14 @@ def get_budget_allocation(request: Request, session_id):
     budget_allocation = session.get_budget_allocation()
     return JSONResponse(content={"result": budget_allocation})
 
+
 @router.get("/session/{session_id}/budget/use")
 def get_budget_use(request: Request, session_id):
     session = p.get_session(session_id)
     session_acl_enforce(request, session.to_dict(), read=True)
     budget_use = session.get_budget_use()
     return JSONResponse(content={"result": budget_use})
+
 
 @router.post("/session/{session_id}/budget/allocation/cost/{cost}")
 def set_budget_allocation_cost(request: Request, session_id, cost):
@@ -217,6 +223,7 @@ def set_budget_allocation_cost(request: Request, session_id, cost):
     session.set_budget_allocation(cost=cost)
     return JSONResponse(content={"message": "Success"})
 
+
 @router.post("/session/{session_id}/budget/allocation/accuracy/{accuracy}")
 def set_budget_allocation_accuracy(request: Request, session_id, accuracy):
     session = p.get_session(session_id)
@@ -225,6 +232,7 @@ def set_budget_allocation_accuracy(request: Request, session_id, accuracy):
     session.set_budget_allocation(accuracy=accuracy)
     return JSONResponse(content={"message": "Success"})
 
+
 @router.post("/session/{session_id}/budget/allocation/latency/{latency}")
 def set_budget_allocation_latency(request: Request, session_id, latency):
     session = p.get_session(session_id)
@@ -232,6 +240,7 @@ def set_budget_allocation_latency(request: Request, session_id, latency):
     latency = float(latency)
     session.set_budget_allocation(latency=latency)
     return JSONResponse(content={"message": "Success"})
+
 
 @router.post("/session")
 async def create_session(request: Request):

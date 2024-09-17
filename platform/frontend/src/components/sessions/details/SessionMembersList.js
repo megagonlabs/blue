@@ -1,4 +1,7 @@
 import { PROFILE_PICTURE_40 } from "@/components/constant";
+import { AppContext } from "@/components/contexts/app-context";
+import { faIcon } from "@/components/icon";
+import { AppToaster } from "@/components/toaster";
 import {
     Button,
     Card,
@@ -19,9 +22,6 @@ import classNames from "classnames";
 import _ from "lodash";
 import Image from "next/image";
 import { useCallback, useContext, useEffect, useState } from "react";
-import { AppContext } from "../contexts/app-context";
-import { faIcon } from "../icon";
-import { AppToaster } from "../toaster";
 const UserAvatar = ({ user, loading = false }) => (
     <Card
         style={PROFILE_PICTURE_40}

@@ -14,6 +14,7 @@ import {
 import {
     faCheck,
     faCircleA,
+    faCoins,
     faSquareInfo,
     faUserGroup,
 } from "@fortawesome/pro-duotone-svg-icons";
@@ -21,19 +22,20 @@ import axios from "axios";
 import _ from "lodash";
 import { useContext, useEffect, useRef, useState } from "react";
 import { AppToaster } from "../toaster";
-import SessionAgentsList from "./SessionAgentsList";
-import SessionMembersList from "./SessionMembersList";
+import SessionAgentsList from "./details/SessionAgentsList";
+import SessionBudget from "./details/SessionBudget";
+import SessionMembersList from "./details/SessionMembersList";
 export default function SessionDetail({ isOpen, setIsSessionDetailOpen }) {
     const { appState, appActions } = useContext(AppContext);
     const sessionIdFocus = appState.session.sessionIdFocus;
     const allowQuickClose = useRef(true);
-    const sessionDetail = _.get(
+    const sessionDetails = _.get(
         appState,
-        ["session", "sessionDetail", sessionIdFocus],
+        ["session", "sessionDetails", sessionIdFocus],
         {}
     );
-    const sessionName = _.get(sessionDetail, "name", "");
-    const sessionDescription = _.get(sessionDetail, "description", "");
+    const sessionName = _.get(sessionDetails, "name", "");
+    const sessionDescription = _.get(sessionDetails, "description", "");
     const [name, setName] = useState(sessionName);
     const [description, setDescription] = useState(sessionDescription);
     const [loading, setLoading] = useState(false);
@@ -48,8 +50,8 @@ export default function SessionDetail({ isOpen, setIsSessionDetailOpen }) {
             .then(() => {
                 allowQuickClose.current = true;
                 setLoading(false);
-                appActions.session.setSessionDetail([
-                    { ...sessionDetail, ...payload, id: sessionIdFocus },
+                appActions.session.setSessionDetails([
+                    { ...sessionDetails, ...payload, id: sessionIdFocus },
                 ]);
             })
             .catch(() => {
@@ -124,6 +126,16 @@ export default function SessionDetail({ isOpen, setIsSessionDetailOpen }) {
                         }}
                         active={_.isEqual(tab, "members")}
                     />
+                    <Button
+                        icon={faIcon({ icon: faCoins })}
+                        minimal
+                        large
+                        text="Budget"
+                        onClick={() => {
+                            setTab("budget");
+                        }}
+                        active={_.isEqual(tab, "budget")}
+                    />
                 </Card>
                 <div style={{ padding: 15 }}>
                     {_.isEqual(tab, "about") ? (
@@ -152,6 +164,7 @@ export default function SessionDetail({ isOpen, setIsSessionDetailOpen }) {
                     ) : null}
                     {_.isEqual(tab, "agents") ? <SessionAgentsList /> : null}
                     {_.isEqual(tab, "members") ? <SessionMembersList /> : null}
+                    {_.isEqual(tab, "budget") ? <SessionBudget /> : null}
                 </div>
             </DialogBody>
             {_.isEqual(tab, "about") ? (

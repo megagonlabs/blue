@@ -146,7 +146,7 @@ module.exports = {
             callback(requestError);
         })();
     },
-    hasInteraction: (array1, array2) => {
+    hasIntersection: (array1, array2) => {
         return _.some(array1, _.ary(_.partial(_.includes, array2), 1));
     },
     hasTrue: (array) => {
@@ -159,16 +159,16 @@ module.exports = {
             return style;
         }
     },
-    sendSocketMessage: async (socket, message) => {
-        if (_.isEqual(socket.readyState, WebSocket.OPEN)) {
-            try {
-                await waitForOpenConnection(socket);
-                socket.send(message);
-            } catch (err) {
-                console.error(err);
-            }
-        } else {
+    sendSocketMessage: async (socket, message, retries = 0) => {
+        try {
             socket.send(message);
+        } catch (error) {
+            if (retries < 4 && _.isEqual(error.name, "InvalidStateError")) {
+                await waitForOpenConnection(socket);
+                sendSocketMessage(socket, message, retries + 1);
+            } else {
+                console.error(error);
+            }
         }
     },
 };
