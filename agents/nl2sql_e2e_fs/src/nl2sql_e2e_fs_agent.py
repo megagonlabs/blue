@@ -51,6 +51,24 @@ Here are the requirements:
 - The SQL query should be compatible with the schema of the datasource.
 - Output the JSON directly. Do not generate explanation or other additional output.
 
+Some example pairs of question and corresponding SQL query are provided based on similar problems:
+
+Question: What are the codes corresponding to document types for which there are less than documents?
+SQL: SELECT document_type_code FROM Documents GROUP BY document_type_code HAVING count(*)  <  3
+
+Question: What are the names of all the video games and their types in alphabetical order?
+SQL: SELECT gname ,  gtype FROM Video_games ORDER BY gname
+
+Question: Which papers\' first author is affiliated with an institution in the country "Japan" and has last name "Ohori"? Give me the titles of the papers.
+SQL: SELECT t3.title FROM authors AS t1 JOIN authorship AS t2 ON t1.authid  =  t2.authid JOIN papers AS t3 ON t2.paperid  =  t3.paperid JOIN inst AS t4 ON t2.instid  =  t4.instid WHERE t4.country  =  "Japan" AND t2.authorder  =  1 AND t1.lname  =  "Ohori"
+
+Question: What is the total access count of documents that are of the most common document type?
+SQL: SELECT sum(access_count) FROM documents GROUP BY document_type_code ORDER BY count(*) DESC LIMIT 1
+
+Question: Show the distinct fate of missions that involve ships with nationality "United States"
+SQL: SELECT DISTINCT T1.Fate FROM mission AS T1 JOIN ship AS T2 ON T1.Ship_ID  =  T2.Ship_ID WHERE T2.Nationality  =  "United States"
+
+
 Data sources:
 ```
 ${sources}
@@ -80,10 +98,10 @@ agent_properties = {
 
 
 #######################
-class Nl2SqlE2EAgent(OpenAIAgent):
+class Nl2SqlE2EFSAgent(OpenAIAgent):
     def __init__(self, **kwargs):
         if 'name' not in kwargs:
-            kwargs['name'] = "NL2SQL_E2E"
+            kwargs['name'] = "NL2SQL_E2E_FS"
         super().__init__(**kwargs)
 
     def _initialize(self, properties=None):
@@ -99,23 +117,17 @@ class Nl2SqlE2EAgent(OpenAIAgent):
             if 'connection' not in properties or properties['connection']['protocol'] != 'postgres':
                 continue
             source_db = self.registry.connect_source(source)
-            try:
-                for db in self.registry.get_source_databases(source):
-                    try:
-                        db = db['name']
-                        # Note: collection refers to schema in postgres (the level between database and table)
-                        for collection in self.registry.get_source_database_collections(source, db):
-                            collection = collection['name']
-                            assert all('/' not in s for s in [source, db, collection])
-                            key = f'/{source}/{db}/{collection}'
-                            if 'sample' in key or 'template' in key:
-                                continue
-                            schema = source_db.fetch_database_collection_schema(db, collection)
-                            self.schemas[key] = schema
-                    except Exception as e:
-                        logging.error(f'Error fetching schema for database: {db}, {str(e)}')
-            except Exception as e:
-                logging.error(f'Error fetching schema for source: {source}, {str(e)}')
+            for db in self.registry.get_source_databases(source):
+                db = db['name']
+                # Note: collection refers to schema in postgres (the level between database and table)
+                for collection in self.registry.get_source_database_collections(source, db):
+                    collection = collection['name']
+                    assert all('/' not in s for s in [source, db, collection])
+                    key = f'/{source}/{db}/{collection}'
+                    if 'sample' in key or 'template' in key:
+                        continue
+                    schema = source_db.fetch_database_collection_schema(db, collection)
+                    self.schemas[key] = schema
 
     def _initialize_properties(self):
         super()._initialize_properties()
@@ -125,8 +137,6 @@ class Nl2SqlE2EAgent(OpenAIAgent):
     def _format_schema(self, schema):
         res = []
         for table_name, record in schema['entities'].items():
-            if len(res) >= 10:
-                break
             res.append({
                 'table_name': table_name,
                 'columns': record['properties']
@@ -175,7 +185,7 @@ class Nl2SqlE2EAgent(OpenAIAgent):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--name', default="NL2SQL_E2E", type=str)
+    parser.add_argument('--name', default="NL2SQL_E2E_FS", type=str)
     parser.add_argument('--session', type=str)
     parser.add_argument('--properties', type=str)
     parser.add_argument('--loglevel', default="INFO", type=str)
@@ -201,7 +211,7 @@ if __name__ == "__main__":
     if args.serve:
         platform = args.platform
 
-        af = AgentFactory(_class=Nl2SqlE2EAgent, _name=args.serve, _registry=args.registry, platform=platform,
+        af = AgentFactory(_class=Nl2SqlE2EFSAgent, _name=args.serve, _registry=args.registry, platform=platform,
                           properties=properties)
         af.wait()
     else:
@@ -211,11 +221,11 @@ if __name__ == "__main__":
         if args.session:
             # join an existing session
             session = Session(cid=args.session)
-            a = Nl2SqlE2EAgent(name=args.name, session=session, properties=properties)
+            a = Nl2SqlE2EFSAgent(name=args.name, session=session, properties=properties)
         else:
             # create a new session
             session = Session()
-            a = Nl2SqlE2EAgent(name=args.name, session=session, properties=properties)
+            a = Nl2SqlE2EFSAgent(name=args.name, session=session, properties=properties)
 
         # wait for session
         if session:
