@@ -9,7 +9,7 @@ import AddAgents from "@/components/sessions/AddAgents";
 import PlanVisualizationPanel from "@/components/sessions/PlanVisualizationPanel";
 import SessionDetail from "@/components/sessions/SessionDetail";
 import SessionList from "@/components/sessions/SessionList";
-import SessionMessages from "@/components/sessions/SessionMessages";
+import SessionMessages from "@/components/sessions/message/SessionMessages";
 import { AppToaster } from "@/components/toaster";
 import {
     Button,

@@ -1,4 +1,6 @@
 import { AppContext } from "@/components/contexts/app-context";
+import { AuthContext } from "@/components/contexts/auth-context";
+import { faIcon } from "@/components/icon";
 import {
     Button,
     ButtonGroup,
@@ -15,11 +17,9 @@ import { useCallback, useContext, useEffect, useMemo, useRef } from "react";
 import { useResizeDetector } from "react-resize-detector";
 import AutoSizer from "react-virtualized-auto-sizer";
 import { VariableSizeList } from "react-window";
-import { AuthContext } from "../contexts/auth-context";
-import { faIcon } from "../icon";
-import JsonFormMessage from "./JsonFormMessage";
 import MessageIcon from "./MessageIcon";
 import MessageMetadata from "./MessageMetadata";
+import JsonFormMessage from "./renderers/JsonFormMessage";
 const Row = ({ index, data, style }) => {
     const {
         messages,

@@ -27,6 +27,7 @@ import {
     faTrash,
 } from "@fortawesome/pro-duotone-svg-icons";
 import _ from "lodash";
+import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import ReactCrop, {
     centerCrop,
@@ -82,7 +83,7 @@ export default function EntityIconEditor({
         loadingRef.current = true;
         let result_base64 = await new Promise((resolve) => {
             let fileReader = new FileReader();
-            fileReader.onload = (e) => resolve(fileReader.result);
+            fileReader.onload = () => resolve(fileReader.result);
             fileReader.readAsDataURL(file);
         });
         loadingRef.current = false;
@@ -361,7 +362,7 @@ export default function EntityIconEditor({
                                     minWidth={80}
                                     minHeight={80}
                                 >
-                                    <img
+                                    <Image
                                         ref={imgRef}
                                         alt="Crop me"
                                         src={imgSrc}

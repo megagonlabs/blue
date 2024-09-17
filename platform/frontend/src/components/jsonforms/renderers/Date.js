@@ -1,6 +1,6 @@
 import { isDateControl, rankWith } from "@jsonforms/core";
 import { withJsonFormsControlProps } from "@jsonforms/react";
-const DateRenderer = (props) => {
+const DateRenderer = () => {
     return <div>date: not implemented</div>;
 };
 export default withJsonFormsControlProps(DateRenderer);

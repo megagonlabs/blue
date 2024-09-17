@@ -4,7 +4,7 @@ import { Card, Classes } from "@blueprintjs/core";
 import _ from "lodash";
 import Image from "next/image";
 import { memo, useContext } from "react";
-import EntityIcon from "../entity/EntityIcon";
+import EntityIcon from "../../entity/EntityIcon";
 function MessageIcon({ message }) {
     const { appState } = useContext(AppContext);
     const uid = _.get(message, "metadata.id", null);

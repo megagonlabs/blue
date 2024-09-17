@@ -1,10 +1,10 @@
+import { AppContext } from "@/components/contexts/app-context";
+import { AuthContext } from "@/components/contexts/auth-context";
 import { Classes, Tag, Tooltip } from "@blueprintjs/core";
 import classNames from "classnames";
 import _ from "lodash";
 import { memo, useContext } from "react";
 import ReactTimeAgo from "react-time-ago";
-import { AppContext } from "../contexts/app-context";
-import { AuthContext } from "../contexts/auth-context";
 function MessageMetadata({ message }) {
     const { appState } = useContext(AppContext);
     const { settings } = useContext(AuthContext);
