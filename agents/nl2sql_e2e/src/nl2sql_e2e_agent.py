@@ -100,7 +100,7 @@ class Nl2SqlE2EAgent(OpenAIAgent):
                 continue
             source_db = self.registry.connect_source(source)
             try:
-                for db in self.registry.get_source_databases(source):
+                for db in self.registry.get_source_databases(source):  # TODO: remove LLM data discovery
                     try:
                         db = db['name']
                         # Note: collection refers to schema in postgres (the level between database and table)
@@ -125,7 +125,7 @@ class Nl2SqlE2EAgent(OpenAIAgent):
     def _format_schema(self, schema):
         res = []
         for table_name, record in schema['entities'].items():
-            if len(res) >= 10:
+            if len(res) >= 20:  # TODO: remove hard-coded limit
                 break
             res.append({
                 'table_name': table_name,
