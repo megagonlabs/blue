@@ -22,15 +22,12 @@ import MessageMetadata from "./MessageMetadata";
 import JsonForm from "./renderers/JsonForm";
 import JsonViewer from "./renderers/JsonViewer";
 const Row = ({ index, data, style }) => {
-    const {
-        messages,
-        streams,
-        appState,
-        appActions,
-        setRowHeight,
-        user,
-        settings,
-    } = data;
+    const { setRowHeight } = data;
+    const { appState, appActions } = useContext(AppContext);
+    const sessionIdFocus = appState.session.sessionIdFocus;
+    const messages = appState.session.sessions[sessionIdFocus].messages;
+    const streams = appState.session.sessions[sessionIdFocus].streams;
+    const { user, settings } = useContext(AuthContext);
     const rowRef = useRef({});
     const debugMode = _.get(settings, "debug_mode", false);
     const expandMessage = _.get(settings, "expand_message", false);
@@ -262,12 +259,11 @@ const Row = ({ index, data, style }) => {
 export default function SessionMessages() {
     const variableSizeListRef = useRef();
     const rowHeights = useRef({});
-    const { appState, appActions } = useContext(AppContext);
-    const { user, settings } = useContext(AuthContext);
+    const { appState } = useContext(AppContext);
+    const { settings } = useContext(AuthContext);
     const sessionIdFocus = appState.session.sessionIdFocus;
     const messages = appState.session.sessions[sessionIdFocus].messages;
     const debugMode = _.get(settings, "debug_mode", false);
-    const streams = appState.session.sessions[sessionIdFocus].streams;
     function getRowHeight(index) {
         return rowHeights.current[index] || 96 + (debugMode ? 25 : 0);
     }
@@ -293,15 +289,7 @@ export default function SessionMessages() {
         <AutoSizer>
             {({ width, height }) => (
                 <VariableSizeList
-                    itemData={{
-                        messages,
-                        streams,
-                        appState,
-                        appActions,
-                        setRowHeight,
-                        user,
-                        settings,
-                    }}
+                    itemData={{ setRowHeight }}
                     height={height}
                     itemCount={messages.length}
                     itemSize={getRowHeight}
