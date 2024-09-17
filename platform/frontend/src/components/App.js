@@ -25,8 +25,8 @@ import {
     faGear,
     faInboxArrowUp,
     faLayerGroup,
-    faListUl,
     faPencilRuler,
+    faUser,
     faUserGroup,
 } from "@fortawesome/pro-duotone-svg-icons";
 import _ from "lodash";
@@ -66,12 +66,6 @@ export default function App({ children }) {
     } = permissions;
     const [isCreatingSession, setIsCreatingSession] = useState(false);
     const MENU_ITEMS = {
-        sessions: {
-            href: "/sessions",
-            text: "See All",
-            icon: faListUl,
-            visible: canReadSessions,
-        },
         data_registry: {
             href: `/registry/${process.env.NEXT_PUBLIC_DATA_REGISTRY_NAME}/data`,
             text: "Data",
@@ -187,33 +181,6 @@ export default function App({ children }) {
             >
                 {hasTrue([canReadSessions]) ? (
                     <>
-                        <div style={{ marginBottom: 10 }}>
-                            <Tooltip
-                                minimal
-                                placement="bottom-start"
-                                content="Start a new session"
-                            >
-                                <Button
-                                    disabled={!isSocketOpen}
-                                    large
-                                    text="New"
-                                    outlined
-                                    intent={Intent.PRIMARY}
-                                    loading={isCreatingSession}
-                                    rightIcon={faIcon({ icon: faInboxArrowUp })}
-                                    onClick={() => {
-                                        if (!isSocketOpen) {
-                                            return;
-                                        }
-                                        router.push("/sessions");
-                                        setIsCreatingSession(true);
-                                        appActions.session.createSession(
-                                            socket
-                                        );
-                                    }}
-                                />
-                            </Tooltip>
-                        </div>
                         <MenuDivider title="Sessions" />
                         <ButtonGroup
                             alignText={Alignment.LEFT}
@@ -272,43 +239,35 @@ export default function App({ children }) {
                                         />
                                     );
                                 })}
-                            {["sessions"].map((key, index) => {
-                                const { href, icon, text, visible } = _.get(
-                                    MENU_ITEMS,
-                                    key,
-                                    {}
-                                );
-                                if (!visible) {
-                                    return null;
-                                }
-                                const active = _.startsWith(
-                                    router.asPath,
-                                    href
-                                );
-                                return (
-                                    <Link href={href} key={index}>
-                                        <Button
-                                            large
-                                            style={
-                                                !active
-                                                    ? {
-                                                          backgroundColor:
-                                                              "transparent",
-                                                      }
-                                                    : null
-                                            }
-                                            active={
-                                                active &&
-                                                !recentSessions.includes(
-                                                    sessionIdFocus
-                                                )
-                                            }
-                                            text={text}
-                                            icon={faIcon({ icon: icon })}
-                                        />
-                                    </Link>
-                                );
-                            })}
+                            <Button
+                                large
+                                style={{ backgroundColor: "transparent" }}
+                                text="My Sessions"
+                                icon={faIcon({ icon: faUser })}
+                                onClick={() => {
+                                    router.push("/sessions");
+                                    appActions.session.setState({
+                                        key: "sessionGroupBy",
+                                        value: "owner",
+                                    });
+                                }}
+                            />
+                            <Button
+                                disabled={!isSocketOpen}
+                                large
+                                text="New Session"
+                                style={{ backgroundColor: "transparent" }}
+                                loading={isCreatingSession}
+                                icon={faIcon({ icon: faInboxArrowUp })}
+                                onClick={() => {
+                                    if (!isSocketOpen) {
+                                        return;
+                                    }
+                                    router.push("/sessions");
+                                    setIsCreatingSession(true);
+                                    appActions.session.createSession(socket);
+                                }}
+                            />
                         </ButtonGroup>
                     </>
                 ) : null}

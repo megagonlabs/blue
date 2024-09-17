@@ -116,8 +116,8 @@ export default function Settings({ isOpen, setIsSettingsOpen }) {
                                     <div style={{ marginLeft: 3 }}>
                                         <div>Debug mode</div>
                                         <div {...EXPLANATION_TEXT}>
-                                            Show data inspection window and many
-                                            other debugging information
+                                            Show data inspection tool and other
+                                            debugging information
                                         </div>
                                     </div>
                                 }

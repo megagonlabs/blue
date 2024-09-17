@@ -4,6 +4,7 @@ export const defaultState = {
     isSocketOpen: false,
     platform: "default",
     sessionIds: [],
+    groupedSessionIds: [],
     sessionIdFocus: null,
     sessionDetails: {},
     userId: null,
