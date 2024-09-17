@@ -127,11 +127,18 @@ class APIAgent(Agent):
 
     def create_output(self, response, properties=None):
 
+        
         # get properties, overriding with properties provided
         properties = self.get_properties(properties=properties)
 
         output_data = json_utils.json_query(response, properties['output_path'], single=True)
-           
+        
+        logging.info(output_data)
+        logging.info(type(output_data))
+
+        # pre-process output from response
+        output_data = self._preprocess_output(output_data, properties=properties)
+
         # apply output template
         if 'output_template' in properties and properties['output_template'] is not None:
             output_template = Template(properties['output_template'])
@@ -149,9 +156,18 @@ class APIAgent(Agent):
         # get properties, overriding with properties provided
         properties = self.get_properties(properties=properties)
 
+        # cast
+        if 'output_cast' in properties:
+            if properties['output_cast'].lower() == "int":
+                output_data = int(output_data)
+            elif properties['output_cast'].lower() == "float":
+                output_data = float(output_data)
+            elif properties['output_cast'].lower() == "json":
+                output_data = json.loads(output_data)
+
         return output_data
 
-    def transform_output(self, output_data, properties=None):
+    def _preprocess_output(self, output_data, properties=None):
         # get properties, overriding with properties provided
         properties = self.get_properties(properties=properties)
 
@@ -160,20 +176,28 @@ class APIAgent(Agent):
 
             # strip
             if 'output_strip' in properties:
-                if properties['strip']:
-                    output_data = output_data.strip()
+                logging.info("output_strip")
+                output_data = output_data.strip()
 
-            # cast
-            if 'output_cast' in properties:
-                if properties['output_cast'].lower() == "int":
-                    output_data = int(output_data)
-                elif properties['output_cast'].lower() == "float":
-                    output_data = float(output_data)
-                elif properties['output_cast'].lower() == "json":
-                    output_data = json.loads(output_data)
+            # re transformations
+            if 'output_transformations' in properties:
+                logging.info("output_transformations")
+                transformations = properties['output_transformations']
+                for transformation in transformations:
+                    tf = transformation['transformation']
+                    if tf == 'replace':
+                        tfrom = transformation['from']
+                        tto = transformation['to']
+                        output_data = output_data.replace(tfrom, tto)
+                    elif tf == 'sub':
+                        tfrom = transformation['from']
+                        tto = transformation['to']
+                        tfromre = re.compile(tfrom)
+                        ttore = re.compile(tfrom)
+                        output_data = re.sub(tfromre, ttore, output_data)
+
                 
         return output_data
-
 
     def handle_api_call(self, stream_data, properties=None):
         # create message, copying API specific properties
@@ -195,9 +219,6 @@ class APIAgent(Agent):
 
         # process output data
         output_data = self.process_output(output_data, properties=properties)
-
-        # transform output data type
-        output_data = self.transform_output(output_data, properties=properties)
 
         return output_data
 
