@@ -23,7 +23,6 @@ import _ from "lodash";
 import { useContext, useEffect, useRef, useState } from "react";
 import { AppToaster } from "../toaster";
 import SessionAgentsList from "./details/SessionAgentsList";
-import SessionBudget from "./details/SessionBudget";
 import SessionMembersList from "./details/SessionMembersList";
 export default function SessionDetail({ isOpen, setIsSessionDetailOpen }) {
     const { appState, appActions } = useContext(AppContext);
@@ -164,7 +163,6 @@ export default function SessionDetail({ isOpen, setIsSessionDetailOpen }) {
                     ) : null}
                     {_.isEqual(tab, "agents") ? <SessionAgentsList /> : null}
                     {_.isEqual(tab, "members") ? <SessionMembersList /> : null}
-                    {_.isEqual(tab, "budget") ? <SessionBudget /> : null}
                 </div>
             </DialogBody>
             {_.isEqual(tab, "about") ? (

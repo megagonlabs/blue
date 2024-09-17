@@ -20,7 +20,7 @@ import { VariableSizeList } from "react-window";
 import MessageIcon from "./MessageIcon";
 import MessageMetadata from "./MessageMetadata";
 import JsonFormMessage from "./renderers/JsonFormMessage";
-import JsonViewer from "./renderers/JsonViewMessage";
+import JsonViewer from "./renderers/JsonViewer";
 const Row = ({ index, data, style }) => {
     const {
         messages,
