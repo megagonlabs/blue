@@ -183,7 +183,7 @@ def add_member_to_session(request: Request, session_id, uid):
     session_acl_enforce(request, session_dict, write=True)
     owner = pydash.objects.get(session_dict, 'owner', None)
     if pydash.is_equal(owner, uid):
-        return JSONResponse(status_code=403, content={"message": "You can't add yourself as a member."})
+        return JSONResponse(status_code=400, content={"message": "You can't add yourself as a member."})
     session.set_metadata(f'members.{uid}', True)
     return JSONResponse(content={"message": "Success"})
 
