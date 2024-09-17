@@ -89,7 +89,9 @@ def get_sessions(request: Request):
     uid = request.state.user['uid']
     for session in sessions:
         if session_acl_enforce(request, session, read=True, throw=False):
-            results.append({**session, 'group_by': {'owner': pydash.is_equal(pydash.objects.get(session, 'created_by', None), uid), 'member': pydash.objects.get(session, f'members.{uid}', False)}})
+            owner_of = pydash.is_equal(pydash.objects.get(session, 'created_by', None), uid)
+            member_of = pydash.objects.get(session, f'members.{uid}', False)
+            results.append({**session, 'group_by': {'owner': owner_of, 'member': not owner_of and member_of}})
     return JSONResponse(content={"results": results})
 
 
@@ -177,7 +179,11 @@ def list_session_members(request: Request, session_id):
 @router.post("/session/{session_id}/members/{uid}")
 def add_member_to_session(request: Request, session_id, uid):
     session = p.get_session(session_id)
-    session_acl_enforce(request, session.to_dict(), write=True)
+    session_dict = session.to_dict()
+    session_acl_enforce(request, session_dict, write=True)
+    owner = pydash.objects.get(session_dict, 'owner', None)
+    if pydash.is_equal(owner, uid):
+        return JSONResponse(status_code=403, content={"message": "You can't add yourself as a member."})
     session.set_metadata(f'members.{uid}', True)
     return JSONResponse(content={"message": "Success"})
 

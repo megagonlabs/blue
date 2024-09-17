@@ -43,6 +43,18 @@ const waitForOpenConnection = (socket) => {
         }, intervalTime);
     });
 };
+const sendSocketMessage = async (socket, message, retries = 0) => {
+    try {
+        socket.send(message);
+    } catch (error) {
+        if (retries < 4 && _.isEqual(error.name, "InvalidStateError")) {
+            await waitForOpenConnection(socket);
+            sendSocketMessage(socket, message, retries + 1);
+        } else {
+            console.error(error);
+        }
+    }
+};
 module.exports = {
     Queue: class Queue {
         constructor() {
@@ -159,16 +171,5 @@ module.exports = {
             return style;
         }
     },
-    sendSocketMessage: async (socket, message, retries = 0) => {
-        try {
-            socket.send(message);
-        } catch (error) {
-            if (retries < 4 && _.isEqual(error.name, "InvalidStateError")) {
-                await waitForOpenConnection(socket);
-                sendSocketMessage(socket, message, retries + 1);
-            } else {
-                console.error(error);
-            }
-        }
-    },
+    sendSocketMessage,
 };

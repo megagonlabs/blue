@@ -29,6 +29,14 @@ export default function Settings({ isOpen, setIsSettingsOpen }) {
         collapseProps: { defaultIsOpen: false },
         compact: true,
     };
+    const EXPLANATION_TEXT = {
+        style: {
+            marginTop: 5,
+            whiteSpace: "initial",
+            lineHeight: "initial",
+        },
+        className: classNames(Classes.TEXT_SMALL, Classes.TEXT_MUTED),
+    };
     return (
         <Drawer
             size={DrawerSize.SMALL}
@@ -69,12 +77,7 @@ export default function Settings({ isOpen, setIsSettingsOpen }) {
                                 text={
                                     <div style={{ marginLeft: 3 }}>
                                         <div>Expand to show more</div>
-                                        <div
-                                            className={classNames(
-                                                Classes.TEXT_SMALL,
-                                                Classes.TEXT_MUTED
-                                            )}
-                                        >
+                                        <div {...EXPLANATION_TEXT}>
                                             Always expand all messages
                                         </div>
                                     </div>
@@ -112,13 +115,9 @@ export default function Settings({ isOpen, setIsSettingsOpen }) {
                                 text={
                                     <div style={{ marginLeft: 3 }}>
                                         <div>Debug mode</div>
-                                        <div
-                                            className={classNames(
-                                                Classes.TEXT_SMALL,
-                                                Classes.TEXT_MUTED
-                                            )}
-                                        >
-                                            Show debugger window
+                                        <div {...EXPLANATION_TEXT}>
+                                            Show data inspection window and many
+                                            other debugging information
                                         </div>
                                     </div>
                                 }
