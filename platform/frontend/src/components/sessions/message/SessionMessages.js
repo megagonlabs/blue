@@ -20,6 +20,7 @@ import { VariableSizeList } from "react-window";
 import MessageIcon from "./MessageIcon";
 import MessageMetadata from "./MessageMetadata";
 import JsonFormMessage from "./renderers/JsonFormMessage";
+import JsonViewMessage from "./renderers/JsonViewMessage";
 const Row = ({ index, data, style }) => {
     const {
         messages,
@@ -214,6 +215,9 @@ const Row = ({ index, data, style }) => {
                                             </span>
                                         );
                                     } else if (_.isEqual(dataType, "JSON")) {
+                                        return (
+                                            <JsonViewMessage json={content} />
+                                        );
                                         return (
                                             <pre
                                                 key={id}

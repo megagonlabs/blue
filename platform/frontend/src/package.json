@@ -53,6 +53,7 @@
         "react-use-error-boundary": "^3.0.0",
         "react-virtualized-auto-sizer": "^1.0.20",
         "react-window": "^1.8.10",
+        "react18-json-view": "^0.2.8",
         "sharp": "^0.33.2",
         "uuid": "^10.0.0"
     },
