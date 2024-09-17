@@ -7,7 +7,7 @@ import classNames from "classnames";
 import _ from "lodash";
 import { useContext, useEffect, useState } from "react";
 import { useErrorBoundary } from "react-use-error-boundary";
-export default function JsonFormMessage({ content, hasError }) {
+export default function JsonForm({ content, hasError }) {
     const { appState } = useContext(AppContext);
     const terminatedInteraction = appState.session.terminatedInteraction;
     const [error] = useErrorBoundary();

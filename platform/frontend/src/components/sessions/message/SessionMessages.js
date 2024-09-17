@@ -19,7 +19,7 @@ import AutoSizer from "react-virtualized-auto-sizer";
 import { VariableSizeList } from "react-window";
 import MessageIcon from "./MessageIcon";
 import MessageMetadata from "./MessageMetadata";
-import JsonFormMessage from "./renderers/JsonFormMessage";
+import JsonForm from "./renderers/JsonForm";
 import JsonViewer from "./renderers/JsonViewer";
 const Row = ({ index, data, style }) => {
     const {
@@ -196,7 +196,7 @@ const Row = ({ index, data, style }) => {
                             }}
                         >
                             {_.isEqual(contentType, "JSON_FORM") ? (
-                                <JsonFormMessage
+                                <JsonForm
                                     content={_.last(streamData).content}
                                     hasError={hasError}
                                 />
