@@ -49,6 +49,7 @@ Here are the requirements:
   - "source": the name of the data source that the query will be executed on
   - "query": the SQL query that is translated from the natural language question
 - The SQL query should be compatible with the schema of the datasource.
+- Always do case-${sensitivity} matching for string comparison.
 - Output the JSON directly. Do not generate explanation or other additional output.
 
 Data sources:
@@ -70,6 +71,7 @@ agent_properties = {
     "input_template": NL2SQL_PROMPT,
     "openai.temperature": 0,
     "openai.max_tokens": 512,
+    "nl2q.case_insensitive": True,
     "listens": {
         "DEFAULT": {
             "includes": ["USER"],
@@ -143,7 +145,11 @@ class Nl2SqlE2EAgent(OpenAIAgent):
         } for key, schema in self.schemas.items()]
         sources = json.dumps(sources, indent=2)
         logging.info(f'<sources>{sources}</sources>')
-        return {'sources': sources, 'question': input_data}
+        return {
+            'sources': sources,
+            'question': input_data,
+            'sensitivity': 'insensitive' if properties['nl2q.case_insensitive'] else 'sensitive'
+        }
 
     def process_output(self, output_data, properties=None):
         # get properties, overriding with properties provided
