@@ -157,7 +157,7 @@ const Row = ({ index, data, style }) => {
                     </ButtonGroup>
                 </div>
                 <MessageIcon message={messages[index]} />
-                <div style={{ width: "min(802.2px, 100% - 50px)" }}>
+                <div style={{ width: "calc(100% - 50px)" }}>
                     <MessageMetadata message={messages[index]} />
                     <Callout
                         intent={
@@ -176,7 +176,7 @@ const Row = ({ index, data, style }) => {
                         <div
                             ref={mergeRefs(rowRef, resizeRef)}
                             style={{
-                                maxWidth: "min(802.2px, 100%)",
+                                maxWidth: "100%",
                                 minWidth: 50,
                                 whiteSpace: "pre-wrap",
                                 wordBreak: "break-all",
