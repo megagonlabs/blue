@@ -47,6 +47,7 @@ export default function App({ children }) {
     const recentSessions = useMemo(
         () =>
             Object.values(sessionDetails)
+                .filter((session) => _.get(session, "group_by.owner", false))
                 .sort((a, b) => b.created_date - a.created_date)
                 .slice(0, 5)
                 .map((session) => session.id),
@@ -60,12 +61,38 @@ export default function App({ children }) {
         canReadPlatformAgents,
         canReadSessions,
         canReadDataRegistry,
+        canWriteSessions,
         canReadAgentRegistry,
         canReadOperatorRegistry,
         canReadModelRegistry,
     } = permissions;
     const [isCreatingSession, setIsCreatingSession] = useState(false);
     const MENU_ITEMS = {
+        my_sessions: {
+            href: `/sessions`,
+            text: "My Sessions",
+            icon: faUser,
+            visible: canReadDataRegistry,
+            onClick: () => {
+                appActions.session.setState({
+                    key: "sessionGroupBy",
+                    value: "owner",
+                });
+            },
+        },
+        new_session: {
+            href: `/sessions`,
+            text: "New Session",
+            icon: faInboxArrowUp,
+            visible: canWriteSessions,
+            onClick: () => {
+                if (!isSocketOpen) {
+                    return;
+                }
+                setIsCreatingSession(true);
+                appActions.session.createSession(socket);
+            },
+        },
         data_registry: {
             href: `/registry/${process.env.NEXT_PUBLIC_DATA_REGISTRY_NAME}/data`,
             text: "Data",
@@ -239,35 +266,34 @@ export default function App({ children }) {
                                         />
                                     );
                                 })}
-                            <Button
-                                large
-                                style={{ backgroundColor: "transparent" }}
-                                text="My Sessions"
-                                icon={faIcon({ icon: faUser })}
-                                onClick={() => {
-                                    router.push("/sessions");
-                                    appActions.session.setState({
-                                        key: "sessionGroupBy",
-                                        value: "owner",
-                                    });
-                                }}
-                            />
-                            <Button
-                                disabled={!isSocketOpen}
-                                large
-                                text="New Session"
-                                style={{ backgroundColor: "transparent" }}
-                                loading={isCreatingSession}
-                                icon={faIcon({ icon: faInboxArrowUp })}
-                                onClick={() => {
-                                    if (!isSocketOpen) {
-                                        return;
+                            {["my_sessions", "new_session"].map(
+                                (key, index) => {
+                                    const {
+                                        href,
+                                        icon,
+                                        text,
+                                        visible,
+                                        onClick,
+                                    } = _.get(MENU_ITEMS, key, {});
+                                    if (!visible) {
+                                        return null;
                                     }
-                                    router.push("/sessions");
-                                    setIsCreatingSession(true);
-                                    appActions.session.createSession(socket);
-                                }}
-                            />
+                                    return (
+                                        <Link href={href} key={index}>
+                                            <Button
+                                                large
+                                                style={{
+                                                    backgroundColor:
+                                                        "transparent",
+                                                }}
+                                                text={text}
+                                                icon={faIcon({ icon: icon })}
+                                                onClick={onClick}
+                                            />
+                                        </Link>
+                                    );
+                                }
+                            )}
                         </ButtonGroup>
                     </>
                 ) : null}

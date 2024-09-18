@@ -226,7 +226,7 @@ def get_users(request: Request, keyword: str = ""):
 def update_user_role(request: Request, uid, role_name):
     acl_enforce(request.state.user['role'], 'platform_users', 'write_all')
     # preventive measure
-    if uid == pydash.objects.get(request, 'state.user.uid', None):
-        return JSONResponse(content={"message": "You can't modify your own role."}, status_code=400)
+    if pydash.is_equal(uid, pydash.objects.get(request, 'state.user.uid', None)):
+        return JSONResponse(content={"message": "Unable to change the role."}, status_code=400)
     p.set_metadata(f'users.{uid}.role', role_name)
     return JSONResponse(content={"message": "Success"})

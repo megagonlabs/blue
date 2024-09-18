@@ -52,7 +52,7 @@ export default function Sessions() {
     const [isSessionDetailOpen, setIsSessionDetailOpen] = useState(false);
     const { socket, reconnectWs, isSocketOpen } = useSocket();
     const { permissions, settings } = useContext(AuthContext);
-    const { canCreateSessions } = permissions;
+    const { canWriteSessions } = permissions;
     const { authenticating } = useContext(SocketContext);
     const sendSessionMessage = (message) => {
         if (!isSocketOpen) {
@@ -221,7 +221,7 @@ export default function Sessions() {
                                 icon={faIcon({ icon: faRefresh })}
                             />
                         </Tooltip>
-                        {canCreateSessions ? (
+                        {canWriteSessions ? (
                             <Tooltip
                                 minimal
                                 placement="bottom"

@@ -130,7 +130,7 @@ export const AuthProvider = ({ children }) => {
                 _.get(permissions, "agent_registry", []),
                 ["read_all"]
             ),
-            canCreateSessions: hasIntersection(
+            canWriteSessions: hasIntersection(
                 _.get(permissions, "sessions", []),
                 ["write_all", "write_own"]
             ),
