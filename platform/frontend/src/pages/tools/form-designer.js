@@ -1,4 +1,4 @@
-import EditorJSON from "@/components/codemirror/EditorJSON";
+import JsonEditor from "@/components/codemirror/JsonEditor";
 import {
     DATA_JSON_SCHEMA,
     UI_JSON_SCHEMA,
@@ -294,7 +294,7 @@ function FormDesigner() {
                                         maxHeight: "calc(100% - 51px)",
                                     }}
                                 >
-                                    <EditorJSON
+                                    <JsonEditor
                                         schema={UI_JSON_SCHEMA}
                                         setLoading={setUiSchemaLoading}
                                         allowSaveWithError
@@ -356,7 +356,7 @@ function FormDesigner() {
                                         maxHeight: "calc(100% - 51px)",
                                     }}
                                 >
-                                    <EditorJSON
+                                    <JsonEditor
                                         schema={DATA_JSON_SCHEMA}
                                         setLoading={setSchemaLoading}
                                         allowSaveWithError

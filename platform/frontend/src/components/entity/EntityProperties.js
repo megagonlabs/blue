@@ -1,6 +1,7 @@
-import EditorJSON from "@/components/codemirror/EditorJSON";
-import { Classes, Intent, Section, SectionCard, Tag } from "@blueprintjs/core";
+import JsonEditor from "@/components/codemirror/JsonEditor";
+import { Intent, Section, SectionCard, Tag } from "@blueprintjs/core";
 import _ from "lodash";
+import JsonViewer from "../sessions/message/renderers/JsonViewer";
 export default function EntityProperties({
     entity,
     edit,
@@ -37,19 +38,11 @@ export default function EntityProperties({
                 }}
             >
                 {!edit ? (
-                    <pre
-                        className={Classes.TEXT_SMALL}
-                        style={{
-                            margin: 0,
-                            padding: 15,
-                            width: "100%",
-                            overflowX: "auto",
-                        }}
-                    >
-                        {JSON.stringify(entity.properties, null, 4)}
-                    </pre>
+                    <div style={{ padding: 15 }}>
+                        <JsonViewer json={entity.properties} />
+                    </div>
                 ) : (
-                    <EditorJSON
+                    <JsonEditor
                         code={JSON.stringify(entity.properties, null, 4)}
                         setCode={setProperties}
                         setLoading={setLoading}

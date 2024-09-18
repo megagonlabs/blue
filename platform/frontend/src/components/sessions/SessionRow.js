@@ -26,13 +26,12 @@ import { useSocket } from "../hooks/useSocket";
 export default function SessionRow({ index, style }) {
     const { appState, appActions } = useContext(AppContext);
     const sessionIdFocus = appState.session.sessionIdFocus;
-    const sessionId = appState.session.sessionIds[index];
+    const sessionId = appState.session.groupedSessionIds[index];
     const unreadSessionIds = appState.session.unreadSessionIds;
     const messages = appState.session.sessions[sessionId].messages;
     const streams = appState.session.sessions[sessionId].streams;
     const [showActions, setShowActions] = useState(false);
     const [lastMessage, setLastMessage] = useState("-");
-    const sessionGroupBy = appState.session.sessionGroupBy;
     useEffect(() => {
         const last = _.last(messages);
         if (_.isEmpty(last)) {
@@ -86,20 +85,6 @@ export default function SessionRow({ index, style }) {
         });
         appActions.session.setSessionIdFocus(sessionId);
     };
-    const groupByFlag = _.get(
-        appState,
-        ["session", "sessionDetails", sessionId],
-        null
-    );
-    if (_.isEqual(sessionGroupBy, "owner")) {
-        if (!_.get(groupByFlag, "group_by.owner", false)) {
-            return null;
-        }
-    } else if (_.isEqual(sessionGroupBy, "member")) {
-        if (!_.get(groupByFlag, "group_by.member", false)) {
-            return null;
-        }
-    }
     return (
         <Card
             interactive

@@ -9,7 +9,7 @@ import { EditorView, minimalSetup } from "codemirror";
 import { jsonSchema } from "codemirror-json-schema";
 import _ from "lodash";
 import { useCallback, useEffect, useRef, useState } from "react";
-export default function EditorJSON({
+export default function JsonEditor({
     code,
     setCode,
     setError,
