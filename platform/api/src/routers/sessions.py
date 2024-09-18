@@ -183,7 +183,7 @@ def add_member_to_session(request: Request, session_id, uid):
     session_acl_enforce(request, session_dict, write=True)
     owner = pydash.objects.get(session_dict, 'owner', None)
     if pydash.is_equal(owner, uid):
-        return JSONResponse(status_code=400, content={"message": "You can't add yourself as a member."})
+        return JSONResponse(status_code=400, content={"message": "Unable to add the owner as a member."})
     session.set_metadata(f'members.{uid}', True)
     return JSONResponse(content={"message": "Success"})
 
@@ -254,7 +254,7 @@ async def create_session(request: Request):
     session = p.create_session()
     session.set_metadata('created_by', request.state.user['uid'])
     created_date = session.get_metadata('created_date')
-    result = {"id": session.sid, "name": session.sid, "description": "", 'created_date': created_date}
+    result = {"id": session.sid, "name": session.sid, "description": "", 'created_date': created_date, 'group_by': {'owner': True, 'member': False}}
     await request.app.connection_manager.broadcast(json.dumps({"type": "NEW_SESSION_BROADCAST", "session": result}))
     return JSONResponse(content={"result": result})
 

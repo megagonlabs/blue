@@ -11,6 +11,7 @@ import _ from "lodash";
 import { useContext, useState } from "react";
 import { AppContext } from "../contexts/app-context";
 import { faIcon } from "../icon";
+import JsonViewer from "../sessions/message/renderers/JsonViewer";
 export default function Debugger() {
     const { appState, appActions } = useContext(AppContext);
     const [focusMessageType, setFocusMessageType] = useState("all");
@@ -37,17 +38,19 @@ export default function Debugger() {
             <div
                 style={{
                     height: "calc(100% - 40px)",
-                    overflowY: "auto",
-                    overflowX: "hidden",
+                    overflowX: "auto",
                     padding: 15,
                 }}
             >
                 {messages.map((message, index) => {
                     return (
-                        <div key={index} style={{ whiteSpace: "pre-wrap" }}>
-                            {JSON.stringify(_.omit(message, ["type"]), null, 4)}
+                        <>
+                            <JsonViewer
+                                json={_.omit(message, ["type"])}
+                                key={index}
+                            />
                             {index < _.size(messages) - 1 ? <Divider /> : null}
-                        </div>
+                        </>
                     );
                 })}
             </div>

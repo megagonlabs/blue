@@ -25,8 +25,8 @@ import {
     faGear,
     faInboxArrowUp,
     faLayerGroup,
-    faListUl,
     faPencilRuler,
+    faUser,
     faUserGroup,
 } from "@fortawesome/pro-duotone-svg-icons";
 import _ from "lodash";
@@ -47,6 +47,7 @@ export default function App({ children }) {
     const recentSessions = useMemo(
         () =>
             Object.values(sessionDetails)
+                .filter((session) => _.get(session, "group_by.owner", false))
                 .sort((a, b) => b.created_date - a.created_date)
                 .slice(0, 5)
                 .map((session) => session.id),
@@ -60,17 +61,37 @@ export default function App({ children }) {
         canReadPlatformAgents,
         canReadSessions,
         canReadDataRegistry,
+        canWriteSessions,
         canReadAgentRegistry,
         canReadOperatorRegistry,
         canReadModelRegistry,
     } = permissions;
     const [isCreatingSession, setIsCreatingSession] = useState(false);
     const MENU_ITEMS = {
-        sessions: {
-            href: "/sessions",
-            text: "See All",
-            icon: faListUl,
-            visible: canReadSessions,
+        my_sessions: {
+            href: `/sessions`,
+            text: "My Sessions",
+            icon: faUser,
+            visible: canReadDataRegistry,
+            onClick: () => {
+                appActions.session.setState({
+                    key: "sessionGroupBy",
+                    value: "owner",
+                });
+            },
+        },
+        new_session: {
+            href: `/sessions`,
+            text: "New Session",
+            icon: faInboxArrowUp,
+            visible: canWriteSessions,
+            onClick: () => {
+                if (!isSocketOpen) {
+                    return;
+                }
+                setIsCreatingSession(true);
+                appActions.session.createSession(socket);
+            },
         },
         data_registry: {
             href: `/registry/${process.env.NEXT_PUBLIC_DATA_REGISTRY_NAME}/data`,
@@ -187,33 +208,6 @@ export default function App({ children }) {
             >
                 {hasTrue([canReadSessions]) ? (
                     <>
-                        <div style={{ marginBottom: 10 }}>
-                            <Tooltip
-                                minimal
-                                placement="bottom-start"
-                                content="Start a new session"
-                            >
-                                <Button
-                                    disabled={!isSocketOpen}
-                                    large
-                                    text="New"
-                                    outlined
-                                    intent={Intent.PRIMARY}
-                                    loading={isCreatingSession}
-                                    rightIcon={faIcon({ icon: faInboxArrowUp })}
-                                    onClick={() => {
-                                        if (!isSocketOpen) {
-                                            return;
-                                        }
-                                        router.push("/sessions");
-                                        setIsCreatingSession(true);
-                                        appActions.session.createSession(
-                                            socket
-                                        );
-                                    }}
-                                />
-                            </Tooltip>
-                        </div>
                         <MenuDivider title="Sessions" />
                         <ButtonGroup
                             alignText={Alignment.LEFT}
@@ -272,43 +266,34 @@ export default function App({ children }) {
                                         />
                                     );
                                 })}
-                            {["sessions"].map((key, index) => {
-                                const { href, icon, text, visible } = _.get(
-                                    MENU_ITEMS,
-                                    key,
-                                    {}
-                                );
-                                if (!visible) {
-                                    return null;
+                            {["my_sessions", "new_session"].map(
+                                (key, index) => {
+                                    const {
+                                        href,
+                                        icon,
+                                        text,
+                                        visible,
+                                        onClick,
+                                    } = _.get(MENU_ITEMS, key, {});
+                                    if (!visible) {
+                                        return null;
+                                    }
+                                    return (
+                                        <Link href={href} key={index}>
+                                            <Button
+                                                large
+                                                style={{
+                                                    backgroundColor:
+                                                        "transparent",
+                                                }}
+                                                text={text}
+                                                icon={faIcon({ icon: icon })}
+                                                onClick={onClick}
+                                            />
+                                        </Link>
+                                    );
                                 }
-                                const active = _.startsWith(
-                                    router.asPath,
-                                    href
-                                );
-                                return (
-                                    <Link href={href} key={index}>
-                                        <Button
-                                            large
-                                            style={
-                                                !active
-                                                    ? {
-                                                          backgroundColor:
-                                                              "transparent",
-                                                      }
-                                                    : null
-                                            }
-                                            active={
-                                                active &&
-                                                !recentSessions.includes(
-                                                    sessionIdFocus
-                                                )
-                                            }
-                                            text={text}
-                                            icon={faIcon({ icon: icon })}
-                                        />
-                                    </Link>
-                                );
-                            })}
+                            )}
                         </ButtonGroup>
                     </>
                 ) : null}

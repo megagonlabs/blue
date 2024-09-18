@@ -1,13 +1,28 @@
 import { CARD_LIST_CLASS_NAMES } from "@/components/constant";
 import { AppContext } from "@/components/contexts/app-context";
 import SessionRow from "@/components/sessions/SessionRow";
+import _ from "lodash";
 import { useContext, useEffect, useRef } from "react";
 import AutoSizer from "react-virtualized-auto-sizer";
 import { FixedSizeList } from "react-window";
 const Row = (props) => <SessionRow {...props} />;
 export default function SessionList() {
-    const { appState } = useContext(AppContext);
+    const { appState, appActions } = useContext(AppContext);
     const fixedSizeListRef = useRef();
+    const { sessionGroupBy, sessionIds } = appState.session;
+    useEffect(() => {
+        appActions.session.setState({
+            key: "groupedSessionIds",
+            value: sessionIds.filter((sessionId) => {
+                const groupByFlag = _.get(
+                    appState,
+                    `session.sessionDetails.${sessionId}.group_by.${sessionGroupBy}`,
+                    false
+                );
+                return _.isEqual(sessionGroupBy, "all") || groupByFlag;
+            }),
+        });
+    }, [sessionGroupBy, sessionIds]);
     useEffect(() => {
         setTimeout(() => {
             if (_.isNil(fixedSizeListRef.current)) {
@@ -35,7 +50,7 @@ export default function SessionList() {
                     style={{ borderRadius: 0, marginTop: 1 }}
                     height={height - 80 - 41}
                     width={width - 1}
-                    itemCount={appState.session.sessionIds.length}
+                    itemCount={_.size(appState.session.groupedSessionIds)}
                     itemSize={82}
                 >
                     {Row}
