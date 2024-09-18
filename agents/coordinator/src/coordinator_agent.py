@@ -232,10 +232,12 @@ class CoordinatorAgent(Agent):
         ### do regular session listening
         return super().session_listener(message)
 
-    def transform_data(self, input_stream, from_agent, from_agent_param, to_agent, to_agent_param):
+    def transform_data(self, input_stream, budget, from_agent, from_agent_param, to_agent, to_agent_param):
         logging.info("TRANSFORM DATA:")
         logging.info(from_agent + "." + from_agent_param)
         logging.info(to_agent + "." + to_agent_param)
+        logging.info("BUDGET:")
+        logging.info(json.dumps(budget, indent=3))
 
         context = {}
         # TODO: get registry info on from_agent, from_agent_param
@@ -245,23 +247,22 @@ class CoordinatorAgent(Agent):
         # fetch data from stream
         input_data = self.fetch_stream_data(input_stream)
 
-        # TODO: retrieve budget
-        budget = {}
-
-        # TODO: call data planner, plan, optimize
+        # TODO: call data planner, plan, optimize given budget
         pid = str(hex(uuid.uuid4().fields[0]))[2:]
         dp = DataPlanner(id=pid, properties=self.properties)
         plan = dp.plan(input_data, "TRANSFORM", context)
         plan = dp.optimize(plan, budget)
 
-        # TODO: execute plan
+        # TODO: execute plan, update budget
         pipeline = Pipeline(id=pid, properties=self.properties)
-        output_data = pipeline.execute(plan)
+        output_data = pipeline.execute(plan, budget)
 
         # persist data to stream
         output_stream = self.persist_stream_data(output_data)
 
-        # TODO: OVERRIDE 
+        # TODO: update session budget
+
+        # TODO: OVERRIDE TEMPORARILY
         output_stream = input_stream
 
         return output_stream
@@ -338,7 +339,8 @@ class CoordinatorAgent(Agent):
                     next_agent_param = worker.get_data(plan_id + ".id2node." + next_node_id + ".param")
 
                     # transform data utilizing planner/optimizers, if necessary
-                    output_stream = self.transform_data(stream, from_agent, from_agent_param, next_agent, next_agent_param)
+                    budget = worker.session.get_budget()
+                    output_stream = self.transform_data(stream, budget, from_agent, from_agent_param, next_agent, next_agent_param)
 
                     # create an EXECUTE_AGENT instruction
                     if output_stream:
