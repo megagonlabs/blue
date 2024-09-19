@@ -39,11 +39,10 @@ const UserInfo = ({ user, loading = false }) => (
         </div>
     </div>
 );
-export default function SessionMembersList() {
+export default function SessionMembersList({ loading, setLoading }) {
     const { appState, appActions } = useContext(AppContext);
     const sessionIdFocus = appState.session.sessionIdFocus;
     const [members, setMembers] = useState([]);
-    const [loading, setLoading] = useState(true);
     const [keyword, setKeyword] = useState("");
     const [isSearchPopoverOpen, setIsSearchPopoverOpen] = useState(false);
     const [searchResult, setSearchResult] = useState([]);

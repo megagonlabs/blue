@@ -194,25 +194,25 @@ class Session:
 
     ## budget
     def _init_budget(self):
-        self.set_metadata('budget', {})
-        self.set_metadata('budget.allocation', {})
-        self.set_metadata('budget.use', {})
-        self.set_budget_allocation(cost=-1, accuracy=-1, latency=-1)
+        self.set_metadata('budget', {}, nx=True)
+        self.set_metadata('budget.allocation', {}, nx=True)
+        self.set_metadata('budget.use', {}, nx=True)
+        self.set_budget_allocation(cost=-1, accuracy=-1, latency=-1, nx=True)
 
     def get_budget(self):
         return self.get_metadata('budget')
-    
-    def set_budget_allocation(self, cost=None, accuracy=None, latency=None):
-        if cost:
-            self.set_metadata('budget.allocation.cost', cost)
-        if accuracy:
-            self.set_metadata('budget.allocation.accuracy', accuracy)
-        if latency:
-            self.set_metadata('budget.allocation.latency', latency)
-    
+
+    def set_budget_allocation(self, cost=None, accuracy=None, latency=None, nx=False):
+        if cost is not None:
+            self.set_metadata('budget.allocation.cost', cost, nx)
+        if accuracy is not None:
+            self.set_metadata('budget.allocation.accuracy', accuracy, nx)
+        if latency is not None:
+            self.set_metadata('budget.allocation.latency', latency, nx)
+
     def get_budget_allocation(self):
         return self.get_metadata(key='budget.allocation')
-    
+
     def _set_budget_use(self, cost=None, accuracy=None, latency=None):
         if cost:
             self.set_metadata('budget.use.cost', cost)
@@ -224,9 +224,9 @@ class Session:
     def update_budget_use(self, cost=None, accuracy=None, latency=None):
         # TODO
         pass
-    
+
     def get_budget_use(self):
-        return self.get_metadata(key='budget.use') 
+        return self.get_metadata(key='budget.use')
 
     ## session data (shared by all agents)
     def _init_data_namespace(self):

@@ -13,11 +13,10 @@ import { faScreenUsers } from "@fortawesome/pro-duotone-svg-icons";
 import axios from "axios";
 import _ from "lodash";
 import { useContext, useEffect, useState } from "react";
-export default function SessionAgentsList() {
+export default function SessionAgentsList({ loading, setLoading }) {
     const { appState, appActions } = useContext(AppContext);
     const sessionIdFocus = appState.session.sessionIdFocus;
     const [agents, setAgents] = useState([]);
-    const [loading, setLoading] = useState(true);
     useEffect(() => {
         setLoading(true);
         axios

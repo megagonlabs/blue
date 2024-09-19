@@ -13,7 +13,11 @@ import { faCheck } from "@fortawesome/pro-duotone-svg-icons";
 import axios from "axios";
 import _ from "lodash";
 import { useContext, useState } from "react";
-export default function SessionMetadata({ allowQuickClose }) {
+export default function SessionMetadata({
+    setAllowQuickClose,
+    loading,
+    setLoading,
+}) {
     const { appState, appActions } = useContext(AppContext);
     const sessionIdFocus = appState.session.sessionIdFocus;
     const sessionDetails = _.get(
@@ -25,7 +29,6 @@ export default function SessionMetadata({ allowQuickClose }) {
     const sessionDescription = _.get(sessionDetails, "description", "");
     const [name, setName] = useState(sessionName);
     const [description, setDescription] = useState(sessionDescription);
-    const [loading, setLoading] = useState(false);
     const handleSaveMetadata = () => {
         setLoading(true);
         const payload = {
@@ -35,14 +38,14 @@ export default function SessionMetadata({ allowQuickClose }) {
         axios
             .put(`/sessions/session/${sessionIdFocus}`, payload)
             .then(() => {
-                allowQuickClose.current = true;
+                setAllowQuickClose(true);
                 setLoading(false);
                 appActions.session.setSessionDetails([
                     { ...sessionDetails, ...payload, id: sessionIdFocus },
                 ]);
             })
             .catch(() => {
-                allowQuickClose.current = true;
+                setAllowQuickClose(true);
                 setLoading(false);
             })
             .finally(() => {
@@ -62,7 +65,7 @@ export default function SessionMetadata({ allowQuickClose }) {
                             value={name}
                             onChange={(event) => {
                                 setName(event.target.value);
-                                allowQuickClose.current = false;
+                                setAllowQuickClose(false);
                             }}
                         />
                     </FormGroup>
@@ -72,7 +75,7 @@ export default function SessionMetadata({ allowQuickClose }) {
                             value={description}
                             onChange={(event) => {
                                 setDescription(event.target.value);
-                                allowQuickClose.current = false;
+                                setAllowQuickClose(false);
                             }}
                         />
                     </FormGroup>

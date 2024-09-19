@@ -8,7 +8,7 @@ import {
     faUserGroup,
 } from "@fortawesome/pro-duotone-svg-icons";
 import _ from "lodash";
-import { useContext, useRef, useState } from "react";
+import { useContext, useState } from "react";
 import SessionAgentsList from "./details/SessionAgentsList";
 import SessionBudget from "./details/SessionBudget";
 import SessionMembersList from "./details/SessionMembersList";
@@ -16,7 +16,7 @@ import SessionMetadata from "./details/SessionMetadata";
 export default function SessionDetail({ isOpen, setIsSessionDetailOpen }) {
     const { appState } = useContext(AppContext);
     const sessionIdFocus = appState.session.sessionIdFocus;
-    const allowQuickClose = useRef(true);
+    const [allowQuickClose, setAllowQuickClose] = useState(true);
     const sessionDetails = _.get(
         appState,
         ["session", "sessionDetails", sessionIdFocus],
@@ -40,7 +40,7 @@ export default function SessionDetail({ isOpen, setIsSessionDetailOpen }) {
                     </div>
                 )
             }
-            canOutsideClickClose={allowQuickClose.current}
+            canOutsideClickClose={allowQuickClose}
             onClose={() => {
                 if (loading) return;
                 setIsSessionDetailOpen(false);
@@ -90,66 +90,25 @@ export default function SessionDetail({ isOpen, setIsSessionDetailOpen }) {
                 />
             </Card>
             {_.isEqual(tab, "about") ? (
-                <SessionMetadata allowQuickClose={allowQuickClose} />
+                <SessionMetadata
+                    setAllowQuickClose={setAllowQuickClose}
+                    loading={loading}
+                    setLoading={setLoading}
+                />
             ) : null}
-            {_.isEqual(tab, "agents") ? <SessionAgentsList /> : null}
-            {_.isEqual(tab, "members") ? <SessionMembersList /> : null}
+            {_.isEqual(tab, "agents") ? (
+                <SessionAgentsList loading={loading} setLoading={setLoading} />
+            ) : null}
+            {_.isEqual(tab, "members") ? (
+                <SessionMembersList loading={loading} setLoading={setLoading} />
+            ) : null}
             {_.isEqual(tab, "budget") ? (
-                <SessionBudget loading={loading} setLoading={setLoading} />
+                <SessionBudget
+                    setAllowQuickClose={setAllowQuickClose}
+                    loading={loading}
+                    setLoading={setLoading}
+                />
             ) : null}
-            {/* <DialogBody className="dialog-body">
-                <div style={{ padding: 15 }}>
-                    {_.isEqual(tab, "about") ? (
-                        <>
-                            <FormGroup label="Name">
-                                <InputGroup
-                                    large
-                                    value={name}
-                                    onChange={(event) => {
-                                        setName(event.target.value);
-                                        allowQuickClose.current = false;
-                                    }}
-                                />
-                            </FormGroup>
-                            <FormGroup label="Description" className="margin-0">
-                                <InputGroup
-                                    large
-                                    value={description}
-                                    onChange={(event) => {
-                                        setDescription(event.target.value);
-                                        allowQuickClose.current = false;
-                                    }}
-                                />
-                            </FormGroup>
-                        </>
-                    ) : null}
-                </div>
-            </DialogBody>
-            {_.includes(["about", "budget"], tab) ? (
-                <DialogFooter>
-                    {_.isEqual(tab, "about") ? (
-                        <Button
-                            disabled={_.isEmpty(_.trim(name))}
-                            loading={loading}
-                            text="Save"
-                            large
-                            onClick={handleSaveMetadata}
-                            intent={Intent.SUCCESS}
-                            icon={faIcon({ icon: faCheck })}
-                        />
-                    ) : null}
-                    {_.isEqual(tab, "budget") ? (
-                        <Button
-                            loading={loading}
-                            text="Save"
-                            large
-                            onClick={handleSaveBudget}
-                            intent={Intent.SUCCESS}
-                            icon={faIcon({ icon: faCheck })}
-                        />
-                    ) : null}
-                </DialogFooter>
-            ) : null} */}
         </Dialog>
     );
 }
