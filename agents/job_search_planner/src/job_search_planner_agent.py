@@ -63,8 +63,9 @@ class JobSearchPlannerAgent(Agent):
         super().__init__(**kwargs)
         self.user_profile = {}
         self.search_predicates = {}
+        self.form_data = {}
         # TODO: this is currently in memory
-        # move this into the session data.
+        # move this into the session stream data.
 
     def _initialize(self, properties=None):
         super()._initialize(properties=properties)
@@ -156,10 +157,11 @@ class JobSearchPlannerAgent(Agent):
 
                 if len(extracted) >= 2:
                     # write form
-                    skill_form = ui_builders.build_skill_form(json.dumps(extracted))
+                    profile_form = ui_builders.build_form_profile(json.dumps(extracted))
+
                     if worker:
                         worker.write_control(
-                            ControlCode.CREATE_FORM, skill_form, output="FORM"
+                            ControlCode.CREATE_FORM, profile_form, output="FORM"
                         )
                 else:
                     if worker:
@@ -180,18 +182,33 @@ class JobSearchPlannerAgent(Agent):
                     form_data_stream = stream.replace("EVENT", "OUTPUT:FORM")
 
                     # when the user clicked DONE
-                    if action == "DONE":
+                    if action == "DONE_PROFILE":
                         # get form data
                         skills = worker.get_stream_data(
-                            "skills.value", stream=form_data_stream
+                            "profile_skills.value", stream=form_data_stream
                         )
-                        logging.info(skills)
+                        yoe = worker.get_stream_data(
+                            "yoe.value", stream=form_data_stream
+                        )
+
                         # close form
                         args = {"form_id": form_id}
                         worker.write_control(
                             ControlCode.CLOSE_FORM, args, output="FORM"
                         )
+                        skills = [item["skill"] for item in skills]
 
+                        profile_form = ui_builders.build_form_more_skills(skills)
+
+                        if worker:
+                            worker.write_control(
+                                ControlCode.CREATE_FORM, profile_form, output="FORM"
+                            )
+                        return (
+                            f"{yoe} years of experiences and skills {','.join(skills)}"
+                        )
+                        # TODO: add EOS to stream to user
+                        """
                         ### DECIDE NEXT STEPS
                         # create a plan to issue a query
                         query = f"Find a job {self.search_predicates['job_title']} in {self.search_predicates['location']}"
@@ -221,6 +238,16 @@ class JobSearchPlannerAgent(Agent):
                         }
 
                         return plan
+                        """
+                    elif action == "DONE_MORE_SKILLS":
+                        # get form data
+
+                        args = {"form_id": form_id}
+                        worker.write_control(
+                            ControlCode.CLOSE_FORM, args, output="FORM"
+                        )
+
+                        return json.dumps(self.form_data)
 
                     else:
                         # save form data
@@ -231,6 +258,7 @@ class JobSearchPlannerAgent(Agent):
 
                         # TODO: timestamp should be replaced by id to determine order
                         if timestamp is None or data["timestamp"] > timestamp:
+
                             worker.set_stream_data(
                                 path,
                                 {
@@ -239,6 +267,18 @@ class JobSearchPlannerAgent(Agent):
                                 },
                                 stream=form_data_stream,
                             )
+                        timestamp_local = self.form_data.get(path, None)
+                        if timestamp_local is not None:
+                            timestamp_local = timestamp_local["timestamp"]
+                        if (
+                            timestamp_local is None
+                            or data["timestamp"] > timestamp_local
+                        ):
+                            self.form_data[path] = {
+                                "value": data["value"],
+                                "timestamp": data["timestamp"],
+                            }
+
         elif input == "RETRIEVAL":
             if message.isData():
                 data = message.getData()
