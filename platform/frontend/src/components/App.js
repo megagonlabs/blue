@@ -363,7 +363,7 @@ export default function App({ children }) {
                         </ButtonGroup>
                     </>
                 ) : null}
-                {hasTrue([showFormDesigner]) ? (
+                {hasTrue([showFormDesigner, showPromptDesigner]) ? (
                     <>
                         <div>&nbsp;</div>
                         <MenuDivider title="Dev. Tools" />
@@ -374,84 +374,41 @@ export default function App({ children }) {
                             large
                             className="full-parent-width"
                         >
-                            {["form_designer"].map((key, index) => {
-                                const { href, icon, text, visible } = _.get(
-                                    MENU_ITEMS,
-                                    key,
-                                    {}
-                                );
-                                if (!visible) {
-                                    return null;
+                            {["form_designer", "prompt_designer"].map(
+                                (key, index) => {
+                                    const { href, icon, text, visible } = _.get(
+                                        MENU_ITEMS,
+                                        key,
+                                        {}
+                                    );
+                                    if (!visible) {
+                                        return null;
+                                    }
+                                    const active = _.startsWith(
+                                        router.asPath,
+                                        href
+                                    );
+                                    return (
+                                        <Link href={href} key={index}>
+                                            <Button
+                                                style={
+                                                    !active
+                                                        ? {
+                                                              backgroundColor:
+                                                                  "transparent",
+                                                          }
+                                                        : null
+                                                }
+                                                active={active}
+                                                text={text}
+                                                icon={faIcon({
+                                                    icon: icon,
+                                                })}
+                                            />
+                                        </Link>
+                                    );
                                 }
-                                const active = _.startsWith(
-                                    router.asPath,
-                                    href
-                                );
-                                return (
-                                    <Link href={href} key={index}>
-                                        <Button
-                                            style={
-                                                !active
-                                                    ? {
-                                                          backgroundColor:
-                                                              "transparent",
-                                                      }
-                                                    : null
-                                            }
-                                            active={active}
-                                            text={text}
-                                            icon={faIcon({
-                                                icon: icon,
-                                            })}
-                                        />
-                                    </Link>
-                                );
-                            })}
-                        </ButtonGroup>
-                    </>
-                ) : null}
-                {hasTrue([showPromptDesigner]) ? (
-                    <>
-                        <ButtonGroup
-                            alignText={Alignment.LEFT}
-                            vertical
-                            minimal
-                            large
-                            className="full-parent-width"
-                        >
-                            {["prompt_designer"].map((key, index) => {
-                                const { href, icon, text, visible } = _.get(
-                                    MENU_ITEMS,
-                                    key,
-                                    {}
-                                );
-                                if (!visible) {
-                                    return null;
-                                }
-                                const active = _.startsWith(
-                                    router.asPath,
-                                    href
-                                );
-                                return (
-                                    <Link href={href} key={index}>
-                                        <Button
-                                            style={
-                                                !active
-                                                    ? {
-                                                          backgroundColor:
-                                                              "transparent",
-                                                      }
-                                                    : null
-                                            }
-                                            active={active}
-                                            text={text}
-                                            icon={faIcon({
-                                                icon: icon,
-                                            })}
-                                        />
-                                    </Link>
-                                );
-                            })}
+                            )}
                         </ButtonGroup>
                     </>
                 ) : null}

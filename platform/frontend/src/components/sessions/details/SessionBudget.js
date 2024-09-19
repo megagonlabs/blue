@@ -1,6 +1,14 @@
 import { AppContext } from "@/components/contexts/app-context";
 import { faIcon } from "@/components/icon";
-import { Card, FormGroup, H4, H5, NumericInput, Tag } from "@blueprintjs/core";
+import {
+    Card,
+    DialogBody,
+    FormGroup,
+    H4,
+    H5,
+    NumericInput,
+    Tag,
+} from "@blueprintjs/core";
 import {
     faBullseyeArrow,
     faMoneySimpleFromBracket,
@@ -9,8 +17,7 @@ import {
 import axios from "axios";
 import _ from "lodash";
 import { useContext, useEffect, useState } from "react";
-export default function SessionBudget() {
-    const [loading, setLoading] = useState(false);
+export default function SessionBudget({ loading, setLoading }) {
     const { appState, appActions } = useContext(AppContext);
     const sessionIdFocus = appState.session.sessionIdFocus;
     const [budget, setBudget] = useState({});
@@ -21,6 +28,7 @@ export default function SessionBudget() {
     const useAccuracy = _.get(budget, "use.accuracy", -1);
     const useLatency = _.get(budget, "use.latency", -1);
     useEffect(() => {
+        setLoading(true);
         axios
             .get(`/sessions/session/${sessionIdFocus}/budget`)
             .then((response) => {
@@ -49,63 +57,77 @@ export default function SessionBudget() {
                 if (!_.isEmpty(responseLatency) && responseLatency >= 0) {
                     setLatency(responseLatency);
                 }
+                setLoading(false);
             });
     }, []);
     return (
-        <div style={{ display: "flex", gap: 15, flexWrap: "wrap" }}>
-            <Card compact style={{ width: "calc(50% - 7.5px)" }}>
-                <H5 style={{ marginBottom: 10 }}>Cost</H5>
-                <FormGroup label="Allocation" style={{ marginBottom: 10 }}>
-                    <NumericInput
-                        leftIcon={faIcon({ icon: faMoneySimpleFromBracket })}
-                        large
-                        fill
-                        min={0}
-                        buttonPosition="none"
-                    />
-                </FormGroup>
-                Usage
-                <H4>{!_.isEmpty(useCost) && useCost >= 0 ? useCost : "-"}</H4>
-            </Card>
-            <Card compact style={{ width: "calc(50% - 7.5px)" }}>
-                <H5 style={{ marginBottom: 10 }}>Accuracy</H5>
-                <FormGroup label="Allocation" style={{ marginBottom: 10 }}>
-                    <NumericInput
-                        leftIcon={faIcon({ icon: faBullseyeArrow })}
-                        large
-                        fill
-                        min={0}
-                        max={1}
-                        rightElement={<Tag minimal>%</Tag>}
-                        buttonPosition="none"
-                    />
-                </FormGroup>
-                Usage
-                <H4>
-                    {!_.isEmpty(useAccuracy) && useAccuracy >= 0
-                        ? useAccuracy
-                        : "-"}
-                </H4>
-            </Card>
-            <Card compact style={{ width: "calc(50% - 7.5px)" }}>
-                <H5 style={{ marginBottom: 10 }}>Latency</H5>
-                <FormGroup label="Allocation" style={{ marginBottom: 10 }}>
-                    <NumericInput
-                        leftIcon={faIcon({ icon: faStopwatch })}
-                        large
-                        fill
-                        min={0}
-                        rightElement={<Tag minimal>sec</Tag>}
-                        buttonPosition="none"
-                    />
-                </FormGroup>
-                Usage
-                <H4>
-                    {!_.isEmpty(useLatency) && useLatency >= 0
-                        ? useLatency
-                        : "-"}
-                </H4>
-            </Card>
-        </div>
+        <DialogBody className="dialog-body">
+            <div
+                style={{
+                    padding: 15,
+                    display: "flex",
+                    gap: 15,
+                    flexWrap: "wrap",
+                }}
+            >
+                <Card compact style={{ width: "calc(50% - 7.5px)" }}>
+                    <H5 style={{ marginBottom: 10 }}>Cost</H5>
+                    <FormGroup label="Allocation" style={{ marginBottom: 10 }}>
+                        <NumericInput
+                            leftIcon={faIcon({
+                                icon: faMoneySimpleFromBracket,
+                            })}
+                            large
+                            fill
+                            min={0}
+                            buttonPosition="none"
+                        />
+                    </FormGroup>
+                    Usage &#40;total&#41;
+                    <H4 className="margin-0">
+                        {!_.isEmpty(useCost) && useCost >= 0 ? useCost : "-"}
+                    </H4>
+                </Card>
+                <Card compact style={{ width: "calc(50% - 7.5px)" }}>
+                    <H5 style={{ marginBottom: 10 }}>Accuracy</H5>
+                    <FormGroup label="Allocation" style={{ marginBottom: 10 }}>
+                        <NumericInput
+                            leftIcon={faIcon({ icon: faBullseyeArrow })}
+                            large
+                            fill
+                            min={0}
+                            max={1}
+                            rightElement={<Tag minimal>%</Tag>}
+                            buttonPosition="none"
+                        />
+                    </FormGroup>
+                    Usage &#40;worst&#41;
+                    <H4 className="margin-0">
+                        {!_.isEmpty(useAccuracy) && useAccuracy >= 0
+                            ? useAccuracy
+                            : "-"}
+                    </H4>
+                </Card>
+                <Card compact style={{ width: "calc(50% - 7.5px)" }}>
+                    <H5 style={{ marginBottom: 10 }}>Latency</H5>
+                    <FormGroup label="Allocation" style={{ marginBottom: 10 }}>
+                        <NumericInput
+                            leftIcon={faIcon({ icon: faStopwatch })}
+                            large
+                            fill
+                            min={0}
+                            rightElement={<Tag minimal>sec</Tag>}
+                            buttonPosition="none"
+                        />
+                    </FormGroup>
+                    Usage &#40;worst&#41;
+                    <H4 className="margin-0">
+                        {!_.isEmpty(useLatency) && useLatency >= 0
+                            ? useLatency
+                            : "-"}
+                    </H4>
+                </Card>
+            </div>
+        </DialogBody>
     );
 }

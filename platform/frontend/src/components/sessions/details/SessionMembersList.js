@@ -6,6 +6,7 @@ import {
     Button,
     Card,
     Classes,
+    DialogBody,
     InputGroup,
     Intent,
     Popover,
@@ -148,200 +149,213 @@ export default function SessionMembersList() {
             });
     };
     return (
-        <div
-            style={{ minHeight: 202, height: _.isEmpty(members) ? 202 : null }}
-        >
-            <Popover
-                onInteraction={(state) => {
-                    setIsSearchPopoverOpen(state);
-                    if (!state && !_.isEmpty(recentlyAdded)) {
-                        fetchMemberList();
-                        setRecentlyAdded(new Set());
-                    }
+        <DialogBody className="dialog-body">
+            <div
+                style={{
+                    padding: 15,
+                    minHeight: 202,
+                    height: _.isEmpty(members) ? 202 : null,
                 }}
-                matchTargetWidth
-                className="full-parent-width"
-                minimal
-                autoFocus={false}
-                enforceFocus={false}
-                modifiers={{
-                    preventOverflow: { boundariesElement: "viewport" },
-                }}
-                isOpen={isSearchPopoverOpen}
-                placement="bottom-start"
-                content={
-                    <div style={{ padding: 7.5 }}>
-                        {_.isEmpty(searchResult) ? (
-                            <div
-                                style={{ padding: 7.5 }}
-                                className={isTyping ? Classes.SKELETON : null}
-                            >
-                                No result
-                            </div>
-                        ) : null}
-                        {searchResult.map((user) => {
-                            return (
-                                <div
-                                    key={user.uid}
-                                    className="on-hover-background-color-bp-gray-3"
-                                    style={{
-                                        display: "flex",
-                                        alignItems: "center",
-                                        gap: 15,
-                                        padding: "7.5px 15px",
-                                        borderRadius: 2,
-                                        position: "relative",
-                                    }}
-                                >
-                                    <UserAvatar
-                                        user={user}
-                                        loading={isTyping}
-                                    />
-
-                                    <UserInfo user={user} loading={isTyping} />
-                                    {!recentlyAdded.has(user.uid) &&
-                                    !memberIds.has(user.uid) ? (
-                                        <a
-                                            onClick={() => {
-                                                addMember(user);
-                                            }}
-                                            className={
-                                                isTyping
-                                                    ? Classes.SKELETON
-                                                    : null
-                                            }
-                                            style={{
-                                                position: "absolute",
-                                                right: 15,
-                                                fontWeight: 600,
-                                            }}
-                                        >
-                                            Add
-                                        </a>
-                                    ) : (
-                                        faIcon({
-                                            icon: faCircleCheck,
-                                            size: 20,
-                                            style: {
-                                                position: "absolute",
-                                                right: 15,
-                                                color: "#238551",
-                                            },
-                                        })
-                                    )}
-                                </div>
-                            );
-                        })}
-                    </div>
-                }
             >
-                <InputGroup
-                    onClick={(event) => {
-                        if (isSearchPopoverOpen) {
-                            event.stopPropagation();
+                <Popover
+                    onInteraction={(state) => {
+                        setIsSearchPopoverOpen(state);
+                        if (!state && !_.isEmpty(recentlyAdded)) {
+                            fetchMemberList();
+                            setRecentlyAdded(new Set());
                         }
                     }}
-                    autoFocus
-                    leftIcon={faIcon({ icon: faSearch })}
-                    placeholder="Search members"
-                    large
-                    value={keyword}
-                    onChange={(event) => {
-                        setIsTyping(true);
-                        setKeyword(event.target.value);
-                        handleSearchQuery.call({}, event.target.value);
+                    matchTargetWidth
+                    className="full-parent-width"
+                    minimal
+                    autoFocus={false}
+                    enforceFocus={false}
+                    modifiers={{
+                        preventOverflow: { boundariesElement: "viewport" },
                     }}
-                    style={{ marginBottom: 7.5 }}
-                />
-            </Popover>
-            {loading ? (
-                <>
-                    {LOADING_PLACEHOLDER}
-                    {LOADING_PLACEHOLDER}
-                </>
-            ) : (
-                members.map((member) => {
-                    const user = _.get(
-                        appState,
-                        ["app", "users", member.uid],
-                        {}
-                    );
-                    const hasUserProfile = _.has(appState, [
-                        "app",
-                        "users",
-                        member.uid,
-                    ]);
-                    if (!hasUserProfile) {
-                        return LOADING_PLACEHOLDER;
-                    }
-                    return (
-                        <div
-                            key={member.uid}
-                            className="on-hover-background-color-bp-gray-3"
-                            style={{
-                                display: "flex",
-                                alignItems: "center",
-                                gap: 15,
-                                padding: "7.5px 15px",
-                                borderRadius: 2,
-                                position: "relative",
-                            }}
-                        >
-                            <UserAvatar user={user} />
-                            <UserInfo user={user} />
-                            {member.owner ? (
-                                <Tag
-                                    minimal
-                                    intent={Intent.PRIMARY}
-                                    style={{
-                                        position: "absolute",
-                                        right: 15,
-                                    }}
-                                >
-                                    Owner
-                                </Tag>
-                            ) : (
+                    isOpen={isSearchPopoverOpen}
+                    placement="bottom-start"
+                    content={
+                        <div style={{ padding: 7.5 }}>
+                            {_.isEmpty(searchResult) ? (
                                 <div
-                                    style={{
-                                        position: "absolute",
-                                        right: 15,
-                                    }}
+                                    style={{ padding: 7.5 }}
+                                    className={
+                                        isTyping ? Classes.SKELETON : null
+                                    }
                                 >
-                                    <Popover
-                                        placement="left"
-                                        content={
-                                            <div style={{ padding: 15 }}>
+                                    No result
+                                </div>
+                            ) : null}
+                            {searchResult.map((user) => {
+                                return (
+                                    <div
+                                        key={user.uid}
+                                        className="on-hover-background-color-bp-gray-3"
+                                        style={{
+                                            display: "flex",
+                                            alignItems: "center",
+                                            gap: 15,
+                                            padding: "7.5px 15px",
+                                            borderRadius: 2,
+                                            position: "relative",
+                                        }}
+                                    >
+                                        <UserAvatar
+                                            user={user}
+                                            loading={isTyping}
+                                        />
+
+                                        <UserInfo
+                                            user={user}
+                                            loading={isTyping}
+                                        />
+                                        {!recentlyAdded.has(user.uid) &&
+                                        !memberIds.has(user.uid) ? (
+                                            <a
+                                                onClick={() => {
+                                                    addMember(user);
+                                                }}
+                                                className={
+                                                    isTyping
+                                                        ? Classes.SKELETON
+                                                        : null
+                                                }
+                                                style={{
+                                                    position: "absolute",
+                                                    right: 15,
+                                                    fontWeight: 600,
+                                                }}
+                                            >
+                                                Add
+                                            </a>
+                                        ) : (
+                                            faIcon({
+                                                icon: faCircleCheck,
+                                                size: 20,
+                                                style: {
+                                                    position: "absolute",
+                                                    right: 15,
+                                                    color: "#238551",
+                                                },
+                                            })
+                                        )}
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    }
+                >
+                    <InputGroup
+                        onClick={(event) => {
+                            if (isSearchPopoverOpen) {
+                                event.stopPropagation();
+                            }
+                        }}
+                        autoFocus
+                        leftIcon={faIcon({ icon: faSearch })}
+                        placeholder="Search members"
+                        large
+                        value={keyword}
+                        onChange={(event) => {
+                            setIsTyping(true);
+                            setKeyword(event.target.value);
+                            handleSearchQuery.call({}, event.target.value);
+                        }}
+                        style={{ marginBottom: 7.5 }}
+                    />
+                </Popover>
+                {loading ? (
+                    <>
+                        {LOADING_PLACEHOLDER}
+                        {LOADING_PLACEHOLDER}
+                    </>
+                ) : (
+                    members.map((member) => {
+                        const user = _.get(
+                            appState,
+                            ["app", "users", member.uid],
+                            {}
+                        );
+                        const hasUserProfile = _.has(appState, [
+                            "app",
+                            "users",
+                            member.uid,
+                        ]);
+                        if (!hasUserProfile) {
+                            return LOADING_PLACEHOLDER;
+                        }
+                        return (
+                            <div
+                                key={member.uid}
+                                className="on-hover-background-color-bp-gray-3"
+                                style={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: 15,
+                                    padding: "7.5px 15px",
+                                    borderRadius: 2,
+                                    position: "relative",
+                                }}
+                            >
+                                <UserAvatar user={user} />
+                                <UserInfo user={user} />
+                                {member.owner ? (
+                                    <Tag
+                                        minimal
+                                        intent={Intent.PRIMARY}
+                                        style={{
+                                            position: "absolute",
+                                            right: 15,
+                                        }}
+                                    >
+                                        Owner
+                                    </Tag>
+                                ) : (
+                                    <div
+                                        style={{
+                                            position: "absolute",
+                                            right: 15,
+                                        }}
+                                    >
+                                        <Popover
+                                            placement="left"
+                                            content={
+                                                <div style={{ padding: 15 }}>
+                                                    <Button
+                                                        className={
+                                                            Classes.POPOVER_DISMISS
+                                                        }
+                                                        text="Confirm"
+                                                        onClick={() => {
+                                                            removeMember(user);
+                                                        }}
+                                                        intent={Intent.DANGER}
+                                                    />
+                                                </div>
+                                            }
+                                        >
+                                            <Tooltip
+                                                content="Remove"
+                                                minimal
+                                                placement="left"
+                                            >
                                                 <Button
-                                                    className={
-                                                        Classes.POPOVER_DISMISS
-                                                    }
-                                                    text="Confirm"
-                                                    onClick={() => {
-                                                        removeMember(user);
-                                                    }}
+                                                    minimal
+                                                    icon={faIcon({
+                                                        icon: faTrash,
+                                                    })}
                                                     intent={Intent.DANGER}
                                                 />
-                                            </div>
-                                        }
-                                    >
-                                        <Tooltip
-                                            content="Remove"
-                                            minimal
-                                            placement="left"
-                                        >
-                                            <Button
-                                                minimal
-                                                icon={faIcon({ icon: faTrash })}
-                                                intent={Intent.DANGER}
-                                            />
-                                        </Tooltip>
-                                    </Popover>
-                                </div>
-                            )}
-                        </div>
-                    );
-                })
-            )}
-        </div>
+                                            </Tooltip>
+                                        </Popover>
+                                    </div>
+                                )}
+                            </div>
+                        );
+                    })
+                )}
+            </div>
+        </DialogBody>
     );
 }
