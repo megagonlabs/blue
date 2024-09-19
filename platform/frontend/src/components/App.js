@@ -85,6 +85,8 @@ export default function App({ children }) {
             text: "New Session",
             icon: faInboxArrowUp,
             visible: canWriteSessions,
+            disabled: !isSocketOpen,
+            intent: Intent.PRIMARY,
             onClick: () => {
                 if (!isSocketOpen) {
                     return;
@@ -274,6 +276,8 @@ export default function App({ children }) {
                                         text,
                                         visible,
                                         onClick,
+                                        disabled,
+                                        intent,
                                     } = _.get(MENU_ITEMS, key, {});
                                     if (!visible) {
                                         return null;
@@ -281,12 +285,14 @@ export default function App({ children }) {
                                     return (
                                         <Link href={href} key={index}>
                                             <Button
+                                                intent={intent}
                                                 large
                                                 style={{
                                                     backgroundColor:
                                                         "transparent",
                                                 }}
                                                 text={text}
+                                                disabled={disabled}
                                                 icon={faIcon({ icon: icon })}
                                                 onClick={onClick}
                                             />
