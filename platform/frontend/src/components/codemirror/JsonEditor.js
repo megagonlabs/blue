@@ -50,9 +50,7 @@ export default function JsonEditor({
     });
     const [codeEditorView, setCodeEditorView] = useState(null);
     useEffect(() => {
-        if (_.isEqual(code, doc) || _.isNil(codeEditorView)) {
-            return;
-        }
+        if (_.isEqual(code, doc) || _.isNil(codeEditorView)) return;
         codeEditorView.dispatch({
             changes: { from: 0, to: doc.length, insert: code },
         });

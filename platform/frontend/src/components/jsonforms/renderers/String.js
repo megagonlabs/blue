@@ -20,9 +20,7 @@ const StringRenderer = ({ uischema, handleChange, path, data, required }) => {
     ) : null;
     const handleOnChange = (event) => {
         handleChange(path, event.target.value);
-        if (!_.isEqual(socket.readyState, WebSocket.OPEN)) {
-            return;
-        }
+        if (!_.isEqual(socket.readyState, WebSocket.OPEN)) return;
         setTimeout(() => {
             sendSocketMessage(
                 socket,

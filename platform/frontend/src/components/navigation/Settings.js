@@ -13,9 +13,9 @@ import {
 } from "@blueprintjs/core";
 import {
     faArrowsFromDottedLine,
+    faBug,
     faCode,
     faMessages,
-    faRectangleTerminal,
 } from "@fortawesome/pro-duotone-svg-icons";
 import classNames from "classnames";
 import _ from "lodash";
@@ -68,7 +68,7 @@ export default function Settings({ isOpen, setIsSettingsOpen }) {
                 <Section
                     {...SECTION_PROPS}
                     icon={faIcon({ icon: faMessages })}
-                    title="Messages"
+                    title="Sessions & Messages"
                     style={{ marginBottom: 10 }}
                 >
                     <SectionCard padded={false}>
@@ -121,7 +121,7 @@ export default function Settings({ isOpen, setIsSettingsOpen }) {
                                         </div>
                                     </div>
                                 }
-                                icon={faIcon({ icon: faRectangleTerminal })}
+                                icon={faIcon({ icon: faBug })}
                                 labelElement={
                                     <Switch
                                         checked={_.get(

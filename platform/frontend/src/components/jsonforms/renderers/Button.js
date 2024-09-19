@@ -7,9 +7,7 @@ const { Button } = require("@blueprintjs/core");
 const ButtonRenderer = ({ uischema, path }) => {
     const { socket } = useSocket();
     const onClickHandler = () => {
-        if (!_.isEqual(socket.readyState, WebSocket.OPEN)) {
-            return;
-        }
+        if (!_.isEqual(socket.readyState, WebSocket.OPEN)) return;
         setTimeout(() => {
             sendSocketMessage(
                 socket,

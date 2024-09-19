@@ -51,9 +51,7 @@ const EnumRenderer = ({
                         value = null;
                     }
                     handleChange(path, value);
-                    if (!_.isEqual(socket.readyState, WebSocket.OPEN)) {
-                        return;
-                    }
+                    if (!_.isEqual(socket.readyState, WebSocket.OPEN)) return;
                     setTimeout(() => {
                         sendSocketMessage(
                             socket,

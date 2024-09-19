@@ -31,7 +31,6 @@ import {
     faCircleA,
     faClipboard,
     faInboxIn,
-    faInboxOut,
     faMessages,
     faPlusLarge,
     faRefresh,
@@ -52,12 +51,9 @@ export default function Sessions() {
     const [isSessionDetailOpen, setIsSessionDetailOpen] = useState(false);
     const { socket, reconnectWs, isSocketOpen } = useSocket();
     const { permissions, settings } = useContext(AuthContext);
-    const { canWriteSessions } = permissions;
     const { authenticating } = useContext(SocketContext);
     const sendSessionMessage = (message) => {
-        if (!isSocketOpen) {
-            return;
-        }
+        if (!isSocketOpen) return;
         setMessage("");
         sendSocketMessage(
             socket,
@@ -129,9 +125,7 @@ export default function Sessions() {
             .catch(() => {});
     };
     useEffect(() => {
-        if (!isSocketOpen) {
-            return;
-        }
+        if (!isSocketOpen) return;
         if (initialFetchAll.current) {
             initialFetchAll.current = false;
             sendSocketMessage(
@@ -221,31 +215,6 @@ export default function Sessions() {
                                 icon={faIcon({ icon: faRefresh })}
                             />
                         </Tooltip>
-                        {canWriteSessions ? (
-                            <Tooltip
-                                minimal
-                                placement="bottom"
-                                content="Start a new session"
-                            >
-                                <Button
-                                    disabled={!isSocketOpen}
-                                    text="New"
-                                    outlined
-                                    loading={isCreatingSession}
-                                    intent={Intent.PRIMARY}
-                                    onClick={() => {
-                                        if (!isSocketOpen) {
-                                            return;
-                                        }
-                                        setIsCreatingSession(true);
-                                        appActions.session.createSession(
-                                            socket
-                                        );
-                                    }}
-                                    rightIcon={faIcon({ icon: faInboxOut })}
-                                />
-                            </Tooltip>
-                        ) : null}
                     </ButtonGroup>
                     {!isSocketOpen ? (
                         <ReconnectButton />

@@ -39,9 +39,7 @@ export default function AgentEntity() {
     const routerQueryPath =
         "/" + _.get(router, "query.pathParams", []).join("/");
     useEffect(() => {
-        if (!router.isReady) {
-            return;
-        }
+        if (!router.isReady) return;
         axios.get(routerQueryPath).then((response) => {
             const result = _.get(response, "data.result", {});
             let icon = _.get(result, "icon", null);
@@ -108,9 +106,7 @@ export default function AgentEntity() {
         });
     };
     const addInputOutput = (type) => {
-        if (!router.isReady) {
-            return;
-        }
+        if (!router.isReady) return;
         router.push(`${routerQueryPath}/${type}/new`);
     };
     return (

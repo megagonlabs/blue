@@ -129,9 +129,7 @@ export default function NumberInput({
         // the same value. force the update to ensure a render triggers even if
         // this is the case.
         forceUpdate();
-        if (!_.isEqual(socket.readyState, WebSocket.OPEN)) {
-            return;
-        }
+        if (!_.isEqual(socket.readyState, WebSocket.OPEN)) return;
         setTimeout(() => {
             sendSocketMessage(
                 socket,
