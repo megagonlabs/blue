@@ -425,7 +425,7 @@ function FormDesigner() {
                                         intent={error ? Intent.DANGER : null}
                                         style={{
                                             position: "relative",
-                                            maxWidth: "min(802.2px, 100%)",
+                                            maxWidth: "100%",
                                             overflowX: "hidden",
                                             minWidth: 50,
                                             whiteSpace: "pre-wrap",
@@ -450,7 +450,21 @@ function FormDesigner() {
                                                 }}
                                             />
                                         ) : (
-                                            String(error)
+                                            <>
+                                                <div>{String(error)}</div>
+                                                <div>
+                                                    Click
+                                                    {faIcon({
+                                                        icon: faPlay,
+                                                        style: {
+                                                            color: "#1c6e42",
+                                                            marginLeft: 5,
+                                                            marginRight: 5,
+                                                        },
+                                                    })}
+                                                    to re-run
+                                                </div>
+                                            </>
                                         )}
                                     </Callout>
                                 ) : (

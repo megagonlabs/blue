@@ -23,9 +23,7 @@ export default function OutputEntity() {
     const routerQueryPath =
         "/" + _.get(router, "query.pathParams", []).join("/");
     useEffect(() => {
-        if (!router.isReady) {
-            return;
-        }
+        if (!router.isReady) return;
         axios.get(routerQueryPath).then((response) => {
             setEntity(_.get(response, "data.result", {}));
             setScope(_.get(response, "data.result.scope", null));

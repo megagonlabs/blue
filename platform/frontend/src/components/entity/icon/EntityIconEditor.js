@@ -161,9 +161,7 @@ export default function EntityIconEditor({
     const [icon, setIcon] = useState(null);
     const [color, setColor] = useState("#1C2127");
     const closeEditor = () => {
-        if (loadingRef.current) {
-            return;
-        }
+        if (loadingRef.current) return;
         setIsIconEditorOpen(false);
         setShowPreview(false);
         setCrop(null);

@@ -110,6 +110,10 @@ export const AuthProvider = ({ children }) => {
                 _.get(permissions, "form_designer", []),
                 ["visible"]
             ),
+            showPromptDesigner: hasIntersection(
+                _.get(permissions, "prompt_designer", []),
+                ["visible"]
+            ),
             canReadPlatformAgents: hasIntersection(
                 _.get(permissions, "platform_agents", []),
                 ["read_all", "read_own"]

@@ -81,7 +81,7 @@ class DSPyAgent(Agent):
             response = json.loads(r)
 
             # create output from response
-            output_data = int(response)
+            output_data = response['output']
             logging.info(output_data)
             return [str(output_data), Message.EOS]
         

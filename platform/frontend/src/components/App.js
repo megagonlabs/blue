@@ -26,6 +26,7 @@ import {
     faInboxArrowUp,
     faLayerGroup,
     faPencilRuler,
+    faRectangleTerminal,
     faUser,
     faUserGroup,
 } from "@fortawesome/pro-duotone-svg-icons";
@@ -58,6 +59,7 @@ export default function App({ children }) {
         canWritePlatformUsers,
         canReadPlatformServices,
         showFormDesigner,
+        showPromptDesigner,
         canReadPlatformAgents,
         canReadSessions,
         canReadDataRegistry,
@@ -85,10 +87,10 @@ export default function App({ children }) {
             text: "New Session",
             icon: faInboxArrowUp,
             visible: canWriteSessions,
+            disabled: isCreatingSession || !isSocketOpen,
+            intent: Intent.PRIMARY,
             onClick: () => {
-                if (!isSocketOpen) {
-                    return;
-                }
+                if (!isSocketOpen) return;
                 setIsCreatingSession(true);
                 appActions.session.createSession(socket);
             },
@@ -122,6 +124,12 @@ export default function App({ children }) {
             text: "Form Designer",
             icon: faPencilRuler,
             visible: showFormDesigner,
+        },
+        prompt_designer: {
+            href: "/tools/prompt-designer",
+            text: "Auto Prompt",
+            icon: faRectangleTerminal,
+            visible: showPromptDesigner,
         },
         admin_users: {
             href: "/admin/users",
@@ -243,9 +251,7 @@ export default function App({ children }) {
                                                         socket,
                                                     }
                                                 );
-                                                if (!router.isReady) {
-                                                    return;
-                                                }
+                                                if (!router.isReady) return;
                                                 router.push("/sessions");
                                             }}
                                             text={
@@ -274,6 +280,8 @@ export default function App({ children }) {
                                         text,
                                         visible,
                                         onClick,
+                                        disabled,
+                                        intent,
                                     } = _.get(MENU_ITEMS, key, {});
                                     if (!visible) {
                                         return null;
@@ -281,12 +289,14 @@ export default function App({ children }) {
                                     return (
                                         <Link href={href} key={index}>
                                             <Button
+                                                intent={intent}
                                                 large
                                                 style={{
                                                     backgroundColor:
                                                         "transparent",
                                                 }}
                                                 text={text}
+                                                disabled={disabled}
                                                 icon={faIcon({ icon: icon })}
                                                 onClick={onClick}
                                             />
@@ -353,7 +363,7 @@ export default function App({ children }) {
                         </ButtonGroup>
                     </>
                 ) : null}
-                {hasTrue([showFormDesigner]) ? (
+                {hasTrue([showFormDesigner, showPromptDesigner]) ? (
                     <>
                         <div>&nbsp;</div>
                         <MenuDivider title="Dev. Tools" />
@@ -364,39 +374,41 @@ export default function App({ children }) {
                             large
                             className="full-parent-width"
                         >
-                            {["form_designer"].map((key, index) => {
-                                const { href, icon, text, visible } = _.get(
-                                    MENU_ITEMS,
-                                    key,
-                                    {}
-                                );
-                                if (!visible) {
-                                    return null;
+                            {["form_designer", "prompt_designer"].map(
+                                (key, index) => {
+                                    const { href, icon, text, visible } = _.get(
+                                        MENU_ITEMS,
+                                        key,
+                                        {}
+                                    );
+                                    if (!visible) {
+                                        return null;
+                                    }
+                                    const active = _.startsWith(
+                                        router.asPath,
+                                        href
+                                    );
+                                    return (
+                                        <Link href={href} key={index}>
+                                            <Button
+                                                style={
+                                                    !active
+                                                        ? {
+                                                              backgroundColor:
+                                                                  "transparent",
+                                                          }
+                                                        : null
+                                                }
+                                                active={active}
+                                                text={text}
+                                                icon={faIcon({
+                                                    icon: icon,
+                                                })}
+                                            />
+                                        </Link>
+                                    );
                                 }
-                                const active = _.startsWith(
-                                    router.asPath,
-                                    href
-                                );
-                                return (
-                                    <Link href={href} key={index}>
-                                        <Button
-                                            style={
-                                                !active
-                                                    ? {
-                                                          backgroundColor:
-                                                              "transparent",
-                                                      }
-                                                    : null
-                                            }
-                                            active={active}
-                                            text={text}
-                                            icon={faIcon({
-                                                icon: icon,
-                                            })}
-                                        />
-                                    </Link>
-                                );
-                            })}
+                            )}
                         </ButtonGroup>
                     </>
                 ) : null}

@@ -213,13 +213,17 @@ class Session:
     def get_budget_allocation(self):
         return self.get_metadata(key='budget.allocation')
     
-    def set_budget_use(self, cost=None, accuracy=None, latency=None):
+    def _set_budget_use(self, cost=None, accuracy=None, latency=None):
         if cost:
             self.set_metadata('budget.use.cost', cost)
         if accuracy:
             self.set_metadata('budget.use.accuracy', accuracy)
         if latency:
             self.set_metadata('budget.use.latency', latency)
+
+    def update_budget_use(self, cost=None, accuracy=None, latency=None):
+        # TODO
+        pass
     
     def get_budget_use(self):
         return self.get_metadata(key='budget.use') 

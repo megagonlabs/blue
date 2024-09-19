@@ -54,7 +54,7 @@ async def handler(websocket):
             result = {}
             result['output'] = output.annotated_text
 
-            await websocket.send(json.dumps(output))
+            await websocket.send(json.dumps(result))
         except websockets.ConnectionClosedOK:
             break
 

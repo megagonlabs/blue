@@ -111,9 +111,7 @@ const MainMenuPanel = (props) => {
                             style: { marginRight: 10, marginLeft: 4 },
                         })}
                         onClick={() => {
-                            if (openingPanel) {
-                                return;
-                            }
+                            if (openingPanel) return;
                             setOpeningPanel(true);
                             props.openPanel({
                                 props: { type: _.lowerCase(type.text) },

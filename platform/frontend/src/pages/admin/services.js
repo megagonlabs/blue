@@ -159,9 +159,7 @@ export default function Services() {
         setTableKey(Date.now());
     }, [data, columns]);
     const handleColumnsReordered = (oldIndex, newIndex, length) => {
-        if (_.isEqual(oldIndex, newIndex)) {
-            return;
-        }
+        if (_.isEqual(oldIndex, newIndex)) return;
         const nextChildren = Utils.reorderArray(
             columns,
             oldIndex,
@@ -188,6 +186,7 @@ export default function Services() {
                     <Divider />
                     <Tooltip placement="bottom" minimal content="Stop">
                         <Button
+                            intent={Intent.DANGER}
                             onClick={stopSelectedServices}
                             disabled={
                                 _.isEmpty(appState.admin.selectedServices) ||
