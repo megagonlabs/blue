@@ -36,16 +36,39 @@ from session import Session
 from message import Message, MessageType, ContentType, ControlCode
 
 
+##### DSPy
+import dspy
+import dsp
+from dspy.teleprompt import BootstrapFewShot, MIPRO
+
+
 # set log level
 logging.getLogger().setLevel(logging.INFO)
 logging.basicConfig(format="%(asctime)s [%(levelname)s] [%(process)d:%(threadName)s:%(thread)d](%(filename)s:%(lineno)d) %(name)s -  %(message)s", level=logging.ERROR, datefmt="%Y-%m-%d %H:%M:%S")
+
+# Prompt program
+class PromptProgram(dspy.Signature):
+    input = dspy.InputField()
+    output = dspy.OutputField()
+
+# dspy configure
+dspy.settings.configure(lm=dspy.OpenAI(model='gpt-4o-mini'), rm=None)
+
+# Prompt metric
+def exact_match(example, pred, trace=None, frac=1.0):
+    assert(type(example.annotation) is str or type(example.annotation) is list)
+    
+    if type(example.annotation) is str:
+        return dsp.answer_match(pred.annotation, [example.annotation], frac=frac)
+    else: # type(example.answer) is list
+        return dsp.answer_match(pred.annotation, example.annotation, frac=frac)
 
 class PromptOptimizerAgent(Agent):
     def __init__(self, **kwargs):
         if 'name' not in kwargs:
             kwargs['name'] = "PROMPTOPTIMIZER"
         super().__init__(**kwargs)
-
+        self.program = PromptProgram()
 
     def _initialize(self, properties=None):
         super()._initialize(properties=properties)
@@ -62,13 +85,28 @@ class PromptOptimizerAgent(Agent):
         self.properties['max_labeled_demos'] = 4 
         self.properties['num_trials'] = 5
 
-
+    
+    def process_examples(examples):
+        # Convert a list of input-output pairs into dspy.Example objects
+        return [dspy.Example(input=ex[0], output=ex[1]).with_inputs("input") for ex in examples]
     def optimize(self, examples, properties=None):
-        prompt = "Optimizing"
+        # Configuration for the optimization process
+        config = dict(max_bootstrapped_demos=4, max_labeled_demos=4, num_trials=5)
+        eval_kwargs = dict(num_threads=16, display_progress=True, display_table=0)  # Evaluation settings
 
-        # TODO (#388): Optimize here!
+        # Create a teleprompter instance with specified models and metrics
+        teleprompter = MIPRO(prompt_model=dspy.OpenAI(model=properties['prompt_model']), 
+                             task_model=dspy.OpenAI(model=properties['task_model']), 
+                             metric=exact_match,  # Use exact match as the metric
+                             num_candidates=properties['num_candidates'], 
+                             init_temperature=properties['temperature'], 
+                             verbose=True)  # Enable verbose output
+
+        # Compile the teleprompter with the program and examples
+        optimized_program = teleprompter.compile(self.program, trainset=examples, eval_kwargs=eval_kwargs, **config)
+        prompt =  {name: param.dump_state() for name, param in optimized_program.named_parameters()}
         logging.info(json.dumps(properties, indent=3))
-        return prompt
+        return prompt.signature_instructions
 
     def build_optimizer_form(self):
         # design form
