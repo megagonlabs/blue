@@ -15,6 +15,7 @@ import logging
 import time
 import uuid
 import random
+import copy
 
 ###### Parsers, Formats, Utils
 import re
@@ -62,8 +63,11 @@ class PromptOptimizerAgent(Agent):
         self.properties['num_trials'] = 5
 
 
-    def optimize(self, examples):
+    def optimize(self, examples, properties=None):
         prompt = "Optimizing"
+
+        # TODO (#388): Optimize here!
+        logging.info(json.dumps(properties, indent=3))
         return prompt
 
     def build_optimizer_form(self):
@@ -104,7 +108,50 @@ class PromptOptimizerAgent(Agent):
                 },
                 {
                     "type": "Label",
-                    "label": f"Provide text examples and annotations",
+                    "label": f"Specify prompt optimization configuration below:",
+                    "props": {
+                        "muted": True,
+                        "style": {"marginBottom": 15, "fontStyle": "italic"},
+                    },
+                },
+                {
+                    "type": "HorizontalLayout",
+                    "elements": [
+                        {
+                            "type": "Control",
+                            "label": "Prompt Model",
+                            "scope": "#/properties/prompt_model"
+                        },
+                        {
+                            "type": "Control",
+                            "label": "Task Model",
+                            "scope": "#/properties/task_model"
+                        }
+                    ]
+                },
+                 {
+                    "type": "HorizontalLayout",
+                    "elements": [
+                        {
+                            "type": "Control",
+                            "label": "Temperature",
+                            "scope": "#/properties/temperature"
+                        },
+                        {
+                            "type": "Control",
+                            "label": "Max. Labeled Examples",
+                            "scope": "#/properties/max_labeled_demos"
+                        },
+                         {
+                            "type": "Control",
+                            "label": "Num. Trials",
+                            "scope": "#/properties/num_trials"
+                        }
+                    ]
+                },
+                {
+                    "type": "Label",
+                    "label": f"Provide examples of input text and output annotations",
                     "props": {
                         "muted": True,
                         "style": {"marginBottom": 15, "fontStyle": "italic"},
@@ -136,6 +183,23 @@ class PromptOptimizerAgent(Agent):
                             "annotation": {"type": "string"},
                         },
                     },
+                },
+                "prompt_model": {"type": "string", "enum": [
+                    "gpt-4o-mini",
+                    "gpt-4o",
+                ]},
+                "task_model": {"type": "string", "enum": [
+                    "gpt-4o-mini",
+                    "gpt-4o",
+                ]},
+                "temperature": {
+                    "type": "number"
+                },
+                "max_labeled_demos": {
+                    "type": "number"
+                },
+                "num_trials": {
+                    "type": "number"
                 }
             },
         }
@@ -186,11 +250,39 @@ class PromptOptimizerAgent(Agent):
 
                     # when the user clicked DONE
                     if action == "DONE":
-                        # get form data
+                        ### get form data
+                        # examples
                         examples = worker.get_stream_data(
                             "examples.value", stream=form_data_stream
                         )
                         logging.info(examples)
+
+                        # prompt/task models
+                        prompt_model =  worker.get_stream_data(
+                            "prompt_model.value", stream=form_data_stream
+                        )
+                        task_model =  worker.get_stream_data(
+                            "task_model.value", stream=form_data_stream
+                        )
+
+                        # other optimization configuration
+                        temperature =  worker.get_stream_data(
+                            "temperature.value", stream=form_data_stream
+                        )
+                        max_labeled_demos = worker.get_stream_data(
+                            "max_labeled_demos.value", stream=form_data_stream
+                        )
+                        num_trials = worker.get_stream_data(
+                            "num_trials.value", stream=form_data_stream
+                        )
+                        
+                        # override properties from user
+                        properties = copy.deepcopy(self.properties)
+                        properties['prompt_model'] = prompt_model
+                        properties['task_model'] = task_model
+                        properties['temperature'] = temperature
+                        properties['max_labeled_demos'] = max_labeled_demos
+                        properties['num_trials'] = num_trials
 
                         # close form
                         args = {"form_id": form_id}
@@ -199,7 +291,7 @@ class PromptOptimizerAgent(Agent):
                         )
 
                         ### OPTIMIZE
-                        return self.optimize(examples)
+                        return self.optimize(examples, properties=properties)
 
                     else:
                         # save form data
