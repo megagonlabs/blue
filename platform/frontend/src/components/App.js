@@ -26,7 +26,7 @@ import {
     faInboxArrowUp,
     faLayerGroup,
     faPencilRuler,
-    faSquareTerminal,
+    faRectangleTerminal,
     faUser,
     faUserGroup,
 } from "@fortawesome/pro-duotone-svg-icons";
@@ -87,12 +87,10 @@ export default function App({ children }) {
             text: "New Session",
             icon: faInboxArrowUp,
             visible: canWriteSessions,
-            disabled: !isSocketOpen,
+            disabled: isCreatingSession || !isSocketOpen,
             intent: Intent.PRIMARY,
             onClick: () => {
-                if (!isSocketOpen) {
-                    return;
-                }
+                if (!isSocketOpen) return;
                 setIsCreatingSession(true);
                 appActions.session.createSession(socket);
             },
@@ -130,7 +128,7 @@ export default function App({ children }) {
         prompt_designer: {
             href: "/tools/prompt-designer",
             text: "Auto Prompt",
-            icon: faSquareTerminal,
+            icon: faRectangleTerminal,
             visible: showPromptDesigner,
         },
         admin_users: {
@@ -253,9 +251,7 @@ export default function App({ children }) {
                                                         socket,
                                                     }
                                                 );
-                                                if (!router.isReady) {
-                                                    return;
-                                                }
+                                                if (!router.isReady) return;
                                                 router.push("/sessions");
                                             }}
                                             text={

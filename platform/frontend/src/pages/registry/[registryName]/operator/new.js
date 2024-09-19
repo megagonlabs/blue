@@ -30,9 +30,7 @@ export default function New() {
         setEntity(newEntity);
     };
     const saveEntity = () => {
-        if (!router.isReady) {
-            return;
-        }
+        if (!router.isReady) return;
         setLoading(true);
         axios[created ? "put" : "post"](`${urlPrefix}/${entity.name}`, {
             name: entity.name,
@@ -76,9 +74,7 @@ export default function New() {
             });
     };
     useEffect(() => {
-        if (_.isEmpty(router.query)) {
-            return;
-        }
+        if (_.isEmpty(router.query)) return;
         const pathParams = router.asPath
             .split("/")
             .filter((param) => !_.isEmpty(param))

@@ -2,9 +2,7 @@ import axios from "axios";
 import _ from "lodash";
 export const appAction = (dispatch) => ({
     getUserProfile: (payload) => {
-        if (_.isEmpty(payload)) {
-            return;
-        }
+        if (_.isEmpty(payload)) return;
         const requestKey = `getUserProfile ${payload}`;
         dispatch({
             type: "app/pendingRequests/set",

@@ -14,7 +14,7 @@ import {
 import {
     faCheck,
     faCircleA,
-    faCoins,
+    faMoneyBillsSimple,
     faSquareInfo,
     faUserGroup,
 } from "@fortawesome/pro-duotone-svg-icons";
@@ -23,6 +23,7 @@ import _ from "lodash";
 import { useContext, useEffect, useRef, useState } from "react";
 import { AppToaster } from "../toaster";
 import SessionAgentsList from "./details/SessionAgentsList";
+import SessionBudget from "./details/SessionBudget";
 import SessionMembersList from "./details/SessionMembersList";
 export default function SessionDetail({ isOpen, setIsSessionDetailOpen }) {
     const { appState, appActions } = useContext(AppContext);
@@ -86,9 +87,7 @@ export default function SessionDetail({ isOpen, setIsSessionDetailOpen }) {
             }
             canOutsideClickClose={allowQuickClose.current}
             onClose={() => {
-                if (loading) {
-                    return;
-                }
+                if (loading) return;
                 setIsSessionDetailOpen(false);
             }}
             isOpen={isOpen}
@@ -126,7 +125,7 @@ export default function SessionDetail({ isOpen, setIsSessionDetailOpen }) {
                         active={_.isEqual(tab, "members")}
                     />
                     <Button
-                        icon={faIcon({ icon: faCoins })}
+                        icon={faIcon({ icon: faMoneyBillsSimple })}
                         minimal
                         large
                         text="Budget"
@@ -163,19 +162,31 @@ export default function SessionDetail({ isOpen, setIsSessionDetailOpen }) {
                     ) : null}
                     {_.isEqual(tab, "agents") ? <SessionAgentsList /> : null}
                     {_.isEqual(tab, "members") ? <SessionMembersList /> : null}
+                    {_.isEqual(tab, "budget") ? <SessionBudget /> : null}
                 </div>
             </DialogBody>
-            {_.isEqual(tab, "about") ? (
+            {_.includes(["about", "budget"], tab) ? (
                 <DialogFooter>
-                    <Button
-                        disabled={_.isEmpty(_.trim(name))}
-                        loading={loading}
-                        text="Save"
-                        large
-                        onClick={handleSaveMetadata}
-                        intent={Intent.SUCCESS}
-                        icon={faIcon({ icon: faCheck })}
-                    />
+                    {_.isEqual(tab, "about") ? (
+                        <Button
+                            disabled={_.isEmpty(_.trim(name))}
+                            loading={loading}
+                            text="Save"
+                            large
+                            onClick={handleSaveMetadata}
+                            intent={Intent.SUCCESS}
+                            icon={faIcon({ icon: faCheck })}
+                        />
+                    ) : null}
+                    {_.isEqual(tab, "budget") ? (
+                        <Button
+                            loading={loading}
+                            text="Save"
+                            large
+                            intent={Intent.SUCCESS}
+                            icon={faIcon({ icon: faCheck })}
+                        />
+                    ) : null}
                 </DialogFooter>
             ) : null}
         </Dialog>

@@ -198,9 +198,7 @@ export default function RoleConfigurationPopover({
         });
     };
     const onClose = () => {
-        if (loading) {
-            return;
-        }
+        if (loading) return;
         setUpdated(new Set());
         setSaved(false);
         setLoading(false);

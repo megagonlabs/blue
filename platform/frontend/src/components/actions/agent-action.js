@@ -8,9 +8,7 @@ export const agentAction = (dispatch) => ({
         });
     },
     fetchAttributes: (payload) => {
-        if (_.isEmpty(payload)) {
-            return;
-        }
+        if (_.isEmpty(payload)) return;
         const requestKey = `fetchAttributes ${payload}`;
         dispatch({
             type: "agent/pendingAttributesRequests/set",

@@ -159,9 +159,7 @@ export default function Services() {
         setTableKey(Date.now());
     }, [data, columns]);
     const handleColumnsReordered = (oldIndex, newIndex, length) => {
-        if (_.isEqual(oldIndex, newIndex)) {
-            return;
-        }
+        if (_.isEqual(oldIndex, newIndex)) return;
         const nextChildren = Utils.reorderArray(
             columns,
             oldIndex,

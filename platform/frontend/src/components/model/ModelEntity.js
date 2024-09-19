@@ -23,9 +23,7 @@ export default function ModelEntity() {
     const routerQueryPath =
         "/" + _.get(router, "query.pathParams", []).join("/");
     useEffect(() => {
-        if (!router.isReady) {
-            return;
-        }
+        if (!router.isReady) return;
         axios.get(routerQueryPath).then((response) => {
             const result = _.get(response, "data.result", {});
             let icon = _.get(result, "icon", null);
