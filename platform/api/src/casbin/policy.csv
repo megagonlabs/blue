@@ -55,3 +55,6 @@ p, guest, operator_registry, read_all
 
 p, admin, form_designer, visible
 p, developer, form_designer, visible
+
+p, admin, prompt_designer, visible
+p, developer, prompt_designer, visible

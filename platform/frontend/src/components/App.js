@@ -26,6 +26,7 @@ import {
     faInboxArrowUp,
     faLayerGroup,
     faPencilRuler,
+    faSquareTerminal,
     faUser,
     faUserGroup,
 } from "@fortawesome/pro-duotone-svg-icons";
@@ -58,6 +59,7 @@ export default function App({ children }) {
         canWritePlatformUsers,
         canReadPlatformServices,
         showFormDesigner,
+        showPromptDesigner,
         canReadPlatformAgents,
         canReadSessions,
         canReadDataRegistry,
@@ -124,6 +126,12 @@ export default function App({ children }) {
             text: "Form Designer",
             icon: faPencilRuler,
             visible: showFormDesigner,
+        },
+        prompt_designer: {
+            href: "/tools/prompt-designer",
+            text: "Auto Prompt",
+            icon: faSquareTerminal,
+            visible: showPromptDesigner,
         },
         admin_users: {
             href: "/admin/users",
@@ -371,6 +379,51 @@ export default function App({ children }) {
                             className="full-parent-width"
                         >
                             {["form_designer"].map((key, index) => {
+                                const { href, icon, text, visible } = _.get(
+                                    MENU_ITEMS,
+                                    key,
+                                    {}
+                                );
+                                if (!visible) {
+                                    return null;
+                                }
+                                const active = _.startsWith(
+                                    router.asPath,
+                                    href
+                                );
+                                return (
+                                    <Link href={href} key={index}>
+                                        <Button
+                                            style={
+                                                !active
+                                                    ? {
+                                                          backgroundColor:
+                                                              "transparent",
+                                                      }
+                                                    : null
+                                            }
+                                            active={active}
+                                            text={text}
+                                            icon={faIcon({
+                                                icon: icon,
+                                            })}
+                                        />
+                                    </Link>
+                                );
+                            })}
+                        </ButtonGroup>
+                    </>
+                ) : null}
+                {hasTrue([showPromptDesigner]) ? (
+                    <>
+                        <ButtonGroup
+                            alignText={Alignment.LEFT}
+                            vertical
+                            minimal
+                            large
+                            className="full-parent-width"
+                        >
+                            {["prompt_designer"].map((key, index) => {
                                 const { href, icon, text, visible } = _.get(
                                     MENU_ITEMS,
                                     key,
