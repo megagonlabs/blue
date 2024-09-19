@@ -1,3 +1,5 @@
+dspy-ai
+openai
 requests==2.31.0
 async-timeout==4.0.2
 bidict==0.22.1
