@@ -31,3 +31,10 @@ def extract_json(text):
         except json.JSONDecodeError:
             logging.warning("Invalid JSON object found, skipping...")
             return {}
+
+
+def remove_non_alphanumeric(input_string):
+    # Use regex to remove all non-alphanumeric characters
+    cleaned_string = re.sub(r"[^a-zA-Z0-9 ]", "", input_string)
+    cleaned_string = cleaned_string.replace(" ", "_")
+    return cleaned_string
