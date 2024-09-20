@@ -80,6 +80,10 @@ export default function App({ children }) {
                     key: "sessionGroupBy",
                     value: "owner",
                 });
+                appActions.session.setState({
+                    key: "collapsed",
+                    value: false,
+                });
             },
         },
         new_session: {

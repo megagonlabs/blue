@@ -8,6 +8,7 @@ export const defaultState = {
     sessionIdFocus: null,
     sessionDetails: {},
     userId: null,
+    collapsed: true,
     unreadSessionIds: new Set(),
     terminatedInteraction: new Set(),
     expandedMessageStream: new Set(),
