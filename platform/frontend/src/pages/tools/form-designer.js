@@ -22,6 +22,7 @@ import {
     NonIdealState,
     Popover,
     Pre,
+    Tag,
     Tooltip,
 } from "@blueprintjs/core";
 import {
@@ -452,7 +453,11 @@ function FormDesigner() {
                                         ) : (
                                             <>
                                                 <div>{String(error)}</div>
-                                                <div>
+                                                <Tag
+                                                    large
+                                                    minimal
+                                                    style={{ marginTop: 5 }}
+                                                >
                                                     Click
                                                     {faIcon({
                                                         icon: faPlay,
@@ -463,7 +468,7 @@ function FormDesigner() {
                                                         },
                                                     })}
                                                     to re-run
-                                                </div>
+                                                </Tag>
                                             </>
                                         )}
                                     </Callout>

@@ -74,7 +74,7 @@ export default function App({ children }) {
             href: `/sessions`,
             text: "My Sessions",
             icon: faUser,
-            visible: canReadDataRegistry,
+            visible: canReadSessions,
             onClick: () => {
                 appActions.session.setState({
                     key: "sessionGroupBy",

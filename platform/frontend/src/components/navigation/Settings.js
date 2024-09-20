@@ -3,6 +3,7 @@ import {
     Drawer,
     DrawerSize,
     H3,
+    Intent,
     Menu,
     MenuItem,
     Section,
@@ -14,14 +15,17 @@ import {
 import {
     faArrowsFromDottedLine,
     faBug,
+    faClipboard,
     faCode,
     faMessages,
 } from "@fortawesome/pro-duotone-svg-icons";
 import classNames from "classnames";
+import copy from "copy-to-clipboard";
 import _ from "lodash";
 import { useContext } from "react";
 import { AuthContext } from "../contexts/auth-context";
 import { faIcon } from "../icon";
+import { AppToaster } from "../toaster";
 export default function Settings({ isOpen, setIsSettingsOpen }) {
     const { settings, updateSettings } = useContext(AuthContext);
     const SECTION_PROPS = {
@@ -50,16 +54,29 @@ export default function Settings({ isOpen, setIsSettingsOpen }) {
                     style={{
                         marginBottom: 20,
                         display: "flex",
+                        justifyContent: "space-between",
                         alignItems: "center",
                         gap: 10,
                     }}
                 >
                     <H3 className="margin-0">Settings</H3>
                     <Tooltip
-                        placement="bottom"
-                        content={process.env.NEXT_PUBLIC_GIT_LONG}
+                        minimal
+                        placement="bottom-end"
+                        content={`Copy full SHA`}
                     >
-                        <Tag minimal>
+                        <Tag
+                            minimal
+                            intent={Intent.PRIMARY}
+                            interactive
+                            onClick={() => {
+                                copy(process.env.NEXT_PUBLIC_GIT_LONG);
+                                AppToaster.show({
+                                    icon: faIcon({ icon: faClipboard }),
+                                    message: `Copied "${process.env.NEXT_PUBLIC_GIT_LONG}"`,
+                                });
+                            }}
+                        >
                             {process.env.NEXT_PUBLIC_GIT_BRANCH}-
                             {process.env.NEXT_PUBLIC_GIT_SHORT}
                         </Tag>
