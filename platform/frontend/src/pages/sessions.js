@@ -27,7 +27,10 @@ import {
     Tooltip,
 } from "@blueprintjs/core";
 import {
+    faBell,
     faCaretDown,
+    faChevronLeft,
+    faChevronRight,
     faCircleA,
     faClipboard,
     faInboxIn,
@@ -44,8 +47,7 @@ import _ from "lodash";
 import { useCallback, useContext, useEffect, useRef, useState } from "react";
 export default function Sessions() {
     const { appState, appActions } = useContext(AppContext);
-    const sessionIdFocus = appState.session.sessionIdFocus;
-    const sessionIds = appState.session.sessionIds;
+    const { unreadSessionIds, sessionIdFocus, sessionIds } = appState.session;
     const [message, setMessage] = useState("");
     const sessionMessageTextArea = useRef(null);
     const [isSessionDetailOpen, setIsSessionDetailOpen] = useState(false);
@@ -105,7 +107,9 @@ export default function Sessions() {
             sessionMessageTextArea.current.focus();
         }
     }, [sessionIdFocus]);
-    const SESSION_LISTL_PANEL_WIDTH = 327.92;
+    // const SESSION_LIST_PANEL_WIDTH = 327.92;
+    const SESSION_LIST_PANEL_WIDTH = 327.92;
+    const [collapsed, setCollapsed] = useState(true);
     const initialFetchAll = useRef(true);
     const [loading, setLoading] = useState(false);
     const fetchAllSessions = () => {
@@ -191,7 +195,7 @@ export default function Sessions() {
                     top: 0,
                     left: 0,
                     height: "calc(100% - 1px)",
-                    width: SESSION_LISTL_PANEL_WIDTH,
+                    width: collapsed ? 80 : SESSION_LIST_PANEL_WIDTH,
                 }}
             >
                 <div
@@ -204,119 +208,162 @@ export default function Sessions() {
                 >
                     <ButtonGroup large>
                         <Tooltip
-                            content="Refresh"
-                            placement="bottom-start"
+                            content={collapsed ? "Expand" : "Collapse"}
+                            placement={`bottom${collapsed ? "" : "-start"}`}
                             minimal
                         >
                             <Button
-                                loading={loading}
-                                onClick={fetchAllSessions}
                                 outlined
-                                icon={faIcon({ icon: faRefresh })}
+                                onClick={() => setCollapsed(!collapsed)}
+                                icon={faIcon({
+                                    icon: collapsed
+                                        ? faChevronRight
+                                        : faChevronLeft,
+                                })}
                             />
                         </Tooltip>
-                    </ButtonGroup>
-                    {!isSocketOpen ? (
-                        <ReconnectButton />
-                    ) : _.get(settings, "debug_mode", false) ? (
-                        <Tooltip
-                            content="Copy connection ID"
-                            minimal
-                            placement="bottom-end"
-                        >
-                            <Tag
+                        {!collapsed ? (
+                            <Tooltip
+                                content="Refresh"
+                                placement="bottom"
                                 minimal
-                                large
-                                interactive
-                                onClick={() => {
-                                    copy(appState.session.connectionId);
-                                    AppToaster.show({
-                                        icon: faIcon({ icon: faClipboard }),
-                                        message: `Copied "${appState.session.connectionId}"`,
-                                    });
-                                }}
                             >
-                                {appState.session.connectionId}
-                            </Tag>
-                        </Tooltip>
+                                <Button
+                                    outlined
+                                    loading={loading}
+                                    onClick={fetchAllSessions}
+                                    icon={faIcon({ icon: faRefresh })}
+                                />
+                            </Tooltip>
+                        ) : null}
+                    </ButtonGroup>
+                    {!collapsed ? (
+                        !isSocketOpen ? (
+                            <ReconnectButton />
+                        ) : _.get(settings, "debug_mode", false) ? (
+                            <Tooltip
+                                content="Copy connection ID"
+                                minimal
+                                placement="bottom-end"
+                            >
+                                <Tag
+                                    minimal
+                                    large
+                                    interactive
+                                    onClick={() => {
+                                        copy(appState.session.connectionId);
+                                        AppToaster.show({
+                                            icon: faIcon({ icon: faClipboard }),
+                                            message: `Copied "${appState.session.connectionId}"`,
+                                        });
+                                    }}
+                                >
+                                    {appState.session.connectionId}
+                                </Tag>
+                            </Tooltip>
+                        ) : null
                     ) : null}
                 </div>
-                {_.isEmpty(appState.session.sessionIds) ? (
-                    <Card
-                        style={{
-                            padding: 0,
-                            marginTop: 1,
-                            height: "calc(100% - 80px)",
-                            width: "calc(100% - 1.35px)",
-                            borderRadius: 0,
-                        }}
-                    >
-                        <NonIdealState
-                            icon={faIcon({ icon: faInboxIn, size: 50 })}
-                            title="Sessions"
-                        />
-                    </Card>
-                ) : (
-                    <div style={{ height: "100%" }}>
-                        <div
-                            className="bp-border-top bp-border-right"
+                {!collapsed ? (
+                    _.isEmpty(appState.session.sessionIds) ? (
+                        <Card
                             style={{
-                                padding: "5px 20px",
+                                padding: 0,
+                                marginTop: 1,
+                                height: "calc(100% - 80px)",
+                                width: "calc(100% - 1px)",
                                 borderRadius: 0,
                             }}
                         >
-                            <ButtonGroup fill minimal>
-                                <Button
-                                    text="All"
-                                    onClick={() => {
-                                        appActions.session.setState({
-                                            key: "sessionGroupBy",
-                                            value: "all",
-                                        });
-                                    }}
-                                    active={_.isEqual(
-                                        appState.session.sessionGroupBy,
-                                        "all"
-                                    )}
-                                />
-                                <Button
-                                    text="Owner"
-                                    onClick={() => {
-                                        appActions.session.setState({
-                                            key: "sessionGroupBy",
-                                            value: "owner",
-                                        });
-                                    }}
-                                    active={_.isEqual(
-                                        appState.session.sessionGroupBy,
-                                        "owner"
-                                    )}
-                                />
-                                <Button
-                                    text="Member"
-                                    onClick={() => {
-                                        appActions.session.setState({
-                                            key: "sessionGroupBy",
-                                            value: "member",
-                                        });
-                                    }}
-                                    active={_.isEqual(
-                                        appState.session.sessionGroupBy,
-                                        "member"
-                                    )}
-                                />
-                            </ButtonGroup>
+                            <NonIdealState
+                                icon={faIcon({ icon: faInboxIn, size: 50 })}
+                                title="Sessions"
+                            />
+                        </Card>
+                    ) : (
+                        <div className="full-parent-height">
+                            <div
+                                className="bp-border-top bp-border-right"
+                                style={{
+                                    padding: "5px 20px",
+                                    borderRadius: 0,
+                                }}
+                            >
+                                <ButtonGroup fill minimal>
+                                    <Button
+                                        text="All"
+                                        onClick={() => {
+                                            appActions.session.setState({
+                                                key: "sessionGroupBy",
+                                                value: "all",
+                                            });
+                                        }}
+                                        active={_.isEqual(
+                                            appState.session.sessionGroupBy,
+                                            "all"
+                                        )}
+                                    />
+                                    <Button
+                                        text="Owner"
+                                        onClick={() => {
+                                            appActions.session.setState({
+                                                key: "sessionGroupBy",
+                                                value: "owner",
+                                            });
+                                        }}
+                                        active={_.isEqual(
+                                            appState.session.sessionGroupBy,
+                                            "owner"
+                                        )}
+                                    />
+                                    <Button
+                                        text="Member"
+                                        onClick={() => {
+                                            appActions.session.setState({
+                                                key: "sessionGroupBy",
+                                                value: "member",
+                                            });
+                                        }}
+                                        active={_.isEqual(
+                                            appState.session.sessionGroupBy,
+                                            "member"
+                                        )}
+                                    />
+                                </ButtonGroup>
+                            </div>
+                            <SessionList />
                         </div>
-                        <SessionList />
+                    )
+                ) : (
+                    <div
+                        className="full-parent-height bp-border-right"
+                        style={{ padding: 20 }}
+                    >
+                        {!_.isEmpty(unreadSessionIds) ? (
+                            <Tooltip
+                                content={`${_.size(
+                                    unreadSessionIds
+                                )} unread session${
+                                    _.size(unreadSessionIds) > 1 ? "s" : ""
+                                }`}
+                            >
+                                <Button
+                                    large
+                                    minimal
+                                    icon={faIcon({ icon: faBell })}
+                                />
+                            </Tooltip>
+                        ) : null}
                     </div>
                 )}
             </div>
             <div
                 style={{
                     height: "calc(100% - 80px)",
-                    marginLeft: SESSION_LISTL_PANEL_WIDTH,
+                    marginLeft: collapsed ? 80 : SESSION_LIST_PANEL_WIDTH,
                     width: `calc(100vw - ${
-                        SESSION_LISTL_PANEL_WIDTH + NAVIGATION_MENU_WIDTH
+                        (collapsed ? 80 : SESSION_LIST_PANEL_WIDTH) +
+                        NAVIGATION_MENU_WIDTH
                     }px)`,
                 }}
             >

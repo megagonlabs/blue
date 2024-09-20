@@ -3,6 +3,7 @@ import { faIcon } from "@/components/icon";
 import { AppToaster } from "@/components/toaster";
 import {
     Button,
+    Classes,
     DialogBody,
     DialogFooter,
     FormGroup,
@@ -61,6 +62,7 @@ export default function SessionMetadata({
                 <div style={{ padding: 15 }}>
                     <FormGroup label="Name">
                         <InputGroup
+                            className={loading ? Classes.SKELETON : null}
                             large
                             value={name}
                             onChange={(event) => {
@@ -71,6 +73,7 @@ export default function SessionMetadata({
                     </FormGroup>
                     <FormGroup label="Description" className="margin-0">
                         <InputGroup
+                            className={loading ? Classes.SKELETON : null}
                             large
                             value={description}
                             onChange={(event) => {
