@@ -188,8 +188,24 @@ export const AuthProvider = ({ children }) => {
                             setPopupOpen(false);
                             fetchAccountProfile();
                         })
-                        .catch(() => {
+                        .catch((error) => {
                             setPopupOpen(false);
+                            AppToaster.show({
+                                intent: Intent.DANGER,
+                                message: (
+                                    <>
+                                        <div>
+                                            {_.get(
+                                                error,
+                                                "response.data.message"
+                                            )}
+                                        </div>
+                                        <div>
+                                            {error.name}: {error.message}
+                                        </div>
+                                    </>
+                                ),
+                            });
                         });
                 });
             })
