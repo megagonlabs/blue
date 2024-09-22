@@ -98,10 +98,12 @@ class PromptOptimizerAgent(Agent):
         self.properties['num_trials'] = 5
 
     
-    def process_examples(examples):
+    def process_examples(self, examples):
         # Convert a list of input-output pairs into dspy.Example objects
         return [dspy.Example(input=ex[0], output=ex[1]).with_inputs("input") for ex in examples]
+    
     def optimize(self, examples, properties=None):
+        examples = self.process_examples(examples)
         # Configuration for the optimization process
         config = dict(max_bootstrapped_demos=4, max_labeled_demos=4, num_trials=5)
         eval_kwargs = dict(num_threads=16, display_progress=True, display_table=0)  # Evaluation settings
