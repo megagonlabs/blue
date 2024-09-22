@@ -101,7 +101,7 @@ class PromptOptimizerAgent(Agent):
     def process_examples(self, examples):
         # Convert a list of input-output pairs into dspy.Example objects
         logging.info(examples)
-        return [dspy.Example(input=ex[0], output=ex[1]).with_inputs("input") for ex in examples]
+        return [dspy.Example(input=ex['text'], output=ex['annotation']).with_inputs("input") for ex in examples]
     
     def optimize(self, examples, properties=None):
         examples = self.process_examples(examples)
