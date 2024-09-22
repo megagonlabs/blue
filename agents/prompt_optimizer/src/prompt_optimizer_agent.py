@@ -108,7 +108,7 @@ class PromptOptimizerAgent(Agent):
         # Configuration for the optimization process
         config = dict(max_bootstrapped_demos=4, max_labeled_demos=4, num_trials=5)
         eval_kwargs = dict(num_threads=16, display_progress=True, display_table=0)  # Evaluation settings
-
+        logging.info(dspy.settings)
         # Create a teleprompter instance with specified models and metrics
         teleprompter = MIPRO(prompt_model=dspy.OpenAI(model=properties['prompt_model']), 
                              task_model=dspy.OpenAI(model=properties['task_model']), 
