@@ -1,5 +1,5 @@
 #/bin/bash
-echo 'Building DATA_PLANNER Agent...'
+echo 'Building DATAPLANNER Agent...'
 
 echo 'Copying libs...'
 
