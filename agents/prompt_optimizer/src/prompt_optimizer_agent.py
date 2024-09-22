@@ -76,13 +76,14 @@ class PromptOptimizerAgent(Agent):
         if 'name' not in kwargs:
             kwargs['name'] = "PROMPTOPTIMIZER"
         super().__init__(**kwargs)
-        # dspy configure
-        dspy.settings.configure(lm=dspy.OpenAI(model='gpt-4o-mini', 
-                                               api_key=self.properties['OPENAI_API_KEY']), rm=None)
         self.program = PromptProgram()
 
     def _initialize(self, properties=None):
         super()._initialize(properties=properties)
+        # dspy configure
+        dspy.settings.configure(lm=dspy.OpenAI(model='gpt-4o-mini', 
+                                               api_key=self.properties['OPENAI_API_KEY']), rm=None)
+      
 
     def _initialize_properties(self):
         super()._initialize_properties()
