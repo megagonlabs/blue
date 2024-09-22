@@ -167,7 +167,7 @@ def deploy_agent_container(request: Request, agent_name):
     if PROPERTIES["platform.deploy.target"] == "localhost":
         client.containers.run(
             image,
-            "--serve " + agent_name + " " + "--platform " + platform_id + " " + "--registry " + agent_registry_id + " " + "--properties " + "'" + json.dumps(agent_properties) + "'",
+            ["--serve", agent_name, "--platform", platform_id, "--registry", agent_registry_id, "--properties", json.dumps(agent_properties)],
             network="blue_platform_" + PROPERTIES["platform.name"] + "_network_bridge",
             name="blue_agent_" + platform_id + "_" + agent_registry_id + "_" + agent_name.lower(),
             hostname="blue_agent_" + agent_registry_id + "_" + agent_name,
