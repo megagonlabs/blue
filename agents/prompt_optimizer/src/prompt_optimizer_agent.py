@@ -47,21 +47,30 @@ logging.getLogger().setLevel(logging.INFO)
 logging.basicConfig(format="%(asctime)s [%(levelname)s] [%(process)d:%(threadName)s:%(thread)d](%(filename)s:%(lineno)d) %(name)s -  %(message)s", level=logging.ERROR, datefmt="%Y-%m-%d %H:%M:%S")
 
 # Prompt program
-class PromptProgram(dspy.Signature):
-    input = dspy.InputField()
-    output = dspy.OutputField()
+class PromptSignature(dspy.Signature):
+    input = dspy.InputField(desc="")
+    output = dspy.OutputField(desc="")
+
+class PromptProgram(dspy.Module):
+    def __init__(self):
+        super().__init__()
+        self.prompt_signature = dspy.Predict(PromptSignature)
+    
+    def forward(self, input):
+        return self.prompt_signature(input=input)
+
 
 # dspy configure
 dspy.settings.configure(lm=dspy.OpenAI(model='gpt-4o-mini'), rm=None)
 
 # Prompt metric
 def exact_match(example, pred, trace=None, frac=1.0):
-    assert(type(example.annotation) is str or type(example.annotation) is list)
+    assert(type(example.output) is str or type(example.output) is list)
     
-    if type(example.annotation) is str:
-        return dsp.answer_match(pred.annotation, [example.annotation], frac=frac)
+    if type(example.output) is str:
+        return dsp.answer_match(pred.output, [example.output], frac=frac)
     else: # type(example.answer) is list
-        return dsp.answer_match(pred.annotation, example.annotation, frac=frac)
+        return dsp.answer_match(pred.output, example.output, frac=frac)
 
 class PromptOptimizerAgent(Agent):
     def __init__(self, **kwargs):
