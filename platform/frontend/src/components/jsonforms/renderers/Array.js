@@ -30,7 +30,9 @@ import {
 } from "@jsonforms/core";
 import {
     JsonFormsDispatch,
+    withArrayTranslationProps,
     withJsonFormsArrayControlProps,
+    withTranslateProps,
 } from "@jsonforms/react";
 import _ from "lodash";
 import { useContext, useEffect, useMemo } from "react";
@@ -340,5 +342,7 @@ const ArrayRenderer = ({
         </div>
     );
 };
-export default withJsonFormsArrayControlProps(ArrayRenderer);
+export default withJsonFormsArrayControlProps(
+    withTranslateProps(withArrayTranslationProps(ArrayRenderer))
+);
 export const ArrayTester = rankWith(5, isObjectArrayWithNesting);

@@ -84,7 +84,6 @@ export default function SessionAgentsList({ loading, setLoading }) {
                             <>
                                 {LOADING_PLACEHOLDER}
                                 {LOADING_PLACEHOLDER}
-                                {LOADING_PLACEHOLDER}
                             </>
                         ) : (
                             agents.map((agent, index) => {
