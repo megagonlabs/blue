@@ -60,8 +60,6 @@ class PromptProgram(dspy.Module):
         return self.prompt_signature(input=input)
 
 
-# dspy configure
-dspy.settings.configure(lm=dspy.OpenAI(model='gpt-4o-mini'), rm=None)
 
 # Prompt metric
 def exact_match(example, pred, trace=None, frac=1.0):
@@ -73,10 +71,14 @@ def exact_match(example, pred, trace=None, frac=1.0):
         return dsp.answer_match(pred.output, example.output, frac=frac)
 
 class PromptOptimizerAgent(Agent):
+    
     def __init__(self, **kwargs):
         if 'name' not in kwargs:
             kwargs['name'] = "PROMPTOPTIMIZER"
         super().__init__(**kwargs)
+        # dspy configure
+        dspy.settings.configure(lm=dspy.OpenAI(model='gpt-4o-mini', 
+                                               api_key=self.properties['OPENAI_API_KEY']), rm=None)
         self.program = PromptProgram()
 
     def _initialize(self, properties=None):

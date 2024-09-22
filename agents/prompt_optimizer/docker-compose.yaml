@@ -1,7 +1,0 @@
-version: '3.8'
-image: python:3.9.0
-services:
- ${SERVICE_LOWERCASE}:
-    image: ${IMAGE}
-    env_file:
-      - ${SERVICE_LOWERCASE}.env
