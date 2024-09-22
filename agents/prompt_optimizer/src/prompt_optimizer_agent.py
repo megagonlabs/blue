@@ -112,7 +112,7 @@ class PromptOptimizerAgent(Agent):
                              verbose=True)  # Enable verbose output
 
         # Compile the teleprompter with the program and examples
-        optimized_program = teleprompter.compile(self.program, trainset=examples, eval_kwargs=eval_kwargs, **config)
+        optimized_program = teleprompter.compile(self.program, trainset=examples, eval_kwargs=eval_kwargs, requires_permission_to_run=False, **config)
         prompt =  {name: param.dump_state() for name, param in optimized_program.named_parameters()}
         logging.info(json.dumps(properties, indent=3))
         return prompt.signature_instructions
