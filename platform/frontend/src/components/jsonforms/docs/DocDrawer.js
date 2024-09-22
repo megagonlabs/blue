@@ -157,8 +157,7 @@ const MainMenuPanel = (props) => {
                                     intent={Intent.PRIMARY}
                                     style={{ marginTop: 5 }}
                                 >
-                                    Applies to type &quot;
-                                    <strong>object</strong>&quot; only
+                                    Applies to type <strong>object</strong> only
                                 </Tag>
                             </td>
                         </tr>
@@ -176,8 +175,7 @@ const MainMenuPanel = (props) => {
                                     intent={Intent.PRIMARY}
                                     style={{ marginTop: 5 }}
                                 >
-                                    Applies to type &quot;
-                                    <strong>string</strong>&quot; only
+                                    Applies to type <strong>string</strong> only
                                 </Tag>
                                 <Pre>
                                     {JSON.stringify(
