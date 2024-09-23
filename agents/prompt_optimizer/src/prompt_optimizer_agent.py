@@ -21,6 +21,7 @@ import copy
 import re
 import csv
 import json
+import ujson
 
 import itertools
 from tqdm import tqdm
@@ -131,9 +132,10 @@ class PromptOptimizerAgent(Agent):
                                                      eval_kwargs=eval_kwargs, 
                                                      requires_permission_to_run=False, 
                                                      **config)
+            #prompt = json.dumps(optimized_program.dump_state(), indent=2)
             prompt =  {name: param.dump_state() for name, param in optimized_program.named_parameters()}
         logging.info(prompt)
-        return json.dumps(prompt,indent=3)
+        return ujson.dumps(prompt, indent=2)
 
     def build_optimizer_form(self):
         # design form
