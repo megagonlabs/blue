@@ -39,7 +39,7 @@ def build_form_profile():
         "elements": [
             {
                 "type": "Control",
-                "label": "Year of experiences in related field",
+                "label": "Year of experiences in related field (enter -1 if you don't want to apply a filter for required experience )",
                 "scope": "#/properties/yoe",
             },
             {
@@ -116,7 +116,7 @@ def build_form_more_skills(arr):
             },
             {
                 "type": "Label",
-                "label": "Based on the skills you provided, here are some additional skills you might have suggested by our insight database",
+                "label": "Please confirm any additional skills you have. \n\n",
             },
         ]
         + [

@@ -109,10 +109,16 @@ class JobSearchPlannerAgent(Agent):
 
     def _start(self):
         super()._start()
+        welcome_message = (
+            "Welcome to your personal Job Search Assistant! \n\n"
+            "I’m here to help you find the perfect role in Singapore's job market."
+            "Share your preferences and skills, and I’ll guide you in building a tailored search query, provide market insights.\n\n"
+            "Let’s get started! what type of jobs are you looking for?"
+        )
 
         # say hello
         if self.session:
-            self.interact("Hello, I'm your job search assistant. How can I help you?")
+            self.interact(welcome_message)
 
     def build_plan(self, plan_dag, stream):
         plan_id = util_functions.create_uuid()
@@ -189,7 +195,7 @@ class JobSearchPlannerAgent(Agent):
             uncovered_predicates = list(
                 set(self.search_predicates.keys()) - set(covered_predicates)
             )
-            clarification_question = f"Can you also provide {','.join(uncovered_predicates)} you are interested in?"
+            clarification_question = f"Could you provide more details about your search? For example, {', '.join(uncovered_predicates)}?"
             return clarification_question
 
         elif (
@@ -199,6 +205,11 @@ class JobSearchPlannerAgent(Agent):
 
             profile_form = ui_builders.build_form_profile()
             if worker:
+                self.write_to_new_stream(
+                    worker=worker,
+                    content="Great! Now that I have a basic idea of what you're seeking, let’s dive deeper into your background to understand more about your experience.",
+                    stream_name="PRESENT",
+                )
                 worker.write_control(
                     ControlCode.CREATE_FORM, profile_form, output="FORM"
                 )
@@ -216,6 +227,12 @@ class JobSearchPlannerAgent(Agent):
                 self.user_profile["suggested_skills"]
             )
             if worker:
+                self.write_to_new_stream(
+                    worker=worker,
+                    content="Based on the details you've shared, we’ve identified additional skills you might possess.",
+                    stream_name="PRESENT",
+                )
+
                 worker.write_control(
                     ControlCode.CREATE_FORM, profile_form, output="FORM"
                 )
@@ -280,7 +297,7 @@ class JobSearchPlannerAgent(Agent):
 
             self.write_to_new_stream(
                 worker=worker,
-                content=json.dumps(input_content["result"]),
+                content=util_functions.parse_result(input_content),
                 stream_name="PRESENT",
             )
             return
@@ -444,7 +461,7 @@ class JobSearchPlannerAgent(Agent):
                 input_content = {
                     "suggested_skills": [
                         util_functions.remove_non_alphanumeric(item[0])
-                        for item in data["result"]
+                        for item in data["result"]["data"]
                     ]
                 }
 
