@@ -15,7 +15,7 @@ def build_submit_button(action_message):
     }
 
 
-def build_form_profile(extracted_info):
+def build_form_profile():
     # design form
     skills_ui = {
         "type": "Control",
@@ -26,17 +26,8 @@ def build_form_profile(extracted_info):
                 "elements": [
                     {"type": "Label", "label": "Skills"},
                     {
-                        "type": "HorizontalLayout",
-                        "elements": [
-                            {
-                                "type": "Control",
-                                "scope": "#/properties/skill",
-                            },
-                            {
-                                "type": "Control",
-                                "scope": "#/properties/duration",
-                            },
-                        ],
+                        "type": "Control",
+                        "scope": "#/properties/skill",
                     },
                 ],
             }
@@ -48,7 +39,7 @@ def build_form_profile(extracted_info):
         "elements": [
             {
                 "type": "Control",
-                "label": "Year of experiences",
+                "label": "Year of experiences in related field",
                 "scope": "#/properties/yoe",
             },
             {
@@ -58,7 +49,7 @@ def build_form_profile(extracted_info):
             },
             {
                 "type": "Label",
-                "label": f"List your skills and determine a duration for each skill",
+                "label": f"List your skills",
                 "props": {
                     "muted": True,
                     "style": {"marginBottom": 15, "fontStyle": "italic"},
@@ -92,8 +83,6 @@ def build_form_profile(extracted_info):
         "data": {"skills": []},
         "uischema": form_ui,
     }
-    print(json.dumps(form_schema))
-    print(json.dumps(form_ui))
 
     return form
 
@@ -105,7 +94,7 @@ def build_form_more_skills(arr):
 
     label_list = [
         [
-            {"type": "Label", "label": item},
+            {"type": "Label", "label": item.replace("_", " ")},
             {
                 "type": "Control",
                 "label": " ",
@@ -120,6 +109,17 @@ def build_form_more_skills(arr):
     ui_schema = {
         "type": "VerticalLayout",
         "elements": [
+            {
+                "type": "Label",
+                "label": "Suggested Skills",
+                "props": {"style": {"fontWeight": "bold"}},
+            },
+            {
+                "type": "Label",
+                "label": "Based on the skills you provided, here are some additional skills you might have suggested by our insight database",
+            },
+        ]
+        + [
             {
                 "type": "HorizontalLayout",
                 "elements": item,
@@ -146,13 +146,5 @@ def build_form_more_skills(arr):
         "data": {item.lower(): False for item in arr},
         "uischema": ui_schema,
     }
-    print(json.dumps(ui_schema))
-    print(json.dumps(data_schema))
 
     return form
-
-
-build_form_profile("test")
-print("---")
-
-build_form_more_skills(["apple", "banana", "orange"])
