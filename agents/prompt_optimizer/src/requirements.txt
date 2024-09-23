@@ -9,7 +9,7 @@ dnspython==2.3.0
 eventlet==0.33.3
 Flask==2.3.2
 Flask-SocketIO==5.3.4
-greenlet==2.0.2
+greenlet
 gunicorn==20.1.0
 importlib-metadata==6.6.0
 itsdangerous==2.1.2
