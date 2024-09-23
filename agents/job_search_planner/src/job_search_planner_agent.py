@@ -120,10 +120,12 @@ class JobSearchPlannerAgent(Agent):
         plan = {"id": plan_id, "steps": plan_dag, "context": plan_context}
         return plan
 
-    def write_to_new_stream(self, worker, content, stream_name):
+    def write_to_new_stream(self, worker, content, stream_name, tags=None):
         id = util_functions.create_uuid()
         if worker:
-            output_stream = worker.write_data(content, output=stream_name, id=id)
+            output_stream = worker.write_data(
+                content, output=stream_name, id=id, tags=tags
+            )
             worker.write_eos(output=stream_name, id=id)
         return output_stream
 
@@ -150,8 +152,9 @@ class JobSearchPlannerAgent(Agent):
             output_stream = self.write_to_new_stream(worker, query, "QUERYPLANNER")
 
         plan = self.build_plan(plan_query, output_stream)
+        self.write_to_new_stream(worker, plan, "DEFAULT", tags=["HIDDEN"])
 
-        return plan
+        return
 
     def update_memory(self, content):
         for key, value in content.items():
@@ -204,8 +207,8 @@ class JobSearchPlannerAgent(Agent):
         elif len(self.user_profile["suggested_skills"]) == 0:
 
             query = f"What are the top 5 skills that co-occur frequently with {self.user_profile['skills'][0]}"
-
-            return self.issue_sql_query(query=query, final=False, worker=worker)
+            self.issue_sql_query(query=query, final=False, worker=worker)
+            return
         # ask user to confirm suggested skills
         elif len(self.user_profile["confirmed_skills"]) == 0:
 
@@ -233,26 +236,26 @@ class JobSearchPlannerAgent(Agent):
             yoe = self.user_profile["years of experience"]
             query = (
                 f"Find top 5 {employment_type if len(employment_type)>0 else ''} {job_title if len(job_title)> 0 else ''} job ",
-                f"in location {location}" if len(location) > 0 else "",
+                f"in location {location}, " if len(location) > 0 else "",
                 (
-                    f" with at least {minimum_salary} salary, "
+                    f"with at least {minimum_salary} salary, "
                     if len(minimum_salary) > 0
                     else ""
                 ),
                 (
-                    f", requring {','.join(search_skills)} skills "
+                    f"requiring {','.join(search_skills)} skills,  "
                     if len(search_skills) > 0
                     else ""
                 ),
                 (
-                    f", requiring no more than {yoe} years of experince"
+                    f"requiring no more than {yoe} years of experience"
                     if yoe > -1
                     else ""
                 ),
             )
-            print("".join(query))
 
-            return self.issue_sql_query(query="".join(query), final=True, worker=worker)
+            self.issue_sql_query(query="".join(query), final=True, worker=worker)
+            return
 
     def action(self, input_type, input_content, user_stream, worker):
         logging.info("ACTION")
@@ -269,13 +272,12 @@ class JobSearchPlannerAgent(Agent):
 
         # user asking exploration questions, call NL2Q
         if input_type == InputType.QUESTION.name:
-            # ouput to query stream, write eos
-            return self.build_plan(plan_query_user, user_stream)
+            plan = self.build_plan(plan_query_user, user_stream)
+            self.write_to_new_stream(worker, plan, "DEFAULT", tags=["HIDDEN"])
+            return
         # present answer to user
         elif input_type == InputType.ANSWER_PRESENT.name:
-            # present: now assuming
 
-            # return json.dumps(input_content["result"])
             self.write_to_new_stream(
                 worker=worker,
                 content=json.dumps(input_content["result"]),
@@ -285,8 +287,9 @@ class JobSearchPlannerAgent(Agent):
         # user providing information
         # call extractor
         elif input_type == InputType.UPDATE.name:
-            return self.build_plan(plan_extraction, user_stream)
-
+            plan = self.build_plan(plan_extraction, user_stream)
+            self.write_to_new_stream(worker, plan, "DEFAULT", tags=["HIDDEN"])
+            return
         elif input_type == InputType.EXTRACTED.name:
 
             self.update_memory(input_content)
@@ -342,7 +345,7 @@ class JobSearchPlannerAgent(Agent):
                 extracted = {
                     key.lower(): value
                     for key, value in extracted.items()
-                    if len(value) > 0
+                    if type(value) is int or len(value) > 0
                 }
                 logging.info("EXTRACTED")
                 logging.info(extracted)
