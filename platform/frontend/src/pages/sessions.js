@@ -47,12 +47,13 @@ import _ from "lodash";
 import { useCallback, useContext, useEffect, useRef, useState } from "react";
 export default function Sessions() {
     const { appState, appActions } = useContext(AppContext);
-    const { unreadSessionIds, sessionIdFocus, sessionIds } = appState.session;
+    const { unreadSessionIds, sessionIdFocus, sessionIds, collapsed } =
+        appState.session;
     const [message, setMessage] = useState("");
     const sessionMessageTextArea = useRef(null);
     const [isSessionDetailOpen, setIsSessionDetailOpen] = useState(false);
     const { socket, reconnectWs, isSocketOpen } = useSocket();
-    const { permissions, settings } = useContext(AuthContext);
+    const { settings } = useContext(AuthContext);
     const { authenticating } = useContext(SocketContext);
     const sendSessionMessage = (message) => {
         if (!isSocketOpen) return;
@@ -109,7 +110,6 @@ export default function Sessions() {
     }, [sessionIdFocus]);
     // const SESSION_LIST_PANEL_WIDTH = 327.92;
     const SESSION_LIST_PANEL_WIDTH = 327.92;
-    const [collapsed, setCollapsed] = useState(true);
     const initialFetchAll = useRef(true);
     const [loading, setLoading] = useState(false);
     const fetchAllSessions = () => {
@@ -157,14 +157,15 @@ export default function Sessions() {
     };
     const [isAddAgentsOpen, setIsAddAgentsOpen] = useState(false);
     const [skippable, setSkippable] = useState(false);
-    const sessionName = _.get(
+    const sessionDetails = _.get(
         appState,
-        ["session", "sessionDetails", sessionIdFocus, "name"],
-        sessionIdFocus
+        ["session", "sessionDetails", sessionIdFocus],
+        {}
     );
+    const sessionName = _.get(sessionDetails, "name", sessionIdFocus);
+    const sessionDescription = _.get(sessionDetails, "description", "");
     useEffect(() => {
         if (appState.session.openAgentsDialogTrigger) {
-            setIsCreatingSession(false);
             setIsAddAgentsOpen(true);
             setSkippable(true);
             appActions.session.setState({
@@ -173,7 +174,6 @@ export default function Sessions() {
             });
         }
     }, [appState.session.openAgentsDialogTrigger]);
-    const [isCreatingSession, setIsCreatingSession] = useState(false);
     if (!isSocketOpen && _.isEmpty(sessionIds))
         return (
             <NonIdealState
@@ -214,7 +214,12 @@ export default function Sessions() {
                         >
                             <Button
                                 outlined
-                                onClick={() => setCollapsed(!collapsed)}
+                                onClick={() =>
+                                    appActions.session.setState({
+                                        key: "collapsed",
+                                        value: !collapsed,
+                                    })
+                                }
                                 icon={faIcon({
                                     icon: collapsed
                                         ? faChevronRight
@@ -304,6 +309,19 @@ export default function Sessions() {
                                         )}
                                     />
                                     <Button
+                                        text="Pinned"
+                                        onClick={() => {
+                                            appActions.session.setState({
+                                                key: "sessionGroupBy",
+                                                value: "pinned",
+                                            });
+                                        }}
+                                        active={_.isEqual(
+                                            appState.session.sessionGroupBy,
+                                            "pinned"
+                                        )}
+                                    />
+                                    <Button
                                         text="Owner"
                                         onClick={() => {
                                             appActions.session.setState({
@@ -382,39 +400,27 @@ export default function Sessions() {
                         <Tooltip
                             openOnTargetFocus={false}
                             minimal
+                            className="full-parent-width"
                             content="Get session details"
                             placement="bottom-start"
                         >
                             <Button
                                 large
                                 minimal
-                                onClick={() => {
-                                    setIsSessionDetailOpen(true);
-                                }}
+                                onClick={() => setIsSessionDetailOpen(true)}
                                 rightIcon={faIcon({ icon: faCaretDown })}
                                 text={
-                                    <H4 style={{ margin: 0 }}>
+                                    <H4 className="margin-0">
                                         #&nbsp;{sessionName}
                                     </H4>
                                 }
                             />
                         </Tooltip>
                     ) : null}
-                    {/* <Popover
+                    <Popover
                         placement="bottom-end"
                         content={<div style={{ padding: 20 }}></div>}
-                    >
-                        <Button
-                            icon={faIcon({
-                                icon: faThumbtack,
-                                className: "fa-rotate-by",
-                                style: { "--fa-rotate-angle": "-45deg" },
-                            })}
-                            large
-                            minimal
-                            text={"0 Pinned"}
-                        />
-                    </Popover> */}
+                    ></Popover>
                 </Card>
                 {_.isNull(sessionIdFocus) ? (
                     <NonIdealState

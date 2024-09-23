@@ -167,6 +167,16 @@ export const AuthProvider = ({ children }) => {
                 if (_.isEmpty(profileSettings)) {
                     profileSettings = {};
                 }
+                const pinnedSessions = Object.entries(
+                    _.get(profile, "sessions.pinned", {})
+                );
+                for (let i = 0; i < pinnedSessions.length; i++) {
+                    if (pinnedSessions[i][1]) {
+                        appActions.session.addPinnedSessionId(
+                            pinnedSessions[i][0]
+                        );
+                    }
+                }
                 setSettings(profileSettings);
             })
             .finally(() => {

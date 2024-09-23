@@ -3,6 +3,7 @@ import { faIcon } from "@/components/icon";
 import { AppToaster } from "@/components/toaster";
 import {
     Button,
+    ButtonGroup,
     Card,
     Classes,
     Colors,
@@ -18,18 +19,27 @@ import {
     faEllipsisH,
     faPenLine,
     faQuestion,
+    faThumbTack,
+    faThumbTackSlash,
 } from "@fortawesome/pro-duotone-svg-icons";
+import axios from "axios";
 import copy from "copy-to-clipboard";
 import _ from "lodash";
 import { useContext, useEffect, useState } from "react";
 import { useSocket } from "../hooks/useSocket";
 export default function SessionRow({ index, style }) {
     const { appState, appActions } = useContext(AppContext);
-    const sessionIdFocus = appState.session.sessionIdFocus;
+    const { unreadSessionIds, sessionIdFocus, pinnedSessionIds } =
+        appState.session;
     const sessionId = appState.session.groupedSessionIds[index];
-    const unreadSessionIds = appState.session.unreadSessionIds;
+    const isPinned = pinnedSessionIds.has(sessionId);
     const messages = appState.session.sessions[sessionId].messages;
     const streams = appState.session.sessions[sessionId].streams;
+    const sessionName = _.get(
+        appState,
+        ["session", "sessionDetails", sessionId, "name"],
+        sessionId
+    );
     const [showActions, setShowActions] = useState(false);
     const [lastMessage, setLastMessage] = useState("-");
     useEffect(() => {
@@ -85,6 +95,26 @@ export default function SessionRow({ index, style }) {
         });
         appActions.session.setSessionIdFocus(sessionId);
     };
+    const [updatingPin, setUpdatingPin] = useState(false);
+    const handlePinSession = () => {
+        setUpdatingPin(true);
+        axios
+            .put(`/sessions/session/${sessionId}/${isPinned ? "un" : ""}pin`)
+            .then(() => {
+                if (isPinned)
+                    appActions.session.removePinnedSessionId(sessionId);
+                else appActions.session.addPinnedSessionId(sessionId);
+                AppToaster.show({
+                    icon: faIcon({ icon: faThumbTack }),
+                    message: `${
+                        isPinned ? "Unpinned" : "Pinned"
+                    } "${sessionName}"`,
+                });
+            })
+            .finally(() => {
+                setUpdatingPin(false);
+            });
+    };
     return (
         <Card
             interactive
@@ -94,6 +124,7 @@ export default function SessionRow({ index, style }) {
                 backgroundColor: _.isEqual(sessionIdFocus, sessionId)
                     ? "#F6F7F9"
                     : null,
+                borderBottom: "1px solid rgba(17, 20, 24, 0.1)",
             }}
             onMouseEnter={() => {
                 setShowActions(true);
@@ -117,7 +148,7 @@ export default function SessionRow({ index, style }) {
             <div
                 style={{
                     width: "calc(100% - 31px)",
-                    paddingRight: showActions ? 50 : 0,
+                    paddingRight: showActions ? 90 : 0,
                 }}
             >
                 <H5
@@ -125,11 +156,7 @@ export default function SessionRow({ index, style }) {
                     className={Classes.TEXT_OVERFLOW_ELLIPSIS}
                 >
                     #&nbsp;
-                    {_.get(
-                        appState,
-                        ["session", "sessionDetails", sessionId, "name"],
-                        sessionId
-                    )}
+                    {sessionName}
                 </H5>
                 <div
                     className={`${Classes.TEXT_OVERFLOW_ELLIPSIS} ${Classes.TEXT_MUTED}`}
@@ -148,25 +175,42 @@ export default function SessionRow({ index, style }) {
                     msTransform: "translateY(-50%)",
                 }}
             >
-                <Tooltip
-                    content="Copy session ID"
-                    minimal
-                    placement="bottom-end"
-                >
-                    <Button
-                        onClick={(event) => {
-                            copy(sessionId);
-                            AppToaster.show({
-                                icon: faIcon({ icon: faClipboard }),
-                                message: `Copied "${sessionId}"`,
-                            });
-                            event.stopPropagation();
-                        }}
-                        large
+                <ButtonGroup large minimal>
+                    <Tooltip
+                        content={isPinned ? "Unpin" : "Pin"}
                         minimal
-                        icon={faIcon({ icon: faCopy })}
-                    />
-                </Tooltip>
+                        placement="bottom"
+                    >
+                        <Button
+                            loading={updatingPin}
+                            onClick={(event) => {
+                                handlePinSession();
+                                event.stopPropagation();
+                            }}
+                            icon={faIcon({
+                                icon: isPinned ? faThumbTackSlash : faThumbTack,
+                                size: isPinned ? 20 : 16,
+                            })}
+                        />
+                    </Tooltip>
+                    <Tooltip
+                        content="Copy session ID"
+                        minimal
+                        placement="bottom-end"
+                    >
+                        <Button
+                            onClick={(event) => {
+                                copy(sessionId);
+                                AppToaster.show({
+                                    icon: faIcon({ icon: faClipboard }),
+                                    message: `Copied "${sessionId}"`,
+                                });
+                                event.stopPropagation();
+                            }}
+                            icon={faIcon({ icon: faCopy })}
+                        />
+                    </Tooltip>
+                </ButtonGroup>
             </div>
         </Card>
     );

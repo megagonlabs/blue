@@ -16,6 +16,12 @@ export const sessionAction = (dispatch) => ({
     expandMessageStream: (payload) => {
         dispatch({ type: "session/expandedMessageStream/add", payload });
     },
+    addPinnedSessionId: (payload) => {
+        dispatch({ type: "session/pinnedSessionIds/add", payload });
+    },
+    removePinnedSessionId: (payload) => {
+        dispatch({ type: "session/pinnedSessionIds/remove", payload });
+    },
     createSession: (payload) => {
         axios.post(`/sessions/session`).then((response) => {
             try {
