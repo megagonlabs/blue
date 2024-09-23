@@ -21,6 +21,7 @@ import copy
 import re
 import csv
 import json
+import ujson
 
 import itertools
 from tqdm import tqdm
@@ -99,28 +100,42 @@ class PromptOptimizerAgent(Agent):
     
     def process_examples(self, examples):
         # Convert a list of input-output pairs into dspy.Example objects
-        logging.info(examples)
+        if not len(examples):
+            dataset = []
+            with open('corpus.csv', mode='r') as file:
+                reader = csv.DictReader(file)  # Ensure we read as dictionaries
+                for row in reader:
+                    dataset.append(dspy.Example(input=row['utterance'], output=row['annotation']).with_inputs("input"))
+            return dataset[:50]
+        #logging.info(examples)
         return [dspy.Example(input=ex['text'], output=ex['annotation']).with_inputs("input") for ex in examples]
-    
+
     def optimize(self, examples, properties=None):
         examples = self.process_examples(examples)
         # Configuration for the optimization process
-        config = dict(max_bootstrapped_demos=4, max_labeled_demos=4, num_trials=5)
-        eval_kwargs = dict(num_threads=16, display_progress=True, display_table=0)  # Evaluation settings
+        config = dict(max_bootstrapped_demos=properties['max_bootstrapped_demos'], 
+                      max_labeled_demos=properties['max_labeled_demos'], 
+                      num_trials=properties['num_trials'])
+        eval_kwargs = dict(num_threads=1, display_progress=True, display_table=0)  # Evaluation settings
         with dspy.context(lm=self.default_lm):
             # Create a teleprompter instance with specified models and metrics
-            teleprompter = MIPRO(prompt_model=dspy.OpenAI(model=properties['prompt_model']), 
-                                task_model=dspy.OpenAI(model=properties['task_model']), 
+            teleprompter = MIPRO(prompt_model=dspy.OpenAI(model=properties['prompt_model']),
+                                task_model=dspy.OpenAI(model=properties['task_model']),
                                 metric=exact_match,  # Use exact match as the metric
-                                num_candidates=properties['num_candidates'], 
-                                init_temperature=properties['temperature'], 
+                                num_candidates=properties['num_candidates'],
+                                init_temperature=properties['temperature'],
                                 verbose=True)  # Enable verbose output
 
             # Compile the teleprompter with the program and examples
-            optimized_program = teleprompter.compile(self.program, trainset=examples, eval_kwargs=eval_kwargs, requires_permission_to_run=False, **config)
+            optimized_program = teleprompter.compile(self.program, 
+                                                     trainset=examples, 
+                                                     eval_kwargs=eval_kwargs, 
+                                                     requires_permission_to_run=False, 
+                                                     **config)
+            #prompt = json.dumps(optimized_program.dump_state(), indent=2)
             prompt =  {name: param.dump_state() for name, param in optimized_program.named_parameters()}
-        logging.info(json.dumps(properties, indent=3))
-        return prompt.signature_instructions
+        logging.info(prompt)
+        return ujson.dumps(prompt, indent=2)
 
     def build_optimizer_form(self):
         # design form
