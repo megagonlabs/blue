@@ -81,8 +81,7 @@ class PromptOptimizerAgent(Agent):
     def _initialize(self, properties=None):
         super()._initialize(properties=properties)
         # dspy configure
-        dspy.settings.configure(lm=dspy.OpenAI(model='gpt-4o-mini', 
-                                               api_key=self.properties['OPENAI_API_KEY']), rm=None)
+        self.default_lm=dspy.OpenAI(model='gpt-4o-mini', api_key=self.properties['OPENAI_API_KEY'])
       
 
     def _initialize_properties(self):
@@ -108,18 +107,18 @@ class PromptOptimizerAgent(Agent):
         # Configuration for the optimization process
         config = dict(max_bootstrapped_demos=4, max_labeled_demos=4, num_trials=5)
         eval_kwargs = dict(num_threads=16, display_progress=True, display_table=0)  # Evaluation settings
+        with dspy.context(lm=self.default_lm):
+            # Create a teleprompter instance with specified models and metrics
+            teleprompter = MIPRO(prompt_model=dspy.OpenAI(model=properties['prompt_model']), 
+                                task_model=dspy.OpenAI(model=properties['task_model']), 
+                                metric=exact_match,  # Use exact match as the metric
+                                num_candidates=properties['num_candidates'], 
+                                init_temperature=properties['temperature'], 
+                                verbose=True)  # Enable verbose output
 
-        # Create a teleprompter instance with specified models and metrics
-        teleprompter = MIPRO(prompt_model=dspy.OpenAI(model=properties['prompt_model']), 
-                             task_model=dspy.OpenAI(model=properties['task_model']), 
-                             metric=exact_match,  # Use exact match as the metric
-                             num_candidates=properties['num_candidates'], 
-                             init_temperature=properties['temperature'], 
-                             verbose=True)  # Enable verbose output
-
-        # Compile the teleprompter with the program and examples
-        optimized_program = teleprompter.compile(self.program, trainset=examples, eval_kwargs=eval_kwargs, requires_permission_to_run=False, **config)
-        prompt =  {name: param.dump_state() for name, param in optimized_program.named_parameters()}
+            # Compile the teleprompter with the program and examples
+            optimized_program = teleprompter.compile(self.program, trainset=examples, eval_kwargs=eval_kwargs, requires_permission_to_run=False, **config)
+            prompt =  {name: param.dump_state() for name, param in optimized_program.named_parameters()}
         logging.info(json.dumps(properties, indent=3))
         return prompt.signature_instructions
 
