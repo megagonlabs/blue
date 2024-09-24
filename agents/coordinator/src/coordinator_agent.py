@@ -199,7 +199,20 @@ class CoordinatorAgent(Agent):
             self.create_worker(stream, input=plan_id)
 
     def verify_plan(self, plan):
-        # TODO: verify plan
+        if type(plan) == dict:
+            if 'id' not in plan:
+                return None
+            if 'steps' not in plan:
+                return None
+            if 'context' not in plan:
+                return None
+            context = plan['context']
+            if 'scope' not in context:
+                return None 
+            if 'streams' not in context:
+                return None
+        else:
+            return None
         return plan
 
     def session_listener(self, message):
@@ -244,21 +257,23 @@ class CoordinatorAgent(Agent):
 
         # TODO: get registry info on to_agent, to_agent_param
 
+        # TODO: TEMPORARY
+
         # fetch data from stream
-        input_data = self.fetch_stream_data(input_stream)
+        # input_data = self.fetch_stream_data(input_stream)
 
-        # TODO: call data planner, plan, optimize given budget
-        pid = str(hex(uuid.uuid4().fields[0]))[2:]
-        dp = DataPlanner(id=pid, properties=self.properties)
-        plan = dp.plan(input_data, "TRANSFORM", context)
-        plan = dp.optimize(plan, budget)
+        # # TODO: call data planner, plan, optimize given budget
+        # pid = str(hex(uuid.uuid4().fields[0]))[2:]
+        # dp = DataPlanner(id=pid, properties=self.properties)
+        # plan = dp.plan(input_data, "TRANSFORM", context)
+        # plan = dp.optimize(plan, budget)
 
-        # TODO: execute plan, update budget
-        pipeline = Pipeline(id=pid, properties=self.properties)
-        output_data = pipeline.execute(plan, budget)
+        # # TODO: execute plan, update budget
+        # pipeline = Pipeline(id=pid, properties=self.properties)
+        # output_data = pipeline.execute(plan, budget)
 
-        # persist data to stream
-        output_stream = self.persist_stream_data(output_data)
+        # # persist data to stream
+        # output_stream = self.persist_stream_data(output_data)
 
         # TODO: update session budget
 
