@@ -26,7 +26,7 @@ import { useCallback, useContext, useEffect, useState } from "react";
 const UserAvatar = ({ user, loading = false }) => (
     <Card
         style={PROFILE_PICTURE_40}
-        className={classNames("margin-0", loading ? Classes.SKELETON : null)}
+        className={loading ? Classes.SKELETON : null}
     >
         <Image alt="" src={_.get(user, "picture", "")} width={40} height={40} />
     </Card>
@@ -55,8 +55,12 @@ export default function SessionMembersList({ loading, setLoading }) {
             .get(`/sessions/session/${sessionIdFocus}/members`)
             .then((response) => {
                 const results = _.get(response, "data.results", []);
+                let sessionDetailMembers = {};
                 for (let i = 0; i < _.size(results); i++) {
                     const result = results[i];
+                    if (!result.owner) {
+                        sessionDetailMembers[result.uid] = true;
+                    }
                     const hasUserProfile = _.has(appState, [
                         "app",
                         "users",
@@ -66,6 +70,10 @@ export default function SessionMembersList({ loading, setLoading }) {
                         appActions.app.getUserProfile(result.uid);
                     }
                 }
+                appActions.session.setSessionDetailMembers({
+                    id: sessionIdFocus,
+                    members: sessionDetailMembers,
+                });
                 setMembers(results);
                 setLoading(false);
             });
@@ -224,6 +232,7 @@ export default function SessionMembersList({ loading, setLoading }) {
                                                     position: "absolute",
                                                     right: 15,
                                                     fontWeight: 600,
+                                                    cursor: "pointer",
                                                 }}
                                             >
                                                 Add
@@ -271,19 +280,23 @@ export default function SessionMembersList({ loading, setLoading }) {
                     </>
                 ) : (
                     members.map((member) => {
-                        const user = _.get(
-                            appState,
-                            ["app", "users", member.uid],
-                            {}
-                        );
                         const hasUserProfile = _.has(appState, [
                             "app",
                             "users",
                             member.uid,
                         ]);
                         if (!hasUserProfile) {
-                            return LOADING_PLACEHOLDER;
+                            return (
+                                <div key={member.uid}>
+                                    {LOADING_PLACEHOLDER}
+                                </div>
+                            );
                         }
+                        const user = _.get(
+                            appState,
+                            ["app", "users", member.uid],
+                            {}
+                        );
                         return (
                             <div
                                 key={member.uid}

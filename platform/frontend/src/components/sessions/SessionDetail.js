@@ -32,7 +32,7 @@ export default function SessionDetail({ isOpen, setIsSessionDetailOpen }) {
                 _.isEqual(sessionName, sessionIdFocus) ? (
                     sessionIdFocus
                 ) : (
-                    <div>
+                    <div className={Classes.TEXT_OVERFLOW_ELLIPSIS}>
                         {sessionName}&nbsp;
                         <span className={Classes.TEXT_MUTED}>
                             ({sessionIdFocus})

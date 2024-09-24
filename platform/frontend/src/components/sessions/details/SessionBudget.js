@@ -75,7 +75,7 @@ export default function SessionBudget({
                     -1
                 );
                 if (!_.isNil(responseAccuracy) && responseAccuracy >= 0) {
-                    setAccuracy(_.toString(responseAccuracy));
+                    setAccuracy(_.toString(responseAccuracy * 100));
                 }
                 const responseLatency = _.get(
                     response,
@@ -83,7 +83,7 @@ export default function SessionBudget({
                     -1
                 );
                 if (!_.isNil(responseLatency) && responseLatency >= 0) {
-                    setLatency(_.toString(responseLatency * 1000));
+                    setLatency(_.toString((responseLatency * 1000).toFixed(0)));
                 }
                 setLoading(false);
             });
@@ -114,7 +114,9 @@ export default function SessionBudget({
             new Promise((resolve, reject) => {
                 axios
                     .post(
-                        `/sessions/session/${sessionIdFocus}/budget/allocation/accuracy/${accuracyNumber}`
+                        `/sessions/session/${sessionIdFocus}/budget/allocation/accuracy/${
+                            accuracyNumber / 100
+                        }`
                     )
                     .then(() => {
                         resolve(true);
@@ -231,7 +233,10 @@ export default function SessionBudget({
                             />
                         </FormGroup>
                         Worst
-                        <H4 style={{ marginTop: 5, marginBottom: 0 }}>
+                        <H4
+                            style={{ marginTop: 5, marginBottom: 0 }}
+                            className={Classes.TEXT_OVERFLOW_ELLIPSIS}
+                        >
                             {!_.isNil(useAccuracy) && useAccuracy >= 0
                                 ? (useAccuracy * 100).toFixed(10)
                                 : "-"}
@@ -262,9 +267,12 @@ export default function SessionBudget({
                             />
                         </FormGroup>
                         Slowest
-                        <H4 style={{ marginTop: 5, marginBottom: 0 }}>
+                        <H4
+                            style={{ marginTop: 5, marginBottom: 0 }}
+                            className={Classes.TEXT_OVERFLOW_ELLIPSIS}
+                        >
                             {!_.isNil(useLatency) && useLatency >= 0
-                                ? useLatency.toFixed(10)
+                                ? (useLatency * 1000).toFixed(0)
                                 : "-"}
                             &nbsp;
                             <label className={Classes.TEXT_MUTED}>ms</label>

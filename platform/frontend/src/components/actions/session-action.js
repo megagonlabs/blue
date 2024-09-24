@@ -13,6 +13,12 @@ export const sessionAction = (dispatch) => ({
             payload,
         });
     },
+    setSessionDetailMembers: (payload) => {
+        dispatch({
+            type: "session/sessions/detail/members/set",
+            payload,
+        });
+    },
     expandMessageStream: (payload) => {
         dispatch({ type: "session/expandedMessageStream/add", payload });
     },

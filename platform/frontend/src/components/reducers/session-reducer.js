@@ -193,6 +193,12 @@ export default function sessionReducer(
             }
             return { ...state, sessionDetails: nextSessionDetail };
         }
+        case "session/sessions/detail/members/set": {
+            let nextSessionDetail = { ...state.sessionDetails };
+            const { id, members } = payload;
+            _.set(nextSessionDetail, [id, "members"], members);
+            return { ...state, sessionDetails: nextSessionDetail };
+        }
         case "session/sessions/add": {
             if (_.includes(sessionIds, payload)) {
                 return { ...state };

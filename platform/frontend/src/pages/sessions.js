@@ -6,6 +6,7 @@ import { sendSocketMessage } from "@/components/helper";
 import { useSocket } from "@/components/hooks/useSocket";
 import { faIcon } from "@/components/icon";
 import AddAgents from "@/components/sessions/AddAgents";
+import MemberPreview from "@/components/sessions/MemberPreview";
 import PlanVisualizationPanel from "@/components/sessions/PlanVisualizationPanel";
 import SessionDetail from "@/components/sessions/SessionDetail";
 import SessionList from "@/components/sessions/SessionList";
@@ -396,11 +397,14 @@ export default function Sessions() {
                         height: 80,
                         justifyContent: "space-between",
                         position: "relative",
+                        padding: "0px 20px",
                         zIndex: 1,
                     }}
                 >
                     {!_.isNull(sessionIdFocus) ? (
-                        <div style={{ maxWidth: "50%" }}>
+                        <div
+                            style={{ maxWidth: "calc(100% - 151.98px - 40px)" }}
+                        >
                             <Tooltip
                                 openOnTargetFocus={false}
                                 minimal
@@ -409,7 +413,8 @@ export default function Sessions() {
                                 placement="bottom-start"
                             >
                                 <Button
-                                    fill
+                                    large={_.isEmpty(sessionDescription)}
+                                    style={{ maxWidth: "100%" }}
                                     ellipsizeText
                                     minimal
                                     alignText={Alignment.LEFT}
@@ -427,18 +432,21 @@ export default function Sessions() {
                                     }
                                 />
                             </Tooltip>
-                            <div
-                                className={Classes.TEXT_OVERFLOW_ELLIPSIS}
-                                style={{ paddingLeft: 10, width: "100%" }}
-                            >
-                                {sessionDescription}
-                            </div>
+                            {!_.isEmpty(sessionDescription) ? (
+                                <div
+                                    className={Classes.TEXT_OVERFLOW_ELLIPSIS}
+                                    style={{
+                                        paddingLeft: 10,
+                                        lineHeight: "25px",
+                                        width: "100%",
+                                    }}
+                                >
+                                    {sessionDescription}
+                                </div>
+                            ) : null}
                         </div>
                     ) : null}
-                    <Popover
-                        placement="bottom-end"
-                        content={<div style={{ padding: 20 }}></div>}
-                    ></Popover>
+                    <MemberPreview />
                 </Card>
                 {_.isNull(sessionIdFocus) ? (
                     <NonIdealState
