@@ -12,9 +12,11 @@ import SessionList from "@/components/sessions/SessionList";
 import SessionMessages from "@/components/sessions/message/SessionMessages";
 import { AppToaster } from "@/components/toaster";
 import {
+    Alignment,
     Button,
     ButtonGroup,
     Card,
+    Classes,
     ControlGroup,
     H4,
     Intent,
@@ -42,6 +44,7 @@ import {
 } from "@fortawesome/pro-duotone-svg-icons";
 import { ReactFlowProvider } from "@xyflow/react";
 import axios from "axios";
+import classNames from "classnames";
 import copy from "copy-to-clipboard";
 import _ from "lodash";
 import { useCallback, useContext, useEffect, useRef, useState } from "react";
@@ -397,25 +400,40 @@ export default function Sessions() {
                     }}
                 >
                     {!_.isNull(sessionIdFocus) ? (
-                        <Tooltip
-                            openOnTargetFocus={false}
-                            minimal
-                            className="full-parent-width"
-                            content="Get session details"
-                            placement="bottom-start"
-                        >
-                            <Button
-                                large
+                        <div style={{ maxWidth: "50%" }}>
+                            <Tooltip
+                                openOnTargetFocus={false}
                                 minimal
-                                onClick={() => setIsSessionDetailOpen(true)}
-                                rightIcon={faIcon({ icon: faCaretDown })}
-                                text={
-                                    <H4 className="margin-0">
-                                        #&nbsp;{sessionName}
-                                    </H4>
-                                }
-                            />
-                        </Tooltip>
+                                className="full-parent-width"
+                                content="Get session details"
+                                placement="bottom-start"
+                            >
+                                <Button
+                                    fill
+                                    ellipsizeText
+                                    minimal
+                                    alignText={Alignment.LEFT}
+                                    onClick={() => setIsSessionDetailOpen(true)}
+                                    rightIcon={faIcon({ icon: faCaretDown })}
+                                    text={
+                                        <H4
+                                            className={classNames(
+                                                "margin-0",
+                                                Classes.TEXT_OVERFLOW_ELLIPSIS
+                                            )}
+                                        >
+                                            #&nbsp;{sessionName}
+                                        </H4>
+                                    }
+                                />
+                            </Tooltip>
+                            <div
+                                className={Classes.TEXT_OVERFLOW_ELLIPSIS}
+                                style={{ paddingLeft: 10, width: "100%" }}
+                            >
+                                {sessionDescription}
+                            </div>
+                        </div>
                     ) : null}
                     <Popover
                         placement="bottom-end"
