@@ -10,6 +10,7 @@ export const defaultState = {
     userId: null,
     collapsed: true,
     unreadSessionIds: new Set(),
+    pinnedSessionIds: new Set(),
     terminatedInteraction: new Set(),
     expandedMessageStream: new Set(),
     sessionGroupBy: "all",
@@ -25,7 +26,16 @@ export default function sessionReducer(
         expandedMessageStream,
     } = state;
     let sessions = _.cloneDeep(state.sessions);
+    let pinnedSessionIds = _.clone(state.pinnedSessionIds);
     switch (type) {
+        case "session/pinnedSessionIds/add": {
+            pinnedSessionIds.add(payload);
+            return { ...state, pinnedSessionIds };
+        }
+        case "session/pinnedSessionIds/remove": {
+            pinnedSessionIds.delete(payload);
+            return { ...state, pinnedSessionIds };
+        }
         case "session/expandedMessageStream/add": {
             expandedMessageStream.add(payload);
             return { ...state, expandedMessageStream };

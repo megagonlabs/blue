@@ -1,4 +1,5 @@
 ###### OS / Systems
+from ctypes import util
 import os
 import sys
 
@@ -63,7 +64,6 @@ class InputType(Enum):
     UPDATE = auto()
     QUESTION = auto()
     ANSWER_PRESENT = auto()
-    ANSWER_INTERNAL = auto()
     NONE = auto()
 
 
@@ -109,10 +109,16 @@ class JobSearchPlannerAgent(Agent):
 
     def _start(self):
         super()._start()
+        welcome_message = (
+            "Welcome to your personal Job Search Assistant! \n\n"
+            "I’m here to help you find the perfect role in Singapore's job market."
+            "Share your preferences and skills, and I’ll guide you in building a tailored search query, provide market insights.\n\n"
+            "Let’s get started! what type of jobs are you looking for?"
+        )
 
         # say hello
         if self.session:
-            self.interact("Hello, I'm your job search assistant. How can I help you?")
+            self.interact(welcome_message)
 
     def build_plan(self, plan_dag, stream):
         plan_id = util_functions.create_uuid()
@@ -120,34 +126,41 @@ class JobSearchPlannerAgent(Agent):
         plan = {"id": plan_id, "steps": plan_dag, "context": plan_context}
         return plan
 
-    def issue_sql_query(self, query, final):
+    def write_to_new_stream(self, worker, content, stream_name, tags=None):
+        id = util_functions.create_uuid()
+        if worker:
+            output_stream = worker.write_data(
+                content, output=stream_name, id=id, tags=tags
+            )
+            worker.write_eos(output=stream_name, id=id)
+        return output_stream
+
+    def issue_sql_query(self, query, final, worker):
         """
         system issued sql queries queries.
         """
-        worker = self.worker
-        if worker:
-            output_stream = worker.write_data(
-                query,
-                output="QUERY",
-            )
-            worker.write_eos(output="QUERY")
 
         # TODO: hard-coded plan and agent names
         plan_query_planner = [
-            ["JOBSEARCHPLANNER.QUERY", "NL2SQL-E2E_INPLAN.DEFAULT"],
+            ["JOBSEARCHPLANNER.QUERYPLANNER", "NL2SQL-E2E_INPLAN.DEFAULT"],
             ["NL2SQL-E2E_INPLAN.DEFAULT", "JOBSEARCHPLANNER.ANSWERPLANNER"],
         ]
         plan_query_final = [
-            ["JOBSEARCHPLANNER.QUERY", "NL2SQL-E2E_INPLAN.DEFAULT"],
+            ["JOBSEARCHPLANNER.QUERYFINAL", "NL2SQL-E2E_INPLAN.DEFAULT"],
             ["NL2SQL-E2E_INPLAN.DEFAULT", "JOBSEARCHPLANNER.ANSWERFINAL"],
         ]
         if final:
             plan_query = plan_query_final
+            output_stream = self.write_to_new_stream(worker, query, "QUERYFINAL")
+
         else:
             plan_query = plan_query_planner
-        plan = self.build_plan(plan_query, output_stream)
+            output_stream = self.write_to_new_stream(worker, query, "QUERYPLANNER")
 
-        return plan
+        plan = self.build_plan(plan_query, output_stream)
+        self.write_to_new_stream(worker, plan, "DEFAULT", tags=["HIDDEN"])
+
+        return
 
     def update_memory(self, content):
         for key, value in content.items():
@@ -163,86 +176,107 @@ class JobSearchPlannerAgent(Agent):
                     if len(value) > 0:
                         self.user_profile[k].extend(value)
                         self.user_profile[k] = sorted(list(set(self.user_profile[k])))
-        logging.warning("UPDATE MEMORY")
-        logging.warning(self.search_predicates)
-        logging.warning(self.user_profile)
+        logging.info("UPDATE MEMORY")
+        logging.info(self.search_predicates)
+        logging.info(self.user_profile)
 
         return
 
-    def next_action(self):
+    def next_action(self, worker):
         """
         Act based on memory
         """
-        logging.warning("CURRENT MEMORY")
-        logging.warning(self.search_predicates)
-        logging.warning(self.user_profile)
+        logging.info("CURRENT MEMORY")
+        logging.info(self.search_predicates)
+        logging.info(self.user_profile)
         covered_predicates = [k for k, v in self.search_predicates.items() if v]
         if len(covered_predicates) < 2:
+
             uncovered_predicates = list(
                 set(self.search_predicates.keys()) - set(covered_predicates)
             )
-            clarification_question = f"Can you also provide {','.join(uncovered_predicates)} you are interested in?"
+            clarification_question = f"Could you provide more details about your search? For example, {', '.join(uncovered_predicates)}?"
             return clarification_question
 
         elif (
             self.user_profile["years of experience"] == -1
             or len(self.user_profile["skills"]) == 0
         ):
-            profile_form = ui_builders.build_form_profile("")  # TODO
-            if self.worker:
-                self.worker.write_control(
+
+            profile_form = ui_builders.build_form_profile()
+            if worker:
+                self.write_to_new_stream(
+                    worker=worker,
+                    content="Great! Now that I have a basic idea of what you're seeking, let’s dive deeper into your background to understand more about your experience.",
+                    stream_name="PRESENT",
+                )
+                worker.write_control(
                     ControlCode.CREATE_FORM, profile_form, output="FORM"
                 )
+            return
         # query insights for additional skills
         elif len(self.user_profile["suggested_skills"]) == 0:
-            query = f"What are the top 5 skills that co-occur frequently with {self.user_profile['skills'][0]}"
 
-            return self.issue_sql_query(query=query, final=False)
+            query = f"What are the top 5 skills that co-occur frequently with {self.user_profile['skills'][0]}"
+            self.issue_sql_query(query=query, final=False, worker=worker)
+            return
         # ask user to confirm suggested skills
         elif len(self.user_profile["confirmed_skills"]) == 0:
+
             profile_form = ui_builders.build_form_more_skills(
                 self.user_profile["suggested_skills"]
             )
-            if self.worker:
-                self.worker.write_control(
+            if worker:
+                self.write_to_new_stream(
+                    worker=worker,
+                    content="Based on the details you've shared, we’ve identified additional skills you might possess.",
+                    stream_name="PRESENT",
+                )
+
+                worker.write_control(
                     ControlCode.CREATE_FORM, profile_form, output="FORM"
                 )
+            return
         else:
+
             # issue final query
             employment_type = self.search_predicates["employment type"]
             job_title = self.search_predicates["job title"]
             location = self.search_predicates["location"]
             minimum_salary = self.search_predicates["minimum salary"]
-            search_skills = (
-                self.user_profile["skills"] + self.user_profile["confirmed_skills"]
-            )
+            search_skills = [
+                item.replace("_", " ")
+                for item in self.user_profile["skills"]
+                + self.user_profile["confirmed_skills"]
+            ]
+
             yoe = self.user_profile["years of experience"]
             query = (
                 f"Find top 5 {employment_type if len(employment_type)>0 else ''} {job_title if len(job_title)> 0 else ''} job ",
-                f"in location {location}" if len(location) > 0 else "",
+                f"in location {location}, " if len(location) > 0 else "",
                 (
-                    f" with at least {minimum_salary} salary, "
+                    f"with at least {minimum_salary} salary, "
                     if len(minimum_salary) > 0
                     else ""
                 ),
                 (
-                    f", requring {' '.join(search_skills)} skills "
+                    f"requiring {','.join(search_skills)} skills,  "
                     if len(search_skills) > 0
                     else ""
                 ),
                 (
-                    f", requiring no more than {yoe} years of experince"
+                    f"requiring no more than {yoe} years of experience"
                     if yoe > -1
                     else ""
                 ),
             )
-            print("".join(query))
 
-            return [self.issue_sql_query(query="".join(query), final=True), Message.EOS]
+            self.issue_sql_query(query="".join(query), final=True, worker=worker)
+            return
 
-    def action(self, input_type, input_content, user_stream):
-        logging.warning("ACTION")
-        logging.warning([input_type, input_content, user_stream])
+    def action(self, input_type, input_content, user_stream, worker):
+        logging.info("ACTION")
+        logging.info([input_type, input_content, user_stream])
         # TODO: hard-coded agent name
         plan_extraction = [
             ["USER.TEXT", "OPENAI_EXTRACTOR2.DEFAULT"],
@@ -255,22 +289,28 @@ class JobSearchPlannerAgent(Agent):
 
         # user asking exploration questions, call NL2Q
         if input_type == InputType.QUESTION.name:
-            # ouput to query stream, write eos
-            return self.build_plan(plan_query_user, user_stream)
+            plan = self.build_plan(plan_query_user, user_stream)
+            self.write_to_new_stream(worker, plan, "DEFAULT", tags=["HIDDEN"])
+            return
         # present answer to user
         elif input_type == InputType.ANSWER_PRESENT.name:
-            # present: now assuming
 
-            return [input_content["result"], Message.EOS]
+            self.write_to_new_stream(
+                worker=worker,
+                content=util_functions.parse_result(input_content),
+                stream_name="PRESENT",
+            )
+            return
         # user providing information
         # call extractor
         elif input_type == InputType.UPDATE.name:
-            return self.build_plan(plan_extraction, user_stream)
-
+            plan = self.build_plan(plan_extraction, user_stream)
+            self.write_to_new_stream(worker, plan, "DEFAULT", tags=["HIDDEN"])
+            return
         elif input_type == InputType.EXTRACTED.name:
 
             self.update_memory(input_content)
-            return self.next_action()
+            return self.next_action(worker)
         else:
             return
 
@@ -278,7 +318,6 @@ class JobSearchPlannerAgent(Agent):
         input_type = InputType.NONE.name
         input_content = None
         stream = None
-        self.worker = worker
         ##### Upon USER input text
         if input == "DEFAULT":
             if message.isEOS():
@@ -289,8 +328,6 @@ class JobSearchPlannerAgent(Agent):
                 if worker:
                     stream_data = worker.get_data(stream)
 
-                logging.warning("STREAM DATA:user input")
-                logging.warning(stream_data)
                 # judge user intent
                 # TODO: better matching
                 user_input = stream_data[0]
@@ -325,10 +362,10 @@ class JobSearchPlannerAgent(Agent):
                 extracted = {
                     key.lower(): value
                     for key, value in extracted.items()
-                    if len(value) > 0
+                    if type(value) is int or len(value) > 0
                 }
-                logging.warning("EXTRACTED")
-                logging.warning(extracted)
+                logging.info("EXTRACTED")
+                logging.info(extracted)
                 input_type = InputType.EXTRACTED.name
                 input_content = extracted
 
@@ -375,8 +412,8 @@ class JobSearchPlannerAgent(Agent):
 
                         input_type = InputType.EXTRACTED.name
 
-                        logging.warning("MORE SKILL FORM")
-                        logging.warning(input_content)
+                        logging.info("MORE SKILL FORM")
+                        logging.info(input_content)
 
                         confirmed_skills = []
                         for k, v in self.form_data.items():
@@ -418,13 +455,13 @@ class JobSearchPlannerAgent(Agent):
             if message.isData():
                 data = message.getData()
                 # TODO: hardcoded, only extract for suggested skills query
-                logging.warning("RETRIEVAL MORE SKILLs")
-                logging.warning(data)
+                logging.info("RETRIEVAL MORE SKILLs")
+                logging.info(data)
                 input_type = InputType.EXTRACTED.name
                 input_content = {
                     "suggested_skills": [
                         util_functions.remove_non_alphanumeric(item[0])
-                        for item in data["result"]
+                        for item in data["result"]["data"]
                     ]
                 }
 
@@ -435,13 +472,16 @@ class JobSearchPlannerAgent(Agent):
                 input_content = data
 
         else:
-            logging.warning("unexpected input stream")
+            logging.info("unexpected input stream")
 
         if input_type == InputType.NONE.name:
             return None
         else:
             return self.action(
-                input_type=input_type, input_content=input_content, user_stream=stream
+                input_type=input_type,
+                input_content=input_content,
+                user_stream=stream,
+                worker=worker,
             )
 
 
