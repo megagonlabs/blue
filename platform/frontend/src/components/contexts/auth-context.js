@@ -167,6 +167,16 @@ export const AuthProvider = ({ children }) => {
                 if (_.isEmpty(profileSettings)) {
                     profileSettings = {};
                 }
+                const pinnedSessions = Object.entries(
+                    _.get(profile, "sessions.pinned", {})
+                );
+                for (let i = 0; i < pinnedSessions.length; i++) {
+                    if (pinnedSessions[i][1]) {
+                        appActions.session.addPinnedSessionId(
+                            pinnedSessions[i][0]
+                        );
+                    }
+                }
                 setSettings(profileSettings);
             })
             .finally(() => {
@@ -188,8 +198,24 @@ export const AuthProvider = ({ children }) => {
                             setPopupOpen(false);
                             fetchAccountProfile();
                         })
-                        .catch(() => {
+                        .catch((error) => {
                             setPopupOpen(false);
+                            AppToaster.show({
+                                intent: Intent.DANGER,
+                                message: (
+                                    <>
+                                        <div>
+                                            {_.get(
+                                                error,
+                                                "response.data.message"
+                                            )}
+                                        </div>
+                                        <div>
+                                            {error.name}: {error.message}
+                                        </div>
+                                    </>
+                                ),
+                            });
                         });
                 });
             })

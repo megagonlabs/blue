@@ -136,6 +136,20 @@ def add_agent_to_session(request: Request, session_id, registry_name, agent_name
         return JSONResponse(content={"message": "Error: Unknown Registry"})
 
 
+@router.put('/session/{session_id}/pin')
+def pin_session(request: Request, session_id):
+    uid = request.state.user['uid']
+    p.set_metadata(f'users.{uid}.sessions.pinned.{session_id}', True)
+    return JSONResponse(content={"message": "Success"})
+
+
+@router.put('/session/{session_id}/unpin')
+def pin_session(request: Request, session_id):
+    uid = request.state.user['uid']
+    p.set_metadata(f'users.{uid}.sessions.pinned.{session_id}', False)
+    return JSONResponse(content={"message": "Success"})
+
+
 @router.put("/session/{session_id}")
 async def update_session(request: Request, session_id):
     session = p.get_session(session_id)

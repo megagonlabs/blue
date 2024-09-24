@@ -147,7 +147,7 @@ class Platform:
         # create user profile with guest role if does not exist
         self.set_metadata(
             f'users.{uid}',
-            {'uid': user['uid'], 'role': 'guest', 'email': user['email'], 'name': user['name'], 'picture': user['picture'], 'settings': {}},
+            {'uid': user['uid'], 'role': 'guest', 'email': user['email'], 'name': user['name'], 'picture': user['picture'], 'settings': {}, 'sessions': {"pinned": {}, "owner": {}, "member": {}}},
             nx=True,
         )
         self.set_metadata(f'users.{uid}.email', user['email'])
