@@ -198,11 +198,11 @@ class Agent:
         properties=None,
         worker=None,
     ):
-        logging.info("instruction processor")
-        logging.info(message)
-        logging.info(input)
-        logging.info(properties)
-        logging.info(worker)
+        # logging.info("instruction processor")
+        # logging.info(message)
+        # logging.info(input)
+        # logging.info(properties)
+        # logging.info(worker)
 
         if message.getCode() == ControlCode.EXECUTE_AGENT:
             agent = message.getArg("agent")
@@ -210,7 +210,6 @@ class Agent:
                 context = message.getArg("context")
                 input_streams = message.getArg("params")
                 for input_param in input_streams:
-                    logging.info("l")
                     self.create_worker(input_streams[input_param], input=input_param, context=context)
 
     ###### session
@@ -240,12 +239,12 @@ class Agent:
                 return
 
             # agent define what to listen to using include/exclude expressions
-            logging.info("Checking listener tags...")
+            # logging.info("Checking listener tags...")
             matched_params = self._match_listen_to_tags(tags)
-            logging.info("Done.")
+            # logging.info("Done.")
 
             # instructable
-            logging.info("instructable? " + str(self.properties['instructable']))
+            # logging.info("instructable? " + str(self.properties['instructable']))
             if self.properties['instructable']:
                 if 'INSTRUCTION' in set(tags):
                     # create a special worker to list to streams with instructions
@@ -253,7 +252,7 @@ class Agent:
 
             # skip
             if len(matched_params) == 0:
-                logging.info("Skipping stream {stream} with {tags}...".format(stream=stream, tags=tags))
+                # logging.info("Skipping stream {stream} with {tags}...".format(stream=stream, tags=tags))
                 return
 
             for param in matched_params:
@@ -262,14 +261,14 @@ class Agent:
                 # create worker
                 worker = self.create_worker(stream, input=param, context=stream)
 
-                logging.info("Spawned worker for stream {stream}...".format(stream=stream))
+                # logging.info("Spawned worker for stream {stream}...".format(stream=stream))
 
     def _match_listen_to_tags(self, tags):
         matched_params = {}
 
         # default listeners
         listeners_by_param = self.properties["listens"]
-        logging.info(json.dumps(listeners_by_param, indent=3))
+        # logging.info(json.dumps(listeners_by_param, indent=3))
         for param in listeners_by_param:
             matched_tags = set()
 
@@ -288,12 +287,11 @@ class Agent:
                     for tag in tags:
                         if p.match(tag):
                             matched_tags.add(tag)
-                            logging.info("Matched include rule: {rule} for param: {param}".format(rule=str(i), param=param))
+                            # logging.info("Matched include rule: {rule} for param: {param}".format(rule=str(i), param=param))
                 elif type(i) == list:
                     m = set()
                     a = True
                     for ii in i:
-                        logging.info(ii)
                         p = re.compile(ii)
                         b = False
                         for tag in tags:
@@ -308,7 +306,7 @@ class Agent:
                             break
                     if a:
                         matched_tags = matched_tags.union(m)
-                        logging.info("Matched include rule: {rule} for param: {param}".format(rule=str(i), param=param))
+                        # logging.info("Matched include rule: {rule} for param: {param}".format(rule=str(i), param=param))
 
             # no matches for param
             if len(matched_tags) == 0:
@@ -322,7 +320,7 @@ class Agent:
                 if type(x) == str:
                     p = re.compile(x)
                     if p.match(tag):
-                        logging.info("Matched exclude rule: {rule} for param: {param}".format(rule=str(x), param=param))
+                        # logging.info("Matched exclude rule: {rule} for param: {param}".format(rule=str(x), param=param))
                         # delete match
                         del matched_params[param]
                         break
@@ -343,7 +341,7 @@ class Agent:
                             a = False
                             break
                     if a:
-                        logging.info("Matched exclude rule: {rule} for param: {param}".format(rule=str(x), param=param))
+                        # logging.info("Matched exclude rule: {rule} for param: {param}".format(rule=str(x), param=param))
                         # delete match
                         del matched_params[param]
                         break
