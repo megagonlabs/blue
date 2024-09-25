@@ -313,7 +313,15 @@ const ArrayRenderer = ({
                     {translations.noDataMessage}
                 </div>
             )}
-            <ButtonGroup fill style={{ maxWidth: 171.88 }}>
+            <ButtonGroup
+                fill
+                style={{
+                    maxWidth: _.includes(["DAG"], visualization)
+                        ? 171.88
+                        : 70.77,
+                    marginBottom: 15,
+                }}
+            >
                 <Tooltip
                     placement="top-start"
                     minimal
