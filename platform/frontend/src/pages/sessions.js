@@ -6,10 +6,10 @@ import { sendSocketMessage } from "@/components/helper";
 import { useSocket } from "@/components/hooks/useSocket";
 import { faIcon } from "@/components/icon";
 import AddAgents from "@/components/sessions/AddAgents";
-import MemberPreview from "@/components/sessions/MemberPreview";
 import PlanVisualizationPanel from "@/components/sessions/PlanVisualizationPanel";
 import SessionDetail from "@/components/sessions/SessionDetail";
 import SessionList from "@/components/sessions/SessionList";
+import SessionMemberStack from "@/components/sessions/SessionMemberStack";
 import SessionMessages from "@/components/sessions/message/SessionMessages";
 import { AppToaster } from "@/components/toaster";
 import {
@@ -446,7 +446,7 @@ export default function Sessions() {
                             ) : null}
                         </div>
                     ) : null}
-                    <MemberPreview />
+                    <SessionMemberStack />
                 </Card>
                 {_.isNull(sessionIdFocus) ? (
                     <NonIdealState

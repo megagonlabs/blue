@@ -271,7 +271,7 @@ async def create_session(request: Request):
     session = p.create_session(created_by=uid)
     session.set_metadata('created_by', uid)
     created_date = session.get_metadata('created_date')
-    result = {"id": session.sid, "name": session.sid, "description": "", 'created_date': created_date, 'group_by': {'owner': True, 'member': False}}
+    result = {"id": session.sid, "name": session.sid, "description": "", 'created_date': created_date, 'created_by': uid, 'group_by': {'owner': True, 'member': False}}
     await request.app.connection_manager.broadcast(json.dumps({"type": "NEW_SESSION_BROADCAST", "session": result}))
     return JSONResponse(content={"result": result})
 
