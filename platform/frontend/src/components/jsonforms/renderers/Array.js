@@ -313,7 +313,7 @@ const ArrayRenderer = ({
                     {translations.noDataMessage}
                 </div>
             )}
-            <ButtonGroup>
+            <ButtonGroup fill style={{ maxWidth: 171.88 }}>
                 <Tooltip
                     placement="top-start"
                     minimal
@@ -322,6 +322,7 @@ const ArrayRenderer = ({
                     <Button
                         icon={faIcon({ icon: faPlus })}
                         text="Add"
+                        ellipsizeText
                         outlined
                         onClick={addItem(
                             path,
@@ -331,6 +332,7 @@ const ArrayRenderer = ({
                 </Tooltip>
                 {_.includes(["DAG"], visualization) ? (
                     <Button
+                        ellipsizeText
                         disabled={_.isEmpty(data)}
                         outlined
                         text="Visualize"
