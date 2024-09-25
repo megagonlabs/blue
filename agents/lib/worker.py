@@ -238,7 +238,8 @@ class Worker:
             else:
                 id = message.getArg("form_id")
 
-            # append output variable with id
+        # append output variable with id, if not None
+        if id is not None:
             output = output + ":" + id
 
         # create producer, if not existing
