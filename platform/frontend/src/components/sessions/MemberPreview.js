@@ -53,6 +53,7 @@ export default function MemberPreview() {
                 if (!hasUserProfile) {
                     return (
                         <Card
+                            key={uid}
                             className={Classes.SKELETON}
                             style={USER_AVATAR_STYLE}
                         />
@@ -60,7 +61,10 @@ export default function MemberPreview() {
                 }
                 const user = _.get(appState, ["app", "users", uid], {});
                 return (
-                    <Card style={{ ...USER_AVATAR_STYLE, zIndex: 3 - index }}>
+                    <Card
+                        key={uid}
+                        style={{ ...USER_AVATAR_STYLE, zIndex: 3 - index }}
+                    >
                         <Image
                             alt=""
                             src={_.get(user, "picture", "")}
@@ -71,9 +75,7 @@ export default function MemberPreview() {
                 );
             })}
             {_.size(members) > 3 ? (
-                <div round minimal style={{ marginLeft: 5 }}>
-                    &#43;{_.size(members) - 3}
-                </div>
+                <div style={{ marginLeft: 5 }}>&#43;{_.size(members) - 3}</div>
             ) : null}
         </div>
     );
