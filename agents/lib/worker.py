@@ -310,10 +310,13 @@ class Worker:
             # add tags from properties
             if "tags" in self.properties:
                 tags_by_param = self.properties["tags"]
-                # include tags from all params
+                # include tags from properties by output param
                 for param in tags_by_param:
-                    param_tags = tags_by_param[param]
-                    all_tags = all_tags.union(set(param_tags))
+                    output_name = output.split(":")[0]
+                    # add params specific to outp
+                    if output_name == param:
+                        param_tags = tags_by_param[param]
+                        all_tags = all_tags.union(set(param_tags))
             all_tags = list(all_tags)
 
             self.session.notify(self.agent, output_stream, all_tags)
