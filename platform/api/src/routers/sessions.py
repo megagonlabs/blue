@@ -199,6 +199,7 @@ def add_member_to_session(request: Request, session_id, uid):
     if pydash.is_equal(owner, uid):
         return JSONResponse(status_code=400, content={"message": "Unable to add the owner as a member."})
     session.set_metadata(f'members.{uid}', True)
+    p.set_metadata(f'users.{uid}.sessions.member.{session_id}', True)
     return JSONResponse(content={"message": "Success"})
 
 
@@ -207,6 +208,7 @@ def remove_member_from_session(request: Request, session_id, uid):
     session = p.get_session(session_id)
     session_acl_enforce(request, session.to_dict(), write=True)
     session.set_metadata(f'members.{uid}', False)
+    p.set_metadata(f'users.{uid}.sessions.member.{session_id}', False)
     return JSONResponse(content={"message": "Success"})
 
 
@@ -265,10 +267,11 @@ def set_budget_allocation_latency(request: Request, session_id, latency):
 @router.post("/session")
 async def create_session(request: Request):
     acl_enforce(request.state.user['role'], 'sessions', ['write_all', 'write_own'])
-    session = p.create_session()
-    session.set_metadata('created_by', request.state.user['uid'])
+    uid = request.state.user['uid']
+    session = p.create_session(created_by=uid)
+    session.set_metadata('created_by', uid)
     created_date = session.get_metadata('created_date')
-    result = {"id": session.sid, "name": session.sid, "description": "", 'created_date': created_date, 'group_by': {'owner': True, 'member': False}}
+    result = {"id": session.sid, "name": session.sid, "description": "", 'created_date': created_date, 'created_by': uid, 'group_by': {'owner': True, 'member': False}}
     await request.app.connection_manager.broadcast(json.dumps({"type": "NEW_SESSION_BROADCAST", "session": result}))
     return JSONResponse(content={"result": result})
 

@@ -266,11 +266,7 @@ const ArrayRenderer = ({
                                     ) : null}
                                     <Popover
                                         content={
-                                            <div
-                                                style={{
-                                                    padding: 15,
-                                                }}
-                                            >
+                                            <div style={{ padding: 15 }}>
                                                 <Button
                                                     intent={Intent.DANGER}
                                                     className={
@@ -295,9 +291,7 @@ const ArrayRenderer = ({
                                             <Button
                                                 minimal
                                                 intent={Intent.DANGER}
-                                                icon={faIcon({
-                                                    icon: faTrash,
-                                                })}
+                                                icon={faIcon({ icon: faTrash })}
                                             />
                                         </Tooltip>
                                     </Popover>

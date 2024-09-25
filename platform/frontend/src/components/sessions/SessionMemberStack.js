@@ -4,7 +4,7 @@ import _ from "lodash";
 import Image from "next/image";
 import { useContext, useEffect, useMemo } from "react";
 import { PROFILE_PICTURE_40 } from "../constant";
-export default function MemberPreview() {
+export default function SessionMemberStack() {
     const { appState, appActions } = useContext(AppContext);
     const { sessionIdFocus, sessionDetails } = appState.session;
     const members = useMemo(() => {
