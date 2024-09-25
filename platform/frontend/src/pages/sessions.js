@@ -370,6 +370,7 @@ export default function Sessions() {
                                 }`}
                             >
                                 <Button
+                                    style={{ cursor: "initial" }}
                                     large
                                     minimal
                                     icon={faIcon({ icon: faBell })}
