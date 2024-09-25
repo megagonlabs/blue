@@ -164,6 +164,7 @@ export default function NumberInput({
             value={_.isNumber(data) || _.isString(data) ? data : ""}
             buttonPosition="none"
             large
+            fill
         />
     );
 }

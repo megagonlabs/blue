@@ -425,52 +425,65 @@ function FormDesigner() {
                                         icon={null}
                                         intent={error ? Intent.DANGER : null}
                                         style={{
-                                            position: "relative",
                                             maxWidth: "100%",
-                                            overflowX: "hidden",
-                                            minWidth: 50,
-                                            whiteSpace: "pre-wrap",
-                                            wordBreak: "break-all",
                                             width: "fit-content",
-                                            minHeight: 21,
                                         }}
                                     >
-                                        {!error ? (
-                                            <JsonForms
-                                                schema={schema}
-                                                uischema={uischema}
-                                                data={data}
-                                                renderers={JSONFORMS_RENDERERS}
-                                                cells={vanillaCells}
-                                                onChange={({
-                                                    data,
-                                                    errors,
-                                                }) => {
-                                                    console.log(data, errors);
-                                                    setData(data);
-                                                }}
-                                            />
-                                        ) : (
-                                            <>
-                                                <div>{String(error)}</div>
-                                                <Tag
-                                                    large
-                                                    minimal
-                                                    style={{ marginTop: 5 }}
-                                                >
-                                                    Click
-                                                    {faIcon({
-                                                        icon: faPlay,
-                                                        style: {
-                                                            color: "#1c6e42",
-                                                            marginLeft: 5,
-                                                            marginRight: 5,
-                                                        },
-                                                    })}
-                                                    to re-run
-                                                </Tag>
-                                            </>
-                                        )}
+                                        <div
+                                            style={{
+                                                maxWidth: "100%",
+                                                minWidth: 50,
+                                                whiteSpace: "pre-wrap",
+                                                wordBreak: "break-all",
+                                                width: "fit-content",
+                                                minHeight: 21,
+                                                overflow: "hidden",
+                                                paddingLeft: 1,
+                                                paddingRight: 1,
+                                            }}
+                                        >
+                                            {!error ? (
+                                                <JsonForms
+                                                    schema={schema}
+                                                    uischema={uischema}
+                                                    data={data}
+                                                    renderers={
+                                                        JSONFORMS_RENDERERS
+                                                    }
+                                                    cells={vanillaCells}
+                                                    onChange={({
+                                                        data,
+                                                        errors,
+                                                    }) => {
+                                                        console.log(
+                                                            data,
+                                                            errors
+                                                        );
+                                                        setData(data);
+                                                    }}
+                                                />
+                                            ) : (
+                                                <>
+                                                    <div>{String(error)}</div>
+                                                    <Tag
+                                                        large
+                                                        minimal
+                                                        style={{ marginTop: 5 }}
+                                                    >
+                                                        Click
+                                                        {faIcon({
+                                                            icon: faPlay,
+                                                            style: {
+                                                                color: "#1c6e42",
+                                                                marginLeft: 5,
+                                                                marginRight: 5,
+                                                            },
+                                                        })}
+                                                        to re-run
+                                                    </Tag>
+                                                </>
+                                            )}
+                                        </div>
                                     </Callout>
                                 ) : (
                                     <NonIdealState
