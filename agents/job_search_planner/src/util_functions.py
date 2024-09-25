@@ -47,4 +47,4 @@ def parse_result(result):
     for item in data:
         job = {key: value for key, value in zip(columns, item)}
         job_list.append(job)
-    return {"Jobs": job_list}
+    return {"Results": job_list}
