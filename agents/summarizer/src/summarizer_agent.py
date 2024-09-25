@@ -121,7 +121,7 @@ class SummarizerAgent(Agent):
         ]
        
         # write query to stream
-        query_stream = self.write_to_new_stream(worker, query, "QUERY", id=id)
+        query_stream = self.write_to_new_stream(worker, query, "QUERY", tags=["HIDDEN"], id=id)
 
         # build query plan
         plan = self.build_plan(query_plan, query_stream, id=id)
