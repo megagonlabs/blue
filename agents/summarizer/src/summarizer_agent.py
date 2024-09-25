@@ -30,6 +30,9 @@ import re
 import itertools
 from tqdm import tqdm
 
+##### analytics
+import pandas as pd
+
 ###### Communication
 import asyncio
 from websockets.sync.client import connect
@@ -56,8 +59,35 @@ logging.basicConfig(
 )
 
 
+GENERATE_PROMPT = """
+fill in template with query results in the template below, return only the summary as natural language text, rephrasing the template contents:
+${input}
+"""
 
-class SummarizerAgent(Agent):
+agent_properties = {
+    "openai.api": "ChatCompletion",
+    "openai.model": "gpt-4o",
+    "output_path": "$.choices[0].message.content",
+    "input_json": "[{\"role\":\"user\"}]",
+    "input_context": "$[0]",
+    "input_context_field": "content",
+    "input_field": "messages",
+    "input_template": GENERATE_PROMPT,
+    "openai.temperature": 0,
+    "openai.max_tokens": 512,
+    "nl2q.case_insensitive": True,
+    "listens": {
+        "DEFAULT": {
+            "includes": ["USER"],
+            "excludes": []
+        }
+    },
+    "tags": {"PLAN": ["PLAN"]},
+    "summary_template": "The average salary for an engineering job is {$average_salary}, while the highest paying would be {$highest_pay}",
+    "queries": {"average_salary": "what is the average salary in jurong for an engineering job?","highest_pay": "what is the highest paying job in jurong for engineer?"}
+}
+
+class SummarizerAgent(OpenAIAgent):
     def __init__(self, **kwargs):
         if "name" not in kwargs:
             kwargs["name"] = "SUMMARIZER"
@@ -72,18 +102,10 @@ class SummarizerAgent(Agent):
     def _initialize_properties(self):
         super()._initialize_properties()
 
-        # additional properties
-        listeners = {}
-        # listen to user
-        default_listeners = {}
-        listeners["DEFAULT"] = default_listeners
-        self.properties["listens"] = listeners
-        default_listeners["includes"] = ["USER"]
-        default_listeners["excludes"] = [self.name]
+        for key in agent_properties:
+            self.properties[key] = agent_properties[key]
 
-        self.properties["tags"] = {"PLAN": ["PLAN"]}
-
-
+    
     def build_plan(self, plan_dag, stream, id=None):
         
         # create a plan id
@@ -135,7 +157,6 @@ class SummarizerAgent(Agent):
 
     def default_processor(self, message, input="DEFAULT", properties=None, worker=None):
     
-        stream = None
 
         ##### Upon USER input text
         if input == "DEFAULT":
@@ -147,10 +168,13 @@ class SummarizerAgent(Agent):
                 if worker:
                     stream_data = worker.get_data(stream)
 
-                # user initiated summarizer, kick off queries
-                queries = ["what is the average salary in jurong?", "what is the highest paying job in jurong for engineer?"]
-                for query in queries:
-                    query_id = util_functions.create_uuid()
+                # user initiated summarizer, kick off queries from template
+                self.results = {}
+                self.todos = set()
+                queries = self.properties['queries']
+                for query_id in queries:
+                    query = queries[query_id]
+                    self.todos.add(query_id)
                     self.issue_sql_query(query, worker, id=query_id)
 
                 return
@@ -173,10 +197,37 @@ class SummarizerAgent(Agent):
 
         elif input == "RESULTS":
             if message.isData():
+                stream = message.getStream()
+                # TODO: REVISE
+                # get query from incoming stream
+                query = stream[stream.find("QUERY"):].split(":")[1]
+
                 data = message.getData()
 
-                # process results
                 logging.info(data)
+            
+                if 'result' in data:
+                    query_results = data['result']
+
+                    df = pd.DataFrame(query_results['data'], columns=query_results['columns'])
+
+                    query_results_json = df.to_json(orient='records')
+                    logging.info(query_results_json)
+
+                    self.results[query] = query_results_json
+                    self.todos.remove(query)
+
+                    if len(self.todos) == 0:
+                        logging.info("DONE!")
+                        summary_template = Template(properties['template'])
+                        summary = summary_template.substitute(**self.results)
+
+                        #### call api to generate summary
+                        worker.write_data(self.handle_api_call([summary], properties=properties))
+                        worker.write_eos()
+
+                else:
+                    logging.info("nothing found")
 
 
 
