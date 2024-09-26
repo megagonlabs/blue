@@ -438,8 +438,7 @@ function FormDesigner() {
                                                 width: "fit-content",
                                                 minHeight: 21,
                                                 overflow: "hidden",
-                                                paddingLeft: 1,
-                                                paddingRight: 1,
+                                                padding: 1,
                                             }}
                                         >
                                             {!error ? (
