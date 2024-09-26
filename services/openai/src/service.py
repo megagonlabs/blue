@@ -20,7 +20,7 @@ import asyncio
 import websockets
 
 ##### Agent specifc
-import openai
+from openai import OpenAI
 
 # set log level
 logging.getLogger().setLevel(logging.INFO)
@@ -38,18 +38,18 @@ async def handler(websocket):
             api = message['api']
             del message['api']
 
-            if api == 'Completion':
-                response = openai.Completion.create(**message)
-            elif api == 'ChatCompletion':
-                response = openai.ChatCompletion.create(**message)
-            elif api == 'Edit':
-                response = openai.Edit.create(**message)
+            if 'OPENAI_BASE_URL' in os.environ:
+                client = OpenAI(base_url=os.environ.get('OPENAI_BASE_URL'))
+            else:
+                client = OpenAI()
+            if api == 'ChatCompletion':
+                response = client.chat.completions.create(**message)
             else:
                 raise Exception('unknown api') 
             
 
-            logging.info(json.dumps(response))
-            await websocket.send(json.dumps(response))
+            logging.info(response.json())
+            await websocket.send(response.json())
 
         except websockets.ConnectionClosedOK:
             break
