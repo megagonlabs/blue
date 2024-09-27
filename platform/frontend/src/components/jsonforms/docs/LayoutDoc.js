@@ -22,9 +22,7 @@ export default function LayoutDoc({ closePanel }) {
     };
     const docJSonHorizontal = {
         type: "HorizontalLayout",
-        props: {
-            spaceEvenly: true,
-        },
+        props: { spaceEvenly: true },
         elements: [],
     };
     return (
@@ -137,8 +135,8 @@ export default function LayoutDoc({ closePanel }) {
                                     minimal
                                     style={{ marginTop: 5 }}
                                 >
-                                    Applies to&nbsp;
-                                    <strong>HorizontalLayout</strong>&nbsp;only
+                                    Applies to <strong>HorizontalLayout</strong>
+                                    &nbsp;only
                                 </Tag>
                             </td>
                         </tr>

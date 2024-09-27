@@ -33,13 +33,17 @@ import {
     faObjectGroup,
     faParagraph,
     faPlay,
+    faPresentationScreen,
     faRectanglesMixed,
     faSquareCheck,
+    faSquareM,
     faTimes,
 } from "@fortawesome/pro-duotone-svg-icons";
 import _ from "lodash";
 import { useCallback, useState } from "react";
 import ArrayDoc from "./ArrayDoc";
+import MarkdownDoc from "./MarkdownDoc";
+import VegaDoc from "./VegaDoc";
 const RendererDetailPanel = (props) => {
     const DOCS = {
         boolean: <BooleanDoc closePanel={props.closePanel} />,
@@ -52,20 +56,13 @@ const RendererDetailPanel = (props) => {
         number: <NumberDoc closePanel={props.closePanel} />,
         string: <StringDoc closePanel={props.closePanel} />,
         array: <ArrayDoc closePanel={props.closePanel} />,
+        vega: <VegaDoc closePanel={props.closePanel} />,
+        markdown: <MarkdownDoc closePanel={props.closePanel} />,
     };
     return _.get(DOCS, props.type, null);
 };
 const MainMenuPanel = (props) => {
     const TYPES = [
-        { text: "Boolean", icon: faSquareCheck },
-        { text: "Button", icon: faPlay },
-        { text: "Enum", icon: faListDropdown },
-        { text: "Group", icon: faObjectGroup },
-        { text: "Integer", icon: faInputNumeric },
-        { text: "Label", icon: faParagraph },
-        { text: "Layout", icon: faRectanglesMixed },
-        { text: "Number", icon: faInputNumeric },
-        { text: "String", icon: faInputText },
         {
             text: "Array",
             icon: faList,
@@ -75,6 +72,28 @@ const MainMenuPanel = (props) => {
                     style={{ marginRight: 4 }}
                 >
                     Inlined UI schema
+                </span>
+            ),
+        },
+        { text: "Boolean", icon: faSquareCheck },
+        { text: "Button", icon: faPlay },
+        { text: "Enum", icon: faListDropdown },
+        { text: "Group", icon: faObjectGroup },
+        { text: "Integer", icon: faInputNumeric },
+        { text: "Label", icon: faParagraph },
+        { text: "Layout", icon: faRectanglesMixed },
+        { text: "Markdown", icon: faSquareM },
+        { text: "Number", icon: faInputNumeric },
+        { text: "String", icon: faInputText },
+        {
+            text: "Vega",
+            icon: faPresentationScreen,
+            label: (
+                <span
+                    className={Classes.TEXT_DISABLED}
+                    style={{ marginRight: 4 }}
+                >
+                    Vega-Lite
                 </span>
             ),
         },

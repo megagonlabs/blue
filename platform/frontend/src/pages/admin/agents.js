@@ -172,7 +172,7 @@ export default function Agents() {
     }
     return (
         <>
-            <Card style={{ padding: 5 }}>
+            <Card interactive style={{ padding: 5, borderRadius: 0 }}>
                 <ButtonGroup large minimal>
                     <Tooltip placement="bottom-start" minimal content="Refresh">
                         <Button

@@ -19,14 +19,8 @@ export default function ArrayDoc({ closePanel }) {
             detail: {
                 type: "VerticalLayout",
                 elements: [
-                    {
-                        type: "Label",
-                        label: "Name",
-                    },
-                    {
-                        type: "Control",
-                        scope: "#/properties/name",
-                    },
+                    { type: "Label", label: "Name" },
+                    { type: "Control", scope: "#/properties/name" },
                 ],
             },
         },
@@ -38,11 +32,7 @@ export default function ArrayDoc({ closePanel }) {
                 type: "array",
                 items: {
                     type: "object",
-                    properties: {
-                        name: {
-                            type: "string",
-                        },
-                    },
+                    properties: { name: { type: "string" } },
                 },
             },
         },

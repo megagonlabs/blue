@@ -17,9 +17,7 @@ import CopyDocJsonButton from "./CopyDocJsonButton";
 export default function StringDoc({ closePanel }) {
     const docJson = {
         type: "Control",
-        options: {
-            multi: false,
-        },
+        options: { multi: false },
         props: {
             inline: false,
             placeholder: null,
