@@ -6,6 +6,7 @@ import {
 import { JSONFORMS_RENDERERS } from "@/components/constant";
 import { faIcon } from "@/components/icon";
 import DocDrawer from "@/components/jsonforms/docs/DocDrawer";
+import JsonViewer from "@/components/sessions/message/renderers/JsonViewer";
 import { AppToaster } from "@/components/toaster";
 import {
     Alignment,
@@ -495,7 +496,10 @@ function FormDesigner() {
                                 )
                             ) : (
                                 <Pre style={{ margin: 0, overflowX: "auto" }}>
-                                    {JSON.stringify(data, null, 4)}
+                                    <JsonViewer
+                                        displaySize={true}
+                                        json={data}
+                                    />
                                 </Pre>
                             )}
                         </div>

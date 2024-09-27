@@ -39,7 +39,10 @@ export default function EntityProperties({
             >
                 {!edit ? (
                     <div style={{ padding: 15 }}>
-                        <JsonViewer json={entity.properties} />
+                        <JsonViewer
+                            displaySize={true}
+                            json={entity.properties}
+                        />
                     </div>
                 ) : (
                     <JsonEditor

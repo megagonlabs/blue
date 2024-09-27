@@ -215,6 +215,7 @@ const Row = ({ index, data, style }) => {
                                     } else if (_.isEqual(dataType, "JSON")) {
                                         return (
                                             <JsonViewer
+                                                displaySize={true}
                                                 key={id}
                                                 json={content}
                                             />

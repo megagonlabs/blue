@@ -1,4 +1,5 @@
 import { faIcon } from "@/components/icon";
+import JsonViewer from "@/components/sessions/message/renderers/JsonViewer";
 import {
     Button,
     Callout,
@@ -15,25 +16,17 @@ import { faArrowLeft } from "@fortawesome/pro-duotone-svg-icons";
 import classNames from "classnames";
 import CopyDocJsonButton from "./CopyDocJsonButton";
 export default function LayoutDoc({ closePanel }) {
-    const docJsonVertical = JSON.stringify(
-        {
-            type: "VerticalLayout",
-            elements: [],
+    const docJsonVertical = {
+        type: "VerticalLayout",
+        elements: [],
+    };
+    const docJSonHorizontal = {
+        type: "HorizontalLayout",
+        props: {
+            spaceEvenly: true,
         },
-        null,
-        4
-    );
-    const docJSonHorizontal = JSON.stringify(
-        {
-            type: "HorizontalLayout",
-            props: {
-                spaceEvenly: true,
-            },
-            elements: [],
-        },
-        null,
-        4
-    );
+        elements: [],
+    };
     return (
         <>
             <div className="bp-border-bottom" style={{ padding: "10px 20px" }}>
@@ -63,20 +56,26 @@ export default function LayoutDoc({ closePanel }) {
                 <pre style={{ position: "relative", overflow: "hidden" }}>
                     <div style={{ position: "absolute", right: 15, top: 13 }}>
                         <CopyDocJsonButton
-                            docJson={docJsonVertical}
+                            docJson={JSON.stringify(docJsonVertical, null, 4)}
                             copyMessage="Copied Layout JSON"
                         />
                     </div>
-                    {docJsonVertical}
+                    <JsonViewer
+                        json={docJsonVertical}
+                        enableClipboard={false}
+                    />
                 </pre>
                 <pre style={{ position: "relative", overflow: "hidden" }}>
                     <div style={{ position: "absolute", right: 15, top: 13 }}>
                         <CopyDocJsonButton
-                            docJson={docJSonHorizontal}
+                            docJson={JSON.stringify(docJSonHorizontal, null, 4)}
                             copyMessage="Copied Layout JSON"
                         />
                     </div>
-                    {docJSonHorizontal}
+                    <JsonViewer
+                        json={docJSonHorizontal}
+                        enableClipboard={false}
+                    />
                 </pre>
                 <H2>Vertical vs. Horizontal</H2>
                 <Callout

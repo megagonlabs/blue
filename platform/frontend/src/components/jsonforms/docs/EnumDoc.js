@@ -1,5 +1,6 @@
 import { faIcon } from "@/components/icon";
 import * as docProps from "@/components/jsonforms/docs/constant";
+import JsonViewer from "@/components/sessions/message/renderers/JsonViewer";
 import {
     Button,
     Classes,
@@ -12,21 +13,17 @@ import {
 import { faArrowLeft } from "@fortawesome/pro-duotone-svg-icons";
 import CopyDocJsonButton from "./CopyDocJsonButton";
 export default function EnumDoc({ closePanel }) {
-    const docJson = JSON.stringify(
-        {
-            type: "Control",
-            label: "",
-            props: {
-                inline: false,
-                helperText: null,
-                style: {},
-            },
-            scope: "",
-            required: false,
+    const docJson = {
+        type: "Control",
+        label: "",
+        props: {
+            inline: false,
+            helperText: null,
+            style: {},
         },
-        null,
-        4
-    );
+        scope: "#/properties/...",
+        required: false,
+    };
     return (
         <>
             <div className="bp-border-bottom" style={{ padding: "10px 20px" }}>
@@ -64,11 +61,11 @@ export default function EnumDoc({ closePanel }) {
                 <pre style={{ position: "relative", overflow: "hidden" }}>
                     <div style={{ position: "absolute", right: 15, top: 13 }}>
                         <CopyDocJsonButton
-                            docJson={docJson}
+                            docJson={JSON.stringify(docJson, null, 4)}
                             copyMessage="Copied Enum (Control) JSON"
                         />
                     </div>
-                    {docJson}
+                    <JsonViewer json={docJson} enableClipboard={false} />
                 </pre>
                 <H2>Props</H2>
                 <HTMLTable
