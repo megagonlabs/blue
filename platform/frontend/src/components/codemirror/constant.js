@@ -1,3 +1,5 @@
+const NO_VALIDATION_KEYS = ["vl-spec", "rafael"].map((e) => `^${e}$`);
+const NO_VALIDATION_PATTERN = `^(?!${NO_VALIDATION_KEYS.join("|")}).*$`;
 module.exports = {
     DATA_JSON_SCHEMA: {
         type: "object",
@@ -25,7 +27,7 @@ module.exports = {
             enum: { $ref: "#/definitions/enum" },
         },
         patternProperties: {
-            "^.*$": {
+            [NO_VALIDATION_PATTERN]: {
                 properties: {
                     type: { $ref: "#/definitions/type" },
                     enum: { $ref: "#/definitions/enum" },

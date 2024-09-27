@@ -3,7 +3,7 @@ import { withJsonFormsControlProps } from "@jsonforms/react";
 import _ from "lodash";
 import { VegaLite } from "react-vega";
 const VegaRenderer = ({ schema, uischema }) => {
-    const spec = _.get(schema, "spec", {});
+    const spec = _.get(schema, "vl-spec", {});
     const style = _.get(uischema, "props.style", {});
     return (
         <div style={{ ...style, overflow: "auto" }}>
