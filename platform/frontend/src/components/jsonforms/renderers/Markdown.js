@@ -7,7 +7,10 @@ const MarkdownRenderer = ({ schema, uischema }) => {
     const content = _.get(schema, "md-content", "");
     const style = _.get(uischema, "props.style", {});
     return (
-        <div style={{ ...style, overflow: "auto", padding: 1 }}>
+        <div
+            className="react-markdown-content"
+            style={{ ...style, overflow: "auto", padding: 1 }}
+        >
             <Markdown content={content} />
         </div>
     );
