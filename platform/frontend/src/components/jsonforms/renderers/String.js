@@ -5,7 +5,14 @@ import { InputGroup, TextArea } from "@blueprintjs/core";
 import { isStringControl, rankWith } from "@jsonforms/core";
 import { withJsonFormsControlProps } from "@jsonforms/react";
 import _ from "lodash";
-const StringRenderer = ({ uischema, handleChange, path, data, required }) => {
+const StringRenderer = ({
+    uischema,
+    handleChange,
+    path,
+    data,
+    required,
+    id,
+}) => {
     const { socket } = useSocket();
     const multiline = _.get(uischema, "options.multi", false);
     const placeholder = _.get(uischema, "props.placeholder", null);
@@ -44,6 +51,7 @@ const StringRenderer = ({ uischema, handleChange, path, data, required }) => {
                 helperText={_.get(uischema, "props.helperText", null)}
             >
                 <TextArea
+                    name={id}
                     placeholder={placeholder}
                     value={_.isEmpty(data) ? "" : data}
                     onChange={handleOnChange}
@@ -62,6 +70,7 @@ const StringRenderer = ({ uischema, handleChange, path, data, required }) => {
             helperText={_.get(uischema, "props.helperText", null)}
         >
             <InputGroup
+                name={id}
                 placeholder={placeholder}
                 large
                 value={_.isEmpty(data) ? "" : data}

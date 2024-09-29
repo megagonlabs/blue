@@ -12,6 +12,7 @@ const EnumRenderer = ({
     path,
     required,
     data,
+    id,
 }) => {
     const { socket } = useSocket();
     const label = _.get(uischema, "label", null);
@@ -33,6 +34,7 @@ const EnumRenderer = ({
             helperText={_.get(uischema, "props.helperText", null)}
         >
             <HTMLSelect
+                name={id}
                 value={_.isEmpty(data) ? "" : data}
                 options={[
                     {

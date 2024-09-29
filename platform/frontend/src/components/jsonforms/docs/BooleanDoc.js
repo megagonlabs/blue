@@ -111,10 +111,12 @@ export default function BooleanDoc({ closePanel }) {
                                     }}
                                 >
                                     <Checkbox
+                                        name="boolean-doc-switch-false"
                                         style={{ margin: 0 }}
                                         label="switch: false"
                                     />
                                     <Switch
+                                        name="boolean-doc-switch-true"
                                         style={{ margin: 0 }}
                                         label="switch: true"
                                     />

@@ -4,7 +4,14 @@ import { Checkbox, Switch } from "@blueprintjs/core";
 import { isBooleanControl, rankWith } from "@jsonforms/core";
 import { withJsonFormsControlProps } from "@jsonforms/react";
 import _ from "lodash";
-const BooleanRenderer = ({ uischema, handleChange, path, data, required }) => {
+const BooleanRenderer = ({
+    uischema,
+    handleChange,
+    path,
+    data,
+    required,
+    id,
+}) => {
     const { socket } = useSocket();
     const style = convertCss(_.get(uischema, "props.style", {}));
     const label = _.get(uischema, "label", null);
@@ -41,6 +48,7 @@ const BooleanRenderer = ({ uischema, handleChange, path, data, required }) => {
     }
     return (
         <Checkbox
+            name={id}
             checked={data}
             label={labelElement}
             style={style}
