@@ -8,6 +8,7 @@ import LabelDoc from "@/components/jsonforms/docs/LabelDoc";
 import LayoutDoc from "@/components/jsonforms/docs/LayoutDoc";
 import NumberDoc from "@/components/jsonforms/docs/NumberDoc";
 import StringDoc from "@/components/jsonforms/docs/StringDoc";
+import JsonViewer from "@/components/sessions/message/renderers/JsonViewer";
 import {
     Button,
     Callout,
@@ -21,7 +22,6 @@ import {
     MenuItem,
     PanelStack2,
     Position,
-    Pre,
     Tag,
     Tooltip,
 } from "@blueprintjs/core";
@@ -196,18 +196,24 @@ const MainMenuPanel = (props) => {
                                 >
                                     Applies to type <strong>string</strong> only
                                 </Tag>
-                                <Pre>
-                                    {JSON.stringify(
-                                        {
-                                            example: {
-                                                type: "string",
-                                                enum: ["foo", "bar", "foobar"],
-                                            },
-                                        },
-                                        null,
-                                        4
-                                    )}
-                                </Pre>
+                                <div className={Classes.RUNNING_TEXT}>
+                                    <pre
+                                        style={{
+                                            position: "relative",
+                                            overflow: "hidden",
+                                        }}
+                                    >
+                                        <JsonViewer
+                                            json={{
+                                                example: {
+                                                    type: "string",
+                                                    enum: ["foo", "bar"],
+                                                },
+                                            }}
+                                            enableClipboard={false}
+                                        />
+                                    </pre>
+                                </div>
                             </td>
                         </tr>
                     </tbody>

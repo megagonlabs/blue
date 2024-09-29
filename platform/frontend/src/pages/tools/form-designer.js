@@ -22,7 +22,6 @@ import {
     MenuItem,
     NonIdealState,
     Popover,
-    Pre,
     Tag,
     Tooltip,
 } from "@blueprintjs/core";
@@ -495,12 +494,20 @@ function FormDesigner() {
                                     />
                                 )
                             ) : (
-                                <Pre style={{ margin: 0, overflowX: "auto" }}>
-                                    <JsonViewer
-                                        displaySize={true}
-                                        json={data}
-                                    />
-                                </Pre>
+                                <div className={Classes.RUNNING_TEXT}>
+                                    <pre
+                                        className="margin-0"
+                                        style={{
+                                            position: "relative",
+                                            overflow: "hidden",
+                                        }}
+                                    >
+                                        <JsonViewer
+                                            displaySize={true}
+                                            json={data}
+                                        />
+                                    </pre>
+                                </div>
                             )}
                         </div>
                     </Allotment.Pane>

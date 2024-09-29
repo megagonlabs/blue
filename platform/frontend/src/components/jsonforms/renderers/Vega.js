@@ -6,7 +6,7 @@ const VegaRenderer = ({ schema, uischema }) => {
     const spec = _.get(schema, "vl-spec", {});
     const style = _.get(uischema, "props.style", {});
     return (
-        <div style={{ ...style, overflow: "auto" }}>
+        <div style={{ ...style, overflow: "auto", padding: 1 }}>
             <VegaLite spec={spec} actions={false} />
         </div>
     );

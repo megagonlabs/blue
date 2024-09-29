@@ -1,4 +1,4 @@
-const NO_VALIDATION_KEYS = ["vl-spec", "rafael"].map((e) => `^${e}$`);
+const NO_VALIDATION_KEYS = ["vl-spec", "md-content"].map((e) => `^${e}$`);
 const NO_VALIDATION_PATTERN = `^(?!${NO_VALIDATION_KEYS.join("|")}).*$`;
 module.exports = {
     DATA_JSON_SCHEMA: {
@@ -51,6 +51,7 @@ module.exports = {
                     "Label",
                     "Group",
                     "Vega",
+                    "Markdown",
                 ],
             },
             label: { type: "string", minLength: 1 },
