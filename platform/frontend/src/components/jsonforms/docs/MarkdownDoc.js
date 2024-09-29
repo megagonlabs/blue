@@ -1,5 +1,6 @@
 import { faIcon } from "@/components/icon";
 import * as docProps from "@/components/jsonforms/docs/constant";
+import JsonViewer from "@/components/sessions/message/renderers/JsonViewer";
 import {
     Button,
     Classes,
@@ -12,8 +13,23 @@ import {
 } from "@blueprintjs/core";
 import { faArrowLeft } from "@fortawesome/pro-duotone-svg-icons";
 import classNames from "classnames";
+import CopyDocJsonButton from "./CopyDocJsonButton";
 export default function MarkdownDoc({ closePanel }) {
-    const docJson = {};
+    const uiSchemaJson = {
+        type: "Markdown",
+        scope: "#/properties/markdown",
+        props: {
+            style: {},
+        },
+    };
+    const dataSchemaJson = {
+        type: "object",
+        properties: {
+            markdown: {
+                "md-content": "# H1",
+            },
+        },
+    };
     return (
         <>
             <div className="bp-border-bottom" style={{ padding: "10px 20px" }}>
@@ -83,6 +99,33 @@ export default function MarkdownDoc({ closePanel }) {
                         {docProps.style}
                     </tbody>
                 </HTMLTable>
+                <H2>Example</H2>
+                <pre style={{ position: "relative", overflow: "hidden" }}>
+                    <div style={{ position: "absolute", right: 15, top: 13 }}>
+                        <CopyDocJsonButton
+                            docJson={JSON.stringify(uiSchemaJson, null, 4)}
+                        />
+                    </div>
+                    <div>
+                        <Tag style={{ marginBottom: 13 }} minimal>
+                            UI Schema
+                        </Tag>
+                    </div>
+                    <JsonViewer json={uiSchemaJson} enableClipboard={false} />
+                </pre>
+                <pre style={{ position: "relative", overflow: "hidden" }}>
+                    <div style={{ position: "absolute", right: 15, top: 13 }}>
+                        <CopyDocJsonButton
+                            docJson={JSON.stringify(dataSchemaJson, null, 4)}
+                        />
+                    </div>
+                    <div>
+                        <Tag style={{ marginBottom: 13 }} minimal>
+                            Data Schema
+                        </Tag>
+                    </div>
+                    <JsonViewer json={dataSchemaJson} enableClipboard={false} />
+                </pre>
             </div>
         </>
     );
