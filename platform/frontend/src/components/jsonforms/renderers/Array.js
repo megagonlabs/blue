@@ -266,11 +266,7 @@ const ArrayRenderer = ({
                                     ) : null}
                                     <Popover
                                         content={
-                                            <div
-                                                style={{
-                                                    padding: 15,
-                                                }}
-                                            >
+                                            <div style={{ padding: 15 }}>
                                                 <Button
                                                     intent={Intent.DANGER}
                                                     className={
@@ -295,9 +291,7 @@ const ArrayRenderer = ({
                                             <Button
                                                 minimal
                                                 intent={Intent.DANGER}
-                                                icon={faIcon({
-                                                    icon: faTrash,
-                                                })}
+                                                icon={faIcon({ icon: faTrash })}
                                             />
                                         </Tooltip>
                                     </Popover>
@@ -313,7 +307,15 @@ const ArrayRenderer = ({
                     {translations.noDataMessage}
                 </div>
             )}
-            <ButtonGroup>
+            <ButtonGroup
+                fill
+                style={{
+                    maxWidth: _.includes(["DAG"], visualization)
+                        ? 171.88
+                        : 70.77,
+                    marginBottom: 15,
+                }}
+            >
                 <Tooltip
                     placement="top-start"
                     minimal
@@ -322,6 +324,7 @@ const ArrayRenderer = ({
                     <Button
                         icon={faIcon({ icon: faPlus })}
                         text="Add"
+                        ellipsizeText
                         outlined
                         onClick={addItem(
                             path,
@@ -331,6 +334,7 @@ const ArrayRenderer = ({
                 </Tooltip>
                 {_.includes(["DAG"], visualization) ? (
                     <Button
+                        ellipsizeText
                         disabled={_.isEmpty(data)}
                         outlined
                         text="Visualize"

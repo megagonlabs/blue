@@ -6,6 +6,7 @@ import {
 import { JSONFORMS_RENDERERS } from "@/components/constant";
 import { faIcon } from "@/components/icon";
 import DocDrawer from "@/components/jsonforms/docs/DocDrawer";
+import JsonViewer from "@/components/sessions/message/renderers/JsonViewer";
 import { AppToaster } from "@/components/toaster";
 import {
     Alignment,
@@ -21,7 +22,6 @@ import {
     MenuItem,
     NonIdealState,
     Popover,
-    Pre,
     Tag,
     Tooltip,
 } from "@blueprintjs/core";
@@ -438,8 +438,7 @@ function FormDesigner() {
                                                 width: "fit-content",
                                                 minHeight: 21,
                                                 overflow: "hidden",
-                                                paddingLeft: 1,
-                                                paddingRight: 1,
+                                                padding: 1,
                                             }}
                                         >
                                             {!error ? (
@@ -495,9 +494,20 @@ function FormDesigner() {
                                     />
                                 )
                             ) : (
-                                <Pre style={{ margin: 0, overflowX: "auto" }}>
-                                    {JSON.stringify(data, null, 4)}
-                                </Pre>
+                                <div className={Classes.RUNNING_TEXT}>
+                                    <pre
+                                        className="margin-0"
+                                        style={{
+                                            position: "relative",
+                                            overflow: "hidden",
+                                        }}
+                                    >
+                                        <JsonViewer
+                                            displaySize={true}
+                                            json={data}
+                                        />
+                                    </pre>
+                                </div>
                             )}
                         </div>
                     </Allotment.Pane>

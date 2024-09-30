@@ -138,7 +138,7 @@ export default function Users() {
                 setIsRoleConfigOpen={setIsRoleConfigOpen}
                 isRoleConfigOpen={isRoleConfigOpen}
             />
-            <Card style={{ padding: 5 }}>
+            <Card interactive style={{ padding: 5, borderRadius: 0 }}>
                 <ButtonGroup large minimal>
                     <Tooltip placement="bottom-start" minimal content="Refresh">
                         <Button
@@ -148,14 +148,20 @@ export default function Users() {
                         />
                     </Tooltip>
                     <Divider />
-                    <Button
-                        disabled={
-                            _.isEmpty(appState.admin.selectedUsers) || loading
-                        }
-                        onClick={() => setIsRoleConfigOpen(true)}
-                        icon={faIcon({ icon: faStamp })}
-                        text="Update role(s)"
-                    />
+                    <Tooltip
+                        placement="bottom"
+                        content="Update role(s)"
+                        minimal
+                    >
+                        <Button
+                            disabled={
+                                _.isEmpty(appState.admin.selectedUsers) ||
+                                loading
+                            }
+                            onClick={() => setIsRoleConfigOpen(true)}
+                            icon={faIcon({ icon: faStamp })}
+                        />
+                    </Tooltip>
                 </ButtonGroup>
             </Card>
             {_.isEmpty(data) ? (

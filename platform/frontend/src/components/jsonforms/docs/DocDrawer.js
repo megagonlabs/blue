@@ -8,6 +8,7 @@ import LabelDoc from "@/components/jsonforms/docs/LabelDoc";
 import LayoutDoc from "@/components/jsonforms/docs/LayoutDoc";
 import NumberDoc from "@/components/jsonforms/docs/NumberDoc";
 import StringDoc from "@/components/jsonforms/docs/StringDoc";
+import JsonViewer from "@/components/sessions/message/renderers/JsonViewer";
 import {
     Button,
     Callout,
@@ -21,7 +22,6 @@ import {
     MenuItem,
     PanelStack2,
     Position,
-    Pre,
     Tag,
     Tooltip,
 } from "@blueprintjs/core";
@@ -33,13 +33,17 @@ import {
     faObjectGroup,
     faParagraph,
     faPlay,
+    faPresentationScreen,
     faRectanglesMixed,
     faSquareCheck,
+    faSquareM,
     faTimes,
 } from "@fortawesome/pro-duotone-svg-icons";
 import _ from "lodash";
 import { useCallback, useState } from "react";
 import ArrayDoc from "./ArrayDoc";
+import MarkdownDoc from "./MarkdownDoc";
+import VegaDoc from "./VegaDoc";
 const RendererDetailPanel = (props) => {
     const DOCS = {
         boolean: <BooleanDoc closePanel={props.closePanel} />,
@@ -52,20 +56,13 @@ const RendererDetailPanel = (props) => {
         number: <NumberDoc closePanel={props.closePanel} />,
         string: <StringDoc closePanel={props.closePanel} />,
         array: <ArrayDoc closePanel={props.closePanel} />,
+        vega: <VegaDoc closePanel={props.closePanel} />,
+        markdown: <MarkdownDoc closePanel={props.closePanel} />,
     };
     return _.get(DOCS, props.type, null);
 };
 const MainMenuPanel = (props) => {
     const TYPES = [
-        { text: "Boolean", icon: faSquareCheck },
-        { text: "Button", icon: faPlay },
-        { text: "Enum", icon: faListDropdown },
-        { text: "Group", icon: faObjectGroup },
-        { text: "Integer", icon: faInputNumeric },
-        { text: "Label", icon: faParagraph },
-        { text: "Layout", icon: faRectanglesMixed },
-        { text: "Number", icon: faInputNumeric },
-        { text: "String", icon: faInputText },
         {
             text: "Array",
             icon: faList,
@@ -75,6 +72,28 @@ const MainMenuPanel = (props) => {
                     style={{ marginRight: 4 }}
                 >
                     Inlined UI schema
+                </span>
+            ),
+        },
+        { text: "Boolean", icon: faSquareCheck },
+        { text: "Button", icon: faPlay },
+        { text: "Enum", icon: faListDropdown },
+        { text: "Group", icon: faObjectGroup },
+        { text: "Integer", icon: faInputNumeric },
+        { text: "Label", icon: faParagraph },
+        { text: "Layout", icon: faRectanglesMixed },
+        { text: "Markdown", icon: faSquareM },
+        { text: "Number", icon: faInputNumeric },
+        { text: "String", icon: faInputText },
+        {
+            text: "Vega",
+            icon: faPresentationScreen,
+            label: (
+                <span
+                    className={Classes.TEXT_DISABLED}
+                    style={{ marginRight: 4 }}
+                >
+                    Vega-Lite
                 </span>
             ),
         },
@@ -177,18 +196,24 @@ const MainMenuPanel = (props) => {
                                 >
                                     Applies to type <strong>string</strong> only
                                 </Tag>
-                                <Pre>
-                                    {JSON.stringify(
-                                        {
-                                            example: {
-                                                type: "string",
-                                                enum: ["foo", "bar", "foobar"],
-                                            },
-                                        },
-                                        null,
-                                        4
-                                    )}
-                                </Pre>
+                                <div className={Classes.RUNNING_TEXT}>
+                                    <pre
+                                        style={{
+                                            position: "relative",
+                                            overflow: "hidden",
+                                        }}
+                                    >
+                                        <JsonViewer
+                                            json={{
+                                                example: {
+                                                    type: "string",
+                                                    enum: ["foo", "bar"],
+                                                },
+                                            }}
+                                            enableClipboard={false}
+                                        />
+                                    </pre>
+                                </div>
                             </td>
                         </tr>
                     </tbody>

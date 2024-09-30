@@ -3,7 +3,14 @@ import FormCell from "@/components/jsonforms/FormCell";
 import NumberInput from "@/components/jsonforms/NumberInput";
 import { isNumberControl, rankWith } from "@jsonforms/core";
 import { withJsonFormsControlProps } from "@jsonforms/react";
-const NumberRenderer = ({ uischema, handleChange, path, data, required }) => {
+const NumberRenderer = ({
+    uischema,
+    handleChange,
+    path,
+    data,
+    required,
+    id,
+}) => {
     const label = _.get(uischema, "label", null);
     const labelElement =
         !_.isString(label) && !required ? null : (
@@ -22,6 +29,7 @@ const NumberRenderer = ({ uischema, handleChange, path, data, required }) => {
             helperText={_.get(uischema, "props.helperText", null)}
         >
             <NumberInput
+                id={id}
                 uischema={uischema}
                 handleChange={handleChange}
                 path={path}

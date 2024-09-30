@@ -108,8 +108,10 @@ class Platform:
         else:
             return None
 
-    def create_session(self):
+    def create_session(self, created_by=None):
         session = Session(prefix=self.cid, properties=self.properties)
+        if not pydash.is_empty(created_by):
+            self.set_metadata(f'users.{created_by}.sessions.owner.{session.sid}', True)
         return session
 
     def delete_session(self, session_sid):

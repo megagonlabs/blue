@@ -20,7 +20,7 @@ export default function Debugger() {
         <>
             <Card style={{ borderRadius: 0, padding: "5px 15px" }}>
                 <ButtonGroup minimal>
-                    <HTMLSelect minimal>
+                    <HTMLSelect id="debugger-message-type" minimal>
                         <option value="all">All</option>
                     </HTMLSelect>
                     <Tooltip minimal content="Clear all" placement="bottom">

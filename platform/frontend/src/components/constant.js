@@ -47,6 +47,10 @@ import DateRenderer, { DateTester } from "./jsonforms/renderers/Date";
 import DateTimeRenderer, {
     DateTimeTester,
 } from "./jsonforms/renderers/DateTime";
+import MarkdownRenderer, {
+    MarkdownTester,
+} from "./jsonforms/renderers/Markdown";
+import VegaRenderer, { VegaTester } from "./jsonforms/renderers/Vega";
 export const ENTITY_TYPE_LOOKUP = {
         agent: { icon: faCircleA, key: "agent" },
         data: { icon: faServer, key: "source" },
@@ -73,7 +77,9 @@ export const ENTITY_TYPE_LOOKUP = {
         { tester: ButtonTester, renderer: ButtonRenderer },
         { tester: DateTester, renderer: DateRenderer },
         { tester: DateTimeTester, renderer: DateTimeRenderer },
+        { tester: VegaTester, renderer: VegaRenderer },
         { tester: ArrayTester, renderer: ArrayRenderer },
+        { tester: MarkdownTester, renderer: MarkdownRenderer },
         { tester: UnknownTester, renderer: UnknownRenderer },
     ],
     CARD_LIST_CLASS_NAMES = `${Classes.CARD} ${Classes.CARD_LIST} ${Classes.CARD_LIST_BORDERED}`,
