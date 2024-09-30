@@ -82,6 +82,7 @@ agent_properties = {
             "excludes": []
         }
     },
+    "rephrase": True,
     "tags": {"PLAN": ["PLAN"]},
     "summary_template": "The average salary for an engineering job is {$average_salary}, while the highest paying would be {$highest_pay}",
     "queries": {"average_salary": "what is the average salary in jurong for an engineering job?","highest_pay": "what is the highest paying job in jurong for engineer?"}
@@ -104,7 +105,6 @@ class SummarizerAgent(OpenAIAgent):
 
         for key in agent_properties:
             self.properties[key] = agent_properties[key]
-
     
     def build_plan(self, plan_dag, stream, id=None):
         
@@ -137,9 +137,10 @@ class SummarizerAgent(OpenAIAgent):
     def issue_sql_query(self, query, worker, id=None):
 
         # query plan
+        
         query_plan = [
-            ["SUMMARIZER.QUERY", "NL2SQL-E2E_INPLAN.DEFAULT"],
-            ["NL2SQL-E2E_INPLAN.DEFAULT", "SUMMARIZER.RESULTS"],
+            [self.name + ".QUERY", "NL2SQL-E2E_INPLAN.DEFAULT"],
+            ["NL2SQL-E2E_INPLAN.DEFAULT", self.name+".RESULTS"],
         ]
        
         # write query to stream
@@ -157,7 +158,6 @@ class SummarizerAgent(OpenAIAgent):
 
     def default_processor(self, message, input="DEFAULT", properties=None, worker=None):
     
-
         ##### Upon USER input text
         if input == "DEFAULT":
             if message.isEOS():
@@ -168,16 +168,17 @@ class SummarizerAgent(OpenAIAgent):
                 if worker:
                     stream_data = worker.get_data(stream)
 
-                # user initiated summarizer, kick off queries from template
-                self.results = {}
-                self.todos = set()
-                queries = self.properties['queries']
-                for query_id in queries:
-                    query = queries[query_id]
-                    self.todos.add(query_id)
-                    self.issue_sql_query(query, worker, id=query_id)
+                    # user initiated summarizer, kick off queries from template
+                    self.results = {}
+                    self.todos = set()
+                    queries = self.properties['queries']
+                    for query_id in queries:
+                        query_template = Template(queries[query_id])
+                        query = query_template.substitute(**self.properties)
+                        self.todos.add(query_id)
+                        self.issue_sql_query(query, worker, id=query_id)
 
-                return
+                    return
 
             elif message.isBOS():
                 stream = message.getStream()
@@ -222,8 +223,11 @@ class SummarizerAgent(OpenAIAgent):
                         summary_template = Template(properties['template'])
                         summary = summary_template.substitute(**self.results)
 
-                        #### call api to generate summary
-                        worker.write_data(self.handle_api_call([summary], properties=properties))
+                        if properties['rephrase']:
+                            #### call api to rephrase summary
+                            worker.write_data(self.handle_api_call([summary], properties=properties))
+                        else:
+                            worker.write_data(summary, properties=properties)
                         worker.write_eos()
 
                 else:
