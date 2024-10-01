@@ -1,17 +1,37 @@
 import _ from "lodash";
 export const defaultState = {
     selectedUsers: new Set(),
+    selectedAgents: new Set(),
+    selectedServices: new Set(),
     users: [],
     usersMap: {},
 };
 export default function adminReducer(state = defaultState, { type, payload }) {
-    let selectedUsers = state.selectedUsers;
+    let { selectedUsers, selectedAgents, selectedServices } = state;
     switch (type) {
         case "admin/selectedUsers/add": {
-            return {
-                ...state,
-                selectedUsers: selectedUsers.add(payload),
-            };
+            selectedUsers.add(payload);
+            return { ...state, selectedUsers };
+        }
+        case "admin/selectedUsers/remove": {
+            selectedUsers.delete(payload);
+            return { ...state, selectedUsers };
+        }
+        case "admin/selectedServices/add": {
+            selectedServices.add(payload);
+            return { ...state, selectedServices };
+        }
+        case "admin/selectedServices/remove": {
+            selectedServices.delete(payload);
+            return { ...state, selectedServices };
+        }
+        case "admin/selectedAgents/add": {
+            selectedAgents.add(payload);
+            return { ...state, selectedAgents };
+        }
+        case "admin/selectedAgents/remove": {
+            selectedAgents.delete(payload);
+            return { ...state, selectedAgents };
         }
         case "admin/users/set": {
             let usersMap = {};
@@ -23,13 +43,6 @@ export default function adminReducer(state = defaultState, { type, payload }) {
                 ...state,
                 users: payload,
                 usersMap: usersMap,
-            };
-        }
-        case "admin/selectedUsers/remove": {
-            selectedUsers.delete(payload);
-            return {
-                ...state,
-                selectedUsers,
             };
         }
         case "admin/state/set": {

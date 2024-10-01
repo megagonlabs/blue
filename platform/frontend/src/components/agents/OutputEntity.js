@@ -20,11 +20,11 @@ export default function OutputEntity() {
     const [edit, setEdit] = useState(false);
     const [loading, setLoading] = useState(true);
     const [jsonError, setJsonError] = useState(false);
+    const routerQueryPath =
+        "/" + _.get(router, "query.pathParams", []).join("/");
     useEffect(() => {
-        if (!router.isReady) {
-            return;
-        }
-        axios.get(router.asPath).then((response) => {
+        if (!router.isReady) return;
+        axios.get(routerQueryPath).then((response) => {
             setEntity(_.get(response, "data.result", {}));
             setScope(_.get(response, "data.result.scope", null));
             setEditEntity(_.get(response, "data.result", {}));

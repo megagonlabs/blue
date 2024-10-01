@@ -1,3 +1,4 @@
+import { convertCss, sendSocketMessage } from "@/components/helper";
 import { useSocket } from "@/components/hooks/useSocket";
 import { rankWith, uiTypeIs } from "@jsonforms/core";
 import { withJsonFormsCellProps } from "@jsonforms/react";
@@ -5,13 +6,11 @@ import _ from "lodash";
 const { Button } = require("@blueprintjs/core");
 const ButtonRenderer = ({ uischema, path }) => {
     const { socket } = useSocket();
-    const socketReadyState = _.get(socket, "readyState", 3);
     const onClickHandler = () => {
-        if (!_.isEqual(socketReadyState, 1)) {
-            return;
-        }
+        if (!_.isEqual(socket.readyState, WebSocket.OPEN)) return;
         setTimeout(() => {
-            socket.send(
+            sendSocketMessage(
+                socket,
                 JSON.stringify({
                     type: "INTERACTIVE_EVENT_MESSAGE",
                     stream_id: _.get(uischema, "props.streamId", null),
@@ -27,7 +26,7 @@ const ButtonRenderer = ({ uischema, path }) => {
         <Button
             onClick={onClickHandler}
             outlined={_.get(uischema, "props.outlined", false)}
-            style={_.get(uischema, "props.style", {})}
+            style={convertCss(_.get(uischema, "props.style", {}))}
             large={_.get(uischema, "props.large", false)}
             intent={_.get(uischema, "props.intent", null)}
             text={_.get(uischema, "label", null)}

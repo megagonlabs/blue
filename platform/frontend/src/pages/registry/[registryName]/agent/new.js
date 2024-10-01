@@ -1,4 +1,4 @@
-import { SEARCH_LIST_TYPE_LOOKUP } from "@/components/constant";
+import { ENTITY_TYPE_LOOKUP } from "@/components/constant";
 import Breadcrumbs from "@/components/entity/Breadcrumbs";
 import NewEntity from "@/components/entity/NewEntity";
 import {
@@ -9,6 +9,7 @@ import { AppToaster } from "@/components/toaster";
 import { Intent } from "@blueprintjs/core";
 import axios from "axios";
 import { diff } from "deep-diff";
+import _ from "lodash";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 export default function New() {
@@ -29,9 +30,7 @@ export default function New() {
         setEntity(newEntity);
     };
     const saveEntity = () => {
-        if (!router.isReady) {
-            return;
-        }
+        if (!router.isReady) return;
         setLoading(true);
         axios[created ? "put" : "post"](`${urlPrefix}/${entity.name}`, {
             name: entity.name,
@@ -41,7 +40,7 @@ export default function New() {
                 setCreated(true);
                 AppToaster.show({
                     intent: Intent.SUCCESS,
-                    message: `${entity.name} agent created`,
+                    message: `Created ${entity.name} agent`,
                 });
                 const difference = diff({}, entity.properties);
                 settlePromises(
@@ -62,15 +61,20 @@ export default function New() {
             .catch((error) => {
                 AppToaster.show({
                     intent: Intent.DANGER,
-                    message: `${error.name}: ${error.message}`,
+                    message: (
+                        <>
+                            <div>{_.get(error, "response.data.message")}</div>
+                            <div>
+                                {error.name}: {error.message}
+                            </div>
+                        </>
+                    ),
                 });
                 setLoading(false);
             });
     };
     useEffect(() => {
-        if (_.isEmpty(router.query)) {
-            return;
-        }
+        if (_.isEmpty(router.query)) return;
         const pathParams = router.asPath
             .split("/")
             .filter((param) => !_.isEmpty(param))
@@ -90,8 +94,8 @@ export default function New() {
             crumbs.push({
                 href: basePath,
                 text: `${key}/ ${value}`,
-                icon: _.has(SEARCH_LIST_TYPE_LOOKUP, key)
-                    ? SEARCH_LIST_TYPE_LOOKUP[key].icon
+                icon: _.has(ENTITY_TYPE_LOOKUP, key)
+                    ? ENTITY_TYPE_LOOKUP[key].icon
                     : null,
                 start: _.isEqual(i, 0),
                 end: false,

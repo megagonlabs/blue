@@ -81,10 +81,15 @@ class APIAgent(Agent):
 
         return merged_properties
     
-    def extract_input_params(self, input_data):
+    def extract_input_params(self, input_data, properties=None):
+        # get properties, overriding with properties provided
+        properties = self.get_properties(properties=properties)
+
         return {}
     
-    def extract_output_params(self, output_data):
+    def extract_output_params(self, output_data, properties=None):
+        # get properties, overriding with properties provided
+        properties = self.get_properties(properties=properties)
         return {}
     
     def create_message(self, input_data, properties=None):
@@ -106,7 +111,7 @@ class APIAgent(Agent):
        
         if 'input_template' in properties and properties['input_template'] is not None:
             input_template = Template(properties['input_template'])
-            input_params = self.extract_input_params(input_data)
+            input_params = self.extract_input_params(input_data, properties=properties)
             input_data = input_template.substitute(**properties, **input_params, input=input_data)
 
         # set input text to message
@@ -122,28 +127,82 @@ class APIAgent(Agent):
 
     def create_output(self, response, properties=None):
 
+        
         # get properties, overriding with properties provided
         properties = self.get_properties(properties=properties)
 
         output_data = json_utils.json_query(response, properties['output_path'], single=True)
-           
+        
+        logging.info(output_data)
+        logging.info(type(output_data))
+
+        # pre-process output from response
+        output_data = self._preprocess_output(output_data, properties=properties)
+
         # apply output template
         if 'output_template' in properties and properties['output_template'] is not None:
             output_template = Template(properties['output_template'])
-            output_params = self.extract_output_params(output_data)
+            output_params = self.extract_output_params(output_data, properties=properties)
             output_data = output_template.substitute(**properties, **output_params, output=output_data)
         return output_data
 
-    def validate_input(self, input_data):
+    def validate_input(self, input_data, properties=None):
+        # get properties, overriding with properties provided
+        properties = self.get_properties(properties=properties)
+
         return True 
 
-    def process_output(self, output_data):
+    def process_output(self, output_data, properties=None):
+        # get properties, overriding with properties provided
+        properties = self.get_properties(properties=properties)
+
+        # cast
+        if 'output_cast' in properties:
+            if properties['output_cast'].lower() == "int":
+                output_data = int(output_data)
+            elif properties['output_cast'].lower() == "float":
+                output_data = float(output_data)
+            elif properties['output_cast'].lower() == "json":
+                output_data = json.loads(output_data)
+
+        return output_data
+
+    def _preprocess_output(self, output_data, properties=None):
+        # get properties, overriding with properties provided
+        properties = self.get_properties(properties=properties)
+
+        # string transformations
+        if type(output_data) == str:
+
+            # strip
+            if 'output_strip' in properties:
+                logging.info("output_strip")
+                output_data = output_data.strip()
+
+            # re transformations
+            if 'output_transformations' in properties:
+                logging.info("output_transformations")
+                transformations = properties['output_transformations']
+                for transformation in transformations:
+                    tf = transformation['transformation']
+                    if tf == 'replace':
+                        tfrom = transformation['from']
+                        tto = transformation['to']
+                        output_data = output_data.replace(tfrom, tto)
+                    elif tf == 'sub':
+                        tfrom = transformation['from']
+                        tto = transformation['to']
+                        tfromre = re.compile(tfrom)
+                        ttore = re.compile(tfrom)
+                        output_data = re.sub(tfromre, ttore, output_data)
+
+                
         return output_data
 
     def handle_api_call(self, stream_data, properties=None):
         # create message, copying API specific properties
         input_data = " ".join(stream_data)
-        if not self.validate_input(input_data):
+        if not self.validate_input(input_data, properties=properties):
             return 
 
         logging.info(input_data)
@@ -156,12 +215,12 @@ class APIAgent(Agent):
         response = json.loads(r)
 
         # create output from response
-        output_data = self.create_output(response)
+        output_data = self.create_output(response, properties=properties)
 
         # process output data
-        output = self.process_output(output_data)
+        output_data = self.process_output(output_data, properties=properties)
 
-        return output
+        return output_data
 
     def default_processor(self, message, input="DEFAULT", properties=None, worker=None):
         
@@ -172,7 +231,8 @@ class APIAgent(Agent):
                 stream_data = worker.get_data('stream')
 
             #### call api to compute
-            return self.handle_api_call(stream_data, properties=properties)
+            worker.write_data(self.handle_api_call(stream_data, properties=properties))
+            worker.write_eos()
             
         elif message.isBOS():
             # init stream to empty array
@@ -229,7 +289,7 @@ if __name__ == "__main__":
     if args.serve:
         platform = args.platform
         
-        af = AgentFactory(agent_class=APIAgent, agent_name=args.serve, agent_registry=args.registry, platform=platform, properties=properties)
+        af = AgentFactory(_class=APIAgent, _name=args.serve, _registry=args.registry, platform=platform, properties=properties)
         af.wait()
     else:
         a = None

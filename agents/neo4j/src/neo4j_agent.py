@@ -79,7 +79,10 @@ class NEO4JAgent(APIAgent):
         self.properties['tags'] = tags
 
    
-    def validate_input(self, input_data):
+    def validate_input(self, input_data, properties=None):
+        # get properties, overriding with properties provided
+        properties = self.get_properties(properties=properties)
+        
         # TODO
         isValid = True
             
@@ -111,7 +114,7 @@ if __name__ == "__main__":
     if args.serve:
         platform = args.platform
         
-        af = AgentFactory(agent_class=NEO4JAgent, agent_name=args.serve, agent_registry=args.registry, platform=platform, properties=properties)
+        af = AgentFactory(_class=NEO4JAgent, _name=args.serve, _registry=args.registry, platform=platform, properties=properties)
         af.wait()
     else:
         a = None

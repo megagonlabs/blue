@@ -2,13 +2,15 @@
 import os
 import sys
 
-###### 
+######
 import time
 import argparse
 import logging
 import time
 import uuid
 import random
+import asyncio
+from asyncio import Queue
 
 ###### Parsers, Formats, Utils
 import re
@@ -16,6 +18,7 @@ import csv
 import json
 
 import itertools
+import pydash
 from tqdm import tqdm
 
 ###### Backend, Databases
@@ -32,10 +35,11 @@ logging.basicConfig(format="%(asctime)s [%(levelname)s] [%(process)d:%(threadNam
 ###### Blue
 from message import Message, MessageType, ContentType, ControlCode
 
-class Consumer():
-    def __init__(self,  stream, name="STREAM", id=None, sid=None, cid=None, prefix=None, suffix=None,  listener=None, properties={}):
 
-        self.stream = stream 
+class Consumer:
+    def __init__(self, stream, name="STREAM", id=None, sid=None, cid=None, prefix=None, suffix=None, listener=None, properties={}):
+
+        self.stream = stream
 
         self.name = name
         if id:
@@ -60,7 +64,6 @@ class Consumer():
             if self.suffix:
                 self.cid = self.cid + ":" + self.suffix
 
-
         self._initialize(properties=properties)
 
         if listener is None:
@@ -70,12 +73,31 @@ class Consumer():
 
         self.threads = []
 
-        
+        # for pairing mode
+        self.pairer_task = None
+        self.left_param = None
+        self.left_queue = None
+        self.right_param = None
+        self.right_queue = None
 
     ###### initialization
     def _initialize(self, properties=None):
         self._initialize_properties()
         self._update_properties(properties=properties)
+        # properties {
+        #     output {
+        #         type: 'pair',
+        #         left: <param>,
+        #         right: <param>
+        #     }
+        # }
+        output_type = pydash.objects.get(properties, 'output.type', None)
+        if pydash.is_equal(output_type, 'pair'):
+            self.pairer_task = asyncio.get_event_loop().create_task(self.pairer(self.left_queue, self.right_queue))
+            self.left_param = properties["output"].get('left')
+            self.left_queue = Queue()
+            self.right_param = properties["output"].get('right')
+            self.right_queue = Queue()
 
     def _initialize_properties(self):
         self.properties = {}
@@ -91,6 +113,24 @@ class Consumer():
         for p in properties:
             self.properties[p] = properties[p]
 
+    # non-blocking, run until cancelled
+    async def pairer(self, left_queue: Queue, right_queue: Queue):
+        while True:
+            # item {value, type}
+            left_item: Message = await left_queue.get()
+            right_item: Message = await right_queue.get()
+            # always use right_item ID
+            message = Message.fromJSON(
+                {
+                    'label': 'DATA',
+                    'contents': {'args': {'params': {self.left_param: left_item, self.right_param: right_item}}},
+                    'content_type': 'JSON',
+                }
+            )
+            self.listener(message)
+            left_queue.task_done()
+            right_queue.task_done()
+
     ####### open connection, create group, start threads
     def start(self):
 
@@ -103,10 +143,10 @@ class Consumer():
 
         self._start_threads()
 
-        logging.info("Started consumer {c} for stream {s}".format(c=self.sid,s=self.stream))
+        logging.info("Started consumer {c} for stream {s}".format(c=self.sid, s=self.stream))
 
     def stop(self):
-        logging.info("Stopping consumer {c} for stream {s}".format(c=self.sid,s=self.stream))
+        logging.info("Stopping consumer {c} for stream {s}".format(c=self.sid, s=self.stream))
         self.stop_signal = True
 
     def wait(self):
@@ -120,11 +160,11 @@ class Consumer():
         self.connection = redis.Redis(host=host, port=port, decode_responses=True)
 
     def _start_group(self):
-        # create group if it doesn't exists, print group info 
+        # create group if it doesn't exists, print group info
         s = self.stream
         g = self.cid
         r = self.connection
-       
+
         try:
             # logging.info("Creating group {g}...".format(g=g))
             r.xgroup_create(name=s, groupname=g, id=0)
@@ -141,8 +181,7 @@ class Consumer():
         logging.info("Group info for stream {s}".format(s=s))
         res = r.xinfo_groups(name=s)
         for i in res:
-            logging.info(f"{s} -> group name: {i['name']} with {i['consumers']} consumers and {i['last-delivered-id']}"
-                + f" as last read id")
+            logging.info(f"{s} -> group name: {i['name']} with {i['consumers']} consumers and {i['last-delivered-id']}" + f" as last read id")
 
     def get_stream(self):
         return self.stream
@@ -150,23 +189,43 @@ class Consumer():
     def get_group(self):
         return self.cid
 
-    def _consume_stream(self, c):
+    async def response_handler(self, message: Message):
+        if self.pairer_task is not None:
+            if message.isEOS():
+                await asyncio.sleep(1)
+                # wait until all items in the queue have been processed
+                if self.left_queue is not None:
+                    self.left_queue.join()
+                if self.right_queue is not None:
+                    self.right_queue.join()
+                self.pairer_task.cancel()
+            else:
+                # pushing messages to pairing queue
+                left_parameter = message.getParam(self.left_param)
+                right_parameter = message.getParam(self.right_param)
+                if left_parameter is not None:
+                    await self.left_queue.put(left_parameter)
+                if right_parameter is not None:
+                    await self.right_queue.put(right_parameter)
+        else:
+            self.listener(message)
+
+    async def _consume_stream(self, c):
         s = self.stream
         g = self.cid
         r = self.connection
-        l = self.listener
 
-        logging.info("[Thread {c}]: starting".format(c=c))
-        while(True):
-            
+        # logging.info("[Thread {c}]: starting".format(c=c))
+        while True:
+
             if self.stop_signal:
                 break
-            
+
             # check any pending, if so claim
             m = r.xautoclaim(count=1, name=s, groupname=g, consumername=str(c), min_idle_time=10000, justid=False)
-    
+
             if len(m) > 0:
-                d = m 
+                d = m
                 id = d[0]
                 m_json = d[1]
 
@@ -174,13 +233,13 @@ class Consumer():
                 if id == "0-0":
                     pass
                 else:
-                    logging.info("[Thread {c}]: reclaiming... {s} {id}".format(c=c, s=s, id=id))
+                    # logging.info("[Thread {c}]: reclaiming... {s} {id}".format(c=c, s=s, id=id))
 
                     # listen
                     message = Message.fromJSON(json.dumps(m_json))
                     message.setID(id)
                     message.setStream(s)
-                    l(message)
+                    await self.response_handler(message)
                     #
 
                     # ack
@@ -188,8 +247,8 @@ class Consumer():
                     continue
 
             # otherwise read new
-            m = r.xreadgroup(count=1, streams={s:'>'}, block=200, groupname=g, consumername=str(c))
-            
+            m = r.xreadgroup(count=1, streams={s: '>'}, block=200, groupname=g, consumername=str(c))
+
             if len(m) > 0:
                 e = m[0]
                 s = e[0]
@@ -197,65 +256,58 @@ class Consumer():
                 id = d[0]
                 m_json = d[1]
 
-                logging.info("[Thread {c}]: listening... stream:{s} id:{id} message:{message}".format(c=c, s=s, id=id, message=m_json))
-                
+                # logging.info("[Thread {c}]: listening... stream:{s} id:{id} message:{message}".format(c=c, s=s, id=id, message=m_json))
+
                 # listen
                 message = Message.fromJSON(json.dumps(m_json))
                 message.setID(id)
                 message.setStream(s)
-                l(message)
+                await self.response_handler(message)
 
                 # occasionally throw exception (for testing failed threads)
                 # if random.random() > 0.5:
                 #    print("[Thread {c}]: throwing exception".format(c=c))
-                #    raise Exception("exception")          
-                
-                # ack 
+                #    raise Exception("exception")
+
+                # ack
                 r.xack(s, g, id)
 
-        logging.info("[Thread {c}]: finished".format(c=c))
+        # logging.info("[Thread {c}]: finished".format(c=c))
 
-    
     def _start_threads(self):
         # start threads
         num_threads = self.properties['num_threads']
-        
+
         for i in range(num_threads):
-            t = threading.Thread(target=lambda : self._consume_stream(self.cid + "-" + str(i)), daemon=True)
+            t = threading.Thread(target=lambda: asyncio.run(self._consume_stream(self.cid + "-" + str(i))), daemon=True)
             t.start()
             self.threads.append(t)
-            
 
     def _delete_stream(self):
         s = self.stream
         r = self.connection
 
-        l = r.xread(streams={s:0})
+        l = r.xread(streams={s: 0})
         for _, m in l:
-            [ r.xdel( s, i[0] ) for i in m ]
-
-
+            [r.xdel(s, i[0]) for i in m]
 
 
 #######################
 if __name__ == "__main__":
-   parser = argparse.ArgumentParser()
-   parser.add_argument('--name', type=str, default='consumer')
-   parser.add_argument('--stream', type=str, default='stream')
-   parser.add_argument('--threads', type=int, default=1)
-   parser.add_argument('--loglevel', default="INFO", type=str)
- 
-   args = parser.parse_args()
-   
-   # set logging
-   logging.getLogger().setLevel(args.loglevel.upper())
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--name', type=str, default='consumer')
+    parser.add_argument('--stream', type=str, default='stream')
+    parser.add_argument('--threads', type=int, default=1)
+    parser.add_argument('--loglevel', default="INFO", type=str)
 
+    args = parser.parse_args()
 
-   # create a listener
-   def listener(id, message):
-       print("hello {message}".format(message=message))
+    # set logging
+    logging.getLogger().setLevel(args.loglevel.upper())
 
-   c = Consumer(args.stream, name=args.name, listener=listener)
-   c.start()
-  
+    # create a listener
+    def listener(id, message):
+        print("hello {message}".format(message=message))
 
+    c = Consumer(args.stream, name=args.name, listener=listener)
+    c.start()

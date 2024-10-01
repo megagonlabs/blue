@@ -14,7 +14,8 @@ import { initializeApp } from "firebase/app";
 import { GoogleAuthProvider, getAuth, signInWithPopup } from "firebase/auth";
 import _ from "lodash";
 import { createContext, useContext, useEffect, useState } from "react";
-import { hasInteraction } from "../helper";
+import { hasIntersection } from "../helper";
+import { AppContext } from "./app-context";
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -72,6 +73,8 @@ export const useAuthContext = () => useContext(AuthContext);
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [permissions, setPermissions] = useState({});
+    const { appActions } = useContext(AppContext);
+    const [settings, setSettings] = useState({});
     const [popupOpen, setPopupOpen] = useState(false);
     const [authInitialized, setAuthInitialized] = useState(false);
     const signOut = () => {
@@ -83,41 +86,69 @@ export const AuthProvider = ({ children }) => {
     const getPermissions = (user) => {
         const permissions = _.get(user, "permissions", null);
         return {
-            canWriteAgentRegistry: hasInteraction(
+            canWriteAgentRegistry: hasIntersection(
                 _.get(permissions, "agent_registry", []),
                 ["write_all", "write_own"]
             ),
-            canWritePlatformUsers: hasInteraction(
+            canWriteDataRegistry: hasIntersection(
+                _.get(permissions, "data_registry", []),
+                ["write_all", "write_own"]
+            ),
+            canWriteOperatorRegistry: hasIntersection(
+                _.get(permissions, "operator_registry", []),
+                ["write_all", "write_own"]
+            ),
+            canWriteModelRegistry: hasIntersection(
+                _.get(permissions, "model_registry", []),
+                ["write_all", "write_own"]
+            ),
+            canWritePlatformUsers: hasIntersection(
                 _.get(permissions, "platform_users", []),
                 ["write_all"]
             ),
-            showFormDesigner: hasInteraction(
+            showFormDesigner: hasIntersection(
                 _.get(permissions, "form_designer", []),
                 ["visible"]
             ),
-            canReadPlatformAgents: hasInteraction(
+            showPromptDesigner: hasIntersection(
+                _.get(permissions, "prompt_designer", []),
+                ["visible"]
+            ),
+            canReadPlatformAgents: hasIntersection(
                 _.get(permissions, "platform_agents", []),
                 ["read_all", "read_own"]
             ),
-            canWritePlatformAgents: hasInteraction(
+            canWritePlatformAgents: hasIntersection(
                 _.get(permissions, "platform_agents", []),
                 ["write_all", "write_own"]
             ),
-            canReadSessions: hasInteraction(
+            canReadSessions: hasIntersection(
                 _.get(permissions, "sessions", []),
                 ["read_all", "read_own", "read_participate"]
             ),
-            canReadDataRegistry: hasInteraction(
+            canReadDataRegistry: hasIntersection(
                 _.get(permissions, "data_registry", []),
                 ["read_all"]
             ),
-            canReadAgentRegistry: hasInteraction(
+            canReadAgentRegistry: hasIntersection(
                 _.get(permissions, "agent_registry", []),
                 ["read_all"]
             ),
-            canCreateSessions: hasInteraction(
+            canWriteSessions: hasIntersection(
                 _.get(permissions, "sessions", []),
                 ["write_all", "write_own"]
+            ),
+            canReadOperatorRegistry: hasIntersection(
+                _.get(permissions, "operator_registry", []),
+                ["read_all"]
+            ),
+            canReadModelRegistry: hasIntersection(
+                _.get(permissions, "model_registry", []),
+                ["read_all"]
+            ),
+            canReadPlatformServices: hasIntersection(
+                _.get(permissions, "platform_services", []),
+                ["read_all"]
             ),
         };
     };
@@ -127,11 +158,38 @@ export const AuthProvider = ({ children }) => {
             .then((response) => {
                 const profile = _.get(response, "data.profile", null);
                 setUser(profile);
+                appActions.session.setState({
+                    key: "userId",
+                    value: profile.uid,
+                });
                 setPermissions(getPermissions(profile));
+                let profileSettings = _.get(profile, "settings", {});
+                if (_.isEmpty(profileSettings)) {
+                    profileSettings = {};
+                }
+                const pinnedSessions = Object.entries(
+                    _.get(profile, "sessions.pinned", {})
+                );
+                for (let i = 0; i < pinnedSessions.length; i++) {
+                    if (pinnedSessions[i][1]) {
+                        appActions.session.addPinnedSessionId(
+                            pinnedSessions[i][0]
+                        );
+                    }
+                }
+                setSettings(profileSettings);
+                appActions.session.setState({
+                    key: "collapsed",
+                    value: !_.get(profileSettings, "show_session_list", false),
+                });
             })
             .finally(() => {
                 setAuthInitialized(true);
             });
+    };
+    const updateSettings = (key, value) => {
+        setSettings({ ...settings, [key]: value });
+        axios.post(`/accounts/profile/settings/${key}`, { value: value });
     };
     const signInWithGoogle = () => {
         setPopupOpen(true);
@@ -144,8 +202,24 @@ export const AuthProvider = ({ children }) => {
                             setPopupOpen(false);
                             fetchAccountProfile();
                         })
-                        .catch(() => {
+                        .catch((error) => {
                             setPopupOpen(false);
+                            AppToaster.show({
+                                intent: Intent.DANGER,
+                                message: (
+                                    <>
+                                        <div>
+                                            {_.get(
+                                                error,
+                                                "response.data.message"
+                                            )}
+                                        </div>
+                                        <div>
+                                            {error.name}: {error.message}
+                                        </div>
+                                    </>
+                                ),
+                            });
                         });
                 });
             })
@@ -163,7 +237,9 @@ export const AuthProvider = ({ children }) => {
         fetchAccountProfile();
     }, []);
     return (
-        <AuthContext.Provider value={{ user, permissions, signOut }}>
+        <AuthContext.Provider
+            value={{ user, permissions, settings, updateSettings, signOut }}
+        >
             <Drawer
                 size={DrawerSize.SMALL}
                 portalClassName="z-index-36"

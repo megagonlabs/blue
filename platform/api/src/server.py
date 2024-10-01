@@ -7,6 +7,8 @@ import logging
 sys.path.append("./lib/")
 sys.path.append("./lib/agent_registry/")
 sys.path.append("./lib/data_registry/")
+sys.path.append("./lib/model_registry/")
+sys.path.append("./lib/operator_registry/")
 sys.path.append("./lib/platform/")
 
 
@@ -16,7 +18,7 @@ import re
 from pathlib import Path
 
 ##### FastAPI, Web, Sockets, Authentication
-from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect, Request
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Request
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from firebase_admin import auth
@@ -28,6 +30,8 @@ from settings import PROPERTIES
 from constant import EMAIL_DOMAIN_ADDRESS_REGEXP, InvalidRequestJson, PermissionDenied
 from routers import agents
 from routers import data
+from routers import models
+from routers import operators
 from routers import sessions
 from routers import platform
 from routers import accounts
@@ -39,12 +43,16 @@ from session import Session
 from blueprint import Platform
 from agent_registry import AgentRegistry
 from data_registry import DataRegistry
+from model_registry import ModelRegistry
+from operator_registry import OperatorRegistry
 
 ### Assign from platform properties
 platform_id = PROPERTIES["platform.name"]
 prefix = 'PLATFORM:' + platform_id
 agent_registry_id = PROPERTIES["agent_registry.name"]
 data_registry_id = PROPERTIES["data_registry.name"]
+model_registry_id = PROPERTIES["model_registry.name"]
+operator_registry_id = PROPERTIES["operator_registry.name"]
 PLATFORM_PREFIX = f'/blue/platform/{platform_id}'
 
 ####### Version
@@ -66,6 +74,12 @@ agent_registry.load("/blue_data/config/" + agent_registry_id + ".agents.json")
 data_registry = DataRegistry(id=data_registry_id, prefix=prefix, properties=PROPERTIES)
 data_registry.load("/blue_data/config/" + data_registry_id + ".data.json")
 
+model_registry = ModelRegistry(id=model_registry_id, prefix=prefix, properties=PROPERTIES)
+model_registry.load("/blue_data/config/" + model_registry_id + ".models.json")
+
+operator_registry = OperatorRegistry(id=operator_registry_id, prefix=prefix, properties=PROPERTIES)
+operator_registry.load("/blue_data/config/" + operator_registry_id + ".operators.json")
+
 ###  Get API server address from properties to white list
 api_server = PROPERTIES["api.server"]
 api_server_port = PROPERTIES["api.server.port"]
@@ -80,6 +94,8 @@ allowed_origins = ["http://localhost:3000", "http://localhost:25830", "https://"
 app = FastAPI()
 app.include_router(agents.router)
 app.include_router(data.router)
+app.include_router(models.router)
+app.include_router(operators.router)
 app.include_router(sessions.router)
 app.include_router(platform.router)
 app.include_router(accounts.router)
@@ -145,9 +161,9 @@ async def unicorn_exception_handler_permission_denied(request: Request, exc: Per
 
 
 @app.websocket(f"{PLATFORM_PREFIX}/sessions/ws")
-async def websocket_endpoint(websocket: WebSocket, ticket: str = None):
+async def websocket_endpoint(websocket: WebSocket, ticket: str = None, debug_mode: bool = False):
     # Accept the connection from the client
-    await connection_manager.connect(websocket, ticket)
+    await connection_manager.connect(websocket, ticket, debug_mode)
     try:
         while True:
             # Receive the message from the client

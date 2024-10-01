@@ -105,7 +105,10 @@ class GPTPlannerAgent(OpenAIAgent):
         for key in plannerGPT_properties:
             self.properties[key] = plannerGPT_properties[key]
 
-    def process_output(self, output_data):
+    def process_output(self, output_data, properties=None):
+        # get properties, overriding with properties provided
+        properties = self.get_properties(properties=properties)
+        
         # logging.info(output_data)
         # get gpt plan as json
         gpt_plan = json.loads(output_data)
@@ -594,7 +597,7 @@ if __name__ == "__main__":
     if args.serve:
         platform = args.platform
 
-        af = AgentFactory(agent_class=GPTPlannerAgent, agent_name=args.serve, agent_registry=args.registry, platform=platform, properties=properties)
+        af = AgentFactory(_class=GPTPlannerAgent, _name=args.serve, _registry=args.registry, platform=platform, properties=properties)
         af.wait()
     else:
         a = None

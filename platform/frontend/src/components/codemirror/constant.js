@@ -1,3 +1,5 @@
+const NO_VALIDATION_KEYS = ["vl-spec", "md-content"].map((e) => `^${e}$`);
+const NO_VALIDATION_PATTERN = `^(?!${NO_VALIDATION_KEYS.join("|")}).*$`;
 module.exports = {
     DATA_JSON_SCHEMA: {
         type: "object",
@@ -25,7 +27,7 @@ module.exports = {
             enum: { $ref: "#/definitions/enum" },
         },
         patternProperties: {
-            "^.*$": {
+            [NO_VALIDATION_PATTERN]: {
                 properties: {
                     type: { $ref: "#/definitions/type" },
                     enum: { $ref: "#/definitions/enum" },
@@ -48,6 +50,8 @@ module.exports = {
                     "Control",
                     "Label",
                     "Group",
+                    "Vega",
+                    "Markdown",
                 ],
             },
             label: { type: "string", minLength: 1 },
@@ -71,6 +75,8 @@ module.exports = {
                     streamId: { type: "string", minLength: 1 },
                     formId: { type: "string", minLength: 1 },
                     action: { type: "string", minLength: 1 },
+                    visualization: { type: "boolean" },
+                    spec: { type: "object" },
                 },
                 additionalProperties: false,
             },

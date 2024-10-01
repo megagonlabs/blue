@@ -1,13 +1,14 @@
 const {
     faCircleA,
     faServer,
-    faHeadSideGear,
     faDatabase,
     faFolderOpen,
     faFile,
     faProjectDiagram,
     faArrowRightToArc,
     faArrowRightFromArc,
+    faFunction,
+    faCube,
 } = require("@fortawesome/pro-duotone-svg-icons");
 const { vanillaRenderers } = require("@jsonforms/vanilla-renderers");
 import BooleanRenderer, {
@@ -46,12 +47,13 @@ import DateRenderer, { DateTester } from "./jsonforms/renderers/Date";
 import DateTimeRenderer, {
     DateTimeTester,
 } from "./jsonforms/renderers/DateTime";
-export const REGISTRY_TYPE_LOOKUP = {
-        data: { icon: faServer, key: "source" },
+import MarkdownRenderer, {
+    MarkdownTester,
+} from "./jsonforms/renderers/Markdown";
+import VegaRenderer, { VegaTester } from "./jsonforms/renderers/Vega";
+export const ENTITY_TYPE_LOOKUP = {
         agent: { icon: faCircleA, key: "agent" },
-    },
-    SEARCH_LIST_TYPE_LOOKUP = {
-        agent: { icon: faHeadSideGear },
+        data: { icon: faServer, key: "source" },
         input: { icon: faArrowRightToArc },
         output: { icon: faArrowRightFromArc },
         source: { icon: faServer },
@@ -59,6 +61,8 @@ export const REGISTRY_TYPE_LOOKUP = {
         collection: { icon: faFolderOpen },
         entity: { icon: faFile },
         relation: { icon: faProjectDiagram },
+        model: { icon: faCube, key: "model" },
+        operator: { icon: faFunction, key: "operator" },
     },
     JSONFORMS_RENDERERS = [
         ...vanillaRenderers,
@@ -73,7 +77,9 @@ export const REGISTRY_TYPE_LOOKUP = {
         { tester: ButtonTester, renderer: ButtonRenderer },
         { tester: DateTester, renderer: DateRenderer },
         { tester: DateTimeTester, renderer: DateTimeRenderer },
+        { tester: VegaTester, renderer: VegaRenderer },
         { tester: ArrayTester, renderer: ArrayRenderer },
+        { tester: MarkdownTester, renderer: MarkdownRenderer },
         { tester: UnknownTester, renderer: UnknownRenderer },
     ],
     CARD_LIST_CLASS_NAMES = `${Classes.CARD} ${Classes.CARD_LIST} ${Classes.CARD_LIST_BORDERED}`,
@@ -96,6 +102,9 @@ export const REGISTRY_TYPE_LOOKUP = {
         overflow: "hidden",
         width: 40,
         height: 40,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
     },
     ENTITY_ICON_40 = {
         overflow: "hidden",
@@ -111,11 +120,6 @@ export const REGISTRY_TYPE_LOOKUP = {
         member: "Member",
         guest: "Guest",
         developer: "Developer",
-    },
-    DEFAULT_ENTITY_ICON = {
-        agent: faCircleA,
-        data: faDatabase,
-        source: faDatabase,
     },
     COLOR_OPTIONS = [
         "#979B9D",
@@ -167,6 +171,7 @@ export const REGISTRY_TYPE_LOOKUP = {
         "#6F4B2D",
         "#4B4639",
     ],
+    RESIZE_DIRECTION = { BottomRight: "bottomRight" },
     HEX_TRANSPARENCY = {
         100: "FF",
         99: "FC",

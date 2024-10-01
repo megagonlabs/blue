@@ -58,15 +58,25 @@ class DataSource():
 
         self.connection = self._connect(**connection)
 
+    def _stop_connection(self):
+        self._disconnect()
+
     def _connect(self, **connection):
         return None
 
+    def _disconnect(self):
+        return None
+    
     def _start(self):
         # logging.info('Starting session {name}'.format(name=self.name))
         self._start_connection()
         
         logging.info('Started source {name}'.format(name=self.name))
 
+    def _stop(self):
+        self._stop_connection()
+
+        logging.info('Stopped source {name}'.format(name=self.name))
 
     ######### source
     def fetch_metadata(self):

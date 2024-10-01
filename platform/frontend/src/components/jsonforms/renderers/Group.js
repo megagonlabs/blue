@@ -1,3 +1,4 @@
+import { convertCss } from "@/components/helper";
 import { Section, SectionCard } from "@blueprintjs/core";
 import { rankWith, uiTypeIs } from "@jsonforms/core";
 import { JsonFormsDispatch, withJsonFormsLayoutProps } from "@jsonforms/react";
@@ -16,7 +17,7 @@ const GroupRenderer = ({
             collapseProps={{
                 defaultIsOpen: _.get(uischema, "props.defaultIsOpen", true),
             }}
-            style={_.get(uischema, "props.style", {})}
+            style={convertCss(_.get(uischema, "props.style", {}))}
             compact={_.get(uischema, "props.compact", false)}
             collapsible={_.get(uischema, "props.collapsible", false)}
             title={_.isString(label) ? label : null}

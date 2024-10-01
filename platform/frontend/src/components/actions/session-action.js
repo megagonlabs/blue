@@ -1,4 +1,5 @@
 import axios from "axios";
+import { sendSocketMessage } from "../helper";
 export const sessionAction = (dispatch) => ({
     setState: (payload) => {
         dispatch({
@@ -6,11 +7,26 @@ export const sessionAction = (dispatch) => ({
             payload,
         });
     },
-    setSessionDetail: (payload) => {
+    setSessionDetails: (payload) => {
         dispatch({
             type: "session/sessions/detail/set",
-            payload: payload,
+            payload,
         });
+    },
+    setSessionDetailMembers: (payload) => {
+        dispatch({
+            type: "session/sessions/detail/members/set",
+            payload,
+        });
+    },
+    expandMessageStream: (payload) => {
+        dispatch({ type: "session/expandedMessageStream/add", payload });
+    },
+    addPinnedSessionId: (payload) => {
+        dispatch({ type: "session/pinnedSessionIds/add", payload });
+    },
+    removePinnedSessionId: (payload) => {
+        dispatch({ type: "session/pinnedSessionIds/remove", payload });
     },
     createSession: (payload) => {
         axios.post(`/sessions/session`).then((response) => {
@@ -51,7 +67,8 @@ export const sessionAction = (dispatch) => ({
     },
     observeSession: (payload) => {
         dispatch({ type: "session/sessions/add", payload: payload.sessionId });
-        payload.socket.send(
+        sendSocketMessage(
+            payload.socket,
             JSON.stringify({
                 type: "OBSERVE_SESSION",
                 session_id: payload.sessionId,

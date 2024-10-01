@@ -1,5 +1,8 @@
 import AccessDeniedNonIdealState from "@/components/AccessDeniedNonIdealState";
-import { NAVIGATION_MENU_WIDTH } from "@/components/constant";
+import {
+    ENTITY_TYPE_LOOKUP,
+    NAVIGATION_MENU_WIDTH,
+} from "@/components/constant";
 import { AppContext } from "@/components/contexts/app-context";
 import { AuthContext } from "@/components/contexts/auth-context";
 import { useSocket } from "@/components/hooks/useSocket";
@@ -19,62 +22,106 @@ import {
     Tooltip,
 } from "@blueprintjs/core";
 import {
-    faCircleA,
-    faDatabase,
     faGear,
-    faListUl,
+    faInboxArrowUp,
+    faLayerGroup,
     faPencilRuler,
+    faRectangleTerminal,
+    faUser,
     faUserGroup,
 } from "@fortawesome/pro-duotone-svg-icons";
 import _ from "lodash";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useContext, useMemo, useState } from "react";
+import { useContext, useEffect, useMemo, useState } from "react";
+import DebugPanel from "./debugger/DebugPanel";
 import { hasTrue } from "./helper";
 import Settings from "./navigation/Settings";
 import UserAccountPanel from "./navigation/UserAccountPanel";
 export default function App({ children }) {
     const router = useRouter();
     const { appState, appActions } = useContext(AppContext);
-    const sessionDetail = appState.session.sessionDetail;
+    const sessionDetails = appState.session.sessionDetails;
     const sessionIdFocus = appState.session.sessionIdFocus;
-    const { socket } = useSocket();
+    const { socket, isSocketOpen } = useSocket();
     const recentSessions = useMemo(
         () =>
-            Object.values(sessionDetail)
+            Object.values(sessionDetails)
+                .filter((session) => _.get(session, "group_by.owner", false))
                 .sort((a, b) => b.created_date - a.created_date)
                 .slice(0, 5)
                 .map((session) => session.id),
-        [sessionDetail]
+        [sessionDetails]
     );
     const { user, permissions } = useContext(AuthContext);
     const {
         canWritePlatformUsers,
+        canReadPlatformServices,
         showFormDesigner,
+        showPromptDesigner,
         canReadPlatformAgents,
         canReadSessions,
         canReadDataRegistry,
+        canWriteSessions,
         canReadAgentRegistry,
+        canReadOperatorRegistry,
+        canReadModelRegistry,
     } = permissions;
+    const [isCreatingSession, setIsCreatingSession] = useState(false);
     const MENU_ITEMS = {
-        sessions: {
-            href: "/sessions",
-            text: "See All",
-            icon: faListUl,
+        my_sessions: {
+            href: `/sessions`,
+            text: "My Sessions",
+            icon: faUser,
             visible: canReadSessions,
+            onClick: () => {
+                appActions.session.setState({
+                    key: "sessionGroupBy",
+                    value: "owner",
+                });
+                appActions.session.setState({
+                    key: "collapsed",
+                    value: false,
+                });
+            },
+        },
+        new_session: {
+            href: `/sessions`,
+            text: "New Session",
+            icon: faInboxArrowUp,
+            visible: canWriteSessions,
+            disabled: isCreatingSession || !isSocketOpen,
+            intent: Intent.PRIMARY,
+            onClick: () => {
+                if (!isSocketOpen) return;
+                setIsCreatingSession(true);
+                appActions.session.createSession(socket);
+            },
         },
         data_registry: {
             href: `/registry/${process.env.NEXT_PUBLIC_DATA_REGISTRY_NAME}/data`,
             text: "Data",
-            icon: faDatabase,
+            icon: ENTITY_TYPE_LOOKUP.source.icon,
             visible: canReadDataRegistry,
         },
         agent_registry: {
             href: `/registry/${process.env.NEXT_PUBLIC_AGENT_REGISTRY_NAME}/agent`,
             text: "Agent",
-            icon: faCircleA,
+            icon: ENTITY_TYPE_LOOKUP.agent.icon,
             visible: canReadAgentRegistry,
+        },
+        operator_registry: {
+            href: `/registry/${process.env.NEXT_PUBLIC_OPERATOR_REGISTRY_NAME}/operator`,
+            text: "Operator",
+            icon: ENTITY_TYPE_LOOKUP.operator.icon,
+            visible: canReadOperatorRegistry,
+        },
+        model_registry: {
+            href: `/registry/${process.env.NEXT_PUBLIC_MODEL_REGISTRY_NAME}/model`,
+            text: "Model",
+            icon: ENTITY_TYPE_LOOKUP.model.icon,
+            visible: canReadModelRegistry,
         },
         form_designer: {
             href: "/tools/form-designer",
@@ -82,20 +129,37 @@ export default function App({ children }) {
             icon: faPencilRuler,
             visible: showFormDesigner,
         },
+        prompt_designer: {
+            href: "/tools/prompt-designer",
+            text: "Auto Prompt",
+            icon: faRectangleTerminal,
+            visible: showPromptDesigner,
+        },
         admin_users: {
             href: "/admin/users",
             text: "Users",
             icon: faUserGroup,
             visible: canWritePlatformUsers,
         },
+        admin_services: {
+            href: "/admin/services",
+            text: "Services",
+            icon: faLayerGroup,
+            visible: canReadPlatformServices,
+        },
         admin_agents: {
             href: "/admin/agents",
             text: "Agents",
-            icon: faCircleA,
+            icon: ENTITY_TYPE_LOOKUP.agent.icon,
             visible: canReadPlatformAgents,
         },
     };
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+    useEffect(() => {
+        if (appState.session.openAgentsDialogTrigger) {
+            setIsCreatingSession(false);
+        }
+    }, [appState.session.openAgentsDialogTrigger]);
     return (
         <div>
             <Navbar style={{ paddingLeft: 20, paddingRight: 20 }}>
@@ -149,79 +213,173 @@ export default function App({ children }) {
                     borderRadius: 0,
                     display: "flex",
                     flexDirection: "column",
-                    justifyContent: "space-between",
                     zIndex: 1,
-                    padding: 0,
+                    padding: 20,
+                    overflowY: "auto",
                 }}
             >
-                <div
-                    style={{
-                        overflowY: "auto",
-                        padding: 20,
-                    }}
-                >
-                    {hasTrue([canReadSessions]) ? (
-                        <>
-                            <MenuDivider title="Sessions" />
-                            <ButtonGroup
-                                alignText={Alignment.LEFT}
-                                vertical
-                                minimal
-                                className="full-parent-width"
-                                style={{ marginBottom: 20 }}
-                            >
-                                {canReadSessions &&
-                                    recentSessions.map((sessionId) => {
-                                        const active =
-                                            _.isEqual(
-                                                sessionIdFocus,
-                                                sessionId
-                                            ) &&
-                                            _.startsWith(
-                                                router.asPath,
-                                                "/sessions"
-                                            );
-                                        return (
-                                            <Button
-                                                key={sessionId}
-                                                active={active}
-                                                style={{
-                                                    padding: "5px 15px",
-                                                    backgroundColor: !active
-                                                        ? "transparent"
-                                                        : null,
-                                                }}
-                                                onClick={() => {
-                                                    appActions.session.setSessionIdFocus(
-                                                        sessionId
-                                                    );
-                                                    appActions.session.observeSession(
-                                                        {
-                                                            sessionId,
-                                                            socket,
-                                                        }
-                                                    );
-                                                    router.push("/sessions");
-                                                }}
-                                                text={
-                                                    <div
-                                                        style={{ width: 133 }}
-                                                        className={
-                                                            Classes.TEXT_OVERFLOW_ELLIPSIS
-                                                        }
-                                                    >
-                                                        #{" "}
-                                                        {_.get(
-                                                            sessionDetail,
-                                                            [sessionId, "name"],
-                                                            sessionId
-                                                        )}
-                                                    </div>
-                                                }
-                                            />
+                {hasTrue([canReadSessions]) ? (
+                    <>
+                        <MenuDivider title="Sessions" />
+                        <ButtonGroup
+                            alignText={Alignment.LEFT}
+                            vertical
+                            minimal
+                            className="full-parent-width"
+                        >
+                            {canReadSessions &&
+                                recentSessions.map((sessionId) => {
+                                    const active =
+                                        _.isEqual(sessionIdFocus, sessionId) &&
+                                        _.startsWith(
+                                            router.asPath,
+                                            "/sessions"
                                         );
-                                    })}
-                                {["sessions"].map((key, index) => {
+                                    return (
+                                        <Button
+                                            key={sessionId}
+                                            active={active}
+                                            style={{
+                                                padding: "5px 15px",
+                                                backgroundColor: !active
+                                                    ? "transparent"
+                                                    : null,
+                                            }}
+                                            onClick={() => {
+                                                appActions.session.setSessionIdFocus(
+                                                    sessionId
+                                                );
+                                                appActions.session.observeSession(
+                                                    {
+                                                        sessionId,
+                                                        socket,
+                                                    }
+                                                );
+                                                if (!router.isReady) return;
+                                                router.push("/sessions");
+                                            }}
+                                            text={
+                                                <div
+                                                    style={{ width: 133 }}
+                                                    className={
+                                                        Classes.TEXT_OVERFLOW_ELLIPSIS
+                                                    }
+                                                >
+                                                    #{" "}
+                                                    {_.get(
+                                                        sessionDetails,
+                                                        [sessionId, "name"],
+                                                        sessionId
+                                                    )}
+                                                </div>
+                                            }
+                                        />
+                                    );
+                                })}
+                            {["my_sessions", "new_session"].map(
+                                (key, index) => {
+                                    const {
+                                        href,
+                                        icon,
+                                        text,
+                                        visible,
+                                        onClick,
+                                        disabled,
+                                        intent,
+                                    } = _.get(MENU_ITEMS, key, {});
+                                    if (!visible) {
+                                        return null;
+                                    }
+                                    return (
+                                        <Link href={href} key={index}>
+                                            <Button
+                                                intent={intent}
+                                                large
+                                                style={{
+                                                    backgroundColor:
+                                                        "transparent",
+                                                }}
+                                                text={text}
+                                                disabled={disabled}
+                                                icon={faIcon({ icon: icon })}
+                                                onClick={onClick}
+                                            />
+                                        </Link>
+                                    );
+                                }
+                            )}
+                        </ButtonGroup>
+                    </>
+                ) : null}
+                {hasTrue([
+                    canReadAgentRegistry,
+                    canReadDataRegistry,
+                    canReadOperatorRegistry,
+                ]) ? (
+                    <>
+                        <div>&nbsp;</div>
+                        <MenuDivider title="Registries" />
+                        <ButtonGroup
+                            alignText={Alignment.LEFT}
+                            vertical
+                            minimal
+                            large
+                            className="full-parent-width"
+                        >
+                            {[
+                                "agent_registry",
+                                "data_registry",
+                                "operator_registry",
+                                "model_registry",
+                            ].map((key, index) => {
+                                const { href, icon, text, visible } = _.get(
+                                    MENU_ITEMS,
+                                    key,
+                                    {}
+                                );
+                                if (!visible) {
+                                    return null;
+                                }
+                                const active = _.startsWith(
+                                    router.asPath,
+                                    href
+                                );
+                                return (
+                                    <Link href={href} key={index}>
+                                        <Button
+                                            style={
+                                                !active
+                                                    ? {
+                                                          backgroundColor:
+                                                              "transparent",
+                                                      }
+                                                    : null
+                                            }
+                                            active={active}
+                                            text={text}
+                                            icon={faIcon({
+                                                icon: icon,
+                                            })}
+                                        />
+                                    </Link>
+                                );
+                            })}
+                        </ButtonGroup>
+                    </>
+                ) : null}
+                {hasTrue([showFormDesigner, showPromptDesigner]) ? (
+                    <>
+                        <div>&nbsp;</div>
+                        <MenuDivider title="Dev. Tools" />
+                        <ButtonGroup
+                            alignText={Alignment.LEFT}
+                            vertical
+                            minimal
+                            large
+                            className="full-parent-width"
+                        >
+                            {["form_designer", "prompt_designer"].map(
+                                (key, index) => {
                                     const { href, icon, text, visible } = _.get(
                                         MENU_ITEMS,
                                         key,
@@ -237,7 +395,6 @@ export default function App({ children }) {
                                     return (
                                         <Link href={href} key={index}>
                                             <Button
-                                                large
                                                 style={
                                                     !active
                                                         ? {
@@ -246,170 +403,73 @@ export default function App({ children }) {
                                                           }
                                                         : null
                                                 }
-                                                active={
-                                                    active &&
-                                                    !recentSessions.includes(
-                                                        sessionIdFocus
-                                                    )
-                                                }
+                                                active={active}
                                                 text={text}
-                                                icon={faIcon({ icon: icon })}
+                                                icon={faIcon({
+                                                    icon: icon,
+                                                })}
                                             />
                                         </Link>
                                     );
-                                })}
-                            </ButtonGroup>
-                        </>
-                    ) : null}
-                    {hasTrue([canReadAgentRegistry, canReadDataRegistry]) ? (
-                        <>
-                            <MenuDivider title="Registries" />
-                            <ButtonGroup
-                                alignText={Alignment.LEFT}
-                                vertical
-                                minimal
-                                large
-                                className="full-parent-width"
-                            >
-                                {["agent_registry", "data_registry"].map(
-                                    (key, index) => {
-                                        const { href, icon, text, visible } =
-                                            _.get(MENU_ITEMS, key, {});
-                                        if (!visible) {
-                                            return null;
-                                        }
-                                        const active = _.startsWith(
-                                            router.asPath,
-                                            href
-                                        );
-                                        return (
-                                            <Link href={href} key={index}>
-                                                <Button
-                                                    style={
-                                                        !active
-                                                            ? {
-                                                                  backgroundColor:
-                                                                      "transparent",
-                                                              }
-                                                            : null
-                                                    }
-                                                    active={active}
-                                                    text={text}
-                                                    icon={faIcon({
-                                                        icon: icon,
-                                                    })}
-                                                />
-                                            </Link>
-                                        );
-                                    }
-                                )}
-                            </ButtonGroup>
-                        </>
-                    ) : null}
-                </div>
+                                }
+                            )}
+                        </ButtonGroup>
+                    </>
+                ) : null}
                 {hasTrue([
                     canReadPlatformAgents,
                     canWritePlatformUsers,
-                    showFormDesigner,
+                    canReadPlatformServices,
                 ]) ? (
-                    <div className="bp-border-top" style={{ padding: 20 }}>
-                        {hasTrue([showFormDesigner]) ? (
-                            <>
-                                <MenuDivider title="Dev. Tools" />
-                                <ButtonGroup
-                                    alignText={Alignment.LEFT}
-                                    vertical
-                                    minimal
-                                    large
-                                    className="full-parent-width"
-                                >
-                                    {["form_designer"].map((key, index) => {
-                                        const { href, icon, text, visible } =
-                                            _.get(MENU_ITEMS, key, {});
-                                        if (!visible) {
-                                            return null;
-                                        }
-                                        const active = _.startsWith(
-                                            router.asPath,
-                                            href
-                                        );
-                                        return (
-                                            <Link href={href} key={index}>
-                                                <Button
-                                                    style={
-                                                        !active
-                                                            ? {
-                                                                  backgroundColor:
-                                                                      "transparent",
-                                                              }
-                                                            : null
-                                                    }
-                                                    active={active}
-                                                    text={text}
-                                                    icon={faIcon({
-                                                        icon: icon,
-                                                    })}
-                                                />
-                                            </Link>
-                                        );
-                                    })}
-                                </ButtonGroup>
-                            </>
-                        ) : null}
-                        {hasTrue([
-                            canReadPlatformAgents,
-                            canWritePlatformUsers,
-                        ]) ? (
-                            <>
-                                <div>&nbsp;</div>
-                                <MenuDivider title="Admin. Tools" />
-                                <ButtonGroup
-                                    alignText={Alignment.LEFT}
-                                    vertical
-                                    minimal
-                                    large
-                                    className="full-parent-width"
-                                >
-                                    {["admin_agents", "admin_users"].map(
-                                        (key, index) => {
-                                            const {
-                                                href,
-                                                icon,
-                                                text,
-                                                visible,
-                                            } = _.get(MENU_ITEMS, key, {});
-                                            if (!visible) {
-                                                return null;
+                    <>
+                        <div>&nbsp;</div>
+                        <MenuDivider title="Admin. Tools" />
+                        <ButtonGroup
+                            alignText={Alignment.LEFT}
+                            vertical
+                            minimal
+                            large
+                            className="full-parent-width"
+                        >
+                            {[
+                                "admin_services",
+                                "admin_agents",
+                                "admin_users",
+                            ].map((key, index) => {
+                                const { href, icon, text, visible } = _.get(
+                                    MENU_ITEMS,
+                                    key,
+                                    {}
+                                );
+                                if (!visible) {
+                                    return null;
+                                }
+                                const active = _.startsWith(
+                                    router.asPath,
+                                    href
+                                );
+                                return (
+                                    <Link href={href} key={index}>
+                                        <Button
+                                            style={
+                                                !active
+                                                    ? {
+                                                          backgroundColor:
+                                                              "transparent",
+                                                      }
+                                                    : null
                                             }
-                                            const active = _.startsWith(
-                                                router.asPath,
-                                                href
-                                            );
-                                            return (
-                                                <Link href={href} key={index}>
-                                                    <Button
-                                                        style={
-                                                            !active
-                                                                ? {
-                                                                      backgroundColor:
-                                                                          "transparent",
-                                                                  }
-                                                                : null
-                                                        }
-                                                        active={active}
-                                                        text={text}
-                                                        icon={faIcon({
-                                                            icon: icon,
-                                                        })}
-                                                    />
-                                                </Link>
-                                            );
-                                        }
-                                    )}
-                                </ButtonGroup>
-                            </>
-                        ) : null}
-                    </div>
+                                            active={active}
+                                            text={text}
+                                            icon={faIcon({
+                                                icon: icon,
+                                            })}
+                                        />
+                                    </Link>
+                                );
+                            })}
+                        </ButtonGroup>
+                    </>
                 ) : null}
             </Card>
             <div
@@ -421,6 +481,7 @@ export default function App({ children }) {
             >
                 {_.isEmpty(user) ? <AccessDeniedNonIdealState /> : children}
             </div>
+            <DebugPanel />
         </div>
     );
 }

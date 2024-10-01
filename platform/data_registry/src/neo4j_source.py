@@ -55,12 +55,16 @@ class NEO4JSource(DataSource):
         host = connection['host']
         port = connection['port']
 
-        user = os.environ['NEO4J_USER'] 
-        pwd = os.environ['NEO4J_PWD'] 
+        user = connection['user'] 
+        pwd = connection['password'] 
         connection_url = self.properties['protocol'] + "://" + host + ":" + str(port)    
        
         return neo4j_connection.NEO4J_Connection(connection_url, user, pwd)
 
+    def _disconnect(self):
+        # TODO:
+        return None
+    
     ######### source
     def fetch_metadata(self):
         return {}

@@ -134,15 +134,19 @@ class Session:
 
     def notify(self, agent, output_stream, tags):
 
-        # create data namespace to share data on stream, success = True, if not existing
-        success = self._init_stream_data_namespace(output_stream)
-        logging.info("inited stream data namespace {} {}".format(output_stream, success))
+        # create data namespace to share data on stream
+        data_success = self._init_stream_data_namespace(output_stream)
+        logging.info("inited stream data namespace {} {}".format(output_stream, data_success))
+
+        # create metadata namespace for stream, metadata_success = True, if not existing
+        metadata_success = self._init_stream_metadata_namespace(output_stream, agent, tags)
+        logging.info("inited stream metadata namespace {} {}".format(output_stream, metadata_success))
 
         # add to stream to notify others, unless it exists
-        if success:
+        if metadata_success:
             args = {}
             args["session"] = self.cid
-            args["agent"] = agent
+            args["agent"] = agent.cid
             args["stream"] = output_stream
             args["tags"] = tags
             self.producer.write_control(ControlCode.ADD_STREAM, args)
@@ -172,6 +176,9 @@ class Session:
         # add created_date
         self.set_metadata("created_date", int(time.time()), nx=True)
 
+        # init budget
+        self._init_budget()
+
     def _get_metadata_namespace(self):
         return self.cid + ":METADATA"
 
@@ -184,6 +191,42 @@ class Session:
             Path("$" + ("" if pydash.is_empty(key) else ".") + key),
         )
         return self.__get_json_value(value)
+
+    ## budget
+    def _init_budget(self):
+        self.set_metadata('budget', {}, nx=True)
+        self.set_metadata('budget.allocation', {}, nx=True)
+        self.set_metadata('budget.use', {}, nx=True)
+        self.set_budget_allocation(cost=-1, accuracy=-1, latency=-1, nx=True)
+
+    def get_budget(self):
+        return self.get_metadata('budget')
+
+    def set_budget_allocation(self, cost=None, accuracy=None, latency=None, nx=False):
+        if cost is not None:
+            self.set_metadata('budget.allocation.cost', cost, nx)
+        if accuracy is not None:
+            self.set_metadata('budget.allocation.accuracy', accuracy, nx)
+        if latency is not None:
+            self.set_metadata('budget.allocation.latency', latency, nx)
+
+    def get_budget_allocation(self):
+        return self.get_metadata(key='budget.allocation')
+
+    def _set_budget_use(self, cost=None, accuracy=None, latency=None):
+        if cost:
+            self.set_metadata('budget.use.cost', cost)
+        if accuracy:
+            self.set_metadata('budget.use.accuracy', accuracy)
+        if latency:
+            self.set_metadata('budget.use.latency', latency)
+
+    def update_budget_use(self, cost=None, accuracy=None, latency=None):
+        # TODO
+        pass
+
+    def get_budget_use(self):
+        return self.get_metadata(key='budget.use')
 
     ## session data (shared by all agents)
     def _init_data_namespace(self):
@@ -203,6 +246,13 @@ class Session:
 
     def get_data(self, key):
         value = self.connection.json().get(self._get_data_namespace(), Path("$." + key))
+        return self.__get_json_value(value)
+
+    def get_all_data(self):
+        logging.info("get_all_data")
+        logging.info(self.cid)
+        logging.info(self._get_data_namespace())
+        value = self.connection.json().get(self._get_data_namespace(), Path("$"))
         return self.__get_json_value(value)
 
     def append_data(self, key, value):
@@ -238,6 +288,13 @@ class Session:
         )
         return self.__get_json_value(value)
 
+    def get_all_agent_data(self, agent):
+        value = self.connection.json().get(
+            self._get_agent_data_namespace(agent),
+            Path("$"),
+        )
+        return self.__get_json_value(value)
+
     def append_agent_data(self, agent, key, value):
         self.connection.json().arrappend(
             self._get_agent_data_namespace(agent),
@@ -250,6 +307,17 @@ class Session:
             self._get_agent_data_namespace(agent),
             Path("$." + key),
         )
+
+    def _get_stream_metadata_namespace(self, stream):
+        return stream + ":METADATA"
+
+    def _init_stream_metadata_namespace(self, stream, agent, tags):
+        # create metadata namespaces for stream
+        metadata_tags = {}
+        for tag in tags:
+            metadata_tags.update({tag: True})
+        metadata = {'created_by': agent.name, 'id': agent.id, 'tags': metadata_tags}
+        return self.connection.json().set(self._get_stream_metadata_namespace(stream), "$", metadata, nx=True)
 
     ## session stream data
     def _get_stream_data_namespace(self, stream):
@@ -275,6 +343,13 @@ class Session:
         value = self.connection.json().get(
             self._get_stream_data_namespace(stream),
             Path("$." + key),
+        )
+        return self.__get_json_value(value)
+
+    def get_all_stream_data(self, stream):
+        value = self.connection.json().get(
+            self._get_stream_data_namespace(stream),
+            Path("$"),
         )
         return self.__get_json_value(value)
 

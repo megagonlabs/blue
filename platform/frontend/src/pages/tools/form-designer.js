@@ -1,4 +1,4 @@
-import EditorJSON from "@/components/codemirror/EditorJSON";
+import JsonEditor from "@/components/codemirror/JsonEditor";
 import {
     DATA_JSON_SCHEMA,
     UI_JSON_SCHEMA,
@@ -6,6 +6,7 @@ import {
 import { JSONFORMS_RENDERERS } from "@/components/constant";
 import { faIcon } from "@/components/icon";
 import DocDrawer from "@/components/jsonforms/docs/DocDrawer";
+import JsonViewer from "@/components/sessions/message/renderers/JsonViewer";
 import { AppToaster } from "@/components/toaster";
 import {
     Alignment,
@@ -21,12 +22,12 @@ import {
     MenuItem,
     NonIdealState,
     Popover,
-    Pre,
+    Tag,
     Tooltip,
 } from "@blueprintjs/core";
 import {
     faArrowsFromLine,
-    faBinary,
+    faBinaryCircleCheck,
     faBinarySlash,
     faBookOpenCover,
     faBracketsCurly,
@@ -34,7 +35,7 @@ import {
     faClipboard,
     faDownload,
     faIndent,
-    faRotate,
+    faPlay,
     faTrash,
 } from "@fortawesome/pro-duotone-svg-icons";
 import { JsonForms } from "@jsonforms/react";
@@ -178,7 +179,7 @@ function FormDesigner() {
                             disabled={!error}
                             intent={Intent.SUCCESS}
                             onClick={resetError}
-                            icon={faIcon({ icon: faRotate })}
+                            icon={faIcon({ icon: faPlay })}
                         />
                     </Tooltip>
                     <Tooltip placement="bottom" minimal content="Format">
@@ -194,7 +195,7 @@ function FormDesigner() {
                             <Menu>
                                 <MenuDivider title="Export" />
                                 <MenuItem
-                                    icon={faIcon({ icon: faBinary })}
+                                    icon={faIcon({ icon: faBinaryCircleCheck })}
                                     text="With default data"
                                     onClick={() => {
                                         handleExportConfig(true);
@@ -294,7 +295,7 @@ function FormDesigner() {
                                         maxHeight: "calc(100% - 51px)",
                                     }}
                                 >
-                                    <EditorJSON
+                                    <JsonEditor
                                         schema={UI_JSON_SCHEMA}
                                         setLoading={setUiSchemaLoading}
                                         allowSaveWithError
@@ -356,7 +357,7 @@ function FormDesigner() {
                                         maxHeight: "calc(100% - 51px)",
                                     }}
                                 >
-                                    <EditorJSON
+                                    <JsonEditor
                                         schema={DATA_JSON_SCHEMA}
                                         setLoading={setSchemaLoading}
                                         allowSaveWithError
@@ -424,34 +425,64 @@ function FormDesigner() {
                                         icon={null}
                                         intent={error ? Intent.DANGER : null}
                                         style={{
-                                            position: "relative",
-                                            maxWidth: "min(802.2px, 100%)",
-                                            overflowX: "hidden",
-                                            minWidth: 50,
-                                            whiteSpace: "pre-wrap",
-                                            wordBreak: "break-all",
+                                            maxWidth: "100%",
                                             width: "fit-content",
-                                            minHeight: 21,
                                         }}
                                     >
-                                        {!error ? (
-                                            <JsonForms
-                                                schema={schema}
-                                                uischema={uischema}
-                                                data={data}
-                                                renderers={JSONFORMS_RENDERERS}
-                                                cells={vanillaCells}
-                                                onChange={({
-                                                    data,
-                                                    errors,
-                                                }) => {
-                                                    console.log(data, errors);
-                                                    setData(data);
-                                                }}
-                                            />
-                                        ) : (
-                                            String(error)
-                                        )}
+                                        <div
+                                            style={{
+                                                maxWidth: "100%",
+                                                minWidth: 50,
+                                                whiteSpace: "pre-wrap",
+                                                wordBreak: "break-all",
+                                                width: "fit-content",
+                                                minHeight: 21,
+                                                overflow: "hidden",
+                                                padding: 1,
+                                            }}
+                                        >
+                                            {!error ? (
+                                                <JsonForms
+                                                    schema={schema}
+                                                    uischema={uischema}
+                                                    data={data}
+                                                    renderers={
+                                                        JSONFORMS_RENDERERS
+                                                    }
+                                                    cells={vanillaCells}
+                                                    onChange={({
+                                                        data,
+                                                        errors,
+                                                    }) => {
+                                                        console.log(
+                                                            data,
+                                                            errors
+                                                        );
+                                                        setData(data);
+                                                    }}
+                                                />
+                                            ) : (
+                                                <>
+                                                    <div>{String(error)}</div>
+                                                    <Tag
+                                                        large
+                                                        minimal
+                                                        style={{ marginTop: 5 }}
+                                                    >
+                                                        Click
+                                                        {faIcon({
+                                                            icon: faPlay,
+                                                            style: {
+                                                                color: "#1c6e42",
+                                                                marginLeft: 5,
+                                                                marginRight: 5,
+                                                            },
+                                                        })}
+                                                        to re-run
+                                                    </Tag>
+                                                </>
+                                            )}
+                                        </div>
                                     </Callout>
                                 ) : (
                                     <NonIdealState
@@ -463,9 +494,20 @@ function FormDesigner() {
                                     />
                                 )
                             ) : (
-                                <Pre style={{ margin: 0, overflowX: "auto" }}>
-                                    {JSON.stringify(data, null, 4)}
-                                </Pre>
+                                <div className={Classes.RUNNING_TEXT}>
+                                    <pre
+                                        className="margin-0"
+                                        style={{
+                                            position: "relative",
+                                            overflow: "hidden",
+                                        }}
+                                    >
+                                        <JsonViewer
+                                            displaySize={true}
+                                            json={data}
+                                        />
+                                    </pre>
+                                </div>
                             )}
                         </div>
                     </Allotment.Pane>

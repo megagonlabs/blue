@@ -1,3 +1,4 @@
+import { convertCss } from "@/components/helper";
 import { Classes } from "@blueprintjs/core";
 import { rankWith, uiTypeIs } from "@jsonforms/core";
 import { withJsonFormsCellProps } from "@jsonforms/react";
@@ -6,7 +7,7 @@ import _ from "lodash";
 const LabelRenderer = ({ uischema }) => {
     return (
         <div
-            style={_.get(uischema, "props.style", {})}
+            style={convertCss(_.get(uischema, "props.style", {}))}
             className={classNames({
                 [Classes.TEXT_MUTED]: _.get(uischema, "props.muted", false),
                 [Classes.TEXT_SMALL]: _.get(uischema, "props.small", false),

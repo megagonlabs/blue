@@ -28,7 +28,7 @@ from APIRouter import APIRouter
 from fastapi.responses import JSONResponse
 
 ###### Settings
-from settings import PROPERTIES, ROLE_PERMISSIONS, SECURE_COOKIE
+from settings import EMAIL_DOMAIN_WHITE_LIST, PROPERTIES, ROLE_PERMISSIONS, SECURE_COOKIE
 
 ### Assign from platform properties
 from blueprint import Platform
@@ -46,7 +46,6 @@ FIREBASE_SERVICE_CRED = os.getenv("FIREBASE_SERVICE_CRED", "{}")
 cert = json.loads(base64.b64decode(FIREBASE_SERVICE_CRED))
 cred = credentials.Certificate(cert)
 firebase_admin.initialize_app(cred)
-EMAIL_DOMAIN_WHITE_LIST = os.getenv("EMAIL_DOMAIN_WHITE_LIST", "megagon.ai")
 allowed_domains = EMAIL_DOMAIN_WHITE_LIST.split(",")
 
 
@@ -81,7 +80,7 @@ async def signin(request: Request):
         status_code=401,
     )
     if pydash.is_empty(id_token):
-        return JSONResponse(content={"message": "Illegal ID token provided: ID token must be a non-empty string."}, status_code=401)
+        return JSONResponse(content={"message": "Illegal ID token provided: ID token must be a non-empty string."}, status_code=400)
     try:
         decoded_claims = auth.verify_id_token(id_token)
         # {
@@ -108,7 +107,7 @@ async def signin(request: Request):
         email = decoded_claims["email"]
         email_domain = re.search(EMAIL_DOMAIN_ADDRESS_REGEXP, email).group(1)
         if email_domain not in allowed_domains:
-            return JSONResponse(content={"message": "Invalid email domain"}, status_code=401)
+            return JSONResponse(content={"message": "Invalid email domain"}, status_code=403)
         # Only process if the user signed in within the last 5 minutes.
         if time.time() - decoded_claims["auth_time"] < 5 * 60:
             # Set session expiration to 14 days.
@@ -150,19 +149,13 @@ async def signin_cli(request: Request):
         status_code=401,
     )
     if pydash.is_empty(id_token):
-        return JSONResponse(
-            content={"message": "Illegal ID token provided: ID token must be a non-empty string."},
-            status_code=401,
-        )
+        return JSONResponse(content={"message": "Illegal ID token provided: ID token must be a non-empty string."}, status_code=400)
     try:
         decoded_claims = auth.verify_id_token(id_token)
         email = decoded_claims["email"]
         email_domain = re.search(EMAIL_DOMAIN_ADDRESS_REGEXP, email).group(1)
         if email_domain not in allowed_domains:
-            return JSONResponse(
-                content={"message": "Invalid email domain"},
-                status_code=401,
-            )
+            return JSONResponse(content={"message": "Invalid email domain"}, status_code=403)
         if time.time() - decoded_claims["auth_time"] < 5 * 60:
             expires_in = datetime.timedelta(hours=10)
             session_cookie = auth.create_session_cookie(id_token, expires_in=expires_in)
@@ -175,12 +168,29 @@ async def signin_cli(request: Request):
         return ERROR_RESPONSE
 
 
+@router.post('/profile/settings/{name}')
+async def set_settings(request: Request, name):
+    payload = await request.json()
+    p.set_metadata(f'users.{request.state.user["uid"]}.settings.{name}', payload.get('value'))
+    return JSONResponse(content={"message": "Success"})
+
+
 @router.get("/profile")
 def get_profile(request: Request):
-    return JSONResponse(content={"profile": {**request.state.user, 'permissions': pydash.objects.get(ROLE_PERMISSIONS, request.state.user['role'], {})}})
+    user_metadata = p.get_metadata(f'users.{request.state.user["uid"]}')
+    return JSONResponse(
+        content={
+            "profile": {
+                **request.state.user,
+                'permissions': pydash.objects.get(ROLE_PERMISSIONS, request.state.user['role'], {}),
+                "settings": pydash.objects.get(user_metadata, 'settings', {}),
+                "sessions": pydash.objects.get(user_metadata, 'sessions', {}),
+            },
+        }
+    )
 
 
-@router.get('/profile/uid/{uid}')
+@router.get('/profile/{uid}')
 def get_profile_by_uid(request: Request, uid):
     acl_enforce(request.state.user['role'], 'platform_users', 'read_all')
     user = {}
@@ -219,7 +229,7 @@ def get_users(request: Request, keyword: str = ""):
 def update_user_role(request: Request, uid, role_name):
     acl_enforce(request.state.user['role'], 'platform_users', 'write_all')
     # preventive measure
-    if uid == pydash.objects.get(request, 'state.user.uid', None):
-        return JSONResponse(content={"message": "You can't modify your own role."}, status_code=400)
+    if pydash.is_equal(uid, pydash.objects.get(request, 'state.user.uid', None)):
+        return JSONResponse(content={"message": "Unable to change the role."}, status_code=400)
     p.set_metadata(f'users.{uid}.role', role_name)
     return JSONResponse(content={"message": "Success"})

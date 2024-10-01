@@ -33,11 +33,17 @@ table.entity-section-card-table tr td {
 .margin-0 {
     margin: 0px !important;
 }
+.height-0 {
+    height: 0px !important;
+}
 .bp-border-top {
     border-top: 1px solid rgba(17, 20, 24, 0.15);
 }
 .bp-border-bottom {
     border-bottom: 1px solid rgba(17, 20, 24, 0.15);
+}
+.bp-border-right {
+    border-right: 1px solid rgba(17, 20, 24, 0.15);
 }
 .z-index-36 {
     z-index: 36;
@@ -77,3 +83,11 @@ table.entity-section-card-table tr td {
 .role-configuration-permission-list li span[class^="bp"][class*="-tag"] {
     margin-right: 5px;
 }
+.settings-menus {
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+}
+.settings-menus a[class^="bp"][class*="-menu-item"] {
+    cursor: initial;
+}
+/* react markdown content */

@@ -13,7 +13,7 @@ export default function AccessDeniedNonIdealState() {
                 <div>
                     You can go back to&nbsp;
                     <a
-                        style={{ fontWeight: 600 }}
+                        style={{ fontWeight: 600, cursor: "pointer" }}
                         onClick={() => {
                             router.back();
                         }}

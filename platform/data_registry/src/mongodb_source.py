@@ -59,6 +59,9 @@ class MongoDBSource(DataSource):
         connection_url = self.properties['protocol'] + "://" + host + ":" + str(port)    
         return MongoClient(connection_url)
 
+    def _disconnect(self):
+        # TODO:
+        return None
 
     ######### source
     def fetch_metadata(self):

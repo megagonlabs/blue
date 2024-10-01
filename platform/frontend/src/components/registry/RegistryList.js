@@ -1,4 +1,4 @@
-import { REGISTRY_TYPE_LOOKUP } from "@/components/constant";
+import { ENTITY_TYPE_LOOKUP } from "@/components/constant";
 import { AppContext } from "@/components/contexts/app-context";
 import { faIcon } from "@/components/icon";
 import RegistryCard from "@/components/registry/RegistryCard";
@@ -24,25 +24,46 @@ export default function RegistryList({ type }) {
     const loading = appState[type].loading;
     const router = useRouter();
     const { permissions } = useContext(AuthContext);
+    const canAddEntity = (() => {
+        if (_.isEqual(type, "agent") && permissions.canWriteAgentRegistry) {
+            return true;
+        } else if (
+            _.isEqual(type, "data") &&
+            permissions.canWriteDataRegistry
+        ) {
+            return true;
+        } else if (
+            _.isEqual(type, "operator") &&
+            permissions.canWriteOperatorRegistry
+        ) {
+            return true;
+        } else if (
+            _.isEqual(type, "model") &&
+            permissions.canWriteModelRegistry
+        ) {
+            return true;
+        }
+        return false;
+    })();
     if (_.isEmpty(list))
         return (
             <div style={{ padding: "0px 20px 20px", height: "100%" }}>
                 <NonIdealState
                     className={loading ? Classes.SKELETON : null}
                     icon={faIcon({
-                        icon: REGISTRY_TYPE_LOOKUP[type].icon,
+                        icon: ENTITY_TYPE_LOOKUP[type].icon,
                         size: 50,
                     })}
-                    title={`No ${_.capitalize(REGISTRY_TYPE_LOOKUP[type].key)}`}
+                    title={`No ${_.capitalize(ENTITY_TYPE_LOOKUP[type].key)}`}
                     action={
-                        _.includes(["agent"], type) ? (
+                        canAddEntity ? (
                             <Link href={`${router.asPath}/new`}>
                                 <Button
                                     intent={Intent.PRIMARY}
                                     large
                                     outlined
                                     icon={faIcon({ icon: faPlusLarge })}
-                                    text={`Add ${REGISTRY_TYPE_LOOKUP[type].key}`}
+                                    text={`Add ${ENTITY_TYPE_LOOKUP[type].key}`}
                                 />
                             </Link>
                         ) : null
@@ -59,10 +80,21 @@ export default function RegistryList({ type }) {
                 {list.map((element) => {
                     const properties = element.properties;
                     let extra = null;
-                    if (_.isEqual(type, "agent")) {
+                    if (_.includes(["agent", "operator"], type)) {
                         extra = properties.image;
                     } else if (_.isEqual(type, "data")) {
-                        extra = `${properties.connection.protocol}://${properties.connection.host}:${properties.connection.port}`;
+                        let protocol = _.get(properties, "connection.protocol");
+                        let host = _.get(properties, "connection.host");
+                        let port = _.get(properties, "connection.port");
+                        if (!_.isEmpty(protocol)) {
+                            extra = String(protocol);
+                        }
+                        if (!_.isEmpty(host)) {
+                            extra += `://${host}`;
+                        }
+                        if (!_.isEmpty(port)) {
+                            extra += `:${port}`;
+                        }
                     }
                     let icon = element.icon;
                     if (
@@ -92,8 +124,7 @@ export default function RegistryList({ type }) {
                         </Col>
                     );
                 })}
-                {_.includes(["agent"], type) &&
-                permissions.canWriteAgentRegistry ? (
+                {canAddEntity ? (
                     <Col
                         sm={12}
                         md={6}

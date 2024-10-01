@@ -118,7 +118,7 @@ Most of blue scripts require a number of parameters. While you can use the defau
 - `BLUE_DEPLOY_TARGET`, deployment target, `localhost` (default) or `swarm`
 - `BLUE_DEPLOY_PLATFORM`, platform name, `default` (default)
 - `BLUE_DEPLOY_VERSION`, deployment version, `latest` (default)
-- `BLUE_DEPLOY_SECURE`, use HTTP vs HTTPS, False or True
+- `BLUE_DEPLOY_SECURE`, use HTTP vs HTTPS, False or True. Set to False for local deployment
 - `BLUE_DEPLOY_DEVELOPMENT`, set development mode, False or True
 - `BLUE_PUBLIC_API_SERVER`, server address for the API, for example, `localhost`
 - `BLUE_PUBLIC_API_SERVER_PORT`, port number for API server, for example, `5050`
@@ -161,7 +161,14 @@ $ cd $BLUE_DATA_DIR/$BLUE_DEPLOY_PLATFORM
 $ mkdir models
 $ cd models
 $ git clone https://huggingface.co/sentence-transformers/paraphrase-MiniLM-L6-v2
-``` 
+$ cd $BLUE_INSTALL_DIR
+$ cp -r platform/api/src/casbin $BLUE_DATA_DIR/$BLUE_DEPLOY_PLATFORM
+```
+Then set the environment variables to point to the correct location
+```
+$ export BLUE_AGENT_REGISTRY_MODEL="/blue_data/models/paraphrase-MiniLM-L6-v2"
+$ export BLUE_RBAC_CONFIG_FOLDER="/blue_data/casbin"
+```
 
 ## build
 
@@ -189,7 +196,7 @@ $ cd services
 $ ./docker_build_all_services.sh.
 ```
 
-Or if you can also build images for certain servoces, you can do so by first changing to the directory for the servoce, for example, to build openai service only:
+Or if you can also build images for certain services, you can do so by first changing to the directory for the service, for example, to build openai service only:
 ```
 $ cd services/openai
 $ ./docker_build_service.sh
@@ -319,7 +326,6 @@ There are more demos in the [demos](demos) folder. Please try them on your own f
 
 # deployment
 
-B
 The main difference between a `localhost` deployment and a `swarm` deployment is that there are multiple compute nodes where various components can be deployed to. Another key difference is that ccomponents are added as a service where each can be configure with multiple scalability configurations and other service options.
 
 ## clusters

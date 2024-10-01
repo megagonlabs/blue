@@ -31,13 +31,9 @@ export default function NewEntity({
     const router = useRouter();
     const searchParams = useSearchParams();
     useEffect(() => {
-        if (!router.isReady) {
-            return;
-        }
+        if (!router.isReady) return;
         const entity = searchParams.get("entity");
-        if (_.isEmpty(entity)) {
-            return;
-        }
+        if (_.isEmpty(entity)) return;
         axios.get(`${urlPrefix}/${entity}`).then((response) => {
             let result = _.get(response, "data.result", {});
             _.set(result, "name", "");

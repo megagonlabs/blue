@@ -9,6 +9,9 @@ p, admin, platform_agents, write_all
 p, developer, platform_agents, read_own
 p, developer, platform_agents, write_own
 
+p, admin, platform_services, read_all
+p, admin, platform_services, write_own
+
 p, admin, sessions, read_all
 p, member, sessions, read_own
 p, member, sessions, read_participate
@@ -36,5 +39,22 @@ p, developer, data_registry, write_own
 p, developer, data_registry, read_all
 p, guest, data_registry, read_all
 
+p, admin, model_registry, read_all
+p, admin, model_registry, write_all
+p, member, model_registry, read_all
+p, developer, model_registry, write_own
+p, developer, model_registry, read_all
+p, guest, model_registry, read_all
+
+p, admin, operator_registry, read_all
+p, admin, operator_registry, write_all
+p, member, operator_registry, read_all
+p, developer, operator_registry, write_own
+p, developer, operator_registry, read_all
+p, guest, operator_registry, read_all
+
 p, admin, form_designer, visible
 p, developer, form_designer, visible
+
+p, admin, prompt_designer, visible
+p, developer, prompt_designer, visible

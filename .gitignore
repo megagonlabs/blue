@@ -1,7 +1,13 @@
 **/blue/web/auth/out/cache/
 blue-firebase-adminsdk.json
 agents/*/lib
+services/*/lib
+operators/*/lib
 platform/*/lib
+platform/docker*.yaml
+!platform/docker*template*.yaml
+services/*/docker*.yaml
+!services/*/docker*template*.yaml
 .DS_Store
 .vscode/
 # Byte-compiled / optimized / DLL files

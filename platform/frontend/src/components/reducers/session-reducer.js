@@ -4,21 +4,42 @@ export const defaultState = {
     isSocketOpen: false,
     platform: "default",
     sessionIds: [],
+    groupedSessionIds: [],
     sessionIdFocus: null,
-    sessionDetail: {},
-    connectionId: null,
+    sessionDetails: {},
+    userId: null,
+    collapsed: true,
     unreadSessionIds: new Set(),
+    pinnedSessionIds: new Set(),
     terminatedInteraction: new Set(),
+    expandedMessageStream: new Set(),
+    sessionGroupBy: "all",
 };
 export default function sessionReducer(
     state = defaultState,
     { type, payload }
 ) {
-    let unreadSessionIds = state.unreadSessionIds;
-    let sessionIds = state.sessionIds;
-    let terminatedInteraction = state.terminatedInteraction;
+    let {
+        unreadSessionIds,
+        sessionIds,
+        terminatedInteraction,
+        expandedMessageStream,
+    } = state;
     let sessions = _.cloneDeep(state.sessions);
+    let pinnedSessionIds = _.clone(state.pinnedSessionIds);
     switch (type) {
+        case "session/pinnedSessionIds/add": {
+            pinnedSessionIds.add(payload);
+            return { ...state, pinnedSessionIds };
+        }
+        case "session/pinnedSessionIds/remove": {
+            pinnedSessionIds.delete(payload);
+            return { ...state, pinnedSessionIds };
+        }
+        case "session/expandedMessageStream/add": {
+            expandedMessageStream.add(payload);
+            return { ...state, expandedMessageStream };
+        }
         case "session/sessions/message/add": {
             const messageLabel = _.get(payload, "message.label", null);
             const contentType = _.get(payload, "message.content_type", null);
@@ -46,6 +67,7 @@ export default function sessionReducer(
                     if (_.isEqual(messageContentsCode, "BOS")) {
                         messages.push({
                             stream: payload.stream,
+                            metadata: payload.metadata,
                             timestamp: payload.timestamp,
                             order: payload.order,
                         });
@@ -65,10 +87,7 @@ export default function sessionReducer(
                         });
                     } else if (_.isEqual(messageContentsCode, "EOS")) {
                         if (
-                            !_.includes(
-                                payload.stream,
-                                `USER:${state.connectionId}`
-                            )
+                            !_.includes(payload.stream, `USER:${state.userId}`)
                         ) {
                             unreadSessionIds.add(payload.session_id);
                         }
@@ -165,14 +184,20 @@ export default function sessionReducer(
             return { ...state, [payload.key]: payload.value };
         }
         case "session/sessions/detail/set": {
-            let nextSessionDetail = { ...state.sessionDetail };
+            let nextSessionDetail = { ...state.sessionDetails };
             for (let i = 0; i < _.size(payload); i++) {
                 const detail = payload[i];
                 if (!_.isNil(detail.id)) {
                     _.set(nextSessionDetail, [detail.id], detail);
                 }
             }
-            return { ...state, sessionDetail: nextSessionDetail };
+            return { ...state, sessionDetails: nextSessionDetail };
+        }
+        case "session/sessions/detail/members/set": {
+            let nextSessionDetail = { ...state.sessionDetails };
+            const { id, members } = payload;
+            _.set(nextSessionDetail, [id, "members"], members);
+            return { ...state, sessionDetails: nextSessionDetail };
         }
         case "session/sessions/add": {
             if (_.includes(sessionIds, payload)) {
@@ -189,11 +214,7 @@ export default function sessionReducer(
         }
         case "session/sessionIdFocus/set": {
             unreadSessionIds.delete(payload);
-            return {
-                ...state,
-                sessionIdFocus: payload,
-                unreadSessionIds: unreadSessionIds,
-            };
+            return { ...state, sessionIdFocus: payload, unreadSessionIds };
         }
         default:
             return state;

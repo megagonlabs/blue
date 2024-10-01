@@ -1,7 +1,11 @@
+import { AppContext } from "@/components/contexts/app-context";
+import { Queue, sendSocketMessage } from "@/components/helper";
 import { useSocket } from "@/components/hooks/useSocket";
 import { faIcon } from "@/components/icon";
+import { AppToaster } from "@/components/toaster";
 import {
     Button,
+    ButtonGroup,
     Classes,
     H6,
     Intent,
@@ -13,6 +17,7 @@ import {
 import {
     faArrowDown,
     faArrowUp,
+    faCircleNodes,
     faPlus,
     faTrash,
 } from "@fortawesome/pro-duotone-svg-icons";
@@ -25,10 +30,13 @@ import {
 } from "@jsonforms/core";
 import {
     JsonFormsDispatch,
+    withArrayTranslationProps,
     withJsonFormsArrayControlProps,
+    withTranslateProps,
 } from "@jsonforms/react";
-import _, { range } from "lodash";
-import { useEffect, useMemo } from "react";
+import _ from "lodash";
+import { useContext, useEffect, useMemo } from "react";
+import { v4 as uuidv4 } from "uuid";
 const ArrayRenderer = ({
     label,
     data,
@@ -45,6 +53,7 @@ const ArrayRenderer = ({
     moveDown,
 }) => {
     const { socket } = useSocket();
+    const { appState, appActions } = useContext(AppContext);
     const childUiSchema = useMemo(
         () =>
             findUISchema(
@@ -58,9 +67,11 @@ const ArrayRenderer = ({
             ),
         [uischemas, schema, uischema.scope, path, uischema, rootSchema]
     );
+    const visualization = _.get(uischema, "props.visualization", null);
     useEffect(() => {
         setTimeout(() => {
-            socket.send(
+            sendSocketMessage(
+                socket,
                 JSON.stringify({
                     type: "INTERACTIVE_EVENT_MESSAGE",
                     stream_id: _.get(uischema, "props.streamId", null),
@@ -72,11 +83,133 @@ const ArrayRenderer = ({
             );
         }, 0);
     }, [data]);
+    const setVisualization = () => {
+        try {
+            let visualValue = null;
+            if (_.isEqual(visualization, "DAG")) {
+                let fromTo = {},
+                    toFrom = {},
+                    uniqueNodes = new Set(),
+                    nodeIds = {},
+                    transitionNodes = [],
+                    edgeType = "smoothstep";
+                let edges = [];
+                for (let i = 0; i < _.size(data); i++) {
+                    const fromNode = data[i].from_agent,
+                        toNode = data[i].to_agent;
+                    if (!_.has(appState, ["agent", "icon", fromNode])) {
+                        appActions.agent.fetchAttributes(fromNode);
+                    }
+                    if (!_.has(appState, ["agent", "icon", toNode])) {
+                        appActions.agent.fetchAttributes(toNode);
+                    }
+                    uniqueNodes.add(fromNode);
+                    uniqueNodes.add(toNode);
+                    if (!_.has(nodeIds, fromNode)) {
+                        nodeIds[fromNode] = uuidv4();
+                    }
+                    if (!_.has(nodeIds, toNode)) {
+                        nodeIds[toNode] = uuidv4();
+                    }
+                    const transitionNodeId = uuidv4();
+                    transitionNodes.push({
+                        id: transitionNodeId,
+                        data: {
+                            fromParam: data[i].from_agent_param,
+                            toParam: data[i].to_agent_param,
+                        },
+                        type: "transition-edge-node",
+                    });
+                    edges.push({
+                        id: uuidv4(),
+                        source: nodeIds[fromNode],
+                        target: transitionNodeId,
+                        animated: true,
+                        type: edgeType,
+                        style: { strokeWidth: 2 },
+                    });
+                    edges.push({
+                        id: uuidv4(),
+                        source: transitionNodeId,
+                        target: nodeIds[toNode],
+                        animated: true,
+                        type: edgeType,
+                        style: { strokeWidth: 2 },
+                    });
+                    if (_.has(fromTo, fromNode)) {
+                        fromTo[fromNode].push(toNode);
+                    } else {
+                        fromTo[fromNode] = [toNode];
+                    }
+                    if (_.has(toFrom, toNode)) {
+                        toFrom[toNode].push(fromNode);
+                    } else {
+                        toFrom[toNode] = [fromNode];
+                    }
+                }
+                const getEndNodes = (dag) => {
+                    let endNodes = new Set(),
+                        visited = new Set(),
+                        next = new Queue();
+                    const nodes = Object.keys(dag);
+                    for (let i = 0; i < _.size(nodes); i++) {
+                        next.enqueue(nodes[i]);
+                    }
+                    while (!next.isEmpty()) {
+                        const current = next.dequeue();
+                        if (visited.has(current)) {
+                            continue;
+                        }
+                        const connected = _.get(dag, current, []);
+                        if (_.isEmpty(connected)) {
+                            // nothing connected to the node
+                            endNodes.add(current);
+                        } else {
+                            for (let i = 0; i < _.size(connected); i++) {
+                                next.enqueue(connected[i]);
+                            }
+                        }
+                        visited.add(current);
+                    }
+                    return endNodes;
+                };
+                let inputNodes = getEndNodes(toFrom),
+                    outputNodes = getEndNodes(fromTo);
+                let nodes = _.toArray(uniqueNodes).map((node) => {
+                    let nodeProps = {
+                        id: nodeIds[node],
+                        data: { label: node },
+                        type: "agent-node",
+                    };
+                    if (inputNodes.has(node)) {
+                        _.set(nodeProps, "data.input", true);
+                    } else if (outputNodes.has(node)) {
+                        _.set(nodeProps, "data.output", true);
+                    } else {
+                        _.set(nodeProps, "data.input", true);
+                        _.set(nodeProps, "data.output", true);
+                    }
+                    return nodeProps;
+                });
+                nodes = nodes.concat(transitionNodes);
+                visualValue = { nodes, edges };
+            }
+            appActions.session.setState({
+                key: "visualization",
+                value: visualValue,
+            });
+        } catch (error) {
+            AppToaster.show({
+                intent: Intent.DANGER,
+                message: `Failed to initialize visualization: ${error}`,
+            });
+        }
+    };
     return (
         <div>
             <H6 style={{ marginTop: 0, marginBottom: 15 }}>{label}</H6>
             {!_.isEmpty(data) ? (
-                range(0, data.length).map((index) => {
+                _.range(0, data.length).map((index) => {
                     const childPath = composePaths(path, String(index));
                     const content = (
                         <JsonFormsDispatch
@@ -133,11 +266,7 @@ const ArrayRenderer = ({
                                     ) : null}
                                     <Popover
                                         content={
-                                            <div
-                                                style={{
-                                                    padding: 15,
-                                                }}
-                                            >
+                                            <div style={{ padding: 15 }}>
                                                 <Button
                                                     intent={Intent.DANGER}
                                                     className={
@@ -162,9 +291,7 @@ const ArrayRenderer = ({
                                             <Button
                                                 minimal
                                                 intent={Intent.DANGER}
-                                                icon={faIcon({
-                                                    icon: faTrash,
-                                                })}
+                                                icon={faIcon({ icon: faTrash })}
                                             />
                                         </Tooltip>
                                     </Popover>
@@ -180,7 +307,15 @@ const ArrayRenderer = ({
                     {translations.noDataMessage}
                 </div>
             )}
-            <div>
+            <ButtonGroup
+                fill
+                style={{
+                    maxWidth: _.includes(["DAG"], visualization)
+                        ? 171.88
+                        : 70.77,
+                    marginBottom: 15,
+                }}
+            >
                 <Tooltip
                     placement="top-start"
                     minimal
@@ -189,6 +324,7 @@ const ArrayRenderer = ({
                     <Button
                         icon={faIcon({ icon: faPlus })}
                         text="Add"
+                        ellipsizeText
                         outlined
                         onClick={addItem(
                             path,
@@ -196,9 +332,21 @@ const ArrayRenderer = ({
                         )}
                     />
                 </Tooltip>
-            </div>
+                {_.includes(["DAG"], visualization) ? (
+                    <Button
+                        ellipsizeText
+                        disabled={_.isEmpty(data)}
+                        outlined
+                        text="Visualize"
+                        onClick={setVisualization}
+                        icon={faIcon({ icon: faCircleNodes })}
+                    />
+                ) : null}
+            </ButtonGroup>
         </div>
     );
 };
-export default withJsonFormsArrayControlProps(ArrayRenderer);
+export default withJsonFormsArrayControlProps(
+    withTranslateProps(withArrayTranslationProps(ArrayRenderer))
+);
 export const ArrayTester = rankWith(5, isObjectArrayWithNesting);

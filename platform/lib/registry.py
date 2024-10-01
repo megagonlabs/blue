@@ -606,6 +606,19 @@ class Registry:
         # index registry
         self.build_index()
 
+    # encode/decode keys
+    encodings = { ".": "__DOT__", "*": "__STAR__", "?": "__Q__" }
+    def _encode(self, s):
+        for (k,v) in encodings.items():
+            s = s.replace(k,v)
+        return s
+
+    def _decode(self, s):
+        for (k,v) in encodings.items():
+            s = s.replace(v,k)
+        return s
+
+
 
 #######################
 if __name__ == "__main__":

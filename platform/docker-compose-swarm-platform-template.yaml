@@ -1,101 +1,103 @@
 ---
-version: '3.8'
-x-blue-common:
-  &blue-common
-  # build: .
-  image: python:3.9.0
-  environment:
-    &blue-common-env
-    BLUE_DEPLOY_PLATFORM: "${BLUE_DEPLOY_PLATFORM}"
-    BLUE_DEPLOY_VERSION: "${BLUE_DEPLOY_VERSION}"
-    BLUE_DEPLOY_TARGET: "${BLUE_DEPLOY_TARGET}"
-    BLUE_DEPLOY_SECURE: "${BLUE_DEPLOY_SECURE}"
-    BLUE_DEPLOY_DEVELOPMENT: "${BLUE_DEPLOY_DEVELOPMENT}"
-    BLUE_PUBLIC_API_SERVER: "${BLUE_PUBLIC_API_SERVER}"
-    BLUE_PUBLIC_API_SERVER_PORT: "${BLUE_PUBLIC_API_SERVER_PORT}"
-    BLUE_PUBLIC_WEB_SERVER: "${BLUE_PUBLIC_WEB_SERVER}"
-    BLUE_PUBLIC_WEB_SERVER_PORT: "${BLUE_PUBLIC_WEB_SERVER_PORT}"
-    BLUE_AGENT_REGISTRY: "${BLUE_AGENT_REGISTRY}"
-    BLUE_DATA_REGISTRY: "${BLUE_DATA_REGISTRY}"
-    BLUE_AGENT_REGISTRY_MODEL: "${BLUE_AGENT_REGISTRY_MODEL}"
-    BLUE_RBAC_CONFIG_FOLDER: "${BLUE_RBAC_CONFIG_FOLDER}"
-  depends_on:
-    &blue-common-depends-on
-    redis:
-      condition: service_healthy
+version: "3.8"
+x-blue-common: &blue-common # build: .
+    image: python:3.9.0
+    environment: &blue-common-env
+        BLUE_DEPLOY_PLATFORM: "${BLUE_DEPLOY_PLATFORM}"
+        BLUE_DEPLOY_VERSION: "${BLUE_DEPLOY_VERSION}"
+        BLUE_DEPLOY_TARGET: "${BLUE_DEPLOY_TARGET}"
+        BLUE_DEPLOY_SECURE: "${BLUE_DEPLOY_SECURE}"
+        BLUE_DEPLOY_DEVELOPMENT: "${BLUE_DEPLOY_DEVELOPMENT}"
+        BLUE_PUBLIC_API_SERVER: "${BLUE_PUBLIC_API_SERVER}"
+        BLUE_PUBLIC_API_SERVER_PORT: "${BLUE_PUBLIC_API_SERVER_PORT}"
+        BLUE_PUBLIC_WEB_SERVER: "${BLUE_PUBLIC_WEB_SERVER}"
+        BLUE_PUBLIC_WEB_SERVER_PORT: "${BLUE_PUBLIC_WEB_SERVER_PORT}"
+        BLUE_AGENT_REGISTRY: "${BLUE_AGENT_REGISTRY}"
+        BLUE_DATA_REGISTRY: "${BLUE_DATA_REGISTRY}"
+        BLUE_MODEL_REGISTRY: "${BLUE_MODEL_REGISTRY}"
+        BLUE_OPERATOR_REGISTRY: "${BLUE_OPERATOR_REGISTRY}"
+        BLUE_AGENT_REGISTRY_MODEL: "${BLUE_AGENT_REGISTRY_MODEL}"
+        BLUE_DATA_REGISTRY_MODEL: "${BLUE_DATA_REGISTRY_MODEL}"
+        BLUE_MODEL_REGISTRY_MODEL: "${BLUE_MODEL_REGISTRY_MODEL}"
+        BLUE_OPERATOR_REGISTRY_MODEL: "${BLUE_OPERATOR_REGISTRY_MODEL}"
+        BLUE_RBAC_CONFIG_FOLDER: "${BLUE_RBAC_CONFIG_FOLDER}"
+        BLUE_EMAIL_DOMAIN_WHITE_LIST: "${BLUE_EMAIL_DOMAIN_WHITE_LIST}"
+    depends_on: &blue-common-depends-on
+        redis:
+            condition: service_healthy
 
 services:
-  redis:
-    image: redis/redis-stack:latest
-    hostname: blue_db_redis
-    deploy:
-      placement:
-        constraints:
-          - node.labels.target == db
-    ports:
-      - "${BLUE_PUBLIC_DB_SERVER_PORT_MAPPED}:6379"
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 30s
-      retries: 50
-      start_period: 30s
-    networks:
-      - network_overlay
-    volumes:
-      - blue_${BLUE_DEPLOY_PLATFORM}_data:/blue_data
-    labels:
-      blue.platform: "${BLUE_DEPLOY_PLATFORM}.redis"
-    environment:
-      <<: *blue-common-env
-    restart: always
+    redis:
+        image: redis/redis-stack:latest
+        hostname: blue_db_redis
+        deploy:
+            placement:
+                constraints:
+                    - node.labels.target == db
+        ports:
+            - "${BLUE_PUBLIC_DB_SERVER_PORT_MAPPED}:6379"
+        healthcheck:
+            test: ["CMD", "redis-cli", "ping"]
+            interval: 10s
+            timeout: 30s
+            retries: 50
+            start_period: 30s
+        networks:
+            - network_overlay
+        volumes:
+            - blue_${BLUE_DEPLOY_PLATFORM}_data:/blue_data
+        labels:
+            blue.platform: "${BLUE_DEPLOY_PLATFORM}.redis"
+        environment:
+            <<: *blue-common-env
+        restart: always
 
-  api:
-    image: megagonlabs/blue-platform-api:${BLUE_DEPLOY_VERSION}
-    hostname: blue_platform_api
-    deploy:
-      placement:
-        constraints:
-          - node.labels.target == platform
-    depends_on:
-      - redis
-    ports:
-      - "${BLUE_PUBLIC_API_SERVER_PORT_MAPPED}:5050"
-    networks:
-      - network_overlay
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - blue_${BLUE_DEPLOY_PLATFORM}_data:/blue_data
-    labels:
-      blue.platform: "${BLUE_DEPLOY_PLATFORM}.api"
-    environment:
-      <<: *blue-common-env
-    env_file:
-      - api/api.env
-    restart: always
+    api:
+        image: blue-platform-api:${BLUE_DEPLOY_VERSION}
+        hostname: blue_platform_api
+        deploy:
+            placement:
+                constraints:
+                    - node.labels.target == platform
+        depends_on:
+            - redis
+        ports:
+            - "${BLUE_PUBLIC_API_SERVER_PORT_MAPPED}:5050"
+        networks:
+            - network_overlay
+        volumes:
+            - /var/run/docker.sock:/var/run/docker.sock
+            - blue_${BLUE_DEPLOY_PLATFORM}_data:/blue_data
+        labels:
+            blue.platform: "${BLUE_DEPLOY_PLATFORM}.api"
+        environment:
+            <<: *blue-common-env
+        env_file:
+            - api/api.env
+        restart: always
 
-  frontend:
-    image: megagonlabs/blue-platform-frontend:${BLUE_DEPLOY_VERSION}
-    hostname: blue_platform_frontend
-    deploy:
-      placement:
-        constraints:
-          - node.labels.target == platform
-    ports:
-      - "${BLUE_PUBLIC_WEB_SERVER_PORT_MAPPED}:3000"
-    networks:
-      - network_overlay
-    labels:
-      blue.platform: "${BLUE_DEPLOY_PLATFORM}.frontend"
-    environment:
-      <<: *blue-common-env
-    restart: always
+    frontend:
+        image: blue-platform-frontend:${BLUE_DEPLOY_VERSION}
+        hostname: blue_platform_frontend
+        deploy:
+            placement:
+                constraints:
+                    - node.labels.target == platform
+        ports:
+            - "${BLUE_PUBLIC_WEB_SERVER_PORT_MAPPED}:3000"
+        networks:
+            - network_overlay
+        labels:
+            blue.platform: "${BLUE_DEPLOY_PLATFORM}.frontend"
+        environment:
+            <<: *blue-common-env
+        restart: always
 
 networks:
-  network_overlay:
-      driver: overlay
-      attachable: true
+    network_overlay:
+        driver: overlay
+        attachable: true
 
 volumes:
-  blue_${BLUE_DEPLOY_PLATFORM}_data:
-      external: true
+    blue_${BLUE_DEPLOY_PLATFORM}_data:
+        external: true

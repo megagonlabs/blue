@@ -1,5 +1,6 @@
 import { faIcon } from "@/components/icon";
 import * as docProps from "@/components/jsonforms/docs/constant";
+import JsonViewer from "@/components/sessions/message/renderers/JsonViewer";
 import {
     Button,
     Callout,
@@ -17,20 +18,16 @@ import { faArrowLeft } from "@fortawesome/pro-duotone-svg-icons";
 import classNames from "classnames";
 import CopyDocJsonButton from "./CopyDocJsonButton";
 export default function BooleanDoc({ closePanel }) {
-    const docJson = JSON.stringify(
-        {
-            type: "Control",
-            label: "",
-            props: {
-                switch: false,
-                style: {},
-            },
-            scope: "",
-            required: false,
+    const docJson = {
+        type: "Control",
+        label: "",
+        props: {
+            switch: false,
+            style: {},
         },
-        null,
-        4
-    );
+        scope: "#/properties/...",
+        required: false,
+    };
     return (
         <>
             <div className="bp-border-bottom" style={{ padding: "10px 20px" }}>
@@ -68,11 +65,11 @@ export default function BooleanDoc({ closePanel }) {
                 <pre style={{ position: "relative", overflow: "hidden" }}>
                     <div style={{ position: "absolute", right: 15, top: 13 }}>
                         <CopyDocJsonButton
-                            docJson={docJson}
+                            docJson={JSON.stringify(docJson, null, 4)}
                             copyMessage="Copied Boolean (Control) JSON"
                         />
                     </div>
-                    {docJson}
+                    <JsonViewer enableClipboard={false} json={docJson} />
                 </pre>
                 <H2>Props</H2>
                 <HTMLTable
@@ -114,10 +111,12 @@ export default function BooleanDoc({ closePanel }) {
                                     }}
                                 >
                                     <Checkbox
+                                        name="boolean-doc-switch-false"
                                         style={{ margin: 0 }}
                                         label="switch: false"
                                     />
                                     <Switch
+                                        name="boolean-doc-switch-true"
                                         style={{ margin: 0 }}
                                         label="switch: true"
                                     />

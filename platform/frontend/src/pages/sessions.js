@@ -1,17 +1,23 @@
 import { NAVIGATION_MENU_WIDTH } from "@/components/constant";
 import { AppContext } from "@/components/contexts/app-context";
 import { AuthContext } from "@/components/contexts/auth-context";
+import { SocketContext } from "@/components/contexts/socket-context";
+import { sendSocketMessage } from "@/components/helper";
 import { useSocket } from "@/components/hooks/useSocket";
 import { faIcon } from "@/components/icon";
 import AddAgents from "@/components/sessions/AddAgents";
+import PlanVisualizationPanel from "@/components/sessions/PlanVisualizationPanel";
 import SessionDetail from "@/components/sessions/SessionDetail";
 import SessionList from "@/components/sessions/SessionList";
-import SessionMessages from "@/components/sessions/SessionMessages";
+import SessionMemberStack from "@/components/sessions/SessionMemberStack";
+import SessionMessages from "@/components/sessions/message/SessionMessages";
 import { AppToaster } from "@/components/toaster";
 import {
+    Alignment,
     Button,
     ButtonGroup,
     Card,
+    Classes,
     ControlGroup,
     H4,
     Intent,
@@ -19,40 +25,45 @@ import {
     MenuItem,
     NonIdealState,
     Popover,
+    Tag,
     TextArea,
     Tooltip,
 } from "@blueprintjs/core";
 import {
+    faBell,
     faCaretDown,
+    faChevronLeft,
+    faChevronRight,
     faCircleA,
+    faClipboard,
     faInboxIn,
-    faInboxOut,
     faMessages,
     faPlusLarge,
     faRefresh,
     faSatelliteDish,
     faSignalStreamSlash,
 } from "@fortawesome/pro-duotone-svg-icons";
+import { ReactFlowProvider } from "@xyflow/react";
 import axios from "axios";
+import classNames from "classnames";
+import copy from "copy-to-clipboard";
 import _ from "lodash";
 import { useCallback, useContext, useEffect, useRef, useState } from "react";
 export default function Sessions() {
     const { appState, appActions } = useContext(AppContext);
-    const sessionIdFocus = appState.session.sessionIdFocus;
-    const sessionIds = appState.session.sessionIds;
+    const { unreadSessionIds, sessionIdFocus, sessionIds, collapsed } =
+        appState.session;
     const [message, setMessage] = useState("");
     const sessionMessageTextArea = useRef(null);
     const [isSessionDetailOpen, setIsSessionDetailOpen] = useState(false);
-    const { socket, reconnectWs } = useSocket();
-    const socketReadyState = _.get(socket, "readyState", 3);
-    const { permissions } = useContext(AuthContext);
-    const { canCreateSessions } = permissions;
+    const { socket, reconnectWs, isSocketOpen } = useSocket();
+    const { settings } = useContext(AuthContext);
+    const { authenticating } = useContext(SocketContext);
     const sendSessionMessage = (message) => {
-        if (!_.isEqual(socketReadyState, 1)) {
-            return;
-        }
+        if (!isSocketOpen) return;
         setMessage("");
-        socket.send(
+        sendSocketMessage(
+            socket,
             JSON.stringify({
                 type: "USER_SESSION_MESSAGE",
                 session_id: sessionIdFocus,
@@ -72,11 +83,11 @@ export default function Sessions() {
                 } else if (_.isEqual(data["type"], "CONNECTED")) {
                     appActions.session.setState({
                         key: "connectionId",
-                        value: data.id,
+                        value: data.connection_id,
                     });
                 } else if (_.isEqual(data["type"], "NEW_SESSION_BROADCAST")) {
                     appActions.session.addSession(_.get(data, "session.id"));
-                    appActions.session.setSessionDetail([data["session"]]);
+                    appActions.session.setSessionDetails([data["session"]]);
                 }
             } catch (e) {
                 AppToaster.show({
@@ -101,7 +112,8 @@ export default function Sessions() {
             sessionMessageTextArea.current.focus();
         }
     }, [sessionIdFocus]);
-    const SESSION_LISTL_PANEL_WIDTH = 376.02;
+    // const SESSION_LIST_PANEL_WIDTH = 327.92;
+    const SESSION_LIST_PANEL_WIDTH = 327.92;
     const initialFetchAll = useRef(true);
     const [loading, setLoading] = useState(false);
     const fetchAllSessions = () => {
@@ -110,8 +122,8 @@ export default function Sessions() {
         axios
             .get("/sessions")
             .then((response) => {
-                const sessions = _.get(response, "data.results", []);
-                appActions.session.setSessionDetail(sessions);
+                let sessions = _.get(response, "data.results", []);
+                appActions.session.setSessionDetails(sessions);
                 for (let i = 0; i < sessions.length; i++) {
                     const sessionId = sessions[i].id;
                     appActions.session.addSession(sessionId);
@@ -121,16 +133,16 @@ export default function Sessions() {
             .catch(() => {});
     };
     useEffect(() => {
-        if (!_.isEqual(socketReadyState, 1)) {
-            return;
-        }
+        if (!isSocketOpen) return;
         if (initialFetchAll.current) {
             initialFetchAll.current = false;
-            socket.send(JSON.stringify({ type: "REQUEST_USER_AGENT_ID" }));
+            sendSocketMessage(
+                socket,
+                JSON.stringify({ type: "REQUEST_USER_AGENT_ID" })
+            );
             fetchAllSessions();
         }
-    }, [socketReadyState]);
-    const isSocketOpen = appState.session.isSocketOpen;
+    }, [isSocketOpen]);
     const ReconnectButton = () => {
         return (
             <Button
@@ -138,21 +150,26 @@ export default function Sessions() {
                 onClick={reconnectWs}
                 intent={Intent.PRIMARY}
                 large
-                loading={_.isEqual(socketReadyState, 0)}
+                loading={
+                    (socket != null &&
+                        _.isEqual(socket.readyState, WebSocket.CONNECTING)) ||
+                    authenticating
+                }
                 text="Connect"
             />
         );
     };
     const [isAddAgentsOpen, setIsAddAgentsOpen] = useState(false);
     const [skippable, setSkippable] = useState(false);
-    const sessionName = _.get(
+    const sessionDetails = _.get(
         appState,
-        ["session", "sessionDetail", sessionIdFocus, "name"],
-        sessionIdFocus
+        ["session", "sessionDetails", sessionIdFocus],
+        {}
     );
+    const sessionName = _.get(sessionDetails, "name", sessionIdFocus);
+    const sessionDescription = _.get(sessionDetails, "description", "");
     useEffect(() => {
         if (appState.session.openAgentsDialogTrigger) {
-            setIsCreatingSession(false);
             setIsAddAgentsOpen(true);
             setSkippable(true);
             appActions.session.setState({
@@ -161,13 +178,13 @@ export default function Sessions() {
             });
         }
     }, [appState.session.openAgentsDialogTrigger]);
-    const [isCreatingSession, setIsCreatingSession] = useState(false);
     if (!isSocketOpen && _.isEmpty(sessionIds))
         return (
             <NonIdealState
                 icon={faIcon({ icon: faSignalStreamSlash, size: 50 })}
                 title={
-                    _.isEqual(socketReadyState, 0)
+                    socket != null &&
+                    _.isEqual(socket.readyState, WebSocket.CONNECTING)
                         ? "Connecting"
                         : "No connection"
                 }
@@ -182,7 +199,7 @@ export default function Sessions() {
                     top: 0,
                     left: 0,
                     height: "calc(100% - 1px)",
-                    width: SESSION_LISTL_PANEL_WIDTH,
+                    width: collapsed ? 80 : SESSION_LIST_PANEL_WIDTH,
                 }}
             >
                 <div
@@ -195,70 +212,181 @@ export default function Sessions() {
                 >
                     <ButtonGroup large>
                         <Tooltip
-                            content="Refresh"
-                            placement="bottom-start"
+                            content={collapsed ? "Expand" : "Collapse"}
+                            placement={`bottom${collapsed ? "" : "-start"}`}
                             minimal
                         >
                             <Button
-                                loading={loading}
-                                onClick={fetchAllSessions}
                                 outlined
-                                icon={faIcon({ icon: faRefresh })}
+                                onClick={() =>
+                                    appActions.session.setState({
+                                        key: "collapsed",
+                                        value: !collapsed,
+                                    })
+                                }
+                                icon={faIcon({
+                                    icon: collapsed
+                                        ? faChevronRight
+                                        : faChevronLeft,
+                                })}
                             />
                         </Tooltip>
-                        {canCreateSessions ? (
+                        {!collapsed ? (
                             <Tooltip
-                                minimal
+                                content="Refresh"
                                 placement="bottom"
-                                content="Start a new session"
+                                minimal
                             >
                                 <Button
-                                    disabled={!_.isEqual(socketReadyState, 1)}
-                                    text="New"
                                     outlined
-                                    loading={isCreatingSession}
-                                    intent={Intent.PRIMARY}
-                                    onClick={() => {
-                                        if (!_.isEqual(socketReadyState, 1)) {
-                                            return;
-                                        }
-                                        setIsCreatingSession(true);
-                                        appActions.session.createSession(
-                                            socket
-                                        );
-                                    }}
-                                    rightIcon={faIcon({ icon: faInboxOut })}
+                                    loading={loading}
+                                    onClick={fetchAllSessions}
+                                    icon={faIcon({ icon: faRefresh })}
                                 />
                             </Tooltip>
                         ) : null}
                     </ButtonGroup>
-                    {!isSocketOpen ? <ReconnectButton /> : null}
+                    {!collapsed ? (
+                        !isSocketOpen ? (
+                            <ReconnectButton />
+                        ) : _.get(settings, "debug_mode", false) ? (
+                            <Tooltip
+                                content="Copy connection ID"
+                                minimal
+                                placement="bottom-end"
+                            >
+                                <Tag
+                                    minimal
+                                    large
+                                    interactive
+                                    onClick={() => {
+                                        copy(appState.session.connectionId);
+                                        AppToaster.show({
+                                            icon: faIcon({ icon: faClipboard }),
+                                            message: `Copied "${appState.session.connectionId}"`,
+                                        });
+                                    }}
+                                >
+                                    {appState.session.connectionId}
+                                </Tag>
+                            </Tooltip>
+                        ) : null
+                    ) : null}
                 </div>
-                {_.isEmpty(appState.session.sessionIds) ? (
-                    <Card
-                        style={{
-                            padding: 0,
-                            marginTop: 1,
-                            height: "calc(100% - 80px)",
-                            width: "calc(100% - 1.35px)",
-                            borderRadius: 0,
-                        }}
-                    >
-                        <NonIdealState
-                            icon={faIcon({ icon: faInboxIn, size: 50 })}
-                            title="Sessions"
-                        />
-                    </Card>
+                {!collapsed ? (
+                    _.isEmpty(appState.session.sessionIds) ? (
+                        <Card
+                            style={{
+                                padding: 0,
+                                marginTop: 1,
+                                height: "calc(100% - 80px)",
+                                width: "calc(100% - 1px)",
+                                borderRadius: 0,
+                            }}
+                        >
+                            <NonIdealState
+                                icon={faIcon({ icon: faInboxIn, size: 50 })}
+                                title="Sessions"
+                            />
+                        </Card>
+                    ) : (
+                        <div className="full-parent-height">
+                            <div
+                                className="bp-border-top bp-border-right"
+                                style={{
+                                    padding: "5px 20px",
+                                    borderRadius: 0,
+                                }}
+                            >
+                                <ButtonGroup fill minimal>
+                                    <Button
+                                        text="All"
+                                        onClick={() => {
+                                            appActions.session.setState({
+                                                key: "sessionGroupBy",
+                                                value: "all",
+                                            });
+                                        }}
+                                        active={_.isEqual(
+                                            appState.session.sessionGroupBy,
+                                            "all"
+                                        )}
+                                    />
+                                    <Button
+                                        text="Pinned"
+                                        onClick={() => {
+                                            appActions.session.setState({
+                                                key: "sessionGroupBy",
+                                                value: "pinned",
+                                            });
+                                        }}
+                                        active={_.isEqual(
+                                            appState.session.sessionGroupBy,
+                                            "pinned"
+                                        )}
+                                    />
+                                    <Button
+                                        text="Owner"
+                                        onClick={() => {
+                                            appActions.session.setState({
+                                                key: "sessionGroupBy",
+                                                value: "owner",
+                                            });
+                                        }}
+                                        active={_.isEqual(
+                                            appState.session.sessionGroupBy,
+                                            "owner"
+                                        )}
+                                    />
+                                    <Button
+                                        text="Member"
+                                        onClick={() => {
+                                            appActions.session.setState({
+                                                key: "sessionGroupBy",
+                                                value: "member",
+                                            });
+                                        }}
+                                        active={_.isEqual(
+                                            appState.session.sessionGroupBy,
+                                            "member"
+                                        )}
+                                    />
+                                </ButtonGroup>
+                            </div>
+                            <SessionList />
+                        </div>
+                    )
                 ) : (
-                    <SessionList />
+                    <div
+                        className="full-parent-height bp-border-right"
+                        style={{ padding: 20 }}
+                    >
+                        {!_.isEmpty(unreadSessionIds) ? (
+                            <Tooltip
+                                content={`${_.size(
+                                    unreadSessionIds
+                                )} unread session${
+                                    _.size(unreadSessionIds) > 1 ? "s" : ""
+                                }`}
+                            >
+                                <Button
+                                    style={{ cursor: "initial" }}
+                                    large
+                                    minimal
+                                    icon={faIcon({ icon: faBell })}
+                                />
+                            </Tooltip>
+                        ) : null}
+                    </div>
                 )}
             </div>
             <div
                 style={{
                     height: "calc(100% - 80px)",
-                    marginLeft: SESSION_LISTL_PANEL_WIDTH,
+                    marginLeft: collapsed ? 80 : SESSION_LIST_PANEL_WIDTH,
                     width: `calc(100vw - ${
-                        SESSION_LISTL_PANEL_WIDTH + NAVIGATION_MENU_WIDTH
+                        (collapsed ? 80 : SESSION_LIST_PANEL_WIDTH) +
+                        NAVIGATION_MENU_WIDTH
                     }px)`,
                 }}
             >
@@ -270,46 +398,56 @@ export default function Sessions() {
                         height: 80,
                         justifyContent: "space-between",
                         position: "relative",
+                        padding: "0px 20px",
                         zIndex: 1,
                     }}
                 >
                     {!_.isNull(sessionIdFocus) ? (
-                        <Tooltip
-                            openOnTargetFocus={false}
-                            minimal
-                            content="Get session details"
-                            placement="bottom-start"
+                        <div
+                            style={{ maxWidth: "calc(100% - 151.98px - 40px)" }}
                         >
-                            <Button
-                                large
+                            <Tooltip
+                                openOnTargetFocus={false}
                                 minimal
-                                onClick={() => {
-                                    setIsSessionDetailOpen(true);
-                                }}
-                                rightIcon={faIcon({ icon: faCaretDown })}
-                                text={
-                                    <H4 style={{ margin: 0 }}>
-                                        #&nbsp;{sessionName}
-                                    </H4>
-                                }
-                            />
-                        </Tooltip>
+                                className="full-parent-width"
+                                content="Get session details"
+                                placement="bottom-start"
+                            >
+                                <Button
+                                    large={_.isEmpty(sessionDescription)}
+                                    style={{ maxWidth: "100%" }}
+                                    ellipsizeText
+                                    minimal
+                                    alignText={Alignment.LEFT}
+                                    onClick={() => setIsSessionDetailOpen(true)}
+                                    rightIcon={faIcon({ icon: faCaretDown })}
+                                    text={
+                                        <H4
+                                            className={classNames(
+                                                "margin-0",
+                                                Classes.TEXT_OVERFLOW_ELLIPSIS
+                                            )}
+                                        >
+                                            #&nbsp;{sessionName}
+                                        </H4>
+                                    }
+                                />
+                            </Tooltip>
+                            {!_.isEmpty(sessionDescription) ? (
+                                <div
+                                    className={Classes.TEXT_OVERFLOW_ELLIPSIS}
+                                    style={{
+                                        paddingLeft: 10,
+                                        lineHeight: "25px",
+                                        width: "100%",
+                                    }}
+                                >
+                                    {sessionDescription}
+                                </div>
+                            ) : null}
+                        </div>
                     ) : null}
-                    {/* <Popover
-                        placement="bottom-end"
-                        content={<div style={{ padding: 20 }}></div>}
-                    >
-                        <Button
-                            icon={faIcon({
-                                icon: faThumbtack,
-                                className: "fa-rotate-by",
-                                style: { "--fa-rotate-angle": "-45deg" },
-                            })}
-                            large
-                            minimal
-                            text={"0 Pinned"}
-                        />
-                    </Popover> */}
+                    <SessionMemberStack />
                 </Card>
                 {_.isNull(sessionIdFocus) ? (
                     <NonIdealState
@@ -391,6 +529,9 @@ export default function Sessions() {
                 setIsAddAgentsOpen={setIsAddAgentsOpen}
                 isOpen={isAddAgentsOpen}
             />
+            <ReactFlowProvider>
+                <PlanVisualizationPanel />
+            </ReactFlowProvider>
         </>
     );
 }

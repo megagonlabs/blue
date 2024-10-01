@@ -76,7 +76,9 @@ class Worker:
         self.input_stream = input_stream
         self.processor = processor
         if processor is not None:
-            self.processor = lambda *args, **kwargs,: processor(*args, **kwargs, worker=self)
+            self.processor = lambda *args, **kwargs,: processor(
+                *args, **kwargs, worker=self
+            )
 
         self.properties = properties
 
@@ -105,20 +107,19 @@ class Worker:
             self.properties[p] = properties[p]
 
     def listener(self, message, input="DEFAULT"):
-        
+
         r = None
         if self.processor is not None:
             r = self.processor(message, input=input)
 
         if r is None:
             return
-        
+
         results = []
         if type(r) == list:
             results = r
         else:
             results = [r]
-
 
         for result in results:
             out_param = "DEFAULT"
@@ -130,9 +131,10 @@ class Worker:
 
             else:
                 # error
-                logging.error("Unknown return type from processor function: " + str(result))
+                logging.error(
+                    "Unknown return type from processor function: " + str(result)
+                )
                 return
-
 
     # TODO: this seems out of place...
     def _update_form_ids(self, form_element: dict, stream_id: str, form_id: str):
@@ -141,20 +143,24 @@ class Worker:
                 self._update_form_ids(element, stream_id, form_id)
         elif pydash.includes(["Control", "Button"], form_element["type"]):
             if form_element["type"] == "Control":
-                if pydash.objects.has(form_element, 'options.detail.type'):
-                    self._update_form_ids(pydash.objects.get(form_element, 'options.detail', {}), stream_id, form_id)
+                if pydash.objects.has(form_element, "options.detail.type"):
+                    self._update_form_ids(
+                        pydash.objects.get(form_element, "options.detail", {}),
+                        stream_id,
+                        form_id,
+                    )
             pydash.objects.set_(form_element, "props.streamId", stream_id)
             pydash.objects.set_(form_element, "props.formId", form_id)
 
     def write_bos(self, output="DEFAULT", id=None, tags=None):
         # producer = self._start_producer(output=output)
         # producer.write_bos()
-        self.write(Message.BOS, output=output, id=id, tags=tags)
+        return self.write(Message.BOS, output=output, id=id, tags=tags)
 
     def write_eos(self, output="DEFAULT", id=None, tags=None):
         # producer = self._start_producer(output=output)
         # producer.write_eos()
-        self.write(Message.EOS, output=output, id=id, tags=tags)
+        return self.write(Message.EOS, output=output, id=id, tags=tags)
 
     def write_data(self, data, output="DEFAULT", id=None, tags=None):
         # producer = self._start_producer(output=output)
@@ -171,17 +177,33 @@ class Worker:
         elif type(data) == dict:
             contents = data
             content_type = ContentType.JSON
-        self.write(Message(MessageType.DATA, contents, content_type), output=output, id=id, tags=tags)
+        return self.write(
+            Message(MessageType.DATA, contents, content_type),
+            output=output,
+            id=id,
+            tags=tags,
+        )
 
     def write_control(self, code, args, output="DEFAULT", id=None, tags=None):
         # producer = self._start_producer(output=output)
         # producer.write_control(code, args)
-        self.write(Message(MessageType.CONTROL, {"code": code, "args": args}, ContentType.JSON), output=output, id=id, tags=tags)
+        return self.write(
+            Message(
+                MessageType.CONTROL, {"code": code, "args": args}, ContentType.JSON
+            ),
+            output=output,
+            id=id,
+            tags=tags,
+        )
 
     def write(self, message, output="DEFAULT", id=None, tags=None):
-        
+
         # TODO: This doesn't belong here..
-        if message.getCode() in [ ControlCode.CREATE_FORM, ControlCode.UPDATE_FORM, ControlCode.CLOSE_FORM ]:
+        if message.getCode() in [
+            ControlCode.CREATE_FORM,
+            ControlCode.UPDATE_FORM,
+            ControlCode.CLOSE_FORM,
+        ]:
             if message.getCode() == ControlCode.CREATE_FORM:
                 # create a new form id
                 if id == None:
@@ -193,7 +215,7 @@ class Worker:
                 event_producer = Producer(
                     name="EVENT",
                     id=id,
-                    prefix=self.prefix, 
+                    prefix=self.prefix,
                     suffix="STREAM",
                     properties=self.properties,
                 )
@@ -214,11 +236,11 @@ class Worker:
                 event_consumer.start()
 
             else:
-                id = message.getArg('form_id')
+                id = message.getArg("form_id")
 
-            # append output variable with id
+        # append output variable with id, if not None
+        if id is not None:
             output = output + ":" + id
-
 
         # create producer, if not existing
         producer = self._start_producer(output=output, tags=tags)
@@ -229,6 +251,10 @@ class Worker:
             # done, stop listening to input stream
             if self.consumer:
                 self.consumer.stop()
+
+        # return stream
+        stream = producer.get_stream()
+        return stream
 
     def _start(self):
         # logging.info('Starting agent worker {name}'.format(name=self.sid))
@@ -241,7 +267,7 @@ class Worker:
         # start a consumer to listen to stream
         if self.input_stream is None:
             return
-        
+
         consumer = Consumer(
             self.input_stream,
             name=self.name,
@@ -257,9 +283,15 @@ class Worker:
         # start, if not started
         if output in self.producers:
             return self.producers[output]
-        
+
         # create producer for output
-        producer = Producer(name="OUTPUT", id=output, prefix=self.prefix, suffix="STREAM", properties=self.properties)
+        producer = Producer(
+            name="OUTPUT",
+            id=output,
+            prefix=self.prefix,
+            suffix="STREAM",
+            properties=self.properties,
+        )
         producer.start()
         self.producers[output] = producer
 
@@ -278,14 +310,16 @@ class Worker:
             # add tags from properties
             if "tags" in self.properties:
                 tags_by_param = self.properties["tags"]
-                # include tags from all params
+                # include tags from properties by output param
                 for param in tags_by_param:
-                    param_tags = tags_by_param[param]
-                    all_tags = all_tags.union(set(param_tags))
+                    output_name = output.split(":")[0]
+                    # add params specific to outp
+                    if output_name == param:
+                        param_tags = tags_by_param[param]
+                        all_tags = all_tags.union(set(param_tags))
             all_tags = list(all_tags)
 
-            self.session.notify(self.agent.cid, output_stream, all_tags)
-        
+            self.session.notify(self.agent, output_stream, all_tags)
         return producer
 
     ###### DATA RELATED
@@ -301,6 +335,12 @@ class Worker:
     def get_session_data(self, key):
         if self.session:
             return self.session.get_data(key)
+
+        return None
+
+    def get_all_session_data(self):
+        if self.session:
+            return self.session.get_all_data()
 
         return None
 
@@ -324,13 +364,18 @@ class Worker:
             return self.session.get_stream_data(stream, key)
 
         return None
+    
+    def get_all_stream_data(self, stream=None):
+        if self.session:
+            return self.session.get_all_stream_data(stream)
+
+        return None
 
     def get_stream_data_len(self, key, stream=None):
         if self.session:
             return self.session.get_stream_data_len(stream, key)
 
         return None
-
 
     ## agent data
     def set_data(self, key, value):
@@ -344,6 +389,11 @@ class Worker:
     def get_data(self, key):
         if self.session:
             return self.session.get_agent_data(self.agent, key)
+        return None
+
+    def get_all_data(self):
+        if self.session:
+            return self.session.get_all_agent_data(self.agent)
         return None
 
     def get_data_len(self, key):
@@ -360,43 +410,3 @@ class Worker:
         # send wait to consumer(s)
         if self.consumer:
             self.consumer.wait()
-
-
-#######################
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--name", type=str, default="processor")
-    parser.add_argument("--input_stream", type=str, default="input")
-    parser.add_argument("--threads", type=int, default=1)
-    parser.add_argument("--loglevel", default="INFO", type=str)
-
-    args = parser.parse_args()
-
-    # set logging
-    logging.getLogger().setLevel(args.loglevel.upper())
-
-    stream_data = []
-
-    # sample func to process data
-    def processor(id, label, data, dtype=None):
-
-        if label == "EOS":
-            # print all data received from stream
-            print(stream_data)
-
-            # compute stream data
-            l = len(stream_data)
-            time.sleep(4)
-
-            # output to stream
-            return l
-
-        elif label == "DATA":
-            # store data value
-            stream_data.append(data)
-
-        return None
-
-    # create a worker
-    w = Worker(args.name, args.input_stream, processor=processor)
-    w.start()

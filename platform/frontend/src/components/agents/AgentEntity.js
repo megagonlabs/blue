@@ -24,10 +24,11 @@ import { useRouter } from "next/router";
 import { useContext, useEffect, useState } from "react";
 import { AppContext } from "../contexts/app-context";
 export default function AgentEntity() {
+    const BLANK_ENTITY = { type: "agent" };
     const router = useRouter();
     const { appActions } = useContext(AppContext);
-    const [entity, setEntity] = useState({});
-    const [editEntity, setEditEntity] = useState({});
+    const [entity, setEntity] = useState(BLANK_ENTITY);
+    const [editEntity, setEditEntity] = useState(BLANK_ENTITY);
     const [edit, setEdit] = useState(false);
     const [loading, setLoading] = useState(true);
     const [jsonError, setJsonError] = useState(false);
@@ -35,11 +36,11 @@ export default function AgentEntity() {
         setEdit(false);
         setEditEntity(entity);
     };
+    const routerQueryPath =
+        "/" + _.get(router, "query.pathParams", []).join("/");
     useEffect(() => {
-        if (!router.isReady) {
-            return;
-        }
-        axios.get(router.asPath).then((response) => {
+        if (!router.isReady) return;
+        axios.get(routerQueryPath).then((response) => {
             const result = _.get(response, "data.result", {});
             let icon = _.get(result, "icon", null);
             if (!_.isEmpty(icon) && !_.startsWith(icon, "data:image/")) {
@@ -105,11 +106,8 @@ export default function AgentEntity() {
         });
     };
     const addInputOutput = (type) => {
-        if (!router.isReady) {
-            return;
-        }
-        let params = _.cloneDeep(_.get(router, "query.pathParams", []));
-        router.push(`/${params.join("/")}/${type}/new`);
+        if (!router.isReady) return;
+        router.push(`${routerQueryPath}/${type}/new`);
     };
     return (
         <div style={{ padding: "10px 20px 20px" }}>
@@ -166,7 +164,7 @@ export default function AgentEntity() {
                                     <tr key={index}>
                                         <td>
                                             <Link
-                                                href={`${router.asPath}/input/${element.name}`}
+                                                href={`${routerQueryPath}/input/${element.name}`}
                                             >
                                                 <Tag
                                                     style={{
@@ -228,7 +226,7 @@ export default function AgentEntity() {
                                     <tr key={index}>
                                         <td>
                                             <Link
-                                                href={`${router.asPath}/output/${element.name}`}
+                                                href={`${routerQueryPath}/output/${element.name}`}
                                             >
                                                 <Tag
                                                     style={{

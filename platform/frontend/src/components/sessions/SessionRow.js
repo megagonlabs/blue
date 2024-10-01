@@ -3,6 +3,7 @@ import { faIcon } from "@/components/icon";
 import { AppToaster } from "@/components/toaster";
 import {
     Button,
+    ButtonGroup,
     Card,
     Classes,
     Colors,
@@ -18,18 +19,32 @@ import {
     faEllipsisH,
     faPenLine,
     faQuestion,
+    faThumbTack,
+    faThumbTackSlash,
 } from "@fortawesome/pro-duotone-svg-icons";
+import axios from "axios";
 import copy from "copy-to-clipboard";
 import _ from "lodash";
 import { useContext, useEffect, useState } from "react";
 import { useSocket } from "../hooks/useSocket";
 export default function SessionRow({ index, style }) {
     const { appState, appActions } = useContext(AppContext);
-    const sessionIdFocus = appState.session.sessionIdFocus;
-    const sessionId = appState.session.sessionIds[index];
-    const unreadSessionIds = appState.session.unreadSessionIds;
-    const messages = appState.session.sessions[sessionId].messages;
-    const streams = appState.session.sessions[sessionId].streams;
+    const {
+        unreadSessionIds,
+        sessionIdFocus,
+        pinnedSessionIds,
+        groupedSessionIds,
+        sessions,
+    } = appState.session;
+    const sessionId = groupedSessionIds[index];
+    const isPinned = pinnedSessionIds.has(sessionId);
+    const messages = _.get(sessions, [sessionId, "messages"], []);
+    const streams = _.get(sessions, [sessionId, "streams"], {});
+    const sessionName = _.get(
+        appState,
+        ["session", "sessionDetails", sessionId, "name"],
+        sessionId
+    );
     const [showActions, setShowActions] = useState(false);
     const [lastMessage, setLastMessage] = useState("-");
     useEffect(() => {
@@ -64,13 +79,13 @@ export default function SessionRow({ index, style }) {
                 } else if (_.isEqual(contentType, "JSON_FORM")) {
                     setLastMessage(
                         <Tag minimal icon={faIcon({ icon: faPenLine })}>
-                            Form
+                            FORM
                         </Tag>
                     );
                 } else {
                     setLastMessage(
                         <Tag minimal icon={faIcon({ icon: faQuestion })}>
-                            Unknown
+                            UNKNOWN
                         </Tag>
                     );
                 }
@@ -85,6 +100,26 @@ export default function SessionRow({ index, style }) {
         });
         appActions.session.setSessionIdFocus(sessionId);
     };
+    const [updatingPin, setUpdatingPin] = useState(false);
+    const handlePinSession = () => {
+        setUpdatingPin(true);
+        axios
+            .put(`/sessions/session/${sessionId}/${isPinned ? "un" : ""}pin`)
+            .then(() => {
+                if (isPinned)
+                    appActions.session.removePinnedSessionId(sessionId);
+                else appActions.session.addPinnedSessionId(sessionId);
+                AppToaster.show({
+                    icon: faIcon({ icon: faThumbTack }),
+                    message: `${
+                        isPinned ? "Unpinned" : "Pinned"
+                    } "${sessionName}"`,
+                });
+            })
+            .finally(() => {
+                setUpdatingPin(false);
+            });
+    };
     return (
         <Card
             interactive
@@ -94,6 +129,7 @@ export default function SessionRow({ index, style }) {
                 backgroundColor: _.isEqual(sessionIdFocus, sessionId)
                     ? "#F6F7F9"
                     : null,
+                borderBottom: "1px solid rgba(17, 20, 24, 0.1)",
             }}
             onMouseEnter={() => {
                 setShowActions(true);
@@ -114,25 +150,22 @@ export default function SessionRow({ index, style }) {
                       })
                     : null}
             </div>
-            <div style={{ width: "calc(100% - 31px)" }}>
+            <div
+                style={{
+                    width: "calc(100% - 31px)",
+                    paddingRight: showActions ? 90 : 0,
+                }}
+            >
                 <H5
                     style={{ marginBottom: 5 }}
                     className={Classes.TEXT_OVERFLOW_ELLIPSIS}
                 >
                     #&nbsp;
-                    {_.get(
-                        appState,
-                        ["session", "sessionDetail", sessionId, "name"],
-                        sessionId
-                    )}
+                    {sessionName}
                 </H5>
                 <div
                     className={`${Classes.TEXT_OVERFLOW_ELLIPSIS} ${Classes.TEXT_MUTED}`}
-                    style={{
-                        paddingRight: showActions ? 50 : 0,
-                        height: 20,
-                        lineHeight: "20px",
-                    }}
+                    style={{ height: 20, lineHeight: "20px" }}
                 >
                     {lastMessage}
                 </div>
@@ -147,26 +180,42 @@ export default function SessionRow({ index, style }) {
                     msTransform: "translateY(-50%)",
                 }}
             >
-                <Tooltip
-                    content="Copy session ID"
-                    minimal
-                    placement="bottom-end"
-                >
-                    <Button
-                        onClick={(event) => {
-                            copy(sessionId);
-                            AppToaster.show({
-                                icon: faIcon({ icon: faClipboard }),
-                                message: `Copied "${sessionId}"`,
-                                timeout: 2000,
-                            });
-                            event.stopPropagation();
-                        }}
-                        large
+                <ButtonGroup large minimal>
+                    <Tooltip
+                        content={isPinned ? "Unpin" : "Pin"}
                         minimal
-                        icon={faIcon({ icon: faCopy })}
-                    />
-                </Tooltip>
+                        placement="bottom"
+                    >
+                        <Button
+                            loading={updatingPin}
+                            onClick={(event) => {
+                                handlePinSession();
+                                event.stopPropagation();
+                            }}
+                            icon={faIcon({
+                                icon: isPinned ? faThumbTackSlash : faThumbTack,
+                                size: isPinned ? 20 : 16,
+                            })}
+                        />
+                    </Tooltip>
+                    <Tooltip
+                        content="Copy session ID"
+                        minimal
+                        placement="bottom-end"
+                    >
+                        <Button
+                            onClick={(event) => {
+                                copy(sessionId);
+                                AppToaster.show({
+                                    icon: faIcon({ icon: faClipboard }),
+                                    message: `Copied "${sessionId}"`,
+                                });
+                                event.stopPropagation();
+                            }}
+                            icon={faIcon({ icon: faCopy })}
+                        />
+                    </Tooltip>
+                </ButtonGroup>
             </div>
         </Card>
     );

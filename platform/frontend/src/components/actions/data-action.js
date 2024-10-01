@@ -3,7 +3,7 @@ import _ from "lodash";
 export const dataAction = (dispatch) => ({
     setState: (payload) => {
         dispatch({
-            type: "agent/state/set",
+            type: "data/state/set",
             payload,
         });
     },

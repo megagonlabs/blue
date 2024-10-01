@@ -86,9 +86,12 @@ def get_sessions(request: Request):
     acl_enforce(request.state.user['role'], 'sessions', ['read_all', 'read_own', 'read_participate'])
     sessions = p.get_sessions()
     results = []
+    uid = request.state.user['uid']
     for session in sessions:
         if session_acl_enforce(request, session, read=True, throw=False):
-            results.append(session)
+            owner_of = pydash.is_equal(pydash.objects.get(session, 'created_by', None), uid)
+            member_of = pydash.objects.get(session, f'members.{uid}', False)
+            results.append({**session, 'group_by': {'owner': owner_of, 'member': not owner_of and member_of}})
     return JSONResponse(content={"results": results})
 
 
@@ -133,6 +136,20 @@ def add_agent_to_session(request: Request, session_id, registry_name, agent_name
         return JSONResponse(content={"message": "Error: Unknown Registry"})
 
 
+@router.put('/session/{session_id}/pin')
+def pin_session(request: Request, session_id):
+    uid = request.state.user['uid']
+    p.set_metadata(f'users.{uid}.sessions.pinned.{session_id}', True)
+    return JSONResponse(content={"message": "Success"})
+
+
+@router.put('/session/{session_id}/unpin')
+def pin_session(request: Request, session_id):
+    uid = request.state.user['uid']
+    p.set_metadata(f'users.{uid}.sessions.pinned.{session_id}', False)
+    return JSONResponse(content={"message": "Success"})
+
+
 @router.put("/session/{session_id}")
 async def update_session(request: Request, session_id):
     session = p.get_session(session_id)
@@ -157,6 +174,7 @@ async def update_session(request: Request, session_id):
     return JSONResponse(content={"message": "Success"})
 
 
+## members
 @router.get("/session/{session_id}/members")
 def list_session_members(request: Request, session_id):
     session = p.get_session(session_id)
@@ -175,8 +193,13 @@ def list_session_members(request: Request, session_id):
 @router.post("/session/{session_id}/members/{uid}")
 def add_member_to_session(request: Request, session_id, uid):
     session = p.get_session(session_id)
-    session_acl_enforce(request, session.to_dict(), write=True)
+    session_dict = session.to_dict()
+    session_acl_enforce(request, session_dict, write=True)
+    owner = pydash.objects.get(session_dict, 'owner', None)
+    if pydash.is_equal(owner, uid):
+        return JSONResponse(status_code=400, content={"message": "Unable to add the owner as a member."})
     session.set_metadata(f'members.{uid}', True)
+    p.set_metadata(f'users.{uid}.sessions.member.{session_id}', True)
     return JSONResponse(content={"message": "Success"})
 
 
@@ -185,16 +208,70 @@ def remove_member_from_session(request: Request, session_id, uid):
     session = p.get_session(session_id)
     session_acl_enforce(request, session.to_dict(), write=True)
     session.set_metadata(f'members.{uid}', False)
+    p.set_metadata(f'users.{uid}.sessions.member.{session_id}', False)
+    return JSONResponse(content={"message": "Success"})
+
+
+## budget
+@router.get("/session/{session_id}/budget")
+def get_budget(request: Request, session_id):
+    session = p.get_session(session_id)
+    session_acl_enforce(request, session.to_dict(), read=True)
+    budget = session.get_budget()
+    return JSONResponse(content={"result": budget})
+
+
+@router.get("/session/{session_id}/budget/allocation")
+def get_budget_allocation(request: Request, session_id):
+    session = p.get_session(session_id)
+    session_acl_enforce(request, session.to_dict(), read=True)
+    budget_allocation = session.get_budget_allocation()
+    return JSONResponse(content={"result": budget_allocation})
+
+
+@router.get("/session/{session_id}/budget/use")
+def get_budget_use(request: Request, session_id):
+    session = p.get_session(session_id)
+    session_acl_enforce(request, session.to_dict(), read=True)
+    budget_use = session.get_budget_use()
+    return JSONResponse(content={"result": budget_use})
+
+
+@router.post("/session/{session_id}/budget/allocation/cost/{cost}")
+def set_budget_allocation_cost(request: Request, session_id, cost):
+    session = p.get_session(session_id)
+    session_acl_enforce(request, session.to_dict(), read=True)
+    cost = float(cost)
+    session.set_budget_allocation(cost=cost)
+    return JSONResponse(content={"message": "Success"})
+
+
+@router.post("/session/{session_id}/budget/allocation/accuracy/{accuracy}")
+def set_budget_allocation_accuracy(request: Request, session_id, accuracy):
+    session = p.get_session(session_id)
+    session_acl_enforce(request, session.to_dict(), read=True)
+    accuracy = float(accuracy)
+    session.set_budget_allocation(accuracy=accuracy)
+    return JSONResponse(content={"message": "Success"})
+
+
+@router.post("/session/{session_id}/budget/allocation/latency/{latency}")
+def set_budget_allocation_latency(request: Request, session_id, latency):
+    session = p.get_session(session_id)
+    session_acl_enforce(request, session.to_dict(), read=True)
+    latency = float(latency)
+    session.set_budget_allocation(latency=latency)
     return JSONResponse(content={"message": "Success"})
 
 
 @router.post("/session")
 async def create_session(request: Request):
     acl_enforce(request.state.user['role'], 'sessions', ['write_all', 'write_own'])
-    session = p.create_session()
-    session.set_metadata('created_by', request.state.user['uid'])
+    uid = request.state.user['uid']
+    session = p.create_session(created_by=uid)
+    session.set_metadata('created_by', uid)
     created_date = session.get_metadata('created_date')
-    result = {"id": session.sid, "name": session.sid, "description": "", 'created_date': created_date}
+    result = {"id": session.sid, "name": session.sid, "description": "", 'created_date': created_date, 'created_by': uid, 'group_by': {'owner': True, 'member': False}}
     await request.app.connection_manager.broadcast(json.dumps({"type": "NEW_SESSION_BROADCAST", "session": result}))
     return JSONResponse(content={"result": result})
 

@@ -15,6 +15,8 @@ PROPERTIES["web.server"] = os.getenv("BLUE_PUBLIC_WEB_SERVER")
 PROPERTIES["web.server.port"] = os.getenv("BLUE_PUBLIC_WEB_SERVER_PORT")
 PROPERTIES["agent_registry.name"] = os.getenv("BLUE_AGENT_REGISTRY")
 PROPERTIES["data_registry.name"] = os.getenv("BLUE_DATA_REGISTRY")
+PROPERTIES["model_registry.name"] = os.getenv("BLUE_MODEL_REGISTRY")
+PROPERTIES["operator_registry.name"] = os.getenv("BLUE_OPERATOR_REGISTRY")
 PROPERTIES["embeddings_model"] = os.getenv("BLUE_AGENT_REGISTRY_MODEL")
 PROPERTIES["db.host"] = os.getenv("BLUE_DB_HOST", 'blue_db_redis')
 PROPERTIES["rbac.config.folder"] = os.getenv("BLUE_RBAC_CONFIG_FOLDER")
@@ -22,6 +24,7 @@ PROPERTIES["rbac.config.folder"] = os.getenv("BLUE_RBAC_CONFIG_FOLDER")
 ##### Other Settings
 DEVELOPMENT = os.getenv("BLUE_DEPLOY_DEVELOPMENT", "False").lower() == "true"
 SECURE_COOKIE = os.getenv("BLUE_DEPLOY_SECURE", "True").lower() == "true"
+EMAIL_DOMAIN_WHITE_LIST = os.getenv("BLUE_EMAIL_DOMAIN_WHITE_LIST", "megagon.ai")
 
 ##### RBAC
 import casbin
