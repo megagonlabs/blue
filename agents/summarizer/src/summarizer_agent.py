@@ -76,12 +76,6 @@ agent_properties = {
     "openai.temperature": 0,
     "openai.max_tokens": 512,
     "nl2q.case_insensitive": True,
-    "listens": {
-        "DEFAULT": {
-            "includes": ["USER"],
-            "excludes": []
-        }
-    },
     "rephrase": True,
     "tags": {"PLAN": ["PLAN"]},
     "summary_template": "The average salary for an engineering job is {$average_salary}, while the highest paying would be {$highest_pay}",
@@ -164,9 +158,14 @@ class SummarizerAgent(OpenAIAgent):
                 # get all data received from user stream
                 stream = message.getStream()
 
+                logging.info(message.getData())
                 stream_data = ""
                 if worker:
-                    stream_data = worker.get_data(stream)
+                    session_data = worker.get_all_session_data()
+                    logging.info(worker.session.cid)
+                    logging.info(json.dumps(session_data, indent=3)) 
+                    if session_data is None:
+                        session_data = {}
 
                     # user initiated summarizer, kick off queries from template
                     self.results = {}
@@ -174,7 +173,7 @@ class SummarizerAgent(OpenAIAgent):
                     queries = self.properties['queries']
                     for query_id in queries:
                         query_template = Template(queries[query_id])
-                        query = query_template.substitute(**self.properties)
+                        query = query_template.substitute(**self.properties, **session_data)
                         self.todos.add(query_id)
                         self.issue_sql_query(query, worker, id=query_id)
 
@@ -219,9 +218,13 @@ class SummarizerAgent(OpenAIAgent):
                     self.todos.remove(query)
 
                     if len(self.todos) == 0:
+                        session_data = worker.get_all_session_data()
+                        if session_data is None:
+                            session_data = {}
+
                         logging.info("DONE!")
                         summary_template = Template(properties['template'])
-                        summary = summary_template.substitute(**self.results)
+                        summary = summary_template.substitute(**self.results,  **session_data)
 
                         if properties['rephrase']:
                             #### call api to rephrase summary
