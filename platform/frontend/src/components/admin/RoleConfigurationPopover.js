@@ -129,10 +129,13 @@ const ROLE_PERMISSIONS = {
     demo: (
         <>
             <ul className={Classes.LIST}>
-                <li>Demo UI</li>
                 <li>
                     {READ_TAG}
                     operations in agent registry for any agent
+                </li>
+                <li>
+                    {READ_TAG}
+                    any sessions that they participate
                 </li>
                 <li>
                     {READ_TAG}

@@ -57,7 +57,8 @@ export default function Sessions() {
     const sessionMessageTextArea = useRef(null);
     const [isSessionDetailOpen, setIsSessionDetailOpen] = useState(false);
     const { socket, reconnectWs, isSocketOpen } = useSocket();
-    const { settings } = useContext(AuthContext);
+    const { user, settings } = useContext(AuthContext);
+    const userRole = _.get(user, "role", "guest");
     const { authenticating } = useContext(SocketContext);
     const sendSessionMessage = (message) => {
         if (!isSocketOpen) return;
@@ -169,14 +170,17 @@ export default function Sessions() {
     const sessionName = _.get(sessionDetails, "name", sessionIdFocus);
     const sessionDescription = _.get(sessionDetails, "description", "");
     useEffect(() => {
-        if (appState.session.openAgentsDialogTrigger) {
+        if (
+            !_.isEqual(userRole, "demo") &&
+            appState.session.openAgentsDialogTrigger
+        ) {
             setIsAddAgentsOpen(true);
             setSkippable(true);
-            appActions.session.setState({
-                key: "openAgentsDialogTrigger",
-                value: false,
-            });
         }
+        appActions.session.setState({
+            key: "openAgentsDialogTrigger",
+            value: false,
+        });
     }, [appState.session.openAgentsDialogTrigger]);
     if (!isSocketOpen && _.isEmpty(sessionIds))
         return (
@@ -213,7 +217,7 @@ export default function Sessions() {
                     <ButtonGroup large>
                         <Tooltip
                             content={collapsed ? "Expand" : "Collapse"}
-                            placement={`bottom${collapsed ? "" : "-start"}`}
+                            placement={collapsed ? "right" : "bottom-start"}
                             minimal
                         >
                             <Button
@@ -361,8 +365,34 @@ export default function Sessions() {
                         className="full-parent-height bp-border-right"
                         style={{ padding: 20 }}
                     >
+                        {!isSocketOpen ? (
+                            <div style={{ marginBottom: 10 }}>
+                                <Tooltip
+                                    minimal
+                                    placement="right"
+                                    content="Connect"
+                                >
+                                    <Button
+                                        loading={
+                                            (socket != null &&
+                                                _.isEqual(
+                                                    socket.readyState,
+                                                    WebSocket.CONNECTING
+                                                )) ||
+                                            authenticating
+                                        }
+                                        onClick={reconnectWs}
+                                        icon={faIcon({ icon: faSatelliteDish })}
+                                        large
+                                        intent={Intent.PRIMARY}
+                                    />
+                                </Tooltip>
+                            </div>
+                        ) : null}
                         {!_.isEmpty(unreadSessionIds) ? (
                             <Tooltip
+                                minimal
+                                placement="right"
                                 content={`${_.size(
                                     unreadSessionIds
                                 )} unread session${
