@@ -80,7 +80,7 @@ def session_acl_enforce(request: Request, session: dict, read=False, write=False
     return allow
 
 
-def add_agent_to_session(registry_name, agent_name, properties, session_id):
+def agent_join_session(registry_name, agent_name, properties, session_id):
     properties_from_registry = agent_registry.get_agent_properties(agent_name)
 
     # start with platform properties, merge properties from registry, then merge properties from API call
@@ -132,7 +132,7 @@ def list_session_agents(request: Request, session_id):
 def add_agent_to_session(request: Request, session_id, agent_name, properties: JSONObject, input: Union[str, None] = None):
     session = p.get_session(session_id)
     session_acl_enforce(request, session.to_dict(), write=True)
-    add_agent_to_session(registry_name=agent_registry_id, session_id=session_id, agent_name=agent_name, properties=properties)
+    agent_join_session(registry_name=agent_registry_id, session_id=session_id, agent_name=agent_name, properties=properties)
     return JSONResponse(content={"result": "", "message": "Success"})
 
 
