@@ -248,6 +248,13 @@ class Session:
         value = self.connection.json().get(self._get_data_namespace(), Path("$." + key))
         return self.__get_json_value(value)
 
+    def get_all_data(self):
+        logging.info("get_all_data")
+        logging.info(self.cid)
+        logging.info(self._get_data_namespace())
+        value = self.connection.json().get(self._get_data_namespace(), Path("$"))
+        return self.__get_json_value(value)
+
     def append_data(self, key, value):
         self.connection.json().arrappend(self._get_data_namespace(), "$." + key, value)
 
@@ -278,6 +285,13 @@ class Session:
         value = self.connection.json().get(
             self._get_agent_data_namespace(agent),
             Path("$." + key),
+        )
+        return self.__get_json_value(value)
+
+    def get_all_agent_data(self, agent):
+        value = self.connection.json().get(
+            self._get_agent_data_namespace(agent),
+            Path("$"),
         )
         return self.__get_json_value(value)
 
@@ -329,6 +343,13 @@ class Session:
         value = self.connection.json().get(
             self._get_stream_data_namespace(stream),
             Path("$." + key),
+        )
+        return self.__get_json_value(value)
+
+    def get_all_stream_data(self, stream):
+        value = self.connection.json().get(
+            self._get_stream_data_namespace(stream),
+            Path("$"),
         )
         return self.__get_json_value(value)
 

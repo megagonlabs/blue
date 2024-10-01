@@ -338,6 +338,12 @@ class Worker:
 
         return None
 
+    def get_all_session_data(self):
+        if self.session:
+            return self.session.get_all_data()
+
+        return None
+
     def get_session_data_len(self, key):
         if self.session:
             return self.session.get_data_len(key)
@@ -356,6 +362,12 @@ class Worker:
     def get_stream_data(self, key, stream=None):
         if self.session:
             return self.session.get_stream_data(stream, key)
+
+        return None
+    
+    def get_all_stream_data(self, stream=None):
+        if self.session:
+            return self.session.get_all_stream_data(stream)
 
         return None
 
@@ -377,6 +389,11 @@ class Worker:
     def get_data(self, key):
         if self.session:
             return self.session.get_agent_data(self.agent, key)
+        return None
+
+    def get_all_data(self):
+        if self.session:
+            return self.session.get_all_agent_data(self.agent)
         return None
 
     def get_data_len(self, key):
