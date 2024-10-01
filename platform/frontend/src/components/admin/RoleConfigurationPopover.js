@@ -12,7 +12,7 @@ import {
     SectionCard,
     Tag,
 } from "@blueprintjs/core";
-import { faCheck } from "@fortawesome/pro-duotone-svg-icons";
+import { faCheck, faKeynote } from "@fortawesome/pro-duotone-svg-icons";
 import axios from "axios";
 import _ from "lodash";
 import { useContext, useState } from "react";
@@ -126,6 +126,22 @@ const ROLE_PERMISSIONS = {
             </ul>
         </>
     ),
+    demo: (
+        <>
+            <ul className={Classes.LIST}>
+                <li>Demo UI</li>
+                <li>
+                    {READ_TAG}
+                    operations in agent registry for any agent
+                </li>
+                <li>
+                    {READ_TAG}
+                    {WRITE_TAG}
+                    any sessions that they own
+                </li>
+            </ul>
+        </>
+    ),
     guest: (
         <>
             <ul className={Classes.LIST}>
@@ -216,38 +232,45 @@ export default function RoleConfigurationPopover({
         >
             <DialogBody>
                 <p>Select a new role</p>
-                {["admin", "member", "developer", "guest"].map((role) => (
-                    <div style={{ display: "flex" }} key={role}>
-                        <Radio
-                            onChange={handleRadioChange}
-                            value={role}
-                            style={{ marginTop: 10 }}
-                            large
-                            checked={_.isEqual(role, selectedRole)}
-                        />
-                        <Section
-                            style={{ marginBottom: 15 }}
-                            title={_.get(USER_ROLES_LOOKUP, role, role)}
-                            compact
-                            collapsible
-                            collapseProps={{ defaultIsOpen: false }}
-                        >
-                            <SectionCard
-                                className="role-configuration-permission-list"
-                                padded={false}
-                                style={{ paddingRight: 16.5 }}
+                {["admin", "member", "developer", "demo", "guest"].map(
+                    (role) => (
+                        <div style={{ display: "flex" }} key={role}>
+                            <Radio
+                                onChange={handleRadioChange}
+                                value={role}
+                                style={{ marginTop: 10 }}
+                                large
+                                checked={_.isEqual(role, selectedRole)}
+                            />
+                            <Section
+                                style={{ marginBottom: 15 }}
+                                title={_.get(USER_ROLES_LOOKUP, role, role)}
+                                compact
+                                icon={
+                                    _.isEqual(role, "demo")
+                                        ? faIcon({ icon: faKeynote })
+                                        : null
+                                }
+                                collapsible
+                                collapseProps={{ defaultIsOpen: false }}
                             >
-                                {_.get(
-                                    ROLE_PERMISSIONS,
-                                    role,
-                                    <div style={{ padding: "10px 16.5px" }}>
-                                        -
-                                    </div>
-                                )}
-                            </SectionCard>
-                        </Section>
-                    </div>
-                ))}
+                                <SectionCard
+                                    className="role-configuration-permission-list"
+                                    padded={false}
+                                    style={{ paddingRight: 16.5 }}
+                                >
+                                    {_.get(
+                                        ROLE_PERMISSIONS,
+                                        role,
+                                        <div style={{ padding: "10px 16.5px" }}>
+                                            -
+                                        </div>
+                                    )}
+                                </SectionCard>
+                            </Section>
+                        </div>
+                    )
+                )}
                 <p>Affected users</p>
                 <HTMLTable style={{ width: "100%" }} compact bordered>
                     <thead>
