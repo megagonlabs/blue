@@ -422,9 +422,9 @@ def build_form():
                         "elements": [
                             {
                                 "type": "Button",
-                                "label": "Recent Applies",
+                                "label": "Summary",
                                 "props": {
-                                    "action": "RECENT",
+                                    "action": "SUMMARIZE",
                                     "large": False
                                 }
                             },
@@ -441,9 +441,9 @@ def build_form():
                             },
                             {
                                 "type": "Button",
-                                "label": "Rank All",
+                                "label": "Recent Applies",
                                 "props": {
-                                    "action": "RANK",
+                                    "action": "RECENT",
                                     "large": False
                                 }
                             },
@@ -471,25 +471,7 @@ def build_form():
                     {
                         "type": "VerticalLayout",
                         "elements": [
-                             {
-                                "type": "Button",
-                                "label": "Summary",
-                                "props": {
-                                    "action": "SUMMARIZE",
-                                    "large": False
-                                }
-                            },
-                            {
-                                "type": "Label",
-                                "label": "",
-                                "props": {
-                                    "muted": True,
-                                    "style": {
-                                        "marginBottom": 5,
-                                        "fontStyle": "italic"
-                                    }
-                                }
-                            },
+                          
                             {
                                 "type": "Button",
                                 "label": "Short List",
@@ -514,6 +496,25 @@ def build_form():
                                 "label": "Compare",
                                 "props": {
                                     "action": "COMPARE",
+                                    "large": False
+                                }
+                            },
+                            {
+                                "type": "Label",
+                                "label": "",
+                                "props": {
+                                    "muted": True,
+                                    "style": {
+                                        "marginBottom": 5,
+                                        "fontStyle": "italic"
+                                    }
+                                }
+                            },
+                            {
+                                "type": "Button",
+                                "label": "Skills Distribution",
+                                "props": {
+                                    "action": "SKILLS",
                                     "large": False
                                 }
                             },
