@@ -117,7 +117,7 @@ export default function AddAgents({
                 new Promise((resolve, reject) => {
                     axios
                         .post(
-                            `/sessions/session/${sessionIdFocus}/agents/${registryName}/agent/${agentName}`,
+                            `/sessions/session/${sessionIdFocus}/agents/${agentName}`,
                             { properties: {} }
                         )
                         .then(() => {

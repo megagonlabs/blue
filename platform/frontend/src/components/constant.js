@@ -120,6 +120,7 @@ export const ENTITY_TYPE_LOOKUP = {
         member: "Member",
         guest: "Guest",
         developer: "Developer",
+        demo: "Demo",
     },
     COLOR_OPTIONS = [
         "#979B9D",

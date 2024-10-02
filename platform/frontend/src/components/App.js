@@ -55,6 +55,7 @@ export default function App({ children }) {
         [sessionDetails]
     );
     const { user, permissions } = useContext(AuthContext);
+    const userRole = _.get(user, "role", "guest");
     const {
         canWritePlatformUsers,
         canReadPlatformServices,
@@ -315,7 +316,8 @@ export default function App({ children }) {
                     canReadAgentRegistry,
                     canReadDataRegistry,
                     canReadOperatorRegistry,
-                ]) ? (
+                    canReadModelRegistry,
+                ]) && !_.isEqual(userRole, "demo") ? (
                     <>
                         <div>&nbsp;</div>
                         <MenuDivider title="Registries" />
