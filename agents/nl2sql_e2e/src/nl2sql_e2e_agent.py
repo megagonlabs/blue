@@ -17,6 +17,7 @@ import logging
 import time
 import uuid
 import random
+import pandas as pd
 
 ###### Parsers, Formats, Utils
 import re
@@ -170,7 +171,10 @@ class Nl2SqlE2EAgent(OpenAIAgent):
             # Note: collection refers to schema in postgres (the level between database and table)
             cursor.execute(f'SET search_path TO {collection}')
             cursor.execute(query)
-            result = cursor.fetchall()
+            records = cursor.fetchall()
+            columns = [desc[0] for desc in cursor.description]
+            df = pd.DataFrame(records, columns=columns)
+            result = df.to_dict('records')
         except Exception as e:
             error = str(e)
         return {
