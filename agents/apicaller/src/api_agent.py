@@ -245,7 +245,7 @@ class APIAgent(Agent):
             logging.info(data)
             
             if worker:
-                worker.append_data('stream', data)
+                worker.append_data('stream', str(data))
         
         return None
 
