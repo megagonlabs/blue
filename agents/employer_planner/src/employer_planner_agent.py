@@ -196,15 +196,20 @@ class EmployerPlannerAgent(Agent):
                     elif action == "RECENT":
                         self.summarize_recent_jobseekers(worker, session_data)
                     elif action == "TOP":
-                        pass
+                        self.list_top_jobseekers(worker, session_data)
                     elif action == "SHORTLIST":
-                        pass 
+                        self.summarize_shortlisted_jobseekers(worker, session_data)
                     elif action == "COMPARE":
-                        self.summarize_compare_jobseekers(worker, session_data) 
+                        #self.summarize_compare_jobseekers(worker, session_data) 
+                        self.write_to_new_stream(worker, "You can compare candidates by asking 'compare candidate A, B and C", "TEXT") 
                     elif action == "SMARTQUERIES":
-                        self.write_to_new_stream(worker, "Here are a few example queries you can try: (1) which candidate has the most required skills? (2) ...)", "TEXT") 
+                        self.write_to_new_stream(worker, "Here are a few example queries you can try 'which candidate has the most required skills?'", "TEXT") 
                     elif action == "SKILLS":
                         self.show_skills_distribution(worker, session_data)
+                    elif action == "EDUCATION":
+                        self.show_education_distribution(worker, session_data)
+                    elif action == "YOE":
+                        self.show_yoe_distribution(worker, session_data)
                     else:
                         # save form data
                         path = data["path"]
@@ -229,20 +234,27 @@ class EmployerPlannerAgent(Agent):
                         if path in sesion_path_filter:
                             worker.set_session_data(path, value)
                             
-        # PROCESS QUERY RESULTS FROM SMART QUERY
-        elif input == "RESULTS":
-                if message.isData():
-                    stream = message.getStream()
-                    # TODO: REVISE
-                    # get query from incoming stream
-                    query = stream[stream.find("QUERY"):].split(":")[1]
+        # # PROCESS QUERY RESULTS FROM SMART QUERY
+        # elif input == "RESULTS":
+        #     pass
+        #         if message.isData():
+        #             stream = message.getStream()
+        #             # TODO: REVISE
+        #             # get query from incoming stream
+        #             query = stream[stream.find("QUERY"):].split(":")[1]
 
-                    data = message.getData()
+        #             data = message.getData()
 
-                    logging.info(data)
+        #             logging.info(data)
                 
-                    if 'result' in data:
-                        query_results = data['result']
+        #             if 'result' in data:
+        #                 query_results = data['result']
+
+        #                 self.write_to_new_stream(worker, str(query_results), "TEXT") 
+
+        #                 # TODO: invoke generic summarizer on query_results
+        #             else:
+        #                 self.write_to_new_stream(worker, "Nothing found...", "TEXT") 
             
 
     #### 
@@ -284,6 +296,8 @@ class EmployerPlannerAgent(Agent):
             self.summarize_all_jobseekers(worker, session_data)
         elif intent == "RECENT":
             self.summarize_recent_jobseekers(worker, session_data)
+        elif intent == "SUMMARIZE_SHORTLIST" or intent == "LIST_SHORTLIST":
+            self.summarize_shortlisted_jobseekers(worker, session_data)
         elif intent == "COMPARE":
             self.summarize_compare_jobseekers(worker, session_data)
         elif intent == "QUERY":
@@ -293,6 +307,8 @@ class EmployerPlannerAgent(Agent):
     #### ACTIONS
     ## summaries
     def summarize_all_jobseekers(self, worker, session_data, id=None):
+
+        self.write_to_new_stream(worker, "Analyzing all applies to your posting...", "TEXT") 
 
         # create a unique id
         if id is None:
@@ -318,6 +334,8 @@ class EmployerPlannerAgent(Agent):
 
     def summarize_recent_jobseekers(self,  worker, session_data, id=None):
 
+        self.write_to_new_stream(worker, "Analyzing recent applies to your posting...", "TEXT") 
+
         # create a unique id
         if id is None:
             id = util_functions.create_uuid()
@@ -340,7 +358,35 @@ class EmployerPlannerAgent(Agent):
 
         return
 
+    def summarize_shortlisted_jobseekers(self,  worker, session_data, id=None):
+
+        self.write_to_new_stream(worker, "Analyzing shortlisted applies to your posting...", "TEXT") 
+
+        # create a unique id
+        if id is None:
+            id = util_functions.create_uuid()
+
+        # summary plan
+        summary_plan = [
+            [self.name + ".SESSION_DATA", "SUMMARIZER_SHORTLIST.DEFAULT"]
+        ]
+    
+        # write session_data to stream
+        # TODO: change to tags=["HIDDEN"]
+        session_data_stream = self.write_to_new_stream(worker, session_data, "SESSION_DATA", id=id)
+
+        # build query plan
+        plan = self.build_plan(summary_plan, session_data_stream, id=id)
+
+        # write plan
+        # TODO: change to tags=["HIDDEN"]
+        self.write_to_new_stream(worker, plan, "PLAN", tags=["PLAN"], id=id)
+
+        return
+
     def summarize_compare_jobseekers(self, worker, session_data, id=None):
+
+        self.write_to_new_stream(worker, "Comparing selected applies to your posting...", "TEXT") 
 
         # create a unique id
         if id is None:
@@ -381,12 +427,60 @@ class EmployerPlannerAgent(Agent):
             ControlCode.CREATE_FORM, skill_vis, output="SKILLVIS"
         )
 
-    def show_education_distribution(self, jd_id):
-        pass
+    def show_education_distribution(self, worker, session_data, id=None):
+         # show education visualization
+        ed_vis = ui_builders.build_ed_viz()
+        
+        # logging.info(json.dumps(skill_vis, indent=3))
+        
+        # write vis
+        worker.write_control(
+            ControlCode.CREATE_FORM, ed_vis, output="EDVIS"
+        )
+
+    def show_yoe_distribution(self, worker, session_data, id=None):
+         # show education visualization
+        ed_vis = ui_builders.build_yeo_viz()
+        
+        # logging.info(json.dumps(skill_vis, indent=3))
+        
+        # write vis
+        worker.write_control(
+            ControlCode.CREATE_FORM, ed_vis, output="YOEVIS"
+        )
 
     ## lists
-    def list_all_jobseekers(self, jd_id):
-        pass
+    def list_all_jobseekers(self, worker, session_data, id=None):
+        # show list visualization
+        list_vis = ui_builders.build_list_viz()
+        
+        # logging.info(json.dumps(skill_vis, indent=3))
+        
+        # write vis
+        worker.write_control(
+            ControlCode.CREATE_FORM, list_vis, output="LISTVIS"
+        )
+
+    def list_top_jobseekers(self, worker, session_data, id=None):
+        # show list visualization
+        # list_vis = ui_builders.build_list_viz()
+        
+        # # logging.info(json.dumps(skill_vis, indent=3))
+        
+        # # write vis
+        # worker.write_control(
+        #     ControlCode.CREATE_FORM, list_vis, output="LISTVIS"
+        # )
+
+        # show list ui
+        # present main employer form
+        form = ui_builders.build_list()
+
+        # write form
+        worker.write_control(
+            ControlCode.CREATE_FORM, form, output="LIST"
+        )
+
     
     def list_ranked_jobseekers(self, jd_id, topk):
         pass
@@ -415,7 +509,7 @@ class EmployerPlannerAgent(Agent):
         # query plan
         query_plan = [
             [self.name + ".QUERY", "NL2SQL-E2E_INPLAN.DEFAULT"],
-            ["NL2SQL-E2E_INPLAN.DEFAULT", self.name+".RESULTS"],
+            ["NL2SQL-E2E_INPLAN.DEFAULT", "OPENAI_EXPLAINER.DEFAULT"],
         ]
        
         # expand query with session_data
