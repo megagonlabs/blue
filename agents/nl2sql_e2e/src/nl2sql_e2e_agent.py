@@ -97,7 +97,7 @@ class Nl2SqlE2EAgent(OpenAIAgent):
         self.registry = DataRegistry(id=self.properties['data_registry.name'], prefix=prefix,
                                      properties=self.properties)
         self.schemas = {}
-        logging.info('<sources>' + json.dumps(self.registry.get_sources(), indent=2) + '</sources>')
+        # logging.info('<sources>' + json.dumps(self.registry.get_sources(), indent=2) + '</sources>')
         for source in self.registry.get_sources():
             properties = self.registry.get_source_properties(source)
             if 'connection' not in properties or properties['connection']['protocol'] != 'postgres':
@@ -146,7 +146,7 @@ class Nl2SqlE2EAgent(OpenAIAgent):
             'schema': self._format_schema(schema)
         } for key, schema in self.schemas.items()]
         sources = json.dumps(sources, indent=2)
-        logging.info(f'<sources>{sources}</sources>')
+        # logging.info(f'<sources>{sources}</sources>')
         return {
             'sources': sources,
             'question': input_data,
@@ -157,7 +157,7 @@ class Nl2SqlE2EAgent(OpenAIAgent):
         # get properties, overriding with properties provided
         properties = self.get_properties(properties=properties)
 
-        logging.info(f'output_data: {output_data}')
+        # logging.info(f'output_data: {output_data}')
         response = output_data.replace('```json', '').replace('```', '').strip()
         question, key, query, result, error = None, None, None, None, None
         try:
