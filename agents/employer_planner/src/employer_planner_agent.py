@@ -234,27 +234,6 @@ class EmployerPlannerAgent(Agent):
                         if path in sesion_path_filter:
                             worker.set_session_data(path, value)
                             
-        # # PROCESS QUERY RESULTS FROM SMART QUERY
-        # elif input == "RESULTS":
-        #     pass
-        #         if message.isData():
-        #             stream = message.getStream()
-        #             # TODO: REVISE
-        #             # get query from incoming stream
-        #             query = stream[stream.find("QUERY"):].split(":")[1]
-
-        #             data = message.getData()
-
-        #             logging.info(data)
-                
-        #             if 'result' in data:
-        #                 query_results = data['result']
-
-        #                 self.write_to_new_stream(worker, str(query_results), "TEXT") 
-
-        #                 # TODO: invoke generic summarizer on query_results
-        #             else:
-        #                 self.write_to_new_stream(worker, "Nothing found...", "TEXT") 
             
 
     #### 
@@ -274,7 +253,6 @@ class EmployerPlannerAgent(Agent):
         plan = self.build_plan(intent_plan, user_stream, id=id)
 
         # write plan
-        # TODO: change to tags=["HIDDEN"]
         self.write_to_new_stream(worker, plan, "PLAN", tags=["PLAN"], id=id)
 
         return
@@ -320,14 +298,12 @@ class EmployerPlannerAgent(Agent):
         ]
     
         # write session_data to stream
-        # TODO: change to tags=["HIDDEN"]
         session_data_stream = self.write_to_new_stream(worker, session_data, "SESSION_DATA", id=id)
 
         # build query plan
         plan = self.build_plan(summary_plan, session_data_stream, id=id)
 
         # write plan
-        # TODO: change to tags=["HIDDEN"]
         self.write_to_new_stream(worker, plan, "PLAN", tags=["PLAN"], id=id)
 
         return
@@ -346,14 +322,12 @@ class EmployerPlannerAgent(Agent):
         ]
     
         # write session_data to stream
-        # TODO: change to tags=["HIDDEN"]
         session_data_stream = self.write_to_new_stream(worker, session_data, "SESSION_DATA", id=id)
 
         # build query plan
         plan = self.build_plan(summary_plan, session_data_stream, id=id)
 
         # write plan
-        # TODO: change to tags=["HIDDEN"]
         self.write_to_new_stream(worker, plan, "PLAN", tags=["PLAN"], id=id)
 
         return
@@ -372,14 +346,12 @@ class EmployerPlannerAgent(Agent):
         ]
     
         # write session_data to stream
-        # TODO: change to tags=["HIDDEN"]
         session_data_stream = self.write_to_new_stream(worker, session_data, "SESSION_DATA", id=id)
 
         # build query plan
         plan = self.build_plan(summary_plan, session_data_stream, id=id)
 
         # write plan
-        # TODO: change to tags=["HIDDEN"]
         self.write_to_new_stream(worker, plan, "PLAN", tags=["PLAN"], id=id)
 
         return
@@ -398,14 +370,12 @@ class EmployerPlannerAgent(Agent):
         ]
     
         # write session_data to stream
-        # TODO: change to tags=["HIDDEN"]
         session_data_stream = self.write_to_new_stream(worker, session_data, "SESSION_DATA", id=id)
 
         # build query plan
         plan = self.build_plan(summary_plan, session_data_stream, id=id)
 
         # write plan
-        # TODO: change to tags=["HIDDEN"]
         self.write_to_new_stream(worker, plan, "PLAN", tags=["PLAN"], id=id)
 
         return
@@ -501,7 +471,15 @@ class EmployerPlannerAgent(Agent):
     
     def issue_nl_query(self, worker, session_data, query, id=None):
 
-        logging.info("ISSUE NL QUERY:" + query)
+        session_data = worker.get_all_session_data()
+        logging.info(json.dumps(session_data, indent=3)) 
+
+        # Expand query with session_data as context
+        expanded_query = "Answer the following question with the below context. Ignore information in context if the query overrides context:\n"
+        expanded_query += json.dumps(session_data, indent=3) + "\n"
+        expanded_query += query
+
+        logging.info("ISSUE NL QUERY:" + expanded_query)
         # create a unique id
         if id is None:
             id = util_functions.create_uuid()
@@ -511,13 +489,10 @@ class EmployerPlannerAgent(Agent):
             [self.name + ".QUERY", "NL2SQL-E2E_INPLAN.DEFAULT"],
             ["NL2SQL-E2E_INPLAN.DEFAULT", "OPENAI_EXPLAINER.DEFAULT"],
         ]
-       
-        # expand query with session_data
-        # TODO:
 
         # write query to stream
         # TODO tags=["HIDDEN"]
-        query_stream = self.write_to_new_stream(worker, query, "QUERY", id=id)
+        query_stream = self.write_to_new_stream(worker, expanded_query, "QUERY", id=id)
 
         # build query plan
         plan = self.build_plan(query_plan, query_stream, id=id)
