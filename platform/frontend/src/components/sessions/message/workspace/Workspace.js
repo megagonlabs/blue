@@ -1,6 +1,6 @@
 import { AppContext } from "@/components/contexts/app-context";
 import { faIcon } from "@/components/icon";
-import Snapshot from "@/components/sessions/message/workspace/Snapshot";
+import MessageSnapshot from "@/components/sessions/message/workspace/MessageSnapshot";
 import { Callout, Intent, NonIdealState } from "@blueprintjs/core";
 import { faLampDesk } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import _ from "lodash";
@@ -31,7 +31,7 @@ export default function Workspace() {
                 if (!hasError.current) {
                     if (_.isEqual(type, "session")) {
                         return (
-                            <Snapshot
+                            <MessageSnapshot
                                 hasError={hasError}
                                 key={index}
                                 index={index}
