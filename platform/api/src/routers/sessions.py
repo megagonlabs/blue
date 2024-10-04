@@ -128,7 +128,7 @@ def list_session_agents(request: Request, session_id):
     return JSONResponse(content={"results": session.list_agents()})
 
 
-@router.post("/session/{session_id}/agents/{agent_name}")
+@router.post("/session/{session_id}/agent/{agent_name}")
 def add_agent_to_session(request: Request, session_id, agent_name, properties: JSONObject, input: Union[str, None] = None):
     session = p.get_session(session_id)
     session_acl_enforce(request, session.to_dict(), write=True)

@@ -10,7 +10,7 @@ import {
     Intent,
     Tag,
 } from "@blueprintjs/core";
-import { faArrowLeft } from "@fortawesome/pro-duotone-svg-icons";
+import { faArrowLeft } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import CopyDocJsonButton from "./CopyDocJsonButton";
 export default function NumberDoc({ closePanel }) {
     const docJson = {

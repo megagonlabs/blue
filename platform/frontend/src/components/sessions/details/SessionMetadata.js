@@ -9,8 +9,9 @@ import {
     FormGroup,
     InputGroup,
     Intent,
+    Label,
 } from "@blueprintjs/core";
-import { faCheck } from "@fortawesome/pro-duotone-svg-icons";
+import { faCheck } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import axios from "axios";
 import _ from "lodash";
 import { useContext, useState } from "react";
@@ -60,6 +61,14 @@ export default function SessionMetadata({
         <>
             <DialogBody className="dialog-body">
                 <div style={{ padding: 15 }}>
+                    <FormGroup label="Session ID" inline>
+                        <Label
+                            className={Classes.TEXT_MUTED}
+                            style={{ fontWeight: 600 }}
+                        >
+                            {sessionIdFocus}
+                        </Label>
+                    </FormGroup>
                     <FormGroup label="Name">
                         <InputGroup
                             className={loading ? Classes.SKELETON : null}

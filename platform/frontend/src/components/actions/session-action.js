@@ -65,6 +65,9 @@ export const sessionAction = (dispatch) => ({
     addSession: (payload) => {
         dispatch({ type: "session/sessions/add", payload });
     },
+    addToWorkspace: (payload) => {
+        dispatch({ type: "session/sessions/addToWorkspace", payload });
+    },
     observeSession: (payload) => {
         dispatch({ type: "session/sessions/add", payload: payload.sessionId });
         sendSocketMessage(

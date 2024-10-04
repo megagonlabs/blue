@@ -22,7 +22,7 @@ import {
     faBarsFilter,
     faSearch,
     faTimes,
-} from "@fortawesome/pro-duotone-svg-icons";
+} from "@fortawesome/sharp-duotone-solid-svg-icons";
 import _ from "lodash";
 import { useCallback, useContext, useEffect, useState } from "react";
 export default function Model() {

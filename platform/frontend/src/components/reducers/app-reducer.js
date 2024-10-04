@@ -1,9 +1,9 @@
 import { library } from "@fortawesome/fontawesome-svg-core";
-import * as Icons from "@fortawesome/pro-duotone-svg-icons";
+import * as Icons from "@fortawesome/sharp-duotone-solid-svg-icons";
 import Flexsearch from "flexsearch";
 import _ from "lodash";
 const iconList = Object.keys(Icons).filter(
-    (key) => key !== "fad" && key !== "prefix"
+    (key) => key !== "fasds" && key !== "prefix"
 );
 library.add(...iconList.map((icon) => Icons[icon]));
 const Index = Flexsearch.Index ?? Flexsearch;

@@ -10,7 +10,7 @@ import {
     Tag,
     Tooltip,
 } from "@blueprintjs/core";
-import { faArrowRightFromBracket } from "@fortawesome/pro-duotone-svg-icons";
+import { faArrowRightFromBracket } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import classNames from "classnames";
 import _ from "lodash";
 import Image from "next/image";
@@ -47,7 +47,11 @@ export default function UserAccountPanel() {
                     </div>
                     <div style={{ marginTop: 5 }}>
                         <Tag minimal>
-                            {_.get(USER_ROLES_LOOKUP, userRole, userRole)}
+                            {_.get(
+                                USER_ROLES_LOOKUP,
+                                [userRole, "text"],
+                                userRole
+                            )}
                         </Tag>
                     </div>
                     <Image

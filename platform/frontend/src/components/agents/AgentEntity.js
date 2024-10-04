@@ -15,7 +15,7 @@ import {
     SectionCard,
     Tag,
 } from "@blueprintjs/core";
-import { faPlus } from "@fortawesome/pro-duotone-svg-icons";
+import { faPlus } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import axios from "axios";
 import { diff } from "deep-diff";
 import _ from "lodash";

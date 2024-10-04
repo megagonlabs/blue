@@ -3,7 +3,7 @@ import {
     DATA_JSON_SCHEMA,
     UI_JSON_SCHEMA,
 } from "@/components/codemirror/constant";
-import { JSONFORMS_RENDERERS } from "@/components/constant";
+import { JSONFORMS_RENDERERS, MIN_ALLOTMENT_PANE } from "@/components/constant";
 import { faIcon } from "@/components/icon";
 import DocDrawer from "@/components/jsonforms/docs/DocDrawer";
 import JsonViewer from "@/components/sessions/message/renderers/JsonViewer";
@@ -37,7 +37,7 @@ import {
     faIndent,
     faPlay,
     faTrash,
-} from "@fortawesome/pro-duotone-svg-icons";
+} from "@fortawesome/sharp-duotone-solid-svg-icons";
 import { JsonForms } from "@jsonforms/react";
 import { vanillaCells } from "@jsonforms/vanilla-renderers";
 import { Allotment } from "allotment";
@@ -240,7 +240,7 @@ function FormDesigner() {
             </Card>
             <div style={{ height: "calc(100% - 50px)" }}>
                 <Allotment>
-                    <Allotment.Pane minSize={321.094}>
+                    <Allotment.Pane minSize={MIN_ALLOTMENT_PANE}>
                         <Allotment vertical ref={leftPaneRef}>
                             <Allotment.Pane minSize={187.5}>
                                 <div

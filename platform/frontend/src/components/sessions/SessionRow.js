@@ -21,7 +21,7 @@ import {
     faQuestion,
     faThumbTack,
     faThumbTackSlash,
-} from "@fortawesome/pro-duotone-svg-icons";
+} from "@fortawesome/sharp-duotone-solid-svg-icons";
 import axios from "axios";
 import copy from "copy-to-clipboard";
 import _ from "lodash";

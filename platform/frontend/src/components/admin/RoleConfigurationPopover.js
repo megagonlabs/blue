@@ -12,7 +12,7 @@ import {
     SectionCard,
     Tag,
 } from "@blueprintjs/core";
-import { faCheck, faKeynote } from "@fortawesome/pro-duotone-svg-icons";
+import { faCheck } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import axios from "axios";
 import _ from "lodash";
 import { useContext, useState } from "react";
@@ -247,13 +247,19 @@ export default function RoleConfigurationPopover({
                             />
                             <Section
                                 style={{ marginBottom: 15 }}
-                                title={_.get(USER_ROLES_LOOKUP, role, role)}
+                                title={_.get(
+                                    USER_ROLES_LOOKUP,
+                                    [role, "text"],
+                                    role
+                                )}
                                 compact
-                                icon={
-                                    _.isEqual(role, "demo")
-                                        ? faIcon({ icon: faKeynote })
-                                        : null
-                                }
+                                icon={faIcon({
+                                    icon: _.get(
+                                        USER_ROLES_LOOKUP,
+                                        [role, "icon"],
+                                        null
+                                    ),
+                                })}
                                 collapsible
                                 collapseProps={{ defaultIsOpen: false }}
                             >
@@ -296,7 +302,7 @@ export default function RoleConfigurationPopover({
                                     <td>
                                         {_.get(
                                             USER_ROLES_LOOKUP,
-                                            user.role,
+                                            [user.role, "text"],
                                             user.role
                                         )}
                                     </td>
