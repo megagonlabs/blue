@@ -31,6 +31,7 @@ export default function sessionReducer(
     let pinnedSessionIds = _.clone(state.pinnedSessionIds);
     switch (type) {
         case "session/sessions/addToWorkspace": {
+            return { ...state };
         }
         case "session/pinnedSessionIds/add": {
             pinnedSessionIds.add(payload);
