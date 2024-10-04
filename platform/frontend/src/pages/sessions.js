@@ -14,7 +14,7 @@ import SessionDetail from "@/components/sessions/SessionDetail";
 import SessionList from "@/components/sessions/SessionList";
 import SessionMemberStack from "@/components/sessions/SessionMemberStack";
 import SessionMessages from "@/components/sessions/message/SessionMessages";
-import Workspace from "@/components/sessions/message/WorkSpace";
+import Workspace from "@/components/sessions/message/Workspace";
 import { AppToaster } from "@/components/toaster";
 import {
     Alignment,
