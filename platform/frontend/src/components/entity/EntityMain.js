@@ -26,7 +26,7 @@ import {
     faRefresh,
     faTrash,
     faXmarkLarge,
-} from "@fortawesome/pro-duotone-svg-icons";
+} from "@fortawesome/sharp-duotone-solid-svg-icons";
 import axios from "axios";
 import _ from "lodash";
 import { useRouter } from "next/router";

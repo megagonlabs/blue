@@ -9,7 +9,10 @@ import {
     Position,
     Tag,
 } from "@blueprintjs/core";
-import { faAngleRight, faBars } from "@fortawesome/pro-duotone-svg-icons";
+import {
+    faAngleRight,
+    faBars,
+} from "@fortawesome/sharp-duotone-solid-svg-icons";
 import _ from "lodash";
 import Link from "next/link";
 export default function Breadcrumbs({ breadcrumbs }) {

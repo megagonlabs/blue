@@ -9,7 +9,10 @@ import {
     Popover,
     Tooltip,
 } from "@blueprintjs/core";
-import { faArrowLeft, faArrowRight } from "@fortawesome/pro-duotone-svg-icons";
+import {
+    faArrowLeft,
+    faArrowRight,
+} from "@fortawesome/sharp-duotone-solid-svg-icons";
 import _ from "lodash";
 import { useContext } from "react";
 export default function Pagination({

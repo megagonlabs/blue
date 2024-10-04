@@ -1,4 +1,4 @@
-const { faPenSwirl } = require("@fortawesome/pro-duotone-svg-icons");
+const { faPenSwirl } = require("@fortawesome/sharp-duotone-solid-svg-icons");
 const { faIcon } = require("@/components/icon");
 const { ProgressBar, Classes, Intent } = require("@blueprintjs/core");
 const classNames = require("classnames");

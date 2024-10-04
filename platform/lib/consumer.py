@@ -143,10 +143,10 @@ class Consumer:
 
         self._start_threads()
 
-        logging.info("Started consumer {c} for stream {s}".format(c=self.sid, s=self.stream))
+        # logging.info("Started consumer {c} for stream {s}".format(c=self.sid, s=self.stream))
 
     def stop(self):
-        logging.info("Stopping consumer {c} for stream {s}".format(c=self.sid, s=self.stream))
+        # logging.info("Stopping consumer {c} for stream {s}".format(c=self.sid, s=self.stream))
         self.stop_signal = True
 
     def wait(self):
@@ -215,7 +215,7 @@ class Consumer:
         g = self.cid
         r = self.connection
 
-        logging.info("[Thread {c}]: starting".format(c=c))
+        # logging.info("[Thread {c}]: starting".format(c=c))
         while True:
 
             if self.stop_signal:
@@ -233,7 +233,7 @@ class Consumer:
                 if id == "0-0":
                     pass
                 else:
-                    logging.info("[Thread {c}]: reclaiming... {s} {id}".format(c=c, s=s, id=id))
+                    # logging.info("[Thread {c}]: reclaiming... {s} {id}".format(c=c, s=s, id=id))
 
                     # listen
                     message = Message.fromJSON(json.dumps(m_json))
@@ -256,7 +256,7 @@ class Consumer:
                 id = d[0]
                 m_json = d[1]
 
-                logging.info("[Thread {c}]: listening... stream:{s} id:{id} message:{message}".format(c=c, s=s, id=id, message=m_json))
+                # logging.info("[Thread {c}]: listening... stream:{s} id:{id} message:{message}".format(c=c, s=s, id=id, message=m_json))
 
                 # listen
                 message = Message.fromJSON(json.dumps(m_json))
@@ -272,7 +272,7 @@ class Consumer:
                 # ack
                 r.xack(s, g, id)
 
-        logging.info("[Thread {c}]: finished".format(c=c))
+        # logging.info("[Thread {c}]: finished".format(c=c))
 
     def _start_threads(self):
         # start threads

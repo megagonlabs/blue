@@ -8,7 +8,9 @@ export const defaultState = {
     sessionIdFocus: null,
     sessionDetails: {},
     userId: null,
-    collapsed: true,
+    sessionListPanelCollapsed: true,
+    showWorkspacePanel: false,
+    sessionWorkspace: {},
     unreadSessionIds: new Set(),
     pinnedSessionIds: new Set(),
     terminatedInteraction: new Set(),
@@ -28,6 +30,8 @@ export default function sessionReducer(
     let sessions = _.cloneDeep(state.sessions);
     let pinnedSessionIds = _.clone(state.pinnedSessionIds);
     switch (type) {
+        case "session/sessions/addToWorkspace": {
+        }
         case "session/pinnedSessionIds/add": {
             pinnedSessionIds.add(payload);
             return { ...state, pinnedSessionIds };
@@ -191,6 +195,12 @@ export default function sessionReducer(
                     _.set(nextSessionDetail, [detail.id], detail);
                 }
             }
+            return { ...state, sessionDetails: nextSessionDetail };
+        }
+        case "session/sessions/detail/members/set": {
+            let nextSessionDetail = { ...state.sessionDetails };
+            const { id, members } = payload;
+            _.set(nextSessionDetail, [id, "members"], members);
             return { ...state, sessionDetails: nextSessionDetail };
         }
         case "session/sessions/add": {

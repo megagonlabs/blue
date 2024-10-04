@@ -1,4 +1,5 @@
 import { faIcon } from "@/components/icon";
+import JsonViewer from "@/components/sessions/message/renderers/JsonViewer";
 import {
     Button,
     Callout,
@@ -8,52 +9,34 @@ import {
     Intent,
     Tag,
 } from "@blueprintjs/core";
-import { faArrowLeft } from "@fortawesome/pro-duotone-svg-icons";
+import { faArrowLeft } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import CopyDocJsonButton from "./CopyDocJsonButton";
 export default function ArrayDoc({ closePanel }) {
-    const uiSchemaJson = JSON.stringify(
-        {
-            type: "Control",
-            scope: "#/properties/shopping_list",
-            options: {
-                detail: {
-                    type: "VerticalLayout",
-                    elements: [
-                        {
-                            type: "Label",
-                            label: "Name",
-                        },
-                        {
-                            type: "Control",
-                            scope: "#/properties/name",
-                        },
-                    ],
+    const uiSchemaJson = {
+        type: "Control",
+        scope: "#/properties/shopping_list",
+        options: {
+            detail: {
+                type: "VerticalLayout",
+                elements: [
+                    { type: "Label", label: "Name" },
+                    { type: "Control", scope: "#/properties/name" },
+                ],
+            },
+        },
+    };
+    const dataSchemaJson = {
+        type: "object",
+        properties: {
+            shopping_list: {
+                type: "array",
+                items: {
+                    type: "object",
+                    properties: { name: { type: "string" } },
                 },
             },
         },
-        null,
-        4
-    );
-    const dataSchemaJson = JSON.stringify(
-        {
-            type: "object",
-            properties: {
-                shopping_list: {
-                    type: "array",
-                    items: {
-                        type: "object",
-                        properties: {
-                            name: {
-                                type: "string",
-                            },
-                        },
-                    },
-                },
-            },
-        },
-        null,
-        4
-    );
+    };
     return (
         <>
             <div className="bp-border-bottom" style={{ padding: "10px 20px" }}>
@@ -87,21 +70,29 @@ export default function ArrayDoc({ closePanel }) {
                 <H2>Example</H2>
                 <pre style={{ position: "relative", overflow: "hidden" }}>
                     <div style={{ position: "absolute", right: 15, top: 13 }}>
-                        <CopyDocJsonButton docJson={uiSchemaJson} />
+                        <CopyDocJsonButton
+                            docJson={JSON.stringify(uiSchemaJson, null, 4)}
+                        />
                     </div>
                     <div>
-                        <Tag minimal>UI Schema</Tag>
+                        <Tag style={{ marginBottom: 13 }} minimal>
+                            UI Schema
+                        </Tag>
                     </div>
-                    {uiSchemaJson}
+                    <JsonViewer json={uiSchemaJson} enableClipboard={false} />
                 </pre>
                 <pre style={{ position: "relative", overflow: "hidden" }}>
                     <div style={{ position: "absolute", right: 15, top: 13 }}>
-                        <CopyDocJsonButton docJson={dataSchemaJson} />
+                        <CopyDocJsonButton
+                            docJson={JSON.stringify(dataSchemaJson, null, 4)}
+                        />
                     </div>
                     <div>
-                        <Tag minimal>Data Schema</Tag>
+                        <Tag style={{ marginBottom: 13 }} minimal>
+                            Data Schema
+                        </Tag>
                     </div>
-                    {dataSchemaJson}
+                    <JsonViewer json={dataSchemaJson} enableClipboard={false} />
                 </pre>
             </div>
         </>

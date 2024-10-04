@@ -3,9 +3,10 @@ import {
     DATA_JSON_SCHEMA,
     UI_JSON_SCHEMA,
 } from "@/components/codemirror/constant";
-import { JSONFORMS_RENDERERS } from "@/components/constant";
+import { JSONFORMS_RENDERERS, MIN_ALLOTMENT_PANE } from "@/components/constant";
 import { faIcon } from "@/components/icon";
 import DocDrawer from "@/components/jsonforms/docs/DocDrawer";
+import JsonViewer from "@/components/sessions/message/renderers/JsonViewer";
 import { AppToaster } from "@/components/toaster";
 import {
     Alignment,
@@ -21,7 +22,6 @@ import {
     MenuItem,
     NonIdealState,
     Popover,
-    Pre,
     Tag,
     Tooltip,
 } from "@blueprintjs/core";
@@ -37,7 +37,7 @@ import {
     faIndent,
     faPlay,
     faTrash,
-} from "@fortawesome/pro-duotone-svg-icons";
+} from "@fortawesome/sharp-duotone-solid-svg-icons";
 import { JsonForms } from "@jsonforms/react";
 import { vanillaCells } from "@jsonforms/vanilla-renderers";
 import { Allotment } from "allotment";
@@ -240,7 +240,7 @@ function FormDesigner() {
             </Card>
             <div style={{ height: "calc(100% - 50px)" }}>
                 <Allotment>
-                    <Allotment.Pane minSize={321.094}>
+                    <Allotment.Pane minSize={MIN_ALLOTMENT_PANE}>
                         <Allotment vertical ref={leftPaneRef}>
                             <Allotment.Pane minSize={187.5}>
                                 <div
@@ -425,52 +425,64 @@ function FormDesigner() {
                                         icon={null}
                                         intent={error ? Intent.DANGER : null}
                                         style={{
-                                            position: "relative",
                                             maxWidth: "100%",
-                                            overflowX: "hidden",
-                                            minWidth: 50,
-                                            whiteSpace: "pre-wrap",
-                                            wordBreak: "break-all",
                                             width: "fit-content",
-                                            minHeight: 21,
                                         }}
                                     >
-                                        {!error ? (
-                                            <JsonForms
-                                                schema={schema}
-                                                uischema={uischema}
-                                                data={data}
-                                                renderers={JSONFORMS_RENDERERS}
-                                                cells={vanillaCells}
-                                                onChange={({
-                                                    data,
-                                                    errors,
-                                                }) => {
-                                                    console.log(data, errors);
-                                                    setData(data);
-                                                }}
-                                            />
-                                        ) : (
-                                            <>
-                                                <div>{String(error)}</div>
-                                                <Tag
-                                                    large
-                                                    minimal
-                                                    style={{ marginTop: 5 }}
-                                                >
-                                                    Click
-                                                    {faIcon({
-                                                        icon: faPlay,
-                                                        style: {
-                                                            color: "#1c6e42",
-                                                            marginLeft: 5,
-                                                            marginRight: 5,
-                                                        },
-                                                    })}
-                                                    to re-run
-                                                </Tag>
-                                            </>
-                                        )}
+                                        <div
+                                            style={{
+                                                maxWidth: "100%",
+                                                minWidth: 50,
+                                                whiteSpace: "pre-wrap",
+                                                wordBreak: "break-all",
+                                                width: "fit-content",
+                                                minHeight: 21,
+                                                overflow: "hidden",
+                                                padding: 1,
+                                            }}
+                                        >
+                                            {!error ? (
+                                                <JsonForms
+                                                    schema={schema}
+                                                    uischema={uischema}
+                                                    data={data}
+                                                    renderers={
+                                                        JSONFORMS_RENDERERS
+                                                    }
+                                                    cells={vanillaCells}
+                                                    onChange={({
+                                                        data,
+                                                        errors,
+                                                    }) => {
+                                                        console.log(
+                                                            data,
+                                                            errors
+                                                        );
+                                                        setData(data);
+                                                    }}
+                                                />
+                                            ) : (
+                                                <>
+                                                    <div>{String(error)}</div>
+                                                    <Tag
+                                                        large
+                                                        minimal
+                                                        style={{ marginTop: 5 }}
+                                                    >
+                                                        Click
+                                                        {faIcon({
+                                                            icon: faPlay,
+                                                            style: {
+                                                                color: "#1c6e42",
+                                                                marginLeft: 5,
+                                                                marginRight: 5,
+                                                            },
+                                                        })}
+                                                        to re-run
+                                                    </Tag>
+                                                </>
+                                            )}
+                                        </div>
                                     </Callout>
                                 ) : (
                                     <NonIdealState
@@ -482,9 +494,20 @@ function FormDesigner() {
                                     />
                                 )
                             ) : (
-                                <Pre style={{ margin: 0, overflowX: "auto" }}>
-                                    {JSON.stringify(data, null, 4)}
-                                </Pre>
+                                <div className={Classes.RUNNING_TEXT}>
+                                    <pre
+                                        className="margin-0"
+                                        style={{
+                                            position: "relative",
+                                            overflow: "hidden",
+                                        }}
+                                    >
+                                        <JsonViewer
+                                            displaySize={true}
+                                            json={data}
+                                        />
+                                    </pre>
+                                </div>
                             )}
                         </div>
                     </Allotment.Pane>

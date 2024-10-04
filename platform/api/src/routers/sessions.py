@@ -80,6 +80,25 @@ def session_acl_enforce(request: Request, session: dict, read=False, write=False
     return allow
 
 
+def agent_join_session(registry_name, agent_name, properties, session_id):
+    properties_from_registry = agent_registry.get_agent_properties(agent_name)
+
+    # start with platform properties, merge properties from registry, then merge properties from API call
+    properties_from_api = properties
+    agent_properties = {}
+    # start from platform properties
+    agent_properties = json_utils.merge_json(agent_properties, PROPERTIES)
+    # merge in registry properties
+    agent_properties = json_utils.merge_json(agent_properties, properties_from_registry)
+    # merge in properties from the api
+    agent_properties = json_utils.merge_json(agent_properties, properties_from_api)
+
+    # ASSUMPTION: agent is already deployed
+
+    ## add agent to session
+    p.join_session(session_id, registry_name, agent_name, agent_properties)
+
+
 #############
 @router.get("/")
 def get_sessions(request: Request):
@@ -109,31 +128,12 @@ def list_session_agents(request: Request, session_id):
     return JSONResponse(content={"results": session.list_agents()})
 
 
-@router.post("/session/{session_id}/agents/{registry_name}/agent/{agent_name}")
-def add_agent_to_session(request: Request, session_id, registry_name, agent_name, properties: JSONObject, input: Union[str, None] = None):
+@router.post("/session/{session_id}/agent/{agent_name}")
+def add_agent_to_session(request: Request, session_id, agent_name, properties: JSONObject, input: Union[str, None] = None):
     session = p.get_session(session_id)
     session_acl_enforce(request, session.to_dict(), write=True)
-    if registry_name == agent_registry_id:
-        properties_from_registry = agent_registry.get_agent_properties(agent_name)
-
-        # start with platform properties, merge properties from registry, then merge properties from API call
-        properties_from_api = properties
-        agent_properties = {}
-        # start from platform properties
-        agent_properties = json_utils.merge_json(agent_properties, PROPERTIES)
-        # merge in registry properties
-        agent_properties = json_utils.merge_json(agent_properties, properties_from_registry)
-        # merge in properties from the api
-        agent_properties = json_utils.merge_json(agent_properties, properties_from_api)
-
-        # ASSUMPTION: agent is already deployed
-
-        ## add agent to session
-        p.join_session(session_id, registry_name, agent_name, agent_properties)
-
-        return JSONResponse(content={"result": "", "message": "Success"})
-    else:
-        return JSONResponse(content={"message": "Error: Unknown Registry"})
+    agent_join_session(registry_name=agent_registry_id, session_id=session_id, agent_name=agent_name, properties=properties)
+    return JSONResponse(content={"result": "", "message": "Success"})
 
 
 @router.put('/session/{session_id}/pin')
@@ -199,6 +199,7 @@ def add_member_to_session(request: Request, session_id, uid):
     if pydash.is_equal(owner, uid):
         return JSONResponse(status_code=400, content={"message": "Unable to add the owner as a member."})
     session.set_metadata(f'members.{uid}', True)
+    p.set_metadata(f'users.{uid}.sessions.member.{session_id}', True)
     return JSONResponse(content={"message": "Success"})
 
 
@@ -207,6 +208,7 @@ def remove_member_from_session(request: Request, session_id, uid):
     session = p.get_session(session_id)
     session_acl_enforce(request, session.to_dict(), write=True)
     session.set_metadata(f'members.{uid}', False)
+    p.set_metadata(f'users.{uid}.sessions.member.{session_id}', False)
     return JSONResponse(content={"message": "Success"})
 
 
@@ -264,12 +266,25 @@ def set_budget_allocation_latency(request: Request, session_id, latency):
 
 @router.post("/session")
 async def create_session(request: Request):
-    acl_enforce(request.state.user['role'], 'sessions', ['write_all', 'write_own'])
-    session = p.create_session()
-    session.set_metadata('created_by', request.state.user['uid'])
+    user_role = request.state.user['role']
+    uid = request.state.user['uid']
+    acl_enforce(user_role, 'sessions', ['write_all', 'write_own'])
+    session = p.create_session(created_by=uid)
+    session.set_metadata('created_by', uid)
     created_date = session.get_metadata('created_date')
-    result = {"id": session.sid, "name": session.sid, "description": "", 'created_date': created_date, 'group_by': {'owner': True, 'member': False}}
+    result = {"id": session.sid, "name": session.sid, "description": "", 'created_date': created_date, 'created_by': uid, 'group_by': {'owner': True, 'member': False}}
     await request.app.connection_manager.broadcast(json.dumps({"type": "NEW_SESSION_BROADCAST", "session": result}))
+    # auto-join agents to session
+    agents = list(agent_registry.list_records().values())
+    for agent in agents:
+        should_join = False
+        auto_join = pydash.objects.get(agent, 'properties.auto_join', False)
+        if pydash.is_object(auto_join):
+            should_join = pydash.objects.get(auto_join, user_role, False)
+        elif pydash.is_boolean(auto_join):
+            should_join = auto_join
+        if should_join:
+            add_agent_to_session(session_id=session.sid, registry_name=agent_registry_id, agent_name=agent['name'], properties={})
     return JSONResponse(content={"result": result})
 
 

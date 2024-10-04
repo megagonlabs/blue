@@ -9,7 +9,7 @@ import {
 import {
     faCompassDrafting,
     faExpand,
-} from "@fortawesome/pro-duotone-svg-icons";
+} from "@fortawesome/sharp-duotone-solid-svg-icons";
 import { Background, Panel, ReactFlow, useReactFlow } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import dagre from "dagre";

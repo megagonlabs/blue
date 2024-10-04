@@ -21,7 +21,7 @@ import {
     faQuestion,
     faThumbTack,
     faThumbTackSlash,
-} from "@fortawesome/pro-duotone-svg-icons";
+} from "@fortawesome/sharp-duotone-solid-svg-icons";
 import axios from "axios";
 import copy from "copy-to-clipboard";
 import _ from "lodash";
@@ -29,12 +29,17 @@ import { useContext, useEffect, useState } from "react";
 import { useSocket } from "../hooks/useSocket";
 export default function SessionRow({ index, style }) {
     const { appState, appActions } = useContext(AppContext);
-    const { unreadSessionIds, sessionIdFocus, pinnedSessionIds } =
-        appState.session;
-    const sessionId = appState.session.groupedSessionIds[index];
+    const {
+        unreadSessionIds,
+        sessionIdFocus,
+        pinnedSessionIds,
+        groupedSessionIds,
+        sessions,
+    } = appState.session;
+    const sessionId = groupedSessionIds[index];
     const isPinned = pinnedSessionIds.has(sessionId);
-    const messages = appState.session.sessions[sessionId].messages;
-    const streams = appState.session.sessions[sessionId].streams;
+    const messages = _.get(sessions, [sessionId, "messages"], []);
+    const streams = _.get(sessions, [sessionId, "streams"], {});
     const sessionName = _.get(
         appState,
         ["session", "sessionDetails", sessionId, "name"],

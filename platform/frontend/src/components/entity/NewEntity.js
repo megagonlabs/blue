@@ -9,7 +9,7 @@ import {
     Section,
     SectionCard,
 } from "@blueprintjs/core";
-import { faCheck } from "@fortawesome/pro-duotone-svg-icons";
+import { faCheck } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import axios from "axios";
 import classNames from "classnames";
 import _ from "lodash";

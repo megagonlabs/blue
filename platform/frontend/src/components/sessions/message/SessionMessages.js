@@ -11,7 +11,11 @@ import {
     Tooltip,
     mergeRefs,
 } from "@blueprintjs/core";
-import { faBinary, faEllipsisH } from "@fortawesome/pro-duotone-svg-icons";
+import {
+    faBinary,
+    faEllipsisH,
+    faSidebar,
+} from "@fortawesome/sharp-duotone-solid-svg-icons";
 import _ from "lodash";
 import { useCallback, useContext, useEffect, useMemo, useRef } from "react";
 import { useResizeDetector } from "react-resize-detector";
@@ -103,6 +107,12 @@ const Row = ({ index, data, style }) => {
     const complete = _.get(streams, [stream, "complete"], false);
     const hasError = useRef(false);
     const showActions = useRef(false);
+    const messageData = {
+        type: "session",
+        session: sessionIdFocus,
+        message,
+        data: streams[stream],
+    };
     return (
         <div
             key={index}
@@ -136,6 +146,24 @@ const Row = ({ index, data, style }) => {
                     }}
                 >
                     <ButtonGroup large>
+                        <Tooltip
+                            content="Add to workspace"
+                            minimal
+                            placement={`bottom${
+                                _.get(settings, "debug_mode", false)
+                                    ? ""
+                                    : "-end"
+                            }`}
+                        >
+                            <Button
+                                icon={faIcon({ icon: faSidebar })}
+                                onClick={() =>
+                                    appActions.session.addToWorkspace(
+                                        messageData
+                                    )
+                                }
+                            />
+                        </Tooltip>
                         {_.get(settings, "debug_mode", false) ? (
                             <Tooltip
                                 content="Raw"
@@ -145,11 +173,7 @@ const Row = ({ index, data, style }) => {
                                 <Button
                                     icon={faIcon({ icon: faBinary })}
                                     onClick={() =>
-                                        appActions.debug.addMessage({
-                                            type: "session",
-                                            message,
-                                            data: streams[stream],
-                                        })
+                                        appActions.debug.addMessage(messageData)
                                     }
                                 />
                             </Tooltip>
@@ -183,6 +207,7 @@ const Row = ({ index, data, style }) => {
                                 width: "fit-content",
                                 minHeight: 21,
                                 overflow: "hidden",
+                                padding: 1,
                                 maxHeight:
                                     expandMessage ||
                                     appState.session.expandedMessageStream.has(
@@ -214,6 +239,7 @@ const Row = ({ index, data, style }) => {
                                     } else if (_.isEqual(dataType, "JSON")) {
                                         return (
                                             <JsonViewer
+                                                displaySize={true}
                                                 key={id}
                                                 json={content}
                                             />

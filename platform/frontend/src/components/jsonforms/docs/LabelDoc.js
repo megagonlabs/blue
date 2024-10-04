@@ -1,5 +1,6 @@
 import { faIcon } from "@/components/icon";
 import * as docProps from "@/components/jsonforms/docs/constant";
+import JsonViewer from "@/components/sessions/message/renderers/JsonViewer";
 import {
     Button,
     Callout,
@@ -9,24 +10,20 @@ import {
     H2,
     HTMLTable,
 } from "@blueprintjs/core";
-import { faArrowLeft } from "@fortawesome/pro-duotone-svg-icons";
+import { faArrowLeft } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import classNames from "classnames";
 import CopyDocJsonButton from "./CopyDocJsonButton";
 export default function LabelDoc({ closePanel }) {
-    const docJson = JSON.stringify(
-        {
-            type: "Label",
-            label: "",
-            props: {
-                muted: false,
-                small: false,
-                large: false,
-                style: {},
-            },
+    const docJson = {
+        type: "Label",
+        label: "",
+        props: {
+            muted: false,
+            small: false,
+            large: false,
+            style: {},
         },
-        null,
-        4
-    );
+    };
     return (
         <>
             <div className="bp-border-bottom" style={{ padding: "10px 20px" }}>
@@ -56,11 +53,11 @@ export default function LabelDoc({ closePanel }) {
                 <pre style={{ position: "relative", overflow: "hidden" }}>
                     <div style={{ position: "absolute", right: 15, top: 13 }}>
                         <CopyDocJsonButton
-                            docJson={docJson}
+                            docJson={JSON.stringify(docJson, null, 4)}
                             copyMessage="Copied Label JSON"
                         />
                     </div>
-                    {docJson}
+                    <JsonViewer json={docJson} enableClipboard={false} />
                 </pre>
                 <H2>Props</H2>
                 <HTMLTable

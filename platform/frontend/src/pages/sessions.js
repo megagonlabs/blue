@@ -1,4 +1,7 @@
-import { NAVIGATION_MENU_WIDTH } from "@/components/constant";
+import {
+    MIN_ALLOTMENT_PANE,
+    NAVIGATION_MENU_WIDTH,
+} from "@/components/constant";
 import { AppContext } from "@/components/contexts/app-context";
 import { AuthContext } from "@/components/contexts/auth-context";
 import { SocketContext } from "@/components/contexts/socket-context";
@@ -9,7 +12,9 @@ import AddAgents from "@/components/sessions/AddAgents";
 import PlanVisualizationPanel from "@/components/sessions/PlanVisualizationPanel";
 import SessionDetail from "@/components/sessions/SessionDetail";
 import SessionList from "@/components/sessions/SessionList";
+import SessionMemberStack from "@/components/sessions/SessionMemberStack";
 import SessionMessages from "@/components/sessions/message/SessionMessages";
+import Workspace from "@/components/sessions/message/WorkSpace";
 import { AppToaster } from "@/components/toaster";
 import {
     Alignment,
@@ -41,8 +46,11 @@ import {
     faRefresh,
     faSatelliteDish,
     faSignalStreamSlash,
-} from "@fortawesome/pro-duotone-svg-icons";
+    faTableColumns,
+    faTableLayout,
+} from "@fortawesome/sharp-duotone-solid-svg-icons";
 import { ReactFlowProvider } from "@xyflow/react";
+import { Allotment } from "allotment";
 import axios from "axios";
 import classNames from "classnames";
 import copy from "copy-to-clipboard";
@@ -50,13 +58,18 @@ import _ from "lodash";
 import { useCallback, useContext, useEffect, useRef, useState } from "react";
 export default function Sessions() {
     const { appState, appActions } = useContext(AppContext);
-    const { unreadSessionIds, sessionIdFocus, sessionIds, collapsed } =
-        appState.session;
+    const {
+        unreadSessionIds,
+        sessionIdFocus,
+        sessionIds,
+        sessionListPanelCollapsed,
+    } = appState.session;
     const [message, setMessage] = useState("");
     const sessionMessageTextArea = useRef(null);
     const [isSessionDetailOpen, setIsSessionDetailOpen] = useState(false);
     const { socket, reconnectWs, isSocketOpen } = useSocket();
-    const { settings } = useContext(AuthContext);
+    const { user, settings } = useContext(AuthContext);
+    const userRole = _.get(user, "role", "guest");
     const { authenticating } = useContext(SocketContext);
     const sendSessionMessage = (message) => {
         if (!isSocketOpen) return;
@@ -168,14 +181,17 @@ export default function Sessions() {
     const sessionName = _.get(sessionDetails, "name", sessionIdFocus);
     const sessionDescription = _.get(sessionDetails, "description", "");
     useEffect(() => {
-        if (appState.session.openAgentsDialogTrigger) {
+        if (
+            !_.isEqual(userRole, "demo") &&
+            appState.session.openAgentsDialogTrigger
+        ) {
             setIsAddAgentsOpen(true);
             setSkippable(true);
-            appActions.session.setState({
-                key: "openAgentsDialogTrigger",
-                value: false,
-            });
         }
+        appActions.session.setState({
+            key: "openAgentsDialogTrigger",
+            value: false,
+        });
     }, [appState.session.openAgentsDialogTrigger]);
     if (!isSocketOpen && _.isEmpty(sessionIds))
         return (
@@ -198,7 +214,9 @@ export default function Sessions() {
                     top: 0,
                     left: 0,
                     height: "calc(100% - 1px)",
-                    width: collapsed ? 80 : SESSION_LIST_PANEL_WIDTH,
+                    width: sessionListPanelCollapsed
+                        ? 80
+                        : SESSION_LIST_PANEL_WIDTH,
                 }}
             >
                 <div
@@ -211,26 +229,34 @@ export default function Sessions() {
                 >
                     <ButtonGroup large>
                         <Tooltip
-                            content={collapsed ? "Expand" : "Collapse"}
-                            placement={`bottom${collapsed ? "" : "-start"}`}
+                            content={
+                                sessionListPanelCollapsed
+                                    ? "Expand"
+                                    : "Collapse"
+                            }
+                            placement={
+                                sessionListPanelCollapsed
+                                    ? "right"
+                                    : "bottom-start"
+                            }
                             minimal
                         >
                             <Button
                                 outlined
                                 onClick={() =>
                                     appActions.session.setState({
-                                        key: "collapsed",
-                                        value: !collapsed,
+                                        key: "sessionListPanelCollapsed",
+                                        value: !sessionListPanelCollapsed,
                                     })
                                 }
                                 icon={faIcon({
-                                    icon: collapsed
+                                    icon: sessionListPanelCollapsed
                                         ? faChevronRight
                                         : faChevronLeft,
                                 })}
                             />
                         </Tooltip>
-                        {!collapsed ? (
+                        {!sessionListPanelCollapsed ? (
                             <Tooltip
                                 content="Refresh"
                                 placement="bottom"
@@ -245,7 +271,7 @@ export default function Sessions() {
                             </Tooltip>
                         ) : null}
                     </ButtonGroup>
-                    {!collapsed ? (
+                    {!sessionListPanelCollapsed ? (
                         !isSocketOpen ? (
                             <ReconnectButton />
                         ) : _.get(settings, "debug_mode", false) ? (
@@ -272,7 +298,7 @@ export default function Sessions() {
                         ) : null
                     ) : null}
                 </div>
-                {!collapsed ? (
+                {!sessionListPanelCollapsed ? (
                     _.isEmpty(appState.session.sessionIds) ? (
                         <Card
                             style={{
@@ -360,8 +386,34 @@ export default function Sessions() {
                         className="full-parent-height bp-border-right"
                         style={{ padding: 20 }}
                     >
+                        {!isSocketOpen ? (
+                            <div style={{ marginBottom: 10 }}>
+                                <Tooltip
+                                    minimal
+                                    placement="right"
+                                    content="Connect"
+                                >
+                                    <Button
+                                        loading={
+                                            (socket != null &&
+                                                _.isEqual(
+                                                    socket.readyState,
+                                                    WebSocket.CONNECTING
+                                                )) ||
+                                            authenticating
+                                        }
+                                        onClick={reconnectWs}
+                                        icon={faIcon({ icon: faSatelliteDish })}
+                                        large
+                                        intent={Intent.PRIMARY}
+                                    />
+                                </Tooltip>
+                            </div>
+                        ) : null}
                         {!_.isEmpty(unreadSessionIds) ? (
                             <Tooltip
+                                minimal
+                                placement="right"
                                 content={`${_.size(
                                     unreadSessionIds
                                 )} unread session${
@@ -369,6 +421,7 @@ export default function Sessions() {
                                 }`}
                             >
                                 <Button
+                                    style={{ cursor: "initial" }}
                                     large
                                     minimal
                                     icon={faIcon({ icon: faBell })}
@@ -381,10 +434,13 @@ export default function Sessions() {
             <div
                 style={{
                     height: "calc(100% - 80px)",
-                    marginLeft: collapsed ? 80 : SESSION_LIST_PANEL_WIDTH,
+                    marginLeft: sessionListPanelCollapsed
+                        ? 80
+                        : SESSION_LIST_PANEL_WIDTH,
                     width: `calc(100vw - ${
-                        (collapsed ? 80 : SESSION_LIST_PANEL_WIDTH) +
-                        NAVIGATION_MENU_WIDTH
+                        (sessionListPanelCollapsed
+                            ? 80
+                            : SESSION_LIST_PANEL_WIDTH) + NAVIGATION_MENU_WIDTH
                     }px)`,
                 }}
             >
@@ -396,49 +452,104 @@ export default function Sessions() {
                         height: 80,
                         justifyContent: "space-between",
                         position: "relative",
+                        padding: "0px 20px",
                         zIndex: 1,
+                        gap: 10,
                     }}
                 >
                     {!_.isNull(sessionIdFocus) ? (
-                        <div style={{ maxWidth: "50%" }}>
-                            <Tooltip
-                                openOnTargetFocus={false}
+                        <Tooltip
+                            content={`${
+                                appState.session.showWorkspacePanel
+                                    ? "Hide"
+                                    : "Show"
+                            } Workspace`}
+                            minimal
+                            placement="bottom-start"
+                        >
+                            <Button
+                                large
                                 minimal
-                                className="full-parent-width"
-                                content="Get session details"
-                                placement="bottom-start"
-                            >
-                                <Button
-                                    fill
-                                    ellipsizeText
-                                    minimal
-                                    alignText={Alignment.LEFT}
-                                    onClick={() => setIsSessionDetailOpen(true)}
-                                    rightIcon={faIcon({ icon: faCaretDown })}
-                                    text={
-                                        <H4
-                                            className={classNames(
-                                                "margin-0",
-                                                Classes.TEXT_OVERFLOW_ELLIPSIS
-                                            )}
-                                        >
-                                            #&nbsp;{sessionName}
-                                        </H4>
-                                    }
-                                />
-                            </Tooltip>
-                            <div
-                                className={Classes.TEXT_OVERFLOW_ELLIPSIS}
-                                style={{ paddingLeft: 10, width: "100%" }}
-                            >
-                                {sessionDescription}
-                            </div>
-                        </div>
+                                outlined
+                                icon={faIcon({
+                                    icon: !appState.session.showWorkspacePanel
+                                        ? faTableColumns
+                                        : faTableLayout,
+                                })}
+                                onClick={() =>
+                                    appActions.session.setState({
+                                        key: "showWorkspacePanel",
+                                        value: !appState.session
+                                            .showWorkspacePanel,
+                                    })
+                                }
+                            />
+                        </Tooltip>
                     ) : null}
-                    <Popover
-                        placement="bottom-end"
-                        content={<div style={{ padding: 20 }}></div>}
-                    ></Popover>
+                    <div
+                        style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 30,
+                            width: "calc(100% - 50px)",
+                            justifyContent: "space-between",
+                        }}
+                    >
+                        {!_.isNull(sessionIdFocus) ? (
+                            <div
+                                style={{
+                                    maxWidth: "calc(100% - 151.98px - 20px)",
+                                }}
+                            >
+                                <Tooltip
+                                    openOnTargetFocus={false}
+                                    minimal
+                                    className="full-parent-width"
+                                    content="Get session details"
+                                    placement="bottom-start"
+                                >
+                                    <Button
+                                        large={_.isEmpty(sessionDescription)}
+                                        style={{ maxWidth: "100%" }}
+                                        ellipsizeText
+                                        minimal
+                                        alignText={Alignment.LEFT}
+                                        onClick={() =>
+                                            setIsSessionDetailOpen(true)
+                                        }
+                                        rightIcon={faIcon({
+                                            icon: faCaretDown,
+                                        })}
+                                        text={
+                                            <H4
+                                                className={classNames(
+                                                    "margin-0",
+                                                    Classes.TEXT_OVERFLOW_ELLIPSIS
+                                                )}
+                                            >
+                                                #&nbsp;{sessionName}
+                                            </H4>
+                                        }
+                                    />
+                                </Tooltip>
+                                {!_.isEmpty(sessionDescription) ? (
+                                    <div
+                                        className={
+                                            Classes.TEXT_OVERFLOW_ELLIPSIS
+                                        }
+                                        style={{
+                                            paddingLeft: 10,
+                                            lineHeight: "25px",
+                                            width: "100%",
+                                        }}
+                                    >
+                                        {sessionDescription}
+                                    </div>
+                                ) : null}
+                            </div>
+                        ) : null}
+                        <SessionMemberStack />
+                    </div>
                 </Card>
                 {_.isNull(sessionIdFocus) ? (
                     <NonIdealState
@@ -448,7 +559,21 @@ export default function Sessions() {
                 ) : (
                     <>
                         <div style={{ height: "calc(100% - 131px" }}>
-                            <SessionMessages />
+                            <Allotment
+                                separator={appState.session.showWorkspacePanel}
+                            >
+                                <Allotment.Pane
+                                    minSize={MIN_ALLOTMENT_PANE}
+                                    visible={
+                                        appState.session.showWorkspacePanel
+                                    }
+                                >
+                                    <Workspace />
+                                </Allotment.Pane>
+                                <Allotment.Pane minSize={MIN_ALLOTMENT_PANE}>
+                                    <SessionMessages />
+                                </Allotment.Pane>
+                            </Allotment>
                         </div>
                         <div
                             className="bp-border-top"

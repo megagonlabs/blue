@@ -18,7 +18,8 @@ import {
     faClipboard,
     faCode,
     faMessages,
-} from "@fortawesome/pro-duotone-svg-icons";
+    faTableColumns,
+} from "@fortawesome/sharp-duotone-solid-svg-icons";
 import classNames from "classnames";
 import copy from "copy-to-clipboard";
 import _ from "lodash";
@@ -86,16 +87,46 @@ export default function Settings({ isOpen, setIsSettingsOpen }) {
                     {...SECTION_PROPS}
                     icon={faIcon({ icon: faMessages })}
                     title="Sessions & Messages"
-                    style={{ marginBottom: 10 }}
+                    style={{ marginBottom: 15 }}
                 >
                     <SectionCard padded={false}>
                         <Menu className="settings-menus" large>
                             <MenuItem
                                 text={
                                     <div style={{ marginLeft: 3 }}>
-                                        <div>Expand to show more</div>
+                                        <div>Show sessions</div>
                                         <div {...EXPLANATION_TEXT}>
-                                            Always expand all messages
+                                            Default show session categorization
+                                            list
+                                        </div>
+                                    </div>
+                                }
+                                icon={faIcon({ icon: faTableColumns })}
+                                labelElement={
+                                    <Switch
+                                        checked={_.get(
+                                            settings,
+                                            "show_session_list",
+                                            false
+                                        )}
+                                        style={{ marginBottom: 0 }}
+                                        large
+                                        onChange={(event) => {
+                                            updateSettings(
+                                                "show_session_list",
+                                                event.target.checked
+                                            );
+                                        }}
+                                    />
+                                }
+                            />
+                            <MenuItem
+                                text={
+                                    <div style={{ marginLeft: 3 }}>
+                                        <div>Expand messages</div>
+                                        <div {...EXPLANATION_TEXT}>
+                                            Automatically expand all messages to
+                                            show more
                                         </div>
                                     </div>
                                 }

@@ -27,7 +27,7 @@ import {
     faRefresh,
     faStamp,
     faUserGroup,
-} from "@fortawesome/pro-duotone-svg-icons";
+} from "@fortawesome/sharp-duotone-solid-svg-icons";
 import axios from "axios";
 import _ from "lodash";
 import Image from "next/image";
@@ -108,7 +108,7 @@ export default function Users() {
                 const role = _.get(data, [rowIndex, "role"], "-");
                 return (
                     <Cell style={{ lineHeight: `${TABLE_CELL_HEIGHT - 1}px` }}>
-                        {_.get(USER_ROLES_LOOKUP, role, role)}
+                        {_.get(USER_ROLES_LOOKUP, [role, "text"], role)}
                     </Cell>
                 );
             },
@@ -138,7 +138,7 @@ export default function Users() {
                 setIsRoleConfigOpen={setIsRoleConfigOpen}
                 isRoleConfigOpen={isRoleConfigOpen}
             />
-            <Card style={{ padding: 5 }}>
+            <Card interactive style={{ padding: 5, borderRadius: 0 }}>
                 <ButtonGroup large minimal>
                     <Tooltip placement="bottom-start" minimal content="Refresh">
                         <Button
@@ -148,14 +148,20 @@ export default function Users() {
                         />
                     </Tooltip>
                     <Divider />
-                    <Button
-                        disabled={
-                            _.isEmpty(appState.admin.selectedUsers) || loading
-                        }
-                        onClick={() => setIsRoleConfigOpen(true)}
-                        icon={faIcon({ icon: faStamp })}
-                        text="Update role(s)"
-                    />
+                    <Tooltip
+                        placement="bottom"
+                        content="Update role(s)"
+                        minimal
+                    >
+                        <Button
+                            disabled={
+                                _.isEmpty(appState.admin.selectedUsers) ||
+                                loading
+                            }
+                            onClick={() => setIsRoleConfigOpen(true)}
+                            icon={faIcon({ icon: faStamp })}
+                        />
+                    </Tooltip>
                 </ButtonGroup>
             </Card>
             {_.isEmpty(data) ? (

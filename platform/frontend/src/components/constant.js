@@ -9,7 +9,8 @@ const {
     faArrowRightFromArc,
     faFunction,
     faCube,
-} = require("@fortawesome/pro-duotone-svg-icons");
+    faKeynote,
+} = require("@fortawesome/sharp-duotone-solid-svg-icons");
 const { vanillaRenderers } = require("@jsonforms/vanilla-renderers");
 import BooleanRenderer, {
     BooleanTester,
@@ -47,6 +48,10 @@ import DateRenderer, { DateTester } from "./jsonforms/renderers/Date";
 import DateTimeRenderer, {
     DateTimeTester,
 } from "./jsonforms/renderers/DateTime";
+import MarkdownRenderer, {
+    MarkdownTester,
+} from "./jsonforms/renderers/Markdown";
+import VegaRenderer, { VegaTester } from "./jsonforms/renderers/Vega";
 export const ENTITY_TYPE_LOOKUP = {
         agent: { icon: faCircleA, key: "agent" },
         data: { icon: faServer, key: "source" },
@@ -73,7 +78,9 @@ export const ENTITY_TYPE_LOOKUP = {
         { tester: ButtonTester, renderer: ButtonRenderer },
         { tester: DateTester, renderer: DateRenderer },
         { tester: DateTimeTester, renderer: DateTimeRenderer },
+        { tester: VegaTester, renderer: VegaRenderer },
         { tester: ArrayTester, renderer: ArrayRenderer },
+        { tester: MarkdownTester, renderer: MarkdownRenderer },
         { tester: UnknownTester, renderer: UnknownRenderer },
     ],
     CARD_LIST_CLASS_NAMES = `${Classes.CARD} ${Classes.CARD_LIST} ${Classes.CARD_LIST_BORDERED}`,
@@ -109,11 +116,15 @@ export const ENTITY_TYPE_LOOKUP = {
         alignItems: "center",
         justifyContent: "center",
     },
+    MIN_ALLOTMENT_PANE = 321.094,
     USER_ROLES_LOOKUP = {
-        admin: "Administrator",
-        member: "Member",
-        guest: "Guest",
-        developer: "Developer",
+        admin: {
+            text: "Administrator",
+        },
+        member: { text: "Member" },
+        guest: { text: "Guest" },
+        developer: { text: "Developer" },
+        demo: { text: "Demo", icon: faKeynote },
     },
     COLOR_OPTIONS = [
         "#979B9D",

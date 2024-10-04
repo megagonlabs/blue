@@ -29,7 +29,7 @@ import {
     faRectangleTerminal,
     faUser,
     faUserGroup,
-} from "@fortawesome/pro-duotone-svg-icons";
+} from "@fortawesome/sharp-duotone-solid-svg-icons";
 import _ from "lodash";
 import Image from "next/image";
 import Link from "next/link";
@@ -55,6 +55,7 @@ export default function App({ children }) {
         [sessionDetails]
     );
     const { user, permissions } = useContext(AuthContext);
+    const userRole = _.get(user, "role", "guest");
     const {
         canWritePlatformUsers,
         canReadPlatformServices,
@@ -81,7 +82,7 @@ export default function App({ children }) {
                     value: "owner",
                 });
                 appActions.session.setState({
-                    key: "collapsed",
+                    key: "sessionListPanelCollapsed",
                     value: false,
                 });
             },
@@ -315,7 +316,8 @@ export default function App({ children }) {
                     canReadAgentRegistry,
                     canReadDataRegistry,
                     canReadOperatorRegistry,
-                ]) ? (
+                    canReadModelRegistry,
+                ]) && !_.isEqual(userRole, "demo") ? (
                     <>
                         <div>&nbsp;</div>
                         <MenuDivider title="Registries" />

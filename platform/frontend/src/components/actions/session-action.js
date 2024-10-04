@@ -13,6 +13,12 @@ export const sessionAction = (dispatch) => ({
             payload,
         });
     },
+    setSessionDetailMembers: (payload) => {
+        dispatch({
+            type: "session/sessions/detail/members/set",
+            payload,
+        });
+    },
     expandMessageStream: (payload) => {
         dispatch({ type: "session/expandedMessageStream/add", payload });
     },
@@ -58,6 +64,9 @@ export const sessionAction = (dispatch) => ({
     },
     addSession: (payload) => {
         dispatch({ type: "session/sessions/add", payload });
+    },
+    addToWorkspace: (payload) => {
+        dispatch({ type: "session/sessions/addToWorkspace", payload });
     },
     observeSession: (payload) => {
         dispatch({ type: "session/sessions/add", payload: payload.sessionId });

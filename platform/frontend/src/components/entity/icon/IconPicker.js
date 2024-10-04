@@ -10,13 +10,13 @@ import {
     Intent,
     Tag,
 } from "@blueprintjs/core";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
     faArrowUpRightFromSquare,
     faDotCircle,
     faSearch,
     faTelescope,
-} from "@fortawesome/pro-duotone-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+} from "@fortawesome/sharp-duotone-solid-svg-icons";
 import _ from "lodash";
 import Link from "next/link";
 import { useCallback, useContext, useEffect, useRef, useState } from "react";
@@ -67,7 +67,7 @@ export default function IconPicker({
                 rightElement={
                     <Link
                         target="_blank"
-                        href="https://fontawesome.com/search?o=r&s=solid&f=duotone"
+                        href="https://fontawesome.com/search?o=r&s=solid&f=sharp-duotone"
                     >
                         <Button
                             icon={faIcon({ icon: faTelescope })}
@@ -122,7 +122,7 @@ export default function IconPicker({
                                 >
                                     <FontAwesomeIcon
                                         style={{ height: 20, width: 20 }}
-                                        icon={["fad", iconName]}
+                                        icon={["fasds", iconName]}
                                     />
                                 </div>
                             );

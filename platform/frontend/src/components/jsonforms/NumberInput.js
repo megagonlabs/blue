@@ -16,6 +16,7 @@ export default function NumberInput({
     path,
     data,
     precision = 11,
+    id,
 }) {
     const { socket } = useSocket();
     const [, forceUpdate] = useReducer((x) => x + 1, 0);
@@ -157,6 +158,7 @@ export default function NumberInput({
     };
     return (
         <NumericInput
+            name={id}
             allowNumericCharactersOnly={false}
             onBlur={handleBlur}
             onKeyDown={handleKeyDown}
@@ -164,6 +166,7 @@ export default function NumberInput({
             value={_.isNumber(data) || _.isString(data) ? data : ""}
             buttonPosition="none"
             large
+            fill
         />
     );
 }

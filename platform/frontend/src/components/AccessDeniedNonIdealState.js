@@ -1,5 +1,5 @@
 import { NonIdealState } from "@blueprintjs/core";
-import { faRoadBarrier } from "@fortawesome/pro-duotone-svg-icons";
+import { faRoadBarrier } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import { useRouter } from "next/router";
 import { faIcon } from "./icon";
 export default function AccessDeniedNonIdealState() {
@@ -13,7 +13,7 @@ export default function AccessDeniedNonIdealState() {
                 <div>
                     You can go back to&nbsp;
                     <a
-                        style={{ fontWeight: 600 }}
+                        style={{ fontWeight: 600, cursor: "pointer" }}
                         onClick={() => {
                             router.back();
                         }}

@@ -6,7 +6,7 @@ import {
     OverlaysProvider,
     Tooltip,
 } from "@blueprintjs/core";
-import { faMinus } from "@fortawesome/pro-duotone-svg-icons";
+import { faMinus } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import classNames from "classnames";
 import { useCallback, useContext, useEffect, useRef, useState } from "react";
 import { RESIZE_DIRECTION } from "../constant";

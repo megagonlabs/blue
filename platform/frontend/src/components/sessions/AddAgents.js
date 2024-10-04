@@ -19,7 +19,7 @@ import {
     faCircleCheck,
     faForward,
     faGrid2Plus,
-} from "@fortawesome/pro-duotone-svg-icons";
+} from "@fortawesome/sharp-duotone-solid-svg-icons";
 import axios from "axios";
 import classNames from "classnames";
 import _ from "lodash";
@@ -117,7 +117,7 @@ export default function AddAgents({
                 new Promise((resolve, reject) => {
                     axios
                         .post(
-                            `/sessions/session/${sessionIdFocus}/agents/${registryName}/agent/${agentName}`,
+                            `/sessions/session/${sessionIdFocus}/agent/${agentName}`,
                             { properties: {} }
                         )
                         .then(() => {

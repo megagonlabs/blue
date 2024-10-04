@@ -101,13 +101,12 @@ class Producer:
         self._start_connection()
 
         self._start_stream()
-        logging.info("Started producer {p}".format(p=self.sid))
+        # logging.info("Started producer {p}".format(p=self.sid))
 
     def _start_connection(self):
         host = self.properties["db.host"]
         port = self.properties["db.port"]
 
-        logging.info("PRODUCER START....." + host)
         self.connection = redis.Redis(host=host, port=port, decode_responses=True)
 
     def _start_stream(self):
@@ -116,8 +115,7 @@ class Producer:
         r = self.connection
         # check if stream has BOS in the front
         data = r.xread(streams={s: 0}, count=1)
-        logging.info("Platform data.....")
-        logging.info(str(data))
+
         empty_stream = len(data) == 0
         # has_bos = pydash.is_equal(
         #     pydash.objects.get(data, "0.1.0.1.label", None), "BOS"

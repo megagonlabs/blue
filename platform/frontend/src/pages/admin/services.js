@@ -28,7 +28,7 @@ import {
     faLayerGroup,
     faRefresh,
     faStop,
-} from "@fortawesome/pro-duotone-svg-icons";
+} from "@fortawesome/sharp-duotone-solid-svg-icons";
 import axios from "axios";
 import _ from "lodash";
 import { useContext, useEffect, useState } from "react";
@@ -174,7 +174,7 @@ export default function Services() {
     }
     return (
         <>
-            <Card style={{ padding: 5 }}>
+            <Card interactive style={{ padding: 5, borderRadius: 0 }}>
                 <ButtonGroup large minimal>
                     <Tooltip placement="bottom-start" minimal content="Refresh">
                         <Button

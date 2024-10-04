@@ -98,12 +98,10 @@ class CoordinatorAgent(Agent):
         plan_id = plan["id"]
 
         # add plan to list to monitor
-        logging.info("write to plans")
         plans = worker.get_data("plans")
         if plans is None:
             worker.set_data("plans", {})
         worker.set_data("plans." + plan_id, True)
-        logging.info("written to plans")
 
         # context: scope, streams
         context = plan['context']
@@ -189,8 +187,6 @@ class CoordinatorAgent(Agent):
 
 
         # persist plan data to agent memory
-        logging.info(str(plan))
-        logging.info(json.dumps(plan, indent=3))
         worker.set_data(plan_id, plan)
 
         ### start executing plan from streams
@@ -238,19 +234,17 @@ class CoordinatorAgent(Agent):
                             id = canonical2id[canonical_name]
                             self.set_data(plan_id + ".stream2id." + stream, id)
                             # create worker
-                            logging.info("create worker")
-                            logging.info(stream)
                             self.create_worker(stream, input=plan_id)
 
         ### do regular session listening
         return super().session_listener(message)
 
     def transform_data(self, input_stream, budget, from_agent, from_agent_param, to_agent, to_agent_param):
-        logging.info("TRANSFORM DATA:")
-        logging.info(from_agent + "." + from_agent_param)
-        logging.info(to_agent + "." + to_agent_param)
-        logging.info("BUDGET:")
-        logging.info(json.dumps(budget, indent=3))
+        # logging.info("TRANSFORM DATA:")
+        # logging.info(from_agent + "." + from_agent_param)
+        # logging.info(to_agent + "." + to_agent_param)
+        # logging.info("BUDGET:")
+        # logging.info(json.dumps(budget, indent=3))
 
         context = {}
         # TODO: get registry info on from_agent, from_agent_param
@@ -304,12 +298,8 @@ class CoordinatorAgent(Agent):
             # new plan
             stream = message.getStream()
 
-            logging.info("stream: " + stream)
             if message.isData():
-                logging.info("plan:")
                 p = message.getData()
-                logging.info(type(p))
-                logging.info(json.dumps(p))
 
                 plan = self.verify_plan(p)
                 if plan:
@@ -346,9 +336,7 @@ class CoordinatorAgent(Agent):
 
                 # start nexts agents
                 next_node_ids = worker.get_data(plan_id + ".id2node." + node_id + ".next")
-                logging.info("nexts")
-                logging.info(next_node_ids)
-                logging.info(type(next_node_ids))
+  
                 for next_node_id in next_node_ids:
                     next_agent = worker.get_data(plan_id + ".id2node." + next_node_id + ".agent")
                     next_agent_param = worker.get_data(plan_id + ".id2node." + next_node_id + ".param")

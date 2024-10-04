@@ -6,7 +6,7 @@ import {
     faMoneyBillsSimple,
     faSquareInfo,
     faUserGroup,
-} from "@fortawesome/pro-duotone-svg-icons";
+} from "@fortawesome/sharp-duotone-solid-svg-icons";
 import _ from "lodash";
 import { useContext, useState } from "react";
 import SessionAgentsList from "./details/SessionAgentsList";
@@ -32,11 +32,8 @@ export default function SessionDetail({ isOpen, setIsSessionDetailOpen }) {
                 _.isEqual(sessionName, sessionIdFocus) ? (
                     sessionIdFocus
                 ) : (
-                    <div>
-                        {sessionName}&nbsp;
-                        <span className={Classes.TEXT_MUTED}>
-                            ({sessionIdFocus})
-                        </span>
+                    <div className={Classes.TEXT_OVERFLOW_ELLIPSIS}>
+                        {sessionName}
                     </div>
                 )
             }

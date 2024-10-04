@@ -170,8 +170,12 @@ class JobSearchPlannerAgent(Agent):
                 self.search_predicates[k] = value
             if k in self.user_profile:
                 if k == "years of experience":
-                    if value > -1:
-                        self.user_profile[k] = value
+                    try:
+                        value = int(value)
+                    except:
+                        value = -1
+
+                    self.user_profile[k] = max(value, -1)
                 else:
                     if len(value) > 0:
                         self.user_profile[k].extend(value)
@@ -192,16 +196,14 @@ class JobSearchPlannerAgent(Agent):
         covered_predicates = [k for k, v in self.search_predicates.items() if v]
         if len(covered_predicates) < 2:
 
-            uncovered_predicates = list(
-                set(self.search_predicates.keys()) - set(covered_predicates)
+            uncovered_predicates = "\n ".join(
+                list(set(self.search_predicates.keys()) - set(covered_predicates))
             )
-            clarification_question = f"Could you provide more details about your search? For example, {', '.join(uncovered_predicates)}?"
+
+            clarification_question = f"Could you provide more details about your search? For example:\n {uncovered_predicates}"
             return clarification_question
 
-        elif (
-            self.user_profile["years of experience"] == -1
-            or len(self.user_profile["skills"]) == 0
-        ):
+        elif len(self.user_profile["skills"]) == 0:
 
             profile_form = ui_builders.build_form_profile()
             if worker:
@@ -240,6 +242,8 @@ class JobSearchPlannerAgent(Agent):
         else:
 
             # issue final query
+            logging.info(self.search_predicates)
+            logging.info(self.user_profile)
             employment_type = self.search_predicates["employment type"]
             job_title = self.search_predicates["job title"]
             location = self.search_predicates["location"]
