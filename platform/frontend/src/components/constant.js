@@ -9,7 +9,8 @@ const {
     faArrowRightFromArc,
     faFunction,
     faCube,
-} = require("@fortawesome/pro-duotone-svg-icons");
+    faKeynote,
+} = require("@fortawesome/sharp-duotone-solid-svg-icons");
 const { vanillaRenderers } = require("@jsonforms/vanilla-renderers");
 import BooleanRenderer, {
     BooleanTester,
@@ -115,12 +116,15 @@ export const ENTITY_TYPE_LOOKUP = {
         alignItems: "center",
         justifyContent: "center",
     },
+    MIN_ALLOTMENT_PANE = 321.094,
     USER_ROLES_LOOKUP = {
-        admin: "Administrator",
-        member: "Member",
-        guest: "Guest",
-        developer: "Developer",
-        demo: "Demo",
+        admin: {
+            text: "Administrator",
+        },
+        member: { text: "Member" },
+        guest: { text: "Guest" },
+        developer: { text: "Developer" },
+        demo: { text: "Demo", icon: faKeynote },
     },
     COLOR_OPTIONS = [
         "#979B9D",

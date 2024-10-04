@@ -29,7 +29,7 @@ import {
     faRectangleTerminal,
     faUser,
     faUserGroup,
-} from "@fortawesome/pro-duotone-svg-icons";
+} from "@fortawesome/sharp-duotone-solid-svg-icons";
 import _ from "lodash";
 import Image from "next/image";
 import Link from "next/link";
@@ -82,7 +82,7 @@ export default function App({ children }) {
                     value: "owner",
                 });
                 appActions.session.setState({
-                    key: "collapsed",
+                    key: "sessionListPanelCollapsed",
                     value: false,
                 });
             },

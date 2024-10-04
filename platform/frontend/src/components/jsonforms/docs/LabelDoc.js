@@ -10,7 +10,7 @@ import {
     H2,
     HTMLTable,
 } from "@blueprintjs/core";
-import { faArrowLeft } from "@fortawesome/pro-duotone-svg-icons";
+import { faArrowLeft } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import classNames from "classnames";
 import CopyDocJsonButton from "./CopyDocJsonButton";
 export default function LabelDoc({ closePanel }) {

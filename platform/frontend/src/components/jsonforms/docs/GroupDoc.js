@@ -2,7 +2,7 @@ import { faIcon } from "@/components/icon";
 import * as docProps from "@/components/jsonforms/docs/constant";
 import JsonViewer from "@/components/sessions/message/renderers/JsonViewer";
 import { Button, Classes, Code, H1, H2, HTMLTable } from "@blueprintjs/core";
-import { faArrowLeft } from "@fortawesome/pro-duotone-svg-icons";
+import { faArrowLeft } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import classNames from "classnames";
 import CopyDocJsonButton from "./CopyDocJsonButton";
 export default function GroupDoc({ closePanel }) {

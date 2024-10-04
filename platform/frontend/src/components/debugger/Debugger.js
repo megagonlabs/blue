@@ -6,7 +6,7 @@ import {
     HTMLSelect,
     Tooltip,
 } from "@blueprintjs/core";
-import { faBan } from "@fortawesome/pro-duotone-svg-icons";
+import { faBan } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import _ from "lodash";
 import { useContext, useState } from "react";
 import { AppContext } from "../contexts/app-context";

@@ -27,7 +27,7 @@ import {
     faRefresh,
     faStamp,
     faUserGroup,
-} from "@fortawesome/pro-duotone-svg-icons";
+} from "@fortawesome/sharp-duotone-solid-svg-icons";
 import axios from "axios";
 import _ from "lodash";
 import Image from "next/image";
@@ -108,7 +108,7 @@ export default function Users() {
                 const role = _.get(data, [rowIndex, "role"], "-");
                 return (
                     <Cell style={{ lineHeight: `${TABLE_CELL_HEIGHT - 1}px` }}>
-                        {_.get(USER_ROLES_LOOKUP, role, role)}
+                        {_.get(USER_ROLES_LOOKUP, [role, "text"], role)}
                     </Cell>
                 );
             },

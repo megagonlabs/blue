@@ -9,7 +9,7 @@ import {
     FormGroup,
     NonIdealState,
 } from "@blueprintjs/core";
-import { faScreenUsers } from "@fortawesome/pro-duotone-svg-icons";
+import { faScreenUsers } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import axios from "axios";
 import _ from "lodash";
 import { useContext, useEffect, useState } from "react";

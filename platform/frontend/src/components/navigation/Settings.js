@@ -19,7 +19,7 @@ import {
     faCode,
     faMessages,
     faTableColumns,
-} from "@fortawesome/pro-duotone-svg-icons";
+} from "@fortawesome/sharp-duotone-solid-svg-icons";
 import classNames from "classnames";
 import copy from "copy-to-clipboard";
 import _ from "lodash";
