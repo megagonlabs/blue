@@ -1,10 +1,10 @@
 import { AppContext } from "@/components/contexts/app-context";
 import { AuthContext } from "@/components/contexts/auth-context";
-import { Classes, Tag, Tooltip } from "@blueprintjs/core";
+import Timestamp from "@/components/Timestamp";
+import { Classes, Tag } from "@blueprintjs/core";
 import classNames from "classnames";
 import _ from "lodash";
 import { memo, useContext } from "react";
-import ReactTimeAgo from "react-time-ago";
 function MessageMetadata({ message }) {
     const { appState } = useContext(AppContext);
     const { settings } = useContext(AuthContext);
@@ -41,23 +41,7 @@ function MessageMetadata({ message }) {
                         SYSTEM
                     </Tag>
                 ) : null}
-                <Tooltip
-                    className={Classes.TEXT_MUTED}
-                    placement="bottom"
-                    content={
-                        <div className={Classes.TEXT_MUTED}>
-                            {new Date(timestamp).toLocaleDateString()}
-                            &nbsp;at&nbsp;
-                            {new Date(timestamp).toLocaleTimeString()}
-                        </div>
-                    }
-                >
-                    <ReactTimeAgo
-                        tooltip={false}
-                        date={new Date(timestamp)}
-                        locale="en-US"
-                    />
-                </Tooltip>
+                <Timestamp timestamp={timestamp} />
             </div>
             {debugMode ? (
                 <div

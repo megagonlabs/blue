@@ -1,6 +1,9 @@
 import { AppContext } from "@/components/contexts/app-context";
 import { AuthContext } from "@/components/contexts/auth-context";
 import { faIcon } from "@/components/icon";
+import MessageContent from "@/components/sessions/message/MessageContent";
+import MessageIcon from "@/components/sessions/message/MessageIcon";
+import MessageMetadata from "@/components/sessions/message/MessageMetadata";
 import {
     Button,
     ButtonGroup,
@@ -21,10 +24,6 @@ import { useCallback, useContext, useEffect, useMemo, useRef } from "react";
 import { useResizeDetector } from "react-resize-detector";
 import AutoSizer from "react-virtualized-auto-sizer";
 import { VariableSizeList } from "react-window";
-import MessageIcon from "./MessageIcon";
-import MessageMetadata from "./MessageMetadata";
-import JsonForm from "./renderers/JsonForm";
-import JsonViewer from "./renderers/JsonViewer";
 const Row = ({ index, data, style }) => {
     const { setRowHeight } = data;
     const { appState, appActions } = useContext(AppContext);
@@ -107,12 +106,6 @@ const Row = ({ index, data, style }) => {
     const complete = _.get(streams, [stream, "complete"], false);
     const hasError = useRef(false);
     const showActions = useRef(false);
-    const messageData = {
-        type: "session",
-        session: sessionIdFocus,
-        message,
-        data: streams[stream],
-    };
     return (
         <div
             key={index}
@@ -157,11 +150,16 @@ const Row = ({ index, data, style }) => {
                         >
                             <Button
                                 icon={faIcon({ icon: faSidebar })}
-                                onClick={() =>
-                                    appActions.session.addToWorkspace(
-                                        messageData
-                                    )
-                                }
+                                onClick={() => {
+                                    appActions.session.addToWorkspace({
+                                        type: "session",
+                                        message,
+                                    });
+                                    appActions.session.setState({
+                                        key: "showWorkspacePanel",
+                                        value: true,
+                                    });
+                                }}
                             />
                         </Tooltip>
                         {_.get(settings, "debug_mode", false) ? (
@@ -173,7 +171,11 @@ const Row = ({ index, data, style }) => {
                                 <Button
                                     icon={faIcon({ icon: faBinary })}
                                     onClick={() =>
-                                        appActions.debug.addMessage(messageData)
+                                        appActions.debug.addMessage({
+                                            type: "session",
+                                            message,
+                                            data: streams[stream],
+                                        })
                                     }
                                 />
                             </Tooltip>
@@ -217,37 +219,11 @@ const Row = ({ index, data, style }) => {
                                         : MESSAGE_OVERFLOW_THRESHOLD,
                             }}
                         >
-                            {_.isEqual(contentType, "JSON_FORM") ? (
-                                <JsonForm
-                                    content={_.last(streamData).content}
-                                    hasError={hasError}
-                                />
-                            ) : (
-                                streamData.map((e, index) => {
-                                    const { dataType, content, id } = e;
-                                    if (
-                                        _.includes(
-                                            ["STR", "INT", "FLOAT"],
-                                            dataType
-                                        )
-                                    ) {
-                                        return (
-                                            <span key={id}>
-                                                {(index ? " " : "") + content}
-                                            </span>
-                                        );
-                                    } else if (_.isEqual(dataType, "JSON")) {
-                                        return (
-                                            <JsonViewer
-                                                displaySize={true}
-                                                key={id}
-                                                json={content}
-                                            />
-                                        );
-                                    }
-                                    return null;
-                                })
-                            )}
+                            <MessageContent
+                                contentType={contentType}
+                                streamData={streamData}
+                                hasError={hasError}
+                            />
                             {!complete ? (
                                 <div style={{ marginTop: 7.5 }}>
                                     <Tag

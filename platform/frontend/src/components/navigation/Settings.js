@@ -19,6 +19,7 @@ import {
     faCode,
     faMessages,
     faTableColumns,
+    faTableList,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import classNames from "classnames";
 import copy from "copy-to-clipboard";
@@ -41,6 +42,23 @@ export default function Settings({ isOpen, setIsSettingsOpen }) {
             lineHeight: "initial",
         },
         className: classNames(Classes.TEXT_SMALL, Classes.TEXT_MUTED),
+    };
+    const SESSION_MESSAGE_SETTINGS = {
+        show_workspace: {
+            title: "Show workspace",
+            description: "Default show session workspace",
+            icon: faTableColumns,
+        },
+        show_session_list: {
+            title: "Show sessions",
+            description: "Default show session categorization list",
+            icon: faTableList,
+        },
+        expand_message: {
+            title: "Expand messages",
+            description: "Automatically expand all messages to show more",
+            icon: faArrowsFromDottedLine,
+        },
     };
     return (
         <Drawer
@@ -91,64 +109,57 @@ export default function Settings({ isOpen, setIsSettingsOpen }) {
                 >
                     <SectionCard padded={false}>
                         <Menu className="settings-menus" large>
-                            <MenuItem
-                                text={
-                                    <div style={{ marginLeft: 3 }}>
-                                        <div>Show sessions</div>
-                                        <div {...EXPLANATION_TEXT}>
-                                            Default show session categorization
-                                            list
+                            {[
+                                "show_workspace",
+                                "show_session_list",
+                                "expand_message",
+                            ].map((key) => (
+                                <MenuItem
+                                    key={key}
+                                    text={
+                                        <div style={{ marginLeft: 3 }}>
+                                            <div>
+                                                {_.get(
+                                                    SESSION_MESSAGE_SETTINGS,
+                                                    [key, "title"],
+                                                    "-"
+                                                )}
+                                            </div>
+                                            <div {...EXPLANATION_TEXT}>
+                                                {_.get(
+                                                    SESSION_MESSAGE_SETTINGS,
+                                                    [key, "description"],
+                                                    "-"
+                                                )}
+                                            </div>
                                         </div>
-                                    </div>
-                                }
-                                icon={faIcon({ icon: faTableColumns })}
-                                labelElement={
-                                    <Switch
-                                        checked={_.get(
-                                            settings,
-                                            "show_session_list",
-                                            false
-                                        )}
-                                        style={{ marginBottom: 0 }}
-                                        large
-                                        onChange={(event) => {
-                                            updateSettings(
-                                                "show_session_list",
-                                                event.target.checked
-                                            );
-                                        }}
-                                    />
-                                }
-                            />
-                            <MenuItem
-                                text={
-                                    <div style={{ marginLeft: 3 }}>
-                                        <div>Expand messages</div>
-                                        <div {...EXPLANATION_TEXT}>
-                                            Automatically expand all messages to
-                                            show more
-                                        </div>
-                                    </div>
-                                }
-                                icon={faIcon({ icon: faArrowsFromDottedLine })}
-                                labelElement={
-                                    <Switch
-                                        checked={_.get(
-                                            settings,
-                                            "expand_message",
-                                            false
-                                        )}
-                                        style={{ marginBottom: 0 }}
-                                        large
-                                        onChange={(event) => {
-                                            updateSettings(
-                                                "expand_message",
-                                                event.target.checked
-                                            );
-                                        }}
-                                    />
-                                }
-                            />
+                                    }
+                                    icon={faIcon({
+                                        icon: _.get(
+                                            SESSION_MESSAGE_SETTINGS,
+                                            [key, "icon"],
+                                            null
+                                        ),
+                                    })}
+                                    labelElement={
+                                        <Switch
+                                            checked={_.get(
+                                                settings,
+                                                key,
+                                                false
+                                            )}
+                                            style={{ marginBottom: 0 }}
+                                            large
+                                            onChange={(event) => {
+                                                updateSettings(
+                                                    key,
+                                                    event.target.checked
+                                                );
+                                            }}
+                                        />
+                                    }
+                                />
+                            ))}
                         </Menu>
                     </SectionCard>
                 </Section>

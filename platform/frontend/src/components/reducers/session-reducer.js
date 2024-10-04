@@ -26,12 +26,17 @@ export default function sessionReducer(
         sessionIds,
         terminatedInteraction,
         expandedMessageStream,
+        sessionWorkspace,
     } = state;
+    const { sessionIdFocus } = state;
     let sessions = _.cloneDeep(state.sessions);
     let pinnedSessionIds = _.clone(state.pinnedSessionIds);
     switch (type) {
         case "session/sessions/addToWorkspace": {
-            return { ...state };
+            let workspaceContents = _.get(sessionWorkspace, sessionIdFocus, []);
+            workspaceContents.push(payload);
+            _.set(sessionWorkspace, sessionIdFocus, workspaceContents);
+            return { ...state, sessionWorkspace };
         }
         case "session/pinnedSessionIds/add": {
             pinnedSessionIds.add(payload);
