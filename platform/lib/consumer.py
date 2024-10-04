@@ -143,10 +143,10 @@ class Consumer:
 
         self._start_threads()
 
-        logging.info("Started consumer {c} for stream {s}".format(c=self.sid, s=self.stream))
+        # logging.info("Started consumer {c} for stream {s}".format(c=self.sid, s=self.stream))
 
     def stop(self):
-        logging.info("Stopping consumer {c} for stream {s}".format(c=self.sid, s=self.stream))
+        # logging.info("Stopping consumer {c} for stream {s}".format(c=self.sid, s=self.stream))
         self.stop_signal = True
 
     def wait(self):

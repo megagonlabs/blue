@@ -17,6 +17,7 @@ import logging
 import time
 import uuid
 import random
+import pandas as pd
 
 ###### Parsers, Formats, Utils
 import re
@@ -46,6 +47,7 @@ For each source you will be provided with a list of table schemas that specify t
 
 Here are the requirements:
 - The output should be a JSON object with the following fields
+  - "question": the original natural language question
   - "source": the name of the data source that the query will be executed on
   - "query": the SQL query that is translated from the natural language question
 - The SQL query should be compatible with the schema of the datasource.
@@ -157,9 +159,10 @@ class Nl2SqlE2EAgent(OpenAIAgent):
 
         logging.info(f'output_data: {output_data}')
         response = output_data.replace('```json', '').replace('```', '').strip()
-        key, query, result, error = None, None, None, None
+        question, key, query, result, error = None, None, None, None, None
         try:
             response = json.loads(response)
+            question = response['question']
             key = response['source']
             query = response['query']
             _, source, db, collection = key.split('/')
@@ -168,10 +171,14 @@ class Nl2SqlE2EAgent(OpenAIAgent):
             # Note: collection refers to schema in postgres (the level between database and table)
             cursor.execute(f'SET search_path TO {collection}')
             cursor.execute(query)
-            result = cursor.fetchall()
+            records = cursor.fetchall()
+            columns = [desc[0] for desc in cursor.description]
+            df = pd.DataFrame(records, columns=columns)
+            result = df.to_dict('records')
         except Exception as e:
             error = str(e)
         return {
+            'question': question,
             'source': key,
             'query': query,
             'result': result,

@@ -209,12 +209,7 @@ class SummarizerAgent(OpenAIAgent):
                 if 'result' in data:
                     query_results = data['result']
 
-                    df = pd.DataFrame(query_results['data'], columns=query_results['columns'])
-
-                    query_results_json = df.to_json(orient='records')
-                    logging.info(query_results_json)
-
-                    self.results[query] = query_results_json
+                    self.results[query] = query_results
                     self.todos.remove(query)
 
                     if len(self.todos) == 0:

@@ -101,7 +101,7 @@ class Producer:
         self._start_connection()
 
         self._start_stream()
-        logging.info("Started producer {p}".format(p=self.sid))
+        # logging.info("Started producer {p}".format(p=self.sid))
 
     def _start_connection(self):
         host = self.properties["db.host"]
