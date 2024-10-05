@@ -21,11 +21,7 @@ export default function Workspace() {
     return (
         <div
             className="full-parent-height"
-            style={{
-                padding: 20,
-                overflowY: "auto",
-                position: "relative",
-            }}
+            style={{ padding: 20, overflowY: "auto" }}
         >
             {contents.map((content, index) => {
                 const { type } = content;

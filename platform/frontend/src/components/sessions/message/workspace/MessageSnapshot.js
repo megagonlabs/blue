@@ -19,7 +19,14 @@ export default function MessageSnapshot({ content, index, hasError }) {
             icon={faIcon({ icon: faMessage })}
             compact
         >
-            <SectionCard style={{ overflowX: "auto" }}>
+            <SectionCard
+                style={{
+                    overflowX: "auto",
+                    position: "relative",
+                    whiteSpace: "pre-wrap",
+                    wordBreak: "break-all",
+                }}
+            >
                 <MessageContent
                     contentType={contentType}
                     streamData={streamData}
