@@ -24,6 +24,7 @@ export default function Workspace() {
             style={{
                 padding: 20,
                 overflowY: "auto",
+                position: "relative",
             }}
         >
             {contents.map((content, index) => {
