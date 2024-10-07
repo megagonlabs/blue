@@ -110,6 +110,10 @@ export const AuthProvider = ({ children }) => {
                 _.get(permissions, "form_designer", []),
                 ["visible"]
             ),
+            showRegistryList: hasIntersection(
+                _.get(permissions, "registry_list", ["visible"]),
+                ["visible"]
+            ),
             showPromptDesigner: hasIntersection(
                 _.get(permissions, "prompt_designer", []),
                 ["visible"]
