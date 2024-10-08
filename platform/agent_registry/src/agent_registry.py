@@ -49,6 +49,58 @@ class AgentRegistry(Registry):
     def _initialize_properties(self):
         super()._initialize_properties()
 
+    ######### agent groups
+    def add_agent_group(self, agent_group, created_by, description="", properties={}, rebuild=False):
+        super().register_record(agent_group, "agent_group", "/", created_by=created_by, description=description, properties=properties, rebuild=rebuild)
+    
+    def update_agent_group(self, agent_group, description="", icon=None, properties={}, rebuild=False):
+        super().update_record(agent_group, "agent_group", "/", description=description, icon=icon, properties=properties, rebuild=rebuild)
+
+    def remove_agent_group(self, agent_group, rebuild=False):
+        record = self.get_agent_group(agent_group)
+        super().deregister(record, rebuild=rebuild)
+
+    def get_agent_groups(self):
+        return self.list_records(type="agent_group", scope="/")
+
+    def get_agent_group(self, agent_group):
+        return super().get_record(agent_group, '/') 
+
+    def get_agent_group_description(self, agent_group):
+        return super().get_record_description(agent_group, '/') 
+
+    def set_agent_group_description(self, agent_group, description, rebuild=False):
+        super().set_record_description(agent_group, '/', description, rebuild=rebuild)
+
+
+    def get_agent_group_agents(self, agent_group):
+        return super().get_record_contents(agent_group, '/', type='agent') 
+
+    def get_agent_group_agent(self, agent_group, agent):
+        return super().get_record_content(agent_group, '/', agent, type='agent')
+
+    def add_agent_to_agent_group(self, agent_group, agent, description="", properties={}, rebuild=False):
+        super().register_record(agent, 'agent', '/' + agent_group, description=description, properties=properties, rebuild=rebuild)
+
+    def update_agent_in_agent_group(self, agent_group, agent,  description="", properties={}, rebuild=False):
+        super().update_record(parameter, "agent", "/" + agent_group, description=description, properties=properties, rebuild=rebuild)
+
+    def remove_agent_from_agent_group(self, agent_group, agent, rebuild=False):
+        record = self.get_agent_group_agent(agent_group, agent)
+        super().deregister(record, rebuild=rebuild) 
+
+    def get_agent_group_agent_properties(self, agent_group, agent):
+        return super().get_record_properties(agent, f'/{agent_group}')
+
+    def get_agent_property_in_agent_group(self, agent_group, agent, key):
+        return super().get_record_property(agent, f'/{agent_group}', key)
+
+    def set_agent_property_in_agent_group(self, agent_group, agent, key, value, rebuild=False):
+        super().set_record_property(agent, f'/{agent_group}', key, value, rebuild=rebuild)
+
+    def delete_agent_property_in_agent_group(self, agent_group, agent, key, rebuild=False):
+        super().delete_record_property(agent, f'/{agent_group}', key, rebuild=rebuild)
+
     ######### agent
     def add_agent(self, agent, created_by, description="", properties={}, rebuild=False):
         super().register_record(agent, "agent", "/", created_by=created_by, description=description, properties=properties, rebuild=rebuild)
@@ -59,6 +111,9 @@ class AgentRegistry(Registry):
     def remove_agent(self, agent, rebuild=False):
         record = self.get_agent(agent)
         super().deregister(record, rebuild=rebuild)
+
+    def get_agents(self):
+        return self.list_records(type="agent", scope="/")
 
     def get_agent(self, agent):
         return super().get_record(agent, '/')

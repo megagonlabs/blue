@@ -274,19 +274,33 @@ async def create_session(request: Request):
     created_date = session.get_metadata('created_date')
     result = {"id": session.sid, "name": session.sid, "description": "", 'created_date': created_date, 'created_by': uid, 'group_by': {'owner': True, 'member': False}}
     await request.app.connection_manager.broadcast(json.dumps({"type": "NEW_SESSION_BROADCAST", "session": result}))
-    # auto-join agents to session
-    agents = list(agent_registry.list_records().values())
-    for agent in agents:
-        should_join = False
-        auto_join = pydash.objects.get(agent, 'properties.auto_join', False)
-        if pydash.is_object(auto_join):
-            should_join = pydash.objects.get(auto_join, user_role, False)
-        elif pydash.is_boolean(auto_join):
-            should_join = auto_join
-        if should_join:
-            add_agent_to_session(session_id=session.sid, registry_name=agent_registry_id, agent_name=agent['name'], properties={})
     return JSONResponse(content={"result": result})
 
+@router.post("/session/{group_name}")
+async def create_session(request: Request, group_name):
+    user_role = request.state.user['role']
+    uid = request.state.user['uid']
+    acl_enforce(user_role, 'sessions', ['write_all', 'write_own'])
+    session = p.create_session(created_by=uid)
+    session.set_metadata('created_by', uid)
+    created_date = session.get_metadata('created_date')
+    result = {"id": session.sid, "name": session.sid, "description": "", 'created_date': created_date, 'created_by': uid, 'group_by': {'owner': True, 'member': False}}
+    await request.app.connection_manager.broadcast(json.dumps({"type": "NEW_SESSION_BROADCAST", "session": result}))
+    # auto-join agents in group to session
+
+    agents = agent_registry.get_agent_group_agents(group_name)
+    for agent in agents:
+        agent_name = agent["name"]
+        agent_properties = {}
+        agent_properties_from_registry = agent_registry.get_agent_properties(agent_name)
+        if agent_properties_from_registry:
+            agent_properties = json_utils.merge_json(agent_properties, agent_properties_from_registry)
+            agent_properties_in_group = agent_registry.get_agent_group_agent_properties(group_name, agent_name)
+            if agent_properties_in_group:
+                agent_properties = json_utils.merge_json(agent_properties, agent_properties_in_group)
+        
+            add_agent_to_session(session_id=session.sid, registry_name=agent_registry_id, agent_name=agent_name, properties=agent_properties)
+    return JSONResponse(content={"result": result})
 
 # @router.delete("/{platform_name}/session/{session_id}")
 # def delete_session(session_id):

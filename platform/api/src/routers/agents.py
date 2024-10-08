@@ -29,6 +29,11 @@ from fastapi.responses import JSONResponse
 
 
 ###### Schema
+class AgentGroup(BaseModel):
+    name: str
+    description: Union[str, None] = None
+    icon: Union[str, dict, None] = None
+
 class Agent(BaseModel):
     name: str
     description: Union[str, None] = None
@@ -188,12 +193,24 @@ def agent_acl_enforce(request: Request, agent: dict, write=False, throw=True):
         raise PermissionDenied
     return allow
 
+def agent_group_acl_enforce(request: Request, agent_group: dict, write=False, throw=True):
+    user_role = request.state.user['role']
+    uid = request.state.user['uid']
+    allow = False
+    if write and user_role in write_all_roles:
+        allow = True
+    elif write and user_role in write_own_roles:
+        if pydash.objects.get(agent, 'created_by', None) == uid:
+            allow = True
+    if throw and not allow:
+        raise PermissionDenied
+    return allow
 
 #############
 @router.get("/agents")
 def get_agents(request: Request):
     acl_enforce(request.state.user['role'], 'agent_registry', 'read_all')
-    registry_results = agent_registry.list_records()
+    registry_results = agent_registry.list_records(type="agent")
     registry_results = list(registry_results.values())
     merged_results = merge_container_results(registry_results)
     return JSONResponse(content={"results": merged_results})
@@ -452,3 +469,123 @@ def search_agents(request: Request, keywords, approximate: bool = False, hybrid:
     acl_enforce(request.state.user['role'], 'agent_registry', 'read_all')
     results = agent_registry.search_records(keywords, type=type, scope=scope, approximate=approximate, hybrid=hybrid, page=page, page_size=page_size)
     return JSONResponse(content={"results": results})
+
+#############
+# agent groups
+@router.get("/agents/groups")
+def get_agent_groups(request: Request):
+    acl_enforce(request.state.user['role'], 'agent_registry', 'read_all')
+    registry_results = agent_registry.get_agent_groups()
+    if registry_results is None:
+        registry_results = {}
+    registry_results = list(registry_results.values())
+    return JSONResponse(content={"results": registry_results})
+
+@router.get("/agents/group/{group_name}")
+def get_agent_group(request: Request, group_name):
+    agent_group_db = agent_registry.get_agent_group(group_name)
+    acl_enforce(request.state.user['role'], 'agent_registry', 'read_all')
+    result = agent_registry.get_agent_group(group_name)
+    return JSONResponse(content={"result": result})
+
+
+@router.put("/agents/group/{group_name}")
+def update_agent_group(request: Request, group_name, group: AgentGroup):
+    agent_group_db = agent_registry.get_agent_group(group_name)
+    agent_group_acl_enforce(request, agent_group_db, write=True)
+    # TODO: properties
+    agent_registry.update_agent_group(group_name, description=group.description, icon=group.icon, properties={}, rebuild=True)
+    # save
+    agent_registry.dump("/blue_data/config/" + agent_registry_id + ".agents.json")
+    return JSONResponse(content={"message": "Success"})
+
+@router.post("/agents/group/{group_name}")
+def add_agent_group(request: Request, group_name, group: AgentGroup):
+    agent_group_db = agent_registry.get_agent_group(group_name)
+    # if agent already exists, return 409 conflict error
+    if not pydash.is_empty(agent_group_db):
+        return JSONResponse(content={"message": "The name already exists."}, status_code=409)
+    acl_enforce(request.state.user['role'], 'agent_registry', ['write_all', 'write_own'])
+    # TODO: properties
+    agent_registry.add_agent_group(group_name, request.state.user['uid'], description=group.description, properties={}, rebuild=True)
+    # save
+    agent_registry.dump("/blue_data/config/" + agent_registry_id + ".agents.json")
+    return JSONResponse(content={"message": "Success"})
+
+@router.get("/agents/group/{group_name}/agents")
+def get_agent_group_agents(request: Request, group_name):
+    acl_enforce(request.state.user['role'], 'agent_registry', 'read_all')
+    results = agent_registry.get_agent_group_agents(group_name)
+    if results is None:
+        results = []
+    return JSONResponse(content={"results": results})
+
+@router.post("/agents/group/{group_name}/agent/{agent_name}")
+def add_agent_to_agent_group(request: Request, group_name, agent_name, agent: Agent): 
+    agent_existing = agent_registry.get_agent_group_agent(group_name, agent_name)
+
+    # if name already exists, return 409 conflict error
+    if not pydash.is_empty(agent_existing):
+        return JSONResponse(content={"message": "The name already exists."}, status_code=409)
+    agent_group_db = agent_registry.get_agent_group(group_name)
+    agent_group_acl_enforce(request, agent_group_db, write=True)
+    # TODO: properties
+    agent_registry.add_agent_to_agent_group(group_name, agent_name, description=agent.description, properties={}, rebuild=True)
+    # save
+    agent_registry.dump("/blue_data/config/" + agent_registry_id + ".agents.json")
+    return JSONResponse(content={"message": "Success"})
+
+
+@router.put("/agents/group/{group_name}/agent/{agent_name}")
+def update_agent_in_agent_group(request: Request, group_name, agent_name, agent: Agent):
+    agent_group_db = agent_registry.get_agent_group(group_name)
+    agent_group_acl_enforce(request, agent_group_db, write=True)
+    # TODO: properties
+    agent_registry.update_agent_in_agent_group(group_name, agent_name, description=agent.description, properties={}, rebuild=True)
+    # save
+    agent_registry.dump("/blue_data/config/" + agent_registry_id + ".agents.json")
+    return JSONResponse(content={"message": "Success"})
+
+@router.delete("/agents/group/{group_name}/agent/{agent_name}")
+def delete_agent_from_agent_group(request: Request, group_name, agent_name):
+    agent_group_db = agent_registry.get_agent_group(group_name)
+    agent_group_acl_enforce(request, agent_group_db, write=True)
+    agent_registry.remove_agent_from_agent_group(group_name, agent_name, rebuild=True)
+    # save
+    agent_registry.dump("/blue_data/config/" + agent_registry_id + ".agents.json")
+    return JSONResponse(content={"message": "Success"}) 
+
+@router.get("/agents/group/{group_name}/agent/{agent_name}/properties")
+def get_agent_properties_in_agent_group(request: Request, group_name, agent_name):
+    acl_enforce(request.state.user['role'], 'agent_registry', 'read_all')
+    results = agent_registry.get_agent_group_agent_properties(group_name, agent_name)
+    return JSONResponse(content={"results": results})
+
+
+@router.get("/agents/group/{group_name}/agent/{agent_name}/property/{property_name}")
+def get_agent_property_in_agent_group(request: Request, group_name, agent_name, property_name):
+    acl_enforce(request.state.user['role'], 'agent_registry', 'read_all')
+    result = agent_registry.get_agent_property_in_agent_group(group_name, agent_name, property_name)
+    return JSONResponse(content={"result": result})
+
+@router.post("/agents/group/{group_name}/agent/{agent_name}/property/{property_name}")
+def set_agent_property_in_agent_group(request: Request, group_name, agent_name, property_name, property: JSONStructure):
+    agent_group_db = agent_registry.get_agent_group(group_name)
+    agent_group_acl_enforce(request, agent_group_db, write=True)
+    agent_registry.set_agent_property_in_agent_group(group_name, agent_name, property_name, property, rebuild=True)
+    # save
+    agent_registry.dump("/blue_data/config/" + agent_registry_id + ".agents.json")
+    return JSONResponse(content={"message": "Success"})
+
+
+@router.delete("/agents/group/{group_name}/agent/{agent_name}/property/{property_name}")
+def delete_agent_property_in_agent_group(request: Request, group_name, agent_name, property_name):
+    agent_group_db = agent_registry.get_agent_group(group_name)
+    agent_group_acl_enforce(request, agent_group_db, write=True)
+    agent_registry.delete_agent_property_in_agent_group(group_name, agent_name, property_name, rebuild=True)
+    # save
+    agent_registry.dump("/blue_data/config/" + agent_registry_id + ".agents.json")
+    return JSONResponse(content={"message": "Success"})
+
+
+
