@@ -277,7 +277,7 @@ async def create_session(request: Request):
     return JSONResponse(content={"result": result})
 
 @router.post("/session/{group_name}")
-async def create_session(request: Request, group_name):
+async def create_session_in_group(request: Request, group_name):
     user_role = request.state.user['role']
     uid = request.state.user['uid']
     acl_enforce(user_role, 'sessions', ['write_all', 'write_own'])
