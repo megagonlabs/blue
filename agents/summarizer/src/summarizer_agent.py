@@ -173,7 +173,7 @@ class SummarizerAgent(OpenAIAgent):
                     queries = self.properties['queries']
                     for query_id in queries:
                         query_template = Template(queries[query_id])
-                        query = query_template.substitute(**self.properties, **session_data)
+                        query = query_template.safe_substitute(**self.properties, **session_data)
                         self.todos.add(query_id)
                         self.issue_sql_query(query, worker, id=query_id)
 
@@ -219,7 +219,7 @@ class SummarizerAgent(OpenAIAgent):
 
                         logging.info("DONE!")
                         summary_template = Template(properties['template'])
-                        summary = summary_template.substitute(**self.results,  **session_data)
+                        summary = summary_template.safe_substitute(**self.results,  **session_data)
 
                         if properties['rephrase']:
                             #### call api to rephrase summary
