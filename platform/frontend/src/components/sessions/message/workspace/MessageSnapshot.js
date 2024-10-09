@@ -5,7 +5,7 @@ import { Section, SectionCard } from "@blueprintjs/core";
 import { faMessage } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import _ from "lodash";
 import { useContext } from "react";
-export default function MessageSnapshot({ content, index, hasError }) {
+export default function MessageSnapshot({ content, hasError }) {
     const { appState } = useContext(AppContext);
     const sessionIdFocus = appState.session.sessionIdFocus;
     const streams = appState.session.sessions[sessionIdFocus].streams;
@@ -13,12 +13,7 @@ export default function MessageSnapshot({ content, index, hasError }) {
     const streamData = _.get(streams, [stream, "data"], []);
     const contentType = _.get(content, "message.contentType", null);
     return (
-        <Section
-            style={{ marginTop: index > 0 ? 20 : 0 }}
-            title="Message"
-            icon={faIcon({ icon: faMessage })}
-            compact
-        >
+        <Section title="Message" icon={faIcon({ icon: faMessage })} compact>
             <SectionCard
                 style={{
                     overflowX: "auto",

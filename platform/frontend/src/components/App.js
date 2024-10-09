@@ -55,7 +55,6 @@ export default function App({ children }) {
         [sessionDetails]
     );
     const { user, permissions } = useContext(AuthContext);
-    const userRole = _.get(user, "role", "guest");
     const {
         canWritePlatformUsers,
         canReadPlatformServices,
@@ -68,6 +67,7 @@ export default function App({ children }) {
         canReadAgentRegistry,
         canReadOperatorRegistry,
         canReadModelRegistry,
+        showRegistryList,
     } = permissions;
     const [isCreatingSession, setIsCreatingSession] = useState(false);
     const MENU_ITEMS = {
@@ -317,7 +317,7 @@ export default function App({ children }) {
                     canReadDataRegistry,
                     canReadOperatorRegistry,
                     canReadModelRegistry,
-                ]) && !_.isEqual(userRole, "demo") ? (
+                ]) && showRegistryList ? (
                     <>
                         <div>&nbsp;</div>
                         <MenuDivider title="Registries" />

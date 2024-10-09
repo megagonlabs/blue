@@ -17,6 +17,7 @@ import {
     faCircleCheck,
     faSearch,
     faTrash,
+    faUserPlus,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import axios from "axios";
 import classNames from "classnames";
@@ -219,7 +220,9 @@ export default function SessionMembersList({ loading, setLoading }) {
                                         />
                                         {!recentlyAdded.has(user.uid) &&
                                         !memberIds.has(user.uid) ? (
-                                            <a
+                                            <Button
+                                                intent={Intent.PRIMARY}
+                                                minimal
                                                 onClick={() => {
                                                     addMember(user);
                                                 }}
@@ -231,19 +234,19 @@ export default function SessionMembersList({ loading, setLoading }) {
                                                 style={{
                                                     position: "absolute",
                                                     right: 15,
-                                                    fontWeight: 600,
-                                                    cursor: "pointer",
                                                 }}
-                                            >
-                                                Add
-                                            </a>
+                                                icon={faIcon({
+                                                    icon: faUserPlus,
+                                                })}
+                                                text="Add"
+                                            />
                                         ) : (
                                             faIcon({
                                                 icon: faCircleCheck,
                                                 size: 20,
                                                 style: {
                                                     position: "absolute",
-                                                    right: 15,
+                                                    right: 39.387,
                                                     color: "#238551",
                                                 },
                                             })

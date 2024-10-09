@@ -1,5 +1,6 @@
 :root {
-    --separator-border: rgba(17, 20, 24, 0.15);
+    --separator-border: rgba(17, 20, 24, 0.15) !important;
+    --focus-border: #2d72d2 !important;
 }
 a.no-link-decoration {
     color: inherit !important;
