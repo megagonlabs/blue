@@ -12,11 +12,33 @@ import {
     faMessageQuote,
     faPlus,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
+import axios from "axios";
 import _ from "lodash";
-import { useContext } from "react";
+import Link from "next/link";
+import { useContext, useEffect, useState } from "react";
 export default function LaunchScreen() {
     const { user } = useContext(AuthContext);
     const name = _.get(user, "name", null);
+    const [agentGroups, setAgentGroups] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const LOADING_PLACEMENT = (
+        <Card className={Classes.SKELETON} style={{ marginBottom: 20 }}>
+            &nbsp;
+        </Card>
+    );
+    useEffect(() => {
+        setLoading(true);
+        axios
+            .get(
+                `/registry/${process.env.NEXT_PUBLIC_AGENT_REGISTRY_NAME}/agent_groups`
+            )
+            .then((response) => {
+                setAgentGroups(_.get(response, "data.results", []));
+            })
+            .finally(() => {
+                setLoading(false);
+            });
+    }, []);
     return (
         <div
             style={{
@@ -48,24 +70,39 @@ export default function LaunchScreen() {
                     size: 43.5,
                 })}
             </H1>
-            <Card
-                style={{
-                    cursor: "pointer",
-                    marginBottom: 20,
-                    marginLeft: 1,
-                    marginRight: 1,
-                }}
+            {loading ? (
+                <>
+                    {LOADING_PLACEMENT}
+                    {LOADING_PLACEMENT}
+                </>
+            ) : (
+                agentGroups.map((agentGroup) => (
+                    <Card
+                        style={{
+                            cursor: "pointer",
+                            marginBottom: 20,
+                            marginLeft: 1,
+                            marginRight: 1,
+                        }}
+                    >
+                        {_.get(agentGroup, "description", "-")}
+                    </Card>
+                ))
+            )}
+            <Link
+                className="no-link-decoration"
+                href={`/registry/${process.env.NEXT_PUBLIC_AGENT_REGISTRY_NAME}/agent_group/new`}
             >
-                agent group description
-            </Card>
-            <Button
-                minimal
-                alignText={Alignment.LEFT}
-                fill
-                large
-                icon={faIcon({ icon: faPlus })}
-                text="Add"
-            />
+                <Button
+                    className={loading ? Classes.SKELETON : null}
+                    minimal
+                    alignText={Alignment.LEFT}
+                    fill
+                    large
+                    icon={faIcon({ icon: faPlus })}
+                    text="Add"
+                />
+            </Link>
         </div>
     );
 }
