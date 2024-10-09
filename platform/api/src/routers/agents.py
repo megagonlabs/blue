@@ -34,6 +34,7 @@ class AgentGroup(BaseModel):
     description: Union[str, None] = None
     icon: Union[str, dict, None] = None
 
+
 class Agent(BaseModel):
     name: str
     description: Union[str, None] = None
@@ -193,6 +194,7 @@ def agent_acl_enforce(request: Request, agent: dict, write=False, throw=True):
         raise PermissionDenied
     return allow
 
+
 def agent_group_acl_enforce(request: Request, agent_group: dict, write=False, throw=True):
     user_role = request.state.user['role']
     uid = request.state.user['uid']
@@ -200,11 +202,12 @@ def agent_group_acl_enforce(request: Request, agent_group: dict, write=False, th
     if write and user_role in write_all_roles:
         allow = True
     elif write and user_role in write_own_roles:
-        if pydash.objects.get(agent, 'created_by', None) == uid:
+        if pydash.objects.get(agent_group, 'created_by', None) == uid:
             allow = True
     if throw and not allow:
         raise PermissionDenied
     return allow
+
 
 #############
 @router.get("/agents")
@@ -470,6 +473,7 @@ def search_agents(request: Request, keywords, approximate: bool = False, hybrid:
     results = agent_registry.search_records(keywords, type=type, scope=scope, approximate=approximate, hybrid=hybrid, page=page, page_size=page_size)
     return JSONResponse(content={"results": results})
 
+
 #############
 # agent groups
 @router.get("/agents/groups")
@@ -481,9 +485,9 @@ def get_agent_groups(request: Request):
     registry_results = list(registry_results.values())
     return JSONResponse(content={"results": registry_results})
 
+
 @router.get("/agents/group/{group_name}")
 def get_agent_group(request: Request, group_name):
-    agent_group_db = agent_registry.get_agent_group(group_name)
     acl_enforce(request.state.user['role'], 'agent_registry', 'read_all')
     result = agent_registry.get_agent_group(group_name)
     return JSONResponse(content={"result": result})
@@ -499,6 +503,7 @@ def update_agent_group(request: Request, group_name, group: AgentGroup):
     agent_registry.dump("/blue_data/config/" + agent_registry_id + ".agents.json")
     return JSONResponse(content={"message": "Success"})
 
+
 @router.post("/agents/group/{group_name}")
 def add_agent_group(request: Request, group_name, group: AgentGroup):
     agent_group_db = agent_registry.get_agent_group(group_name)
@@ -512,6 +517,7 @@ def add_agent_group(request: Request, group_name, group: AgentGroup):
     agent_registry.dump("/blue_data/config/" + agent_registry_id + ".agents.json")
     return JSONResponse(content={"message": "Success"})
 
+
 @router.get("/agents/group/{group_name}/agents")
 def get_agent_group_agents(request: Request, group_name):
     acl_enforce(request.state.user['role'], 'agent_registry', 'read_all')
@@ -520,8 +526,9 @@ def get_agent_group_agents(request: Request, group_name):
         results = []
     return JSONResponse(content={"results": results})
 
+
 @router.post("/agents/group/{group_name}/agent/{agent_name}")
-def add_agent_to_agent_group(request: Request, group_name, agent_name, agent: Agent): 
+def add_agent_to_agent_group(request: Request, group_name, agent_name, agent: Agent):
     agent_existing = agent_registry.get_agent_group_agent(group_name, agent_name)
 
     # if name already exists, return 409 conflict error
@@ -546,6 +553,7 @@ def update_agent_in_agent_group(request: Request, group_name, agent_name, agent:
     agent_registry.dump("/blue_data/config/" + agent_registry_id + ".agents.json")
     return JSONResponse(content={"message": "Success"})
 
+
 @router.delete("/agents/group/{group_name}/agent/{agent_name}")
 def delete_agent_from_agent_group(request: Request, group_name, agent_name):
     agent_group_db = agent_registry.get_agent_group(group_name)
@@ -553,7 +561,8 @@ def delete_agent_from_agent_group(request: Request, group_name, agent_name):
     agent_registry.remove_agent_from_agent_group(group_name, agent_name, rebuild=True)
     # save
     agent_registry.dump("/blue_data/config/" + agent_registry_id + ".agents.json")
-    return JSONResponse(content={"message": "Success"}) 
+    return JSONResponse(content={"message": "Success"})
+
 
 @router.get("/agents/group/{group_name}/agent/{agent_name}/properties")
 def get_agent_properties_in_agent_group(request: Request, group_name, agent_name):
@@ -567,6 +576,7 @@ def get_agent_property_in_agent_group(request: Request, group_name, agent_name, 
     acl_enforce(request.state.user['role'], 'agent_registry', 'read_all')
     result = agent_registry.get_agent_property_in_agent_group(group_name, agent_name, property_name)
     return JSONResponse(content={"result": result})
+
 
 @router.post("/agents/group/{group_name}/agent/{agent_name}/property/{property_name}")
 def set_agent_property_in_agent_group(request: Request, group_name, agent_name, property_name, property: JSONStructure):
@@ -586,6 +596,3 @@ def delete_agent_property_in_agent_group(request: Request, group_name, agent_nam
     # save
     agent_registry.dump("/blue_data/config/" + agent_registry_id + ".agents.json")
     return JSONResponse(content={"message": "Success"})
-
-
-
