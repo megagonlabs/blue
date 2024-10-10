@@ -177,6 +177,9 @@ class Worker:
         elif type(data) == dict:
             contents = data
             content_type = ContentType.JSON
+        else:
+            raise Exception("Unknown data type: " + str(type(data)))
+        
         return self.write(
             Message(MessageType.DATA, contents, content_type),
             output=output,
