@@ -2,6 +2,7 @@ from jsonschema.validators import Draft7Validator
 import pydash
 
 EMAIL_DOMAIN_ADDRESS_REGEXP = r"@((\w+?\.)+\w+)"
+BANNED_ENTITY_NAMES = ['new']
 
 
 class InvalidRequestJson(Exception):

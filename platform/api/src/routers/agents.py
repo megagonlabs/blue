@@ -5,7 +5,7 @@ import sys
 from fastapi import Request
 import pydash
 
-from constant import PermissionDenied, acl_enforce
+from constant import BANNED_ENTITY_NAMES, PermissionDenied, acl_enforce
 
 ###### Add lib path
 sys.path.append("./lib/")
@@ -230,6 +230,8 @@ def get_agent(request: Request, agent_name):
 @router.post("/agent/{agent_name}")
 def add_agent(request: Request, agent_name, agent: Agent):
     agent_db = agent_registry.get_agent(agent_name)
+    if agent_name in BANNED_ENTITY_NAMES:
+        return JSONResponse(content={"message": "The name cannot be used."}, status_code=403)
     # if agent already exists, return 409 conflict error
     if not pydash.is_empty(agent_db):
         return JSONResponse(content={"message": "The name already exists."}, status_code=409)
@@ -316,6 +318,8 @@ def get_agent_input(request: Request, agent_name, param_name):
 def add_agent_input(request: Request, agent_name, param_name, parameter: Parameter):
     input = agent_registry.get_agent_input(agent_name, param_name)
     output = agent_registry.get_agent_output(agent_name, param_name)
+    if param_name in BANNED_ENTITY_NAMES:
+        return JSONResponse(content={"message": "The name cannot be used."}, status_code=403)
     # if name already exists, return 409 conflict error
     if not pydash.is_empty(input) or not pydash.is_empty(output):
         return JSONResponse(content={"message": "The name already exists."}, status_code=409)
@@ -402,6 +406,8 @@ def get_agent_output(request: Request, agent_name, param_name):
 def add_agent_output(request: Request, agent_name, param_name, parameter: Parameter):
     input = agent_registry.get_agent_input(agent_name, param_name)
     output = agent_registry.get_agent_output(agent_name, param_name)
+    if param_name in BANNED_ENTITY_NAMES:
+        return JSONResponse(content={"message": "The name cannot be used."}, status_code=403)
     # if name already exists, return 409 conflict error
     if not pydash.is_empty(input) or not pydash.is_empty(output):
         return JSONResponse(content={"message": "The name already exists."}, status_code=409)
@@ -504,9 +510,21 @@ def update_agent_group(request: Request, group_name, group: AgentGroup):
     return JSONResponse(content={"message": "Success"})
 
 
+@router.delete('/agent_group/{group_name}')
+def delete_agent_group(request: Request, group_name):
+    agent_group_db = agent_registry.get_agent_group(group_name)
+    agent_group_acl_enforce(request, agent_group_db, write=True)
+    agent_registry.remove_agent_group(group_name, rebuild=True)
+    # save
+    agent_registry.dump("/blue_data/config/" + agent_registry_id + ".agents.json")
+    return JSONResponse(content={"message": "Success"})
+
+
 @router.post("/agent_group/{group_name}")
 def add_agent_group(request: Request, group_name, group: AgentGroup):
     agent_group_db = agent_registry.get_agent_group(group_name)
+    if group_name in BANNED_ENTITY_NAMES:
+        return JSONResponse(content={"message": "The name cannot be used."}, status_code=403)
     # if agent already exists, return 409 conflict error
     if not pydash.is_empty(agent_group_db):
         return JSONResponse(content={"message": "The name already exists."}, status_code=409)
@@ -530,7 +548,8 @@ def get_agent_group_agents(request: Request, group_name):
 @router.post("/agent_group/{group_name}/agent/{agent_name}")
 def add_agent_to_agent_group(request: Request, group_name, agent_name, agent: Agent):
     agent_existing = agent_registry.get_agent_group_agent(group_name, agent_name)
-
+    if agent_name in BANNED_ENTITY_NAMES:
+        return JSONResponse(content={"message": "The name cannot be used."}, status_code=403)
     # if name already exists, return 409 conflict error
     if not pydash.is_empty(agent_existing):
         return JSONResponse(content={"message": "The name already exists."}, status_code=409)

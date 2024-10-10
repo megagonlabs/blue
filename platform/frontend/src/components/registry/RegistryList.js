@@ -162,7 +162,7 @@ export default function RegistryList({ type }) {
                                             size: 20,
                                         })}
                                     </div>
-                                    Add {type}
+                                    Add {ENTITY_TYPE_LOOKUP[type].key}
                                 </div>
                             </Card>
                         </Link>

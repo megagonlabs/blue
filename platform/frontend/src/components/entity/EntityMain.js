@@ -1,4 +1,4 @@
-import { ENTITY_ICON_40 } from "@/components/constant";
+import { ENTITY_ICON_40, ENTITY_TYPE_LOOKUP } from "@/components/constant";
 import { AuthContext } from "@/components/contexts/auth-context";
 import EntityIconEditor from "@/components/entity/icon/EntityIconEditor";
 import { faIcon } from "@/components/icon";
@@ -77,9 +77,13 @@ export default function EntityMain({
             .then(() => {
                 let params = _.cloneDeep(routerQueryParams);
                 if (
-                    ["agent", "data", "operator", "model"].includes(
-                        _.nth(params, -2)
-                    )
+                    [
+                        "agent",
+                        "agent_group",
+                        "data",
+                        "operator",
+                        "model",
+                    ].includes(_.nth(params, -2))
                 ) {
                     params.pop();
                 } else {
@@ -89,6 +93,14 @@ export default function EntityMain({
                     intent: Intent.SUCCESS,
                     message: `Deleted ${entity.name} ${entity.type}`,
                 });
+                const lastParam = _.last(params);
+                if (_.has(ENTITY_TYPE_LOOKUP, [lastParam, "backtrackCrumb"])) {
+                    params[_.size(params) - 1] = _.get(
+                        ENTITY_TYPE_LOOKUP,
+                        [lastParam, "backtrackCrumb"],
+                        lastParam
+                    );
+                }
                 router.push(`/${params.join("/")}`);
             })
             .catch((error) => {
@@ -143,7 +155,7 @@ export default function EntityMain({
     })();
     const canDuplicateEntity = (() => {
         if (
-            _.isEqual(entity.type, "agent") &&
+            ["agent", "agent_group"].includes(entity.type) &&
             permissions.canWriteAgentRegistry
         ) {
             return true;

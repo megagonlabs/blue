@@ -10,6 +10,7 @@ const {
     faFunction,
     faCube,
     faKeynote,
+    faUsersViewfinder,
 } = require("@fortawesome/sharp-duotone-solid-svg-icons");
 const { vanillaRenderers } = require("@jsonforms/vanilla-renderers");
 import BooleanRenderer, {
@@ -55,6 +56,7 @@ import VegaRenderer, { VegaTester } from "./jsonforms/renderers/Vega";
 export const ENTITY_TYPE_LOOKUP = {
         agent: { icon: faCircleA, key: "agent" },
         data: { icon: faServer, key: "source" },
+        agent_group: { icon: faUsersViewfinder, backtrackCrumb: "agent" },
         input: { icon: faArrowRightToArc },
         output: { icon: faArrowRightFromArc },
         source: { icon: faServer },
