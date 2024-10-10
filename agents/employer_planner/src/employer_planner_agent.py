@@ -412,11 +412,26 @@ class EmployerPlannerAgent(Agent):
             self.write_to_new_stream(worker, "Your list is empty...", "TEXT")
         
 
-    def show_list_jobseekers(self, worker, context=None, entities=None, input=None):
-
+    def _identify_list(self, worker, context=None, entities=None, input=None):
         list = "short_list"
         if "LIST" in entities:
-            list = entities["LIST"].replace(" ", "_")
+            entities_list = entities["LIST"]
+
+            # if list, take first one
+            if type(entities_list) == list:
+                if len(entities_list) == 0:
+                    return list
+                elif len(entities_list) == 1:
+                    entities_list = entities_list[0]
+
+            list = entities_list.replace(" ", "_")
+        
+        return list
+
+    def show_list_jobseekers(self, worker, context=None, entities=None, input=None):
+        
+        # identify list to operate on
+        list = self._identify_list(worker, context=context, entities=entities, input=input)
 
         if "QUERY" in entities:
             query = entities["QUERY"]
@@ -427,8 +442,7 @@ class EmployerPlannerAgent(Agent):
             expanded_query += query
 
             # create a unique id
-            if id is None:
-                id = util_functions.create_uuid()
+            id = util_functions.create_uuid()
 
             # query plan
             query_plan = [
@@ -450,58 +464,105 @@ class EmployerPlannerAgent(Agent):
             
     def add_list_jobseekers(self, worker, context=None, entities=None, input=None):
         
-        list = "short_list"
-        if "LIST" in entities:
-            list = entities["LIST"].replace(" ", "_")
+        # identify list to operate on
+        list = self._identify_list(worker, context=context, entities=entities, input=input)
 
+        # create list, if not exists
         lists = worker.get_session_data("lists")
         if list not in lists:
             # create list
             worker.set_session_data("lists."+list, {})
 
-        if "QUERY" in entities:
-            pass
-        elif "JOB_SEEKER_ID" in entities:
+        if "JOB_SEEKER_ID" in entities:
             job_seeker_ids = entities["JOB_SEEKER_ID"]
             if type(job_seeker_ids) == str:
                 job_seeker_ids = [job_seeker_ids]
             
-            for job_seeker_id in entities["JOB_SEEKER_ID"]:
+            for job_seeker_id in job_seeker_ids:
                 worker.set_session_data("lists."+list+"."+job_seeker_id, True)
 
-            self._display_list(list, text="Your list now contains: \n")
+            self._display_list(worker, list, text="Your list now contains: \n")
         else:
-            self.write_to_new_stream(worker, "Please specify applies with their ID or as a query to add to the list...", "TEXT")
-            return
+            query = None
+            if "QUERY" in entities:
+                query = entities["QUERY"]
+            else:
+                query = entities["INPUT"]
+        
+            # Expand query with context as context
+            expanded_query = "Answer the following question with the below context. Ignore information in context if the query overrides context:\n"
+            expanded_query += json.dumps(context, indent=3) + "\n"
+            expanded_query += query
+
+            # create a unique id
+            id = util_functions.create_uuid()
+
+            # query plan
+            query_plan = [
+                [self.name + ".QUERY", "NL2SQL-E2E_INPLAN.DEFAULT"],
+                ["NL2SQL-E2E_INPLAN.DEFAULT", self.name + ".LIST_FROM_QUERY"],
+            ]
+
+            # write query to stream
+            query_stream = self.write_to_new_stream(worker, expanded_query, "QUERY", id=id)
+
+            # build query plan
+            plan = self.build_plan(query_plan, query_stream, id=id)
+
+            # write plan
+            self.write_to_new_stream(worker, plan, "PLAN", tags=["PLAN"], id=id)
         
         
     def remove_list_jobseekers(self, worker, context=None, entities=None, input=None):
         
-        list = "short_list"
-        if "LIST" in entities:
-            list = entities["LIST"].replace(" ", "_")
+        # identify list to operate on
+        list = self._identify_list(worker, context=context, entities=entities, input=input)
         
+        # error, if list doesn't exist
         lists = worker.get_session_data("lists")
         if list not in lists:
             self.write_to_new_stream(worker, "No such list found...", "TEXT")
             return
 
 
-        if "QUERY" in entities:
-            pass
-        elif "JOB_SEEKER_ID" in entities:
+        if "JOB_SEEKER_ID" in entities:
             job_seeker_ids = entities["JOB_SEEKER_ID"]
             if type(job_seeker_ids) == str:
                 job_seeker_ids = [job_seeker_ids]
             
-            for job_seeker_id in entities["JOB_SEEKER_ID"]:
+            for job_seeker_id in job_seeker_ids:
                 worker.set_session_data("lists."+list+"."+job_seeker_id, False)
 
-            self._display_list(list, text="Your list now contains: \n")
+            self._display_list(worker, list, text="Your list now contains: \n")
         else:
-            self.write_to_new_stream(worker, "Please specify applies with their ID to remove from the list...", "TEXT")
-            return
+            query = None
+            if "QUERY" in entities:
+                query = entities["QUERY"]
+            else:
+                query = entities["INPUT"]
 
+            # Expand query with context as context
+            expanded_query = "Answer the following question with the below context. Ignore information in context if the query overrides context:\n"
+            expanded_query += json.dumps(context, indent=3) + "\n"
+            expanded_query += query
+
+            # create a unique id
+            id = util_functions.create_uuid()
+
+            # query plan
+            query_plan = [
+                [self.name + ".QUERY", "NL2SQL-E2E_INPLAN.DEFAULT"],
+                ["NL2SQL-E2E_INPLAN.DEFAULT", self.name + ".LIST_FROM_QUERY"],
+            ]
+
+            # write query to stream
+            query_stream = self.write_to_new_stream(worker, expanded_query, "QUERY", id=id)
+
+            # build query plan
+            plan = self.build_plan(query_plan, query_stream, id=id)
+
+            # write plan
+            self.write_to_new_stream(worker, plan, "PLAN", tags=["PLAN"], id=id)
 
     def summarize_jobseekers_jd(self, worker, context=None, entities=None, input=None):
         pass 
@@ -575,6 +636,12 @@ class EmployerPlannerAgent(Agent):
 
     
     def issue_nl_query(self, worker, context=None, entities=None, input=None):
+
+        if "QUERY" not in entities:
+            self.write_to_new_stream(worker, "Please specify a query...", "TEXT")
+            return
+        
+        query = entities["QUERY"]
 
         # Expand query with context as context
         expanded_query = "Answer the following question with the below context. Ignore information in context if the query overrides context:\n"
