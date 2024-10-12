@@ -34,7 +34,7 @@ import _ from "lodash";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useContext, useEffect, useMemo, useState } from "react";
+import { useContext, useMemo, useState } from "react";
 import DebugPanel from "./debugger/DebugPanel";
 import { hasTrue } from "./helper";
 import Settings from "./navigation/Settings";
@@ -42,8 +42,8 @@ import UserAccountPanel from "./navigation/UserAccountPanel";
 export default function App({ children }) {
     const router = useRouter();
     const { appState, appActions } = useContext(AppContext);
-    const sessionDetails = appState.session.sessionDetails;
-    const sessionIdFocus = appState.session.sessionIdFocus;
+    const { sessionDetails, sessionIdFocus, creatingSession } =
+        appState.session;
     const { socket, isSocketOpen } = useSocket();
     const recentSessions = useMemo(
         () =>
@@ -69,7 +69,6 @@ export default function App({ children }) {
         canReadModelRegistry,
         showRegistryList,
     } = permissions;
-    const [isCreatingSession, setIsCreatingSession] = useState(false);
     const MENU_ITEMS = {
         my_sessions: {
             href: `/sessions`,
@@ -92,12 +91,11 @@ export default function App({ children }) {
             text: "New Session",
             icon: faInboxArrowUp,
             visible: canWriteSessions,
-            disabled: isCreatingSession || !isSocketOpen,
+            disabled: creatingSession || !isSocketOpen,
             intent: Intent.PRIMARY,
             onClick: () => {
                 if (!isSocketOpen) return;
-                setIsCreatingSession(true);
-                appActions.session.createSession(socket);
+                appActions.session.createSession({ socket });
             },
         },
         data_registry: {
@@ -156,11 +154,6 @@ export default function App({ children }) {
         },
     };
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-    useEffect(() => {
-        if (appState.session.openAgentsDialogTrigger) {
-            setIsCreatingSession(false);
-        }
-    }, [appState.session.openAgentsDialogTrigger]);
     return (
         <div>
             <Navbar style={{ paddingLeft: 20, paddingRight: 20 }}>

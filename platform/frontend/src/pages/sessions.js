@@ -69,7 +69,6 @@ export default function Sessions() {
     const [isSessionDetailOpen, setIsSessionDetailOpen] = useState(false);
     const { socket, reconnectWs, isSocketOpen } = useSocket();
     const { user, settings } = useContext(AuthContext);
-    const userRole = _.get(user, "role", "guest");
     const { authenticating } = useContext(SocketContext);
     const sendSessionMessage = (message) => {
         if (!isSocketOpen) return;
@@ -181,10 +180,7 @@ export default function Sessions() {
     const sessionName = _.get(sessionDetails, "name", sessionIdFocus);
     const sessionDescription = _.get(sessionDetails, "description", "");
     useEffect(() => {
-        if (
-            !_.isEqual(userRole, "demo") &&
-            appState.session.openAgentsDialogTrigger
-        ) {
+        if (appState.session.openAgentsDialogTrigger) {
             setIsAddAgentsOpen(true);
             setSkippable(true);
         }

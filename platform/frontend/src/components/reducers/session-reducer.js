@@ -16,6 +16,8 @@ export const defaultState = {
     terminatedInteraction: new Set(),
     expandedMessageStream: new Set(),
     sessionGroupBy: "all",
+    creatingSession: false,
+    joinAgentGroupSession: false,
 };
 export default function sessionReducer(
     state = defaultState,

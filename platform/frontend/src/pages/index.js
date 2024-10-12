@@ -1,7 +1,10 @@
 import { ENTITY_ICON_40 } from "@/components/constant";
+import { AppContext } from "@/components/contexts/app-context";
 import { AuthContext } from "@/components/contexts/auth-context";
 import EntityIcon from "@/components/entity/EntityIcon";
+import { useSocket } from "@/components/hooks/useSocket";
 import { faIcon } from "@/components/icon";
+import { AppToaster } from "@/components/toaster";
 import {
     Alignment,
     Button,
@@ -10,13 +13,19 @@ import {
     Colors,
     H1,
 } from "@blueprintjs/core";
-import { faPlus } from "@fortawesome/sharp-duotone-solid-svg-icons";
+import {
+    faHourglassStart,
+    faPlus,
+} from "@fortawesome/sharp-duotone-solid-svg-icons";
 import axios from "axios";
 import _ from "lodash";
 import Link from "next/link";
+import { useRouter } from "next/router";
 import { useContext, useEffect, useState } from "react";
 export default function LaunchScreen() {
     const { user, permissions } = useContext(AuthContext);
+    const { appState, appActions } = useContext(AppContext);
+    const router = useRouter();
     const name = _.get(user, "name", null);
     const [agentGroups, setAgentGroups] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -50,6 +59,27 @@ export default function LaunchScreen() {
                 setLoading(false);
             });
     }, []);
+    const { socket, isSocketOpen } = useSocket();
+    const [launchGroup, setLaunchGroup] = useState(null);
+    const { creatingSession } = appState.session;
+    const joinAgentGroupSession = (groupName) => {
+        if (!isSocketOpen || creatingSession) return;
+        setLaunchGroup(groupName);
+        AppToaster.show({
+            message: `Launching ${groupName}`,
+            icon: faIcon({ icon: faHourglassStart }),
+        });
+        appActions.session.createSession({ socket, groupName });
+    };
+    useEffect(() => {
+        if (appState.session.joinAgentGroupSession) {
+            router.push("/sessions");
+            appActions.session.setState({
+                key: "joinAgentGroupSession",
+                value: false,
+            });
+        }
+    }, [appState.session.joinAgentGroupSession]);
     return (
         <div
             style={{
@@ -83,25 +113,46 @@ export default function LaunchScreen() {
                     {LOADING_PLACEMENT}
                 </>
             ) : (
-                agentGroups.map((agentGroup) => (
-                    <Card
-                        style={{
-                            cursor: "pointer",
-                            marginBottom: 20,
-                            marginLeft: 1,
-                            marginRight: 1,
-                            display: "flex",
-                            gap: 20,
-                            padding: 15,
-                            whiteSpace: "pre-wrap",
-                        }}
-                    >
-                        <Card style={ENTITY_ICON_40}>
-                            <EntityIcon entity={agentGroup} />
+                agentGroups.map((agentGroup) => {
+                    let opacity = creatingSession ? 0.6 : null;
+                    return (
+                        <Card
+                            style={{
+                                position: "relative",
+                                cursor: "pointer",
+                                marginBottom: 20,
+                                marginLeft: 1,
+                                marginRight: 1,
+                                display: "flex",
+                                gap: 20,
+                                padding: 15,
+                                whiteSpace: "pre-wrap",
+                                pointerEvents: creatingSession ? "none" : null,
+                            }}
+                            onClick={() =>
+                                joinAgentGroupSession(agentGroup.name)
+                            }
+                        >
+                            <Card style={{ ...ENTITY_ICON_40, opacity }}>
+                                <EntityIcon entity={agentGroup} />
+                            </Card>
+                            <div
+                                style={{ width: `calc(100% - 120px)`, opacity }}
+                            >
+                                {_.get(agentGroup, "description", "-")}
+                            </div>
+                            {creatingSession &&
+                            _.isEqual(launchGroup, agentGroup.name) ? (
+                                <Button
+                                    large
+                                    style={{ position: "absolute", right: 15 }}
+                                    minimal
+                                    loading={creatingSession}
+                                />
+                            ) : null}
                         </Card>
-                        <div>{_.get(agentGroup, "description", "-")}</div>
-                    </Card>
-                ))
+                    );
+                })
             )}
             {permissions.canWriteAgentRegistry ? (
                 <Link
@@ -109,6 +160,7 @@ export default function LaunchScreen() {
                     href={`/registry/${process.env.NEXT_PUBLIC_AGENT_REGISTRY_NAME}/agent_group/new`}
                 >
                     <Button
+                        disabled={creatingSession}
                         className={loading ? Classes.SKELETON : null}
                         minimal
                         alignText={Alignment.LEFT}
