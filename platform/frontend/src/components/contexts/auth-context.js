@@ -86,6 +86,10 @@ export const AuthProvider = ({ children }) => {
     const getPermissions = (user) => {
         const permissions = _.get(user, "permissions", null);
         return {
+            launchScreen: hasIntersection(
+                _.get(permissions, "launch_screen", []),
+                ["active"]
+            ),
             canWriteAgentRegistry: hasIntersection(
                 _.get(permissions, "agent_registry", []),
                 ["write_all", "write_own"]
