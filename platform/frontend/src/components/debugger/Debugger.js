@@ -20,10 +20,11 @@ export default function Debugger() {
         <>
             <Card style={{ borderRadius: 0, padding: "5px 15px" }}>
                 <ButtonGroup minimal>
-                    <HTMLSelect id="debugger-message-type" minimal>
-                        <option value="all">All</option>
-                    </HTMLSelect>
-                    <Tooltip minimal content="Clear all" placement="bottom">
+                    <Tooltip
+                        minimal
+                        content="Clear debugger"
+                        placement="bottom-start"
+                    >
                         <Button
                             onClick={appActions.debug.clearMessages}
                             icon={faIcon({
@@ -33,6 +34,10 @@ export default function Debugger() {
                             })}
                         />
                     </Tooltip>
+                    <Divider />
+                    <HTMLSelect id="debugger-message-type" minimal>
+                        <option value="all">All</option>
+                    </HTMLSelect>
                 </ButtonGroup>
             </Card>
             <div

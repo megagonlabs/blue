@@ -44,7 +44,6 @@ export default function App({ children }) {
     const { appState, appActions } = useContext(AppContext);
     const { sessionDetails, sessionIdFocus, creatingSession } =
         appState.session;
-    console.log(router);
     const { socket, isSocketOpen } = useSocket();
     const recentSessions = useMemo(
         () =>
