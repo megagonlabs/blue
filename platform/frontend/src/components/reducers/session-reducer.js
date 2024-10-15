@@ -36,6 +36,23 @@ export default function sessionReducer(
     let sessions = _.cloneDeep(state.sessions);
     let pinnedSessionIds = _.clone(state.pinnedSessionIds);
     switch (type) {
+        case "session/workspace/clear": {
+            return {
+                ...state,
+                sessionWorkspace: { ...sessionWorkspace, [sessionIdFocus]: [] },
+            };
+        }
+        case "session/workspace/remove": {
+            let contents = _.get(sessionWorkspace, sessionIdFocus, []);
+            _.pullAt(contents, [payload]);
+            return {
+                ...state,
+                sessionWorkspace: {
+                    ...sessionWorkspace,
+                    [sessionIdFocus]: contents,
+                },
+            };
+        }
         case "session/sessions/addToWorkspace": {
             let workspaceContents = _.get(sessionWorkspace, sessionIdFocus, []);
             workspaceContents.push(payload);

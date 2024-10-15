@@ -44,9 +44,11 @@ export default function MessageSnapshot({ content, hasError, index }) {
                                     intent={Intent.DANGER}
                                     className={Classes.POPOVER_DISMISS}
                                     text="Confirm"
-                                    onClick={() => {
-                                        console.log(index);
-                                    }}
+                                    onClick={() =>
+                                        appActions.session.removeWorkspaceContent(
+                                            index
+                                        )
+                                    }
                                 />
                             </div>
                         }

@@ -29,6 +29,12 @@ export const sessionAction = (dispatch) => ({
     removePinnedSessionId: (payload) => {
         dispatch({ type: "session/pinnedSessionIds/remove", payload });
     },
+    clearCurrentWorkspace: () => {
+        dispatch({ type: "session/workspace/clear" });
+    },
+    removeWorkspaceContent: (payload) => {
+        dispatch({ type: "session/workspace/remove", payload });
+    },
     toggleWorkspaceCollapse: (payload) => {
         dispatch({ type: "session/toggleWorkspaceCollapse/toggle", payload });
     },

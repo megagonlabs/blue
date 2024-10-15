@@ -18,7 +18,7 @@ import {
 import _ from "lodash";
 import { useContext, useRef } from "react";
 export default function Workspace() {
-    const { appState } = useContext(AppContext);
+    const { appState, appActions } = useContext(AppContext);
     const { sessionWorkspace, sessionIdFocus } = appState.session;
     const hasError = useRef(false);
     const contents = _.get(sessionWorkspace, sessionIdFocus, []);
@@ -43,6 +43,9 @@ export default function Workspace() {
                         placement="bottom-start"
                     >
                         <Button
+                            onClick={() =>
+                                appActions.session.clearCurrentWorkspace()
+                            }
                             icon={faIcon({
                                 icon: faBan,
                                 className: "fa-rotate-by",
