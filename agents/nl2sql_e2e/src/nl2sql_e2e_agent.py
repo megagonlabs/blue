@@ -52,6 +52,7 @@ Here are the requirements:
   - "query": the SQL query that is translated from the natural language question
 - The SQL query should be compatible with the schema of the datasource.
 - Always do case-${sensitivity} matching for string comparison.
+- The query should starts with any of the following prefixes: ${force_query_prefixes}
 - Output the JSON directly. Do not generate explanation or other additional output.
 
 Data sources:
@@ -75,6 +76,7 @@ agent_properties = {
     "openai.max_tokens": 512,
     "nl2q.case_insensitive": True,
     "nl2q.valid_query_prefixes": ["SELECT"],
+    "nl2q.force_query_prefixes": ["SELECT"],
     "listens": {
         "DEFAULT": {
             "includes": ["USER"],
@@ -151,7 +153,8 @@ class Nl2SqlE2EAgent(OpenAIAgent):
         return {
             'sources': sources,
             'question': input_data,
-            'sensitivity': 'insensitive' if properties['nl2q.case_insensitive'] else 'sensitive'
+            'sensitivity': 'insensitive' if properties['nl2q.case_insensitive'] else 'sensitive',
+            'force_query_prefixes': ', '.join(properties['nl2q.force_query_prefixes'])
         }
 
     def process_output(self, output_data, properties=None):
