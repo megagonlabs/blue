@@ -177,6 +177,8 @@ class Nl2SqlE2EAgent(OpenAIAgent):
             records = cursor.fetchall()
             columns = [desc[0] for desc in cursor.description]
             df = pd.DataFrame(records, columns=columns)
+            # substitue None for NaN
+            df = df.where(pd.notnull(df), None)
             result = df.to_dict('records')
         except Exception as e:
             error = str(e)
