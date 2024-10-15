@@ -58,6 +58,11 @@ export default function Workspace() {
                         <Button
                             icon={faIcon({ icon: faArrowsToLine })}
                             minimal
+                            onClick={() =>
+                                appActions.session.collapseAllWorkspace(
+                                    sessionIdFocus
+                                )
+                            }
                         />
                     </Tooltip>
                 </ButtonGroup>

@@ -621,7 +621,11 @@ export default function Sessions() {
                                             !event.shiftKey &&
                                             isSocketOpen
                                         ) {
-                                            sendSessionMessage(message);
+                                            const trimmedMessage =
+                                                _.trim(message);
+                                            if (_.isEmpty(trimmedMessage))
+                                                return;
+                                            sendSessionMessage(trimmedMessage);
                                             event.preventDefault();
                                         }
                                     }}

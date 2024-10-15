@@ -36,7 +36,10 @@ export const sessionAction = (dispatch) => ({
         dispatch({ type: "session/workspace/remove", payload });
     },
     toggleWorkspaceCollapse: (payload) => {
-        dispatch({ type: "session/toggleWorkspaceCollapse/toggle", payload });
+        dispatch({ type: "session/workspaceCollapse/toggle", payload });
+    },
+    collapseAllWorkspace: (payload) => {
+        dispatch({ type: "session/workspaceCollapse/all", payload });
     },
     createSession: ({ socket, groupName = null }) => {
         let postSessionUrl = `/sessions/session${

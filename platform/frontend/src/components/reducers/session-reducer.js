@@ -59,7 +59,18 @@ export default function sessionReducer(
             _.set(sessionWorkspace, sessionIdFocus, workspaceContents);
             return { ...state, sessionWorkspace };
         }
-        case "session/toggleWorkspaceCollapse/toggle": {
+        case "session/workspaceCollapse/all": {
+            let workspaceContent = _.get(sessionWorkspace, sessionIdFocus, []);
+            for (let i = 0; i < _.size(workspaceContent); i++) {
+                _.set(
+                    sessionWorkspaceCollapse,
+                    _.get(workspaceContent, [i, "message", "stream"], null),
+                    true
+                );
+            }
+            return { ...state, sessionWorkspaceCollapse };
+        }
+        case "session/workspaceCollapse/toggle": {
             let collapseState = _.get(sessionWorkspaceCollapse, payload, false);
             return {
                 ...state,
