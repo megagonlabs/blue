@@ -74,7 +74,7 @@ class SQLExecutorAgent(Agent):
             logging.info(len(records))
             columns = [desc[0] for desc in cursor.description]
             df = pd.DataFrame(records, columns=columns)
-            result = df.to_dict('records')
+            result = df.to_json(orient='records')
         except Exception as e:
             error = str(e)
         return result
