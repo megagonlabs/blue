@@ -29,6 +29,9 @@ export const sessionAction = (dispatch) => ({
     removePinnedSessionId: (payload) => {
         dispatch({ type: "session/pinnedSessionIds/remove", payload });
     },
+    toggleWorkspaceCollapse: (payload) => {
+        dispatch({ type: "session/toggleWorkspaceCollapse/toggle", payload });
+    },
     createSession: ({ socket, groupName = null }) => {
         let postSessionUrl = `/sessions/session${
             _.isEmpty(groupName) ? "" : "/" + groupName

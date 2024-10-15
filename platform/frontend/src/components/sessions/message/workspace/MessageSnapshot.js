@@ -14,7 +14,7 @@ import { faMessage, faTrash } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import _ from "lodash";
 import { useContext } from "react";
 export default function MessageSnapshot({ content, hasError, index }) {
-    const { appState } = useContext(AppContext);
+    const { appState, appActions } = useContext(AppContext);
     const sessionIdFocus = appState.session.sessionIdFocus;
     const streams = appState.session.sessions[sessionIdFocus].streams;
     const stream = _.get(content, "message.stream", null);
@@ -22,6 +22,15 @@ export default function MessageSnapshot({ content, hasError, index }) {
     const contentType = _.get(content, "message.contentType", null);
     return (
         <Section
+            collapseProps={{
+                isOpen: !_.get(
+                    appState,
+                    ["session", "sessionWorkspaceCollapse", stream],
+                    false
+                ),
+                onToggle: () =>
+                    appActions.session.toggleWorkspaceCollapse(stream),
+            }}
             collapsible
             title="Message"
             icon={faIcon({ icon: faMessage })}

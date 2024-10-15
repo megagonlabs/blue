@@ -10,6 +10,7 @@ export const defaultState = {
     userId: null,
     sessionListPanelCollapsed: true,
     showWorkspacePanel: false,
+    sessionWorkspaceCollapse: {},
     sessionWorkspace: {},
     unreadSessionIds: new Set(),
     pinnedSessionIds: new Set(),
@@ -29,6 +30,7 @@ export default function sessionReducer(
         terminatedInteraction,
         expandedMessageStream,
         sessionWorkspace,
+        sessionWorkspaceCollapse,
     } = state;
     const { sessionIdFocus } = state;
     let sessions = _.cloneDeep(state.sessions);
@@ -39,6 +41,16 @@ export default function sessionReducer(
             workspaceContents.push(payload);
             _.set(sessionWorkspace, sessionIdFocus, workspaceContents);
             return { ...state, sessionWorkspace };
+        }
+        case "session/toggleWorkspaceCollapse/toggle": {
+            let collapseState = _.get(sessionWorkspaceCollapse, payload, false);
+            return {
+                ...state,
+                sessionWorkspaceCollapse: {
+                    ...sessionWorkspaceCollapse,
+                    [payload]: !collapseState,
+                },
+            };
         }
         case "session/pinnedSessionIds/add": {
             pinnedSessionIds.add(payload);

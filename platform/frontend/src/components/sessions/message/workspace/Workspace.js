@@ -71,10 +71,12 @@ export default function Workspace() {
                     if (!hasError.current) {
                         if (_.isEqual(type, "session")) {
                             return (
-                                <div style={{ marginTop: index > 0 ? 20 : 0 }}>
+                                <div
+                                    key={index}
+                                    style={{ marginTop: index > 0 ? 20 : 0 }}
+                                >
                                     <MessageSnapshot
                                         hasError={hasError}
-                                        key={index}
                                         index={index}
                                         content={content}
                                     />
