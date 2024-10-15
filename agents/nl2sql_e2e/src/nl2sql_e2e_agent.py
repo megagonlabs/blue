@@ -74,6 +74,7 @@ agent_properties = {
     "openai.temperature": 0,
     "openai.max_tokens": 512,
     "nl2q.case_insensitive": True,
+    "nl2q.valid_query_prefixes": ["SELECT"],
     "listens": {
         "DEFAULT": {
             "includes": ["USER"],
@@ -165,6 +166,8 @@ class Nl2SqlE2EAgent(OpenAIAgent):
             question = response['question']
             key = response['source']
             query = response['query']
+            if not any(query.upper().startswith(prefix.upper()) for prefix in properties['nl2q.valid_query_prefixes']):
+                raise ValueError(f'Invalid query prefix: {query}')
             _, source, db, collection = key.split('/')
             source_db = self.registry.connect_source(source)
             cursor = source_db._db_connect(db).cursor()
