@@ -162,7 +162,7 @@ class Producer:
     def _write_message_to_stream(self, json_message):
         # logging.info("json_message: " + json_message)
         self.connection.xadd(self.cid, json_message)
-        logging.info("Streamed into {s} message {m}".format(s=self.sid, m=str(json_message)))
+        logging.info("Streamed into {s} message {m}".format(s=self.cid, m=str(json_message)))
 
     def read_all(self):
         sl = self.connection.xlen(self.cid)
