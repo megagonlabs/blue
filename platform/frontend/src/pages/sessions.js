@@ -313,7 +313,7 @@ export default function Sessions() {
                     ) : (
                         <div className="full-parent-height">
                             <div
-                                className="bp-border-top bp-border-right"
+                                className="border-top border-right"
                                 style={{
                                     padding: "5px 20px",
                                     borderRadius: 0,
@@ -379,7 +379,7 @@ export default function Sessions() {
                     )
                 ) : (
                     <div
-                        className="full-parent-height bp-border-right"
+                        className="full-parent-height border-right"
                         style={{ padding: 20 }}
                     >
                         {!isSocketOpen ? (
@@ -572,7 +572,7 @@ export default function Sessions() {
                             </Allotment>
                         </div>
                         <div
-                            className="bp-border-top"
+                            className="border-top"
                             style={{
                                 padding: 20,
                                 position: "relative",
