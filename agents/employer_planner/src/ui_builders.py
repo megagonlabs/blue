@@ -1,4 +1,10 @@
+
+import logging
+
+###### Parsers, Formats, Utils
 import json
+from string import Template
+import copy
 
 def build_yeo_viz():
     viz_ui = { 
@@ -661,13 +667,87 @@ def build_form():
     return form
 
 
-def build_list():
+def build_list(list, title="List", text="Contents:", element_actions=None, list_actions=None):
+
+    ## list actions
+    list_actions_template = """
+    {
+        "type": "Button",
+        "label": "${label}",
+        "props": {
+            "action": "${action}",
+            "large": false
+        }
+    }
+    """
+    list_actions_a = []
+    list_actions_s = ""
+    if list_actions:
+        list_actions_t = Template(list_actions_template)
+        for action in list_actions:
+            list_action_s = list_actions_t.safe_substitute(label=action["label"], action=action["action"])
+            list_action = json.loads(list_action_s)
+            list_actions_a.append(list_action)
+
+    ## element actions
+    element_actions_template = """
+    {
+        "type": "Button",
+        "label": "${label}",
+        "props": {
+            "action": "${action}_${id}",
+            "large": false
+        }
+    }
+    """
+    element_actions_a = []
+    element_actions_s = ""
+    if element_actions:
+        element_action_t = Template(element_actions_template)
+        for action in element_actions:
+            element_actions_a.append(element_action_t.safe_substitute(label=action["label"], action=action["action"]))
+            
+        element_actions_s = ",".join(element_actions_a)
+
+
+    ## list element
+    list_element_template_prefix = """
+    {
+        "type": "HorizontalLayout",
+        "elements": [
+            {
+                "type": "Control",
+                "label": "${label}",
+                "scope": "#/properties/element_${id}"
+            },
+    """ 
+
+    list_element_template_postfix = """
+        ],
+        "props": {
+            "spaceEvenly": false
+        }
+    }
+    """
+
+    list_element_template = list_element_template_prefix + element_actions_s + list_element_template_postfix 
+    
+    list_elements_a = []
+    list_element_t = Template(list_element_template)
+    for element in list:
+        logging.info(list_element_t)
+        logging.info(element)
+        list_element_s = list_element_t.safe_substitute(label=element["label"], id=element["id"])
+        logging.info(list_element_s)
+        list_element = json.loads(list_element_s)
+        list_elements_a.append(list_element)
+    
     form_ui = {
         "type": "VerticalLayout",
         "elements": [
             {
                 "type": "Label",
-                "label": "Top Applies",
+                "label": title,
                 "props": {
                     "style": {
                         "fontWeight": "bold"
@@ -676,7 +756,7 @@ def build_list():
             },
             {
                 "type": "Label",
-                "label": "Below are top 10 applies to your JD, toggle checkbox to add/remove from the shortlist...",
+                "label": text,
                 "props": {
                     "muted": True,
                     "style": {
@@ -687,228 +767,7 @@ def build_list():
             },
             {
                 "type": "VerticalLayout",
-                "elements": [
-                    {
-                        "type": "HorizontalLayout",
-                        "elements": [
-                            {
-                                "type": "Control",
-                                "label": "1003",
-                                "scope": "#/properties/c1003"
-                            },
-                            {
-                                "type": "Label",
-                                "label": "Score: 1.26"
-                            },
-                            {
-                                "type": "Button",
-                                "label": "View",
-                                "props": {
-                                    "action": "VIEW1003",
-                                    "large": False
-                                }
-                            }
-                        ]
-                    },
-                    {
-                        "type": "HorizontalLayout",
-                        "elements": [
-                            {
-                                "type": "Control",
-                                "label": "1002",
-                                "scope": "#/properties/c1002"
-                            },
-                            {
-                                "type": "Label",
-                                "label": "Score: 1.07"
-                            },
-                            {
-                                "type": "Button",
-                                "label": "View",
-                                "props": {
-                                    "action": "VIEW1002",
-                                    "large": False
-                                }
-                            }
-                        ]
-                    },
-                    {
-                        "type": "HorizontalLayout",
-                        "elements": [
-                            {
-                                "type": "Control",
-                                "label": "1007",
-                                "scope": "#/properties/c1007"
-                            },
-                            {
-                                "type": "Label",
-                                "label": "Score: 0.98"
-                            },
-                            {
-                                "type": "Button",
-                                "label": "View",
-                                "props": {
-                                    "action": "VIEW1007",
-                                    "large": False
-                                }
-                            }
-                        ]
-                    },
-                    {
-                        "type": "HorizontalLayout",
-                        "elements": [
-                            {
-                                "type": "Control",
-                                "label": "1005",
-                                "scope": "#/properties/c1005"
-                            },
-                            {
-                                "type": "Label",
-                                "label": "Score: 0.97"
-                            },
-                            {
-                                "type": "Button",
-                                "label": "View",
-                                "props": {
-                                    "action": "VIEW1005",
-                                    "large": False
-                                }
-                            }
-                        ]
-                    },
-                    {
-                        "type": "HorizontalLayout",
-                        "elements": [
-                            {
-                                "type": "Control",
-                                "label": "1001",
-                                "scope": "#/properties/c1001"
-                            },
-                            {
-                                "type": "Label",
-                                "label": "Score: 0.8"
-                            },
-                            {
-                                "type": "Button",
-                                "label": "View",
-                                "props": {
-                                    "action": "VIEW1001",
-                                    "large": False
-                                }
-                            }
-                        ]
-                    },
-                    {
-                        "type": "HorizontalLayout",
-                        "elements": [
-                            {
-                                "type": "Control",
-                                "label": "1004",
-                                "scope": "#/properties/c1004"
-                            },
-                            {
-                                "type": "Label",
-                                "label": "Score: 0.72"
-                            },
-                            {
-                                "type": "Button",
-                                "label": "View",
-                                "props": {
-                                    "action": "VIEW1004",
-                                    "large": False
-                                }
-                            }
-                        ]
-                    },
-                    {
-                        "type": "HorizontalLayout",
-                        "elements": [
-                            {
-                                "type": "Control",
-                                "label": "1010",
-                                "scope": "#/properties/c1010"
-                            },
-                            {
-                                "type": "Label",
-                                "label": "Score: 0.7"
-                            },
-                            {
-                                "type": "Button",
-                                "label": "View",
-                                "props": {
-                                    "action": "VIEW1010",
-                                    "large": False
-                                }
-                            }
-                        ]
-                    },
-                    {
-                        "type": "HorizontalLayout",
-                        "elements": [
-                            {
-                                "type": "Control",
-                                "label": "1006",
-                                "scope": "#/properties/c1006"
-                            },
-                            {
-                                "type": "Label",
-                                "label": "Score: 0.67"
-                            },
-                            {
-                                "type": "Button",
-                                "label": "View",
-                                "props": {
-                                    "action": "VIEW1006",
-                                    "large": False
-                                }
-                            }
-                        ]
-                    },
-                    {
-                        "type": "HorizontalLayout",
-                        "elements": [
-                            {
-                                "type": "Control",
-                                "label": "1008",
-                                "scope": "#/properties/c1008"
-                            },
-                            {
-                                "type": "Label",
-                                "label": "Score: 0.67"
-                            },
-                            {
-                                "type": "Button",
-                                "label": "View",
-                                "props": {
-                                    "action": "VIEW1008",
-                                    "large": False
-                                }
-                            }
-                        ]
-                    },
-                    {
-                        "type": "HorizontalLayout",
-                        "elements": [
-                            {
-                                "type": "Control",
-                                "label": "1009",
-                                "scope": "#/properties/c1009"
-                            },
-                            {
-                                "type": "Label",
-                                "label": "Score: 0.67"
-                            },
-                            {
-                                "type": "Button",
-                                "label": "View",
-                                "props": {
-                                    "action": "VIEW1009",
-                                    "large": False
-                                }
-                            }
-                        ]
-                    }
-                ]
+                "elements": list_elements_a
             },
             {
                 "type": "Label",
@@ -923,17 +782,10 @@ def build_list():
             },
             {
                 "type": "HorizontalLayout",
-                "elements": [
-                    {
-                        "type": "Button",
-                        "label": "Compare",
-                        "props": {
-                            "action": "COMPARE",
-                            "large": False
-                        }
-                    }
-                    
-                ]
+                "elements": list_actions_a,
+                "props": {
+                    "spaceEvenly": False
+                },
             },
             {
                 "type": "Label",
@@ -958,49 +810,33 @@ def build_list():
         ]
     }
     
+    ## schema element
+    form_schema_properties = {}
+    element_schema_template = """
+    {
+        "type": "boolean"
+    }           
+    """
+    element_schema_t = Template(element_schema_template)
+    for element in list:
+        element_schema_s = element_schema_t.safe_substitute(label=element["label"], id=element["id"])
+        element_schema = json.loads(element_schema_s)
+        form_schema_properties["element_" + str(element["id"])] = element_schema
+
     form_schema = {
         "type": "object",
-        "properties": {
-            "c1001": {
-                "type": "boolean"
-            },
-            "c1002": {
-                "type": "boolean"
-            },    
-            "c1003": {
-                "type": "boolean"
-            },
-            "c1004": {
-                "type": "boolean"
-            },   
-            "c1005": {
-                "type": "boolean"
-            },
-            "c1006": {
-                "type": "boolean"
-            },    
-            "c1007": {
-                "type": "boolean"
-            },
-            "c1008": {
-                "type": "boolean"
-            },    
-            "c1009": {
-                "type": "boolean"
-            },
-            "c1010": {
-                "type": "boolean"
-            }        
-        }
+        "properties": form_schema_properties
     }
+
+    ## data element
+    form_data = {}
+   
+    for element in list:
+        form_data["element_" + str(element["id"])] = element["value"]
 
     form = {
         "schema": form_schema,
-        "data": {
-            "c1003": True,
-            "c1002": True,
-            "c1005": True
-        },
+        "data": form_data,
         "uischema": form_ui
     }
 

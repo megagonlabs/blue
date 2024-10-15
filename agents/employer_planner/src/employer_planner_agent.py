@@ -107,7 +107,7 @@ class EmployerPlannerAgent(Agent):
 
         return plan
 
-    def write_to_new_stream(self, worker, content, output, id=None, tags=None):
+    def write_to_new_stream(self, worker, content, output, id=None, tags=None, scope="worker"):
         
         # create a unique id
         if id is None:
@@ -115,9 +115,9 @@ class EmployerPlannerAgent(Agent):
 
         if worker:
             output_stream = worker.write_data(
-                content, output=output, id=id, tags=tags
+                content, output=output, id=id, tags=tags, scope=scope
             )
-            worker.write_eos(output=output, id=id)
+            worker.write_eos(output=output, id=id, scope=scope)
 
         return output_stream
 
@@ -403,9 +403,18 @@ class EmployerPlannerAgent(Agent):
                 job_seekers = []
                 for job_seeker_id in job_seeker_ids_in_list:
                     if job_seeker_ids_in_list[job_seeker_id]:
-                        job_seekers.append(job_seeker_id)
-                job_seekers_str = ", \n".join(job_seekers)
-                self.write_to_new_stream(worker, text + job_seekers_str, "TEXT")
+                        job_seekers.append({"id":job_seeker_id, "label":"Candidate " + str(job_seeker_id),"value":True })
+
+                # create a form with the list
+                form = ui_builders.build_list(job_seekers, title=list, 
+                                            text="Below are candidates in your list, toggle checkbox to add/remove from the list...",
+                                            element_actions=[{"label": "View", "action":"VIEW"}, {"label": "E-Mail", "action":"EMAIL"}], 
+                                            list_actions=[{"label": "Compare", "action":"COMPARE"}, {"label": "Summarize", "action":"SUMMARIZE"}])
+
+                # write form, scope=agent
+                worker.write_control(
+                    ControlCode.CREATE_FORM, form, output="LIST_"+list, id=list, scope="agent"
+                )
             else:
                 self.write_to_new_stream(worker, "Your list is empty...", "TEXT")
         else:
@@ -417,6 +426,9 @@ class EmployerPlannerAgent(Agent):
         if "LIST" in entities:
             entities_list = entities["LIST"]
 
+            if entities_list is None:
+                return list 
+            
             # if list, take first one
             if type(entities_list) == list:
                 if len(entities_list) == 0:
@@ -473,13 +485,14 @@ class EmployerPlannerAgent(Agent):
             # create list
             worker.set_session_data("lists."+list, {})
 
+        logging.info(entities)
         if "JOB_SEEKER_ID" in entities:
             job_seeker_ids = entities["JOB_SEEKER_ID"]
             if type(job_seeker_ids) == str:
                 job_seeker_ids = [job_seeker_ids]
             
             for job_seeker_id in job_seeker_ids:
-                worker.set_session_data("lists."+list+"."+job_seeker_id, True)
+                worker.set_session_data("lists."+list+"."+str(job_seeker_id), True)
 
             self._display_list(worker, list, text="Your list now contains: \n")
         else:
@@ -487,7 +500,7 @@ class EmployerPlannerAgent(Agent):
             if "QUERY" in entities:
                 query = entities["QUERY"]
             else:
-                query = entities["INPUT"]
+                query = input
         
             # Expand query with context as context
             expanded_query = "Answer the following question with the below context. Ignore information in context if the query overrides context:\n"
@@ -531,7 +544,7 @@ class EmployerPlannerAgent(Agent):
                 job_seeker_ids = [job_seeker_ids]
             
             for job_seeker_id in job_seeker_ids:
-                worker.set_session_data("lists."+list+"."+job_seeker_id, False)
+                worker.set_session_data("lists."+list+"."+str(job_seeker_id), False)
 
             self._display_list(worker, list, text="Your list now contains: \n")
         else:
@@ -627,7 +640,20 @@ class EmployerPlannerAgent(Agent):
 
         # show list ui
         # present main employer form
-        form = ui_builders.build_list()
+        top_list = [
+            {"id":1001, "label":"Candidate 1001","value":True },
+            {"id":1002, "label":"Candidate 1002","value":True },
+            {"id":1003, "label":"Candidate 1003","value":False },
+            {"id":1004, "label":"Candidate 1004","value":True },
+            {"id":1005, "label":"Candidate 1005","value":False },
+            {"id":1006, "label":"Candidate 1006","value":False },
+            {"id":1007, "label":"Candidate 1007","value":False }
+        ]
+
+        form = ui_builders.build_list(top_list, title="Top Applies", 
+                                      text="Below are top 10 applies to your JD, toggle checkbox to add/remove from the shortlist...",
+                                      element_actions=[{"label": "View", "action":"VIEW"}, {"label": "E-Mail", "action":"EMAIL"}], 
+                                      list_actions=[{"label": "Compare", "action":"COMPARE"}, {"label": "Summarize", "action":"SUMMARIZE"}])
 
         # write form
         worker.write_control(
