@@ -9,6 +9,7 @@
         "lint": "next lint"
     },
     "dependencies": {
+        "@atlaskit/pragmatic-drag-and-drop": "^1.4.0",
         "@blueprintjs/core": "^5.7.1",
         "@blueprintjs/table": "^5.1.5",
         "@codemirror/autocomplete": "^6.12.0",
