@@ -129,7 +129,7 @@ export default function MessageSnapshot({ content, hasError, index }) {
                 },
             })
         );
-    }, []);
+    }, [content]);
     return (
         <div style={{ position: "relative" }}>
             <Section
@@ -139,7 +139,7 @@ export default function MessageSnapshot({ content, hasError, index }) {
                         !_.get(
                             appState,
                             ["session", "sessionWorkspaceCollapse", stream],
-                            false
+                            true
                         ) && !dragging,
                     onToggle: () =>
                         appActions.session.toggleWorkspaceCollapse(stream),

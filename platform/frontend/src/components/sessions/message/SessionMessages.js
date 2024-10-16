@@ -159,6 +159,10 @@ const Row = ({ index, data, style }) => {
                                         key: "showWorkspacePanel",
                                         value: true,
                                     });
+                                    appActions.session.toggleWorkspaceCollapse({
+                                        stream,
+                                        value: false,
+                                    });
                                 }}
                             />
                         </Tooltip>
