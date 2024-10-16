@@ -244,7 +244,7 @@ function FormDesigner() {
                         <Allotment vertical ref={leftPaneRef}>
                             <Allotment.Pane minSize={187.5}>
                                 <div
-                                    className="bp-border-bottom"
+                                    className="border-bottom"
                                     style={{ padding: 5 }}
                                 >
                                     <Tooltip
@@ -307,7 +307,7 @@ function FormDesigner() {
                             </Allotment.Pane>
                             <Allotment.Pane minSize={187.5}>
                                 <div
-                                    className="bp-border-bottom"
+                                    className="border-bottom"
                                     style={{ padding: 5 }}
                                 >
                                     <Tooltip
@@ -371,7 +371,7 @@ function FormDesigner() {
                     </Allotment.Pane>
                     <Allotment.Pane minSize={400}>
                         <div
-                            className="bp-border-bottom"
+                            className="border-bottom"
                             style={{ padding: 5, display: "flex" }}
                         >
                             <Tooltip

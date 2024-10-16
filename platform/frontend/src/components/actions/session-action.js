@@ -1,4 +1,5 @@
 import axios from "axios";
+import _ from "lodash";
 import { sendSocketMessage } from "../helper";
 export const sessionAction = (dispatch) => ({
     setState: (payload) => {
@@ -28,8 +29,33 @@ export const sessionAction = (dispatch) => ({
     removePinnedSessionId: (payload) => {
         dispatch({ type: "session/pinnedSessionIds/remove", payload });
     },
-    createSession: (payload) => {
-        axios.post(`/sessions/session`).then((response) => {
+    reorderWorkspace: (payload) => {
+        dispatch({ type: "session/workspace/reorder", payload });
+    },
+    clearCurrentWorkspace: () => {
+        dispatch({ type: "session/workspace/clear" });
+    },
+    removeWorkspaceContent: (payload) => {
+        dispatch({ type: "session/workspace/remove", payload });
+    },
+    toggleWorkspaceCollapse: (payload) => {
+        dispatch({ type: "session/workspaceCollapse/toggle", payload });
+    },
+    collapseAllWorkspace: (payload) => {
+        dispatch({ type: "session/workspaceCollapse/all", payload });
+    },
+    createSession: ({ socket, groupName = null }) => {
+        let postSessionUrl = `/sessions/session${
+            _.isEmpty(groupName) ? "" : "/" + groupName
+        }`;
+        dispatch({
+            type: "session/state/set",
+            payload: {
+                key: "creatingSession",
+                value: true,
+            },
+        });
+        axios.post(postSessionUrl).then((response) => {
             try {
                 const session = _.get(response, "data.result", {});
                 dispatch({
@@ -40,7 +66,7 @@ export const sessionAction = (dispatch) => ({
                     type: "session/sessions/add",
                     payload: session.id,
                 });
-                payload.send(
+                socket.send(
                     JSON.stringify({
                         type: "OBSERVE_SESSION",
                         session_id: session.id,
@@ -49,16 +75,33 @@ export const sessionAction = (dispatch) => ({
                 dispatch({
                     type: "session/sessionIdFocus/set",
                     payload: session.id,
-                }),
+                });
+                dispatch({
+                    type: "session/state/set",
+                    payload: {
+                        key: "openAgentsDialogTrigger",
+                        value: _.isEmpty(groupName),
+                    },
+                });
+                if (!_.isEmpty(groupName)) {
                     dispatch({
                         type: "session/state/set",
                         payload: {
-                            key: "openAgentsDialogTrigger",
+                            key: "joinAgentGroupSession",
                             value: true,
                         },
                     });
+                }
             } catch (error) {
                 console.log(error);
+            } finally {
+                dispatch({
+                    type: "session/state/set",
+                    payload: {
+                        key: "creatingSession",
+                        value: false,
+                    },
+                });
             }
         });
     },

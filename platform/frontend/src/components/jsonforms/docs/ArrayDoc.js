@@ -39,7 +39,7 @@ export default function ArrayDoc({ closePanel }) {
     };
     return (
         <>
-            <div className="bp-border-bottom" style={{ padding: "10px 20px" }}>
+            <div className="border-bottom" style={{ padding: "10px 20px" }}>
                 <Button
                     outlined
                     text="Back"
@@ -64,8 +64,7 @@ export default function ArrayDoc({ closePanel }) {
                     <H1 style={{ margin: 0 }}>Array</H1>
                 </div>
                 <Callout intent={Intent.WARNING} icon={null}>
-                    This is not a type but inlined layout configuration for UI
-                    Schema.
+                    This is not a type, but an inlined layout configuration.
                 </Callout>
                 <H2>Example</H2>
                 <pre style={{ position: "relative", overflow: "hidden" }}>

@@ -51,6 +51,7 @@ p, demo, sessions, write_own
 p, demo, sessions, read_participate
 p, demo, agent_registry, read_all
 p, demo, registry_list, hidden
+p, demo, launch_screen, active
 
 p, guest, platform_users, read_all
 p, guest, sessions, read_participate

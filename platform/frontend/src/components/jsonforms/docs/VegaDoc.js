@@ -63,7 +63,7 @@ export default function VegaDoc({ closePanel }) {
     };
     return (
         <>
-            <div className="bp-border-bottom" style={{ padding: "10px 20px" }}>
+            <div className="border-bottom" style={{ padding: "10px 20px" }}>
                 <Button
                     outlined
                     text="Back"

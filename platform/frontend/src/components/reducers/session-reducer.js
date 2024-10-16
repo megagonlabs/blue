@@ -1,3 +1,4 @@
+import { reorderWithEdge } from "@atlaskit/pragmatic-drag-and-drop-hitbox/util/reorder-with-edge";
 import _ from "lodash";
 export const defaultState = {
     sessions: {},
@@ -10,12 +11,15 @@ export const defaultState = {
     userId: null,
     sessionListPanelCollapsed: true,
     showWorkspacePanel: false,
+    sessionWorkspaceCollapse: {},
     sessionWorkspace: {},
     unreadSessionIds: new Set(),
     pinnedSessionIds: new Set(),
     terminatedInteraction: new Set(),
     expandedMessageStream: new Set(),
     sessionGroupBy: "all",
+    creatingSession: false,
+    joinAgentGroupSession: false,
 };
 export default function sessionReducer(
     state = defaultState,
@@ -27,16 +31,72 @@ export default function sessionReducer(
         terminatedInteraction,
         expandedMessageStream,
         sessionWorkspace,
+        sessionWorkspaceCollapse,
     } = state;
     const { sessionIdFocus } = state;
     let sessions = _.cloneDeep(state.sessions);
     let pinnedSessionIds = _.clone(state.pinnedSessionIds);
     switch (type) {
+        case "session/workspace/clear": {
+            return {
+                ...state,
+                sessionWorkspace: { ...sessionWorkspace, [sessionIdFocus]: [] },
+            };
+        }
+        case "session/workspace/remove": {
+            let contents = _.get(sessionWorkspace, sessionIdFocus, []);
+            _.pullAt(contents, [payload]);
+            return {
+                ...state,
+                sessionWorkspace: {
+                    ...sessionWorkspace,
+                    [sessionIdFocus]: contents,
+                },
+            };
+        }
         case "session/sessions/addToWorkspace": {
             let workspaceContents = _.get(sessionWorkspace, sessionIdFocus, []);
             workspaceContents.push(payload);
             _.set(sessionWorkspace, sessionIdFocus, workspaceContents);
             return { ...state, sessionWorkspace };
+        }
+        case "session/workspaceCollapse/all": {
+            let workspaceContent = _.get(sessionWorkspace, sessionIdFocus, []);
+            for (let i = 0; i < _.size(workspaceContent); i++) {
+                _.set(
+                    sessionWorkspaceCollapse,
+                    _.get(workspaceContent, [i, "message", "stream"], null),
+                    true
+                );
+            }
+            return { ...state, sessionWorkspaceCollapse };
+        }
+        case "session/workspace/reorder": {
+            const { indexOfSource, indexOfTarget, closestEdgeOfTarget } =
+                payload;
+            return {
+                ...state,
+                sessionWorkspace: {
+                    ...sessionWorkspace,
+                    [sessionIdFocus]: reorderWithEdge({
+                        list: _.get(sessionWorkspace, sessionIdFocus, []),
+                        startIndex: indexOfSource,
+                        indexOfTarget,
+                        closestEdgeOfTarget,
+                        axis: "vertical",
+                    }),
+                },
+            };
+        }
+        case "session/workspaceCollapse/toggle": {
+            let collapseState = _.get(sessionWorkspaceCollapse, payload, false);
+            return {
+                ...state,
+                sessionWorkspaceCollapse: {
+                    ...sessionWorkspaceCollapse,
+                    [payload]: !collapseState,
+                },
+            };
         }
         case "session/pinnedSessionIds/add": {
             pinnedSessionIds.add(payload);

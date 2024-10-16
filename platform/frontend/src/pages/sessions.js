@@ -69,7 +69,6 @@ export default function Sessions() {
     const [isSessionDetailOpen, setIsSessionDetailOpen] = useState(false);
     const { socket, reconnectWs, isSocketOpen } = useSocket();
     const { user, settings } = useContext(AuthContext);
-    const userRole = _.get(user, "role", "guest");
     const { authenticating } = useContext(SocketContext);
     const sendSessionMessage = (message) => {
         if (!isSocketOpen) return;
@@ -181,10 +180,7 @@ export default function Sessions() {
     const sessionName = _.get(sessionDetails, "name", sessionIdFocus);
     const sessionDescription = _.get(sessionDetails, "description", "");
     useEffect(() => {
-        if (
-            !_.isEqual(userRole, "demo") &&
-            appState.session.openAgentsDialogTrigger
-        ) {
+        if (appState.session.openAgentsDialogTrigger) {
             setIsAddAgentsOpen(true);
             setSkippable(true);
         }
@@ -317,7 +313,7 @@ export default function Sessions() {
                     ) : (
                         <div className="full-parent-height">
                             <div
-                                className="bp-border-top bp-border-right"
+                                className="border-top border-right"
                                 style={{
                                     padding: "5px 20px",
                                     borderRadius: 0,
@@ -383,7 +379,7 @@ export default function Sessions() {
                     )
                 ) : (
                     <div
-                        className="full-parent-height bp-border-right"
+                        className="full-parent-height border-right"
                         style={{ padding: 20 }}
                     >
                         {!isSocketOpen ? (
@@ -558,7 +554,12 @@ export default function Sessions() {
                     />
                 ) : (
                     <>
-                        <div style={{ height: "calc(100% - 131px" }}>
+                        <div
+                            style={{
+                                height: "calc(100% - 131px",
+                                paddingTop: 1,
+                            }}
+                        >
                             <Allotment
                                 separator={appState.session.showWorkspacePanel}
                             >
@@ -576,7 +577,7 @@ export default function Sessions() {
                             </Allotment>
                         </div>
                         <div
-                            className="bp-border-top"
+                            className="border-top"
                             style={{
                                 padding: 20,
                                 position: "relative",
@@ -625,7 +626,11 @@ export default function Sessions() {
                                             !event.shiftKey &&
                                             isSocketOpen
                                         ) {
-                                            sendSessionMessage(message);
+                                            const trimmedMessage =
+                                                _.trim(message);
+                                            if (_.isEmpty(trimmedMessage))
+                                                return;
+                                            sendSessionMessage(trimmedMessage);
                                             event.preventDefault();
                                         }
                                     }}

@@ -13,7 +13,7 @@ import {
     Tooltip,
 } from "@blueprintjs/core";
 import {
-    faArrowsFromDottedLine,
+    faArrowsFromLine,
     faBug,
     faClipboard,
     faCode,
@@ -56,8 +56,9 @@ export default function Settings({ isOpen, setIsSettingsOpen }) {
         },
         expand_message: {
             title: "Expand messages",
-            description: "Automatically expand all messages to show more",
-            icon: faArrowsFromDottedLine,
+            description:
+                "Automatically expand all session messages to show full content",
+            icon: faArrowsFromLine,
         },
     };
     return (

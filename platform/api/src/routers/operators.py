@@ -4,7 +4,7 @@ import sys
 
 from fastapi import Request
 import pydash
-from constant import PermissionDenied, acl_enforce
+from constant import BANNED_ENTITY_NAMES, PermissionDenied, acl_enforce
 
 ###### Add lib path
 sys.path.append("./lib/")
@@ -108,6 +108,8 @@ def get_operator(request: Request, operator_name):
 @router.post("/operator/{operator_name}")
 def add_operator(request: Request, operator_name, operator: Operator):
     operator_db = operator_registry.get_operator(operator_name)
+    if operator_name in BANNED_ENTITY_NAMES:
+        return JSONResponse(content={"message": "The name cannot be used."}, status_code=403)
     # if operator already exists, return 409 conflict error
     if not pydash.is_empty(operator_db):
         return JSONResponse(content={"message": "The name already exists."}, status_code=409)

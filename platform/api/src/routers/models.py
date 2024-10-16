@@ -4,7 +4,7 @@ import sys
 
 from fastapi import Request
 import pydash
-from constant import PermissionDenied, acl_enforce
+from constant import BANNED_ENTITY_NAMES, PermissionDenied, acl_enforce
 
 ###### Add lib path
 sys.path.append("./lib/")
@@ -108,6 +108,8 @@ def get_model(request: Request, model_name):
 @router.post("/model/{model_name}")
 def add_model(request: Request, model_name, model: Model):
     model_db = model_registry.get_model(model_name)
+    if model_name in BANNED_ENTITY_NAMES:
+        return JSONResponse(content={"message": "The name cannot be used."}, status_code=403)
     # if model already exists, return 409 conflict error
     if not pydash.is_empty(model_db):
         return JSONResponse(content={"message": "The name already exists."}, status_code=409)

@@ -1,5 +1,6 @@
 :root {
-    --separator-border: rgba(17, 20, 24, 0.15);
+    --separator-border: rgba(17, 20, 24, 0.15) !important;
+    --focus-border: #2d72d2 !important;
 }
 a.no-link-decoration {
     color: inherit !important;
@@ -36,13 +37,13 @@ table.entity-section-card-table tr td {
 .height-0 {
     height: 0px !important;
 }
-.bp-border-top {
+.border-top {
     border-top: 1px solid rgba(17, 20, 24, 0.15);
 }
-.bp-border-bottom {
+.border-bottom {
     border-bottom: 1px solid rgba(17, 20, 24, 0.15);
 }
-.bp-border-right {
+.border-right {
     border-right: 1px solid rgba(17, 20, 24, 0.15);
 }
 .z-index-36 {

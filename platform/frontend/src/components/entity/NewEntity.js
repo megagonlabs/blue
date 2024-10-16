@@ -42,6 +42,14 @@ export default function NewEntity({
             }
         });
     }, [router]);
+    const allowProperties = [
+        "agent",
+        "operator",
+        "model",
+        "input",
+        "output",
+        "source",
+    ].includes(type);
     return (
         <div style={{ padding: "10px 20px 20px" }}>
             <Section compact style={{ position: "relative" }}>
@@ -119,14 +127,16 @@ export default function NewEntity({
                 entity={entity}
                 updateEntity={updateEntity}
             />
-            <EntityProperties
-                edit
-                entity={entity}
-                jsonError={jsonError}
-                setJsonError={setJsonError}
-                updateEntity={updateEntity}
-                setLoading={setLoading}
-            />
+            {allowProperties ? (
+                <EntityProperties
+                    edit
+                    entity={entity}
+                    jsonError={jsonError}
+                    setJsonError={setJsonError}
+                    updateEntity={updateEntity}
+                    setLoading={setLoading}
+                />
+            ) : null}
         </div>
     );
 }
