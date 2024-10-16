@@ -18,6 +18,7 @@ import time
 import uuid
 import random
 import pandas as pd
+import numpy as np
 
 ###### Parsers, Formats, Utils
 import re
@@ -180,7 +181,8 @@ class Nl2SqlE2EAgent(OpenAIAgent):
             records = cursor.fetchall()
             columns = [desc[0] for desc in cursor.description]
             df = pd.DataFrame(records, columns=columns)
-            result = df.to_dict('records')
+            df.fillna(value=np.nan, inplace=True)
+            result = json.loads(df.to_json(orient='records'))
         except Exception as e:
             error = str(e)
         return {
