@@ -89,12 +89,18 @@ export default function sessionReducer(
             };
         }
         case "session/workspaceCollapse/toggle": {
-            let collapseState = _.get(sessionWorkspaceCollapse, payload, false);
+            let collapseState = _.get(
+                sessionWorkspaceCollapse,
+                payload.stream,
+                true
+            );
             return {
                 ...state,
                 sessionWorkspaceCollapse: {
                     ...sessionWorkspaceCollapse,
-                    [payload]: !collapseState,
+                    [payload.stream]: _.has(payload, "value")
+                        ? payload.value
+                        : !collapseState,
                 },
             };
         }
