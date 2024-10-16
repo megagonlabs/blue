@@ -290,7 +290,7 @@ export default function EntityMain({
                             {edit ? (
                                 <ButtonGroup large>
                                     <Popover
-                                        placement="bottom"
+                                        placement="left"
                                         content={
                                             <div style={{ padding: 15 }}>
                                                 <Button
@@ -377,49 +377,89 @@ export default function EntityMain({
                                                     />
                                                 ) : null}
                                                 {canDeployAgent ? (
-                                                    <MenuItem
-                                                        intent={Intent.SUCCESS}
-                                                        icon={faIcon({
-                                                            icon: faPlay,
-                                                        })}
-                                                        disabled={_.isEqual(
-                                                            containerStatus,
-                                                            "running"
-                                                        )}
-                                                        text="Deploy"
+                                                    <Popover
+                                                        placement="left"
+                                                        className="full-parent-width"
+                                                        content={
+                                                            <div
+                                                                style={{
+                                                                    padding: 15,
+                                                                }}
+                                                            >
+                                                                <Button
+                                                                    onClick={
+                                                                        deployAgent
+                                                                    }
+                                                                    className={
+                                                                        Classes.POPOVER_DISMISS
+                                                                    }
+                                                                    text="Confirm"
+                                                                    intent={
+                                                                        Intent.SUCCESS
+                                                                    }
+                                                                />
+                                                            </div>
+                                                        }
                                                     >
                                                         <MenuItem
+                                                            shouldDismissPopover={
+                                                                false
+                                                            }
                                                             intent={
                                                                 Intent.SUCCESS
                                                             }
-                                                            text="Confirm"
-                                                            onClick={
-                                                                deployAgent
-                                                            }
+                                                            icon={faIcon({
+                                                                icon: faPlay,
+                                                            })}
+                                                            disabled={_.isEqual(
+                                                                containerStatus,
+                                                                "running"
+                                                            )}
+                                                            text="Deploy"
                                                         />
-                                                    </MenuItem>
+                                                    </Popover>
                                                 ) : null}
                                                 {showActionMenuDivider ? (
                                                     <MenuDivider />
                                                 ) : null}
                                                 {canEditEntity ? (
-                                                    <MenuItem
-                                                        intent={Intent.DANGER}
-                                                        icon={faIcon({
-                                                            icon: faTrash,
-                                                        })}
-                                                        text="Delete"
+                                                    <Popover
+                                                        placement="left"
+                                                        className="full-parent-width"
+                                                        content={
+                                                            <div
+                                                                style={{
+                                                                    padding: 15,
+                                                                }}
+                                                            >
+                                                                <Button
+                                                                    onClick={
+                                                                        deleteEntity
+                                                                    }
+                                                                    className={
+                                                                        Classes.POPOVER_DISMISS
+                                                                    }
+                                                                    text="Confirm"
+                                                                    intent={
+                                                                        Intent.DANGER
+                                                                    }
+                                                                />
+                                                            </div>
+                                                        }
                                                     >
                                                         <MenuItem
+                                                            shouldDismissPopover={
+                                                                false
+                                                            }
                                                             intent={
                                                                 Intent.DANGER
                                                             }
-                                                            text="Confirm"
-                                                            onClick={
-                                                                deleteEntity
-                                                            }
+                                                            icon={faIcon({
+                                                                icon: faTrash,
+                                                            })}
+                                                            text="Delete"
                                                         />
-                                                    </MenuItem>
+                                                    </Popover>
                                                 ) : null}
                                             </Menu>
                                         }
