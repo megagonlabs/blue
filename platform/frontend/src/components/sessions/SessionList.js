@@ -15,7 +15,11 @@ export default function SessionList() {
         if (_.isEqual(sessionGroupBy, "pinned")) {
             appActions.session.setState({
                 key: "groupedSessionIds",
-                value: _.toArray(pinnedSessionIds),
+                value: _.toArray(pinnedSessionIds).sort(
+                    (a, b) =>
+                        sessionDetails[b].created_date -
+                        sessionDetails[a].created_date
+                ),
             });
         } else {
             appActions.session.setState({
