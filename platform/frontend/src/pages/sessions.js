@@ -554,7 +554,12 @@ export default function Sessions() {
                     />
                 ) : (
                     <>
-                        <div style={{ height: "calc(100% - 131px" }}>
+                        <div
+                            style={{
+                                height: "calc(100% - 131px",
+                                paddingTop: 1,
+                            }}
+                        >
                             <Allotment
                                 separator={appState.session.showWorkspacePanel}
                             >

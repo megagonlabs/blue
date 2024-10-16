@@ -174,7 +174,15 @@ export default function Services() {
     }
     return (
         <>
-            <Card interactive style={{ padding: 5, borderRadius: 0 }}>
+            <Card
+                interactive
+                style={{
+                    padding: 5,
+                    borderRadius: 0,
+                    position: "relative",
+                    zIndex: 1,
+                }}
+            >
                 <ButtonGroup large minimal>
                     <Tooltip placement="bottom-start" minimal content="Refresh">
                         <Button
@@ -204,7 +212,6 @@ export default function Services() {
                         position: "absolute",
                         bottom: 0,
                         right: 0,
-                        zIndex: 1,
                         height: "calc(100% - 50px)",
                     }}
                 >

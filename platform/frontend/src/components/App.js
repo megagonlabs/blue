@@ -210,7 +210,7 @@ export default function App({ children }) {
                         borderRadius: 0,
                         display: "flex",
                         flexDirection: "column",
-                        zIndex: 1,
+                        zIndex: 2,
                         padding: 20,
                         overflowY: "auto",
                     }}
