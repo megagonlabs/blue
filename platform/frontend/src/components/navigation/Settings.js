@@ -56,7 +56,8 @@ export default function Settings({ isOpen, setIsSettingsOpen }) {
         },
         expand_message: {
             title: "Expand messages",
-            description: "Automatically expand all messages to show more",
+            description:
+                "Automatically expand all session messages to show full content",
             icon: faArrowsFromLine,
         },
     };
