@@ -9,7 +9,8 @@ const Row = (props) => <SessionRow {...props} />;
 export default function SessionList() {
     const { appState, appActions } = useContext(AppContext);
     const fixedSizeListRef = useRef();
-    const { sessionGroupBy, sessionIds, pinnedSessionIds } = appState.session;
+    const { sessionGroupBy, sessionIds, pinnedSessionIds, sessionDetails } =
+        appState.session;
     useEffect(() => {
         if (_.isEqual(sessionGroupBy, "pinned")) {
             appActions.session.setState({
@@ -19,17 +20,23 @@ export default function SessionList() {
         } else {
             appActions.session.setState({
                 key: "groupedSessionIds",
-                value: sessionIds.filter((sessionId) => {
-                    const groupByFlag = _.get(
-                        appState,
-                        `session.sessionDetails.${sessionId}.group_by.${sessionGroupBy}`,
-                        false
-                    );
-                    return _.isEqual(sessionGroupBy, "all") || groupByFlag;
-                }),
+                value: sessionIds
+                    .filter((sessionId) => {
+                        const groupByFlag = _.get(
+                            appState,
+                            `session.sessionDetails.${sessionId}.group_by.${sessionGroupBy}`,
+                            false
+                        );
+                        return _.isEqual(sessionGroupBy, "all") || groupByFlag;
+                    })
+                    .sort(
+                        (a, b) =>
+                            sessionDetails[b].created_date -
+                            sessionDetails[a].created_date
+                    ),
             });
         }
-    }, [sessionGroupBy, sessionIds, pinnedSessionIds]);
+    }, [sessionGroupBy, sessionIds, pinnedSessionIds, sessionDetails]);
     useEffect(() => {
         setTimeout(() => {
             if (_.isNil(fixedSizeListRef.current)) return;
