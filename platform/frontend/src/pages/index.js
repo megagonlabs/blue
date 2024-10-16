@@ -113,10 +113,11 @@ export default function LaunchScreen() {
                     {LOADING_PLACEMENT}
                 </>
             ) : (
-                agentGroups.map((agentGroup) => {
+                agentGroups.map((agentGroup, index) => {
                     let opacity = creatingSession ? 0.6 : null;
                     return (
                         <Card
+                            key={index}
                             style={{
                                 position: "relative",
                                 cursor: "pointer",
