@@ -301,7 +301,7 @@ async def create_session_in_group(request: Request, group_name):
                 if agent_properties_in_group:
                     agent_properties = json_utils.merge_json(agent_properties, agent_properties_in_group)
 
-                add_agent_to_session(session_id=session.sid, registry_name=agent_registry_id, agent_name=agent_name, properties=agent_properties)
+                agent_join_session(registry_name=agent_registry_id, session_id=session.sid, agent_name=agent_name, properties=agent_properties)
     return JSONResponse(content={"result": result})
 
 
