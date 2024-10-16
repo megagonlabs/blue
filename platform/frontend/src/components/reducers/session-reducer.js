@@ -1,3 +1,4 @@
+import { reorderWithEdge } from "@atlaskit/pragmatic-drag-and-drop-hitbox/util/reorder-with-edge";
 import _ from "lodash";
 export const defaultState = {
     sessions: {},
@@ -69,6 +70,23 @@ export default function sessionReducer(
                 );
             }
             return { ...state, sessionWorkspaceCollapse };
+        }
+        case "session/workspace/reorder": {
+            const { indexOfSource, indexOfTarget, closestEdgeOfTarget } =
+                payload;
+            return {
+                ...state,
+                sessionWorkspace: {
+                    ...sessionWorkspace,
+                    [sessionIdFocus]: reorderWithEdge({
+                        list: _.get(sessionWorkspace, sessionIdFocus, []),
+                        startIndex: indexOfSource,
+                        indexOfTarget,
+                        closestEdgeOfTarget,
+                        axis: "vertical",
+                    }),
+                },
+            };
         }
         case "session/workspaceCollapse/toggle": {
             let collapseState = _.get(sessionWorkspaceCollapse, payload, false);

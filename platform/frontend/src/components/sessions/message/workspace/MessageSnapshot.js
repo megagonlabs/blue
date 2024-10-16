@@ -1,3 +1,4 @@
+import { WORKSAPCE_DRAGGABLE_SYMBOL } from "@/components/constant";
 import { AppContext } from "@/components/contexts/app-context";
 import { faIcon } from "@/components/icon";
 import MessageContent from "@/components/sessions/message/MessageContent";
@@ -39,12 +40,14 @@ export default function MessageSnapshot({ content, hasError, index }) {
     const [dragging, setDragging] = useState(false);
     const IDLE_STATE = { type: "idle" };
     const [state, setState] = useState(IDLE_STATE);
+    const dragData = { index, [WORKSAPCE_DRAGGABLE_SYMBOL]: true };
     useEffect(() => {
         const element = ref.current;
         invariant(element);
         return combine(
             draggable({
                 element: element,
+                getInitialData: () => dragData,
                 onDragStart: () => setDragging(true),
                 onDrop: () => setDragging(false),
                 onGenerateDragPreview: ({ nativeSetDragImage }) => {
@@ -92,8 +95,7 @@ export default function MessageSnapshot({ content, hasError, index }) {
                     return true;
                 },
                 getData({ input }) {
-                    const data = { index };
-                    return attachClosestEdge(data, {
+                    return attachClosestEdge(dragData, {
                         element,
                         input,
                         allowedEdges: ["top", "bottom"],

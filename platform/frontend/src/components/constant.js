@@ -87,6 +87,7 @@ export const ENTITY_TYPE_LOOKUP = {
     ],
     CARD_LIST_CLASS_NAMES = `${Classes.CARD} ${Classes.CARD_LIST} ${Classes.CARD_LIST_BORDERED}`,
     NAVIGATION_MENU_WIDTH = 203,
+    WORKSAPCE_DRAGGABLE_SYMBOL = Symbol("workspaceDraggable"),
     CONTAINER_STATUS_INDICATOR = {
         created: { style: { color: Colors.ORANGE5 }, intent: Intent.WARNING },
         running: { style: { color: Colors.GREEN3 }, intent: Intent.SUCCESS },

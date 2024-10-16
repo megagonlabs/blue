@@ -1,6 +1,9 @@
+import { WORKSAPCE_DRAGGABLE_SYMBOL } from "@/components/constant";
 import { AppContext } from "@/components/contexts/app-context";
 import { faIcon } from "@/components/icon";
 import MessageSnapshot from "@/components/sessions/message/workspace/MessageSnapshot";
+import { extractClosestEdge } from "@atlaskit/pragmatic-drag-and-drop-hitbox/closest-edge";
+import { monitorForElements } from "@atlaskit/pragmatic-drag-and-drop/element/adapter";
 import {
     Button,
     ButtonGroup,
@@ -16,12 +19,39 @@ import {
     faLampDesk,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import _ from "lodash";
-import { useContext, useRef } from "react";
+import { useContext, useEffect, useRef } from "react";
 export default function Workspace() {
     const { appState, appActions } = useContext(AppContext);
     const { sessionWorkspace, sessionIdFocus } = appState.session;
     const hasError = useRef(false);
     const contents = _.get(sessionWorkspace, sessionIdFocus, []);
+    useEffect(() => {
+        return monitorForElements({
+            canMonitor({ source }) {
+                return source.data[WORKSAPCE_DRAGGABLE_SYMBOL];
+            },
+            onDrop({ location, source }) {
+                const target = location.current.dropTargets[0];
+                if (!target) return;
+                const sourceData = source.data;
+                const targetData = target.data;
+                if (
+                    !sourceData[WORKSAPCE_DRAGGABLE_SYMBOL] ||
+                    !targetData[WORKSAPCE_DRAGGABLE_SYMBOL]
+                )
+                    return;
+                const indexOfSource = sourceData.index;
+                const indexOfTarget = targetData.index;
+                if (indexOfSource < 0 || indexOfTarget < 0) return;
+                const closestEdgeOfTarget = extractClosestEdge(targetData);
+                appActions.session.reorderWorkspace({
+                    indexOfSource,
+                    indexOfTarget,
+                    closestEdgeOfTarget,
+                });
+            },
+        });
+    }, [contents]);
     if (_.isEmpty(contents)) {
         return (
             <NonIdealState
