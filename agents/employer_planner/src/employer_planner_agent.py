@@ -177,13 +177,47 @@ class EmployerPlannerAgent(Agent):
 
                     self.init_action(worker, intent=intent, entities=entities, input=input)
 
-        elif input == "LIST_FROM_QUERY":
+        elif input == "ADD_LIST_FROM_QUERY":
             if message.isData():
                 if worker:
                     data = message.getData()
                     logging.info(json.dumps(data, indent=3))
 
-                    return data
+                    list = worker.get_session_data("list")
+                    if list is None:
+                        list = "short_list"
+
+                    if 'result' in data:
+                        results = data['result']
+                        if results:
+                            
+                            for result in results:
+                                if 'job_seeker_id' in result:
+                                    job_seeker_id = result['job_seeker_id']
+                                    worker.set_session_data("lists."+list+"."+str(job_seeker_id), True)
+
+                    self._display_list(worker, list, text="Your list now contains: \n")
+
+        elif input == "REMOVE_LIST_FROM_QUERY":
+            if message.isData():
+                if worker:
+                    data = message.getData()
+                    logging.info(json.dumps(data, indent=3))
+
+                    list = worker.get_session_data("list")
+                    if list is None:
+                        list = "short_list"
+
+                    if 'result' in data:
+                        results = data['result']
+                        if results:
+                            
+                            for result in results:
+                                if 'job_seeker_id' in result:
+                                    job_seeker_id = result['job_seeker_id']
+                                    worker.set_session_data("lists."+list+"."+str(job_seeker_id), False)
+
+                    self._display_list(worker, list, text="Your list now contains: \n")
 
         ##### PROCESS FORM UI EVENTS
         elif input == "EVENT":
@@ -445,12 +479,24 @@ class EmployerPlannerAgent(Agent):
         # identify list to operate on
         list = self._identify_list(worker, context=context, entities=entities, input=input)
 
+        # create list, if not exists
+        lists = worker.get_session_data("lists")
+        if list not in lists:
+            # create list
+            worker.set_session_data("lists."+list, {})
+
+        # set list to the session
+        worker.set_session_data("list", list)
+
+        logging.info(entities)
+
         if "QUERY" in entities:
             query = entities["QUERY"]
 
             # Expand query with context as context
             expanded_query = "Answer the following question with the below context. Ignore information in context if the query overrides context:\n"
             expanded_query += json.dumps(context, indent=3) + "\n"
+        
             expanded_query += query
 
             # create a unique id
@@ -459,7 +505,7 @@ class EmployerPlannerAgent(Agent):
             # query plan
             query_plan = [
                 [self.name + ".QUERY", "NL2SQL-E2E_INPLAN.DEFAULT"],
-                ["NL2SQL-E2E_INPLAN.DEFAULT", self.name + ".LIST_FROM_QUERY"],
+                ["NL2SQL-E2E_INPLAN.DEFAULT", self.name + ".ADD_LIST_FROM_QUERY"],
             ]
 
             # write query to stream
@@ -485,7 +531,11 @@ class EmployerPlannerAgent(Agent):
             # create list
             worker.set_session_data("lists."+list, {})
 
+        # set list to the session
+        worker.set_session_data("list", list)
+
         logging.info(entities)
+
         if "JOB_SEEKER_ID" in entities:
             job_seeker_ids = entities["JOB_SEEKER_ID"]
             if type(job_seeker_ids) == str:
@@ -513,7 +563,7 @@ class EmployerPlannerAgent(Agent):
             # query plan
             query_plan = [
                 [self.name + ".QUERY", "NL2SQL-E2E_INPLAN.DEFAULT"],
-                ["NL2SQL-E2E_INPLAN.DEFAULT", self.name + ".LIST_FROM_QUERY"],
+                ["NL2SQL-E2E_INPLAN.DEFAULT", self.name + ".ADD_LIST_FROM_QUERY"],
             ]
 
             # write query to stream
@@ -530,12 +580,17 @@ class EmployerPlannerAgent(Agent):
         
         # identify list to operate on
         list = self._identify_list(worker, context=context, entities=entities, input=input)
-        
-        # error, if list doesn't exist
+
+        # create list, if not exists
         lists = worker.get_session_data("lists")
         if list not in lists:
-            self.write_to_new_stream(worker, "No such list found...", "TEXT")
-            return
+            # create list
+            worker.set_session_data("lists."+list, {})
+
+        # set list to the session
+        worker.set_session_data("list", list)
+
+        logging.info(entities)
 
 
         if "JOB_SEEKER_ID" in entities:
@@ -552,7 +607,7 @@ class EmployerPlannerAgent(Agent):
             if "QUERY" in entities:
                 query = entities["QUERY"]
             else:
-                query = entities["INPUT"]
+                query = input
 
             # Expand query with context as context
             expanded_query = "Answer the following question with the below context. Ignore information in context if the query overrides context:\n"
@@ -565,7 +620,7 @@ class EmployerPlannerAgent(Agent):
             # query plan
             query_plan = [
                 [self.name + ".QUERY", "NL2SQL-E2E_INPLAN.DEFAULT"],
-                ["NL2SQL-E2E_INPLAN.DEFAULT", self.name + ".LIST_FROM_QUERY"],
+                ["NL2SQL-E2E_INPLAN.DEFAULT", self.name + ".REMOVE_LIST_FROM_QUERY"],
             ]
 
             # write query to stream
@@ -663,11 +718,11 @@ class EmployerPlannerAgent(Agent):
     
     def issue_nl_query(self, worker, context=None, entities=None, input=None):
 
-        if "QUERY" not in entities:
-            self.write_to_new_stream(worker, "Please specify a query...", "TEXT")
-            return
-        
-        query = entities["QUERY"]
+        if "QUERY" in entities:
+            query = entities["QUERY"]
+        else:
+            query = input
+
 
         # Expand query with context as context
         expanded_query = "Answer the following question with the below context. Ignore information in context if the query overrides context:\n"
@@ -676,8 +731,7 @@ class EmployerPlannerAgent(Agent):
 
         logging.info("ISSUE NL QUERY:" + expanded_query)
         # create a unique id
-        if id is None:
-            id = util_functions.create_uuid()
+        id = util_functions.create_uuid()
 
         # query plan
         query_plan = [

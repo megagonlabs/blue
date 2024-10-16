@@ -735,10 +735,7 @@ def build_list(list, title="List", text="Contents:", element_actions=None, list_
     list_elements_a = []
     list_element_t = Template(list_element_template)
     for element in list:
-        logging.info(list_element_t)
-        logging.info(element)
         list_element_s = list_element_t.safe_substitute(label=element["label"], id=element["id"])
-        logging.info(list_element_s)
         list_element = json.loads(list_element_s)
         list_elements_a.append(list_element)
     
