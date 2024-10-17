@@ -81,97 +81,106 @@ export default function LaunchScreen() {
         }
     }, [appState.session.joinAgentGroupSession]);
     return (
-        <div
-            style={{
-                margin: "auto",
-                maxWidth: 600,
-                marginTop: 100,
-                padding: 20,
-            }}
-        >
-            <H1 style={{ fontSize: 40, marginBottom: 10 }}>
-                <label style={{ color: Colors.BLUE3 }}>Hello</label>
-                {_.isEmpty(name) ? (
-                    <label style={{ color: Colors.BLUE3 }}>.</label>
-                ) : (
-                    <>
-                        <label style={{ color: Colors.BLUE3 }}>,</label>
-                        &nbsp;
-                        {name}.
-                    </>
-                )}
-            </H1>
-            <H1
-                className={Classes.TEXT_MUTED}
-                style={{ marginBottom: 60, fontSize: 40, opacity: 0.75 }}
+        <div style={{ height: "100%", overflowY: "auto" }}>
+            <div
+                style={{
+                    margin: "auto",
+                    maxWidth: 600,
+                    padding: "100px 20px",
+                }}
             >
-                How can I help you today?
-            </H1>
-            {loading ? (
-                <>
-                    {LOADING_PLACEMENT}
-                    {LOADING_PLACEMENT}
-                </>
-            ) : (
-                agentGroups.map((agentGroup, index) => {
-                    let opacity = creatingSession ? 0.6 : null;
-                    return (
-                        <Card
-                            key={index}
-                            style={{
-                                position: "relative",
-                                cursor: "pointer",
-                                marginBottom: 20,
-                                marginLeft: 1,
-                                marginRight: 1,
-                                display: "flex",
-                                gap: 20,
-                                padding: 15,
-                                whiteSpace: "pre-wrap",
-                                pointerEvents: creatingSession ? "none" : null,
-                            }}
-                            onClick={() =>
-                                joinAgentGroupSession(agentGroup.name)
-                            }
-                        >
-                            <Card style={{ ...ENTITY_ICON_40, opacity }}>
-                                <EntityIcon entity={agentGroup} />
-                            </Card>
-                            <div
-                                style={{ width: `calc(100% - 120px)`, opacity }}
-                            >
-                                {_.get(agentGroup, "description", "-")}
-                            </div>
-                            {creatingSession &&
-                            _.isEqual(launchGroup, agentGroup.name) ? (
-                                <Button
-                                    large
-                                    style={{ position: "absolute", right: 15 }}
-                                    minimal
-                                    loading={creatingSession}
-                                />
-                            ) : null}
-                        </Card>
-                    );
-                })
-            )}
-            {permissions.canWriteAgentRegistry ? (
-                <Link
-                    className="no-link-decoration"
-                    href={`/registry/${process.env.NEXT_PUBLIC_AGENT_REGISTRY_NAME}/agent_group/new`}
+                <H1 style={{ fontSize: 40, marginBottom: 10 }}>
+                    <label style={{ color: Colors.BLUE3 }}>Hello</label>
+                    {_.isEmpty(name) ? (
+                        <label style={{ color: Colors.BLUE3 }}>.</label>
+                    ) : (
+                        <>
+                            <label style={{ color: Colors.BLUE3 }}>,</label>
+                            &nbsp;
+                            {name}.
+                        </>
+                    )}
+                </H1>
+                <H1
+                    className={Classes.TEXT_MUTED}
+                    style={{ marginBottom: 60, fontSize: 40, opacity: 0.75 }}
                 >
-                    <Button
-                        disabled={creatingSession}
-                        className={loading ? Classes.SKELETON : null}
-                        minimal
-                        alignText={Alignment.LEFT}
-                        fill
-                        large
-                        icon={faIcon({ icon: faPlus })}
-                        text="Add"
-                    />
-                </Link>
-            ) : null}
+                    How can I help you today?
+                </H1>
+                {loading ? (
+                    <>
+                        {LOADING_PLACEMENT}
+                        {LOADING_PLACEMENT}
+                    </>
+                ) : (
+                    agentGroups.map((agentGroup, index) => {
+                        let opacity = creatingSession ? 0.6 : null;
+                        return (
+                            <Card
+                                key={index}
+                                style={{
+                                    position: "relative",
+                                    cursor: "pointer",
+                                    marginBottom: 20,
+                                    marginLeft: 1,
+                                    marginRight: 1,
+                                    display: "flex",
+                                    gap: 20,
+                                    padding: 15,
+                                    whiteSpace: "pre-wrap",
+                                    pointerEvents: creatingSession
+                                        ? "none"
+                                        : null,
+                                }}
+                                onClick={() =>
+                                    joinAgentGroupSession(agentGroup.name)
+                                }
+                            >
+                                <Card style={{ ...ENTITY_ICON_40, opacity }}>
+                                    <EntityIcon entity={agentGroup} />
+                                </Card>
+                                <div
+                                    style={{
+                                        width: `calc(100% - 120px)`,
+                                        opacity,
+                                    }}
+                                >
+                                    {_.get(agentGroup, "description", "-")}
+                                </div>
+                                {creatingSession &&
+                                _.isEqual(launchGroup, agentGroup.name) ? (
+                                    <Button
+                                        large
+                                        style={{
+                                            position: "absolute",
+                                            right: 15,
+                                        }}
+                                        minimal
+                                        loading={creatingSession}
+                                    />
+                                ) : null}
+                            </Card>
+                        );
+                    })
+                )}
+                {permissions.canWriteAgentRegistry ? (
+                    <Link
+                        className="no-link-decoration"
+                        href={`/registry/${process.env.NEXT_PUBLIC_AGENT_REGISTRY_NAME}/agent_group/new`}
+                    >
+                        <Button
+                            disabled={creatingSession}
+                            className={loading ? Classes.SKELETON : null}
+                            minimal
+                            alignText={Alignment.LEFT}
+                            fill
+                            large
+                            icon={faIcon({ icon: faPlus })}
+                            text="Add"
+                        />
+                    </Link>
+                ) : null}
+            </div>
         </div>
     );
 }
