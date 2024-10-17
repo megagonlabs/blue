@@ -68,7 +68,7 @@ export default function Sessions() {
     const sessionMessageTextArea = useRef(null);
     const [isSessionDetailOpen, setIsSessionDetailOpen] = useState(false);
     const { socket, reconnectWs, isSocketOpen } = useSocket();
-    const { user, settings } = useContext(AuthContext);
+    const { settings } = useContext(AuthContext);
     const { authenticating } = useContext(SocketContext);
     const sendSessionMessage = (message) => {
         if (!isSocketOpen) return;
@@ -162,7 +162,7 @@ export default function Sessions() {
                 intent={Intent.PRIMARY}
                 large
                 loading={
-                    (socket != null &&
+                    (!_.isNil(socket) &&
                         _.isEqual(socket.readyState, WebSocket.CONNECTING)) ||
                     authenticating
                 }
@@ -453,7 +453,7 @@ export default function Sessions() {
                         gap: 10,
                     }}
                 >
-                    {!_.isNull(sessionIdFocus) ? (
+                    {!_.isNil(sessionIdFocus) ? (
                         <Tooltip
                             content={`${
                                 appState.session.showWorkspacePanel
@@ -491,7 +491,7 @@ export default function Sessions() {
                             justifyContent: "space-between",
                         }}
                     >
-                        {!_.isNull(sessionIdFocus) ? (
+                        {!_.isNil(sessionIdFocus) ? (
                             <div
                                 style={{
                                     maxWidth: "calc(100% - 151.98px - 20px)",
@@ -547,7 +547,7 @@ export default function Sessions() {
                         <SessionMemberStack />
                     </div>
                 </Card>
-                {_.isNull(sessionIdFocus) ? (
+                {_.isNil(sessionIdFocus) ? (
                     <NonIdealState
                         icon={faIcon({ icon: faMessages, size: 50 })}
                         title="Messages"
