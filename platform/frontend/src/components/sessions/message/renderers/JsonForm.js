@@ -16,6 +16,9 @@ export default function JsonForm({ content, hasError }) {
         _.get(content, "form_id", null)
     );
     useEffect(() => {
+        setData(_.get(content, "data", {}));
+    }, [content]);
+    useEffect(() => {
         hasError.current = Boolean(error);
     }, [error]);
     return !error ? (

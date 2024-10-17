@@ -48,11 +48,15 @@ export default function SessionRow({ index, style }) {
     const [showActions, setShowActions] = useState(false);
     const [lastMessage, setLastMessage] = useState("-");
     useEffect(() => {
-        const last = _.last(messages);
-        if (_.isEmpty(last)) {
+        const lastMessage = _.last(messages);
+        if (_.isEmpty(lastMessage)) {
             setLastMessage("-");
         } else {
-            const complete = _.get(streams, [last.stream, "complete"], false);
+            const complete = _.get(
+                streams,
+                [lastMessage.stream, "complete"],
+                false
+            );
             if (!complete) {
                 setLastMessage(
                     <Tag
@@ -66,9 +70,13 @@ export default function SessionRow({ index, style }) {
                     />
                 );
             } else {
-                const contentType = _.get(last, "contentType", null);
+                const contentType = _.get(lastMessage, "contentType", null);
                 if (_.includes(["STR", "INT", "FLOAT"], contentType)) {
-                    const data = _.get(streams, [last.stream, "data"], []);
+                    const data = _.get(
+                        streams,
+                        [lastMessage.stream, "data"],
+                        []
+                    );
                     setLastMessage(_.join(_.map(data, "content"), " "));
                 } else if (_.isEqual(contentType, "JSON")) {
                     setLastMessage(
