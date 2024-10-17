@@ -750,7 +750,7 @@ class EmployerPlannerAgent(Agent):
 
         logging.info("ISSUE NL QUERY:" + expanded_query)
         # create a unique id
-        id = util_functions.crecate_uuid()
+        id = util_functions.create_uuid()
 
         # query plan
         query_plan = [
