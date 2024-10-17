@@ -659,16 +659,35 @@ class EmployerPlannerAgent(Agent):
             ControlCode.CREATE_FORM, ed_vis, output="EDVIS"
         )
 
+
     def show_yoe_distribution(self, worker, context=None, entities=None, input=None):
-         # show education visualization
-        ed_vis = ui_builders.build_yeo_viz()
+         # create a unique id
+        id = util_functions.create_uuid()
+
+        # query plan
+        query_plan = [
+            [self.name + ".DEFAULT", "VISUALIZER_YOE.DEFAULT"]
+        ]
+
+        # write trigger to stream
+        a_stream = self.write_to_new_stream(worker, "visualize yoe", "DEFAULT", tags=["HIDDEN"], id=id)
+
+        # build query plan
+        plan = self.build_plan(query_plan, a_stream, id=id)
+
+        # write plan
+        self.write_to_new_stream(worker, plan, "PLAN", tags=["PLAN"], id=id)
+
+    # def show_yoe_distribution(self, worker, context=None, entities=None, input=None):
+    #      # show education visualization
+    #     ed_vis = ui_builders.build_yeo_viz()
         
-        # logging.info(json.dumps(skill_vis, indent=3))
+    #     # logging.info(json.dumps(skill_vis, indent=3))
         
-        # write vis
-        worker.write_control(
-            ControlCode.CREATE_FORM, ed_vis, output="YOEVIS"
-        )
+    #     # write vis
+    #     worker.write_control(
+    #         ControlCode.CREATE_FORM, ed_vis, output="YOEVIS"
+    #     )
 
     ## lists
     def list_all_jobseekers(self, worker, context=None, entities=None, input=None):
@@ -731,7 +750,7 @@ class EmployerPlannerAgent(Agent):
 
         logging.info("ISSUE NL QUERY:" + expanded_query)
         # create a unique id
-        id = util_functions.create_uuid()
+        id = util_functions.crecate_uuid()
 
         # query plan
         query_plan = [
