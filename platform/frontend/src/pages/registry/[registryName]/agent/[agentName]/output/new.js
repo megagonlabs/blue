@@ -49,7 +49,7 @@ export default function New() {
                         axios,
                         url: `${urlPrefix}/${entity.name}/property`,
                         difference,
-                        editEntity: entity,
+                        properties: entity.properties,
                     }),
                     (error) => {
                         if (!error) {

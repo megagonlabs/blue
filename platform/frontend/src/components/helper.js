@@ -79,7 +79,7 @@ module.exports = {
             return this.items[this.front];
         }
     },
-    constructSavePropertyRequests: ({ axios, url, difference, editEntity }) => {
+    constructSavePropertyRequests: ({ axios, url, difference, properties }) => {
         let tasks = [];
         if (_.isArray(difference)) {
             for (var i = 0; i < difference.length; i++) {
@@ -106,15 +106,11 @@ module.exports = {
                     tasks.push(
                         new Promise((resolve, reject) => {
                             axios
-                                .post(
-                                    url + "/" + path,
-                                    editEntity.properties[path],
-                                    {
-                                        headers: {
-                                            "Content-type": "application/json",
-                                        },
-                                    }
-                                )
+                                .post(url + "/" + path, properties[path], {
+                                    headers: {
+                                        "Content-type": "application/json",
+                                    },
+                                })
                                 .then(() => {
                                     resolve(true);
                                 })

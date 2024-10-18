@@ -66,7 +66,7 @@ export default function InputEntity() {
                 url: `${urlPrefix}/${entity.name}/property`,
                 difference,
                 entity,
-                editEntity,
+                properties: editEntity.properties,
             })
         );
         settlePromises(tasks, (error) => {
