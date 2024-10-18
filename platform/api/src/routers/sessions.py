@@ -277,6 +277,29 @@ async def create_session(request: Request):
     return JSONResponse(content={"result": result})
 
 
+@router.get("/session/{session_id}/data")
+def get_session_data(request: Request, session_id):
+    session = p.get_session(session_id)
+    session_acl_enforce(request, session.to_dict(), read=True)
+    return JSONResponse(content={"result": session.get_all_data()})
+
+
+@router.post('/session/{session_id}/data/{property_name}')
+def set_session_data(request: Request, session_id, property_name, property: JSONStructure):
+    session = p.get_session(session_id)
+    session_acl_enforce(request, session.to_dict(), write=True)
+    session.set_data(property_name, property)
+    return JSONResponse(content={"message": "Success"})
+
+
+@router.delete('/session/{session_id}/data/{property_name}')
+def delete_session_data(request: Request, session_id, property_name):
+    session = p.get_session(session_id)
+    session_acl_enforce(request, session.to_dict(), write=True)
+    session.delete_data(property_name)
+    return JSONResponse(content={"message": "Success"})
+
+
 @router.post("/session/{group_name}")
 async def create_session_in_group(request: Request, group_name):
     user_role = request.state.user['role']
