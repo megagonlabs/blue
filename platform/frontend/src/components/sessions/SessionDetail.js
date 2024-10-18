@@ -58,6 +58,7 @@ export default function SessionDetail({ isOpen, setIsSessionDetailOpen }) {
                     padding: "5px 15px",
                     borderRadius: 0,
                     overflowX: "auto",
+                    overscrollBehavior: "contain",
                 }}
             >
                 <ButtonGroup minimal large>
