@@ -244,6 +244,9 @@ class Session:
     def set_data(self, key, value):
         self.connection.json().set(self._get_data_namespace(), "$." + key, value)
 
+    def delete_data(self, key):
+        self.connection.json().delete(self._get_data_namespace(), "$." + key)
+
     def get_data(self, key):
         value = self.connection.json().get(self._get_data_namespace(), Path("$." + key))
         return self.__get_json_value(value)
