@@ -83,13 +83,13 @@ module.exports = {
         let tasks = [];
         if (_.isArray(difference)) {
             for (var i = 0; i < difference.length; i++) {
-                const kind = difference[i].kind,
-                    path = difference[i].path[0];
-                if (_.isEqual(kind, "D")) {
+                const { kind, path } = difference[i];
+                const key = path[0];
+                if (_.isEqual(kind, "D") && _.isEqual(_.size(path), 1)) {
                     tasks.push(
                         new Promise((resolve, reject) => {
                             axios
-                                .delete(url + "/" + path)
+                                .delete(url + "/" + key)
                                 .then(() => {
                                     resolve(true);
                                 })
@@ -106,7 +106,7 @@ module.exports = {
                     tasks.push(
                         new Promise((resolve, reject) => {
                             axios
-                                .post(url + "/" + path, properties[path], {
+                                .post(url + "/" + key, properties[key], {
                                     headers: {
                                         "Content-type": "application/json",
                                     },
