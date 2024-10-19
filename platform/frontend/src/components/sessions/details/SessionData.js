@@ -139,6 +139,7 @@ export default function SessionData() {
                             if (!edit) setEdit(true);
                             else saveData();
                         }}
+                        disabled={jsonError}
                         intent={edit ? Intent.SUCCESS : Intent.PRIMARY}
                         icon={faIcon({ icon: edit ? faCheck : faPen })}
                     />

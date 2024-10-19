@@ -84,15 +84,13 @@ module.exports = {
         if (_.isArray(difference)) {
             for (var i = 0; i < difference.length; i++) {
                 const { kind, path } = difference[i];
-                const key = path[0];
-                if (_.isEqual(kind, "D") && _.isEqual(_.size(path), 1)) {
+                const urlPath = `${url}/${path.join(".")}`;
+                if (_.isEqual(kind, "D")) {
                     tasks.push(
                         new Promise((resolve, reject) => {
                             axios
-                                .delete(url + "/" + key)
-                                .then(() => {
-                                    resolve(true);
-                                })
+                                .delete(urlPath)
+                                .then(() => resolve(true))
                                 .catch((error) => {
                                     AppToaster.show({
                                         intent: Intent.DANGER,
@@ -106,14 +104,12 @@ module.exports = {
                     tasks.push(
                         new Promise((resolve, reject) => {
                             axios
-                                .post(url + "/" + key, properties[key], {
+                                .post(urlPath, _.get(properties, path, null), {
                                     headers: {
                                         "Content-type": "application/json",
                                     },
                                 })
-                                .then(() => {
-                                    resolve(true);
-                                })
+                                .then(() => resolve(true))
                                 .catch((error) => {
                                     AppToaster.show({
                                         intent: Intent.DANGER,
