@@ -84,8 +84,8 @@ module.exports = {
         if (_.isArray(difference)) {
             for (var i = 0; i < difference.length; i++) {
                 const { kind, path } = difference[i];
-                const urlPath = `${url}/${path.join(".")}`;
-                if (_.isEqual(kind, "D")) {
+                const urlPath = `${url}/${path[0]}`;
+                if (_.isEqual(kind, "D") && _.isEmpty(_.size(path), 1)) {
                     tasks.push(
                         new Promise((resolve, reject) => {
                             axios
@@ -104,11 +104,15 @@ module.exports = {
                     tasks.push(
                         new Promise((resolve, reject) => {
                             axios
-                                .post(urlPath, _.get(properties, path, null), {
-                                    headers: {
-                                        "Content-type": "application/json",
-                                    },
-                                })
+                                .post(
+                                    urlPath,
+                                    _.get(properties, path[0], null),
+                                    {
+                                        headers: {
+                                            "Content-type": "application/json",
+                                        },
+                                    }
+                                )
                                 .then(() => resolve(true))
                                 .catch((error) => {
                                     AppToaster.show({
