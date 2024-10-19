@@ -10,7 +10,7 @@ export default function EntityProperties({
     setJsonError,
     updateEntity,
     setLoading,
-    allowPrePopulate = false,
+    allowPopulateOnce = false,
 }) {
     const setProperties = (value) => {
         updateEntity({ path: "properties", value: JSON.parse(value) });
@@ -47,7 +47,7 @@ export default function EntityProperties({
                     </div>
                 ) : (
                     <JsonEditor
-                        allowPrePopulate={allowPrePopulate}
+                        allowPopulateOnce={allowPopulateOnce}
                         code={JSON.stringify(entity.properties, null, 4)}
                         setCode={setProperties}
                         setLoading={setLoading}

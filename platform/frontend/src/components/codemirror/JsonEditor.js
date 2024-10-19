@@ -16,9 +16,9 @@ export default function JsonEditor({
     setLoading,
     schema = null,
     allowSaveWithError = false,
-    allowPrePopulate = false,
+    allowPopulateOnce = false,
 }) {
-    const prePopulateOnce = useRef(!allowPrePopulate);
+    const prePopulateOnce = useRef(!allowPopulateOnce);
     const [doc, setDoc] = useState(code);
     useEffect(() => {
         setCode(doc);

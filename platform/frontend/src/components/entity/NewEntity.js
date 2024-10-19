@@ -135,7 +135,7 @@ export default function NewEntity({
                     setJsonError={setJsonError}
                     updateEntity={updateEntity}
                     setLoading={setLoading}
-                    allowPrePopulate={true}
+                    allowPopulateOnce={true}
                 />
             ) : null}
         </div>
