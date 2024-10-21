@@ -90,9 +90,7 @@ export default function SessionMembersList({ loading, setLoading }) {
                     .then((response) => {
                         setSearchResult(_.get(response, "data.users", []));
                     })
-                    .finally(() => {
-                        setIsTyping(false);
-                    });
+                    .finally(() => setIsTyping(false));
             } else {
                 setSearchResult([]);
                 setIsTyping(false);

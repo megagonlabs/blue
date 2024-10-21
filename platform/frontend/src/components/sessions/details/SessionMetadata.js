@@ -50,12 +50,12 @@ export default function SessionMetadata({
                 setAllowQuickClose(true);
                 setLoading(false);
             })
-            .finally(() => {
+            .finally(() =>
                 AppToaster.show({
                     intent: Intent.SUCCESS,
                     message: "Saved",
-                });
-            });
+                })
+            );
     };
     return (
         <>

@@ -328,7 +328,7 @@ async def create_session_in_group(request: Request, group_name):
     return JSONResponse(content={"result": result})
 
 
-# @router.delete("/{platform_name}/session/{session_id}")
-# def delete_session(session_id):
-#     p.delete_session(session_id)
-#     return JSONResponse(content={"message": "Success"})
+@router.delete("/session/{session_id}")
+def delete_session(session_id):
+    p.delete_session(session_id)
+    return JSONResponse(content={"message": "Success"})

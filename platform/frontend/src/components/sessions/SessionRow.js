@@ -124,9 +124,7 @@ export default function SessionRow({ index, style }) {
                     } "${sessionName}"`,
                 });
             })
-            .finally(() => {
-                setUpdatingPin(false);
-            });
+            .finally(() => setUpdatingPin(false));
     };
     return (
         <Card

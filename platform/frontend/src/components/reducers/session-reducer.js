@@ -285,8 +285,11 @@ export default function sessionReducer(
                     ...state.sessions,
                     [payload]: { messages: [], streams: {} },
                 },
-                sessionIds: [payload, ...state.sessionIds],
+                sessionIds: [payload, ...sessionIds],
             };
+        }
+        case "session/sessions/remove": {
+            return { ...state, sessionIds: _.without(sessionIds, payload) };
         }
         case "session/sessionIdFocus/set": {
             unreadSessionIds.delete(payload);

@@ -27,6 +27,7 @@ import {
     faLayerGroup,
     faPencilRuler,
     faRectangleTerminal,
+    faSparkles,
     faUser,
     faUserGroup,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
@@ -176,6 +177,19 @@ export default function App({ children }) {
                     </Link>
                 </Navbar.Group>
                 <Navbar.Group align={Alignment.RIGHT}>
+                    <Tooltip
+                        placement="bottom"
+                        minimal
+                        content="What's new?"
+                        openOnTargetFocus={false}
+                    >
+                        <Button
+                            disabled
+                            large
+                            minimal
+                            icon={faIcon({ icon: faSparkles })}
+                        />
+                    </Tooltip>
                     <Tooltip
                         placement="bottom"
                         minimal

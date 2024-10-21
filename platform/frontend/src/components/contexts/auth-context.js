@@ -195,9 +195,7 @@ export const AuthProvider = ({ children }) => {
                     value: _.get(profileSettings, "show_workspace", false),
                 });
             })
-            .finally(() => {
-                setAuthInitialized(true);
-            });
+            .finally(() => setAuthInitialized(true));
     };
     const updateSettings = (key, value) => {
         setSettings({ ...settings, [key]: value });
