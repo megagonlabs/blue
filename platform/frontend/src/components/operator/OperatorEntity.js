@@ -1,12 +1,15 @@
 import { Intent } from "@blueprintjs/core";
 import axios from "axios";
-import { diff } from "deep-diff";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import EntityDescription from "../entity/EntityDescription";
 import EntityMain from "../entity/EntityMain";
 import EntityProperties from "../entity/EntityProperties";
-import { constructSavePropertyRequests, settlePromises } from "../helper";
+import {
+    constructSavePropertyRequests,
+    settlePromises,
+    shallowDiff,
+} from "../helper";
 import { AppToaster } from "../toaster";
 export default function OperatorEntity() {
     const BLANK_ENTITY = { type: "operator" };
@@ -68,7 +71,10 @@ export default function OperatorEntity() {
                     });
             }),
         ];
-        const difference = diff(entity.properties, editEntity.properties);
+        const difference = shallowDiff(
+            entity.properties,
+            editEntity.properties
+        );
         tasks.concat(
             constructSavePropertyRequests({
                 axios,

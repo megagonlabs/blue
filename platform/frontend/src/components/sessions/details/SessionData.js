@@ -3,6 +3,7 @@ import { AppContext } from "@/components/contexts/app-context";
 import {
     constructSavePropertyRequests,
     settlePromises,
+    shallowDiff,
 } from "@/components/helper";
 import { faIcon } from "@/components/icon";
 import {
@@ -24,7 +25,6 @@ import {
     faXmarkLarge,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import axios from "axios";
-import { diff } from "deep-diff";
 import { useContext, useEffect, useState } from "react";
 import JsonViewer from "../message/renderers/JsonViewer";
 export default function SessionData() {
@@ -54,7 +54,7 @@ export default function SessionData() {
     const saveData = () => {
         const urlPrefix = `/sessions/session/${sessionIdFocus}/data`;
         setLoading(true);
-        const difference = diff(data, editData);
+        const difference = shallowDiff(data, editData);
         const tasks = constructSavePropertyRequests({
             axios,
             url: urlPrefix,
