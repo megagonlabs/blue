@@ -91,12 +91,14 @@ export default function InputEntity() {
                 jsonError={jsonError}
             />
             <EntityDescription
+                loading={loading}
                 edit={edit}
                 setEdit={setEdit}
                 entity={editEntity}
                 updateEntity={updateEntity}
             />
             <EntityProperties
+                loading={loading}
                 edit={edit}
                 setEdit={setEdit}
                 entity={entity}

@@ -10,6 +10,7 @@ import { faIcon } from "@/components/icon";
 import { AppToaster } from "@/components/toaster";
 import {
     Button,
+    Classes,
     HTMLTable,
     Intent,
     Section,
@@ -144,6 +145,7 @@ export default function AgentEntity() {
                 edit={edit}
                 setEdit={setEdit}
                 entity={editEntity}
+                loading={loading}
                 updateEntity={updateEntity}
             />
             <EntityProperties
@@ -151,6 +153,7 @@ export default function AgentEntity() {
                 setEdit={setEdit}
                 entity={editEntity}
                 jsonError={jsonError}
+                loading={loading}
                 setJsonError={setJsonError}
                 updateEntity={updateEntity}
                 setLoading={setLoading}
@@ -205,6 +208,11 @@ export default function AgentEntity() {
                                 <tr>
                                     <td colSpan={2}>
                                         <Button
+                                            className={
+                                                loading
+                                                    ? Classes.SKELETON
+                                                    : null
+                                            }
                                             icon={faIcon({ icon: faPlus })}
                                             outlined
                                             text="Add input"
@@ -269,6 +277,11 @@ export default function AgentEntity() {
                                 <tr>
                                     <td colSpan={2}>
                                         <Button
+                                            className={
+                                                loading
+                                                    ? Classes.SKELETON
+                                                    : null
+                                            }
                                             icon={faIcon({ icon: faPlus })}
                                             outlined
                                             text="Add output"

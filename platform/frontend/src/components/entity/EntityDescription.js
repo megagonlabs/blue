@@ -1,9 +1,10 @@
-import { EditableText, Section, SectionCard } from "@blueprintjs/core";
+import { Classes, EditableText, Section, SectionCard } from "@blueprintjs/core";
 export default function EntityDescription({
     entity,
     edit,
     updateEntity,
     setEdit,
+    loading = false,
 }) {
     return (
         <Section
@@ -19,7 +20,9 @@ export default function EntityDescription({
                     event.stopPropagation();
                 }}
             >
-                {edit ? (
+                {loading ? (
+                    <div className={Classes.SKELETON}>&nbsp;</div>
+                ) : edit ? (
                     <EditableText
                         multiline
                         minLines={2}

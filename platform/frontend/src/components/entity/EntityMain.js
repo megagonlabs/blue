@@ -248,7 +248,16 @@ export default function EntityMain({
                                 }px 5px 10px`,
                             }}
                         >
-                            {entity.name}
+                            {loading ? (
+                                <div
+                                    style={{ width: 40 }}
+                                    className={Classes.SKELETON}
+                                >
+                                    &nbsp;
+                                </div>
+                            ) : (
+                                entity.name
+                            )}
                         </div>
                     </div>
                     <div
