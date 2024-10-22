@@ -26,6 +26,7 @@ import {
     Tooltip,
 } from "@blueprintjs/core";
 import {
+    faBookOpenCover,
     faInputNumeric,
     faInputText,
     faList,
@@ -42,6 +43,7 @@ import {
 import _ from "lodash";
 import { useCallback, useState } from "react";
 import ArrayDoc from "./ArrayDoc";
+import BasicsDoc from "./BasicsDoc";
 import MarkdownDoc from "./MarkdownDoc";
 import VegaDoc from "./VegaDoc";
 const RendererDetailPanel = (props) => {
@@ -58,22 +60,21 @@ const RendererDetailPanel = (props) => {
         array: <ArrayDoc closePanel={props.closePanel} />,
         vega: <VegaDoc closePanel={props.closePanel} />,
         markdown: <MarkdownDoc closePanel={props.closePanel} />,
+        basics: <BasicsDoc closePanel={props.closePanel} />,
     };
     return _.get(DOCS, props.type, null);
 };
 const MainMenuPanel = (props) => {
     const TYPES = [
         {
+            text: "Basics",
+            icon: faBookOpenCover,
+            label: "Documentation",
+        },
+        {
             text: "Array",
             icon: faList,
-            label: (
-                <span
-                    className={Classes.TEXT_DISABLED}
-                    style={{ marginRight: 4 }}
-                >
-                    Inlined UI schema
-                </span>
-            ),
+            label: "Inlined UI schema",
         },
         { text: "Boolean", icon: faSquareCheck },
         { text: "Button", icon: faPlay },
@@ -88,14 +89,7 @@ const MainMenuPanel = (props) => {
         {
             text: "Vega",
             icon: faPresentationScreen,
-            label: (
-                <span
-                    className={Classes.TEXT_DISABLED}
-                    style={{ marginRight: 4 }}
-                >
-                    Vega-Lite
-                </span>
-            ),
+            label: "Vega-Lite",
         },
     ];
     const [openingPanel, setOpeningPanel] = useState(false);
@@ -141,7 +135,14 @@ const MainMenuPanel = (props) => {
                             }, 500);
                         }}
                         text={type.text}
-                        label={type.label}
+                        label={
+                            <span
+                                className={Classes.TEXT_DISABLED}
+                                style={{ marginRight: 4 }}
+                            >
+                                {type.label}
+                            </span>
+                        }
                     />
                 ))}
                 <MenuDivider title="Data Schema" />

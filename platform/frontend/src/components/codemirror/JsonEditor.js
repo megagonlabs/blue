@@ -88,17 +88,17 @@ export default function JsonEditor({
             parent: editor.current,
         });
         view.contentDOM.addEventListener("blur", () => {
+            console.log("editableFix");
             var editableFix = document.createElement("input");
             editableFix.style =
                 "position: absolute; width: 1px; left: 0px; top: 0px;";
+            editableFix.id = "json-editor-input-editable-fix";
             editableFix.tabIndex = -1;
             view.contentDOM.appendChild(editableFix);
             editableFix.focus();
             editableFix.setSelectionRange(0, 0);
             editableFix.blur();
-            setTimeout(() => {
-                editableFix.remove();
-            }, 0);
+            editableFix.remove();
         });
         setCodeEditorView(view);
         return () => {
