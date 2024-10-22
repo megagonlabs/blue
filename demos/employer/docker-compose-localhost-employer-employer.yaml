@@ -1,0 +1,40 @@
+---
+version: '3.8'
+x-blue-common:
+  &blue-common
+  # build: .
+  image: python:3.9.0
+  environment:
+    &blue-common-env
+    BLUE__PROPERTIES: '{"platform.name":"employer", "platform.deploy.target":"localhost", "api.server":"10.119.85.30", "db.host":"blue_db_redis",  "agent_registry.name":"default", "data_registry.name":"default", "embeddings_model":"/blue_data/models/paraphrase-MiniLM-L6-v2"}'
+  depends_on:
+    &blue-common-depends-on
+    redis:
+      condition: service_healthy
+
+services:
+  postgres_db:
+    image: postgres:latest
+    hostname: postgres_db
+    ports:
+      - 5432:5432
+    networks:
+      - blue_platform_employer_network_bridge
+    volumes:
+      - blue_employer_data:/blue_data
+      - employer_postgres_data:/var/lib/postgresql/data
+    environment:
+      <<: *blue-common-env
+    env_file:
+      - demo.env
+    restart: always
+
+networks:
+  blue_platform_employer_network_bridge:
+      external: true
+
+volumes:
+  blue_employer_data:
+      external: true
+  employer_postgres_data:
+      external: true
