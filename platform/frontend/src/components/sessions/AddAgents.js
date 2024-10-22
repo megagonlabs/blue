@@ -156,7 +156,7 @@ export default function AddAgents({
         >
             <DialogBody className="dialog-body">
                 {_.isEmpty(agents) ? (
-                    <div style={{ padding: 15 }}>
+                    <div style={{ padding: 15, height: 141 }}>
                         <NonIdealState
                             className={loading ? Classes.SKELETON : null}
                             title="No Agent"
@@ -321,13 +321,13 @@ export default function AddAgents({
                         </span>
                     ) : null}
                 </div>
-                {!_.isEmpty(unavailableAgents) ? (
+                {!_.isEmpty(unavailableAgents) && (
                     <div style={{ position: "absolute", right: 15, top: 15 }}>
                         <Tag intent={Intent.WARNING} minimal large>
                             {_.size(unavailableAgents)} unavailable
                         </Tag>
                     </div>
-                ) : null}
+                )}
             </DialogFooter>
         </Dialog>
     );

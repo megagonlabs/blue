@@ -10,13 +10,16 @@ import {
     Tag,
 } from "@blueprintjs/core";
 import axios from "axios";
-import { diff } from "deep-diff";
 import _ from "lodash";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useContext, useEffect, useState } from "react";
 import { AppContext } from "../contexts/app-context";
-import { constructSavePropertyRequests, settlePromises } from "../helper";
+import {
+    constructSavePropertyRequests,
+    settlePromises,
+    shallowDiff,
+} from "../helper";
 export default function SourceEntity() {
     const BLANK_ENTITY = { type: "data" };
     const router = useRouter();
@@ -78,13 +81,16 @@ export default function SourceEntity() {
                     });
             }),
         ];
-        const difference = diff(entity.properties, editEntity.properties);
+        const difference = shallowDiff(
+            entity.properties,
+            editEntity.properties
+        );
         tasks.concat(
             constructSavePropertyRequests({
                 axios,
                 url: `${urlPrefix}/${entity.name}/property`,
                 difference,
-                editEntity,
+                properties: editEntity.properties,
             })
         );
         settlePromises(tasks, (error) => {

@@ -1,14 +1,10 @@
 import { AppContext } from "@/components/contexts/app-context";
 import EntityDescription from "@/components/entity/EntityDescription";
 import EntityMain from "@/components/entity/EntityMain";
-import {
-    constructSavePropertyRequests,
-    settlePromises,
-} from "@/components/helper";
+import { settlePromises } from "@/components/helper";
 import { AppToaster } from "@/components/toaster";
 import { Intent } from "@blueprintjs/core";
 import axios from "axios";
-import { diff } from "deep-diff";
 import _ from "lodash";
 import { useRouter } from "next/router";
 import { useContext, useEffect, useState } from "react";
@@ -72,15 +68,6 @@ export default function AgentGroupEntity() {
                     });
             }),
         ];
-        const difference = diff(entity.properties, editEntity.properties);
-        tasks.concat(
-            constructSavePropertyRequests({
-                axios,
-                url: `${urlPrefix}/${entity.name}/property`,
-                difference,
-                editEntity,
-            })
-        );
         settlePromises(tasks, (error) => {
             if (!error) {
                 setEdit(false);

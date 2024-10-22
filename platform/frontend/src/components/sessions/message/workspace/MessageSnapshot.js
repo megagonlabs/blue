@@ -142,7 +142,7 @@ export default function MessageSnapshot({ content, hasError, index }) {
                             true
                         ) && !dragging,
                     onToggle: () =>
-                        appActions.session.toggleWorkspaceCollapse(stream),
+                        appActions.session.toggleWorkspaceCollapse({ stream }),
                 }}
                 style={{ opacity: dragging ? 0.54 : 1 }}
                 collapsible

@@ -4,17 +4,19 @@ import { Button, ButtonGroup, Card, Classes, Dialog } from "@blueprintjs/core";
 import {
     faCircleA,
     faFolderTree,
+    faGear,
     faMoneyBillsSimple,
     faSquareInfo,
     faUserGroup,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import _ from "lodash";
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import SessionAgentsList from "./details/SessionAgentsList";
 import SessionBudget from "./details/SessionBudget";
 import SessionData from "./details/SessionData";
 import SessionMembersList from "./details/SessionMembersList";
 import SessionMetadata from "./details/SessionMetadata";
+import SessionSettings from "./details/SessionSettings";
 export default function SessionDetail({ isOpen, setIsSessionDetailOpen }) {
     const { appState } = useContext(AppContext);
     const sessionIdFocus = appState.session.sessionIdFocus;
@@ -33,7 +35,14 @@ export default function SessionDetail({ isOpen, setIsSessionDetailOpen }) {
         { text: "Members", icon: faUserGroup, key: "members" },
         { text: "Budget", icon: faMoneyBillsSimple, key: "budget" },
         { text: "Data", icon: faFolderTree, key: "data" },
+        { text: "Settings", icon: faGear, key: "settings" },
     ];
+    useEffect(() => {
+        if (_.isNil(sessionIdFocus)) {
+            setIsSessionDetailOpen(false);
+            setTab("about");
+        }
+    }, [sessionIdFocus]);
     return (
         <Dialog
             title={
@@ -50,6 +59,7 @@ export default function SessionDetail({ isOpen, setIsSessionDetailOpen }) {
             onClose={() => {
                 if (loading) return;
                 setIsSessionDetailOpen(false);
+                setTab("about");
             }}
             isOpen={isOpen}
         >
@@ -58,6 +68,7 @@ export default function SessionDetail({ isOpen, setIsSessionDetailOpen }) {
                     padding: "5px 15px",
                     borderRadius: 0,
                     overflowX: "auto",
+                    overscrollBehavior: "contain",
                 }}
             >
                 <ButtonGroup minimal large>
@@ -93,6 +104,7 @@ export default function SessionDetail({ isOpen, setIsSessionDetailOpen }) {
                 />
             )}
             {_.isEqual(tab, "data") && <SessionData />}
+            {_.isEqual(tab, "settings") && <SessionSettings />}
         </Dialog>
     );
 }

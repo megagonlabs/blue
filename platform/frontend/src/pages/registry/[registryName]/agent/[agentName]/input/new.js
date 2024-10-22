@@ -4,11 +4,11 @@ import NewEntity from "@/components/entity/NewEntity";
 import {
     constructSavePropertyRequests,
     settlePromises,
+    shallowDiff,
 } from "@/components/helper";
 import { AppToaster } from "@/components/toaster";
 import { Intent } from "@blueprintjs/core";
 import axios from "axios";
-import { diff } from "deep-diff";
 import _ from "lodash";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
@@ -43,13 +43,13 @@ export default function New() {
                     intent: Intent.SUCCESS,
                     message: `Created ${entity.name} input`,
                 });
-                const difference = diff({}, entity.properties);
+                const difference = shallowDiff({}, entity.properties);
                 settlePromises(
                     constructSavePropertyRequests({
                         axios,
                         url: `${urlPrefix}/${entity.name}/property`,
                         difference,
-                        editEntity: entity,
+                        properties: entity.properties,
                     }),
                     (error) => {
                         if (!error) {

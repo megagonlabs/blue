@@ -79,55 +79,77 @@ module.exports = {
             return this.items[this.front];
         }
     },
-    constructSavePropertyRequests: ({ axios, url, difference, editEntity }) => {
+    shallowDiff: (base, compared) => {
+        let updated = [],
+            deleted = [],
+            added = [];
+        const comparedKeys = Object.keys(compared);
+        for (let i = 0; i < _.size(comparedKeys); i++) {
+            const key = comparedKeys[i];
+            // check for updated
+            if (_.has(base, key)) {
+                if (!_.isEqual(base[key], compared[key])) updated.push(key);
+            } else {
+                added.push(key);
+            }
+        }
+        const baseKeys = Object.keys(base);
+        for (let i = 0; i < _.size(baseKeys); i++) {
+            const key = baseKeys[i];
+            // check for deleted
+            if (!_.has(compared, key)) {
+                deleted.push(key);
+            }
+        }
+        return { updated, deleted, added };
+    },
+    constructSavePropertyRequests: ({ axios, url, difference, properties }) => {
         let tasks = [];
-        if (_.isArray(difference)) {
-            for (var i = 0; i < difference.length; i++) {
-                const kind = difference[i].kind,
-                    path = difference[i].path[0];
-                if (_.isEqual(kind, "D")) {
-                    tasks.push(
-                        new Promise((resolve, reject) => {
-                            axios
-                                .delete(url + "/" + path)
-                                .then(() => {
-                                    resolve(true);
-                                })
-                                .catch((error) => {
-                                    AppToaster.show({
-                                        intent: Intent.DANGER,
-                                        message: `${error.name}: ${error.message}`,
-                                    });
-                                    reject(false);
+        const { updated, deleted, added } = difference;
+        if (!_.isEmpty(deleted)) {
+            for (let i = 0; i < _.size(deleted); i++) {
+                tasks.push(
+                    new Promise((resolve, reject) => {
+                        axios
+                            .delete(`${url}/${deleted[i]}`)
+                            .then(() => resolve(true))
+                            .catch((error) => {
+                                AppToaster.show({
+                                    intent: Intent.DANGER,
+                                    message: `${error.name}: ${error.message}`,
                                 });
-                        })
-                    );
-                } else {
-                    tasks.push(
-                        new Promise((resolve, reject) => {
-                            axios
-                                .post(
-                                    url + "/" + path,
-                                    editEntity.properties[path],
-                                    {
-                                        headers: {
-                                            "Content-type": "application/json",
-                                        },
-                                    }
-                                )
-                                .then(() => {
-                                    resolve(true);
-                                })
-                                .catch((error) => {
-                                    AppToaster.show({
-                                        intent: Intent.DANGER,
-                                        message: `${error.name}: ${error.message}`,
-                                    });
-                                    reject(false);
+                                reject(false);
+                            });
+                    })
+                );
+            }
+        }
+        const posts = [...updated, ...added];
+        if (!_.isEmpty(posts)) {
+            for (let i = 0; i < _.size(posts); i++) {
+                const key = posts[i];
+                tasks.push(
+                    new Promise((resolve, reject) => {
+                        axios
+                            .post(
+                                `${url}/${key}`,
+                                _.get(properties, key, null),
+                                {
+                                    headers: {
+                                        "Content-type": "application/json",
+                                    },
+                                }
+                            )
+                            .then(() => resolve(true))
+                            .catch((error) => {
+                                AppToaster.show({
+                                    intent: Intent.DANGER,
+                                    message: `${error.name}: ${error.message}`,
                                 });
-                        })
-                    );
-                }
+                                reject(false);
+                            });
+                    })
+                );
             }
         }
         return tasks;

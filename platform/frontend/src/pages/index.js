@@ -59,9 +59,7 @@ export default function LaunchScreen() {
                 }
                 setAgentGroups(results);
             })
-            .finally(() => {
-                setLoading(false);
-            });
+            .finally(() => setLoading(false));
     }, []);
     const { socket, reconnectWs, isSocketOpen } = useSocket();
     const [launchGroup, setLaunchGroup] = useState(null);

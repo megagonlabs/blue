@@ -16,7 +16,9 @@ export default function JsonEditor({
     setLoading,
     schema = null,
     allowSaveWithError = false,
+    allowPopulateOnce = false,
 }) {
+    const prePopulateOnce = useRef(!allowPopulateOnce);
     const [doc, setDoc] = useState(code);
     useEffect(() => {
         setCode(doc);
@@ -50,7 +52,13 @@ export default function JsonEditor({
     });
     const [codeEditorView, setCodeEditorView] = useState(null);
     useEffect(() => {
-        if (_.isEqual(code, doc) || _.isNil(codeEditorView)) return;
+        if (
+            _.isEqual(code, doc) ||
+            _.isNil(codeEditorView) ||
+            prePopulateOnce.current
+        )
+            return;
+        prePopulateOnce.current = true;
         codeEditorView.dispatch({
             changes: { from: 0, to: doc.length, insert: code },
         });

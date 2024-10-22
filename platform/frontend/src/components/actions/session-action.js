@@ -108,6 +108,9 @@ export const sessionAction = (dispatch) => ({
     addSession: (payload) => {
         dispatch({ type: "session/sessions/add", payload });
     },
+    removeSession: (payload) => {
+        dispatch({ type: "session/sessions/remove", payload });
+    },
     addToWorkspace: (payload) => {
         dispatch({ type: "session/sessions/addToWorkspace", payload });
     },

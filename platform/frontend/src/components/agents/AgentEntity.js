@@ -4,6 +4,7 @@ import EntityProperties from "@/components/entity/EntityProperties";
 import {
     constructSavePropertyRequests,
     settlePromises,
+    shallowDiff,
 } from "@/components/helper";
 import { faIcon } from "@/components/icon";
 import { AppToaster } from "@/components/toaster";
@@ -17,7 +18,6 @@ import {
 } from "@blueprintjs/core";
 import { faPlus } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import axios from "axios";
-import { diff } from "deep-diff";
 import _ from "lodash";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -85,13 +85,16 @@ export default function AgentEntity() {
                     });
             }),
         ];
-        const difference = diff(entity.properties, editEntity.properties);
+        const difference = shallowDiff(
+            entity.properties,
+            editEntity.properties
+        );
         tasks.concat(
             constructSavePropertyRequests({
                 axios,
                 url: `${urlPrefix}/${entity.name}/property`,
                 difference,
-                editEntity,
+                properties: editEntity.properties,
             })
         );
         settlePromises(tasks, (error) => {

@@ -90,9 +90,7 @@ export default function SessionMembersList({ loading, setLoading }) {
                     .then((response) => {
                         setSearchResult(_.get(response, "data.users", []));
                     })
-                    .finally(() => {
-                        setIsTyping(false);
-                    });
+                    .finally(() => setIsTyping(false));
             } else {
                 setSearchResult([]);
                 setIsTyping(false);
@@ -163,6 +161,7 @@ export default function SessionMembersList({ loading, setLoading }) {
                     padding: 15,
                     minHeight: 202,
                     height: _.isEmpty(members) ? 202 : null,
+                    maxHeight: 463,
                 }}
             >
                 <Popover
@@ -370,6 +369,7 @@ export default function SessionMembersList({ loading, setLoading }) {
                         );
                     })
                 )}
+                {!_.isEmpty(members) && <div style={{ height: 15 }}></div>}
             </div>
         </DialogBody>
     );

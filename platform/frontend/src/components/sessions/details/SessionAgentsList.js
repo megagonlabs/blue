@@ -67,6 +67,7 @@ export default function SessionAgentsList({ loading, setLoading }) {
                     padding: 15,
                     minHeight: 202,
                     height: _.isEmpty(agents) ? 202 : null,
+                    maxHeight: 463,
                 }}
             >
                 {_.isEmpty(agents) && !loading ? (
@@ -76,10 +77,7 @@ export default function SessionAgentsList({ loading, setLoading }) {
                         title="No Agent"
                     />
                 ) : (
-                    <FormGroup
-                        label="Currently in the session"
-                        style={{ marginBottom: 0 }}
-                    >
+                    <FormGroup label="Currently in the session">
                         {loading ? (
                             <>
                                 {LOADING_PLACEHOLDER}
