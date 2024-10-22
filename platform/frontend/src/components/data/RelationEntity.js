@@ -14,6 +14,7 @@ export default function RelationEntity() {
         if (!router.isReady) return;
         axios.get(routerQueryPath).then((response) => {
             setEntity(_.get(response, "data.result", {}));
+            setLoading(false);
         });
     }, [router]);
     return (
