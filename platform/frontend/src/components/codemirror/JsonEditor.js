@@ -88,7 +88,6 @@ export default function JsonEditor({
             parent: editor.current,
         });
         view.contentDOM.addEventListener("blur", () => {
-            console.log("editableFix");
             var editableFix = document.createElement("input");
             editableFix.style =
                 "position: absolute; width: 1px; left: 0px; top: 0px;";
