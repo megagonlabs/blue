@@ -89,7 +89,7 @@ export default function SessionData() {
                                 style={{ padding: 15 }}
                                 onDoubleClick={() => setEdit(true)}
                             >
-                                <JsonViewer displaySize={true} json={data} />
+                                <JsonViewer json={data} />
                             </div>
                         )
                     ) : (

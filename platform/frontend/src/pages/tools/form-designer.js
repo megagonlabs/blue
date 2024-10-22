@@ -502,10 +502,7 @@ function FormDesigner() {
                                             overflow: "hidden",
                                         }}
                                     >
-                                        <JsonViewer
-                                            displaySize={true}
-                                            json={data}
-                                        />
+                                        <JsonViewer json={data} />
                                     </pre>
                                 </div>
                             )}

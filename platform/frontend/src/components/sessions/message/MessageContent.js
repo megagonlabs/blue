@@ -27,7 +27,7 @@ export default function MessageContent({
         if (_.includes(["STR", "INT", "FLOAT"], dataType)) {
             return <span key={id}>{(index ? " " : "") + content}</span>;
         } else if (_.isEqual(dataType, "JSON")) {
-            return <JsonViewer displaySize={true} key={id} json={content} />;
+            return <JsonViewer key={id} json={content} />;
         }
         return null;
     });
