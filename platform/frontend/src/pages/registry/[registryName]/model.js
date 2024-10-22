@@ -106,6 +106,7 @@ export default function Model() {
                 >
                     <ControlGroup fill>
                         <InputGroup
+                            id="model-registry-search-input"
                             placeholder="Search models"
                             className={
                                 appState.model.loading ? Classes.SKELETON : null

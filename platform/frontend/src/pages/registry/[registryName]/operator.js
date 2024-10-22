@@ -110,6 +110,7 @@ export default function Operator() {
                 >
                     <ControlGroup fill>
                         <InputGroup
+                            id="operator-registry-search-input"
                             placeholder="Search operators"
                             className={
                                 appState.operator.loading

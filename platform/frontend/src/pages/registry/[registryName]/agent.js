@@ -106,6 +106,7 @@ export default function Agent() {
                 >
                     <ControlGroup fill>
                         <InputGroup
+                            id="agent-registry-search-input"
                             placeholder="Search agents"
                             className={
                                 appState.agent.loading ? Classes.SKELETON : null

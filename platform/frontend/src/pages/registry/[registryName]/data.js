@@ -106,6 +106,7 @@ export default function Data() {
                 >
                     <ControlGroup fill>
                         <InputGroup
+                            id="data-registry-search-input"
                             placeholder="Search data"
                             large
                             fill
