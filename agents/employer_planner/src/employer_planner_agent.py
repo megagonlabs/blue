@@ -144,7 +144,10 @@ class EmployerPlannerAgent(Agent):
                     worker.set_session_data("welcome", True)
 
                     # present main employer form
-                    form = ui_builders.build_form()
+                    job_ids = []
+                    if "job_ids" in properties:
+                        job_ids = properties['job_ids']
+                    form = ui_builders.build_form(job_ids=job_ids)
 
                     # write form
                     worker.write_control(
