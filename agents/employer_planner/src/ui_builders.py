@@ -422,7 +422,7 @@ def build_skill_viz():
 
     return viz
 
-def build_form():
+def build_form(job_ids=["2001","2002","2003"]):
     form_ui = {
         "type": "VerticalLayout",
         "elements": [
@@ -650,10 +650,7 @@ def build_form():
         "properties": {
             "JOB_ID": {
                 "type": "string",
-                "enum": [
-                    "2001",
-                    "2002"
-                ]
+                "enum": job_ids
             }
         }
     }
