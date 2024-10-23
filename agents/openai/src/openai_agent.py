@@ -54,13 +54,14 @@ class OpenAIAgent(APIAgent):
 
         self.properties['openai.service'] = "ws://localhost:8003"
 
-        self.properties['openai.api'] = 'Completion'
-        self.properties['openai.model'] = "text-davinci-003"
-        self.properties['input_json'] = None 
-        self.properties['input_context'] = None 
-        self.properties['input_context_field'] = None 
-        self.properties['input_field'] = 'prompt'
-        self.properties['output_path'] = '$.choices[0].text'
+        self.properties['openai.api'] = 'ChatCompletion'
+        self.properties['openai.model'] = "gpt-4o"
+        self.properties['input_json'] = "[{\"role\": \"user\"}]" 
+        self.properties['input_context'] = "$[0]" 
+        self.properties['input_context_field'] = "content" 
+        self.properties['input_field'] = "messages"
+        self.properties['input_template'] = "Do something with ${input}"
+        self.properties['output_path'] = '$.choices[0].message.content'
         self.properties['openai.stream'] = False
         self.properties['openai.max_tokens'] = 50
 
