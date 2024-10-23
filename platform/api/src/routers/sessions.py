@@ -88,6 +88,17 @@ def agent_join_session(registry_name, agent_name, properties, session_id):
     agent_properties = {}
     # start from platform properties
     agent_properties = json_utils.merge_json(agent_properties, PROPERTIES)
+    # check if derivate agent, if so merge
+    # <_name> or <_name>_<derivative__name>
+    ca = agent_name.split("_")
+    if len(ca) > 1:
+        parent_agent_name = ca[0]
+
+        parent_properties_from_registry = agent_registry.get_agent_properties(parent_agent_name)
+        if parent_properties_from_registry:
+            agent_properties = json_utils.merge_json(agent_properties, parent_properties_from_registry)
+
+
     # merge in registry properties
     agent_properties = json_utils.merge_json(agent_properties, properties_from_registry)
     # merge in properties from the api
