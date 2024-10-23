@@ -170,7 +170,7 @@ class EmployerPlannerAgent(Agent):
                             input = data[key]
                         elif key.upper() == 'INTENT':
                             intent = data[key]
-                        elif key.upper() == 'ENTITIES':
+                        elif key.upper() == 'ENTITIES' or key.upper() == "ENTITY":
                             entities = data[key]
                         else:
                             entities[key.upper()] = data[key]
@@ -279,8 +279,6 @@ class EmployerPlannerAgent(Agent):
                             )
                         
                         # save to session
-                        logging.info("PATH====")
-                        logging.info(path)
                         sesion_path_filter = set(["JOB_ID"])
 
                         if path in sesion_path_filter:
@@ -637,16 +635,22 @@ class EmployerPlannerAgent(Agent):
 
     ## visualizations
     def show_skills_distribution(self, worker, context=None, entities=None, input=None):
+         # create a unique id
+        id = util_functions.create_uuid()
 
-        # show skill distribution visualization
-        skill_vis = ui_builders.build_skill_viz()
-        
-        # logging.info(json.dumps(skill_vis, indent=3))
-        
-        # write vis
-        worker.write_control(
-            ControlCode.CREATE_FORM, skill_vis, output="SKILLVIS"
-        )
+        # query plan
+        query_plan = [
+            [self.name + ".DEFAULT", "VISUALIZER_SKILLS.DEFAULT"]
+        ]
+
+        # write trigger to stream
+        a_stream = self.write_to_new_stream(worker, "visualize skills", "DEFAULT", tags=["HIDDEN"], id=id)
+
+        # build query plan
+        plan = self.build_plan(query_plan, a_stream, id=id)
+
+        # write plan
+        self.write_to_new_stream(worker, plan, "PLAN", tags=["PLAN"], id=id)
 
     def show_education_distribution(self, worker, context=None, entities=None, input=None):
          # show education visualization
