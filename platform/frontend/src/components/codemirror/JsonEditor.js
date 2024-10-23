@@ -13,9 +13,8 @@ export default function JsonEditor({
     code,
     setCode,
     setError,
-    setLoading,
     schema = null,
-    allowSaveWithError = false,
+    allowEditWithError = false,
     allowPopulateOnce = false,
 }) {
     const prePopulateOnce = useRef(!allowPopulateOnce);
@@ -24,6 +23,10 @@ export default function JsonEditor({
         setCode(doc);
     }, [doc]);
     const editor = useRef();
+    const onUpdate = EditorView.updateListener.of((v) => {
+        // v.docChanged
+        debounced(v);
+    });
     const debounced = useCallback(
         _.debounce((v) => {
             let error = false;
@@ -35,21 +38,12 @@ export default function JsonEditor({
             if (_.isFunction(setError)) {
                 setError(error);
             }
-            if (!error || allowSaveWithError) {
+            if (!error || allowEditWithError) {
                 setDoc(v.state.doc.toString());
-            }
-            if (_.isFunction(setLoading)) {
-                setLoading(false);
             }
         }, 300),
         []
     );
-    const onUpdate = EditorView.updateListener.of((v) => {
-        if (_.isFunction(setLoading) && v.docChanged) {
-            setLoading(true);
-        }
-        debounced(v);
-    });
     const [codeEditorView, setCodeEditorView] = useState(null);
     useEffect(() => {
         if (

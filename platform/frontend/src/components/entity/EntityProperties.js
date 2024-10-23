@@ -9,7 +9,6 @@ export default function EntityProperties({
     jsonError,
     setJsonError,
     updateEntity,
-    setLoading,
     loading,
     allowPopulateOnce = false,
 }) {
@@ -52,7 +51,6 @@ export default function EntityProperties({
                         allowPopulateOnce={allowPopulateOnce}
                         code={JSON.stringify(entity.properties, null, 4)}
                         setCode={setProperties}
-                        setLoading={setLoading}
                         setError={setJsonError}
                     />
                 )}
