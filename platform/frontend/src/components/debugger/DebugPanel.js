@@ -100,7 +100,10 @@ export default function DebugPanel() {
                         Debugger
                     </div>
                     <div
-                        style={{ height: "calc(100% - 40px)" }}
+                        style={{
+                            height: "calc(100% - 40px)",
+                            overscrollBehavior: "contain",
+                        }}
                         className={classNames(Classes.DIALOG_BODY, "margin-0")}
                     >
                         <Debugger />
