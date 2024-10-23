@@ -105,7 +105,6 @@ export default function OutputEntity() {
                 jsonError={jsonError}
                 setJsonError={setJsonError}
                 updateEntity={updateEntity}
-                setLoading={setLoading}
             />
         </div>
     );

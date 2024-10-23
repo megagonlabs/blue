@@ -119,7 +119,6 @@ export default function ModelEntity() {
                 jsonError={jsonError}
                 setJsonError={setJsonError}
                 updateEntity={updateEntity}
-                setLoading={setLoading}
             />
         </div>
     );

@@ -24,7 +24,6 @@ export default function NewEntity({
     loading,
     jsonError,
     setJsonError,
-    setLoading,
     urlPrefix,
     setEntity,
 }) {
@@ -134,7 +133,6 @@ export default function NewEntity({
                     jsonError={jsonError}
                     setJsonError={setJsonError}
                     updateEntity={updateEntity}
-                    setLoading={setLoading}
                     allowPopulateOnce={true}
                 />
             ) : null}

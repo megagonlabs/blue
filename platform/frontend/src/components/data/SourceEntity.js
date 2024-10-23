@@ -133,7 +133,6 @@ export default function SourceEntity() {
                 jsonError={jsonError}
                 setJsonError={setJsonError}
                 updateEntity={updateEntity}
-                setLoading={setLoading}
             />
             <Section
                 compact

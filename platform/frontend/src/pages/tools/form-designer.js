@@ -298,7 +298,7 @@ function FormDesigner() {
                                     <JsonEditor
                                         schema={UI_JSON_SCHEMA}
                                         setLoading={setUiSchemaLoading}
-                                        allowSaveWithError
+                                        allowEditWithError
                                         code={jsonUischema}
                                         setCode={setJsonUischema}
                                         setError={setUiSchemaError}
@@ -360,7 +360,7 @@ function FormDesigner() {
                                     <JsonEditor
                                         schema={DATA_JSON_SCHEMA}
                                         setLoading={setSchemaLoading}
-                                        allowSaveWithError
+                                        allowEditWithError
                                         code={jsonSchema}
                                         setCode={setJsonSchema}
                                         setError={setSchemaError}

@@ -119,7 +119,6 @@ export default function OperatorEntity() {
                 jsonError={jsonError}
                 setJsonError={setJsonError}
                 updateEntity={updateEntity}
-                setLoading={setLoading}
             />
         </div>
     );

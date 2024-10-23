@@ -119,7 +119,6 @@ export default function New() {
                 loading={loading}
                 jsonError={jsonError}
                 setJsonError={setJsonError}
-                setLoading={setLoading}
                 urlPrefix={urlPrefix}
                 setEntity={setEntity}
             />

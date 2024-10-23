@@ -156,7 +156,6 @@ export default function AgentEntity() {
                 loading={loading}
                 setJsonError={setJsonError}
                 updateEntity={updateEntity}
-                setLoading={setLoading}
             />
             <Section
                 compact
