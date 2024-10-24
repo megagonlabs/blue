@@ -282,10 +282,12 @@ export const AuthProvider = ({ children }) => {
                             width: "calc(100vw - 40px)",
                             maxWidth: 300,
                             height: 30,
+                            textAlign: "center",
                         }}
                         className="center-center"
                     >
                         <ProgressBar intent={Intent.PRIMARY} />
+                        <div style={{ marginTop: 5 }}>Initializing...</div>
                     </div>
                 </div>
             ) : null}

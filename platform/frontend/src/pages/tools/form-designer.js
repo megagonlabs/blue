@@ -82,23 +82,19 @@ function FormDesigner() {
         }
     }, [error]);
     useEffect(() => {
-        if (!uiSchemaLoading) {
-            let uiSchemaCache = sessionStorage.getItem("jsonUischema");
-            if (!uiSchemaInitialized && uiSchemaCache) {
-                setJsonUischema(uiSchemaCache);
-            }
-            setUiSchemaInitialized(true);
+        let uiSchemaCache = sessionStorage.getItem("jsonUischema");
+        if (!uiSchemaInitialized && uiSchemaCache) {
+            setJsonUischema(uiSchemaCache);
         }
-    }, [uiSchemaLoading]);
-    useEffect(() => {
-        if (!schemaLoading) {
-            let schemaCache = sessionStorage.getItem("jsonSchema");
-            if (!schemaInitialized && schemaCache) {
-                setJsonSchema(schemaCache);
-            }
-            setSchemaInitialized(true);
+        setUiSchemaInitialized(true);
+        setUiSchemaLoading(false);
+        let schemaCache = sessionStorage.getItem("jsonSchema");
+        if (!schemaInitialized && schemaCache) {
+            setJsonSchema(schemaCache);
         }
-    }, [schemaLoading]);
+        setSchemaInitialized(true);
+        setSchemaLoading(false);
+    }, []);
     useEffect(() => {
         sessionStorage.setItem("data", JSON.stringify(data));
     }, [data]);
@@ -297,9 +293,9 @@ function FormDesigner() {
                                 >
                                     <JsonEditor
                                         schema={UI_JSON_SCHEMA}
-                                        setLoading={setUiSchemaLoading}
                                         allowEditWithError
                                         code={jsonUischema}
+                                        alwaysAllowPopulate
                                         setCode={setJsonUischema}
                                         setError={setUiSchemaError}
                                     />
@@ -359,9 +355,9 @@ function FormDesigner() {
                                 >
                                     <JsonEditor
                                         schema={DATA_JSON_SCHEMA}
-                                        setLoading={setSchemaLoading}
                                         allowEditWithError
                                         code={jsonSchema}
+                                        alwaysAllowPopulate
                                         setCode={setJsonSchema}
                                         setError={setSchemaError}
                                     />

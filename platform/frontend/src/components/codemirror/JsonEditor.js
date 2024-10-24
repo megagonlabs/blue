@@ -16,6 +16,7 @@ export default function JsonEditor({
     schema = null,
     allowEditWithError = false,
     allowPopulateOnce = false,
+    alwaysAllowPopulate = false,
 }) {
     const prePopulateOnce = useRef(!allowPopulateOnce);
     const [doc, setDoc] = useState(code);
@@ -49,7 +50,7 @@ export default function JsonEditor({
         if (
             _.isEqual(code, doc) ||
             _.isNil(codeEditorView) ||
-            prePopulateOnce.current
+            (prePopulateOnce.current && !alwaysAllowPopulate)
         )
             return;
         prePopulateOnce.current = true;
