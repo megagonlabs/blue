@@ -562,7 +562,7 @@ export default function Sessions() {
                                 height: "calc(100% - 131px)",
                                 paddingTop: 1,
                                 position: "relative",
-                                paddingBottom: !_.isEmpty(progress) ? 41 : null,
+                                paddingBottom: !_.isEmpty(progress) ? 31 : null,
                             }}
                         >
                             <Allotment
@@ -585,11 +585,12 @@ export default function Sessions() {
                                     className="border-top"
                                     style={{
                                         width: "100%",
-                                        padding: "10px 20px 10px 10px",
+                                        padding: "5px 20px 5px 10px",
                                         position: "absolute",
                                         left: 0,
                                         bottom: 0,
                                         overflowX: "hidden",
+                                        overscrollBehavior: "contain",
                                         whiteSpace: "nowrap",
                                     }}
                                 >
@@ -598,7 +599,12 @@ export default function Sessions() {
                                             const e = progress[progress_id];
                                             return (
                                                 <Tag
-                                                    style={{ marginLeft: 10 }}
+                                                    key={progress_id}
+                                                    style={{
+                                                        marginLeft: 10,
+                                                        backgroundColor:
+                                                            "transparent",
+                                                    }}
                                                     minimal
                                                     id={progress_id}
                                                     rightIcon={
