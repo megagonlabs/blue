@@ -76,9 +76,7 @@ class Worker:
         self.input_stream = input_stream
         self.processor = processor
         if processor is not None:
-            self.processor = lambda *args, **kwargs,: processor(
-                *args, **kwargs, worker=self
-            )
+            self.processor = lambda *args, **kwargs,: processor(*args, **kwargs, worker=self)
 
         self.properties = properties
 
@@ -131,9 +129,7 @@ class Worker:
 
             else:
                 # error
-                logging.error(
-                    "Unknown return type from processor function: " + str(result)
-                )
+                logging.error("Unknown return type from processor function: " + str(result))
                 return
 
     # TODO: this seems out of place...
@@ -179,36 +175,27 @@ class Worker:
             content_type = ContentType.JSON
         else:
             raise Exception("Unknown data type: " + str(type(data)))
-        
-        return self.write(
-            Message(MessageType.DATA, contents, content_type),
-            output=output,
-            id=id,
-            tags=tags,
-            scope=scope
-        )
+
+        return self.write(Message(MessageType.DATA, contents, content_type), output=output, id=id, tags=tags, scope=scope)
+
+    def write_progress(self, id=None, label=None, value=0):
+        progress = {'progress_id': id, 'label': label, 'value': min(max(0, value), 1)}
+        stream = self.write_control(code=ControlCode.PROGRESS, args=progress, output='PROGRESS')
+        return stream
 
     def write_control(self, code, args, output="DEFAULT", id=None, tags=None, scope="worker"):
         # producer = self._start_producer(output=output)
         # producer.write_control(code, args)
-        return self.write(
-            Message(
-                MessageType.CONTROL, {"code": code, "args": args}, ContentType.JSON
-            ),
-            output=output,
-            id=id,
-            tags=tags,
-            scope=scope
-        )
+        return self.write(Message(MessageType.CONTROL, {"code": code, "args": args}, ContentType.JSON), output=output, id=id, tags=tags, scope=scope)
 
     def write(self, message, output="DEFAULT", id=None, tags=None, scope="worker"):
 
-        # set prefix, based on scope 
+        # set prefix, based on scope
         if scope == "agent":
             prefix = self.agent.cid
         else:
             prefix = self.prefix
-        
+
         # TODO: This doesn't belong here..
         if message.getCode() in [
             ControlCode.CREATE_FORM,
@@ -382,7 +369,7 @@ class Worker:
             return self.session.get_stream_data(stream, key)
 
         return None
-    
+
     def get_all_stream_data(self, stream=None):
         if self.session:
             return self.session.get_all_stream_data(stream)

@@ -29,6 +29,7 @@ import {
     MenuItem,
     NonIdealState,
     Popover,
+    ProgressBar,
     Tag,
     TextArea,
     Tooltip,
@@ -63,6 +64,7 @@ export default function Sessions() {
         sessionIdFocus,
         sessionIds,
         sessionListPanelCollapsed,
+        sessionAgentProgress,
     } = appState.session;
     const [message, setMessage] = useState("");
     const sessionMessageTextArea = useRef(null);
@@ -189,6 +191,7 @@ export default function Sessions() {
             value: false,
         });
     }, [appState.session.openAgentsDialogTrigger]);
+    const progress = _.get(sessionAgentProgress, sessionIdFocus, {});
     if (!isSocketOpen && _.isEmpty(sessionIds))
         return (
             <NonIdealState
@@ -556,8 +559,10 @@ export default function Sessions() {
                     <>
                         <div
                             style={{
-                                height: "calc(100% - 131px",
+                                height: "calc(100% - 131px)",
                                 paddingTop: 1,
+                                position: "relative",
+                                paddingBottom: !_.isEmpty(progress) ? 41 : null,
                             }}
                         >
                             <Allotment
@@ -575,6 +580,46 @@ export default function Sessions() {
                                     <SessionMessages />
                                 </Allotment.Pane>
                             </Allotment>
+                            {!_.isEmpty(progress) && (
+                                <div
+                                    className="border-top"
+                                    style={{
+                                        width: "100%",
+                                        padding: "10px 20px 10px 10px",
+                                        position: "absolute",
+                                        left: 0,
+                                        bottom: 0,
+                                        overflowX: "hidden",
+                                        whiteSpace: "nowrap",
+                                    }}
+                                >
+                                    {Object.keys(progress).map(
+                                        (progress_id) => {
+                                            const e = progress[progress_id];
+                                            return (
+                                                <Tag
+                                                    style={{ marginLeft: 10 }}
+                                                    minimal
+                                                    id={progress_id}
+                                                    rightIcon={
+                                                        <div
+                                                            style={{
+                                                                width: 40,
+                                                            }}
+                                                        >
+                                                            <ProgressBar
+                                                                value={e.value}
+                                                            />
+                                                        </div>
+                                                    }
+                                                >
+                                                    {e.label}
+                                                </Tag>
+                                            );
+                                        }
+                                    )}
+                                </div>
+                            )}
                         </div>
                         <div
                             className="border-top"

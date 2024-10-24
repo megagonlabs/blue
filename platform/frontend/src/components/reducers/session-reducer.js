@@ -20,6 +20,7 @@ export const defaultState = {
     sessionGroupBy: "all",
     creatingSession: false,
     joinAgentGroupSession: false,
+    sessionAgentProgress: {},
 };
 export default function sessionReducer(
     state = defaultState,
@@ -32,6 +33,7 @@ export default function sessionReducer(
         expandedMessageStream,
         sessionWorkspace,
         sessionWorkspaceCollapse,
+        sessionAgentProgress,
     } = state;
     const { sessionIdFocus } = state;
     let sessions = _.cloneDeep(state.sessions);
@@ -120,18 +122,15 @@ export default function sessionReducer(
             const messageLabel = _.get(payload, "message.label", null);
             const contentType = _.get(payload, "message.content_type", null);
             const mode = _.get(payload, "mode", "batch");
-            if (!_.includes(sessionIds, payload.session_id)) {
-                sessionIds.push(payload.session_id);
+            const { session_id, metadata, timestamp, order, stream } = payload;
+            if (!_.includes(sessionIds, session_id)) {
+                sessionIds.push(session_id);
             }
             if (_.isEqual(mode, "streaming")) {
-                let messages = _.get(
-                    sessions,
-                    [payload.session_id, "messages"],
-                    []
-                );
+                let messages = _.get(sessions, [session_id, "messages"], []);
                 let data = _.get(
                     sessions,
-                    [payload.session_id, "streams", payload.stream, "data"],
+                    [session_id, "streams", stream, "data"],
                     []
                 );
                 if (_.isEqual(messageLabel, "CONTROL")) {
@@ -140,41 +139,34 @@ export default function sessionReducer(
                         "message.contents.code",
                         null
                     );
-                    if (_.isEqual(messageContentsCode, "BOS")) {
-                        messages.push({
-                            stream: payload.stream,
-                            metadata: payload.metadata,
-                            timestamp: payload.timestamp,
-                            order: payload.order,
-                        });
+                    const messageContentsArgs = _.get(
+                        payload,
+                        "message.contents.args",
+                        null
+                    );
+                    if (
+                        _.isEqual(messageContentsCode, "BOS") &&
+                        !_.endsWith(stream, "PROGRESS:STREAM")
+                    ) {
+                        messages.push({ stream, metadata, timestamp, order });
                         let streams = _.get(
                             sessions,
-                            [payload.session_id, "streams"],
+                            [session_id, "streams"],
                             {}
                         );
-                        _.set(streams, payload.stream, {
+                        _.set(streams, stream, {
                             data: [],
                             contentType: null,
                             complete: false,
                         });
-                        _.set(sessions, payload.session_id, {
-                            messages,
-                            streams,
-                        });
+                        _.set(sessions, session_id, { messages, streams });
                     } else if (_.isEqual(messageContentsCode, "EOS")) {
-                        if (
-                            !_.includes(payload.stream, `USER:${state.userId}`)
-                        ) {
-                            unreadSessionIds.add(payload.session_id);
+                        if (!_.includes(stream, `USER:${state.userId}`)) {
+                            unreadSessionIds.add(session_id);
                         }
                         _.set(
                             sessions,
-                            [
-                                payload.session_id,
-                                "streams",
-                                payload.stream,
-                                "complete",
-                            ],
+                            [session_id, "streams", stream, "complete"],
                             true
                         );
                     } else if (
@@ -184,19 +176,15 @@ export default function sessionReducer(
                         )
                     ) {
                         for (let i = _.size(messages) - 1; i >= 0; i--) {
-                            if (_.isEqual(messages[i].stream, payload.stream)) {
+                            if (_.isEqual(messages[i].stream, stream)) {
                                 messages[i].contentType = "JSON_FORM";
                                 break;
                             }
                         }
                         data.push({
-                            timestamp: payload.timestamp,
-                            content: _.get(
-                                payload,
-                                "message.contents.args",
-                                null
-                            ),
-                            order: payload.order,
+                            timestamp,
+                            content: messageContentsArgs,
+                            order,
                             id: payload.id,
                             dataType: contentType,
                         });
@@ -208,35 +196,42 @@ export default function sessionReducer(
                                 null
                             )
                         );
+                    } else if (_.isEqual(messageContentsCode, "PROGRESS")) {
+                        const { progress_id, value } = messageContentsArgs;
+                        let progress = _.get(
+                            sessionAgentProgress,
+                            session_id,
+                            {}
+                        );
+                        _.set(progress, progress_id, messageContentsArgs);
+                        if (_.isEqual(value, 1)) {
+                            progress = _.omit(progress, progress_id);
+                        }
+                        _.set(sessionAgentProgress, session_id, progress);
                     }
                 } else if (_.isEqual(messageLabel, "DATA")) {
                     for (let i = _.size(messages) - 1; i >= 0; i--) {
-                        if (_.isEqual(messages[i].stream, payload.stream)) {
+                        if (_.isEqual(messages[i].stream, stream)) {
                             messages[i].contentType = contentType;
                             break;
                         }
                     }
                     _.set(
                         sessions,
-                        [
-                            payload.session_id,
-                            "streams",
-                            payload.stream,
-                            "contentType",
-                        ],
+                        [session_id, "streams", stream, "contentType"],
                         contentType
                     );
                     data.push({
-                        timestamp: payload.timestamp,
+                        timestamp,
                         content: _.get(payload, "message.contents", null),
-                        order: payload.order,
+                        order,
                         id: payload.id,
                         dataType: contentType,
                     });
                 }
                 _.set(
                     sessions,
-                    [payload.session_id, "messages"],
+                    [session_id, "messages"],
                     _.sortBy(_.uniqBy(messages, "stream"), [
                         "timestamp",
                         "order",
@@ -244,7 +239,7 @@ export default function sessionReducer(
                 );
                 _.set(
                     sessions,
-                    [payload.session_id, "streams", payload.stream, "data"],
+                    [session_id, "streams", stream, "data"],
                     _.sortBy(_.uniqBy(data, "id"), ["timestamp", "order"])
                 );
             }
@@ -254,6 +249,7 @@ export default function sessionReducer(
                 sessionIds,
                 unreadSessionIds,
                 terminatedInteraction,
+                sessionAgentProgress,
             };
         }
         case "session/state/set": {

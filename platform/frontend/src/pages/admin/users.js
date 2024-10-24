@@ -11,6 +11,7 @@ import {
     Card,
     Classes,
     Divider,
+    Intent,
     NonIdealState,
     Tooltip,
 } from "@blueprintjs/core";
@@ -164,6 +165,7 @@ export default function Users() {
                         minimal
                     >
                         <Button
+                            intent={Intent.SUCCESS}
                             disabled={
                                 _.isEmpty(appState.admin.selectedUsers) ||
                                 loading
