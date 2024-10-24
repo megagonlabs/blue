@@ -178,8 +178,8 @@ class Worker:
 
         return self.write(Message(MessageType.DATA, contents, content_type), output=output, id=id, tags=tags, scope=scope)
 
-    def write_progress(self, id=None, label=None, value=0):
-        progress = {'progress_id': id, 'label': label, 'value': min(max(0, value), 1)}
+    def write_progress(self, progress_id=None, label=None, value=0):
+        progress = {'progress_id': progress_id, 'label': label, 'value': min(max(0, value), 1)}
         stream = self.write_control(code=ControlCode.PROGRESS, args=progress, output='PROGRESS')
         return stream
 
