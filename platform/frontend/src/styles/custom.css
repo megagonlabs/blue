@@ -2,6 +2,11 @@
     --separator-border: rgba(17, 20, 24, 0.15) !important;
     --focus-border: #2d72d2 !important;
 }
+.no-text-selection {
+    -webkit-user-select: none; /* Safari */
+    -ms-user-select: none; /* IE 10 and IE 11 */
+    user-select: none; /* Standard syntax */
+}
 a.no-link-decoration {
     color: inherit !important;
     text-decoration: none !important;

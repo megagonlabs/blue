@@ -81,7 +81,7 @@ export default function LaunchScreen() {
                 value: false,
             });
         }
-    }, [appState.session.joinAgentGroupSession]);
+    }, [appState.session.joinAgentGroupSession]); // eslint-disable-line react-hooks/exhaustive-deps
     return (
         <div style={{ height: "100%", overflowY: "auto" }}>
             <div

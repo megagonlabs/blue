@@ -49,7 +49,7 @@ export default function Users() {
     useEffect(() => {
         appActions.admin.setState({ key: "selectedUsers", value: new Set() });
         fetchUserList();
-    }, []);
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
     const TABLE_CELL_HEIGHT = 40;
     const INIT_COLUMNS = [
         {

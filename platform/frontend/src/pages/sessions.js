@@ -599,6 +599,13 @@ export default function Sessions() {
                                             const e = progress[progress_id];
                                             return (
                                                 <Tag
+                                                    className="no-text-selection"
+                                                    onClick={() =>
+                                                        appActions.session.removeProgress(
+                                                            progress_id
+                                                        )
+                                                    }
+                                                    interactive
                                                     key={progress_id}
                                                     style={{
                                                         marginLeft: 10,
@@ -614,6 +621,20 @@ export default function Sessions() {
                                                             }}
                                                         >
                                                             <ProgressBar
+                                                                stripes={
+                                                                    !_.isEqual(
+                                                                        e.value,
+                                                                        1
+                                                                    )
+                                                                }
+                                                                intent={
+                                                                    _.isEqual(
+                                                                        e.value,
+                                                                        1
+                                                                    )
+                                                                        ? Intent.SUCCESS
+                                                                        : null
+                                                                }
                                                                 value={e.value}
                                                             />
                                                         </div>
