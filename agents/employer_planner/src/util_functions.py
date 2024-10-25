@@ -48,3 +48,7 @@ def parse_result(result):
         job = {key: value for key, value in zip(columns, item)}
         job_list.append(job)
     return {"Jobs": job_list}
+
+def camel_case(string):
+    words = string.split("_")
+    return " ".join(word.capitalize() for word in words)
