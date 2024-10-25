@@ -252,6 +252,12 @@ export default function sessionReducer(
                 sessionAgentProgress,
             };
         }
+        case "session/sessions/progress/remove": {
+            let progress = _.get(sessionAgentProgress, sessionIdFocus, {});
+            progress = _.omit(progress, payload);
+            _.set(sessionAgentProgress, sessionIdFocus, progress);
+            return { ...state, sessionAgentProgress };
+        }
         case "session/state/set": {
             return { ...state, [payload.key]: payload.value };
         }

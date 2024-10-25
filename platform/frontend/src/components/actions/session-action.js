@@ -14,6 +14,9 @@ export const sessionAction = (dispatch) => ({
             payload,
         });
     },
+    removeProgress: (payload) => {
+        dispatch({ type: "session/sessions/progress/remove", payload });
+    },
     setSessionDetailMembers: (payload) => {
         dispatch({
             type: "session/sessions/detail/members/set",
