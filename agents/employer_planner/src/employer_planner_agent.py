@@ -279,31 +279,14 @@ class EmployerPlannerAgent(Agent):
                     # get form stream
                     form_data_stream = stream.replace("EVENT", "OUTPUT:FORM")
 
-                    # when the user clicked DONE, (disbaled)
-                    if action == "DONE":
-                      
-                        # close form
-                        worker.write_control(
-                            ControlCode.CLOSE_FORM,
-                            args={"form_id": form_id},
-                            output="FORM",
-                        )
-                    elif action == "SUMMARIZE_recent":
-                        self.summarize_recent_jobseekers(worker, properties=properties, context=context)
-                    # elif action == "TOP":
-                    #     self.list_top_jobseekers(worker, context=context)
-                    elif action == "SUMMARIZE_short":
-                        self.summarize_shortlisted_jobseekers(worker, properties=properties, context=context)
-                    # elif action == "COMPARE":
-                    #     self.write_to_new_stream(worker, "You can compare candidates by asking 'compare candidate A, B and C", "TEXT") 
-                    elif action == "EXAMPLE_SMART_QUERIES":
-                        self.write_to_new_stream(worker, "Here are a few example queries you can try 'which candidate has the most required skills?'", "TEXT")             
-                    else:
+                    
+                    if action is None:
                         # save form data
                         path = data["path"]
                         value = data["value"]
 
                         if path.find("misc_list_actions_") == 0:
+                            ## handle misc actions
                             list = path[len("misc_list_actions_"):]
 
                             if list == "all":
@@ -337,6 +320,29 @@ class EmployerPlannerAgent(Agent):
                             if path in sesion_path_filter:
                                 logging.info("RECORDED")
                                 worker.set_session_data(path, value)
+                    elif action == "DONE":
+                        # when the user clicked DONE, (disbaled)
+                        # close form
+                        worker.write_control(
+                            ControlCode.CLOSE_FORM,
+                            args={"form_id": form_id},
+                            output="FORM",
+                        )
+                    elif action.find("SHOW_") == 0:
+                        list = action[len("SHOW_"):]
+                        self._display_list(worker, list, text=util_functions.camel_case(list))
+                    elif action == "SUMMARIZE_recent":
+                        self.summarize_recent_jobseekers(worker, properties=properties, context=context)
+                    elif action.find("SUMMARIZE_") == 0:
+                        list = action[len("SUMMARIZE_"):]
+                        if list == "short":
+                            self.summarize_shortlisted_jobseekers(worker, properties=properties, context=context)
+                        else:
+                            pass
+                    elif action == "EXAMPLE_SMART_QUERIES":
+                        self.write_to_new_stream(worker, "Here are a few example queries you can try 'which candidate has the most required skills?'", "TEXT")             
+                    else:
+                       pass
                             
             
 
