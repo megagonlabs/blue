@@ -282,10 +282,7 @@ class Worker:
             prefix = self.prefix
 
         # start, if not started
-        logging.info("SP")
-        logging.info(prefix)
         pid = prefix + ":OUTPUT:" + output
-        logging.info(pid)
         if pid in self.producers:
             return self.producers[pid]
 
