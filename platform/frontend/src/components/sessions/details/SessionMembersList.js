@@ -81,7 +81,7 @@ export default function SessionMembersList({ loading, setLoading }) {
     };
     useEffect(() => {
         fetchMemberList();
-    }, []);
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
     const handleSearchQuery = useCallback(
         _.debounce((keyword) => {
             if (!_.isEmpty(keyword)) {

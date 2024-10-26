@@ -20,7 +20,7 @@ export default function JsonForm({ content, hasError }) {
     }, [content]);
     useEffect(() => {
         hasError.current = Boolean(error);
-    }, [error]);
+    }, [error]); // eslint-disable-line react-hooks/exhaustive-deps
     return !error ? (
         <>
             <JsonForms

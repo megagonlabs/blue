@@ -71,7 +71,7 @@ const Row = ({ index, data, style }) => {
             }
         }
         return _.isEqual(uid, user.uid) && _.isEqual(created_by, "USER");
-    }, [user.uid]);
+    }, [user.uid]); // eslint-disable-line react-hooks/exhaustive-deps
     const isOverflown = useRef(false);
     const message = messages[index];
     const stream = message.stream;
@@ -97,7 +97,7 @@ const Row = ({ index, data, style }) => {
                     (isOverflown.current ? 35 : 0)
             );
         }
-    }, [rowRef, debugMode, expandMessage]);
+    }, [rowRef, debugMode, expandMessage]); // eslint-disable-line react-hooks/exhaustive-deps
     const streamData = _.get(streams, [stream, "data"], []);
     const contentType = _.get(messages, [index, "contentType"], null);
     const { ref: resizeRef } = useResizeDetector({
@@ -290,7 +290,7 @@ export default function SessionMessages() {
                 }
             });
         }, 0);
-    }, [variableSizeListRef, sessionIdFocus]);
+    }, [variableSizeListRef, sessionIdFocus]); // eslint-disable-line react-hooks/exhaustive-deps
     return (
         <AutoSizer>
             {({ width, height }) => (

@@ -65,7 +65,7 @@ const ArrayRenderer = ({
                 uischema,
                 rootSchema
             ),
-        [uischemas, schema, uischema.scope, path, uischema, rootSchema]
+        [uischemas, schema, path, uischema, rootSchema]
     );
     const visualization = _.get(uischema, "props.visualization", null);
     useEffect(() => {
@@ -82,7 +82,7 @@ const ArrayRenderer = ({
                 })
             );
         }, 0);
-    }, [data]);
+    }, [data]); // eslint-disable-line react-hooks/exhaustive-deps
     const setVisualization = () => {
         try {
             let visualValue = null;

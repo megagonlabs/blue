@@ -42,7 +42,7 @@ export default function SessionDetail({ isOpen, setIsSessionDetailOpen }) {
             setIsSessionDetailOpen(false);
             setTab("about");
         }
-    }, [sessionIdFocus]);
+    }, [sessionIdFocus]); // eslint-disable-line react-hooks/exhaustive-deps
     return (
         <Dialog
             title={

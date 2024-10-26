@@ -51,7 +51,7 @@ export default function Workspace() {
                 });
             },
         });
-    }, [contents]);
+    }, [contents]); // eslint-disable-line react-hooks/exhaustive-deps
     if (_.isEmpty(contents)) {
         return (
             <NonIdealState

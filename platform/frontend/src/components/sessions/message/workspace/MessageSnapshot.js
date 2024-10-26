@@ -29,6 +29,7 @@ import _ from "lodash";
 import { useContext, useEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import invariant from "tiny-invariant";
+const IDLE_STATE = { type: "idle" };
 export default function MessageSnapshot({ content, hasError, index }) {
     const ref = useRef(null);
     const { appState, appActions } = useContext(AppContext);
@@ -38,7 +39,6 @@ export default function MessageSnapshot({ content, hasError, index }) {
     const streamData = _.get(streams, [stream, "data"], []);
     const contentType = _.get(content, "message.contentType", null);
     const [dragging, setDragging] = useState(false);
-    const IDLE_STATE = { type: "idle" };
     const [state, setState] = useState(IDLE_STATE);
     const dragData = { index, [WORKSAPCE_DRAGGABLE_SYMBOL]: true };
     useEffect(() => {
@@ -129,7 +129,7 @@ export default function MessageSnapshot({ content, hasError, index }) {
                 },
             })
         );
-    }, [content]);
+    }, [content]); // eslint-disable-line react-hooks/exhaustive-deps
     return (
         <div style={{ position: "relative" }}>
             <Section

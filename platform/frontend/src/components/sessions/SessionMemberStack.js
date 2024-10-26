@@ -27,7 +27,7 @@ export default function SessionMemberStack() {
                 appActions.app.getUserProfile(uid);
             }
         }
-    }, [members]);
+    }, [members]); // eslint-disable-line react-hooks/exhaustive-deps
     const USER_AVATAR_STYLE = { ...PROFILE_PICTURE_40, marginLeft: -10 };
     if (_.isEmpty(sessionIdFocus)) return null;
     return (

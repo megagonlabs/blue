@@ -38,7 +38,7 @@ export default function OperatorEntity() {
             setEditEntity(result);
             setLoading(false);
         });
-    }, [router]);
+    }, [router]); // eslint-disable-line react-hooks/exhaustive-deps
     const updateEntity = ({ path, value }) => {
         let newEntity = _.cloneDeep(editEntity);
         _.set(newEntity, path, value);

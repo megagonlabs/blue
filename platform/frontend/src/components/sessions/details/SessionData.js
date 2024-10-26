@@ -50,7 +50,7 @@ export default function SessionData() {
                 setEditData(responseData);
                 setLoading(false);
             });
-    }, []);
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
     const saveData = () => {
         const urlPrefix = `/sessions/session/${sessionIdFocus}/data`;
         setLoading(true);

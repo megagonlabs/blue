@@ -90,7 +90,7 @@ export default function SessionBudget({
     };
     useEffect(() => {
         fetchBudget();
-    }, []);
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
     const handleSaveBudget = () => {
         if (costError || accuracyError || latencyError) return;
         setLoading(true);

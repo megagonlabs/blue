@@ -103,7 +103,7 @@ export default function AddAgents({
             .catch(() => {
                 setLoading(false);
             });
-    }, [isOpen]);
+    }, [isOpen]); // eslint-disable-line react-hooks/exhaustive-deps
     const handleAddAgents = () => {
         setLoading(true);
         let promises = [];

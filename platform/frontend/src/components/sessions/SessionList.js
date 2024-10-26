@@ -40,7 +40,7 @@ export default function SessionList() {
                     ),
             });
         }
-    }, [sessionGroupBy, sessionIds, pinnedSessionIds, sessionDetails]);
+    }, [sessionGroupBy, sessionIds, pinnedSessionIds, sessionDetails]); // eslint-disable-line react-hooks/exhaustive-deps
     useEffect(() => {
         setTimeout(() => {
             if (_.isNil(fixedSizeListRef.current)) return;

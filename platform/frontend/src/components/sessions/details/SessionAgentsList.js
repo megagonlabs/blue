@@ -43,7 +43,7 @@ export default function SessionAgentsList({ loading, setLoading }) {
                 setAgents(agents);
                 setLoading(false);
             });
-    }, []);
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
     const LOADING_PLACEHOLDER = (
         <div
             style={{

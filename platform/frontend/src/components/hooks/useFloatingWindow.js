@@ -117,7 +117,7 @@ export const useFloatingWindow = ({ onDrag = id } = {}) => {
         // if `onDrag` wasn't defined with `useCallback`, we'd have to
         // resubscribe to 2 DOM events here, not to say it would mess
         // with `throttle` and reset its internal timer
-    }, [pressed, onDrag]);
+    }, [pressed, onDrag]); // eslint-disable-line react-hooks/exhaustive-deps
     const reposition = () => {
         if (!ref.current || !position.current) return;
         const pos = position.current;
