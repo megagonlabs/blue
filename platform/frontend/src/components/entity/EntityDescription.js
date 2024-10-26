@@ -24,6 +24,7 @@ export default function EntityDescription({
                     <div className={Classes.SKELETON}>&nbsp;</div>
                 ) : edit ? (
                     <EditableText
+                        alwaysRenderInput
                         multiline
                         minLines={2}
                         onChange={(value) => {

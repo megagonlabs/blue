@@ -82,18 +82,6 @@ export default function JsonEditor({
             state,
             parent: editor.current,
         });
-        view.contentDOM.addEventListener("blur", () => {
-            var editableFix = document.createElement("input");
-            editableFix.style =
-                "position: absolute; width: 1px; left: 0px; top: 0px;";
-            editableFix.id = "json-editor-input-editable-fix";
-            editableFix.tabIndex = -1;
-            view.contentDOM.appendChild(editableFix);
-            editableFix.focus();
-            editableFix.setSelectionRange(0, 0);
-            editableFix.blur();
-            editableFix.remove();
-        });
         setCodeEditorView(view);
         return () => {
             view.destroy();
