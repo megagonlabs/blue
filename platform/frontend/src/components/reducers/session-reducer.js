@@ -133,6 +133,19 @@ export default function sessionReducer(
                     [session_id, "streams", stream, "data"],
                     []
                 );
+                let baseData = {
+                    timestamp,
+                    order,
+                    id: payload.id,
+                    dataType: contentType,
+                };
+                const baseMessage = { stream, metadata, timestamp, order };
+                let workspaceContents = _.get(
+                    sessionWorkspace,
+                    sessionIdFocus,
+                    []
+                );
+                let considerWorkspace = false;
                 if (_.isEqual(messageLabel, "CONTROL")) {
                     const messageContentsCode = _.get(
                         payload,
@@ -148,7 +161,8 @@ export default function sessionReducer(
                         _.isEqual(messageContentsCode, "BOS") &&
                         !_.endsWith(stream, "PROGRESS:STREAM")
                     ) {
-                        messages.push({ stream, metadata, timestamp, order });
+                        considerWorkspace = true;
+                        messages.push(baseMessage);
                         let streams = _.get(
                             sessions,
                             [session_id, "streams"],
@@ -181,12 +195,22 @@ export default function sessionReducer(
                                 break;
                             }
                         }
+                        for (
+                            let i = _.size(workspaceContents) - 1;
+                            i >= 0;
+                            i--
+                        ) {
+                            if (
+                                _.isEqual(workspaceContents[i].stream, stream)
+                            ) {
+                                workspaceContents[i].loading = false;
+                                workspaceContents[i].contentType = "JSON_FORM";
+                                break;
+                            }
+                        }
                         data.push({
-                            timestamp,
+                            ...baseData,
                             content: messageContentsArgs,
-                            order,
-                            id: payload.id,
-                            dataType: contentType,
                         });
                     } else if (_.isEqual(messageContentsCode, "CLOSE_FORM")) {
                         terminatedInteraction.add(
@@ -216,17 +240,21 @@ export default function sessionReducer(
                             break;
                         }
                     }
+                    for (let i = _.size(workspaceContents) - 1; i >= 0; i--) {
+                        if (_.isEqual(workspaceContents[i].stream, stream)) {
+                            workspaceContents[i].loading = false;
+                            workspaceContents[i].contentType = contentType;
+                            break;
+                        }
+                    }
                     _.set(
                         sessions,
                         [session_id, "streams", stream, "contentType"],
                         contentType
                     );
                     data.push({
-                        timestamp,
+                        ...baseData,
                         content: _.get(payload, "message.contents", null),
-                        order,
-                        id: payload.id,
-                        dataType: contentType,
                     });
                 }
                 _.set(
@@ -242,6 +270,21 @@ export default function sessionReducer(
                     [session_id, "streams", stream, "data"],
                     _.sortBy(_.uniqBy(data, "id"), ["timestamp", "order"])
                 );
+                const addToWorkspace = _.get(
+                    payload,
+                    "metadata.tags.WORKSPACE",
+                    false
+                );
+                if (considerWorkspace && (addToWorkspace || true)) {
+                    workspaceContents.push({
+                        type: "session",
+                        message: {
+                            ...baseMessage,
+                            loading: true,
+                        },
+                    });
+                }
+                _.set(sessionWorkspace, sessionIdFocus, workspaceContents);
             }
             return {
                 ...state,
@@ -250,6 +293,7 @@ export default function sessionReducer(
                 unreadSessionIds,
                 terminatedInteraction,
                 sessionAgentProgress,
+                sessionWorkspace,
             };
         }
         case "session/sessions/progress/remove": {

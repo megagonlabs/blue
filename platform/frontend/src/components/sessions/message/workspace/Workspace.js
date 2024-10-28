@@ -7,9 +7,7 @@ import { monitorForElements } from "@atlaskit/pragmatic-drag-and-drop/element/ad
 import {
     Button,
     ButtonGroup,
-    Callout,
     Divider,
-    Intent,
     NonIdealState,
     Tooltip,
 } from "@blueprintjs/core";
@@ -19,11 +17,10 @@ import {
     faLampDesk,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import _ from "lodash";
-import { useContext, useEffect, useRef } from "react";
+import { useContext, useEffect } from "react";
 export default function Workspace() {
     const { appState, appActions } = useContext(AppContext);
     const { sessionWorkspace, sessionIdFocus } = appState.session;
-    const hasError = useRef(false);
     const contents = _.get(sessionWorkspace, sessionIdFocus, []);
     useEffect(() => {
         return monitorForElements({
@@ -103,35 +100,20 @@ export default function Workspace() {
             >
                 {contents.map((content, index) => {
                     const { type } = content;
-                    if (!hasError.current) {
-                        if (_.isEqual(type, "session")) {
-                            return (
-                                <div
-                                    key={index}
-                                    style={{ marginTop: index > 0 ? 20 : 0 }}
-                                >
-                                    <MessageSnapshot
-                                        hasError={hasError}
-                                        index={index}
-                                        content={content}
-                                    />
-                                </div>
-                            );
-                        }
-                    }
-                    return (
-                        <div key={index}>
-                            <Callout
+                    if (_.isEqual(type, "session")) {
+                        return (
+                            <div
+                                key={index}
                                 style={{ marginTop: index > 0 ? 20 : 0 }}
-                                intent={Intent.DANGER}
-                                icon={null}
-                                title="Unable to display the content"
                             >
-                                We&apos;re unable to read the source data of
-                                this content
-                            </Callout>
-                        </div>
-                    );
+                                <MessageSnapshot
+                                    index={index}
+                                    content={content}
+                                />
+                            </div>
+                        );
+                    }
+                    return null;
                 })}
             </div>
         </div>

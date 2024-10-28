@@ -16,10 +16,10 @@ import { pointerOutsideOfPreview } from "@atlaskit/pragmatic-drag-and-drop/eleme
 import { setCustomNativeDragPreview } from "@atlaskit/pragmatic-drag-and-drop/element/set-custom-native-drag-preview";
 import {
     Button,
+    Callout,
     Card,
     Classes,
     Intent,
-    Popover,
     Section,
     SectionCard,
     Tooltip,
@@ -30,8 +30,9 @@ import { useContext, useEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import invariant from "tiny-invariant";
 const IDLE_STATE = { type: "idle" };
-export default function MessageSnapshot({ content, hasError, index }) {
+export default function MessageSnapshot({ content, index }) {
     const ref = useRef(null);
+    const hasError = useRef(false);
     const { appState, appActions } = useContext(AppContext);
     const sessionIdFocus = appState.session.sessionIdFocus;
     const streams = appState.session.sessions[sessionIdFocus].streams;
@@ -41,6 +42,7 @@ export default function MessageSnapshot({ content, hasError, index }) {
     const [dragging, setDragging] = useState(false);
     const [state, setState] = useState(IDLE_STATE);
     const dragData = { index, [WORKSAPCE_DRAGGABLE_SYMBOL]: true };
+    const loading = _.get(content, "loading", false);
     useEffect(() => {
         const element = ref.current;
         invariant(element);
@@ -152,40 +154,27 @@ export default function MessageSnapshot({ content, hasError, index }) {
                 rightElement={
                     !dragging && (
                         <div onClick={(event) => event.stopPropagation()}>
-                            <Popover
-                                content={
-                                    <div style={{ padding: 15 }}>
-                                        <Button
-                                            intent={Intent.DANGER}
-                                            className={Classes.POPOVER_DISMISS}
-                                            text="Confirm"
-                                            onClick={() =>
-                                                appActions.session.removeWorkspaceContent(
-                                                    index
-                                                )
-                                            }
-                                        />
-                                    </div>
-                                }
+                            <Tooltip
                                 placement="bottom"
+                                minimal
+                                content="Remove"
                             >
-                                <Tooltip
-                                    placement="bottom"
+                                <Button
+                                    onClick={() =>
+                                        appActions.session.removeWorkspaceContent(
+                                            index
+                                        )
+                                    }
                                     minimal
-                                    content="Remove"
-                                >
-                                    <Button
-                                        minimal
-                                        intent={Intent.DANGER}
-                                        icon={faIcon({ icon: faTrash })}
-                                    />
-                                </Tooltip>
-                            </Popover>
+                                    icon={faIcon({ icon: faTrash })}
+                                />
+                            </Tooltip>
                         </div>
                     )
                 }
             >
                 <SectionCard
+                    className={loading ? Classes.SKELETON : null}
                     style={{
                         overflowX: "auto",
                         position: "relative",
@@ -193,11 +182,22 @@ export default function MessageSnapshot({ content, hasError, index }) {
                         wordBreak: "break-all",
                     }}
                 >
-                    <MessageContent
-                        contentType={contentType}
-                        streamData={streamData}
-                        hasError={hasError}
-                    />
+                    {hasError.current ? (
+                        <Callout
+                            intent={Intent.DANGER}
+                            icon={null}
+                            title="Unable to display the content"
+                        >
+                            We&apos;re unable to parse the source data of this
+                            content
+                        </Callout>
+                    ) : (
+                        <MessageContent
+                            contentType={contentType}
+                            streamData={streamData}
+                            hasError={hasError}
+                        />
+                    )}
                 </SectionCard>
             </Section>
             {_.isEqual(state.type, "isDraggingOver") && state.closestEdge ? (
