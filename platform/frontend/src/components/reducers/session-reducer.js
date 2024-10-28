@@ -275,7 +275,7 @@ export default function sessionReducer(
                     "metadata.tags.WORKSPACE",
                     false
                 );
-                if (considerWorkspace && (addToWorkspace || true)) {
+                if (considerWorkspace && addToWorkspace) {
                     workspaceContents.push({
                         type: "session",
                         message: {
