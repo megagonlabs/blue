@@ -133,7 +133,7 @@ export default function sessionReducer(
                     [session_id, "streams", stream, "data"],
                     []
                 );
-                let baseData = {
+                const baseData = {
                     timestamp,
                     order,
                     id: payload.id,
