@@ -278,10 +278,7 @@ export default function sessionReducer(
                 if (considerWorkspace && addToWorkspace) {
                     workspaceContents.push({
                         type: "session",
-                        message: {
-                            ...baseMessage,
-                            loading: true,
-                        },
+                        message: { ...baseMessage, loading: true },
                     });
                 }
                 _.set(sessionWorkspace, sessionIdFocus, workspaceContents);
