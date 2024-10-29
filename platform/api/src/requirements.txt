@@ -5,13 +5,16 @@ jsonmerge==1.9.2
 jsonpath_ng==1.5.3
 neo4j==5.12.0
 numpy==1.25.2
+pandas==2.0.3
 pydantic==1.8.2
 pydash==7.0.6
 pymongo==4.6.1
 redis==4.5.5
 psycopg2-binary==2.9.6
+mysql-connector-python
 rpyc==6.0.0
 pydash==7.0.6
+huggingface-hub==0.25.1
 sentence_transformers==2.2.2
 tqdm==4.65.0
 uvicorn==0.25.0

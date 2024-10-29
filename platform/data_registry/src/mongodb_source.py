@@ -81,7 +81,9 @@ class MongoDBSource(DataSource):
     def fetch_database_schema(self, database):
         return {}
 
-   ######### database/collection
+
+
+    ######### database/collection
     def fetch_database_collections(self, database):
         collections = self.connection[database].list_collection_names()
         return collections
@@ -123,6 +125,21 @@ class MongoDBSource(DataSource):
         return schema
 
 
+    ######### execute query
+    def execute_query(self, query, database=None, collection=None):
+        if database is None:
+            raise Exception("No database provided")
+        
+        if collection is None:
+            raise Exception("No collection provided")
+
+        db = self.connection[database]
+        col = db[collection]
+
+        q = json.loads(query)
+        result = col.find(q)
+        return result
+    
 #######################
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

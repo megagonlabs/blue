@@ -5,7 +5,6 @@ import sys
 
 ###### Add lib path
 sys.path.append('./lib/')
-sys.path.append('./lib/utils')
 
 ###### 
 import time
@@ -14,57 +13,60 @@ import logging
 import time
 import uuid
 import random
+import pandas as pd
+import numpy as np
 
 ###### Parsers, Formats, Utils
 import re
 import csv
 import json
 from utils import json_utils
+import copy
 
 import itertools
 from tqdm import tqdm
+
+
 
 # data source lib
 from data_source import DataSource
 from schema import Schema
 
 # source specific libs
-import neo4j
-from utils import neo4j_connection
+import mysql.connector as cpy
+
 
 #### Helper Functions
 class JSONEncoder(json.JSONEncoder):
     def default(self, o):
         return json.JSONEncoder.default(self, o)
 
-#### DataSource for NEO4J
-class NEO4JSource(DataSource):
+
+#### DataSource for Postgres
+class MySQLDBSource(DataSource):
     def __init__(self, name, properties={}):
         super().__init__(name, properties=properties)
-        
 
     ###### initialization
     def _initialize_properties(self):
         super()._initialize_properties()
 
         # source protocol 
-        self.properties['protocol'] = "bolt"
+        self.properties['protocol'] = "mysql"
 
     ###### connection
     def _connect(self, **connection):
-        host = connection['host']
-        port = connection['port']
+        c = copy.deepcopy(connection)
+        if 'protocol' in c:
+            del c['protocol']
 
-        user = connection['user'] 
-        pwd = connection['password'] 
-        connection_url = self.properties['protocol'] + "://" + host + ":" + str(port)    
-       
-        return neo4j_connection.NEO4J_Connection(connection_url, user, pwd)
+
+        return cpy.connect(**c)
 
     def _disconnect(self):
         # TODO:
         return None
-    
+
     ######### source
     def fetch_metadata(self):
         return {}
@@ -74,11 +76,16 @@ class NEO4JSource(DataSource):
 
     ######### database
     def fetch_databases(self):
+        query = "SHOW DATABASES;"
+        cursor = self.connection.cursor(buffered=True)
+        cursor.execute(query)
+        data = cursor.fetchall()
         dbs = []
-        result = self.connection.run_query("SHOW DATABASES;")
-
-        for record in result:
-            dbs.append(record["name"])
+        for datum in data:
+            db = datum[0]
+            if db in ('information_schema','performance_schema','sys', 'mysql'):
+                continue
+            dbs.append(db)
         return dbs
 
     def fetch_database_metadata(self, database):
@@ -87,37 +94,86 @@ class NEO4JSource(DataSource):
     def fetch_database_schema(self, database):
         return {}
 
+
     ######### database/collection
+    def _db_connect(self, database):
+        # connect to database
+        c = copy.deepcopy(self.properties['connection'])
+        if 'protocol' in c:
+            del c['protocol']
+        # override database
+        c['database'] = database
+
+        db_connection = self._connect(**c)
+        return db_connection
+
+    def _db_disconnect(self, connection):
+        # TODO:
+        return None
+
     def fetch_database_collections(self, database):
-        collections = [database]
+        # connect to specific database (not source directly)
+        db_connection = self._db_connect(database)
+
+        query = "SHOW TABLES;"
+        cursor = db_connection.cursor()
+        cursor.execute(query)
+        data = cursor.fetchall()
+        collections = []
+        for datum in data:
+            collections.append(datum[0])
+
+        # disconnect
+        self._db_disconnect(db_connection)
         return collections
 
     def fetch_database_collection_metadata(self, database, collection):
         return {}
 
     def fetch_database_collection_schema(self, database, collection):
-        
-        result = self.connection.run_query("CALL db.schema.visualization",single=True, single_transaction=False)
+        # connect to specific database (not source directly)
+        db_connection = self._db_connect(database)
 
-        schema = self.extract_schema(result[0])
-        return schema.to_json()
+        # TODO: Do better ER extraction from tables, columns, exploiting column semantics, foreign keys, etc.
+        query = "SELECT table_name, column_name, data_type  from information_schema.columns WHERE table_schema = %s"
+        cursor = db_connection.cursor()
+        cursor.execute(query, (collection,))
+        data = cursor.fetchall()
 
-    def extract_schema(self, result):
         schema = Schema()
 
-        nodes = result['nodes']
-        relationships = result['relationships']
+        for table_name, column_name, data_type in data:
+            if not schema.has_entity(table_name):
+                schema.add_entity(table_name)
+            schema.add_entity_property(table_name, column_name, data_type)
 
-        for node in nodes:
-            schema.add_entity(node['type'])
+        # disconnect
+        self._db_disconnect(db_connection)
 
-        for relation in relationships:
-            schema.add_relation(relation['from']['type'],relation['type'],relation['to']['type'])
-        return schema
+        return schema.to_json()
+
 
     ######### execute query
     def execute_query(self, query, database=None, collection=None):
-        result = self.connection.run_query(query, single=False, single_transaction=False)
+        if database is None:
+            raise Exception("No database provided")
+        
+        # create connection to db
+        db_connection = self._db_connect(database)
+
+        cursor = db_connection.cursor()
+        cursor.execute(query)
+        data = cursor.fetchall()
+
+        # transform to json
+        columns = [desc[0] for desc in cursor.description]
+        df = pd.DataFrame(data, columns=columns)
+        df.fillna(value=np.nan, inplace=True)
+        result = json.loads(df.to_json(orient='records'))
+
+        # disconnect
+        self._db_disconnect(db_connection)
+
         return result
 
 #######################
@@ -127,14 +183,14 @@ if __name__ == "__main__":
     parser.add_argument('--properties', type=str, help='properties in json format')
     parser.add_argument('--loglevel', default="INFO", type=str, help='log level')
     parser.add_argument('--list', type=bool, default=False, action=argparse.BooleanOptionalAction, help='list contents')
-    parser.add_argument('--metadata', type=bool, default=False, action=argparse.BooleanOptionalAction, help='get metadata')
+    parser.add_argument('--metadata', type=bool, default=False, action=argparse.BooleanOptionalAction,
+                        help='get metadata')
     parser.add_argument('--schema', type=bool, default=False, action=argparse.BooleanOptionalAction, help='get schema')
     parser.add_argument('--database', type=str, default=None, help='database name')
     parser.add_argument('--collection', type=str, default=None, help='collection name')
-    
- 
+
     args = parser.parse_args()
-   
+
     # set logging
     logging.getLogger().setLevel(args.loglevel.upper())
 
@@ -147,8 +203,8 @@ if __name__ == "__main__":
         # decode json
         properties = json.loads(p)
 
-    # create a neo4j data source
-    source = NEO4JSource(args.name, properties=properties)
+    # create a mongodb data source
+    source = MySQLDBSource(args.name, properties=properties)
 
     results = {}
     #### LIST
@@ -158,7 +214,7 @@ if __name__ == "__main__":
             results = source.fetch_database_collections(args.database)
         else:
             results = source.fetch_databases()
-    
+
     #### SCHEMA
     elif args.schema:
         if args.database:
