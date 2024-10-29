@@ -105,6 +105,9 @@ class DataSource():
     def fetch_database_collection_schema(self, database, collection):
         return {}
 
+    def execute_query(self, query, database=None, collection=None):
+        return [{}]
+
 #######################
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

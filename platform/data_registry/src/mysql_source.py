@@ -13,6 +13,8 @@ import logging
 import time
 import uuid
 import random
+import pandas as pd
+import numpy as np
 
 ###### Parsers, Formats, Utils
 import re
@@ -23,6 +25,8 @@ import copy
 
 import itertools
 from tqdm import tqdm
+
+
 
 # data source lib
 from data_source import DataSource
@@ -90,6 +94,7 @@ class MySQLDBSource(DataSource):
     def fetch_database_schema(self, database):
         return {}
 
+
     ######### database/collection
     def _db_connect(self, database):
         # connect to database
@@ -147,6 +152,29 @@ class MySQLDBSource(DataSource):
 
         return schema.to_json()
 
+
+    ######### execute query
+    def execute_query(self, query, database=None, collection=None):
+        if database is None:
+            raise Exception("No database provided")
+        
+        # create connection to db
+        db_connection = self._db_connect(database)
+
+        cursor = db_connection.cursor()
+        cursor.execute(query)
+        data = cursor.fetchall()
+
+        # transform to json
+        columns = [desc[0] for desc in cursor.description]
+        df = pd.DataFrame(data, columns=columns)
+        df.fillna(value=np.nan, inplace=True)
+        result = json.loads(df.to_json(orient='records'))
+
+        # disconnect
+        self._db_disconnect(db_connection)
+
+        return result
 
 #######################
 if __name__ == "__main__":
