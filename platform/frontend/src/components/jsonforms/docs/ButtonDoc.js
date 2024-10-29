@@ -90,6 +90,19 @@ export default function ButtonDoc({ closePanel }) {
                                 <div>
                                     Whether this button should use large styles.
                                 </div>
+                                <Callout
+                                    style={{
+                                        margin: 0,
+                                        marginTop: 5,
+                                        display: "flex",
+                                        gap: 10,
+                                        flexWrap: "wrap",
+                                        alignItems: "flex-start",
+                                    }}
+                                >
+                                    <Button large text="large: true" />
+                                    <Button text="large: false" />
+                                </Callout>
                             </td>
                         </tr>
                         <tr>
@@ -119,7 +132,7 @@ export default function ButtonDoc({ closePanel }) {
                                         flexWrap: "wrap",
                                     }}
                                 >
-                                    <Button text="outlined: false" />{" "}
+                                    <Button text="outlined: false" />
                                     <Button outlined text="outlined: true" />
                                 </Callout>
                             </td>
