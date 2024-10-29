@@ -81,6 +81,7 @@ class EmployerPlannerAgent(Agent):
         # create lists
         if self.session:
             self.session.set_data("lists", {})
+            self.session.set_data("LIST", "")
 
         # create empty short list
         if self.session:
