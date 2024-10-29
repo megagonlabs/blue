@@ -44,6 +44,7 @@ from registry import Registry
 from mongodb_source import MongoDBSource
 from neo4j_source import NEO4JSource
 from postgres_source import PostgresDBSource
+from mysql_source import MySQLDBSource
 
 class DataRegistry(Registry):
     def __init__(self, name="DATA_REGISTRY", id=None, sid=None, cid=None, prefix=None, suffix=None, properties={}):
@@ -254,6 +255,8 @@ class DataRegistry(Registry):
                         source_connection = NEO4JSource(source, properties=properties)
                     elif protocol == "postgres":
                         source_connection = PostgresDBSource(source, properties=properties)
+                    elif protocol == "mysql":
+                        source_connection = MySQLDBSource(source, properties=properties)
 
         return source_connection
 

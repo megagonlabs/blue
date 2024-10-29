@@ -30,3 +30,4 @@ jsonmerge==1.9.2
 jsonpath-ng==1.5.3
 jsonschema==4.21.1
 sentence-transformers==2.2.2
+mysql-connector-python
