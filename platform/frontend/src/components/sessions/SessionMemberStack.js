@@ -4,7 +4,11 @@ import _ from "lodash";
 import Image from "next/image";
 import { useContext, useEffect, useMemo } from "react";
 import { PROFILE_PICTURE_40 } from "../constant";
-export default function SessionMemberStack({ sessionId, size = 3 }) {
+export default function SessionMemberStack({
+    sessionId,
+    fetchUsers = true,
+    size = 3,
+}) {
     const { appState, appActions } = useContext(AppContext);
     const { sessionDetails } = appState.session;
     const members = useMemo(() => {
@@ -14,6 +18,7 @@ export default function SessionMemberStack({ sessionId, size = 3 }) {
     }, [sessionId, sessionDetails]);
     const owner = _.get(sessionDetails, [sessionId, "created_by"]);
     useEffect(() => {
+        if (!fetchUsers) return;
         const hasUserProfile = _.has(appState, ["app", "users", owner]);
         if (!hasUserProfile) {
             let pendingRquest = _.get(
@@ -45,7 +50,7 @@ export default function SessionMemberStack({ sessionId, size = 3 }) {
     return (
         <div style={{ display: "flex", alignItems: "center" }}>
             {_.has(appState, ["app", "users", owner]) ? (
-                <Card style={{ ...USER_AVATAR_STYLE, zIndex: 4 }}>
+                <Card style={{ ...USER_AVATAR_STYLE, zIndex: size + 1 }}>
                     <Image
                         alt=""
                         src={_.get(

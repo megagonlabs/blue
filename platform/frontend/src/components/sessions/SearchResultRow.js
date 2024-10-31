@@ -148,7 +148,11 @@ export default function SearchResultRow({ sessionId, style = {} }) {
                         right: 20,
                     }}
                 >
-                    <SessionMemberStack sessionId={sessionId} size={5} />
+                    <SessionMemberStack
+                        sessionId={sessionId}
+                        size={5}
+                        fetchUsers={false}
+                    />
                 </div>
             </Card>
         </div>
