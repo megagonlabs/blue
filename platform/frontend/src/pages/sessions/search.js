@@ -176,7 +176,7 @@ export default function AllSessions() {
                         <NonIdealState
                             className={loading ? Classes.SKELETON : null}
                             icon={faIcon({ icon: faInboxes, size: 50 })}
-                            title={`No Sessions`}
+                            title={`No Session`}
                         />
                     ) : (
                         <AutoSizer>
