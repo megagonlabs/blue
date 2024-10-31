@@ -151,7 +151,7 @@ const ArrayRenderer = ({
                     let endNodes = new Set(),
                         visited = new Set(),
                         next = new Queue();
-                    const nodes = Object.keys(dag);
+                    const nodes = _.keys(dag);
                     for (let i = 0; i < _.size(nodes); i++) {
                         next.enqueue(nodes[i]);
                     }

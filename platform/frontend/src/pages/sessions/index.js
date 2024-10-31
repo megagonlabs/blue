@@ -56,7 +56,7 @@ import axios from "axios";
 import classNames from "classnames";
 import copy from "copy-to-clipboard";
 import _ from "lodash";
-import { useCallback, useContext, useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 export default function Sessions() {
     const { appState, appActions } = useContext(AppContext);
     const {
@@ -84,53 +84,15 @@ export default function Sessions() {
             })
         );
     };
-    const onMessage = useCallback(
-        (event) => {
-            // Listening to messages from the server
-            try {
-                // parse the data from string to JSON object
-                const data = JSON.parse(event.data);
-                // If the data is of type SESSION_MESSAGE
-                if (_.isEqual(data["type"], "SESSION_MESSAGE")) {
-                    appActions.session.addSessionMessage(data);
-                } else if (_.isEqual(data["type"], "CONNECTED")) {
-                    appActions.session.setState({
-                        key: "connectionId",
-                        value: data.connection_id,
-                    });
-                } else if (_.isEqual(data["type"], "NEW_SESSION_BROADCAST")) {
-                    appActions.session.addSession(_.get(data, "session.id"));
-                    appActions.session.setSessionDetails([data["session"]]);
-                }
-            } catch (e) {
-                AppToaster.show({
-                    intent: Intent.DANGER,
-                    message: event.data,
-                });
-                console.error(e);
-            }
-        },
-        [socket]
-    );
-    useEffect(() => {
-        if (!_.isNil(socket)) {
-            socket.addEventListener("message", onMessage);
-            return () => {
-                socket.removeEventListener("message", onMessage);
-            };
-        }
-    }, [socket, onMessage]);
     useEffect(() => {
         if (sessionMessageTextArea.current) {
             sessionMessageTextArea.current.focus();
         }
     }, [sessionIdFocus]);
-    // const SESSION_LIST_PANEL_WIDTH = 327.92;
     const SESSION_LIST_PANEL_WIDTH = 327.92;
     const initialFetchAll = useRef(true);
     const [loading, setLoading] = useState(false);
-    const fetchAllSessions = () => {
-        // automatically fetch all existing sessions onload
+    const fetchMySessions = () => {
         setLoading(true);
         axios
             .get("/sessions")
@@ -153,7 +115,7 @@ export default function Sessions() {
                 socket,
                 JSON.stringify({ type: "REQUEST_USER_AGENT_ID" })
             );
-            fetchAllSessions();
+            fetchMySessions();
         }
     }, [isSocketOpen]);
     const ReconnectButton = () => {
@@ -264,7 +226,7 @@ export default function Sessions() {
                                 <Button
                                     outlined
                                     loading={loading}
-                                    onClick={fetchAllSessions}
+                                    onClick={fetchMySessions}
                                     icon={faIcon({ icon: faRefresh })}
                                 />
                             </Tooltip>
@@ -497,7 +459,7 @@ export default function Sessions() {
                         {!_.isNil(sessionIdFocus) ? (
                             <div
                                 style={{
-                                    maxWidth: "calc(100% - 151.98px - 20px)",
+                                    maxWidth: "calc(100% - 175px)",
                                 }}
                             >
                                 <Tooltip
@@ -547,7 +509,7 @@ export default function Sessions() {
                                 ) : null}
                             </div>
                         ) : null}
-                        <SessionMemberStack />
+                        <SessionMemberStack sessionId={sessionIdFocus} />
                     </div>
                 </Card>
                 {_.isNil(sessionIdFocus) ? (
@@ -594,57 +556,55 @@ export default function Sessions() {
                                         whiteSpace: "nowrap",
                                     }}
                                 >
-                                    {Object.keys(progress).map(
-                                        (progress_id) => {
-                                            const e = progress[progress_id];
-                                            return (
-                                                <Tag
-                                                    className="no-text-selection"
-                                                    onClick={() =>
-                                                        appActions.session.removeProgress(
-                                                            progress_id
-                                                        )
-                                                    }
-                                                    interactive
-                                                    key={progress_id}
-                                                    style={{
-                                                        marginLeft: 10,
-                                                        backgroundColor:
-                                                            "transparent",
-                                                    }}
-                                                    minimal
-                                                    id={progress_id}
-                                                    rightIcon={
-                                                        <div
-                                                            style={{
-                                                                width: 40,
-                                                            }}
-                                                        >
-                                                            <ProgressBar
-                                                                stripes={
-                                                                    !_.isEqual(
-                                                                        e.value,
-                                                                        1
-                                                                    )
-                                                                }
-                                                                intent={
-                                                                    _.isEqual(
-                                                                        e.value,
-                                                                        1
-                                                                    )
-                                                                        ? Intent.SUCCESS
-                                                                        : null
-                                                                }
-                                                                value={e.value}
-                                                            />
-                                                        </div>
-                                                    }
-                                                >
-                                                    {e.label}
-                                                </Tag>
-                                            );
-                                        }
-                                    )}
+                                    {_.keys(progress).map((progress_id) => {
+                                        const e = progress[progress_id];
+                                        return (
+                                            <Tag
+                                                className="no-text-selection"
+                                                onClick={() =>
+                                                    appActions.session.removeProgress(
+                                                        progress_id
+                                                    )
+                                                }
+                                                interactive
+                                                key={progress_id}
+                                                style={{
+                                                    marginLeft: 10,
+                                                    backgroundColor:
+                                                        "transparent",
+                                                }}
+                                                minimal
+                                                id={progress_id}
+                                                rightIcon={
+                                                    <div
+                                                        style={{
+                                                            width: 40,
+                                                        }}
+                                                    >
+                                                        <ProgressBar
+                                                            stripes={
+                                                                !_.isEqual(
+                                                                    e.value,
+                                                                    1
+                                                                )
+                                                            }
+                                                            intent={
+                                                                _.isEqual(
+                                                                    e.value,
+                                                                    1
+                                                                )
+                                                                    ? Intent.SUCCESS
+                                                                    : null
+                                                            }
+                                                            value={e.value}
+                                                        />
+                                                    </div>
+                                                }
+                                            >
+                                                {e.label}
+                                            </Tag>
+                                        );
+                                    })}
                                 </div>
                             )}
                         </div>

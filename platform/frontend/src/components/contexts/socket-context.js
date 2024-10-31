@@ -3,11 +3,13 @@ import { Intent } from "@blueprintjs/core";
 import axios from "axios";
 import _ from "lodash";
 import { createContext, useContext, useEffect, useState } from "react";
+import { AppContext } from "./app-context";
 import { AuthContext } from "./auth-context";
 export const SocketContext = createContext();
 export const SocketProvider = ({ children }) => {
     const [ws, setWs] = useState(null);
     const { settings } = useContext(AuthContext);
+    const { appActions } = useContext(AppContext);
     const [authenticating, setAuthenticating] = useState(false);
     const [isSocketOpen, setIsSocketOpen] = useState(false);
     const reconnectWs = () => {
@@ -54,6 +56,30 @@ export const SocketProvider = ({ children }) => {
         reconnectWs();
     }, [settings.debug_mode]);
     useEffect(() => {
+        const onMessage = (event) => {
+            try {
+                // parse the data from string to JSON object
+                const data = JSON.parse(event.data);
+                // If the data is of type SESSION_MESSAGE
+                if (_.isEqual(data["type"], "SESSION_MESSAGE")) {
+                    appActions.session.addSessionMessage(data);
+                } else if (_.isEqual(data["type"], "CONNECTED")) {
+                    appActions.session.setState({
+                        key: "connectionId",
+                        value: data.connection_id,
+                    });
+                } else if (_.isEqual(data["type"], "NEW_SESSION_BROADCAST")) {
+                    appActions.session.addSession(_.get(data, "session.id"));
+                    appActions.session.setSessionDetails([data["session"]]);
+                }
+            } catch (e) {
+                AppToaster.show({
+                    intent: Intent.DANGER,
+                    message: event.data,
+                });
+                console.error(e);
+            }
+        };
         const onClose = () => {
             setIsSocketOpen(false);
             AppToaster.show({
@@ -80,10 +106,12 @@ export const SocketProvider = ({ children }) => {
             ws.addEventListener("close", onClose);
             ws.addEventListener("open", onOpen);
             ws.addEventListener("error", onError);
+            ws.addEventListener("message", onMessage);
             return () => {
                 ws.removeEventListener("close", onClose);
                 ws.removeEventListener("open", onOpen);
                 ws.removeEventListener("error", onError);
+                ws.removeEventListener("message", onMessage);
             };
         }
         setIsSocketOpen(ws != null && _.isEqual(ws.readyState, WebSocket.OPEN));

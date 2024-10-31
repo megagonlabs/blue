@@ -68,7 +68,18 @@ export default function SessionMembersList({ loading, setLoading }) {
                         result.uid,
                     ]);
                     if (!hasUserProfile) {
-                        appActions.app.getUserProfile(result.uid);
+                        let pendingRquest = _.get(
+                            appState,
+                            [
+                                "app",
+                                "pendingRequests",
+                                `getUserProfile ${result.uid}`,
+                            ],
+                            false
+                        );
+                        if (!pendingRquest) {
+                            appActions.app.getUserProfile(result.uid);
+                        }
                     }
                 }
                 appActions.session.setSessionDetailMembers({

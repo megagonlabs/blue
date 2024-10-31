@@ -17,6 +17,12 @@ a.no-link-decoration {
 .full-parent-width {
     width: 100%;
 }
+.session-search-result-row .session-search-result-row-actions {
+    display: none;
+}
+.session-search-result-row:hover .session-search-result-row-actions {
+    display: inline-flex;
+}
 .multiline-ellipsis {
     display: -webkit-box;
     -webkit-line-clamp: 2;
