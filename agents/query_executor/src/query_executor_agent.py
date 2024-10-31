@@ -42,42 +42,46 @@ logging.basicConfig(
 )
 
 #######################
-class SQLExecutorAgent(Agent):
+class QueryExecutorAgent(Agent):
     def __init__(self, **kwargs):
         if 'name' not in kwargs:
-            kwargs['name'] = "SQL_EXEC"
+            kwargs['name'] = "QUERYEXECUTOR"
         super().__init__(**kwargs)
 
     def _initialize(self, properties=None):
         super()._initialize(properties=properties)
+
+        # create instance of data registry
         platform_id = self.properties["platform.name"]
         prefix = 'PLATFORM:' + platform_id
         self.registry = DataRegistry(id=self.properties['data_registry.name'], prefix=prefix,
                                      properties=self.properties)
-        # TODO: replace hardcoding source with None and employ data discovery
-        self.source = '/employer_postgres/postgres/public'
 
     def _start(self):
         super()._start()
 
 
-    def execute_sql_query(self, query):
+    def execute_sql_query(self, path, query):
+        result = None
+        question = None
+        error = None
         try:
-            logging.info(self.source)
-            _, source, db, collection = self.source.split('/')
-            source_db = self.registry.connect_source(source)
-            cursor = source_db._db_connect(db).cursor()
-            # Note: collection refers to schema in postgres (the level between database and table)
-            cursor.execute(f'SET search_path TO {collection}')
-            cursor.execute(query)
-            records = cursor.fetchall()
-            logging.info(len(records))
-            columns = [desc[0] for desc in cursor.description]
-            df = pd.DataFrame(records, columns=columns)
-            result = df.to_json(orient='records')
+            # extract source, database, collection
+            _, source, database, collection = path.split('/')
+            # connect
+            source_connection  = self.registry.connect_source(source)
+            # execute query
+            result = source_connection.execute_query(query, database=database, collection=collection)
         except Exception as e:
             error = str(e)
-        return result
+
+        return {
+            'question': question,
+            'source': path,
+            'query': query,
+            'result': result,
+            'error': error
+        }
     
     def default_processor(self, message, input="DEFAULT", properties=None, worker=None):
 
@@ -87,16 +91,24 @@ class SQLExecutorAgent(Agent):
                 # get all data received from user stream
                 stream = message.getStream()
 
-                logging.info(message.getData())
-                query = " ".join(worker.get_data(stream))
-                logging.info("query: "  + query)
+                # extract json
+                input = " ".join(worker.get_data(stream))
+
+                logging.info("input: "  + input)
                 
                 if worker:
-                    result = self.execute_sql_query(query)
-                    worker.write_data(result)
-                    worker.write_eos()
-                    return
+                    try:
+                        data = json.loads(input)
+                    except:
+                        logging.info("Input is not JSON")
+                        return
 
+                    # extract path, query
+                    path = data['source']
+                    query = data['query']
+                    result = self.execute_sql_query(path, query)
+                    return [result, message.EOS]
+                
             elif message.isBOS():
                 stream = message.getStream()
 
@@ -109,13 +121,20 @@ class SQLExecutorAgent(Agent):
                 data = message.getData()
                 stream = message.getStream()
 
-                # append to private stream data
-                if worker:
-                    worker.append_data(stream, data)
+                if message.getContentType() == ContentType.JSON:
+                    # extract path, query
+                    path = data['source']
+                    query = data['query']
+                    result = self.execute_sql_query(path, query)
+                    return [result, message.EOS]
+                else:
+                    # append to private stream data
+                    if worker:
+                        worker.append_data(stream, data)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--name', default="SQL_EXEC", type=str)
+    parser.add_argument('--name', default="QUERYEXECUTOR", type=str)
     parser.add_argument('--session', type=str)
     parser.add_argument('--properties', type=str)
     parser.add_argument('--loglevel', default="INFO", type=str)
@@ -141,7 +160,7 @@ if __name__ == "__main__":
     if args.serve:
         platform = args.platform
 
-        af = AgentFactory(_class=SQLExecutorAgent, _name=args.serve, _registry=args.registry, platform=platform,
+        af = AgentFactory(_class=QueryExecutorAgent, _name=args.serve, _registry=args.registry, platform=platform,
                           properties=properties)
         af.wait()
     else:
@@ -151,11 +170,11 @@ if __name__ == "__main__":
         if args.session:
             # join an existing session
             session = Session(cid=args.session)
-            a = SQLExecutorAgent(name=args.name, session=session, properties=properties)
+            a = QueryExecutorAgent(name=args.name, session=session, properties=properties)
         else:
             # create a new session
             session = Session()
-            a = SQLExecutorAgent(name=args.name, session=session, properties=properties)
+            a = QueryExecutorAgent(name=args.name, session=session, properties=properties)
 
         # wait for session
         if session:

@@ -295,6 +295,8 @@ class EmployerPlannerAgent(Agent):
                                     self.show_skills_distribution(worker, context=context)
                                 elif value == "Years of Experience":
                                     self.show_yoe_distribution(worker, context=context)
+                                elif value == "Skills By Applicant":
+                                    self.show_skills_by_applicant(worker, context=context)
                             elif list == "recent":
                                 pass
                             elif list == "short":
@@ -707,6 +709,24 @@ class EmployerPlannerAgent(Agent):
 
         # write trigger to stream
         a_stream = self.write_to_new_stream(worker, "visualize skills", "DEFAULT", tags=["HIDDEN"], id=id)
+
+        # build query plan
+        plan = self.build_plan(query_plan, a_stream, id=id)
+
+        # write plan
+        self.write_to_new_stream(worker, plan, "PLAN", tags=["PLAN"], id=id)
+
+    def show_skills_by_applicant(self, worker, context=None, entities=None, input=None):
+         # create a unique id
+        id = util_functions.create_uuid()
+
+        # query plan
+        query_plan = [
+            [self.name + ".DEFAULT", "VISUALIZER_SKILLBYCANDIDATE.DEFAULT"]
+        ]
+
+        # write trigger to stream
+        a_stream = self.write_to_new_stream(worker, "visualize skills by candidate", "DEFAULT", tags=["HIDDEN"], id=id)
 
         # build query plan
         plan = self.build_plan(query_plan, a_stream, id=id)

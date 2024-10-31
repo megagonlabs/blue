@@ -29,6 +29,22 @@ services:
       - demo.env
     restart: always
 
+  mysql_db:
+    image: mysql:latest
+    hostname: mysql_db
+    ports:
+      - 3306:3306
+    networks:
+      - blue_platform_${BLUE_DEPLOY_PLATFORM}_network_bridge
+    volumes:
+      - blue_${BLUE_DEPLOY_PLATFORM}_data:/blue_data
+      - employer_mysql_data:/var/lib/mysql
+    environment:
+      <<: *blue-common-env
+    env_file:
+      - demo.env
+    restart: always
+
 networks:
   blue_platform_${BLUE_DEPLOY_PLATFORM}_network_bridge:
       external: true
@@ -37,4 +53,6 @@ volumes:
   blue_${BLUE_DEPLOY_PLATFORM}_data:
       external: true
   employer_postgres_data:
+      external: true
+  employer_mysql_data:
       external: true

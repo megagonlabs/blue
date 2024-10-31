@@ -24,4 +24,4 @@ ADD /lib /app/lib/
 # Copy service files
 ADD /src /app/
 
-ENTRYPOINT ["python", "sql_exec_agent.py"]
+ENTRYPOINT ["python", "query_executor_agent.py"]

@@ -128,27 +128,47 @@ class SummarizerAgent(OpenAIAgent):
 
         return output_stream
 
-    def issue_sql_query(self, query, worker, id=None):
+    def issue_nl_query(self, question, worker, id=None):
 
         # query plan
         
         query_plan = [
-            [self.name + ".QUERY", "NL2SQL-E2E_INPLAN.DEFAULT"],
+            [self.name + ".Q", "NL2SQL-E2E_INPLAN.DEFAULT"],
             ["NL2SQL-E2E_INPLAN.DEFAULT", self.name+".RESULTS"],
         ]
        
         # write query to stream
-        query_stream = self.write_to_new_stream(worker, query, "QUERY", tags=["HIDDEN"], id=id)
+        query_stream = self.write_to_new_stream(worker, question, "Q", tags=["HIDDEN"], id=id)
 
         # build query plan
         plan = self.build_plan(query_plan, query_stream, id=id)
 
         # write plan
         # TODO: this shouldn't necessarily be into a new stream
-        self.write_to_new_stream(worker, plan, "PLAN", tags=["HIDDEN"], id=id)
+        self.write_to_new_stream(worker, plan, "PLAN", tags=["PLAN","HIDDEN"], id=id)
 
         return
 
+    def issue_sql_query(self, query, worker, id=None):
+
+        # query plan
+        
+        query_plan = [
+            [self.name + ".Q", "QUERYEXECUTOR.DEFAULT"],
+            ["QUERYEXECUTOR.DEFAULT", self.name+".RESULTS"],
+        ]
+       
+        # write query to stream
+        query_stream = self.write_to_new_stream(worker, query, "Q", tags=["HIDDEN"], id=id)
+
+        # build query plan
+        plan = self.build_plan(query_plan, query_stream, id=id)
+
+        # write plan
+        # TODO: this shouldn't necessarily be into a new stream
+        self.write_to_new_stream(worker, plan, "PLAN", tags=["PLAN","HIDDEN"], id=id)
+
+        return
 
     def default_processor(self, message, input="DEFAULT", properties=None, worker=None):
     
@@ -170,13 +190,28 @@ class SummarizerAgent(OpenAIAgent):
                     # user initiated summarizer, kick off queries from template
                     self.results = {}
                     self.todos = set()
-                    queries = self.properties['queries']
-                    for query_id in queries:
-                        query_template = Template(queries[query_id])
-                        query = query_template.safe_substitute(**self.properties, **session_data)
-                        self.todos.add(query_id)
-                        self.issue_sql_query(query, worker, id=query_id)
-
+                    # nl questions
+                    if 'questions' in self.properties:
+                        questions = self.properties['questions']
+                        for question_id in questions:
+                            q = questions[question_id]
+                            question_template = Template(q)
+                            question = question_template.safe_substitute(**self.properties, **session_data)
+                            self.todos.add(question_id)
+                            self.issue_nl_query(question, worker, id=query_id)
+                    # db queries
+                    if 'queries' in self.properties:
+                        queries = self.properties['queries']
+                        for query_id in queries:
+                            q = queries[query_id]
+                            if type(q) == dict:
+                                q = json.dumps(q)
+                            else:
+                                q = str(q)
+                            query_template = Template(q)
+                            query = query_template.safe_substitute(**self.properties, **session_data)
+                            self.todos.add(query_id)
+                            self.issue_sql_query(query, worker, id=query_id)
                     return
 
             elif message.isBOS():
@@ -200,7 +235,7 @@ class SummarizerAgent(OpenAIAgent):
                 stream = message.getStream()
                 # TODO: REVISE
                 # get query from incoming stream
-                query = stream[stream.find("QUERY"):].split(":")[1]
+                query = stream[stream.find("Q"):].split(":")[1]
 
                 data = message.getData()
 
