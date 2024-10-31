@@ -13,24 +13,45 @@ import {
     faClipboard,
     faCopy,
     faThumbTack,
+    faThumbTackSlash,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
+import axios from "axios";
 import copy from "copy-to-clipboard";
 import _ from "lodash";
 import { useRouter } from "next/router";
-import { useContext } from "react";
+import { useContext, useState } from "react";
 import { AppContext } from "../contexts/app-context";
 import { useSocket } from "../hooks/useSocket";
 export default function SearchResultRow({ sessionId, style = {} }) {
     const { appState, appActions } = useContext(AppContext);
-    const sessionDetails = _.get(
-        appState,
-        ["session", "sessionDetails", sessionId],
-        {}
+    const { pinnedSessionIds, sessionDetails } = appState.session;
+    const sessionName = _.get(sessionDetails, [sessionId, "name"], sessionId);
+    const sessionDescription = _.get(
+        sessionDetails,
+        [sessionId, "description"],
+        ""
     );
-    const sessionName = _.get(sessionDetails, "name", sessionId);
-    const sessionDescription = _.get(sessionDetails, "description", "");
     const router = useRouter();
     const { socket } = useSocket();
+    const [updatingPin, setUpdatingPin] = useState(false);
+    const isPinned = pinnedSessionIds.has(sessionId);
+    const handlePinSession = () => {
+        setUpdatingPin(true);
+        axios
+            .put(`/sessions/session/${sessionId}/${isPinned ? "un" : ""}pin`)
+            .then(() => {
+                if (isPinned)
+                    appActions.session.removePinnedSessionId(sessionId);
+                else appActions.session.addPinnedSessionId(sessionId);
+                AppToaster.show({
+                    icon: faIcon({ icon: faThumbTack }),
+                    message: `${
+                        isPinned ? "Unpinned" : "Pinned"
+                    } "${sessionName}"`,
+                });
+            })
+            .finally(() => setUpdatingPin(false));
+    };
     return (
         <div style={style}>
             <Card
@@ -57,18 +78,30 @@ export default function SearchResultRow({ sessionId, style = {} }) {
                     className="session-search-result-row-actions"
                     style={{
                         position: "absolute",
-                        left: 9,
+                        left: 20,
                         width: 300,
                         background:
-                            "linear-gradient(to right,  rgba(255,255,255,1) 0%,rgba(255,255,255,1) 89px,rgba(255,255,255,0) 99%,rgba(255,255,255,0) 100%)",
+                            "linear-gradient(to right,  rgba(255,255,255,1) 0%,rgba(255,255,255,1) 100px,rgba(255,255,255,0) 99%,rgba(255,255,255,0) 100%)",
                     }}
                 >
                     <ButtonGroup large minimal>
-                        <Tooltip>
+                        <Tooltip
+                            content={isPinned ? "Unpin" : "Pin"}
+                            minimal
+                            placement="bottom-start"
+                        >
                             <Button
+                                loading={updatingPin}
                                 icon={faIcon({
-                                    icon: faThumbTack,
+                                    icon: isPinned
+                                        ? faThumbTackSlash
+                                        : faThumbTack,
+                                    size: isPinned ? 20 : 16,
                                 })}
+                                onClick={(event) => {
+                                    handlePinSession();
+                                    event.stopPropagation();
+                                }}
                             />
                         </Tooltip>
                         <Tooltip

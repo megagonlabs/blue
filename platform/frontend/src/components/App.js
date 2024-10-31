@@ -205,7 +205,7 @@ export default function App({ children }) {
                 isOpen={isSettingsOpen}
                 setIsSettingsOpen={setIsSettingsOpen}
             />
-            {launchScreenMode ? null : (
+            {launchScreenMode || _.isEmpty(user) ? null : (
                 <Card
                     interactive
                     style={{
@@ -303,7 +303,6 @@ export default function App({ children }) {
                                     return (
                                         <Link href={href} key={index}>
                                             <Button
-                                                className={Classes.TEXT_SMALL}
                                                 intent={intent}
                                                 large
                                                 style={{
@@ -360,7 +359,6 @@ export default function App({ children }) {
                                     return (
                                         <Link href={href} key={index}>
                                             <Button
-                                                className={Classes.TEXT_SMALL}
                                                 style={
                                                     !active
                                                         ? {
@@ -406,9 +404,6 @@ export default function App({ children }) {
                                         return (
                                             <Link href={href} key={index}>
                                                 <Button
-                                                    className={
-                                                        Classes.TEXT_SMALL
-                                                    }
                                                     style={
                                                         !active
                                                             ? {
@@ -465,7 +460,6 @@ export default function App({ children }) {
                                     return (
                                         <Link href={href} key={index}>
                                             <Button
-                                                className={Classes.TEXT_SMALL}
                                                 style={
                                                     !active
                                                         ? {
@@ -490,9 +484,10 @@ export default function App({ children }) {
             )}
             <div
                 style={{
-                    marginLeft: !launchScreenMode
-                        ? NAVIGATION_MENU_WIDTH
-                        : null,
+                    marginLeft:
+                        !launchScreenMode && !_.isEmpty(user)
+                            ? NAVIGATION_MENU_WIDTH
+                            : null,
                     height: "calc(100vh - 50px)",
                     position: "relative",
                 }}

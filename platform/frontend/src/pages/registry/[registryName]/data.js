@@ -27,14 +27,13 @@ import _ from "lodash";
 import { useCallback, useContext, useEffect, useState } from "react";
 export default function Data() {
     const { appState, appActions } = useContext(AppContext);
-    const [hybrid, setHybrid] = useState(appState.data.filter.hybrid);
-    const [approximate, setApproximate] = useState(
-        appState.data.filter.approximate
-    );
-    const [type, setType] = useState(appState.data.filter.type);
-    const [keywords, setKeywords] = useState(appState.data.filter.keywords);
-    const [page, setPage] = useState(appState.data.filter.page);
-    const [pageSize, setPageSize] = useState(appState.data.filter.page_size);
+    const { filter } = appState.data;
+    const [hybrid, setHybrid] = useState(filter.hybrid);
+    const [approximate, setApproximate] = useState(filter.approximate);
+    const [type, setType] = useState(filter.type);
+    const [keywords, setKeywords] = useState(filter.keywords);
+    const [page, setPage] = useState(filter.page);
+    const [pageSize, setPageSize] = useState(filter.page_size);
     const dataRegistryName = process.env.NEXT_PUBLIC_DATA_REGISTRY_NAME;
     const debounceOnKeywordsChange = useCallback(
         _.debounce(
@@ -119,7 +118,7 @@ export default function Data() {
                                 setKeywords(event.target.value);
                             }}
                             rightElement={
-                                !_.isEmpty(keywords) && appState.data.search ? (
+                                !_.isEmpty(keywords) || appState.data.search ? (
                                     <Button
                                         minimal
                                         onClick={() => {

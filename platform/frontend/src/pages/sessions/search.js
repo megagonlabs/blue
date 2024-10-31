@@ -1,8 +1,19 @@
 import { AppContext } from "@/components/contexts/app-context";
 import { faIcon } from "@/components/icon";
 import SearchResultRow from "@/components/sessions/SearchResultRow";
-import { ControlGroup, H4, InputGroup } from "@blueprintjs/core";
-import { faSearch } from "@fortawesome/sharp-duotone-solid-svg-icons";
+import {
+    Button,
+    Classes,
+    ControlGroup,
+    H4,
+    InputGroup,
+    NonIdealState,
+} from "@blueprintjs/core";
+import {
+    faInboxes,
+    faSearch,
+    faTimes,
+} from "@fortawesome/sharp-duotone-solid-svg-icons";
 import axios from "axios";
 import _ from "lodash";
 import { useContext, useEffect, useState } from "react";
@@ -10,9 +21,11 @@ import AutoSizer from "react-virtualized-auto-sizer";
 import { FixedSizeList } from "react-window";
 export default function AllSessions() {
     const { appState, appActions } = useContext(AppContext);
-    const { sessionIds, sessionDetails, search } = appState.session;
+    const { sessionIds, sessionDetails, filter } = appState.session;
     const [loading, setLoading] = useState(false);
     const [allSessions, setAllSessions] = useState([]);
+    const [keywords, setKeywords] = useState(filter.keywords);
+    const [search, setSearch] = useState(false);
     const fetchAllSessions = () => {
         setLoading(true);
         axios
@@ -61,14 +74,35 @@ export default function AllSessions() {
             })
             .catch(() => {});
     };
-    useEffect(() => {
+    const searchSessions = (searchTerm) => {
+        appActions.session.setState({
+            key: "filter",
+            value: { keywords: searchTerm },
+        });
         setAllSessions(
-            sessionIds.sort(
-                (a, b) =>
-                    sessionDetails[b].created_date -
-                    sessionDetails[a].created_date
-            )
+            sessionIds
+                .filter((id) => {
+                    if (_.includes(id, searchTerm)) return true;
+                    const name = _.get(sessionDetails, [id, "name"], id);
+                    if (_.includes(name, searchTerm)) return true;
+                    const description = _.get(
+                        sessionDetails,
+                        [id, "description"],
+                        id
+                    );
+                    if (_.includes(description, searchTerm)) return true;
+                    return false;
+                })
+                .sort(
+                    (a, b) =>
+                        sessionDetails[b].created_date -
+                        sessionDetails[a].created_date
+                )
         );
+        setSearch(!_.isEmpty(searchTerm));
+    };
+    useEffect(() => {
+        searchSessions(keywords);
     }, [sessionIds]);
     useEffect(() => {
         // automatically fetch all existing sessions onload
@@ -96,11 +130,34 @@ export default function AllSessions() {
                 >
                     <ControlGroup fill>
                         <InputGroup
+                            value={keywords}
+                            className={loading ? Classes.SKELETON : null}
                             id="all-sessions-search-input"
                             placeholder="Search sessions"
                             large
                             fill
+                            onChange={(event) =>
+                                setKeywords(event.target.value)
+                            }
                             leftIcon={faIcon({ icon: faSearch })}
+                            onKeyDown={(event) => {
+                                if (_.isEqual(event.key, "Enter")) {
+                                    searchSessions(event.target.value);
+                                }
+                            }}
+                            rightElement={
+                                !_.isEmpty(keywords) || search ? (
+                                    <Button
+                                        minimal
+                                        onClick={() => {
+                                            setKeywords("");
+                                            setSearch(false);
+                                            searchSessions("");
+                                        }}
+                                        icon={faIcon({ icon: faTimes })}
+                                    />
+                                ) : null
+                            }
                         />
                     </ControlGroup>
                 </div>
@@ -115,24 +172,32 @@ export default function AllSessions() {
                         overflowY: "auto",
                     }}
                 >
-                    <AutoSizer>
-                        {({ width, height }) => (
-                            <FixedSizeList
-                                style={{ paddingBottom: 10 }}
-                                width={width}
-                                height={height}
-                                itemCount={_.size(allSessions)}
-                                itemSize={69}
-                            >
-                                {({ index, style }) => (
-                                    <SearchResultRow
-                                        style={style}
-                                        sessionId={allSessions[index]}
-                                    />
-                                )}
-                            </FixedSizeList>
-                        )}
-                    </AutoSizer>
+                    {_.isEmpty(allSessions) ? (
+                        <NonIdealState
+                            className={loading ? Classes.SKELETON : null}
+                            icon={faIcon({ icon: faInboxes, size: 50 })}
+                            title={`No Session`}
+                        />
+                    ) : (
+                        <AutoSizer>
+                            {({ width, height }) => (
+                                <FixedSizeList
+                                    style={{ paddingBottom: 10 }}
+                                    width={width}
+                                    height={height}
+                                    itemCount={_.size(allSessions)}
+                                    itemSize={69}
+                                >
+                                    {({ index, style }) => (
+                                        <SearchResultRow
+                                            style={style}
+                                            sessionId={allSessions[index]}
+                                        />
+                                    )}
+                                </FixedSizeList>
+                            )}
+                        </AutoSizer>
+                    )}
                 </div>
             </div>
         </>

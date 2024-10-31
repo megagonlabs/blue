@@ -22,7 +22,6 @@ export const defaultState = {
     joinAgentGroupSession: false,
     sessionAgentProgress: {},
     // search parameters
-    search: false,
     filter: { keywords: "" },
 };
 export default function sessionReducer(
