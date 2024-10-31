@@ -145,7 +145,7 @@ class SummarizerAgent(OpenAIAgent):
 
         # write plan
         # TODO: this shouldn't necessarily be into a new stream
-        self.write_to_new_stream(worker, plan, "PLAN", tags=["HIDDEN"], id=id)
+        self.write_to_new_stream(worker, plan, "PLAN", tags=["PLAN","HIDDEN"], id=id)
 
         return
 
@@ -166,7 +166,7 @@ class SummarizerAgent(OpenAIAgent):
 
         # write plan
         # TODO: this shouldn't necessarily be into a new stream
-        self.write_to_new_stream(worker, plan, "PLAN", tags=["HIDDEN"], id=id)
+        self.write_to_new_stream(worker, plan, "PLAN", tags=["PLAN","HIDDEN"], id=id)
 
         return
 
