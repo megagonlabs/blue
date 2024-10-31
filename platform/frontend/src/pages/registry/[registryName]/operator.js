@@ -27,16 +27,13 @@ import _ from "lodash";
 import { useCallback, useContext, useEffect, useState } from "react";
 export default function Operator() {
     const { appState, appActions } = useContext(AppContext);
-    const [hybrid, setHybrid] = useState(appState.operator.filter.hybrid);
-    const [approximate, setApproximate] = useState(
-        appState.operator.filter.approximate
-    );
-    const [type, setType] = useState(appState.operator.filter.type);
-    const [keywords, setKeywords] = useState(appState.operator.filter.keywords);
-    const [page, setPage] = useState(appState.operator.filter.page);
-    const [pageSize, setPageSize] = useState(
-        appState.operator.filter.page_size
-    );
+    const { filter } = appState.operator;
+    const [hybrid, setHybrid] = useState(filter.hybrid);
+    const [approximate, setApproximate] = useState(filter.approximate);
+    const [type, setType] = useState(filter.type);
+    const [keywords, setKeywords] = useState(filter.keywords);
+    const [page, setPage] = useState(filter.page);
+    const [pageSize, setPageSize] = useState(filter.page_size);
     const operatorRegistryName = process.env.NEXT_PUBLIC_OPERATOR_REGISTRY_NAME;
     const debounceOnKeywordsChange = useCallback(
         _.debounce(
@@ -125,7 +122,7 @@ export default function Operator() {
                                 setKeywords(event.target.value);
                             }}
                             rightElement={
-                                !_.isEmpty(keywords) &&
+                                !_.isEmpty(keywords) ||
                                 appState.operator.search ? (
                                     <Button
                                         minimal

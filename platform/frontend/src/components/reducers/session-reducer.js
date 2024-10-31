@@ -21,6 +21,8 @@ export const defaultState = {
     creatingSession: false,
     joinAgentGroupSession: false,
     sessionAgentProgress: {},
+    // search parameters
+    filter: { keywords: "" },
 };
 export default function sessionReducer(
     state = defaultState,

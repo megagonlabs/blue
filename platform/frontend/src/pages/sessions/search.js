@@ -21,10 +21,10 @@ import AutoSizer from "react-virtualized-auto-sizer";
 import { FixedSizeList } from "react-window";
 export default function AllSessions() {
     const { appState, appActions } = useContext(AppContext);
-    const { sessionIds, sessionDetails } = appState.session;
+    const { sessionIds, sessionDetails, filter } = appState.session;
     const [loading, setLoading] = useState(false);
     const [allSessions, setAllSessions] = useState([]);
-    const [keywords, setKeywords] = useState("");
+    const [keywords, setKeywords] = useState(filter.keywords);
     const [search, setSearch] = useState(false);
     const fetchAllSessions = () => {
         setLoading(true);
@@ -75,6 +75,10 @@ export default function AllSessions() {
             .catch(() => {});
     };
     const searchSessions = (searchTerm) => {
+        appActions.session.setState({
+            key: "filter",
+            value: { keywords: searchTerm },
+        });
         setAllSessions(
             sessionIds
                 .filter((id) => {
@@ -142,8 +146,7 @@ export default function AllSessions() {
                                 }
                             }}
                             rightElement={
-                                !_.isEmpty(keywords) &&
-                                search && (
+                                !_.isEmpty(keywords) || search ? (
                                     <Button
                                         minimal
                                         onClick={() => {
@@ -153,7 +156,7 @@ export default function AllSessions() {
                                         }}
                                         icon={faIcon({ icon: faTimes })}
                                     />
-                                )
+                                ) : null
                             }
                         />
                     </ControlGroup>

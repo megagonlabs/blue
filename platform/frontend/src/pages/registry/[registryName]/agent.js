@@ -27,14 +27,13 @@ import _ from "lodash";
 import { useCallback, useContext, useEffect, useState } from "react";
 export default function Agent() {
     const { appState, appActions } = useContext(AppContext);
-    const [hybrid, setHybrid] = useState(appState.agent.filter.hybrid);
-    const [approximate, setApproximate] = useState(
-        appState.agent.filter.approximate
-    );
-    const [type, setType] = useState(appState.agent.filter.type);
-    const [keywords, setKeywords] = useState(appState.agent.filter.keywords);
-    const [page, setPage] = useState(appState.agent.filter.page);
-    const [pageSize, setPageSize] = useState(appState.agent.filter.page_size);
+    const { filter } = appState.agent;
+    const [hybrid, setHybrid] = useState(filter.hybrid);
+    const [approximate, setApproximate] = useState(filter.approximate);
+    const [type, setType] = useState(filter.type);
+    const [keywords, setKeywords] = useState(filter.keywords);
+    const [page, setPage] = useState(filter.page);
+    const [pageSize, setPageSize] = useState(filter.page_size);
     const agentRegistryName = process.env.NEXT_PUBLIC_AGENT_REGISTRY_NAME;
     const debounceOnKeywordsChange = useCallback(
         _.debounce(
@@ -119,7 +118,7 @@ export default function Agent() {
                                 setKeywords(event.target.value);
                             }}
                             rightElement={
-                                !_.isEmpty(keywords) &&
+                                !_.isEmpty(keywords) ||
                                 appState.agent.search ? (
                                     <Button
                                         minimal
