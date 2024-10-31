@@ -98,7 +98,6 @@ def agent_join_session(registry_name, agent_name, properties, session_id):
         if parent_properties_from_registry:
             agent_properties = json_utils.merge_json(agent_properties, parent_properties_from_registry)
 
-
     # merge in registry properties
     agent_properties = json_utils.merge_json(agent_properties, properties_from_registry)
     # merge in properties from the api
@@ -112,16 +111,29 @@ def agent_join_session(registry_name, agent_name, properties, session_id):
 
 #############
 @router.get("/")
-def get_sessions(request: Request):
+def get_sessions(request: Request, my_sessions: bool = False):
     acl_enforce(request.state.user['role'], 'sessions', ['read_all', 'read_own', 'read_participate'])
-    sessions = p.get_sessions()
     results = []
     uid = request.state.user['uid']
-    for session in sessions:
-        if session_acl_enforce(request, session, read=True, throw=False):
-            owner_of = pydash.is_equal(pydash.objects.get(session, 'created_by', None), uid)
-            member_of = pydash.objects.get(session, f'members.{uid}', False)
-            results.append({**session, 'group_by': {'owner': owner_of, 'member': not owner_of and member_of}})
+    if my_sessions:
+        sessions = p.get_metadata(f'users.{uid}.sessions')
+        session_ids = [*pydash.objects.keys(sessions['owner']), *pydash.objects.keys(sessions['member'])]
+        for session_id in session_ids:
+            if pydash.objects.get(sessions, ['owner', session_id]) or pydash.objects.get(sessions, ['member', session_id]):
+                session = p.get_session(session_sid=session_id)
+                if session is None:
+                    continue
+                session = session.to_dict()
+                owner_of = pydash.is_equal(pydash.objects.get(session, 'created_by', None), uid)
+                member_of = pydash.objects.get(session, f'members.{uid}', False)
+                results.append({**session, 'group_by': {'owner': owner_of, 'member': not owner_of and member_of}})
+    else:
+        sessions = p.get_sessions()
+        for session in sessions:
+            if session_acl_enforce(request, session, read=True, throw=False):
+                owner_of = pydash.is_equal(pydash.objects.get(session, 'created_by', None), uid)
+                member_of = pydash.objects.get(session, f'members.{uid}', False)
+                results.append({**session, 'group_by': {'owner': owner_of, 'member': not owner_of and member_of}})
     return JSONResponse(content={"results": results})
 
 

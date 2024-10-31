@@ -26,7 +26,38 @@ export default function AllSessions() {
     const [allSessions, setAllSessions] = useState([]);
     const [keywords, setKeywords] = useState(filter.keywords);
     const [search, setSearch] = useState(false);
-    const fetchAllSessions = () => {
+    const searchSessions = (searchTerm) => {
+        appActions.session.setState({
+            key: "filter",
+            value: { keywords: searchTerm },
+        });
+        setAllSessions(
+            sessionIds
+                .filter((id) => {
+                    if (_.includes(id, searchTerm)) return true;
+                    const name = _.get(sessionDetails, [id, "name"], id);
+                    if (_.includes(name, searchTerm)) return true;
+                    const description = _.get(
+                        sessionDetails,
+                        [id, "description"],
+                        id
+                    );
+                    if (_.includes(description, searchTerm)) return true;
+                    return false;
+                })
+                .sort(
+                    (a, b) =>
+                        sessionDetails[b].created_date -
+                        sessionDetails[a].created_date
+                )
+        );
+        setSearch(!_.isEmpty(searchTerm));
+    };
+    useEffect(() => {
+        searchSessions(keywords);
+    }, [sessionIds]);
+    useEffect(() => {
+        // automatically fetch all existing sessions onload
         setLoading(true);
         axios
             .get("/sessions")
@@ -73,40 +104,6 @@ export default function AllSessions() {
                 setLoading(false);
             })
             .catch(() => {});
-    };
-    const searchSessions = (searchTerm) => {
-        appActions.session.setState({
-            key: "filter",
-            value: { keywords: searchTerm },
-        });
-        setAllSessions(
-            sessionIds
-                .filter((id) => {
-                    if (_.includes(id, searchTerm)) return true;
-                    const name = _.get(sessionDetails, [id, "name"], id);
-                    if (_.includes(name, searchTerm)) return true;
-                    const description = _.get(
-                        sessionDetails,
-                        [id, "description"],
-                        id
-                    );
-                    if (_.includes(description, searchTerm)) return true;
-                    return false;
-                })
-                .sort(
-                    (a, b) =>
-                        sessionDetails[b].created_date -
-                        sessionDetails[a].created_date
-                )
-        );
-        setSearch(!_.isEmpty(searchTerm));
-    };
-    useEffect(() => {
-        searchSessions(keywords);
-    }, [sessionIds]);
-    useEffect(() => {
-        // automatically fetch all existing sessions onload
-        fetchAllSessions();
     }, []);
     return (
         <>

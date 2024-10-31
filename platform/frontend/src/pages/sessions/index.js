@@ -95,7 +95,7 @@ export default function Sessions() {
     const fetchMySessions = () => {
         setLoading(true);
         axios
-            .get("/sessions")
+            .get("/sessions", { params: { my_sessions: true } })
             .then((response) => {
                 let sessions = _.get(response, "data.results", []);
                 appActions.session.setSessionDetails(sessions);
