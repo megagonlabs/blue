@@ -42,10 +42,10 @@ logging.basicConfig(
 )
 
 #######################
-class SQLExecutorAgent(Agent):
+class QueryExecutorAgent(Agent):
     def __init__(self, **kwargs):
         if 'name' not in kwargs:
-            kwargs['name'] = "SQL_EXEC"
+            kwargs['name'] = "QUERYEXECUTOR"
         super().__init__(**kwargs)
 
     def _initialize(self, properties=None):
@@ -134,7 +134,7 @@ class SQLExecutorAgent(Agent):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--name', default="SQL_EXEC", type=str)
+    parser.add_argument('--name', default="QUERYEXECUTOR", type=str)
     parser.add_argument('--session', type=str)
     parser.add_argument('--properties', type=str)
     parser.add_argument('--loglevel', default="INFO", type=str)
@@ -160,7 +160,7 @@ if __name__ == "__main__":
     if args.serve:
         platform = args.platform
 
-        af = AgentFactory(_class=SQLExecutorAgent, _name=args.serve, _registry=args.registry, platform=platform,
+        af = AgentFactory(_class=QueryExecutorAgent, _name=args.serve, _registry=args.registry, platform=platform,
                           properties=properties)
         af.wait()
     else:
@@ -170,11 +170,11 @@ if __name__ == "__main__":
         if args.session:
             # join an existing session
             session = Session(cid=args.session)
-            a = SQLExecutorAgent(name=args.name, session=session, properties=properties)
+            a = QueryExecutorAgent(name=args.name, session=session, properties=properties)
         else:
             # create a new session
             session = Session()
-            a = SQLExecutorAgent(name=args.name, session=session, properties=properties)
+            a = QueryExecutorAgent(name=args.name, session=session, properties=properties)
 
         # wait for session
         if session:

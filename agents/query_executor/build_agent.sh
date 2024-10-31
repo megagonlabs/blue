@@ -1,5 +1,5 @@
 #/bin/bash
-echo 'Building SQL_EXEC Agent...'
+echo 'Building QueryExecutor Agent...'
 
 echo 'Copying libs...'
 
