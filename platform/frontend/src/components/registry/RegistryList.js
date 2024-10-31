@@ -103,6 +103,11 @@ export default function RegistryList({ type }) {
                     ) {
                         icon = _.split(icon, ":");
                     }
+                    const displayName = _.get(
+                        element,
+                        "properties.display_name",
+                        ""
+                    );
                     return (
                         <Col
                             key={element.name}
@@ -115,7 +120,11 @@ export default function RegistryList({ type }) {
                             <RegistryCard
                                 type={type}
                                 icon={icon}
-                                title={element.name}
+                                title={
+                                    !_.isEmpty(displayName)
+                                        ? displayName
+                                        : element.name
+                                }
                                 description={element.description}
                                 extra={extra}
                                 href={`${router.asPath}/${element.name}`}
