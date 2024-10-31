@@ -83,7 +83,7 @@ module.exports = {
         let updated = [],
             deleted = [],
             added = [];
-        const comparedKeys = Object.keys(compared);
+        const comparedKeys = _.keys(compared);
         for (let i = 0; i < _.size(comparedKeys); i++) {
             const key = comparedKeys[i];
             // check for updated
@@ -93,7 +93,7 @@ module.exports = {
                 added.push(key);
             }
         }
-        const baseKeys = Object.keys(base);
+        const baseKeys = _.keys(base);
         for (let i = 0; i < _.size(baseKeys); i++) {
             const key = baseKeys[i];
             // check for deleted

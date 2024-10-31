@@ -27,6 +27,7 @@ import {
     faLayerGroup,
     faPencilRuler,
     faRectangleTerminal,
+    faSearch,
     faUser,
     faUserGroup,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
@@ -73,7 +74,7 @@ export default function App({ children }) {
     const launchScreenMode = launchScreen && _.isEqual(router.pathname, "/");
     const MENU_ITEMS = {
         my_sessions: {
-            href: `/sessions`,
+            href: "/sessions",
             text: "My Sessions",
             icon: faUser,
             visible: canReadSessions,
@@ -88,8 +89,14 @@ export default function App({ children }) {
                 });
             },
         },
+        all_sessions: {
+            href: "/sessions/search",
+            text: "All Sessions",
+            icon: faSearch,
+            visible: canReadSessions,
+        },
         new_session: {
-            href: `/sessions`,
+            href: "/sessions",
             text: "New Session",
             icon: faInboxArrowUp,
             visible: canWriteSessions,
@@ -276,40 +283,43 @@ export default function App({ children }) {
                                             />
                                         );
                                     })}
-                                {["my_sessions", "new_session"].map(
-                                    (key, index) => {
-                                        const {
-                                            href,
-                                            icon,
-                                            text,
-                                            visible,
-                                            onClick,
-                                            disabled,
-                                            intent,
-                                        } = _.get(MENU_ITEMS, key, {});
-                                        if (!visible) {
-                                            return null;
-                                        }
-                                        return (
-                                            <Link href={href} key={index}>
-                                                <Button
-                                                    intent={intent}
-                                                    large
-                                                    style={{
-                                                        backgroundColor:
-                                                            "transparent",
-                                                    }}
-                                                    text={text}
-                                                    disabled={disabled}
-                                                    icon={faIcon({
-                                                        icon: icon,
-                                                    })}
-                                                    onClick={onClick}
-                                                />
-                                            </Link>
-                                        );
+                                {[
+                                    "my_sessions",
+                                    "all_sessions",
+                                    "new_session",
+                                ].map((key, index) => {
+                                    const {
+                                        href,
+                                        icon,
+                                        text,
+                                        visible,
+                                        onClick,
+                                        disabled,
+                                        intent,
+                                    } = _.get(MENU_ITEMS, key, {});
+                                    if (!visible) {
+                                        return null;
                                     }
-                                )}
+                                    return (
+                                        <Link href={href} key={index}>
+                                            <Button
+                                                className={Classes.TEXT_SMALL}
+                                                intent={intent}
+                                                large
+                                                style={{
+                                                    backgroundColor:
+                                                        "transparent",
+                                                }}
+                                                text={text}
+                                                disabled={disabled}
+                                                icon={faIcon({
+                                                    icon: icon,
+                                                })}
+                                                onClick={onClick}
+                                            />
+                                        </Link>
+                                    );
+                                })}
                             </ButtonGroup>
                         </>
                     ) : null}
@@ -350,6 +360,7 @@ export default function App({ children }) {
                                     return (
                                         <Link href={href} key={index}>
                                             <Button
+                                                className={Classes.TEXT_SMALL}
                                                 style={
                                                     !active
                                                         ? {
@@ -395,6 +406,9 @@ export default function App({ children }) {
                                         return (
                                             <Link href={href} key={index}>
                                                 <Button
+                                                    className={
+                                                        Classes.TEXT_SMALL
+                                                    }
                                                     style={
                                                         !active
                                                             ? {
@@ -451,6 +465,7 @@ export default function App({ children }) {
                                     return (
                                         <Link href={href} key={index}>
                                             <Button
+                                                className={Classes.TEXT_SMALL}
                                                 style={
                                                     !active
                                                         ? {

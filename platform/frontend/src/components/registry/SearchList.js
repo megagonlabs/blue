@@ -13,7 +13,7 @@ export default function SearchList({ type }) {
         <AutoSizer>
             {({ width, height }) => (
                 <FixedSizeList
-                    style={{ padding: "0px 21px 10px 21px" }}
+                    style={{ paddingBottom: 10 }}
                     height={height}
                     width={width}
                     itemCount={appState[type].list.length}

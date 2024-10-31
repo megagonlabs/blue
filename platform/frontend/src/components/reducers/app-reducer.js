@@ -2,7 +2,7 @@ import { library } from "@fortawesome/fontawesome-svg-core";
 import * as Icons from "@fortawesome/sharp-duotone-solid-svg-icons";
 import Flexsearch from "flexsearch";
 import _ from "lodash";
-const iconList = Object.keys(Icons).filter(
+const iconList = _.keys(Icons).filter(
     (key) => key !== "fasds" && key !== "prefix"
 );
 library.add(...iconList.map((icon) => Icons[icon]));
@@ -20,7 +20,7 @@ for (let i = 0; i < _.size(iconList); i++) {
         iconSearchTags[iconName] = tags;
     }
 }
-const searchTagKeys = Object.keys(iconSearchTags);
+const searchTagKeys = _.keys(iconSearchTags);
 for (let i = 0; i < _.size(searchTagKeys); i++) {
     store[i] = searchTagKeys[i];
     index.add(i, _.join(iconSearchTags[searchTagKeys[i]], " "));
