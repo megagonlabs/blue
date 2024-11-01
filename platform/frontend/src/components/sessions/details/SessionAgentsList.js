@@ -15,6 +15,7 @@ import _ from "lodash";
 import { useContext, useEffect, useState } from "react";
 export default function SessionAgentsList({ loading, setLoading }) {
     const { appState, appActions } = useContext(AppContext);
+    const { propertyLookups } = appState.agent;
     const sessionIdFocus = appState.session.sessionIdFocus;
     const [agents, setAgents] = useState([]);
     useEffect(() => {
@@ -87,6 +88,11 @@ export default function SessionAgentsList({ loading, setLoading }) {
                             agents.map((agent, index) => {
                                 const agentName = _.get(agent, "name", "-");
                                 const agentSid = _.get(agent, "sid", agentName);
+                                const displayName = _.get(
+                                    propertyLookups,
+                                    [agentName, "display_name"],
+                                    null
+                                );
                                 return (
                                     <div
                                         key={index}
@@ -111,7 +117,21 @@ export default function SessionAgentsList({ loading, setLoading }) {
                                                 }}
                                             />
                                         </Card>
-                                        <div style={{ fontWeight: 600 }}>
+                                        <div
+                                            style={{
+                                                fontWeight: 600,
+                                                width: "calc(100% - 55px)",
+                                            }}
+                                        >
+                                            {!_.isEmpty(displayName) && (
+                                                <div
+                                                    className={
+                                                        Classes.TEXT_OVERFLOW_ELLIPSIS
+                                                    }
+                                                >
+                                                    {displayName}
+                                                </div>
+                                            )}
                                             {agentSid}
                                         </div>
                                     </div>
