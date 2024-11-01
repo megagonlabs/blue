@@ -7,10 +7,16 @@ import _ from "lodash";
 import { memo, useContext } from "react";
 function MessageMetadata({ message }) {
     const { appState } = useContext(AppContext);
+    const { propertyLookups } = appState.agent;
     const { settings } = useContext(AuthContext);
     const debugMode = _.get(settings, "debug_mode", false);
     const uid = _.get(message, "metadata.id", null);
     const created_by = _.get(message, "metadata.created_by", null);
+    const displayName = _.get(
+        propertyLookups,
+        [created_by, "display_name"],
+        null
+    );
     const hasUserProfile = _.has(appState, ["app", "users", uid]);
     const user = _.get(appState, ["app", "users", uid], {});
     const timestamp = message.timestamp;
@@ -30,6 +36,8 @@ function MessageMetadata({ message }) {
                         ? hasUserProfile
                             ? user.name
                             : uid
+                        : !_.isEmpty(displayName)
+                        ? displayName
                         : created_by}
                 </span>
                 {_.get(

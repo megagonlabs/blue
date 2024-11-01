@@ -106,7 +106,7 @@ export default function RegistryList({ type }) {
                     const displayName = _.get(
                         element,
                         "properties.display_name",
-                        ""
+                        null
                     );
                     return (
                         <Col
