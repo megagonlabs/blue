@@ -100,7 +100,7 @@ export default function Data() {
                 <div
                     style={{
                         maxWidth: 690,
-                        width: "calc(100% - 250px - 40px)",
+                        width: "calc(100% - 224px - 40px)",
                     }}
                 >
                     <ControlGroup fill>
