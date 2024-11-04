@@ -35,6 +35,7 @@ import {
     faParagraph,
     faPlay,
     faPresentationScreen,
+    faRectangle,
     faRectanglesMixed,
     faSquareCheck,
     faSquareM,
@@ -44,10 +45,12 @@ import _ from "lodash";
 import { useCallback, useState } from "react";
 import ArrayDoc from "./ArrayDoc";
 import BasicsDoc from "./BasicsDoc";
+import CalloutDoc from "./CalloutDoc";
 import MarkdownDoc from "./MarkdownDoc";
 import VegaDoc from "./VegaDoc";
 const RendererDetailPanel = (props) => {
     const DOCS = {
+        callout: <CalloutDoc closePanel={props.closePanel} />,
         boolean: <BooleanDoc closePanel={props.closePanel} />,
         button: <ButtonDoc closePanel={props.closePanel} />,
         enum: <EnumDoc closePanel={props.closePanel} />,
@@ -78,6 +81,7 @@ const MainMenuPanel = (props) => {
         },
         { text: "Boolean", icon: faSquareCheck },
         { text: "Button", icon: faPlay },
+        { text: "Callout", icon: faRectangle },
         { text: "Enum", icon: faListDropdown },
         { text: "Group", icon: faObjectGroup },
         { text: "Integer", icon: faInputNumeric },

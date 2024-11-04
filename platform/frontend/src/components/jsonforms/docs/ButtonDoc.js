@@ -154,7 +154,6 @@ export default function ButtonDoc({ closePanel }) {
                                 <div>
                                     Visual intent color to apply to element.
                                 </div>
-
                                 <Callout
                                     style={{
                                         margin: 0,

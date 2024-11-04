@@ -45,6 +45,7 @@ import UnknownRenderer, {
 } from "@/components/jsonforms/renderers/Unknown";
 import { Classes, Colors, Intent } from "@blueprintjs/core";
 import ArrayRenderer, { ArrayTester } from "./jsonforms/renderers/Array";
+import CalloutRenderer, { CalloutTester } from "./jsonforms/renderers/Callout";
 import DateRenderer, { DateTester } from "./jsonforms/renderers/Date";
 import DateTimeRenderer, {
     DateTimeTester,
@@ -83,6 +84,7 @@ export const ENTITY_TYPE_LOOKUP = {
         { tester: VegaTester, renderer: VegaRenderer },
         { tester: ArrayTester, renderer: ArrayRenderer },
         { tester: MarkdownTester, renderer: MarkdownRenderer },
+        { tester: CalloutTester, renderer: CalloutRenderer },
         { tester: UnknownTester, renderer: UnknownRenderer },
     ],
     CARD_LIST_CLASS_NAMES = `${Classes.CARD} ${Classes.CARD_LIST} ${Classes.CARD_LIST_BORDERED}`,
