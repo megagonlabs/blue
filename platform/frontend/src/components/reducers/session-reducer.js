@@ -15,12 +15,13 @@ export const defaultState = {
     sessionWorkspace: {},
     unreadSessionIds: new Set(),
     pinnedSessionIds: new Set(),
-    terminatedInteraction: new Set(),
+    closedJsonforms: new Set(),
     expandedMessageStream: new Set(),
     sessionGroupBy: "all",
     creatingSession: false,
     joinAgentGroupSession: false,
     sessionAgentProgress: {},
+    jsonformSpecs: {},
     // search parameters
     filter: { keywords: "" },
 };
@@ -31,11 +32,12 @@ export default function sessionReducer(
     let {
         unreadSessionIds,
         sessionIds,
-        terminatedInteraction,
+        closedJsonforms,
         expandedMessageStream,
         sessionWorkspace,
         sessionWorkspaceCollapse,
         sessionAgentProgress,
+        jsonformSpecs,
     } = state;
     const { sessionIdFocus } = state;
     let sessions = _.cloneDeep(state.sessions);
@@ -210,12 +212,19 @@ export default function sessionReducer(
                                 break;
                             }
                         }
+                        const form_id = _.get(
+                            messageContentsArgs,
+                            "form_id",
+                            null
+                        );
                         data.push({
                             ...baseData,
-                            content: messageContentsArgs,
+                            content: { form_id },
                         });
-                    } else if (_.isEqual(messageContentsCode, "CLOSE_FORM")) {
-                        terminatedInteraction.add(
+                        // create/update forms
+                        _.set(jsonformSpecs, form_id, messageContentsArgs);
+                    } else if (_.isEqual("CLOSE_FORM", messageContentsCode)) {
+                        closedJsonforms.add(
                             _.get(
                                 payload,
                                 "message.contents.args.form_id",
@@ -290,7 +299,8 @@ export default function sessionReducer(
                 sessions,
                 sessionIds,
                 unreadSessionIds,
-                terminatedInteraction,
+                closedJsonforms,
+                jsonformSpecs,
                 sessionAgentProgress,
                 sessionWorkspace,
             };

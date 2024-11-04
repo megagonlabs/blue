@@ -9,24 +9,24 @@ import { useContext, useEffect, useState } from "react";
 import { useErrorBoundary } from "react-use-error-boundary";
 export default function JsonForm({ content, hasError }) {
     const { appState } = useContext(AppContext);
-    const terminatedInteraction = appState.session.terminatedInteraction;
+    const { closedJsonforms, jsonformSpecs } = appState.session;
     const [error] = useErrorBoundary();
-    const [data, setData] = useState(_.get(content, "data", {}));
-    const isFormTerminated = terminatedInteraction.has(
-        _.get(content, "form_id", null)
-    );
+    const formId = _.get(content, "form_id", null);
+    const formSpec = _.get(jsonformSpecs, formId, {});
+    const [data, setData] = useState(_.get(formSpec, "data", {}));
+    const isFormClosed = closedJsonforms.has(formId);
     useEffect(() => {
-        setData(_.get(content, "data", {}));
-    }, [content]);
+        setData(_.get(formSpec, "data", {}));
+    }, [formSpec]);
     useEffect(() => {
         hasError.current = Boolean(error);
     }, [error]); // eslint-disable-line react-hooks/exhaustive-deps
     return !error ? (
         <>
             <JsonForms
-                schema={_.get(content, "schema", {})}
+                schema={_.get(formSpec, "schema", {})}
                 data={data}
-                uischema={_.get(content, "uischema", {})}
+                uischema={_.get(formSpec, "uischema", {})}
                 renderers={JSONFORMS_RENDERERS}
                 cells={vanillaCells}
                 onChange={({ data, errors }) => {
@@ -34,7 +34,7 @@ export default function JsonForm({ content, hasError }) {
                     setData(data);
                 }}
             />
-            {isFormTerminated ? (
+            {isFormClosed ? (
                 <>
                     <Tag
                         fill
