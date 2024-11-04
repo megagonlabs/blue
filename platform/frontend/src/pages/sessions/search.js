@@ -55,7 +55,7 @@ export default function AllSessions() {
     };
     useEffect(() => {
         searchSessions(keywords);
-    }, [sessionIds]);
+    }, [sessionIds]); // eslint-disable-line react-hooks/exhaustive-deps
     useEffect(() => {
         // automatically fetch all existing sessions onload
         setLoading(true);
@@ -104,7 +104,7 @@ export default function AllSessions() {
                 setLoading(false);
             })
             .catch(() => {});
-    }, []);
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
     return (
         <>
             <div style={{ padding: "20px 20px 10px 20px", display: "flex" }}>

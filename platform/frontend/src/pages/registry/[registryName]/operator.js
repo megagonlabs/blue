@@ -75,7 +75,7 @@ export default function Operator() {
             page,
             pageSize,
         });
-    }, [hybrid, approximate, type, page, pageSize]);
+    }, [hybrid, approximate, type, page, pageSize]); // eslint-disable-line react-hooks/exhaustive-deps
     const { permissions } = useContext(AuthContext);
     if (!permissions.canReadOperatorRegistry) {
         return <AccessDeniedNonIdealState />;

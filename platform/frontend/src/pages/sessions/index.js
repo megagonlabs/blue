@@ -65,6 +65,7 @@ export default function Sessions() {
         sessionIds,
         sessionListPanelCollapsed,
         sessionAgentProgress,
+        openAgentsDialogTrigger,
     } = appState.session;
     const [message, setMessage] = useState("");
     const sessionMessageTextArea = useRef(null);
@@ -117,7 +118,7 @@ export default function Sessions() {
             );
             fetchMySessions();
         }
-    }, [isSocketOpen]);
+    }, [isSocketOpen]); // eslint-disable-line react-hooks/exhaustive-deps
     const ReconnectButton = () => {
         return (
             <Button
@@ -144,7 +145,7 @@ export default function Sessions() {
     const sessionName = _.get(sessionDetails, "name", sessionIdFocus);
     const sessionDescription = _.get(sessionDetails, "description", "");
     useEffect(() => {
-        if (appState.session.openAgentsDialogTrigger) {
+        if (openAgentsDialogTrigger) {
             setIsAddAgentsOpen(true);
             setSkippable(true);
         }
@@ -152,7 +153,7 @@ export default function Sessions() {
             key: "openAgentsDialogTrigger",
             value: false,
         });
-    }, [appState.session.openAgentsDialogTrigger]);
+    }, [openAgentsDialogTrigger]); // eslint-disable-line react-hooks/exhaustive-deps
     const progress = _.get(sessionAgentProgress, sessionIdFocus, {});
     if (!isSocketOpen && _.isEmpty(sessionIds))
         return (

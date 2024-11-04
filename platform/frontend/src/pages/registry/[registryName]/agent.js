@@ -75,7 +75,7 @@ export default function Agent() {
             page,
             pageSize,
         });
-    }, [hybrid, approximate, type, page, pageSize]);
+    }, [hybrid, approximate, type, page, pageSize]); // eslint-disable-line react-hooks/exhaustive-deps
     const { permissions } = useContext(AuthContext);
     if (!permissions.canReadAgentRegistry) {
         return <AccessDeniedNonIdealState />;
