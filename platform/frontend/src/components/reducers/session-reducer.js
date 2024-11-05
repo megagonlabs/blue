@@ -66,6 +66,11 @@ export default function sessionReducer(
             _.set(sessionWorkspace, sessionIdFocus, workspaceContents);
             return { ...state, sessionWorkspace };
         }
+        case "session/sessions/jsonform/setData": {
+            const { data, formId } = payload;
+            _.set(jsonformSpecs, [formId, "data"], data);
+            return { ...state, jsonformSpecs };
+        }
         case "session/workspaceCollapse/all": {
             let workspaceContent = _.get(sessionWorkspace, sessionIdFocus, []);
             for (let i = 0; i < _.size(workspaceContent); i++) {
