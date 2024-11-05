@@ -83,12 +83,11 @@ class EmployerPlannerAgent(Agent):
             self.session.set_data("lists", {})
             self.session.set_data("LIST", "")
 
-        # create empty short list
+        # import predefined lists from properties
         if self.session:
-            # by default create a short list
-            self.session.set_data("lists.short", {})
-            # by defaul create a recent list
-            self.session.set_data("lists.recent", {})
+            if 'lists' in self.properties:
+                for list_name in self.properties['lists']:
+                    self.session.set_data("lists." + list_name, self.properties['lists'][list_name])
 
         # say welcome
         if self.session:
@@ -123,20 +122,15 @@ class EmployerPlannerAgent(Agent):
         return output_stream
 
 
-    def show_employer_form(self, properties=None, worker=None):
+    def show_employer_form(self, properties=None, worker=None, update=False):
         # present main employer form
         job_ids = []
         if "job_ids" in properties:
             job_ids = properties['job_ids']
         
-        predefined_lists = [
-            {"name": "all", "label": "All"},
-            {"name": "recent", "label": "Recent"},
-            {"name": "contacted", "label": "Contacted"},
-            {"name": "phone_screened", "label": "Phone Screened"},
-            {"name": "interviewed", "label": "Interviewed"},
-            {"name": "short", "label": "Shortlisted"}
-        ]
+        predefined_lists = []
+        if 'lists' in self.properties:
+            predefined_lists = list(self.properties['lists'])
 
         predefined_lists_names = set()
         for  predefined_list in predefined_lists:
@@ -160,18 +154,22 @@ class EmployerPlannerAgent(Agent):
             {"name": "SUMMARIZE", "label": "Summarize"}
         ]
 
-        misc_list_actions = [
-            {"name": "VISUALIZE_SKILLS_DISTRIBUTION", "label": "Skills Distribution"},
-            {"name": "VISUALIZE_SKILLS_BY_APPLICANTS", "label": "Skills By Applicant"},
-            {"name": "VISUALIZE_YOE", "label": "Years of Experience"}
-        ]
+
+        misc_list_actions = []
+        if 'list_actions' in self.properties:
+            misc_list_actions = list(self.properties['list_actions'])
 
         form = ui_builders.build_employer_form(job_ids=job_ids, predefined_lists=predefined_lists, custom_lists=custom_lists, list_actions=list_actions, misc_list_actions=misc_list_actions)
 
         # write form, updating existing if necessary 
-        worker.write_control(
-            ControlCode.CREATE_FORM, form, output="FORM", id="employer", scope="agent"
-        )
+        if update:
+            worker.write_control(
+                ControlCode.UPDATE_FORM, form, output="FORM", id="employer", scope="agent"
+            )
+        else:
+            worker.write_control(
+                ControlCode.CREATE_FORM, form, output="FORM", id="employer", scope="agent"
+            )
     
     def default_processor(self, message, input="DEFAULT", properties=None, worker=None):
 
@@ -272,6 +270,7 @@ class EmployerPlannerAgent(Agent):
                     stream = message.getStream()
                     plan_id = form_id = data["form_id"]
                     action = data["action"]
+                    
 
                     # debug
                     context = worker.get_all_session_data()
@@ -290,18 +289,7 @@ class EmployerPlannerAgent(Agent):
                             ## handle misc actions
                             list = path[len("misc_list_actions_"):]
 
-                            if list == "all":
-                                if value == "Skills Distribution":
-                                    self.show_skills_distribution(worker, context=context)
-                                elif value == "Years of Experience":
-                                    self.show_yoe_distribution(worker, context=context)
-                                elif value == "Skills By Applicant":
-                                    self.show_skills_by_applicant(worker, context=context)
-                            elif list == "recent":
-                                pass
-                            elif list == "short":
-                                pass
-
+                            self.perform_misc_list_action(worker, list=list, label=value, context=context)
                         else:
                             timestamp = worker.get_stream_data(
                                 path + ".timestamp", stream=form_data_stream
@@ -335,6 +323,7 @@ class EmployerPlannerAgent(Agent):
                         list = action[len("SHOW_"):]
                         self._display_list(worker, list, text=util_functions.camel_case(list))
                     elif action == "SUMMARIZE_recent":
+                        logging.info("3")
                         self.summarize_recent_jobseekers(worker, properties=properties, context=context)
                     elif action.find("SUMMARIZE_") == 0:
                         list = action[len("SUMMARIZE_"):]
@@ -396,6 +385,7 @@ class EmployerPlannerAgent(Agent):
             if "LIST" in entities:
                 list = entities["LIST"]
                 if list == "recent":
+                    logging.info("2")
                     self.summarize_recent_jobseekers(worker, properties=properties, context=context, entities=entities, input=input)
                 else:
                     self.summarize_listed_jobseekers(worker, properties=properties, context=context, entities=entities, input=input)
@@ -416,7 +406,7 @@ class EmployerPlannerAgent(Agent):
     ## summaries
     # recents
     def summarize_recent_jobseekers(self,  worker, properties=None, context=None, entities=None, input=None):
-
+        logging.info("1")
         self.write_to_new_stream(worker, "Analyzing recent applies to your posting...", "TEXT") 
 
         # create a unique id
@@ -591,7 +581,7 @@ class EmployerPlannerAgent(Agent):
             # create list
             worker.set_session_data("lists."+list, {})
             # show list, updated in employer form
-            self.show_employer_form(properties=properties, worker=worker)    
+            self.show_employer_form(properties=properties, worker=worker, update=True)    
 
         # set list to the session
         worker.set_session_data("list", list)
@@ -697,117 +687,50 @@ class EmployerPlannerAgent(Agent):
     def summarize_jobseekers_jd(self, worker, context=None, entities=None, input=None):
         pass 
 
-    ## visualizations
-    def show_skills_distribution(self, worker, context=None, entities=None, input=None):
-         # create a unique id
+    ## misc list actions
+    def perform_misc_list_action(worker, list=None, label=None, context=None, input=None):
+
+        action = None
+        # from label identify action
+        if 'list_actions' in self.properties:
+            for action_name in self.properties['list_actions']:
+                if self.properties['list_actions'][action_name]['label'] == label:
+                    action = self.properties['list_actions'][action_name]
+
+        ### execute plan for the action
+        
+        # create a unique id
         id = util_functions.create_uuid()
 
-        # query plan
-        query_plan = [
-            [self.name + ".DEFAULT", "VISUALIZER_SKILLS.DEFAULT"]
-        ]
+        # action plan
+        if 'plan' in action:
+            p = action['plan']
 
-        # write trigger to stream
-        a_stream = self.write_to_new_stream(worker, "visualize skills", "DEFAULT", tags=["HIDDEN"], id=id)
+            action_plan = []
+            # substitue self
+            for step in action_plan:
+                f = step[0]
+                t = step[1]
 
-        # build query plan
-        plan = self.build_plan(query_plan, a_stream, id=id)
+                if f.find('self.') == 0:
+                    s = f.split('.')
+                    s[0] = self.name
+                    f = ".".join(s)
+                if t.find('self.') == 0:
+                    s = t.split('.')
+                    s[0] = self.name
+                    t = ".".join(s)
 
-        # write plan
-        self.write_to_new_stream(worker, plan, "PLAN", tags=["PLAN"], id=id)
+                action_plan.append([f,t])
+           
+            # write trigger to stream
+            a_stream = self.write_to_new_stream(worker, action['label'], "DEFAULT", tags=["HIDDEN"], id=id)
 
-    def show_skills_by_applicant(self, worker, context=None, entities=None, input=None):
-         # create a unique id
-        id = util_functions.create_uuid()
+            # build plan
+            plan = self.build_plan(action_plan, a_stream, id=id)
 
-        # query plan
-        query_plan = [
-            [self.name + ".DEFAULT", "VISUALIZER_SKILLBYCANDIDATE.DEFAULT"]
-        ]
-
-        # write trigger to stream
-        a_stream = self.write_to_new_stream(worker, "visualize skills by candidate", "DEFAULT", tags=["HIDDEN"], id=id)
-
-        # build query plan
-        plan = self.build_plan(query_plan, a_stream, id=id)
-
-        # write plan
-        self.write_to_new_stream(worker, plan, "PLAN", tags=["PLAN"], id=id)
-
-    def show_education_distribution(self, worker, context=None, entities=None, input=None):
-         # show education visualization
-        ed_vis = ui_builders.build_ed_viz()
-        
-        # logging.info(json.dumps(skill_vis, indent=3))
-        
-        # write vis
-        worker.write_control(
-            ControlCode.CREATE_FORM, ed_vis, output="EDVIS"
-        )
-
-
-    def show_yoe_distribution(self, worker, context=None, entities=None, input=None):
-         # create a unique id
-        id = util_functions.create_uuid()
-
-        # query plan
-        query_plan = [
-            [self.name + ".DEFAULT", "VISUALIZER_YOE.DEFAULT"]
-        ]
-
-        # write trigger to stream
-        a_stream = self.write_to_new_stream(worker, "visualize yoe", "DEFAULT", tags=["HIDDEN"], id=id)
-
-        # build query plan
-        plan = self.build_plan(query_plan, a_stream, id=id)
-
-        # write plan
-        self.write_to_new_stream(worker, plan, "PLAN", tags=["PLAN"], id=id)
-
-    ## lists
-    def list_all_jobseekers(self, worker, context=None, entities=None, input=None):
-        # show list visualization
-        list_vis = ui_builders.build_list_viz()
-        
-        # logging.info(json.dumps(skill_vis, indent=3))
-        
-        # write vis
-        worker.write_control(
-            ControlCode.CREATE_FORM, list_vis, output="LISTVIS"
-        )
-
-    def list_top_jobseekers(self, worker, context=None, entities=None, input=None):
-        # show list visualization
-        # list_vis = ui_builders.build_list_viz()
-        
-        # # logging.info(json.dumps(skill_vis, indent=3))
-        
-        # # write vis
-        # worker.write_control(
-        #     ControlCode.CREATE_FORM, list_vis, output="LISTVIS"
-        # )
-
-        # show list ui
-        # present main employer form
-        top_list = [
-            {"id":1001, "label":"Candidate 1001","value":True },
-            {"id":1002, "label":"Candidate 1002","value":True },
-            {"id":1003, "label":"Candidate 1003","value":False },
-            {"id":1004, "label":"Candidate 1004","value":True },
-            {"id":1005, "label":"Candidate 1005","value":False },
-            {"id":1006, "label":"Candidate 1006","value":False },
-            {"id":1007, "label":"Candidate 1007","value":False }
-        ]
-
-        form = ui_builders.build_list(top_list, title="Top Applies", 
-                                      text="Below are top 10 applies to your JD, toggle checkbox to add/remove from the shortlist...",
-                                      element_actions=[{"label": "View", "action":"VIEW"}, {"label": "E-Mail", "action":"EMAIL"}], 
-                                      list_actions=[{"label": "Compare", "action":"COMPARE"}, {"label": "Summarize", "action":"SUMMARIZE"}])
-
-        # write form
-        worker.write_control(
-            ControlCode.CREATE_FORM, form, output="LIST"
-        )
+            # write plan
+            self.write_to_new_stream(worker, plan, "PLAN", tags=["PLAN"], id=id)
 
     
     def issue_nl_query(self, worker, properties=None, context=None, entities=None, input=None):
