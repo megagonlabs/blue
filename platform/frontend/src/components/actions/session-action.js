@@ -108,6 +108,9 @@ export const sessionAction = (dispatch) => ({
             }
         });
     },
+    setFormData: (payload) => {
+        dispatch({ type: "session/sessions/jsonform/setData", payload });
+    },
     addSession: (payload) => {
         dispatch({ type: "session/sessions/add", payload });
     },

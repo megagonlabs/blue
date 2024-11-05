@@ -5,19 +5,15 @@ import { JsonForms } from "@jsonforms/react";
 import { vanillaCells } from "@jsonforms/vanilla-renderers";
 import classNames from "classnames";
 import _ from "lodash";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect } from "react";
 import { useErrorBoundary } from "react-use-error-boundary";
 export default function JsonForm({ content, hasError }) {
-    const { appState } = useContext(AppContext);
+    const { appState, appActions } = useContext(AppContext);
     const { closedJsonforms, jsonformSpecs } = appState.session;
     const [error] = useErrorBoundary();
     const formId = _.get(content, "form_id", null);
     const formSpec = _.get(jsonformSpecs, formId, {});
-    const [data, setData] = useState(_.get(formSpec, "data", {}));
     const isFormClosed = closedJsonforms.has(formId);
-    useEffect(() => {
-        setData(_.get(formSpec, "data", {}));
-    }, [formSpec]);
     useEffect(() => {
         hasError.current = Boolean(error);
     }, [error]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -25,13 +21,13 @@ export default function JsonForm({ content, hasError }) {
         <>
             <JsonForms
                 schema={_.get(formSpec, "schema", {})}
-                data={data}
+                data={_.get(formSpec, "data", {})}
                 uischema={_.get(formSpec, "uischema", {})}
                 renderers={JSONFORMS_RENDERERS}
                 cells={vanillaCells}
                 onChange={({ data, errors }) => {
                     console.log(data, errors);
-                    setData(data);
+                    appActions.session.setFormData({ data, formId });
                 }}
             />
             {isFormClosed ? (
