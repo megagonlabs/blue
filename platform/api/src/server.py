@@ -3,6 +3,8 @@ from curses import noecho
 import sys
 import logging
 
+import pydash
+
 ###### Add lib path
 sys.path.append("./lib/")
 sys.path.append("./lib/agent_registry/")
@@ -24,7 +26,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from firebase_admin import auth
 
 ###### Settings
-from settings import PROPERTIES
+from settings import PROPERTIES, DISABLE_AUTHENTICATION
 
 ###### API Routers
 from constant import EMAIL_DOMAIN_ADDRESS_REGEXP, InvalidRequestJson, PermissionDenied
@@ -108,34 +110,41 @@ async def session_verification(request: Request, call_next):
     session_cookie = request.cookies.get("session")
     if request.method == "OPTIONS" or request.url.path in ["/docs", "/redoc", "/openapi.json"]:
         return await call_next(request)
-    if not session_cookie:
-        if not request.url.path.startswith(f"{PLATFORM_PREFIX}/accounts/sign-in"):
-            # Session cookie is unavailable. Force user to login.
-            return JSONResponse(status_code=401, content={"message": "Session cookie is unavailable"})
-    # Verify the session cookie. In this case an additional check is added to detect
-    # if the user's Firebase session was revoked, user deleted/disabled, etc.
+    if not DISABLE_AUTHENTICATION:
+        if not session_cookie:
+            if not request.url.path.startswith(f"{PLATFORM_PREFIX}/accounts/sign-in"):
+                # session cookie is unavailable. force user to login.
+                return JSONResponse(status_code=401, content={"message": "Session cookie is unavailable"})
+        # verify the session cookie. In this case an additional check is added to detect
+        # if the user's firebase session was revoked, user deleted/disabled, etc.
+        else:
+            try:
+                decoded_claims = auth.verify_session_cookie(session_cookie, check_revoked=True)
+                email = decoded_claims["email"]
+                email_domain = re.search(EMAIL_DOMAIN_ADDRESS_REGEXP, email).group(1)
+                profile = {
+                    "name": decoded_claims["name"],
+                    "picture": decoded_claims["picture"],
+                    "uid": decoded_claims["uid"],
+                    "email_domain": email_domain,
+                    "email": email,
+                    "exp": decoded_claims["exp"],
+                }
+                user_role = p.get_metadata(f'users.{profile["uid"]}.role')
+                profile['role'] = user_role
+                request.state.user = profile
+            except auth.InvalidSessionCookieError:
+                # session cookie is invalid, expired or revoked. force user to login.
+                response = JSONResponse(content={"message": "Session cookie is invalid, epxpired or revoked"}, status_code=401)
+                response.set_cookie("session", expires=0, path="/")
+                return response
+        return await call_next(request)
     else:
-        try:
-            decoded_claims = auth.verify_session_cookie(session_cookie, check_revoked=True)
-            email = decoded_claims["email"]
-            email_domain = re.search(EMAIL_DOMAIN_ADDRESS_REGEXP, email).group(1)
-            profile = {
-                "name": decoded_claims["name"],
-                "picture": decoded_claims["picture"],
-                "uid": decoded_claims["uid"],
-                "email_domain": email_domain,
-                "email": email,
-                "exp": decoded_claims["exp"],
-            }
-            user_role = p.get_metadata(f'users.{profile["uid"]}.role')
-            profile['role'] = user_role
-            request.state.user = profile
-        except auth.InvalidSessionCookieError:
-            # Session cookie is invalid, expired or revoked. Force user to login.
-            response = JSONResponse(content={"message": "Session cookie is invalid, epxpired or revoked"}, status_code=401)
-            response.set_cookie("session", expires=0, path="/")
-            return response
-    return await call_next(request)
+        # when authentication is disabled: upper layer needs to handle all identity and access verifications
+        # all requests here are operating under administrator role
+        json_payload = await request.json()
+        request.state.user = {'uid': pydash.objects.get(json_payload, 'accountId', None), 'role': 'admin'}
+        return await call_next(request)
 
 
 @app.middleware("http")
