@@ -2,9 +2,9 @@
 from curses import noecho
 import sys
 
-from fastapi import Request
+from fastapi import Depends, Request
 import pydash
-from constant import PermissionDenied, acl_enforce
+from constant import PermissionDenied, account_id_header, acl_enforce
 
 ###### Add lib path
 sys.path.append("./lib/")
@@ -56,7 +56,7 @@ agent_registry = AgentRegistry(id=agent_registry_id, prefix=prefix, properties=P
 
 
 ##### ROUTER
-router = APIRouter(prefix=f"{PLATFORM_PREFIX}/containers")
+router = APIRouter(prefix=f"{PLATFORM_PREFIX}/containers", dependencies=[Depends(account_id_header)])
 
 # set logging
 logging.getLogger().setLevel("INFO")
@@ -79,6 +79,7 @@ def container_acl_enforce(request: Request, agent: dict, read=False, write=False
     if throw and not allow:
         raise PermissionDenied
     return allow
+
 
 ### AGENTS
 @router.get("/agents/")
@@ -258,8 +259,8 @@ def shutdown_agent_container(request: Request, agent_name):
 @router.get("/services/")
 # get the list of services running on the platform
 def list_service_containers(request: Request):
-    #TODO: 
-    #acl_enforce(request.state.user['role'], 'platform_services', ['read_all', 'read_own'])
+    # TODO:
+    # acl_enforce(request.state.user['role'], 'platform_services', ['read_all', 'read_own'])
 
     # connect to docker
     client = docker.from_env()
@@ -320,10 +321,10 @@ def list_service_containers(request: Request):
 
 
 @router.delete("/services/service/{service_name}")
-# shutdown the service container with the name {service_name} 
+# shutdown the service container with the name {service_name}
 def shutdown_service_container(request: Request, service_name):
-    #TODO:
-    #container_acl_enforce(request, service_name, write=True)
+    # TODO:
+    # container_acl_enforce(request, service_name, write=True)
 
     # connect to docker
     client = docker.from_env()

@@ -2,9 +2,9 @@
 from curses import noecho
 import sys
 
-from fastapi import Request
+from fastapi import Depends, Request
 import pydash
-from constant import BANNED_ENTITY_NAMES, PermissionDenied, acl_enforce
+from constant import BANNED_ENTITY_NAMES, PermissionDenied, account_id_header, acl_enforce
 
 ###### Add lib path
 sys.path.append("./lib/")
@@ -65,7 +65,7 @@ p = Platform(id=platform_id, properties=PROPERTIES)
 model_registry = ModelRegistry(id=model_registry_id, prefix=prefix, properties=PROPERTIES)
 
 ##### ROUTER
-router = APIRouter(prefix=f"{PLATFORM_PREFIX}/registry/{model_registry_id}")
+router = APIRouter(prefix=f"{PLATFORM_PREFIX}/registry/{model_registry_id}", dependencies=[Depends(account_id_header)])
 
 # set logging
 logging.getLogger().setLevel("INFO")
