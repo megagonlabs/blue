@@ -40,45 +40,36 @@ export default function InputEntity() {
         const parent = _.last(_.split(scope, "/"));
         const urlPrefix = `/registry/${process.env.NEXT_PUBLIC_AGENT_REGISTRY_NAME}/agent/${parent}/input`;
         setLoading(true);
-        let tasks = [
-            new Promise((resolve, reject) => {
-                axios
-                    .put(`${urlPrefix}/${entity.name}`, {
-                        name: entity.name,
-                        description: editEntity.description,
-                    })
-                    .then(() => {
-                        resolve(true);
-                    })
-                    .catch((error) => {
-                        AppToaster.show({
-                            intent: Intent.DANGER,
-                            message: `${error.name}: ${error.message}`,
-                        });
-                        reject(false);
-                    });
-            }),
-        ];
-        const difference = shallowDiff(
-            entity.properties,
-            editEntity.properties
-        );
-        tasks.concat(
-            constructSavePropertyRequests({
-                axios,
-                url: `${urlPrefix}/${entity.name}/property`,
-                difference,
-                entity,
-                properties: editEntity.properties,
+        axios
+            .put(`${urlPrefix}/${entity.name}`, {
+                name: entity.name,
+                description: editEntity.description,
             })
-        );
-        settlePromises(tasks, (error) => {
-            if (!error) {
-                setEdit(false);
-                setEntity(editEntity);
-            }
-            setLoading(false);
-        });
+            .then(() => {
+                let tasks = constructSavePropertyRequests({
+                    axios,
+                    url: `${urlPrefix}/${entity.name}/property`,
+                    difference: shallowDiff(
+                        entity.properties,
+                        editEntity.properties
+                    ),
+                    entity,
+                    properties: editEntity.properties,
+                });
+                settlePromises(tasks, (error) => {
+                    if (!error) {
+                        setEdit(false);
+                        setEntity(editEntity);
+                    }
+                    setLoading(false);
+                });
+            })
+            .catch((error) => {
+                AppToaster.show({
+                    intent: Intent.DANGER,
+                    message: `${error.name}: ${error.message}`,
+                });
+            });
     };
     return (
         <div style={{ padding: "10px 20px 20px" }}>
