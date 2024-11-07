@@ -12,14 +12,14 @@ sys.path.append("./lib/platform/")
 import json
 import logging
 from utils import json_utils
-from constant import PermissionDenied, acl_enforce, d7validate
+from constant import PermissionDenied, account_id_header, acl_enforce, d7validate
 from validations.base import BaseValidation
 
 ##### Typing
 from typing import Union, Any, Dict, List
 
 ###### FastAPI
-from fastapi import Request
+from fastapi import Depends, Request
 from APIRouter import APIRouter
 from fastapi.responses import JSONResponse
 
@@ -49,7 +49,7 @@ p = Platform(id=platform_id, properties=PROPERTIES)
 agent_registry = AgentRegistry(id=agent_registry_id, prefix=prefix, properties=PROPERTIES)
 
 ##### ROUTER
-router = APIRouter(prefix=f"{PLATFORM_PREFIX}/sessions")
+router = APIRouter(prefix=f"{PLATFORM_PREFIX}/sessions", dependencies=[Depends(account_id_header)])
 
 # set logging
 logging.getLogger().setLevel("INFO")
