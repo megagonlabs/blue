@@ -131,7 +131,7 @@ class EmployerPlannerAgent(Agent):
         predefined_lists = []
 
         # # add 'all' by default
-        # predefined_lists.append({"name": "all", "label": "All", "contents":[]})
+        # predefined_lists.append({"name": "all", "label": "All", "elements":[]})
         
         if 'lists' in self.properties:
             predefined_lists.extend(list(self.properties['lists'].values()))
@@ -415,17 +415,17 @@ class EmployerPlannerAgent(Agent):
             [self.name + ".DEFAULT", summarizer + ".DEFAULT"]
         ]
     
-        # write trigger to stream, with list contents
-        list_contents = ""
+        # write trigger to stream, with list elements
+        list_elements = ""
         if context:
             if 'lists' in context:
                 lists = context['lists']
                 if l in lists:
-                    list_contents = lists[l]['contents']
-                    if type(list_contents) == dict:
-                        list_contents = ",".join(list(filter(lambda i: list_contents[i], list_contents)))
+                    list_elements = lists[l]['elements']
+                    if type(list_elements) == dict:
+                        list_elements = ",".join(list(filter(lambda i: list_elements[i], list_elements)))
 
-        a_stream = self.write_to_new_stream(worker, list_contents, "DEFAULT", tags=["HIDDEN"], id=id)
+        a_stream = self.write_to_new_stream(worker, list_elements, "DEFAULT", tags=["HIDDEN"], id=id)
 
         # build plan
         plan = self.build_plan(summary_plan, a_stream, id=id)
@@ -435,15 +435,15 @@ class EmployerPlannerAgent(Agent):
 
         return
 
-    def _display_list(self, worker, l, text="List contents: \n"):
+    def _display_list(self, worker, l, text="List: \n"):
 
         lists = worker.get_session_data("lists")
 
         if l in lists:
             list_name = lists[l]["name"]
-            list_contents = lists[l]["contents"]
-            if len(list_contents) > 0:
-                job_seeker_ids_in_list = list_contents
+            list_elements = lists[l]["elements"]
+            if len(list_elements) > 0:
+                job_seeker_ids_in_list = list_elements
                 job_seekers = []
                 for job_seeker_id in job_seeker_ids_in_list:
                     if job_seeker_ids_in_list[job_seeker_id]:
@@ -493,7 +493,7 @@ class EmployerPlannerAgent(Agent):
         lists = worker.get_session_data("lists")
         if l not in lists:
             # create list
-            worker.set_session_data("lists."+l, {"name": l, "label":"", "contents": []})
+            worker.set_session_data("lists."+l, {"name": l, "label":"", "elements": []})
 
         # set list to the session
         worker.set_session_data("LIST", l)
@@ -680,17 +680,17 @@ class EmployerPlannerAgent(Agent):
 
                 action_plan.append([f,t])
            
-            # write trigger to stream, with list contents
-            list_contents = ""
+            # write trigger to stream, with list elements
+            list_elements = ""
             if context:
                 if 'lists' in context:
                     lists = context['lists']
                     if l in lists:
-                        list_contents = lists[l]['contents']
-                        if type(list_contents) == dict:
-                            list_contents = ",".join(list(filter(lambda i: list_contents[i], list_contents)))
+                        list_elements = lists[l]['elements']
+                        if type(list_elements) == dict:
+                            list_elements = ",".join(list(filter(lambda i: list_elements[i], list_elements)))
 
-            a_stream = self.write_to_new_stream(worker, list_contents, "DEFAULT", tags=["HIDDEN"], id=id)
+            a_stream = self.write_to_new_stream(worker, list_elements, "DEFAULT", tags=["HIDDEN"], id=id)
 
             # build plan
             plan = self.build_plan(action_plan, a_stream, id=id)
