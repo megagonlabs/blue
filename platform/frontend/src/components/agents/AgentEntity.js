@@ -66,49 +66,40 @@ export default function AgentEntity() {
         if (!_.isEmpty(icon) && !_.startsWith(icon, "data:image/")) {
             icon = _.join(icon, ":");
         }
-        let tasks = [
-            new Promise((resolve, reject) => {
-                axios
-                    .put(`${urlPrefix}/${entity.name}`, {
-                        name: entity.name,
-                        description: editEntity.description,
-                        icon: icon,
-                    })
-                    .then(() => {
-                        resolve(true);
-                    })
-                    .catch((error) => {
-                        AppToaster.show({
-                            intent: Intent.DANGER,
-                            message: `${error.name}: ${error.message}`,
-                        });
-                        reject(false);
-                    });
-            }),
-        ];
-        const difference = shallowDiff(
-            entity.properties,
-            editEntity.properties
-        );
-        tasks.concat(
-            constructSavePropertyRequests({
-                axios,
-                url: `${urlPrefix}/${entity.name}/property`,
-                difference,
-                properties: editEntity.properties,
+        axios
+            .put(`${urlPrefix}/${entity.name}`, {
+                name: entity.name,
+                description: editEntity.description,
+                icon: icon,
             })
-        );
-        settlePromises(tasks, (error) => {
-            if (!error) {
-                setEdit(false);
-                appActions.agent.setIcon({
-                    key: entity.name,
-                    value: _.get(editEntity, "icon", null),
+            .then(() => {
+                let tasks = constructSavePropertyRequests({
+                    axios,
+                    url: `${urlPrefix}/${entity.name}/property`,
+                    difference: shallowDiff(
+                        entity.properties,
+                        editEntity.properties
+                    ),
+                    properties: editEntity.properties,
                 });
-                setEntity(editEntity);
-            }
-            setLoading(false);
-        });
+                settlePromises(tasks, (error) => {
+                    if (!error) {
+                        setEdit(false);
+                        appActions.agent.setIcon({
+                            key: entity.name,
+                            value: _.get(editEntity, "icon", null),
+                        });
+                        setEntity(editEntity);
+                    }
+                    setLoading(false);
+                });
+            })
+            .catch((error) => {
+                AppToaster.show({
+                    intent: Intent.DANGER,
+                    message: `${error.name}: ${error.message}`,
+                });
+            });
     };
     const addInputOutput = (type) => {
         if (!router.isReady) return;
