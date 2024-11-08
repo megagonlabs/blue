@@ -521,13 +521,12 @@ class Registry:
     def get_records(self):
         contents = self.get_contents()
         records = []
-        r = json_utils.json_query(contents, "$..contents", single=False)
-        for ri in r:
-            rs = list(ri.values())
-            for rsi in rs:
-                rsic = copy.deepcopy(rsi)
-                del rsic['contents']
-                records.append(rsic)
+        r = json_utils.json_query(contents, "$..contents.*", single=False)
+        for ri in r:                
+            # make a copy
+            ric = copy.deepcopy(ri)
+            del ric['contents']
+            records.append(ric)
 
         return records
 

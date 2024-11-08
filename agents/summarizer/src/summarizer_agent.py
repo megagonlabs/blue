@@ -24,7 +24,7 @@ import random
 import csv
 import json
 from utils import json_utils
-from string import Template
+from utils import string_utils
 import copy
 import re
 import itertools
@@ -178,8 +178,8 @@ class SummarizerAgent(OpenAIAgent):
                 # get all data received from user stream
                 stream = message.getStream()
 
-                logging.info(message.getData())
-                stream_data = ""
+                stream_data = worker.get_data(stream)
+                input_data = " ".join(stream_data)
                 if worker:
                     session_data = worker.get_all_session_data()
                     logging.info(worker.session.cid)
@@ -195,8 +195,7 @@ class SummarizerAgent(OpenAIAgent):
                         questions = self.properties['questions']
                         for question_id in questions:
                             q = questions[question_id]
-                            question_template = Template(q)
-                            question = question_template.safe_substitute(**self.properties, **session_data)
+                            question = string_utils.safe_substitute(q, **self.properties, **session_data, input=input_data)
                             self.todos.add(question_id)
                             self.issue_nl_query(question, worker, id=query_id)
                     # db queries
@@ -208,8 +207,7 @@ class SummarizerAgent(OpenAIAgent):
                                 q = json.dumps(q)
                             else:
                                 q = str(q)
-                            query_template = Template(q)
-                            query = query_template.safe_substitute(**self.properties, **session_data)
+                            query = string_utils.safe_substitute(q, **self.properties, **session_data, input=input_data)
                             self.todos.add(query_id)
                             self.issue_sql_query(query, worker, id=query_id)
                     return
@@ -252,9 +250,8 @@ class SummarizerAgent(OpenAIAgent):
                         if session_data is None:
                             session_data = {}
 
-                        logging.info("DONE!")
-                        summary_template = Template(properties['template'])
-                        summary = summary_template.safe_substitute(**self.results,  **session_data)
+                        summary_template = properties['template']
+                        summary = string_utils.safe_substitute(summary_template, **self.results,  **session_data)
 
                         if properties['rephrase']:
                             #### call api to rephrase summary
