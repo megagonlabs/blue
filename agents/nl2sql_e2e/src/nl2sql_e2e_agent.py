@@ -116,9 +116,6 @@ class Nl2SqlE2EAgent(OpenAIAgent):
             source_properties = self.registry.get_source_properties(self.selected_source)
             self._add_sources_schema(self.selected_source, source_properties)
             self.selected_source_protocol = source_properties['connection']['protocol']
-            logging.info(f'selected source: {self.selected_source}')
-            logging.info(f'selected source properties: {source_properties}')
-            logging.info(f'schema: {self.schemas}')
         else:
             for source in self.registry.get_sources():
                 source_properties = self.registry.get_source_properties(self.properties["nl2q.source"])
@@ -136,20 +133,23 @@ class Nl2SqlE2EAgent(OpenAIAgent):
         source_connection = self.registry.connect_source(source)
         try:
             databases = self.registry.get_source_databases(source)
-            logging.info('<databases>' + json.dumps(databases, indent=2) + '</databases>')
+            
             for db in databases:  # TODO: remove LLM data discovery
                 try:
                     db = db['name']
-                    logging.info(f'db: {db}')
-                    # Note: collection refers to schema in postgres (the level between database and table)
-                    for collection in self.registry.get_source_database_collections(source, db):
-                        collection = collection['name']
-                        logging.info(f'collection: {db}')
-                        assert all('/' not in s for s in [source, db, collection])
-                        key = f'/{source}/{db}/{collection}'
-                        logging.info(f'key: {db}')
-                        schema = source_connection.fetch_database_collection_schema(db, collection)
+                    #note: collection refers to table in mysql
+                    if properties['connection']['protocol'] == 'mysql':
+                        key = f'/{source}/{db}'
+                        schema =  source_connection.fetch_database_collection_schema(db, None)
                         self.schemas[key] = schema
+                    # Note: collection refers to schema in postgres (the level between database and table)
+                    if properties['connection']['protocol'] == 'postgres':
+                        for collection in self.registry.get_source_database_collections(source, db):
+                            collection = collection['name']
+                            assert all('/' not in s for s in [source, db, collection])
+                            key = f'/{source}/{db}/{collection}'
+                            schema =  source_connection.fetch_database_collection_schema(db, collection)
+                            self.schemas[key] = schema
                 except Exception as e:
                     logging.error(f'Error fetching schema for database: {db}, {str(e)}')
         except Exception as e:
