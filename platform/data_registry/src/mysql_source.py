@@ -114,7 +114,7 @@ class MySQLDBSource(DataSource):
     def fetch_database_collections(self, database):
         # connect to specific database (not source directly)
         db_connection = self._db_connect(database)
-
+        
         query = "SHOW TABLES;"
         cursor = db_connection.cursor()
         cursor.execute(query)
@@ -135,11 +135,10 @@ class MySQLDBSource(DataSource):
         db_connection = self._db_connect(database)
 
         # TODO: Do better ER extraction from tables, columns, exploiting column semantics, foreign keys, etc.
-        query = "SELECT table_name, column_name, data_type  from information_schema.columns WHERE table_schema = %s"
+        query = "SELECT table_name, column_name, data_type  from information_schema.columns WHERE table_schema = '{}'".format(database)
         cursor = db_connection.cursor()
-        cursor.execute(query, (collection,))
+        cursor.execute(query)
         data = cursor.fetchall()
-
         schema = Schema()
 
         for table_name, column_name, data_type in data:
