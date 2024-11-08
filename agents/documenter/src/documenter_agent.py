@@ -145,11 +145,9 @@ class DocumenterAgent(Agent):
             template = json.dumps(template)
 
         processed_template = string_utils.safe_substitute(template, **self.properties,  **session_data)
-
         t = Environment(loader=BaseLoader()).from_string(processed_template)
         o = t.render(**results)
 
-        logging.info(o)
         doc_form = ui_builders.build_doc_form(o)
 
         # write vis
@@ -234,7 +232,7 @@ class DocumenterAgent(Agent):
                 if 'result' in data:
                     query_results = data['result']
 
-                    self.results[query] = json.dumps(query_results)
+                    self.results[query] = query_results
                     self.todos.remove(query)
 
                     if len(self.todos) == 0:
