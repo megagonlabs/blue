@@ -1,5 +1,8 @@
 Flask-SocketIO==5.3.4
 pandas
+scikit-learn
+numpy
+matplotlib
 Flask==2.3.2
 Jinja2==3.1.2
 MarkupSafe==2.1.3
