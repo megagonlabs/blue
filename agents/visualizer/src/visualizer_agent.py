@@ -94,8 +94,10 @@ class VisualizerAgent(Agent):
 
     def issue_nl_query(self, question, worker, id=None):
 
+        # progress
+        worker.write_progress(progress_id=worker.sid, label='Issuing question:' + question, value=self.current_step/self.num_steps)
+
         # query plan
-        
         query_plan = [
             [self.name + ".Q", "NL2SQL-E2E_INPLAN.DEFAULT"],
             ["NL2SQL-E2E_INPLAN.DEFAULT", self.name+".RESULTS"],
@@ -114,9 +116,11 @@ class VisualizerAgent(Agent):
         return
 
     def issue_sql_query(self, query, worker, id=None):
+       
+        # progress
+        worker.write_progress(progress_id=worker.sid, label='Issuing query:' + query, value=self.current_step/self.num_steps)
 
         # query plan
-        
         query_plan = [
             [self.name + ".Q", "QUERYEXECUTOR.DEFAULT"],
             ["QUERYEXECUTOR.DEFAULT", self.name+".RESULTS"],
@@ -135,6 +139,9 @@ class VisualizerAgent(Agent):
         return
     
     def render_vis(self, worker, results):
+        # progress
+        worker.write_progress(progress_id=worker.sid, label='Rendering visualization...', value=self.current_step/self.num_steps)
+
         session_data = worker.get_all_session_data()
         if session_data is None:
             session_data = {}
@@ -154,6 +161,10 @@ class VisualizerAgent(Agent):
             ControlCode.CREATE_FORM, vis_form, output="VIS"
         )
 
+        # progress, done
+        worker.write_progress(progress_id=worker.sid, label='Done...', value=1.0)
+
+
     def default_processor(self, message, input="DEFAULT", properties=None, worker=None):
     
         ##### Upon USER input text
@@ -171,11 +182,18 @@ class VisualizerAgent(Agent):
                     if session_data is None:
                         session_data = {}
 
-                    # user initiated summarizer, kick off queries from template
+                    # user initiated visualizer, kick off queries from template
                     self.results = {}
                     self.todos = set()
 
-                    
+                    self.num_steps = 1  
+                    self.current_step = 0
+
+                    if 'questions' in self.properties:
+                        self.num_steps = self.num_steps + len(self.properties['questions'].keys())
+                    if 'queries' in self.properties:
+                        self.num_steps = self.num_steps + len(self.properties['queries'].keys())
+
                     # nl questions
                     if 'questions' in self.properties:
                         questions = self.properties['questions']
@@ -234,9 +252,21 @@ class VisualizerAgent(Agent):
                     self.results[query] = json.dumps(query_results)
                     self.todos.remove(query)
 
+                    # progress
+                    self.current_step = len(self.results)
+                    q = ""
+                    if 'query' in data and data['query']:
+                        q = data['query']
+                    if 'question' in data and data['question']:
+                        q = data['question']
+
+                    worker.write_progress(progress_id=worker.sid, label='Received query results: ' + q, value=self.current_step/self.num_steps)
+
+
                     if len(self.todos) == 0:
                         if len(query_results) == 0:
                             self.write_to_new_stream(worker, "No results...", "TEXT")
+                            worker.write_progress(progress_id=worker.sid, label='Done...', value=1.0)
                         else:
                             self.render_vis(worker, self.results)
                 else:

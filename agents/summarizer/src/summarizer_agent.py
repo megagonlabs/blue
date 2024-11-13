@@ -130,8 +130,10 @@ class SummarizerAgent(OpenAIAgent):
 
     def issue_nl_query(self, question, worker, id=None):
 
+        # progress
+        worker.write_progress(progress_id=worker.sid, label='Issuing question:' + question, value=self.current_step/self.num_steps)
+
         # query plan
-        
         query_plan = [
             [self.name + ".Q", "NL2SQL-E2E_INPLAN.DEFAULT"],
             ["NL2SQL-E2E_INPLAN.DEFAULT", self.name+".RESULTS"],
@@ -151,8 +153,10 @@ class SummarizerAgent(OpenAIAgent):
 
     def issue_sql_query(self, query, worker, id=None):
 
+        # progress
+        worker.write_progress(progress_id=worker.sid, label='Issuing query:' + query, value=self.current_step/self.num_steps)
+
         # query plan
-        
         query_plan = [
             [self.name + ".Q", "QUERYEXECUTOR.DEFAULT"],
             ["QUERYEXECUTOR.DEFAULT", self.name+".RESULTS"],
@@ -169,6 +173,32 @@ class SummarizerAgent(OpenAIAgent):
         self.write_to_new_stream(worker, plan, "PLAN", tags=["PLAN","HIDDEN"], id=id)
 
         return
+
+    def summarize_doc(self, worker, results, properties):
+        # progress
+        worker.write_progress(progress_id=worker.sid, label='Summarizing doc...', value=self.current_step/self.num_steps)
+
+        session_data = worker.get_all_session_data()
+        if session_data is None:
+            session_data = {}
+
+        summary_template = properties['template']
+        summary = string_utils.safe_substitute(summary_template, **self.results,  **session_data)
+
+        if 'rephrase' in properties and properties['rephrase']:
+            # progress 
+            worker.write_progress(progress_id=worker.sid, label='Rephrasing doc...', value=self.current_step/self.num_steps)
+            
+            #### call api to rephrase summary
+            worker.write_data(self.handle_api_call([summary], properties=properties))
+            worker.write_eos()
+
+        else:
+            worker.write_data(summary)
+            worker.write_eos()
+
+        # progress, done
+        worker.write_progress(progress_id=worker.sid, label='Done...', value=1.0)
 
     def default_processor(self, message, input="DEFAULT", properties=None, worker=None):
     
@@ -190,6 +220,15 @@ class SummarizerAgent(OpenAIAgent):
                     # user initiated summarizer, kick off queries from template
                     self.results = {}
                     self.todos = set()
+
+                    self.num_steps = 1  
+                    self.current_step = 0
+
+                    if 'questions' in self.properties:
+                        self.num_steps = self.num_steps + len(self.properties['questions'].keys())
+                    if 'queries' in self.properties:
+                        self.num_steps = self.num_steps + len(self.properties['queries'].keys())
+
                     # nl questions
                     if 'questions' in self.properties:
                         questions = self.properties['questions']
@@ -246,20 +285,7 @@ class SummarizerAgent(OpenAIAgent):
                     self.todos.remove(query)
 
                     if len(self.todos) == 0:
-                        session_data = worker.get_all_session_data()
-                        if session_data is None:
-                            session_data = {}
-
-                        summary_template = properties['template']
-                        summary = string_utils.safe_substitute(summary_template, **self.results,  **session_data)
-
-                        if properties['rephrase']:
-                            #### call api to rephrase summary
-                            worker.write_data(self.handle_api_call([summary], properties=properties))
-                        else:
-                            worker.write_data(summary, properties=properties)
-                        worker.write_eos()
-
+                        self.summarize_doc(worker, self.results, properties)
                 else:
                     logging.info("nothing found")
 

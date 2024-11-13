@@ -283,6 +283,7 @@ class EmployerPlannerAgent(Agent):
                     # get form stream
                     form_data_stream = stream.replace("EVENT", "OUTPUT:FORM")
 
+                    logging.info(action)
                     
                     if action is None:
                         # save form data
@@ -322,6 +323,11 @@ class EmployerPlannerAgent(Agent):
                             args={"form_id": form_id},
                             output="FORM",
                         )
+                    elif action == "VIEW_JD":
+                        self.view_jd(worker, properties=properties, context=context)
+                    elif action.find("VIEW_JOB_SEEKER_") == 0:
+                        job_seeker_id = action[len("VIEW_JOB_SEEKER_"):]
+                        self.view_job_seeker(worker, job_seeker_id, properties=properties, context=context)
                     elif action.find("SHOW_") == 0:
                         l = action[len("SHOW_"):]
                         self._display_list(worker, l, text=util_functions.camel_case(l))
@@ -435,6 +441,48 @@ class EmployerPlannerAgent(Agent):
 
         return
 
+    def view_jd(self,  worker, properties=None, context=None, entities=None, input=None):
+
+        # create a unique id
+        id = util_functions.create_uuid()
+
+        # view plan
+        view_plan = [
+            [self.name + ".DEFAULT", "DOCUMENTER_JD.DEFAULT"]
+        ]
+    
+        # write job_seeker_id to stream
+        a_stream = self.write_to_new_stream(worker, "jd", "DEFAULT", tags=["HIDDEN"], id=id)
+
+        # build plan
+        plan = self.build_plan(view_plan, a_stream, id=id)
+
+        # write plan
+        self.write_to_new_stream(worker, plan, "PLAN", tags=["PLAN"], id=id)
+
+        return
+    
+    def view_job_seeker(self,  worker, job_seeker_id, properties=None, context=None, entities=None, input=None):
+
+        # create a unique id
+        id = util_functions.create_uuid()
+
+        # view plan
+        view_plan = [
+            [self.name + ".DEFAULT", "DOCUMENTER_JOBSEEKER.DEFAULT"]
+        ]
+    
+        # write job_seeker_id to stream
+        a_stream = self.write_to_new_stream(worker, str(job_seeker_id), "DEFAULT", tags=["HIDDEN"], id=id)
+
+        # build plan
+        plan = self.build_plan(view_plan, a_stream, id=id)
+
+        # write plan
+        self.write_to_new_stream(worker, plan, "PLAN", tags=["PLAN"], id=id)
+
+        return
+
     def _display_list(self, worker, l, text="List: \n"):
 
         lists = worker.get_session_data("lists")
@@ -452,7 +500,7 @@ class EmployerPlannerAgent(Agent):
                 # create a form with the list
                 form = ui_builders.build_list(job_seekers, title=list_name, 
                                             text="Below are candidates in your list, toggle checkbox to add/remove from the list...",
-                                            element_actions=[{"label": "View", "action":"VIEW"}, {"label": "E-Mail", "action":"EMAIL"}], 
+                                            element_actions=[{"label": "View", "action":"VIEW_JOB_SEEKER"}], 
                                             list_actions=[{"label": "Compare", "action":"COMPARE"}, {"label": "Summarize", "action":"SUMMARIZE"}])
 
                 # write form, scope=agent

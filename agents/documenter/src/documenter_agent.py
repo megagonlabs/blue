@@ -95,8 +95,10 @@ class DocumenterAgent(Agent):
 
     def issue_nl_query(self, question, worker, id=None):
 
+        # progress
+        worker.write_progress(progress_id=worker.sid, label='Issuing question:' + question, value=self.current_step/self.num_steps)
+
         # query plan
-        
         query_plan = [
             [self.name + ".Q", "NL2SQL-E2E_INPLAN.DEFAULT"],
             ["NL2SQL-E2E_INPLAN.DEFAULT", self.name+".RESULTS"],
@@ -116,8 +118,10 @@ class DocumenterAgent(Agent):
 
     def issue_sql_query(self, query, worker, id=None):
 
-        # query plan
-        
+        # progress
+        worker.write_progress(progress_id=worker.sid, label='Issuing query:' + query, value=self.current_step/self.num_steps)
+
+        # query plan        
         query_plan = [
             [self.name + ".Q", "QUERYEXECUTOR.DEFAULT"],
             ["QUERYEXECUTOR.DEFAULT", self.name+".RESULTS"],
@@ -135,25 +139,85 @@ class DocumenterAgent(Agent):
 
         return
     
-    def render_doc(self, worker, results):
+    def hilite_doc(self, worker, processed_doc, results, properties):
+        if 'hilite' in properties:
+            hilite = properties['hilite']
+
+             # progress
+            worker.write_progress(progress_id=worker.sid, label='Highlighting document...', value=self.current_step/self.num_steps)
+
+            session_data = worker.get_all_session_data()
+            if session_data is None:
+                session_data = {}
+
+            processed_hilite = string_utils.safe_substitute(hilite, **properties,  **session_data)
+            t = Environment(loader=BaseLoader()).from_string(processed_hilite)
+            processed_hilite = t.render(**results)
+
+            id = util_functions.create_uuid()
+
+            hilite_plan = [
+                [self.name + ".DOC", "OPENAI_HILITER.DEFAULT"],
+                ["OPENAI_HILITER.DEFAULT", self.name+".DOC"],
+            ]
+        
+            hilite_contents = {
+                "doc": processed_doc,
+                "hilite": processed_hilite
+            }
+
+            hilite_contents_json = json.dumps(hilite_contents, indent=3)
+
+            logging.info(hilite_contents_json)
+
+            # write doc/hiliter to stream
+            stream = self.write_to_new_stream(worker, hilite_contents_json, "DOC", tags=["HIDDEN"], id=id)
+
+            # build plan
+            plan = self.build_plan(hilite_plan, stream, id=id)
+
+            # write plan
+            # TODO: this shouldn't necessarily be into a new stream
+            self.write_to_new_stream(worker, plan, "PLAN", tags=["PLAN","HIDDEN"], id=id)
+
+            return
+
+    def process_doc(self, worker, results, properties):
+        # progress
+        worker.write_progress(progress_id=worker.sid, label='Processing document...', value=self.current_step/self.num_steps)
+
+        doc = self.substitute_doc(worker, results, properties)
+
+        if 'hilite' in properties:
+            self.hilite_doc(worker, doc, results, properties)
+        else:
+            self.render_doc(worker, doc, properties)
+
+    def substitute_doc(self, worker, results, properties):
         session_data = worker.get_all_session_data()
         if session_data is None:
             session_data = {}
 
-        template = self.properties['template']
+        template = properties['template']
         if type(template) is dict:
             template = json.dumps(template)
 
-        processed_template = string_utils.safe_substitute(template, **self.properties,  **session_data)
+        processed_template = string_utils.safe_substitute(template, **properties,  **session_data)
         t = Environment(loader=BaseLoader()).from_string(processed_template)
-        o = t.render(**results)
+        doc = t.render(**results)
 
-        doc_form = ui_builders.build_doc_form(o)
+        return doc
+
+    def render_doc(self, worker, doc, properties):
+        doc_form = ui_builders.build_doc_form(doc)
 
         # write vis
         worker.write_control(
             ControlCode.CREATE_FORM, doc_form, output="DOC"
         )
+
+        # progress, done
+        worker.write_progress(progress_id=worker.sid, label='Done...', value=1.0)
 
     def default_processor(self, message, input="DEFAULT", properties=None, worker=None):
     
@@ -176,7 +240,17 @@ class DocumenterAgent(Agent):
                     self.results = {}
                     self.todos = set()
 
-                    
+                    self.num_steps = 1  
+                    if 'hilite' in self.properties:
+                        self.num_steps = self.num_steps + 1
+                    self.current_step = 0
+
+                    if 'questions' in self.properties:
+                        self.num_steps = self.num_steps + len(self.properties['questions'].keys())
+                    if 'queries' in self.properties:
+                        self.num_steps = self.num_steps + len(self.properties['queries'].keys())
+
+
                     # nl questions
                     if 'questions' in self.properties:
                         questions = self.properties['questions']
@@ -198,7 +272,7 @@ class DocumenterAgent(Agent):
                             self.todos.add(query_id)
                             self.issue_sql_query(query, worker, id=query_id)
                     if 'questions' not in self.properties and 'queries' not in self.properties:
-                        self.render_doc(worker, {})
+                        self.process_doc(worker, {}, properties)
 
                     return
 
@@ -235,15 +309,30 @@ class DocumenterAgent(Agent):
                     self.results[query] = query_results
                     self.todos.remove(query)
 
+                    # progress
+                    self.current_step = len(self.results)
+                    q = ""
+                    if 'query' in data and data['query']:
+                        q = data['query']
+                    if 'question' in data and data['question']:
+                        q = data['question']
+
+                    worker.write_progress(progress_id=worker.sid, label='Received query results: ' + q, value=self.current_step/self.num_steps)
+
                     if len(self.todos) == 0:
-                        if len(query_results) == 0:
-                            self.write_to_new_stream(worker, "No results...", "TEXT")
-                        else:
-                            self.render_doc(worker, self.results)
+                        self.process_doc(worker, self.results, properties)
                 else:
                     logging.info("nothing found")
+        elif input == "DOC":
+            if message.isData():
+                data = message.getData()
 
+                # progress
+                self.current_step = self.num_steps - 1
+                worker.write_progress(progress_id=worker.sid, label='Received highlighted document...', value=self.current_step/self.num_steps)
 
+                doc = str(data)
+                self.render_doc(worker, doc, properties)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

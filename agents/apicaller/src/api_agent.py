@@ -22,6 +22,7 @@ import csv
 import json
 from utils import json_utils
 from utils import string_utils
+import copy
 
 import itertools
 from tqdm import tqdm
@@ -121,7 +122,12 @@ class APIAgent(Agent):
         input_object = input_data
 
         if 'input_json' in properties and properties['input_json'] is not None:
-            input_object = json.loads(properties['input_json'])
+            input_object = {}
+            if type(properties['input_json']) == str:
+                input_object = json.loads(properties['input_json'])
+            elif  type(properties['input_json']) == dict:
+                input_object = copy.deepcopy(properties['input_json'])
+                
             # set input text in object
             json_utils.json_query_set(input_object,properties['input_context_field'], input_data, context=properties['input_context'])
 
