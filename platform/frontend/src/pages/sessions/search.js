@@ -170,11 +170,15 @@ export default function AllSessions() {
                     }}
                 >
                     {_.isEmpty(allSessions) ? (
-                        <NonIdealState
-                            className={loading ? Classes.SKELETON : null}
-                            icon={faIcon({ icon: faInboxes, size: 50 })}
-                            title={`No Session`}
-                        />
+                        <div
+                            style={{ padding: "0px 20px 20px", height: "100%" }}
+                        >
+                            <NonIdealState
+                                className={loading ? Classes.SKELETON : null}
+                                icon={faIcon({ icon: faInboxes, size: 50 })}
+                                title={`No Session`}
+                            />
+                        </div>
                     ) : (
                         <AutoSizer>
                             {({ width, height }) => (
