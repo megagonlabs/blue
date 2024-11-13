@@ -116,7 +116,6 @@ class ClustererAgent(Agent):
     
     def issue_openai_call(self, query, worker, id=None):
         # query plan
-        logging.info(query)
         query_plan = [
             [self.name + ".Q", "OPENAI_LABELER.DEFAULT"],
             ["OPENAI_LABELER.DEFAULT", self.name+".OPENAI_RESULTS"],
@@ -134,27 +133,6 @@ class ClustererAgent(Agent):
 
         return
     
-    # TODO
-    def create_visualization(self, df):
-        return #Put things in vega lite template to renderm, don't do it through matplotlib 
-    
-        # embedded_data = TSNE(n_components=2, random_state=42).fit_transform(df.drop([self.properties'exclude_columns'], axis=1))
-        # labels = df['cluster_labels_names'].values
-        # unique_labels = np.unique(labels)
-
-        # # Create scatter plot for each unique label
-        # for label in unique_labels:
-        #     mask = labels == label
-        #     plt.scatter(x=embedded_data[mask, 0], 
-        #                 y=embedded_data[mask, 1], 
-        #                 cmap='viridis',
-        #                 label=f'Cluster {label}',
-        #                 alpha=0.25,
-        #                 s=20)
-        # plt.legend()
-
-        #TODO Display visualization to user
-
     # Create dict {cluster_label: {cluster_size, distinctive_features}}
     def cluster_analysis(self, df, label_column, exclude_cols=[]):
         feature_cols = [col for col in df.columns 
@@ -168,7 +146,8 @@ class ClustererAgent(Agent):
         normalized_diff = (cluster_means - overall_means) / overall_means
         
         for cluster in clusters:
-            cluster = int(cluster)
+            if type(cluster) != type(''):
+                cluster = int(cluster)
             results[cluster] = {}
 
             cluster_indicator = (df[label_column] == cluster)
@@ -177,7 +156,7 @@ class ClustererAgent(Agent):
             cluster_data = normalized_diff.loc[cluster].sort_values(ascending=False)
             top_features = {str(idx): f'{val:+.2%}' for idx, val in cluster_data.head(10).items()}
             bottom_features = {str(idx): f'{val:+.2%}' for idx, val in cluster_data.tail(10).items()}
-            results[cluster]['distinctive_features'] = [top_features, bottom_features]
+            results[cluster]['distinctive_features'] = top_features
         
         return results
   
@@ -226,7 +205,7 @@ class ClustererAgent(Agent):
             for col in numerical_columns:
                 df_processed[col] = (df_processed[col] - df_processed[col].min()) / (df_processed[col].max() - df_processed[col].min())
         
-        return df_processed.groupby(self.properties['id_column']).max()
+        return df_processed.groupby(self.properties['id_column']).max().reset_index()
 
     def run_clustering(self, worker, results):
         # TODO Create option to use resume embeddings
@@ -246,14 +225,128 @@ class ClustererAgent(Agent):
             cluster_df = df
         model = KMeans(n_clusters = self.properties['num_clusters'], random_state=1).fit(cluster_df)
         df['cluster_labels'] = model.labels_
+        df['cluster_labels'] = df['cluster_labels'].map(int)
 
         analysis = self.cluster_analysis(df, 'cluster_labels', exclude_cols=exclude_columns)
-        logging.info(analysis)
+
         self.issue_openai_call(analysis, worker)
 
         # Save data
         self.df = df
 
+    def display_cluster_summaries(self, worker, analysis):
+        logging.info('Creating cluster summary tables')
+        values = []
+        for cluster_name in analysis.keys():
+            cluster_size = analysis[cluster_name]['cluster_size']
+            dist_feat_high = analysis[cluster_name]['distinctive_features']
+            for feat, presence in dist_feat_high.items():
+                values.append({'Cluster Name': cluster_name, 'Cluster Size': cluster_size, 'Distinctive Feature': feat, 'Feature Presence Relative to Mean': presence})
+
+        template = {
+            "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+            "data": {
+                "values": values
+            },
+            "transform": [
+                {"window": [{"op": "row_number", "as": "row_num"}]},
+                {"fold": ["Cluster Name", "Cluster Size", "Distinctive Feature", "Feature Presence Relative to Mean"]}
+            ],
+            "mark": "text",
+            "encoding": {
+                "y": {"field": "row_num", "type": "ordinal", "axis": None},
+                "text": {"field": "value", "type": "nominal"},
+                "x": {"field": "key", "type": "nominal", "axis": {"orient": "top", "labelAngle": 0, "title": None, "domain": False, "ticks": False}, "scale": {"padding": 15}}
+            }, "config": {"view": {"stroke": None}}
+        }
+
+        vis_form = ui_builders.build_vis_form(template)
+
+        # write vis
+        worker.write_control(
+            ControlCode.CREATE_FORM, vis_form, output="VIS"
+        )
+
+    def display_job_seekers(self, worker, df, analysis):
+        columns_of_interest = []
+        for cluster_name in analysis.keys():
+            dist_feat_high = analysis[cluster_name]['distinctive_features']
+            i = 0
+            for feat, presence in dist_feat_high.items():
+                columns_of_interest.append(feat)
+                i += 1
+                if i == 3:
+                    break
+
+        # values = []
+        # for row in df.iterrows():
+        #     v = {'job_seeker_id': row['job_seeker_id'], 'job_seeker_id': row['job_seeker_id']}
+        #     for c in columns_of_interest:
+        #         v[c] = row[c]
+        #     values.append(v)
+        # values = df[['job_seeker_id', 'cluster_labels_names'] + columns_of_interest].to_dict(orient='records')
+        values = df[['job_seeker_id', 'cluster_labels_names']].to_dict(orient='records')
+
+        template = {
+            "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+            "data": {
+                "values": values
+            },
+            "transform": [
+                {"window": [{"op": "row_number", "as": "row_num"}]},
+                {"fold": list(values[0].keys())}
+            ],
+            "mark": "text",
+            "encoding": {
+                "y": {"field": "row_num", "type": "ordinal", "axis": None},
+                "text": {"field": "value", "type": "nominal"},
+                "x": {"field": "key", "type": "nominal", "axis": {"orient": "top", "labelAngle": 0, "title": None, "domain": False, "ticks": False}, "scale": {"padding": 15}}
+            }, "config": {"view": {"stroke": None}}
+        }
+
+        vis_form = ui_builders.build_vis_form(template)
+
+        # write vis
+        worker.write_control(
+            ControlCode.CREATE_FORM, vis_form, output="VIS"
+        )
+
+    def create_visualization(self, worker, df):   
+        logging.info('Creating dimensionality reduction visualization')
+
+        exclude_columns = self.properties['exclude_columns'] + [self.properties['id_column']] + ['cluster_labels', 'cluster_labels_names']
+        embedded_data = TSNE(n_components=2).fit_transform(df.drop(exclude_columns, axis=1))
+        labels = df['cluster_labels_names'].values
+
+        values = [{"tsne_x": float(x),"tsne_y": float(y),"cluster": str(label)} for (x, y), label in zip(embedded_data, labels)]
+        template = {
+            "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+            "data": {
+                "values": values
+            },
+            "mark": {"type": "point", "size": 3},
+            "encoding": {
+                "x": {
+                "field": "tsne_x",
+                "type": "quantitative",
+                "scale": {"zero": False}
+                },
+                "y": {
+                "field": "tsne_y",
+                "type": "quantitative",
+                "scale": {"zero": False}
+                },
+                "color": {"field": "cluster", "type": "nominal"},
+                "shape": {"field": "cluster", "type": "nominal"}
+            }
+        }
+        
+        vis_form = ui_builders.build_vis_form(template)
+
+        # write vis
+        worker.write_control(
+            ControlCode.CREATE_FORM, vis_form, output="VIS"
+        )
 
     def default_processor(self, message, input="DEFAULT", properties=None, worker=None):
         logging.info('Entering processor')
@@ -329,22 +422,24 @@ class ClustererAgent(Agent):
             if message.isData():
                 stream = message.getStream()
                 data = message.getData()
-                logging.info(data)
 
-                if 'result' in data:
-                    cluster_label_mapping = json.dumps(data['result'])
-                    logging.info(cluster_label_mapping)
-                    self.df['cluster_labels_names'] = list(map(cluster_label_mapping.get, self.df['cluster_labels']))
+                match = re.search(r'\{.*\}', data, re.DOTALL).group()
+                cluster_label_mapping = json.loads(match)
+                logging.info(cluster_label_mapping)
+                self.df['cluster_labels_names'] = list(map(cluster_label_mapping.get, self.df['cluster_labels'].astype('str')))
 
-                    if self.properties['create_visualization']:
-                        self.create_visualization(self.df)
+                analysis = self.cluster_analysis(self.df, 'cluster_labels_names', ['cluster_labels'])
+                self.display_cluster_summaries(worker, analysis)
 
-                    # TODO construct table from analysis and give to user
-                    analysis = self.cluster_analysis(self.df, 'cluster_labels_names', ['cluster_labels'])
-                    self.write_to_new_stream(worker, analysis, "R") 
-                else:
-                    logging.info('Nothing found')
+                if self.properties['create_visualization']:
+                    self.create_visualization(worker, self.df)
 
+                #TODO emit mapping of cluster to job_seeker_id
+                #return self.df[['job_seeker_id', 'cluster_labels_names']]
+                # self.display_job_seekers(worker, self.df, analysis)
+
+            else:
+                logging.info('Nothing Found')
 
 
 if __name__ == "__main__":
