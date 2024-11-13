@@ -161,7 +161,7 @@ class VisualizerAgent(Agent):
             ControlCode.CREATE_FORM, vis_form, output="VIS"
         )
 
-         # progress, done
+        # progress, done
         worker.write_progress(progress_id=worker.sid, label='Done...', value=1.0)
 
 
