@@ -135,20 +135,72 @@ class DocumenterAgent(Agent):
 
         return
     
-    def render_doc(self, worker, results):
+    def hilite_doc(self, worker, processed_doc, results, properties):
+        if 'hilite' in properties:
+            hilite = properties['hilite']
+
+
+            session_data = worker.get_all_session_data()
+            if session_data is None:
+                session_data = {}
+
+            processed_hilite = string_utils.safe_substitute(hilite, **properties,  **session_data)
+            t = Environment(loader=BaseLoader()).from_string(processed_hilite)
+            processed_hilite = t.render(**results)
+
+            id = util_functions.create_uuid()
+
+            hilite_plan = [
+                [self.name + ".DOC", "OPENAI_HILITER.DEFAULT"],
+                ["OPENAI_HILITER.DEFAULT", self.name+".DOC"],
+            ]
+        
+            hilite_contents = {
+                "doc": processed_doc,
+                "hilite": processed_hilite
+            }
+
+            hilite_contents_json = json.dumps(hilite_contents, indent=3)
+
+            logging.info(hilite_contents_json)
+
+            # write doc/hiliter to stream
+            stream = self.write_to_new_stream(worker, hilite_contents_json, "DOC", tags=["HIDDEN"], id=id)
+
+            # build plan
+            plan = self.build_plan(hilite_plan, stream, id=id)
+
+            # write plan
+            # TODO: this shouldn't necessarily be into a new stream
+            self.write_to_new_stream(worker, plan, "PLAN", tags=["PLAN","HIDDEN"], id=id)
+
+            return
+
+    def process_doc(self, worker, results, properties):
+        doc = self.substitute_doc(worker, results, properties)
+
+        if 'hilite' in properties:
+            self.hilite_doc(worker, doc, results, properties)
+        else:
+            self.render_doc(worker, doc, properties)
+
+    def substitute_doc(self, worker, results, properties):
         session_data = worker.get_all_session_data()
         if session_data is None:
             session_data = {}
 
-        template = self.properties['template']
+        template = properties['template']
         if type(template) is dict:
             template = json.dumps(template)
 
-        processed_template = string_utils.safe_substitute(template, **self.properties,  **session_data)
+        processed_template = string_utils.safe_substitute(template, **properties,  **session_data)
         t = Environment(loader=BaseLoader()).from_string(processed_template)
-        o = t.render(**results)
+        doc = t.render(**results)
 
-        doc_form = ui_builders.build_doc_form(o)
+        return doc
+
+    def render_doc(self, worker, doc, properties):
+        doc_form = ui_builders.build_doc_form(doc)
 
         # write vis
         worker.write_control(
@@ -198,7 +250,7 @@ class DocumenterAgent(Agent):
                             self.todos.add(query_id)
                             self.issue_sql_query(query, worker, id=query_id)
                     if 'questions' not in self.properties and 'queries' not in self.properties:
-                        self.render_doc(worker, {})
+                        self.process_doc(worker, {}, properties)
 
                     return
 
@@ -239,11 +291,15 @@ class DocumenterAgent(Agent):
                         if len(query_results) == 0:
                             self.write_to_new_stream(worker, "No results...", "TEXT")
                         else:
-                            self.render_doc(worker, self.results)
+                            self.process_doc(worker, self.results, properties)
                 else:
                     logging.info("nothing found")
+        elif input == "DOC":
+            if message.isData():
+                data = message.getData()
 
-
+                doc = str(data)
+                self.render_doc(worker, doc, properties)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
