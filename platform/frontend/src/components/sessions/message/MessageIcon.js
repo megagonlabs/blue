@@ -1,6 +1,8 @@
 import { ENTITY_ICON_40, PROFILE_PICTURE_40 } from "@/components/constant";
 import { AppContext } from "@/components/contexts/app-context";
-import { Card, Classes } from "@blueprintjs/core";
+import { faIcon } from "@/components/icon";
+import { Card, Classes, Icon } from "@blueprintjs/core";
+import { faQuestion } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import _ from "lodash";
 import Image from "next/image";
 import { memo, useContext } from "react";
@@ -16,7 +18,9 @@ function MessageIcon({ message }) {
             style={PROFILE_PICTURE_40}
             className={!hasUserProfile ? Classes.SKELETON : null}
         >
-            {_.isEmpty(user) ? null : (
+            {_.isEmpty(user) ? (
+                <Icon icon={faIcon({ icon: faQuestion, size: 20 })} />
+            ) : (
                 <Image alt="" src={user.picture} width={40} height={40} />
             )}
         </Card>

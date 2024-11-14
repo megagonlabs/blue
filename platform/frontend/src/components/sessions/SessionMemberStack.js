@@ -1,9 +1,11 @@
 import { AppContext } from "@/components/contexts/app-context";
-import { Card, Classes } from "@blueprintjs/core";
+import { Card, Classes, Icon } from "@blueprintjs/core";
+import { faQuestion } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import _ from "lodash";
 import Image from "next/image";
 import { useContext, useEffect, useMemo } from "react";
 import { PROFILE_PICTURE_40 } from "../constant";
+import { faIcon } from "../icon";
 export default function SessionMemberStack({
     sessionId,
     fetchUsers = true,
@@ -51,16 +53,20 @@ export default function SessionMemberStack({
         <div style={{ display: "flex", alignItems: "center" }}>
             {_.has(appState, ["app", "users", owner]) ? (
                 <Card style={{ ...USER_AVATAR_STYLE, zIndex: size + 1 }}>
-                    <Image
-                        alt=""
-                        src={_.get(
-                            appState,
-                            ["app", "users", owner, "picture"],
-                            ""
-                        )}
-                        width={40}
-                        height={40}
-                    />
+                    {_.isEmpty(_.get(appState, ["app", "users", owner], {})) ? (
+                        <Icon icon={faIcon({ icon: faQuestion, size: 20 })} />
+                    ) : (
+                        <Image
+                            alt=""
+                            src={_.get(
+                                appState,
+                                ["app", "users", owner, "picture"],
+                                ""
+                            )}
+                            width={40}
+                            height={40}
+                        />
+                    )}
                 </Card>
             ) : (
                 <Card className={Classes.SKELETON} style={USER_AVATAR_STYLE} />
@@ -82,12 +88,16 @@ export default function SessionMemberStack({
                         key={uid}
                         style={{ ...USER_AVATAR_STYLE, zIndex: size - index }}
                     >
-                        <Image
-                            alt=""
-                            src={_.get(user, "picture", "")}
-                            width={40}
-                            height={40}
-                        />
+                        {_.isEmpty(user) ? (
+                            <Icon icon={faIcon({ icon: faQuestion })} />
+                        ) : (
+                            <Image
+                                alt=""
+                                src={_.get(user, "picture", "")}
+                                width={40}
+                                height={40}
+                            />
+                        )}
                     </Card>
                 );
             })}
