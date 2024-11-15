@@ -35,7 +35,6 @@ rpyc==6.0.0
 pydash==7.0.6
 redis==4.5.5
 requests==2.31.0
-sentence-transformers==2.2.2
 six==1.16.0
 tqdm==4.65.0
 urllib3==2.0.3
@@ -43,3 +42,6 @@ uuid==1.30
 websockets==11.0.3
 yarl==1.9.2
 zipp==3.15.0
+sentence-transformers
+xformers
+umap-learn

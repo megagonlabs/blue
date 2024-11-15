@@ -33,6 +33,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.cluster import KMeans
 from sklearn.manifold import TSNE
+from sentence_transformers import SentenceTransformer
+# import umap
 
 ###### Communication
 import asyncio
@@ -114,11 +116,11 @@ class ClustererAgent(Agent):
 
         return
     
-    def issue_openai_call(self, query, worker, id=None):
+    def issue_agent_call(self, query, worker, agent_name, results_name, id=None):
         # query plan
         query_plan = [
-            [self.name + ".Q", "OPENAI_LABELER.DEFAULT"],
-            ["OPENAI_LABELER.DEFAULT", self.name+".OPENAI_RESULTS"],
+            [self.name + ".Q", agent_name + ".DEFAULT"],
+            [agent_name + ".DEFAULT", self.name+results_name],
         ]
        
         # write query to stream
@@ -130,13 +132,14 @@ class ClustererAgent(Agent):
         # write plan
         # TODO: this shouldn't necessarily be into a new stream
         self.write_to_new_stream(worker, plan, "PLAN", tags=["PLAN","HIDDEN"], id=id)
-
-        return
     
     # Create dict {cluster_label: {cluster_size, distinctive_features}}
     def cluster_analysis(self, df, label_column, exclude_cols=[]):
+        # feature_cols = [col for col in df.columns 
+        #            if col not in [label_column] + exclude_cols]
         feature_cols = [col for col in df.columns 
-                   if col not in [label_column] + exclude_cols]
+                   if col not in [label_column] + exclude_cols 
+                   and df[col].dtype != 'object']
         clusters = sorted(df[label_column].unique())
         results = {}
 
@@ -146,7 +149,7 @@ class ClustererAgent(Agent):
         normalized_diff = (cluster_means - overall_means) / overall_means
         
         for cluster in clusters:
-            if type(cluster) != type(''):
+            if type(cluster) != type(''): #Clumsy workaround to allow string or int cluster labels
                 cluster = int(cluster)
             results[cluster] = {}
 
@@ -155,7 +158,7 @@ class ClustererAgent(Agent):
 
             cluster_data = normalized_diff.loc[cluster].sort_values(ascending=False)
             top_features = {str(idx): f'{val:+.2%}' for idx, val in cluster_data.head(10).items()}
-            bottom_features = {str(idx): f'{val:+.2%}' for idx, val in cluster_data.tail(10).items()}
+            # bottom_features = {str(idx): f'{val:+.2%}' for idx, val in cluster_data.tail(10).items()}
             results[cluster]['distinctive_features'] = top_features
         
         return results
@@ -209,27 +212,67 @@ class ClustererAgent(Agent):
 
     def run_clustering(self, worker, results):
         # TODO Create option to use resume embeddings
-        # if self.properties['use_resumes']:
-        #     df = None
-        #     pass
-        # else:
-
         df = pd.DataFrame(results)
         exclude_columns = self.properties['exclude_columns'] + [self.properties['id_column']]
         df = self.preprocess_for_clustering(df, exclude_columns=exclude_columns)
-
-        # TODO Option to self-determine best number of clusters
-        if len(self.properties['exclude_columns']) > 0:
-            cluster_df = df.drop(self.properties['exclude_columns'], axis=1)
+        if self.properties['use_text_embeddings'] == "True":
+            logging.info('Using embeddings')
+            if 'text_embedding_path' in self.properties and os.path.exists(self.properties['text_embedding_path']):
+                # logging.info(f'Reading embeddings from file {self.properties['text_embedding_path']}')
+                logging.info('Reading embeddings from file')
+                cluster_df = pd.read_csv(self.properties['text_embedding_path'])
+            else:
+                #Generate embeddings
+                logging.info('Loading embedding model')
+                # encoder_name = 'dunzhang/stella_en_400M_v5'
+                encoder_name = 'Alibaba-NLP/gte-Qwen2-1.5B-instruct'
+                encoder = SentenceTransformer(encoder_name, trust_remote_code=True)
+                increment = 10
+                resumes = df[self.properties['text_column_name']].values
+                logging.info('Generating embeddings')
+                doc_embeddings = encoder.encode(resumes[:increment])
+                for i in tqdm(range(increment, len(resumes)+increment-1, increment)):
+                    new_emb = encoder.encode(resumes[i:i+increment])
+                    if len(new_emb.shape) == 2:
+                        doc_embeddings = np.append(doc_embeddings, new_emb, axis=0)
+                cluster_df = pd.DataFrame(doc_embeddings)
+                #Save embeddings
+                logging.info('Saving embeddings')
+                if 'text_embedding_path' in self.properties:
+                    cluster_df.to_csv(self.properties['text_embedding_path'])
+                self.cluster_df = cluster_df
         else:
-            cluster_df = df
-        model = KMeans(n_clusters = self.properties['num_clusters'], random_state=1).fit(cluster_df)
-        df['cluster_labels'] = model.labels_
-        df['cluster_labels'] = df['cluster_labels'].map(int)
+            if len(self.properties['exclude_columns']) > 0:
+                cluster_df = df.drop(self.properties['exclude_columns']+[self.properties['id_column']], axis=1)
+            else:
+                cluster_df = df.drop(self.properties['id_column'], axis=1)
+            self.cluster_df = cluster_df
 
-        analysis = self.cluster_analysis(df, 'cluster_labels', exclude_cols=exclude_columns)
+        # Work in progress
+        if self.properties['num_clusters'] == 'auto':
+            cluster_descriptions = {}
+            cluster_labels = []
+            for num_clusters in [2, 3, 4, 5]:
+                model = KMeans(n_clusters = num_clusters, random_state=self.properties['random_seed']).fit(cluster_df)
+                df['cluster_labels'] = model.labels_
+                df['cluster_labels'] = df['cluster_labels'].map(int)
 
-        self.issue_openai_call(analysis, worker)
+                analysis = self.cluster_analysis(df, 'cluster_labels', exclude_cols=exclude_columns)
+                cluster_descriptions['Num Clusters = '+str(num_clusters)] = analysis
+                cluster_labels.append(df['cluster_labels'].values)    
+            
+            # Send out open AI call to new agent
+            self.cluster_labels = cluster_labels
+            logging.info('Issuing OpenAI multilabel call')
+            self.issue_agent_call(cluster_descriptions, worker, 'OPENAI_LABELERMULTI', ".OPENAI_RESULTS")
+        else:
+            model = KMeans(n_clusters = self.properties['num_clusters'], random_state=self.properties['random_seed']).fit(cluster_df)
+            df['cluster_labels'] = model.labels_
+            df['cluster_labels'] = df['cluster_labels'].map(int)
+
+            analysis = self.cluster_analysis(df, 'cluster_labels', exclude_cols=exclude_columns)
+
+            self.issue_agent_call(analysis, worker, 'OPENAI_LABELER', ".OPENAI_RESULTS")
 
         # Save data
         self.df = df
@@ -314,11 +357,11 @@ class ClustererAgent(Agent):
     def create_visualization(self, worker, df):   
         logging.info('Creating dimensionality reduction visualization')
 
-        exclude_columns = self.properties['exclude_columns'] + [self.properties['id_column']] + ['cluster_labels', 'cluster_labels_names']
-        embedded_data = TSNE(n_components=2).fit_transform(df.drop(exclude_columns, axis=1))
+        embedded_data = TSNE(n_components=2, random_state=self.properties['random_seed']).fit_transform(self.cluster_df)
+        # embedded_data = umap.UMAP(random_state=self.properties['random_seed']).fit_transform(self.cluster_df)[:, :2]
         labels = df['cluster_labels_names'].values
 
-        values = [{"tsne_x": float(x),"tsne_y": float(y),"cluster": str(label)} for (x, y), label in zip(embedded_data, labels)]
+        values = [{"x": float(x),"y": float(y),"cluster": str(label)} for (x, y), label in zip(embedded_data, labels)]
         template = {
             "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
             "data": {
@@ -327,12 +370,12 @@ class ClustererAgent(Agent):
             "mark": {"type": "point", "size": 3},
             "encoding": {
                 "x": {
-                "field": "tsne_x",
+                "field": "x",
                 "type": "quantitative",
                 "scale": {"zero": False}
                 },
                 "y": {
-                "field": "tsne_y",
+                "field": "y",
                 "type": "quantitative",
                 "scale": {"zero": False}
                 },
@@ -350,6 +393,10 @@ class ClustererAgent(Agent):
 
     def default_processor(self, message, input="DEFAULT", properties=None, worker=None):
         logging.info('Entering processor')
+
+        if "random_seed" not in self.properties:
+            self.properties['random_seed'] = np.random.choice(500000)
+
         ##### Upon USER input text
         if input == "DEFAULT":
             if message.isEOS():
@@ -425,7 +472,10 @@ class ClustererAgent(Agent):
 
                 match = re.search(r'\{.*\}', data, re.DOTALL).group()
                 cluster_label_mapping = json.loads(match)
-                logging.info(cluster_label_mapping)
+
+                if self.properties['num_clusters'] == 'auto':
+                    self.df['cluster_labels'] = self.cluster_labels[len(cluster_label_mapping) - 2]
+
                 self.df['cluster_labels_names'] = list(map(cluster_label_mapping.get, self.df['cluster_labels'].astype('str')))
 
                 analysis = self.cluster_analysis(self.df, 'cluster_labels_names', ['cluster_labels'])
@@ -434,13 +484,32 @@ class ClustererAgent(Agent):
                 if self.properties['create_visualization']:
                     self.create_visualization(worker, self.df)
 
-                #TODO emit mapping of cluster to job_seeker_id
-                #return self.df[['job_seeker_id', 'cluster_labels_names']]
-                # self.display_job_seekers(worker, self.df, analysis)
+                #Temporary solution for Kevin
+                if self.properties['save_id_cluster_mapping']:
+                    self.df[['job_seeker_id', 'cluster_labels_names']].to_csv('/blue_data/data/cluster_mapping.csv')
+                    with open('/blue_data/data/cluster_distinctive_features.json', 'w', encoding='utf-8') as f:
+                        json.dump(analysis, f, ensure_ascii=False, indent=4)
+                    with open('/blue_data/data/cluster_distinctive_features.csv', 'w', newline='') as csvfile:
+                        writer = csv.writer(csvfile)
+                        writer.writerow(['Cluster Label', 'Cluster Size', 'Feature Name', 'Feature Presence'])
+                        for cluster_label, cluster_data in analysis.items():
+                            for feature_name, feature_presence in cluster_data['distinctive_features'].items():
+                                writer.writerow([cluster_label, cluster_data['cluster_size'], feature_name, feature_presence])
+
+                # self.issue_agent_call(analysis, worker, 'SUMMARIZER_CLUSTER', ".SUMMARIZER_RESULTS")
 
             else:
                 logging.info('Nothing Found')
-
+        
+        # elif input == "SUMMARIZER_RESULTS":
+        #     if message.isData():
+        #         logging.info("Summarization results")
+        #         stream = message.getStream()
+        #         data = message.getData()
+        #         logging.info(data)
+        #         self.write_to_new_stream(worker, data, "TEXT")
+        #     else:
+        #         logging.info('Nothing Found')
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
