@@ -5,6 +5,7 @@ import { bracketMatching, indentUnit } from "@codemirror/language";
 import { forEachDiagnostic, lintGutter, linter } from "@codemirror/lint";
 import { EditorState } from "@codemirror/state";
 import { keymap, lineNumbers } from "@codemirror/view";
+import { showMinimap } from "@replit/codemirror-minimap";
 import { EditorView, minimalSetup } from "codemirror";
 import { jsonSchema } from "codemirror-json-schema";
 import _ from "lodash";
@@ -59,8 +60,19 @@ export default function JsonEditor({
         });
     }, [code]);
     useEffect(() => {
+        let create = (view) => {
+            const dom = document.createElement("div");
+            return { dom };
+        };
         let extensionList = [
             minimalSetup,
+            showMinimap.compute(["doc"], (state) => {
+                return {
+                    create,
+                    displayText: "blocks",
+                    showOverlay: "mouse-over",
+                };
+            }),
             lineNumbers(),
             bracketMatching(),
             closeBrackets(),
@@ -87,5 +99,5 @@ export default function JsonEditor({
             view.destroy();
         };
     }, []);
-    return <div ref={editor} />;
+    return <div className="full-parent-height" ref={editor} />;
 }

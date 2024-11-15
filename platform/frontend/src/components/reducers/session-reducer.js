@@ -336,7 +336,7 @@ export default function sessionReducer(
             return { ...state, sessionDetails: nextSessionDetail };
         }
         case "session/sessions/add": {
-            if (_.includes(sessionIds, payload)) {
+            if (_.includes(sessionIds, payload) || _.isEmpty(payload)) {
                 return { ...state };
             }
             return {

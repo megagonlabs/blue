@@ -40,17 +40,13 @@ export default function appReducer(state = defaultState, { type, payload }) {
             return { ...state, pendingRequests };
         }
         case "app/users/profile/add": {
-            if (_.isEmpty(payload)) {
-                return { ...state };
-            } else {
-                return {
-                    ...state,
-                    users: {
-                        ...state.users,
-                        [payload.uid]: payload,
-                    },
-                };
-            }
+            return {
+                ...state,
+                users: {
+                    ...state.users,
+                    [payload.uid]: payload.user,
+                },
+            };
         }
         default:
             return state;

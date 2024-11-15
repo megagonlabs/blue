@@ -6,10 +6,7 @@ import sys
 ###### Add lib path
 sys.path.append("./lib/")
 sys.path.append("./lib/agent/")
-sys.path.append("./lib/apicaller/")
-sys.path.append("./lib/openai/")
 sys.path.append("./lib/platform/")
-sys.path.append("./lib/agent_registry")
 sys.path.append("./lib/utils/")
 
 ######
@@ -29,6 +26,7 @@ import copy
 import re
 import itertools
 from tqdm import tqdm
+from jinja2 import Environment, BaseLoader
 
 ##### analytics
 import pandas as pd
@@ -40,15 +38,13 @@ from websockets.sync.client import connect
 
 ###### Blue
 from agent import Agent, AgentFactory
-from api_agent import APIAgent
 from session import Session
 from producer import Producer
 from consumer import Consumer
 
-from openai_agent import OpenAIAgent
-from agent_registry import AgentRegistry
 from message import Message, MessageType, ContentType, ControlCode
 import util_functions
+import ui_builders
 
 # set log level
 logging.getLogger().setLevel(logging.INFO)
@@ -59,46 +55,15 @@ logging.basicConfig(
 )
 
 
-GENERATE_PROMPT = """
-fill in template with query results in the template below, return only the summary as natural language text, rephrasing the template contents:
-${input}
-"""
-
-agent_properties = {
-    "openai.api": "ChatCompletion",
-    "openai.model": "gpt-4o",
-    "output_path": "$.choices[0].message.content",
-    "input_json": "[{\"role\":\"user\"}]",
-    "input_context": "$[0]",
-    "input_context_field": "content",
-    "input_field": "messages",
-    "input_template": GENERATE_PROMPT,
-    "openai.temperature": 0,
-    "openai.max_tokens": 512,
-    "nl2q.case_insensitive": True,
-    "rephrase": True,
-    "tags": {"PLAN": ["PLAN"]},
-    "summary_template": "The average salary for an engineering job is {$average_salary}, while the highest paying would be {$highest_pay}",
-    "queries": {"average_salary": "what is the average salary in jurong for an engineering job?","highest_pay": "what is the highest paying job in jurong for engineer?"}
-}
-
-class SummarizerAgent(OpenAIAgent):
+class DocumenterAgent(Agent):
     def __init__(self, **kwargs):
         if "name" not in kwargs:
-            kwargs["name"] = "SUMMARIZER"
+            kwargs["name"] = "DOCUMENTER"
         super().__init__(**kwargs)
 
 
-    def _initialize(self, properties=None):
-        super()._initialize(properties=properties)
-
-        # additional initialization
-
     def _initialize_properties(self):
         super()._initialize_properties()
-
-        for key in agent_properties:
-            self.properties[key] = agent_properties[key]
     
     def build_plan(self, plan_dag, stream, id=None):
         
@@ -114,7 +79,7 @@ class SummarizerAgent(OpenAIAgent):
 
         return plan
 
-    def write_to_new_stream(self, worker, content, output, id=None, tags=None):
+    def write_to_new_stream(self, worker, content, output, id=None, tags=None, scope="worker"):
         
         # create a unique id
         if id is None:
@@ -122,9 +87,9 @@ class SummarizerAgent(OpenAIAgent):
 
         if worker:
             output_stream = worker.write_data(
-                content, output=output, id=id, tags=tags
+                content, output=output, id=id, tags=tags, scope=scope
             )
-            worker.write_eos(output=output, id=id)
+            worker.write_eos(output=output, id=id, scope=scope)
 
         return output_stream
 
@@ -156,7 +121,7 @@ class SummarizerAgent(OpenAIAgent):
         # progress
         worker.write_progress(progress_id=worker.sid, label='Issuing query:' + query, value=self.current_step/self.num_steps)
 
-        # query plan
+        # query plan        
         query_plan = [
             [self.name + ".Q", "QUERYEXECUTOR.DEFAULT"],
             ["QUERYEXECUTOR.DEFAULT", self.name+".RESULTS"],
@@ -173,29 +138,83 @@ class SummarizerAgent(OpenAIAgent):
         self.write_to_new_stream(worker, plan, "PLAN", tags=["PLAN","HIDDEN"], id=id)
 
         return
+    
+    def hilite_doc(self, worker, processed_doc, results, properties):
+        if 'hilite' in properties:
+            hilite = properties['hilite']
 
-    def summarize_doc(self, worker, results, properties):
+             # progress
+            worker.write_progress(progress_id=worker.sid, label='Highlighting document...', value=self.current_step/self.num_steps)
+
+            session_data = worker.get_all_session_data()
+            if session_data is None:
+                session_data = {}
+
+            processed_hilite = string_utils.safe_substitute(hilite, **properties,  **session_data)
+            t = Environment(loader=BaseLoader()).from_string(processed_hilite)
+            processed_hilite = t.render(**results)
+
+            id = util_functions.create_uuid()
+
+            hilite_plan = [
+                [self.name + ".DOC", "OPENAI_HILITER.DEFAULT"],
+                ["OPENAI_HILITER.DEFAULT", self.name+".DOC"],
+            ]
+        
+            hilite_contents = {
+                "doc": processed_doc,
+                "hilite": processed_hilite
+            }
+
+            hilite_contents_json = json.dumps(hilite_contents, indent=3)
+
+            logging.info(hilite_contents_json)
+
+            # write doc/hiliter to stream
+            stream = self.write_to_new_stream(worker, hilite_contents_json, "DOC", tags=["HIDDEN"], id=id)
+
+            # build plan
+            plan = self.build_plan(hilite_plan, stream, id=id)
+
+            # write plan
+            # TODO: this shouldn't necessarily be into a new stream
+            self.write_to_new_stream(worker, plan, "PLAN", tags=["PLAN","HIDDEN"], id=id)
+
+            return
+
+    def process_doc(self, worker, results, properties):
         # progress
-        worker.write_progress(progress_id=worker.sid, label='Summarizing doc...', value=self.current_step/self.num_steps)
+        worker.write_progress(progress_id=worker.sid, label='Processing document...', value=self.current_step/self.num_steps)
 
+        doc = self.substitute_doc(worker, results, properties)
+
+        if 'hilite' in properties:
+            self.hilite_doc(worker, doc, results, properties)
+        else:
+            self.render_doc(worker, doc, properties)
+
+    def substitute_doc(self, worker, results, properties):
         session_data = worker.get_all_session_data()
         if session_data is None:
             session_data = {}
 
-        summary_template = properties['template']
-        summary = string_utils.safe_substitute(summary_template, **self.results,  **session_data)
+        template = properties['template']
+        if type(template) is dict:
+            template = json.dumps(template)
 
-        if 'rephrase' in properties and properties['rephrase']:
-            # progress 
-            worker.write_progress(progress_id=worker.sid, label='Rephrasing doc...', value=self.current_step/self.num_steps)
-            
-            #### call api to rephrase summary
-            worker.write_data(self.handle_api_call([summary], properties=properties))
-            worker.write_eos()
+        processed_template = string_utils.safe_substitute(template, **properties,  **session_data)
+        t = Environment(loader=BaseLoader()).from_string(processed_template)
+        doc = t.render(**results)
 
-        else:
-            worker.write_data(summary)
-            worker.write_eos()
+        return doc
+
+    def render_doc(self, worker, doc, properties):
+        doc_form = ui_builders.build_doc_form(doc)
+
+        # write vis
+        worker.write_control(
+            ControlCode.CREATE_FORM, doc_form, output="DOC"
+        )
 
         # progress, done
         worker.write_progress(progress_id=worker.sid, label='Done...', value=1.0)
@@ -208,12 +227,12 @@ class SummarizerAgent(OpenAIAgent):
                 # get all data received from user stream
                 stream = message.getStream()
 
+            
                 stream_data = worker.get_data(stream)
                 input_data = " ".join(stream_data)
                 if worker:
                     session_data = worker.get_all_session_data()
-                    logging.info(worker.session.cid)
-                    logging.info(json.dumps(session_data, indent=3)) 
+
                     if session_data is None:
                         session_data = {}
 
@@ -222,12 +241,15 @@ class SummarizerAgent(OpenAIAgent):
                     self.todos = set()
 
                     self.num_steps = 1  
+                    if 'hilite' in self.properties:
+                        self.num_steps = self.num_steps + 1
                     self.current_step = 0
 
                     if 'questions' in self.properties:
                         self.num_steps = self.num_steps + len(self.properties['questions'].keys())
                     if 'queries' in self.properties:
                         self.num_steps = self.num_steps + len(self.properties['queries'].keys())
+
 
                     # nl questions
                     if 'questions' in self.properties:
@@ -245,10 +267,13 @@ class SummarizerAgent(OpenAIAgent):
                             if type(q) == dict:
                                 q = json.dumps(q)
                             else:
-                                q = str(q)
+                                q = str(q) 
                             query = string_utils.safe_substitute(q, **self.properties, **session_data, input=input_data)
                             self.todos.add(query_id)
                             self.issue_sql_query(query, worker, id=query_id)
+                    if 'questions' not in self.properties and 'queries' not in self.properties:
+                        self.process_doc(worker, {}, properties)
+
                     return
 
             elif message.isBOS():
@@ -284,16 +309,34 @@ class SummarizerAgent(OpenAIAgent):
                     self.results[query] = query_results
                     self.todos.remove(query)
 
+                    # progress
+                    self.current_step = len(self.results)
+                    q = ""
+                    if 'query' in data and data['query']:
+                        q = data['query']
+                    if 'question' in data and data['question']:
+                        q = data['question']
+
+                    worker.write_progress(progress_id=worker.sid, label='Received query results: ' + q, value=self.current_step/self.num_steps)
+
                     if len(self.todos) == 0:
-                        self.summarize_doc(worker, self.results, properties)
+                        self.process_doc(worker, self.results, properties)
                 else:
                     logging.info("nothing found")
+        elif input == "DOC":
+            if message.isData():
+                data = message.getData()
 
+                # progress
+                self.current_step = self.num_steps - 1
+                worker.write_progress(progress_id=worker.sid, label='Received highlighted document...', value=self.current_step/self.num_steps)
 
+                doc = str(data)
+                self.render_doc(worker, doc, properties)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--name", default="SUMMARIZER", type=str)
+    parser.add_argument("--name", default="DOCUMENTER", type=str)
     parser.add_argument("--session", type=str)
     parser.add_argument("--properties", type=str)
     parser.add_argument("--loglevel", default="INFO", type=str)
@@ -317,7 +360,7 @@ if __name__ == "__main__":
         platform = args.platform
 
         af = AgentFactory(
-            _class=SummarizerAgent,
+            _class=DocumenterAgent,
             _name=args.serve,
             _registry=args.registry,
             platform=platform,
@@ -330,13 +373,13 @@ if __name__ == "__main__":
         if args.session:
             # join an existing session
             session = Session(cid=args.session)
-            a = SummarizerAgent(
+            a = DocumenterAgent(
                 name=args.name, session=session, properties=properties
             )
         else:
             # create a new session
             session = Session()
-            a = SummarizerAgent(
+            a = DocumenterAgent(
                 name=args.name, session=session, properties=properties
             )
 

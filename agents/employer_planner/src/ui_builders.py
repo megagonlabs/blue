@@ -386,6 +386,9 @@ def build_employer_form(job_ids=None, predefined_lists=None, custom_lists=None, 
             actions.append(misc_list_action["label"])
         misc_list_actions = actions
 
+    logging.info("_________")
+    logging.info(misc_list_actions)
+    logging.info("_________")
     # lists
     predefined_lists_ui = []
     custom_lists_ui = []
@@ -929,7 +932,7 @@ def build_form(job_ids=["2001","2002","2003"]):
     return form
 
 
-def build_list(list, title="List", text="Contents:", element_actions=None, list_actions=None):
+def build_list(list, title="List", text="Members:", element_actions=None, list_actions=None):
 
     ## list actions
     list_actions_template = """

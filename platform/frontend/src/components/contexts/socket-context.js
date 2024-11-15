@@ -9,7 +9,7 @@ export const SocketContext = createContext();
 export const SocketProvider = ({ children }) => {
     const [ws, setWs] = useState(null);
     const { settings } = useContext(AuthContext);
-    const { appActions } = useContext(AppContext);
+    const { appState, appActions } = useContext(AppContext);
     const [authenticating, setAuthenticating] = useState(false);
     const [isSocketOpen, setIsSocketOpen] = useState(false);
     const reconnectWs = () => {
@@ -38,6 +38,12 @@ export const SocketProvider = ({ children }) => {
                             process.env.NEXT_PUBLIC_PLATFORM_NAME
                         }/sessions/ws?${searchParams.toString()}`
                     );
+                    // re-observe current session
+                    if (!_.isEmpty(appState.session.sessionIdFocus))
+                        appActions.session.observeSession({
+                            sessionId: appState.session.sessionIdFocus,
+                            webSocket,
+                        });
                     setWs(webSocket);
                 } catch (error) {
                     if (AppToaster) {

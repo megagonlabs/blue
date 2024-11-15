@@ -33,6 +33,7 @@ import {
     faListDropdown,
     faObjectGroup,
     faParagraph,
+    faPause,
     faPlay,
     faPresentationScreen,
     faRectangle,
@@ -47,6 +48,7 @@ import ArrayDoc from "./ArrayDoc";
 import BasicsDoc from "./BasicsDoc";
 import CalloutDoc from "./CalloutDoc";
 import MarkdownDoc from "./MarkdownDoc";
+import TabsDoc from "./TabsDoc";
 import VegaDoc from "./VegaDoc";
 const RendererDetailPanel = (props) => {
     const DOCS = {
@@ -64,6 +66,7 @@ const RendererDetailPanel = (props) => {
         vega: <VegaDoc closePanel={props.closePanel} />,
         markdown: <MarkdownDoc closePanel={props.closePanel} />,
         basics: <BasicsDoc closePanel={props.closePanel} />,
+        tabs: <TabsDoc closePanel={props.closePanel} />,
     };
     return _.get(DOCS, props.type, null);
 };
@@ -90,6 +93,7 @@ const MainMenuPanel = (props) => {
         { text: "Markdown", icon: faSquareM },
         { text: "Number", icon: faInputNumeric },
         { text: "String", icon: faInputText },
+        { text: "Tabs", icon: faPause, iconClass: "fa-rotate-90" },
         {
             text: "Vega",
             icon: faPresentationScreen,
@@ -125,6 +129,7 @@ const MainMenuPanel = (props) => {
                         icon={faIcon({
                             icon: type.icon,
                             size: 20,
+                            className: type.iconClass,
                             style: { marginRight: 10, marginLeft: 4 },
                         })}
                         onClick={() => {

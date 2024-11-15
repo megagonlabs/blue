@@ -21,7 +21,8 @@ import re
 import csv
 import json
 from utils import json_utils
-from string import Template
+from utils import string_utils
+import copy
 
 import itertools
 from tqdm import tqdm
@@ -110,18 +111,23 @@ class APIAgent(Agent):
 
        
         if 'input_template' in properties and properties['input_template'] is not None:
-            input_template = Template(properties['input_template'])
+            input_template = properties['input_template']
             input_params = self.extract_input_params(input_data, properties=properties)
             session_params = self.session.get_all_data()
             if session_params is None:
                 session_params = {}
-            input_data = input_template.safe_substitute(**properties, **input_params, **session_params, input=input_data)
+            input_data = string_utils.safe_substitute(input_template, **properties, **input_params, **session_params, input=input_data)
 
         # set input text to message
         input_object = input_data
 
         if 'input_json' in properties and properties['input_json'] is not None:
-            input_object = json.loads(properties['input_json'])
+            input_object = {}
+            if type(properties['input_json']) == str:
+                input_object = json.loads(properties['input_json'])
+            elif  type(properties['input_json']) == dict:
+                input_object = copy.deepcopy(properties['input_json'])
+                
             # set input text in object
             json_utils.json_query_set(input_object,properties['input_context_field'], input_data, context=properties['input_context'])
 
@@ -144,9 +150,9 @@ class APIAgent(Agent):
 
         # apply output template
         if 'output_template' in properties and properties['output_template'] is not None:
-            output_template = Template(properties['output_template'])
+            output_template = properties['output_template']
             output_params = self.extract_output_params(output_data, properties=properties)
-            output_data = output_template.safe_substitute(**properties, **output_params, output=output_data)
+            output_data = string_utils.safe_substitute(output_template, **properties, **output_params, output=output_data)
         return output_data
 
     def validate_input(self, input_data, properties=None):

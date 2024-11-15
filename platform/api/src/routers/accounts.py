@@ -198,6 +198,8 @@ def get_profile_by_uid(request: Request, uid):
         if uid is not None:
             user_record = auth.get_user(uid)
             user.update({'uid': user_record.uid, 'email': user_record.email, 'picture': user_record.photo_url, 'name': user_record.display_name})
+    except auth.UserNotFoundError as ex:
+        print(ex)
     except ValueError as ex:
         print(ex)
     return JSONResponse(content={"user": user})

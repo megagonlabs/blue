@@ -40,7 +40,16 @@ export default function BasicsDoc({ closePanel }) {
                     <H1 style={{ margin: 0 }}>Basics</H1>
                 </div>
                 <Callout intent={Intent.PRIMARY} icon={null}>
-                    This is not a type, but a documentation.
+                    This is not a type, but a documentation. For full
+                    documentation, please click&nbsp;
+                    <a
+                        rel="noreferrer"
+                        target="_blank"
+                        href="https://jsonforms.io/"
+                    >
+                        here
+                    </a>
+                    .
                 </Callout>
                 <H2>Controls</H2>
                 <div>

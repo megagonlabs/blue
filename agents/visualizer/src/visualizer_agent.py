@@ -21,7 +21,7 @@ import random
 import csv
 import json
 from utils import json_utils
-from string import Template
+from utils import string_utils
 import copy
 import re
 import itertools
@@ -94,8 +94,10 @@ class VisualizerAgent(Agent):
 
     def issue_nl_query(self, question, worker, id=None):
 
+        # progress
+        worker.write_progress(progress_id=worker.sid, label='Issuing question:' + question, value=self.current_step/self.num_steps)
+
         # query plan
-        
         query_plan = [
             [self.name + ".Q", "NL2SQL-E2E_INPLAN.DEFAULT"],
             ["NL2SQL-E2E_INPLAN.DEFAULT", self.name+".RESULTS"],
@@ -114,9 +116,11 @@ class VisualizerAgent(Agent):
         return
 
     def issue_sql_query(self, query, worker, id=None):
+       
+        # progress
+        worker.write_progress(progress_id=worker.sid, label='Issuing query:' + query, value=self.current_step/self.num_steps)
 
         # query plan
-        
         query_plan = [
             [self.name + ".Q", "QUERYEXECUTOR.DEFAULT"],
             ["QUERYEXECUTOR.DEFAULT", self.name+".RESULTS"],
@@ -135,6 +139,9 @@ class VisualizerAgent(Agent):
         return
     
     def render_vis(self, worker, results):
+        # progress
+        worker.write_progress(progress_id=worker.sid, label='Rendering visualization...', value=self.current_step/self.num_steps)
+
         session_data = worker.get_all_session_data()
         if session_data is None:
             session_data = {}
@@ -143,8 +150,8 @@ class VisualizerAgent(Agent):
         if type(template) is dict:
             template = json.dumps(template)
 
-        vis_template = Template(template)
-        vis_json = vis_template.safe_substitute(**self.properties, **results,  **session_data)
+        vis_json = string_utils.safe_substitute(template, **self.properties, **results,  **session_data)
+
         logging.info(vis_json)
         vis = json.loads(vis_json)
         vis_form = ui_builders.build_vis_form(vis)
@@ -154,6 +161,10 @@ class VisualizerAgent(Agent):
             ControlCode.CREATE_FORM, vis_form, output="VIS"
         )
 
+        # progress, done
+        worker.write_progress(progress_id=worker.sid, label='Done...', value=1.0)
+
+
     def default_processor(self, message, input="DEFAULT", properties=None, worker=None):
     
         ##### Upon USER input text
@@ -162,28 +173,33 @@ class VisualizerAgent(Agent):
                 # get all data received from user stream
                 stream = message.getStream()
 
-                logging.info(message.getData())
-                stream_data = ""
+            
+                stream_data = worker.get_data(stream)
+                input_data = " ".join(stream_data)
                 if worker:
                     session_data = worker.get_all_session_data()
-                    logging.info(worker.session.cid)
-                    logging.info(json.dumps(session_data, indent=3)) 
 
                     if session_data is None:
                         session_data = {}
 
-                    # user initiated summarizer, kick off queries from template
+                    # user initiated visualizer, kick off queries from template
                     self.results = {}
                     self.todos = set()
 
-                    
+                    self.num_steps = 1  
+                    self.current_step = 0
+
+                    if 'questions' in self.properties:
+                        self.num_steps = self.num_steps + len(self.properties['questions'].keys())
+                    if 'queries' in self.properties:
+                        self.num_steps = self.num_steps + len(self.properties['queries'].keys())
+
                     # nl questions
                     if 'questions' in self.properties:
                         questions = self.properties['questions']
                         for question_id in questions:
                             q = questions[question_id]
-                            question_template = Template(q)
-                            question = question_template.safe_substitute(**self.properties, **session_data)
+                            question = string_utils.safe_substitute(q, **self.properties, **session_data, input=input_data)
                             self.todos.add(question_id)
                             self.issue_nl_query(question, worker, id=query_id)
                     # db queries
@@ -194,9 +210,8 @@ class VisualizerAgent(Agent):
                             if type(q) == dict:
                                 q = json.dumps(q)
                             else:
-                                q = str(q)
-                            query_template = Template(q)
-                            query = query_template.safe_substitute(**self.properties, **session_data)
+                                q = str(q) 
+                            query = string_utils.safe_substitute(q, **self.properties, **session_data, input=input_data)
                             self.todos.add(query_id)
                             self.issue_sql_query(query, worker, id=query_id)
                     if 'questions' not in self.properties and 'queries' not in self.properties:
@@ -237,8 +252,23 @@ class VisualizerAgent(Agent):
                     self.results[query] = json.dumps(query_results)
                     self.todos.remove(query)
 
+                    # progress
+                    self.current_step = len(self.results)
+                    q = ""
+                    if 'query' in data and data['query']:
+                        q = data['query']
+                    if 'question' in data and data['question']:
+                        q = data['question']
+
+                    worker.write_progress(progress_id=worker.sid, label='Received query results: ' + q, value=self.current_step/self.num_steps)
+
+
                     if len(self.todos) == 0:
-                        self.render_vis(worker, self.results)
+                        if len(query_results) == 0:
+                            self.write_to_new_stream(worker, "No results...", "TEXT")
+                            worker.write_progress(progress_id=worker.sid, label='Done...', value=1.0)
+                        else:
+                            self.render_vis(worker, self.results)
                 else:
                     logging.info("nothing found")
 
