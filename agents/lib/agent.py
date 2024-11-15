@@ -521,18 +521,6 @@ class AgentFactory:
             registry = message.getArg("registry")
             agent = message.getArg("agent")
 
-            # start with factory properties, merge properties from API call
-            properties_from_api = message.getArg("properties")
-            properties_from_factory = self.properties
-            agent_properties = {}
-            agent_properties = json_utils.merge_json(agent_properties, properties_from_factory)
-            agent_properties = json_utils.merge_json(agent_properties, properties_from_api)
-            input = None
-
-            if "input" in agent_properties:
-                input = agent_properties["input"]
-                del agent_properties["input"]
-
             # check match in canonical name space, i.e.
             # <_name> or <_name>.<derivative__name>
             ca = agent.split("_")
@@ -545,6 +533,18 @@ class AgentFactory:
 
             if self._name == ca[0]:
                 name = agent
+
+                # start with factory properties, merge properties from API call
+                properties_from_api = message.getArg("properties")
+                properties_from_factory = self.properties
+                agent_properties = {}
+                agent_properties = json_utils.merge_json(agent_properties, properties_from_factory)
+                agent_properties = json_utils.merge_json(agent_properties, properties_from_api)
+                input = None
+
+                if "input" in agent_properties:
+                    input = agent_properties["input"]
+                    del agent_properties["input"]
 
                 logging.info("Launching Agent: " + name + "...")
                 logging.info("Agent Properties: " + json.dumps(agent_properties) + "...")
