@@ -12,6 +12,7 @@ const TabsRenderer = ({
     uischema,
     visible,
 }) => {
+    const [activeTab, setActiveTab] = useState(_.first(tabs).id);
     const tabs = _.get(uischema, "tabs");
     if (_.size(tabs) != _.size(uischema.elements))
         return (
@@ -33,7 +34,6 @@ const TabsRenderer = ({
               overscrollBehavior: "contain",
           }
         : { padding: 5 };
-    const [activeTab, setActiveTab] = useState(_.first(tabs).id);
     return (
         <div
             style={{
@@ -47,6 +47,7 @@ const TabsRenderer = ({
                 <ButtonGroup vertical={vertical} minimal large={large}>
                     {tabs.map((tab) => (
                         <Button
+                            key={tab.id}
                             onClick={() => setActiveTab(tab.id)}
                             active={_.isEqual(activeTab, tab.id)}
                             text={tab.label}
@@ -59,6 +60,7 @@ const TabsRenderer = ({
                 uischema.elements.map((child, index) => {
                     return (
                         <div
+                            key={index}
                             style={{
                                 display: _.isEqual(activeTab, tabs[index].id)
                                     ? null
@@ -71,7 +73,6 @@ const TabsRenderer = ({
                                 path={path}
                                 renderers={renderers}
                                 cells={cells}
-                                key={index}
                             />
                         </div>
                     );

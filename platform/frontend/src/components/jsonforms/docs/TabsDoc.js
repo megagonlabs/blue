@@ -158,8 +158,8 @@ export default function TabsDoc({ closePanel }) {
                                 <div>
                                     Consists of&nbsp;
                                     <Code>
-                                        &#123;label: "string", id:
-                                        "string"&#125;
+                                        &#123;label: &quot;string&quot;, id:
+                                        &quot;string&quot;&#125;
                                     </Code>
                                 </div>
                             </td>
