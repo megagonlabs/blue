@@ -103,3 +103,1151 @@ table.entity-section-card-table tr td {
     cursor: initial;
 }
 /* react markdown content */
+/* light */
+.react-markdown-content {
+    color-scheme: light;
+    -ms-text-size-adjust: 100%;
+    -webkit-text-size-adjust: 100%;
+    color: #1f2328;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans",
+        Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+    font-size: 16px;
+    word-wrap: break-word;
+    margin: 0;
+    line-height: 1.5;
+    display: table;
+    scroll-behavior: smooth;
+}
+
+.react-markdown-content .octicon {
+    display: inline-block;
+    fill: currentColor;
+    vertical-align: text-bottom;
+}
+
+.react-markdown-content h1:hover .anchor .octicon-link:before,
+.react-markdown-content h2:hover .anchor .octicon-link:before,
+.react-markdown-content h3:hover .anchor .octicon-link:before,
+.react-markdown-content h4:hover .anchor .octicon-link:before,
+.react-markdown-content h5:hover .anchor .octicon-link:before,
+.react-markdown-content h6:hover .anchor .octicon-link:before {
+    width: 16px;
+    height: 16px;
+    content: " ";
+    display: inline-block;
+    background-color: currentColor;
+    -webkit-mask-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' version='1.1' aria-hidden='true'><path fill-rule='evenodd' d='M7.775 3.275a.75.75 0 001.06 1.06l1.25-1.25a2 2 0 112.83 2.83l-2.5 2.5a2 2 0 01-2.83 0 .75.75 0 00-1.06 1.06 3.5 3.5 0 004.95 0l2.5-2.5a3.5 3.5 0 00-4.95-4.95l-1.25 1.25zm-4.69 9.64a2 2 0 010-2.83l2.5-2.5a2 2 0 012.83 0 .75.75 0 001.06-1.06 3.5 3.5 0 00-4.95 0l-2.5 2.5a3.5 3.5 0 004.95 4.95l1.25-1.25a.75.75 0 00-1.06-1.06l-1.25 1.25a2 2 0 01-2.83 0z'></path></svg>");
+    mask-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' version='1.1' aria-hidden='true'><path fill-rule='evenodd' d='M7.775 3.275a.75.75 0 001.06 1.06l1.25-1.25a2 2 0 112.83 2.83l-2.5 2.5a2 2 0 01-2.83 0 .75.75 0 00-1.06 1.06 3.5 3.5 0 004.95 0l2.5-2.5a3.5 3.5 0 00-4.95-4.95l-1.25 1.25zm-4.69 9.64a2 2 0 010-2.83l2.5-2.5a2 2 0 012.83 0 .75.75 0 001.06-1.06 3.5 3.5 0 00-4.95 0l-2.5 2.5a3.5 3.5 0 004.95 4.95l1.25-1.25a.75.75 0 00-1.06-1.06l-1.25 1.25a2 2 0 01-2.83 0z'></path></svg>");
+}
+
+.react-markdown-content details,
+.react-markdown-content figcaption,
+.react-markdown-content figure {
+    display: block;
+}
+
+.react-markdown-content summary {
+    display: list-item;
+}
+
+.react-markdown-content [hidden] {
+    display: none !important;
+}
+
+.react-markdown-content a {
+    background-color: transparent;
+    color: #0969da;
+    text-decoration: none;
+}
+
+.react-markdown-content abbr[title] {
+    border-bottom: none;
+    -webkit-text-decoration: underline dotted;
+    text-decoration: underline dotted;
+}
+
+.react-markdown-content b,
+.react-markdown-content strong {
+    font-weight: 600;
+}
+
+.react-markdown-content dfn {
+    font-style: italic;
+}
+
+.react-markdown-content h1 {
+    margin: 0.67em 0;
+    font-weight: 600;
+    padding-bottom: 0.3em;
+    font-size: 2em;
+    border-bottom: 1px solid #d1d9e0b3;
+}
+
+.react-markdown-content mark {
+    background-color: #fff8c5;
+    color: #1f2328;
+}
+
+.react-markdown-content small {
+    font-size: 90%;
+}
+
+.react-markdown-content sub,
+.react-markdown-content sup {
+    font-size: 75%;
+    line-height: 0;
+    position: relative;
+    vertical-align: baseline;
+}
+
+.react-markdown-content sub {
+    bottom: -0.25em;
+}
+
+.react-markdown-content sup {
+    top: -0.5em;
+}
+
+.react-markdown-content img {
+    border-style: none;
+    max-width: 100%;
+    box-sizing: content-box;
+}
+
+.react-markdown-content code,
+.react-markdown-content kbd,
+.react-markdown-content pre,
+.react-markdown-content samp {
+    font-family: monospace;
+    font-size: 1em;
+}
+
+.react-markdown-content figure {
+    margin: 1em 2.5rem;
+}
+
+.react-markdown-content hr {
+    box-sizing: content-box;
+    overflow: hidden;
+    background: transparent;
+    border-bottom: 1px solid #d1d9e0b3;
+    height: 0.25em;
+    padding: 0;
+    margin: 1.5rem 0;
+    background-color: #d1d9e0;
+    border: 0;
+}
+
+.react-markdown-content input {
+    margin: 0;
+    overflow: visible;
+    font-family: inherit;
+    font-size: inherit;
+    line-height: inherit;
+    font: inherit;
+}
+
+.react-markdown-content [type="button"],
+.react-markdown-content [type="reset"],
+.react-markdown-content [type="submit"] {
+    -webkit-appearance: button;
+    appearance: button;
+}
+
+.react-markdown-content [type="checkbox"],
+.react-markdown-content [type="radio"] {
+    box-sizing: border-box;
+    padding: 0;
+}
+
+.react-markdown-content [type="number"]::-webkit-inner-spin-button,
+.react-markdown-content [type="number"]::-webkit-outer-spin-button {
+    height: auto;
+}
+
+.react-markdown-content [type="search"]::-webkit-search-cancel-button,
+.react-markdown-content [type="search"]::-webkit-search-decoration {
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+.react-markdown-content ::-webkit-input-placeholder {
+    color: inherit;
+    opacity: 0.54;
+}
+
+.react-markdown-content ::-webkit-file-upload-button {
+    -webkit-appearance: button;
+    appearance: button;
+    font: inherit;
+}
+
+.react-markdown-content a:hover {
+    text-decoration: underline;
+}
+
+.react-markdown-content ::placeholder {
+    color: #59636e;
+    opacity: 1;
+}
+
+.react-markdown-content hr::before {
+    display: table;
+    content: "";
+}
+
+.react-markdown-content hr::after {
+    display: table;
+    clear: both;
+    content: "";
+}
+
+.react-markdown-content table {
+    border-spacing: 0;
+    border-collapse: collapse;
+    display: block;
+    width: max-content;
+    max-width: 100%;
+    overflow: auto;
+    font-variant: tabular-nums;
+}
+
+.react-markdown-content td,
+.react-markdown-content th {
+    padding: 0;
+}
+
+.react-markdown-content details summary {
+    cursor: pointer;
+}
+
+.react-markdown-content a:focus,
+.react-markdown-content [role="button"]:focus,
+.react-markdown-content input[type="radio"]:focus,
+.react-markdown-content input[type="checkbox"]:focus {
+    outline: 2px solid #0969da;
+    outline-offset: -2px;
+    box-shadow: none;
+}
+
+.react-markdown-content a:focus:not(:focus-visible),
+.react-markdown-content [role="button"]:focus:not(:focus-visible),
+.react-markdown-content input[type="radio"]:focus:not(:focus-visible),
+.react-markdown-content input[type="checkbox"]:focus:not(:focus-visible) {
+    outline: solid 1px transparent;
+}
+
+.react-markdown-content a:focus-visible,
+.react-markdown-content [role="button"]:focus-visible,
+.react-markdown-content input[type="radio"]:focus-visible,
+.react-markdown-content input[type="checkbox"]:focus-visible {
+    outline: 2px solid #0969da;
+    outline-offset: -2px;
+    box-shadow: none;
+}
+
+.react-markdown-content a:not([class]):focus,
+.react-markdown-content a:not([class]):focus-visible,
+.react-markdown-content input[type="radio"]:focus,
+.react-markdown-content input[type="radio"]:focus-visible,
+.react-markdown-content input[type="checkbox"]:focus,
+.react-markdown-content input[type="checkbox"]:focus-visible {
+    outline-offset: 0;
+}
+
+.react-markdown-content kbd {
+    display: inline-block;
+    padding: 0.25rem;
+    font: 11px ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas,
+        Liberation Mono, monospace;
+    line-height: 10px;
+    color: #1f2328;
+    vertical-align: middle;
+    background-color: #f6f8fa;
+    border: solid 1px #d1d9e0b3;
+    border-bottom-color: #d1d9e0b3;
+    border-radius: 6px;
+    box-shadow: inset 0 -1px 0 #d1d9e0b3;
+}
+
+.react-markdown-content h1,
+.react-markdown-content h2,
+.react-markdown-content h3,
+.react-markdown-content h4,
+.react-markdown-content h5,
+.react-markdown-content h6 {
+    margin-top: 1.5rem;
+    margin-bottom: 1rem;
+    font-weight: 600;
+    line-height: 1.25;
+}
+
+.react-markdown-content h2 {
+    font-weight: 600;
+    padding-bottom: 0.3em;
+    font-size: 1.5em;
+    border-bottom: 1px solid #d1d9e0b3;
+}
+
+.react-markdown-content h3 {
+    font-weight: 600;
+    font-size: 1.25em;
+}
+
+.react-markdown-content h4 {
+    font-weight: 600;
+    font-size: 1em;
+}
+
+.react-markdown-content h5 {
+    font-weight: 600;
+    font-size: 0.875em;
+}
+
+.react-markdown-content h6 {
+    font-weight: 600;
+    font-size: 0.85em;
+    color: #59636e;
+}
+
+.react-markdown-content p {
+    margin-top: 0;
+    margin-bottom: 10px;
+}
+
+.react-markdown-content blockquote {
+    margin: 0;
+    padding: 0 1em;
+    color: #59636e;
+    border-left: 0.25em solid #d1d9e0;
+}
+
+.react-markdown-content ul,
+.react-markdown-content ol {
+    margin-top: 0;
+    margin-bottom: 0;
+    padding-left: 2em;
+}
+
+.react-markdown-content ol ol,
+.react-markdown-content ul ol {
+    list-style-type: lower-roman;
+}
+
+.react-markdown-content ul ul ol,
+.react-markdown-content ul ol ol,
+.react-markdown-content ol ul ol,
+.react-markdown-content ol ol ol {
+    list-style-type: lower-alpha;
+}
+
+.react-markdown-content dd {
+    margin-left: 0;
+}
+
+.react-markdown-content tt,
+.react-markdown-content code,
+.react-markdown-content samp {
+    font-family: ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas,
+        Liberation Mono, monospace;
+    font-size: 12px;
+}
+
+.react-markdown-content pre {
+    margin-top: 0;
+    margin-bottom: 0;
+    font-family: ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas,
+        Liberation Mono, monospace;
+    font-size: 12px;
+    word-wrap: normal;
+}
+
+.react-markdown-content .octicon {
+    display: inline-block;
+    overflow: visible !important;
+    vertical-align: text-bottom;
+    fill: currentColor;
+}
+
+.react-markdown-content input::-webkit-outer-spin-button,
+.react-markdown-content input::-webkit-inner-spin-button {
+    margin: 0;
+    appearance: none;
+}
+
+.react-markdown-content .mr-2 {
+    margin-right: 0.5rem !important;
+}
+
+.react-markdown-content::before {
+    display: table;
+    content: "";
+}
+
+.react-markdown-content::after {
+    display: table;
+    clear: both;
+    content: "";
+}
+
+.react-markdown-content > *:first-child {
+    margin-top: 0 !important;
+}
+
+.react-markdown-content > *:last-child {
+    margin-bottom: 0 !important;
+}
+
+.react-markdown-content a:not([href]) {
+    color: inherit;
+    text-decoration: none;
+}
+
+.react-markdown-content .absent {
+    color: #d1242f;
+}
+
+.react-markdown-content .anchor {
+    float: left;
+    padding-right: 0.25rem;
+    margin-left: -20px;
+    line-height: 1;
+}
+
+.react-markdown-content .anchor:focus {
+    outline: none;
+}
+
+.react-markdown-content p,
+.react-markdown-content blockquote,
+.react-markdown-content ul,
+.react-markdown-content ol,
+.react-markdown-content dl,
+.react-markdown-content table,
+.react-markdown-content pre,
+.react-markdown-content details {
+    margin-top: 0;
+    margin-bottom: 1rem;
+}
+
+.react-markdown-content blockquote > :first-child {
+    margin-top: 0;
+}
+
+.react-markdown-content blockquote > :last-child {
+    margin-bottom: 0;
+}
+
+.react-markdown-content h1 .octicon-link,
+.react-markdown-content h2 .octicon-link,
+.react-markdown-content h3 .octicon-link,
+.react-markdown-content h4 .octicon-link,
+.react-markdown-content h5 .octicon-link,
+.react-markdown-content h6 .octicon-link {
+    color: #1f2328;
+    vertical-align: middle;
+    visibility: hidden;
+}
+
+.react-markdown-content h1:hover .anchor,
+.react-markdown-content h2:hover .anchor,
+.react-markdown-content h3:hover .anchor,
+.react-markdown-content h4:hover .anchor,
+.react-markdown-content h5:hover .anchor,
+.react-markdown-content h6:hover .anchor {
+    text-decoration: none;
+}
+
+.react-markdown-content h1:hover .anchor .octicon-link,
+.react-markdown-content h2:hover .anchor .octicon-link,
+.react-markdown-content h3:hover .anchor .octicon-link,
+.react-markdown-content h4:hover .anchor .octicon-link,
+.react-markdown-content h5:hover .anchor .octicon-link,
+.react-markdown-content h6:hover .anchor .octicon-link {
+    visibility: visible;
+}
+
+.react-markdown-content h1 tt,
+.react-markdown-content h1 code,
+.react-markdown-content h2 tt,
+.react-markdown-content h2 code,
+.react-markdown-content h3 tt,
+.react-markdown-content h3 code,
+.react-markdown-content h4 tt,
+.react-markdown-content h4 code,
+.react-markdown-content h5 tt,
+.react-markdown-content h5 code,
+.react-markdown-content h6 tt,
+.react-markdown-content h6 code {
+    padding: 0 0.2em;
+    font-size: inherit;
+}
+
+.react-markdown-content summary h1,
+.react-markdown-content summary h2,
+.react-markdown-content summary h3,
+.react-markdown-content summary h4,
+.react-markdown-content summary h5,
+.react-markdown-content summary h6 {
+    display: inline-block;
+}
+
+.react-markdown-content summary h1 .anchor,
+.react-markdown-content summary h2 .anchor,
+.react-markdown-content summary h3 .anchor,
+.react-markdown-content summary h4 .anchor,
+.react-markdown-content summary h5 .anchor,
+.react-markdown-content summary h6 .anchor {
+    margin-left: -40px;
+}
+
+.react-markdown-content summary h1,
+.react-markdown-content summary h2 {
+    padding-bottom: 0;
+    border-bottom: 0;
+}
+
+.react-markdown-content ul.no-list,
+.react-markdown-content ol.no-list {
+    padding: 0;
+    list-style-type: none;
+}
+
+.react-markdown-content ol[type="a s"] {
+    list-style-type: lower-alpha;
+}
+
+.react-markdown-content ol[type="A s"] {
+    list-style-type: upper-alpha;
+}
+
+.react-markdown-content ol[type="i s"] {
+    list-style-type: lower-roman;
+}
+
+.react-markdown-content ol[type="I s"] {
+    list-style-type: upper-roman;
+}
+
+.react-markdown-content ol[type="1"] {
+    list-style-type: decimal;
+}
+
+.react-markdown-content div > ol:not([type]) {
+    list-style-type: decimal;
+}
+
+.react-markdown-content ul ul,
+.react-markdown-content ul ol,
+.react-markdown-content ol ol,
+.react-markdown-content ol ul {
+    margin-top: 0;
+    margin-bottom: 0;
+}
+
+.react-markdown-content li > p {
+    margin-top: 1rem;
+}
+
+.react-markdown-content li + li {
+    margin-top: 0.25em;
+}
+
+.react-markdown-content dl {
+    padding: 0;
+}
+
+.react-markdown-content dl dt {
+    padding: 0;
+    margin-top: 1rem;
+    font-size: 1em;
+    font-style: italic;
+    font-weight: 600;
+}
+
+.react-markdown-content dl dd {
+    padding: 0 1rem;
+    margin-bottom: 1rem;
+}
+
+.react-markdown-content table th {
+    font-weight: 600;
+}
+
+.react-markdown-content table th,
+.react-markdown-content table td {
+    padding: 6px 13px;
+    border: 1px solid #d1d9e0;
+}
+
+.react-markdown-content table td > :last-child {
+    margin-bottom: 0;
+}
+
+.react-markdown-content table tr {
+    background-color: #ffffff;
+    border-top: 1px solid #d1d9e0b3;
+}
+
+.react-markdown-content table tr:nth-child(2n) {
+    background-color: #f6f8fa;
+}
+
+.react-markdown-content table img {
+    background-color: transparent;
+}
+
+.react-markdown-content img[align="right"] {
+    padding-left: 20px;
+}
+
+.react-markdown-content img[align="left"] {
+    padding-right: 20px;
+}
+
+.react-markdown-content .emoji {
+    max-width: none;
+    vertical-align: text-top;
+    background-color: transparent;
+}
+
+.react-markdown-content span.frame {
+    display: block;
+    overflow: hidden;
+}
+
+.react-markdown-content span.frame > span {
+    display: block;
+    float: left;
+    width: auto;
+    padding: 7px;
+    margin: 13px 0 0;
+    overflow: hidden;
+    border: 1px solid #d1d9e0;
+}
+
+.react-markdown-content span.frame span img {
+    display: block;
+    float: left;
+}
+
+.react-markdown-content span.frame span span {
+    display: block;
+    padding: 5px 0 0;
+    clear: both;
+    color: #1f2328;
+}
+
+.react-markdown-content span.align-center {
+    display: block;
+    overflow: hidden;
+    clear: both;
+}
+
+.react-markdown-content span.align-center > span {
+    display: block;
+    margin: 13px auto 0;
+    overflow: hidden;
+    text-align: center;
+}
+
+.react-markdown-content span.align-center span img {
+    margin: 0 auto;
+    text-align: center;
+}
+
+.react-markdown-content span.align-right {
+    display: block;
+    overflow: hidden;
+    clear: both;
+}
+
+.react-markdown-content span.align-right > span {
+    display: block;
+    margin: 13px 0 0;
+    overflow: hidden;
+    text-align: right;
+}
+
+.react-markdown-content span.align-right span img {
+    margin: 0;
+    text-align: right;
+}
+
+.react-markdown-content span.float-left {
+    display: block;
+    float: left;
+    margin-right: 13px;
+    overflow: hidden;
+}
+
+.react-markdown-content span.float-left span {
+    margin: 13px 0 0;
+}
+
+.react-markdown-content span.float-right {
+    display: block;
+    float: right;
+    margin-left: 13px;
+    overflow: hidden;
+}
+
+.react-markdown-content span.float-right > span {
+    display: block;
+    margin: 13px auto 0;
+    overflow: hidden;
+    text-align: right;
+}
+
+.react-markdown-content code,
+.react-markdown-content tt {
+    padding: 0.2em 0.4em;
+    margin: 0;
+    font-size: 85%;
+    white-space: break-spaces;
+    background-color: #818b981f;
+    border-radius: 6px;
+}
+
+.react-markdown-content code br,
+.react-markdown-content tt br {
+    display: none;
+}
+
+.react-markdown-content del code {
+    text-decoration: inherit;
+}
+
+.react-markdown-content samp {
+    font-size: 85%;
+}
+
+.react-markdown-content pre code {
+    font-size: 100%;
+}
+
+.react-markdown-content pre > code {
+    padding: 0;
+    margin: 0;
+    word-break: normal;
+    white-space: pre;
+    background: transparent;
+    border: 0;
+}
+
+.react-markdown-content .highlight {
+    margin-bottom: 1rem;
+}
+
+.react-markdown-content .highlight pre {
+    margin-bottom: 0;
+    word-break: normal;
+}
+
+.react-markdown-content .highlight pre,
+.react-markdown-content pre {
+    padding: 1rem;
+    overflow: auto;
+    font-size: 85%;
+    line-height: 1.45;
+    color: #1f2328;
+    background-color: #f6f8fa;
+    border-radius: 6px;
+}
+
+.react-markdown-content pre code,
+.react-markdown-content pre tt {
+    display: inline;
+    max-width: auto;
+    padding: 0;
+    margin: 0;
+    overflow: visible;
+    line-height: inherit;
+    word-wrap: normal;
+    background-color: transparent;
+    border: 0;
+}
+
+.react-markdown-content .csv-data td,
+.react-markdown-content .csv-data th {
+    padding: 5px;
+    overflow: hidden;
+    font-size: 12px;
+    line-height: 1;
+    text-align: left;
+    white-space: nowrap;
+}
+
+.react-markdown-content .csv-data .blob-num {
+    padding: 10px 0.5rem 9px;
+    text-align: right;
+    background: #ffffff;
+    border: 0;
+}
+
+.react-markdown-content .csv-data tr {
+    border-top: 0;
+}
+
+.react-markdown-content .csv-data th {
+    font-weight: 600;
+    background: #f6f8fa;
+    border-top: 0;
+}
+
+.react-markdown-content [data-footnote-ref]::before {
+    content: "[";
+}
+
+.react-markdown-content [data-footnote-ref]::after {
+    content: "]";
+}
+
+.react-markdown-content .footnotes {
+    font-size: 12px;
+    color: #59636e;
+    border-top: 1px solid #d1d9e0;
+}
+
+.react-markdown-content .footnotes ol {
+    padding-left: 1rem;
+}
+
+.react-markdown-content .footnotes ol ul {
+    display: inline-block;
+    padding-left: 1rem;
+    margin-top: 1rem;
+}
+
+.react-markdown-content .footnotes li {
+    position: relative;
+}
+
+.react-markdown-content .footnotes li:target::before {
+    position: absolute;
+    top: calc(0.5rem * -1);
+    right: calc(0.5rem * -1);
+    bottom: calc(0.5rem * -1);
+    left: calc(1.5rem * -1);
+    pointer-events: none;
+    content: "";
+    border: 2px solid #0969da;
+    border-radius: 6px;
+}
+
+.react-markdown-content .footnotes li:target {
+    color: #1f2328;
+}
+
+.react-markdown-content .footnotes .data-footnote-backref g-emoji {
+    font-family: monospace;
+}
+
+.react-markdown-content body:has(:modal) {
+    padding-right: var(--dialog-scrollgutter) !important;
+}
+
+.react-markdown-content .pl-c {
+    color: #59636e;
+}
+
+.react-markdown-content .pl-c1,
+.react-markdown-content .pl-s .pl-v {
+    color: #0550ae;
+}
+
+.react-markdown-content .pl-e,
+.react-markdown-content .pl-en {
+    color: #6639ba;
+}
+
+.react-markdown-content .pl-smi,
+.react-markdown-content .pl-s .pl-s1 {
+    color: #1f2328;
+}
+
+.react-markdown-content .pl-ent {
+    color: #0550ae;
+}
+
+.react-markdown-content .pl-k {
+    color: #cf222e;
+}
+
+.react-markdown-content .pl-s,
+.react-markdown-content .pl-pds,
+.react-markdown-content .pl-s .pl-pse .pl-s1,
+.react-markdown-content .pl-sr,
+.react-markdown-content .pl-sr .pl-cce,
+.react-markdown-content .pl-sr .pl-sre,
+.react-markdown-content .pl-sr .pl-sra {
+    color: #0a3069;
+}
+
+.react-markdown-content .pl-v,
+.react-markdown-content .pl-smw {
+    color: #953800;
+}
+
+.react-markdown-content .pl-bu {
+    color: #82071e;
+}
+
+.react-markdown-content .pl-ii {
+    color: #f6f8fa;
+    background-color: #82071e;
+}
+
+.react-markdown-content .pl-c2 {
+    color: #f6f8fa;
+    background-color: #cf222e;
+}
+
+.react-markdown-content .pl-sr .pl-cce {
+    font-weight: bold;
+    color: #116329;
+}
+
+.react-markdown-content .pl-ml {
+    color: #3b2300;
+}
+
+.react-markdown-content .pl-mh,
+.react-markdown-content .pl-mh .pl-en,
+.react-markdown-content .pl-ms {
+    font-weight: bold;
+    color: #0550ae;
+}
+
+.react-markdown-content .pl-mi {
+    font-style: italic;
+    color: #1f2328;
+}
+
+.react-markdown-content .pl-mb {
+    font-weight: bold;
+    color: #1f2328;
+}
+
+.react-markdown-content .pl-md {
+    color: #82071e;
+    background-color: #ffebe9;
+}
+
+.react-markdown-content .pl-mi1 {
+    color: #116329;
+    background-color: #dafbe1;
+}
+
+.react-markdown-content .pl-mc {
+    color: #953800;
+    background-color: #ffd8b5;
+}
+
+.react-markdown-content .pl-mi2 {
+    color: #d1d9e0;
+    background-color: #0550ae;
+}
+
+.react-markdown-content .pl-mdr {
+    font-weight: bold;
+    color: #8250df;
+}
+
+.react-markdown-content .pl-ba {
+    color: #59636e;
+}
+
+.react-markdown-content .pl-sg {
+    color: #818b98;
+}
+
+.react-markdown-content .pl-corl {
+    text-decoration: underline;
+    color: #0a3069;
+}
+
+.react-markdown-content [role="button"]:focus:not(:focus-visible),
+.react-markdown-content
+    [role="tabpanel"][tabindex="0"]:focus:not(:focus-visible),
+.react-markdown-content button:focus:not(:focus-visible),
+.react-markdown-content summary:focus:not(:focus-visible),
+.react-markdown-content a:focus:not(:focus-visible) {
+    outline: none;
+    box-shadow: none;
+}
+
+.react-markdown-content [tabindex="0"]:focus:not(:focus-visible),
+.react-markdown-content details-dialog:focus:not(:focus-visible) {
+    outline: none;
+}
+
+.react-markdown-content g-emoji {
+    display: inline-block;
+    min-width: 1ch;
+    font-family: "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+    font-size: 1em;
+    font-style: normal !important;
+    font-weight: 400;
+    line-height: 1;
+    vertical-align: -0.075em;
+}
+
+.react-markdown-content g-emoji img {
+    width: 1em;
+    height: 1em;
+}
+
+.react-markdown-content .task-list-item {
+    list-style-type: none;
+}
+
+.react-markdown-content .task-list-item label {
+    font-weight: 400;
+}
+
+.react-markdown-content .task-list-item.enabled label {
+    cursor: pointer;
+}
+
+.react-markdown-content .task-list-item + .task-list-item {
+    margin-top: 0.25rem;
+}
+
+.react-markdown-content .task-list-item .handle {
+    display: none;
+}
+
+.react-markdown-content .task-list-item-checkbox {
+    margin: 0 0.2em 0.25em -1.4em;
+    vertical-align: middle;
+}
+
+.react-markdown-content ul:dir(rtl) .task-list-item-checkbox {
+    margin: 0 -1.6em 0.25em 0.2em;
+}
+
+.react-markdown-content ol:dir(rtl) .task-list-item-checkbox {
+    margin: 0 -1.6em 0.25em 0.2em;
+}
+
+.react-markdown-content
+    .contains-task-list:hover
+    .task-list-item-convert-container,
+.react-markdown-content
+    .contains-task-list:focus-within
+    .task-list-item-convert-container {
+    display: block;
+    width: auto;
+    height: 24px;
+    overflow: visible;
+    clip: auto;
+}
+
+.react-markdown-content ::-webkit-calendar-picker-indicator {
+    filter: invert(50%);
+}
+
+.react-markdown-content .markdown-alert {
+    padding: 0.5rem 1rem;
+    margin-bottom: 1rem;
+    color: inherit;
+    border-left: 0.25em solid #d1d9e0;
+}
+
+.react-markdown-content .markdown-alert > :first-child {
+    margin-top: 0;
+}
+
+.react-markdown-content .markdown-alert > :last-child {
+    margin-bottom: 0;
+}
+
+.react-markdown-content .markdown-alert .markdown-alert-title {
+    display: flex;
+    font-weight: 500;
+    align-items: center;
+    line-height: 1;
+}
+
+.react-markdown-content .markdown-alert.markdown-alert-note {
+    border-left-color: #0969da;
+}
+
+.react-markdown-content
+    .markdown-alert.markdown-alert-note
+    .markdown-alert-title {
+    color: #0969da;
+}
+
+.react-markdown-content .markdown-alert.markdown-alert-important {
+    border-left-color: #8250df;
+}
+
+.react-markdown-content
+    .markdown-alert.markdown-alert-important
+    .markdown-alert-title {
+    color: #8250df;
+}
+
+.react-markdown-content .markdown-alert.markdown-alert-warning {
+    border-left-color: #9a6700;
+}
+
+.react-markdown-content
+    .markdown-alert.markdown-alert-warning
+    .markdown-alert-title {
+    color: #9a6700;
+}
+
+.react-markdown-content .markdown-alert.markdown-alert-tip {
+    border-left-color: #1a7f37;
+}
+
+.react-markdown-content
+    .markdown-alert.markdown-alert-tip
+    .markdown-alert-title {
+    color: #1a7f37;
+}
+
+.react-markdown-content .markdown-alert.markdown-alert-caution {
+    border-left-color: #cf222e;
+}
+
+.react-markdown-content
+    .markdown-alert.markdown-alert-caution
+    .markdown-alert-title {
+    color: #d1242f;
+}
+
+.react-markdown-content > *:first-child > .heading-element:first-child {
+    margin-top: 0 !important;
+}
+
+.react-markdown-content ul[role="list"],
+.react-markdown-content ol[role="list"] {
+    list-style: none;
+}
+
+.react-markdown-content html[focus-within] {
+    scroll-behavior: smooth;
+}
+
+.react-markdown-content html:focus-within {
+    scroll-behavior: smooth;
+}
+
+.react-markdown-content a:not([class]) {
+    -webkit-text-decoration-skip: ink;
+    text-decoration-skip-ink: auto;
+}
+
+.react-markdown-content img,
+.react-markdown-content picture {
+    max-width: 100%;
+    display: block;
+}
+
+.react-markdown-content [class^="Primer_Brand__Link-module__Link___"]::after {
+    width: calc(100% - 20px);
+}
