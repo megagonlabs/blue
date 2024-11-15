@@ -1,4 +1,5 @@
 import { faIcon } from "@/components/icon";
+import * as docProps from "@/components/jsonforms/docs/constant";
 import JsonViewer from "@/components/sessions/message/renderers/JsonViewer";
 import {
     Button,
@@ -9,19 +10,27 @@ import {
     Code,
     H1,
     H2,
+    HTMLTable,
     Intent,
+    Section,
+    SectionCard,
 } from "@blueprintjs/core";
 import { faArrowLeft } from "@fortawesome/sharp-duotone-solid-svg-icons";
+import classNames from "classnames";
+import _ from "lodash";
+import { useState } from "react";
 import CopyDocJsonButton from "./CopyDocJsonButton";
 export default function TabsDoc({ closePanel }) {
     const docJson = {
         type: "Tabs",
-        props: { vertical: false, large: false },
+        tabs: [],
+        props: { vertical: false, large: false, compact: false, style: {} },
         elements: [
             { type: "Group", elements: [] },
             { type: "Group", elements: [] },
         ],
     };
+    const [tab, setTab] = useState("tab1");
     return (
         <>
             <div className="border-bottom" style={{ padding: "10px 20px" }}>
@@ -49,8 +58,9 @@ export default function TabsDoc({ closePanel }) {
                     <H1 style={{ margin: 0 }}>Tabs</H1>
                 </div>
                 <Callout intent={Intent.SUCCESS} icon={null}>
-                    It is strongly recommended to use <Code>Group</Code> for
-                    each tab&apos;s contents.
+                    For clearer visual separation, it is recommended to use{" "}
+                    <Code>Group</Code> &#40;without label&#41; for each
+                    tab&apos;s contents.
                 </Callout>
                 <pre style={{ position: "relative", overflow: "hidden" }}>
                     <div style={{ position: "absolute", right: 15, top: 13 }}>
@@ -61,20 +71,160 @@ export default function TabsDoc({ closePanel }) {
                     </div>
                     <JsonViewer json={docJson} enableClipboard={false} />
                 </pre>
-                <H2>Vertical vs. Horizontal</H2>
-                <Card
+                <H2>Horizontal vs. Vertical</H2>
+                <Callout>
+                    <Card
+                        style={{
+                            padding: "5px 20px",
+                            overflowX: "auto",
+                            marginBottom: 15,
+                            overscrollBehavior: "contain",
+                        }}
+                    >
+                        <ButtonGroup minimal>
+                            <Button
+                                active={_.isEqual(tab, "tab1")}
+                                text="Tab 1"
+                                onClick={() => setTab("tab1")}
+                            />
+                            <Button
+                                active={_.isEqual(tab, "tab2")}
+                                text="Tab 2"
+                                onClick={() => setTab("tab2")}
+                            />
+                        </ButtonGroup>
+                    </Card>
+                    <Section>
+                        <SectionCard>
+                            Tab {_.isEqual(tab, "tab1") ? 1 : 2} content
+                        </SectionCard>
+                    </Section>
+                </Callout>
+                <Callout
                     style={{
-                        padding: "5px 15px",
-                        borderRadius: 0,
-                        overflowX: "auto",
-                        overscrollBehavior: "contain",
+                        display: "flex",
+                        gap: 15,
+                        alignItems: "flex-start",
                     }}
                 >
-                    <ButtonGroup minimal>
-                        <Button text="Tab 1" />
-                        <Button text="Tab 2" />
-                    </ButtonGroup>
-                </Card>
+                    <Card style={{ padding: 5 }}>
+                        <ButtonGroup vertical minimal>
+                            <Button
+                                ellipsizeText
+                                active={_.isEqual(tab, "tab1")}
+                                text="Tab 1"
+                                onClick={() => setTab("tab1")}
+                            />
+                            <Button
+                                ellipsizeText
+                                active={_.isEqual(tab, "tab2")}
+                                text="Tab 2"
+                                onClick={() => setTab("tab2")}
+                            />
+                        </ButtonGroup>
+                    </Card>
+                    <Section>
+                        <SectionCard>
+                            Tab {_.isEqual(tab, "tab1") ? 1 : 2} content
+                        </SectionCard>
+                    </Section>
+                </Callout>
+                <H2>Props</H2>
+                <HTMLTable
+                    className="docs-prop-table"
+                    style={{ width: "100%" }}
+                >
+                    <thead>
+                        <tr>
+                            <th>Props</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <Code>tabs</Code>
+                            </td>
+                            <td>
+                                <strong>array</strong>
+                                <em
+                                    className={classNames(
+                                        Classes.TEXT_MUTED,
+                                        "docs-prop-default"
+                                    )}
+                                >
+                                    &#91;at least 1 element&#93;
+                                </em>
+                                <div>
+                                    Consists of&nbsp;
+                                    <Code>
+                                        &#123;label: "string", id:
+                                        "string"&#125;
+                                    </Code>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <Code>vertical</Code>
+                            </td>
+                            <td>
+                                <strong>boolean</strong>
+                                <em
+                                    className={classNames(
+                                        Classes.TEXT_MUTED,
+                                        "docs-prop-default"
+                                    )}
+                                >
+                                    false
+                                </em>
+                                <div>
+                                    Whether tabs bar should align tabs button
+                                    vertically or horizontally.
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <Code>large</Code>
+                            </td>
+                            <td>
+                                <strong>boolean</strong>
+                                <em
+                                    className={classNames(
+                                        Classes.TEXT_MUTED,
+                                        "docs-prop-default"
+                                    )}
+                                >
+                                    false
+                                </em>
+                                <div>
+                                    Whether tabs button should use large styles.
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <Code>compact</Code>
+                            </td>
+                            <td>
+                                <strong>boolean</strong>
+                                <em
+                                    className={classNames(
+                                        Classes.TEXT_MUTED,
+                                        "docs-prop-default"
+                                    )}
+                                >
+                                    false
+                                </em>
+                                <div>
+                                    Whether tabs bar should use compact styles.
+                                </div>
+                            </td>
+                        </tr>
+                        {docProps.style}
+                    </tbody>
+                </HTMLTable>
             </div>
         </>
     );

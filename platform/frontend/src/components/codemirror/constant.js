@@ -50,12 +50,26 @@ module.exports = {
                     "Control",
                     "Label",
                     "Group",
+                    "Tabs",
                     "Vega",
                     "Markdown",
                     "Callout",
                 ],
             },
             label: { type: "string", minLength: 1 },
+            tabs: {
+                type: "array",
+                items: {
+                    type: "object",
+                    properties: {
+                        label: { type: "string", minLength: 1 },
+                        id: { type: "string", minLength: 1 },
+                    },
+                    required: ["label", "id"],
+                    additionalProperties: false,
+                },
+                minLength: 1,
+            },
             props: {
                 type: "object",
                 properties: {
@@ -68,6 +82,7 @@ module.exports = {
                     defaultIsOpen: { type: "boolean" },
                     compact: { type: "boolean" },
                     muted: { type: "boolean" },
+                    vertical: { type: "boolean" },
                     small: { type: "boolean" },
                     large: { type: "boolean" },
                     spaceEvenly: { type: "boolean" },

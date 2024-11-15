@@ -53,6 +53,7 @@ import DateTimeRenderer, {
 import MarkdownRenderer, {
     MarkdownTester,
 } from "./jsonforms/renderers/Markdown";
+import TabsRenderer, { TabsTester } from "./jsonforms/renderers/Tabs";
 import VegaRenderer, { VegaTester } from "./jsonforms/renderers/Vega";
 export const ENTITY_TYPE_LOOKUP = {
         agent: { icon: faCircleA, key: "agent" },
@@ -85,6 +86,7 @@ export const ENTITY_TYPE_LOOKUP = {
         { tester: ArrayTester, renderer: ArrayRenderer },
         { tester: MarkdownTester, renderer: MarkdownRenderer },
         { tester: CalloutTester, renderer: CalloutRenderer },
+        { tester: TabsTester, renderer: TabsRenderer },
         { tester: UnknownTester, renderer: UnknownRenderer },
     ],
     CARD_LIST_CLASS_NAMES = `${Classes.CARD} ${Classes.CARD_LIST} ${Classes.CARD_LIST_BORDERED}`,
