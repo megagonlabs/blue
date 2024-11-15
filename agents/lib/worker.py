@@ -203,16 +203,20 @@ class Worker:
             ControlCode.CLOSE_FORM,
         ]:
             if message.getCode() == ControlCode.CREATE_FORM:
+                form_id = message.getArg('form_id')
+            
                 # create a new form id
                 if id == None:
                     id = str(hex(uuid.uuid4().fields[0]))[2:]
 
-                message.setArg("form_id", id)
+                if form_id is None:
+                    form_id = id
+                    message.setArg("form_id", id)
 
                 # start stream
                 event_producer = Producer(
                     name="EVENT",
-                    id=id,
+                    id=form_id,
                     prefix=prefix,
                     suffix="STREAM",
                     properties=self.properties,
@@ -221,7 +225,7 @@ class Worker:
                 event_stream = event_producer.get_stream()
 
                 # inject stream and form id into ui
-                self._update_form_ids(message.getArg("uischema"), event_stream, id)
+                self._update_form_ids(message.getArg("uischema"), event_stream, form_id)
 
                 # start a consumer to listen to a event stream, using self.processor
                 event_consumer = Consumer(
@@ -234,7 +238,13 @@ class Worker:
                 event_consumer.start()
 
             else:
-                id = message.getArg("form_id")
+                form_id = message.getArg('form_id')
+
+                if form_id is None:
+                    raise Exception('missing form_id in UPDATE_FORM')
+
+                # inject stream and form id into ui
+                # self._update_form_ids(message.getArg("uischema"), event_stream, form_id)                    
 
         # append output variable with id, if not None
         if id is not None:
