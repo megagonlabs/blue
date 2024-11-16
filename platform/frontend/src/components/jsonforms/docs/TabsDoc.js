@@ -24,12 +24,7 @@ export default function TabsDoc({ closePanel }) {
     const docJson = {
         type: "Tabs",
         tabs: [],
-        props: {
-            vertical: false,
-            large: false,
-            compact: false,
-            style: {},
-        },
+        props: { vertical: false, large: false, compact: false, style: {} },
         elements: [],
     };
     const exampleJson = {
@@ -38,21 +33,11 @@ export default function TabsDoc({ closePanel }) {
         elements: [
             {
                 type: "Group",
-                elements: [
-                    {
-                        type: "Label",
-                        label: "Tab 1 content",
-                    },
-                ],
+                elements: [{ type: "Label", label: "Tab 1 content" }],
             },
             {
                 type: "Group",
-                elements: [
-                    {
-                        type: "Label",
-                        label: "Tab 2 content",
-                    },
-                ],
+                elements: [{ type: "Label", label: "Tab 2 content" }],
             },
         ],
     };
@@ -69,10 +54,7 @@ export default function TabsDoc({ closePanel }) {
             </div>
             <div
                 className={Classes.RUNNING_TEXT}
-                style={{
-                    padding: 20,
-                    overflowY: "auto",
-                }}
+                style={{ padding: 20, overflowY: "auto" }}
             >
                 <div
                     style={{
