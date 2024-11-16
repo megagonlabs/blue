@@ -16,15 +16,21 @@ import { pointerOutsideOfPreview } from "@atlaskit/pragmatic-drag-and-drop/eleme
 import { setCustomNativeDragPreview } from "@atlaskit/pragmatic-drag-and-drop/element/set-custom-native-drag-preview";
 import {
     Button,
+    ButtonGroup,
     Callout,
     Card,
     Classes,
+    Collapse,
     Intent,
-    Section,
-    SectionCard,
+    Tag,
     Tooltip,
 } from "@blueprintjs/core";
-import { faMessage, faTrash } from "@fortawesome/sharp-duotone-solid-svg-icons";
+import {
+    faChevronDown,
+    faChevronUp,
+    faMessage,
+    faTrash,
+} from "@fortawesome/sharp-duotone-solid-svg-icons";
 import _ from "lodash";
 import { useContext, useEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
@@ -43,6 +49,11 @@ export default function MessageSnapshot({ content, index }) {
     const [state, setState] = useState(IDLE_STATE);
     const dragData = { index, [WORKSAPCE_DRAGGABLE_SYMBOL]: true };
     const loading = _.get(content, "loading", false);
+    const isCollapsed = _.get(
+        appState,
+        ["session", "sessionWorkspaceCollapse", stream],
+        true
+    );
     useEffect(() => {
         const element = ref.current;
         invariant(element);
@@ -134,72 +145,93 @@ export default function MessageSnapshot({ content, index }) {
     }, [content]); // eslint-disable-line react-hooks/exhaustive-deps
     return (
         <div style={{ position: "relative" }}>
-            <Section
-                ref={ref}
-                collapseProps={{
-                    isOpen:
-                        !_.get(
-                            appState,
-                            ["session", "sessionWorkspaceCollapse", stream],
-                            true
-                        ) && !dragging,
-                    onToggle: () =>
-                        appActions.session.toggleWorkspaceCollapse({ stream }),
-                }}
-                style={{ opacity: dragging ? 0.54 : 1 }}
-                collapsible
-                title="Message"
-                icon={faIcon({ icon: faMessage })}
-                compact
-                rightElement={
-                    !dragging && (
-                        <div onClick={(event) => event.stopPropagation()}>
-                            <Tooltip
-                                placement="bottom"
-                                minimal
-                                content="Remove"
-                            >
-                                <Button
-                                    onClick={() =>
-                                        appActions.session.removeWorkspaceContent(
-                                            index
-                                        )
-                                    }
-                                    minimal
-                                    icon={faIcon({ icon: faTrash })}
-                                />
-                            </Tooltip>
-                        </div>
-                    )
-                }
-            >
-                <SectionCard
-                    className={loading ? Classes.SKELETON : null}
-                    style={{
-                        overflowX: "auto",
-                        position: "relative",
-                        whiteSpace: "pre-wrap",
-                        wordBreak: "break-all",
-                    }}
-                >
-                    {hasError.current ? (
-                        <Callout
-                            intent={Intent.DANGER}
-                            icon={null}
-                            title="Unable to display the content"
+            <div ref={ref}>
+                <Callout style={{ opacity: dragging ? 0.54 : 1 }}>
+                    <div
+                        style={{
+                            marginBottom: !isCollapsed && !dragging ? 15 : 0,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                            cursor: "pointer",
+                        }}
+                        onClick={() =>
+                            appActions.session.toggleWorkspaceCollapse({
+                                stream,
+                            })
+                        }
+                    >
+                        <Tag
+                            intent={Intent.PRIMARY}
+                            large
+                            minimal
+                            icon={faIcon({ icon: faMessage })}
                         >
-                            We&apos;re unable to parse the source data of this
-                            content
-                        </Callout>
-                    ) : (
-                        <MessageContent
-                            contentType={contentType}
-                            streamData={streamData}
-                            hasError={hasError}
-                        />
-                    )}
-                </SectionCard>
-            </Section>
+                            Message
+                        </Tag>
+                        {!dragging && (
+                            <div onClick={(event) => event.stopPropagation()}>
+                                <ButtonGroup minimal>
+                                    <Tooltip
+                                        placement="bottom"
+                                        minimal
+                                        content="Remove"
+                                    >
+                                        <Button
+                                            onClick={() =>
+                                                appActions.session.removeWorkspaceContent(
+                                                    index
+                                                )
+                                            }
+                                            icon={faIcon({ icon: faTrash })}
+                                        />
+                                    </Tooltip>
+                                    <Button
+                                        style={{ pointerEvents: "none" }}
+                                        icon={faIcon({
+                                            icon: isCollapsed
+                                                ? faChevronDown
+                                                : faChevronUp,
+                                        })}
+                                    />
+                                </ButtonGroup>
+                            </div>
+                        )}
+                    </div>
+                    <Collapse
+                        keepChildrenMounted
+                        isOpen={!isCollapsed && !dragging}
+                    >
+                        <div
+                            className={loading ? Classes.SKELETON : null}
+                            style={{
+                                overflowX: "auto",
+                                position: "relative",
+                                whiteSpace: "pre-wrap",
+                                wordBreak: "break-all",
+                                padding: 1,
+                            }}
+                        >
+                            {hasError.current ? (
+                                <Callout
+                                    intent={Intent.DANGER}
+                                    icon={null}
+                                    title="Unable to display the content"
+                                >
+                                    We&apos;re unable to parse the source data
+                                    of this content
+                                </Callout>
+                            ) : (
+                                <MessageContent
+                                    contentType={contentType}
+                                    streamData={streamData}
+                                    hasError={hasError}
+                                />
+                            )}
+                        </div>
+                    </Collapse>
+                </Callout>
+            </div>
             {_.isEqual(state.type, "isDraggingOver") && state.closestEdge ? (
                 <DropIndicator edge={state.closestEdge} gap="20px" />
             ) : null}
