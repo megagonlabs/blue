@@ -59,16 +59,8 @@ module.exports = {
             label: { type: "string", minLength: 1 },
             tabs: {
                 type: "array",
-                items: {
-                    type: "object",
-                    properties: {
-                        label: { type: "string", minLength: 1 },
-                        id: { type: "string", minLength: 1 },
-                    },
-                    required: ["label", "id"],
-                    additionalProperties: false,
-                },
-                minLength: 1,
+                items: { type: "string", minLength: 1 },
+                minItems: 1,
             },
             props: {
                 type: "object",

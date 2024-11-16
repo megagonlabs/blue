@@ -24,10 +24,36 @@ export default function TabsDoc({ closePanel }) {
     const docJson = {
         type: "Tabs",
         tabs: [],
-        props: { vertical: false, large: false, compact: false, style: {} },
+        props: {
+            vertical: false,
+            large: false,
+            compact: false,
+            style: {},
+        },
+        elements: [],
+    };
+    const exampleJson = {
+        type: "Tabs",
+        tabs: ["Tab 1", "Tab 2"],
         elements: [
-            { type: "Group", elements: [] },
-            { type: "Group", elements: [] },
+            {
+                type: "Group",
+                elements: [
+                    {
+                        type: "Label",
+                        label: "Tab 1 content",
+                    },
+                ],
+            },
+            {
+                type: "Group",
+                elements: [
+                    {
+                        type: "Label",
+                        label: "Tab 2 content",
+                    },
+                ],
+            },
         ],
     };
     const [tab, setTab] = useState("tab1");
@@ -70,6 +96,15 @@ export default function TabsDoc({ closePanel }) {
                         />
                     </div>
                     <JsonViewer json={docJson} enableClipboard={false} />
+                </pre>
+                <H2>Example</H2>
+                <pre style={{ position: "relative", overflow: "hidden" }}>
+                    <div style={{ position: "absolute", right: 15, top: 13 }}>
+                        <CopyDocJsonButton
+                            docJson={JSON.stringify(exampleJson, null, 4)}
+                        />
+                    </div>
+                    <JsonViewer json={exampleJson} enableClipboard={false} />
                 </pre>
                 <H2>Horizontal vs. Vertical</H2>
                 <Callout>
@@ -155,13 +190,7 @@ export default function TabsDoc({ closePanel }) {
                                 >
                                     &#91;at least 1 element&#93;
                                 </em>
-                                <div>
-                                    Consists of&nbsp;
-                                    <Code>
-                                        &#123;label: &quot;string&quot;, id:
-                                        &quot;string&quot;&#125;
-                                    </Code>
-                                </div>
+                                <div>Consists of tabs labels.</div>
                             </td>
                         </tr>
                         <tr>

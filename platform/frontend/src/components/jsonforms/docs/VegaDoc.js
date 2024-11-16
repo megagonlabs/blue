@@ -120,7 +120,7 @@ export default function VegaDoc({ closePanel }) {
                                 >
                                     &#123;&#125;
                                 </em>
-                                <div>Vega-Lite view specification</div>
+                                <div>Vega-Lite view specification.</div>
                                 <Tag
                                     large
                                     intent={Intent.WARNING}
