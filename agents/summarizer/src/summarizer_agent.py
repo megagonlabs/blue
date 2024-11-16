@@ -78,8 +78,8 @@ agent_properties = {
     "nl2q.case_insensitive": True,
     "rephrase": True,
     "tags": {"PLAN": ["PLAN"]},
-    "summary_template": "The average salary for an engineering job is {$average_salary}, while the highest paying would be {$highest_pay}",
-    "queries": {"average_salary": "what is the average salary in jurong for an engineering job?","highest_pay": "what is the highest paying job in jurong for engineer?"}
+    "summary_template": "",
+    "queries": {}
 }
 
 class SummarizerAgent(OpenAIAgent):
