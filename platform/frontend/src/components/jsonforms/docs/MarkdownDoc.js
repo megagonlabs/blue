@@ -84,7 +84,7 @@ export default function MarkdownDoc({ closePanel }) {
                                 >
                                     &quot;&quot;
                                 </em>
-                                <div>Markup language content</div>
+                                <div>Markup language content.</div>
                                 <Tag
                                     large
                                     intent={Intent.WARNING}

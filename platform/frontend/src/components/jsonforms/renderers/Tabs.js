@@ -12,8 +12,8 @@ const TabsRenderer = ({
     uischema,
     visible,
 }) => {
-    const [activeTab, setActiveTab] = useState(_.first(tabs).id);
     const tabs = _.get(uischema, "tabs");
+    const [activeTab, setActiveTab] = useState(0);
     if (_.size(tabs) != _.size(uischema.elements))
         return (
             <Callout intent={Intent.DANGER} icon={null}>
@@ -45,12 +45,12 @@ const TabsRenderer = ({
         >
             <Card style={{ ...TAB_STYLE }}>
                 <ButtonGroup vertical={vertical} minimal large={large}>
-                    {tabs.map((tab) => (
+                    {tabs.map((tab, index) => (
                         <Button
-                            key={tab.id}
-                            onClick={() => setActiveTab(tab.id)}
-                            active={_.isEqual(activeTab, tab.id)}
-                            text={tab.label}
+                            key={index}
+                            onClick={() => setActiveTab(index)}
+                            active={_.isEqual(activeTab, index)}
+                            text={tab}
                         />
                     ))}
                 </ButtonGroup>
@@ -62,7 +62,7 @@ const TabsRenderer = ({
                         <div
                             key={index}
                             style={{
-                                display: _.isEqual(activeTab, tabs[index].id)
+                                display: _.isEqual(activeTab, index)
                                     ? null
                                     : "none",
                             }}
