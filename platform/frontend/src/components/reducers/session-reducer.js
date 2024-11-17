@@ -210,10 +210,14 @@ export default function sessionReducer(
                             i--
                         ) {
                             if (
-                                _.isEqual(workspaceContents[i].stream, stream)
+                                _.isEqual(
+                                    workspaceContents[i].message.stream,
+                                    stream
+                                )
                             ) {
                                 workspaceContents[i].loading = false;
-                                workspaceContents[i].contentType = "JSON_FORM";
+                                workspaceContents[i].message.contentType =
+                                    "JSON_FORM";
                                 break;
                             }
                         }
@@ -257,9 +261,15 @@ export default function sessionReducer(
                         }
                     }
                     for (let i = _.size(workspaceContents) - 1; i >= 0; i--) {
-                        if (_.isEqual(workspaceContents[i].stream, stream)) {
+                        if (
+                            _.isEqual(
+                                workspaceContents[i].message.stream,
+                                stream
+                            )
+                        ) {
                             workspaceContents[i].loading = false;
-                            workspaceContents[i].contentType = contentType;
+                            workspaceContents[i].message.contentType =
+                                contentType;
                             break;
                         }
                     }
@@ -286,15 +296,14 @@ export default function sessionReducer(
                     [session_id, "streams", stream, "data"],
                     _.sortBy(_.uniqBy(data, "id"), ["timestamp", "order"])
                 );
-                const addToWorkspace = _.get(
-                    payload,
-                    "metadata.tags.WORKSPACE",
-                    false
-                );
-                if (considerWorkspace && addToWorkspace) {
+                if (
+                    considerWorkspace &&
+                    _.get(payload, "metadata.tags.WORKSPACE", false)
+                ) {
                     workspaceContents.push({
                         type: "session",
-                        message: { ...baseMessage, loading: true },
+                        message: baseMessage,
+                        loading: true,
                     });
                 }
                 _.set(sessionWorkspace, sessionIdFocus, workspaceContents);
