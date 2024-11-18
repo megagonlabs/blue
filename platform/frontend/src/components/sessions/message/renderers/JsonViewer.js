@@ -5,10 +5,6 @@ import "react18-json-view/src/style.css";
 export default function JsonViewer({ json, enableClipboard }) {
     return (
         <JsonView
-            collapsed={({ indexOrName }) => {
-                if (["uischema", "schema"].includes(indexOrName)) return true;
-                return false;
-            }}
             customizeCollapseStringUI={() => (
                 <>&nbsp;{faIcon({ icon: faEllipsis })}</>
             )}
