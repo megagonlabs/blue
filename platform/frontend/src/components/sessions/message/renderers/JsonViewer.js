@@ -2,9 +2,14 @@ import { faIcon } from "@/components/icon";
 import { faEllipsis } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import JsonView from "react18-json-view";
 import "react18-json-view/src/style.css";
-export default function JsonViewer({ json, enableClipboard }) {
+export default function JsonViewer({
+    json,
+    enableClipboard,
+    collapsed = false,
+}) {
     return (
         <JsonView
+            collapsed={collapsed}
             customizeCollapseStringUI={() => (
                 <>&nbsp;{faIcon({ icon: faEllipsis })}</>
             )}

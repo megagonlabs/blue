@@ -53,6 +53,11 @@ export default function Debugger() {
                             <JsonViewer
                                 json={_.omit(message, ["type"])}
                                 key={index}
+                                collapsed={({ indexOrName }) => {
+                                    return ["uischema", "schema"].includes(
+                                        indexOrName
+                                    );
+                                }}
                             />
                             {index < _.size(messages) - 1 ? <Divider /> : null}
                         </>
