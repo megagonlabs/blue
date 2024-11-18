@@ -20,6 +20,7 @@ export default function EnumDoc({ closePanel }) {
             inline: false,
             helperText: null,
             style: {},
+            large: false,
         },
         scope: "#/properties/...",
         required: false,

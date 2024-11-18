@@ -27,6 +27,7 @@ import { VariableSizeList } from "react-window";
 const Row = ({ index, data, style }) => {
     const { setRowHeight } = data;
     const { appState, appActions } = useContext(AppContext);
+    const { expandedMessageStream, jsonformSpecs } = appState.session;
     const sessionIdFocus = appState.session.sessionIdFocus;
     const messages = appState.session.sessions[sessionIdFocus].messages;
     const streams = appState.session.sessions[sessionIdFocus].streams;
@@ -174,13 +175,34 @@ const Row = ({ index, data, style }) => {
                             >
                                 <Button
                                     icon={faIcon({ icon: faBinary })}
-                                    onClick={() =>
-                                        appActions.debug.addMessage({
+                                    onClick={() => {
+                                        const isJsonForm = _.isEqual(
+                                            _.get(message, "contentType", null),
+                                            "JSON_FORM"
+                                        );
+                                        let debugMessage = {
                                             type: "session",
                                             message,
-                                            data: streams[stream],
-                                        })
-                                    }
+                                            stream: streams[stream],
+                                        };
+                                        if (isJsonForm) {
+                                            const lastForm = _.last(
+                                                streams[stream].data
+                                            );
+                                            const formId = _.get(
+                                                lastForm,
+                                                "content.form_id"
+                                            );
+                                            _.set(
+                                                debugMessage,
+                                                "form",
+                                                _.get(jsonformSpecs, formId, {})
+                                            );
+                                        }
+                                        appActions.debug.addMessage(
+                                            debugMessage
+                                        );
+                                    }}
                                 />
                             </Tooltip>
                         ) : null}
@@ -216,9 +238,7 @@ const Row = ({ index, data, style }) => {
                                 padding: 1,
                                 maxHeight:
                                     expandMessage ||
-                                    appState.session.expandedMessageStream.has(
-                                        stream
-                                    )
+                                    expandedMessageStream.has(stream)
                                         ? null
                                         : MESSAGE_OVERFLOW_THRESHOLD,
                             }}

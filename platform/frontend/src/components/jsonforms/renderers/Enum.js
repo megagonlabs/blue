@@ -34,6 +34,7 @@ const EnumRenderer = ({
             helperText={_.get(uischema, "props.helperText", null)}
         >
             <HTMLSelect
+                large={_.get(uischema, "props.large", false)}
                 name={id}
                 value={_.isEmpty(data) ? "" : data}
                 options={[
