@@ -231,7 +231,6 @@ class AgenticEmployerAgent(Agent):
 
         form = ui_builders.build_ats_form(self.job_postings, self.lists, self.results)
         form['form_id'] = "ats"
-        logging.info(form)
 
         # write form, updating existing if necessary 
         update = False
@@ -260,9 +259,6 @@ class AgenticEmployerAgent(Agent):
                 query = input[len("QUERY_RESULTS_"):]
 
                 data = message.getData()
-
-                logging.info(data)
-                logging.info(query)
             
                 if 'result' in data:
                     query_results = data['result']
@@ -284,7 +280,6 @@ class AgenticEmployerAgent(Agent):
         elif input == "EVENT":
             if message.isData():
                 if worker:
-                    logging.info(message)
                     data = message.getData()
                     stream = message.getStream()
                     form_id = data["form_id"]
