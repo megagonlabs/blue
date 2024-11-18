@@ -72,6 +72,7 @@ export default function Sessions() {
     const [isSessionDetailOpen, setIsSessionDetailOpen] = useState(false);
     const { socket, reconnectWs, isSocketOpen } = useSocket();
     const { settings } = useContext(AuthContext);
+    const compactSidebar = _.get(settings, "compact_sidebar", false);
     const { authenticating } = useContext(SocketContext);
     const sendSessionMessage = (message) => {
         if (!isSocketOpen) return;
@@ -402,7 +403,8 @@ export default function Sessions() {
                     width: `calc(100vw - ${
                         (sessionListPanelCollapsed
                             ? 80
-                            : SESSION_LIST_PANEL_WIDTH) + NAVIGATION_MENU_WIDTH
+                            : SESSION_LIST_PANEL_WIDTH) +
+                        (compactSidebar ? 80 : NAVIGATION_MENU_WIDTH)
                     }px)`,
                 }}
             >

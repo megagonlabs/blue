@@ -18,6 +18,8 @@ import {
     faClipboard,
     faCode,
     faMessages,
+    faPaintRoller,
+    faSidebar,
     faTableColumns,
     faTableList,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
@@ -61,6 +63,13 @@ export default function Settings({ isOpen, setIsSettingsOpen }) {
             icon: faArrowsFromLine,
         },
     };
+    const APPEARANCE_SETTINGS = {
+        compact_sidebar: {
+            title: "Compact sidebar",
+            description: "Use minimal style for vavigation menu",
+            icon: faSidebar,
+        },
+    };
     return (
         <Drawer
             size={DrawerSize.SMALL}
@@ -102,6 +111,64 @@ export default function Settings({ isOpen, setIsSettingsOpen }) {
                         </Tag>
                     </Tooltip>
                 </div>
+                <Section
+                    {...SECTION_PROPS}
+                    icon={faIcon({ icon: faPaintRoller })}
+                    title="Appearance"
+                    style={{ marginBottom: 15 }}
+                >
+                    <SectionCard padded={false}>
+                        <Menu className="settings-menus" large>
+                            {["compact_sidebar"].map((key) => (
+                                <MenuItem
+                                    key={key}
+                                    text={
+                                        <div style={{ marginLeft: 3 }}>
+                                            <div>
+                                                {_.get(
+                                                    APPEARANCE_SETTINGS,
+                                                    [key, "title"],
+                                                    "-"
+                                                )}
+                                            </div>
+                                            <div {...EXPLANATION_TEXT}>
+                                                {_.get(
+                                                    APPEARANCE_SETTINGS,
+                                                    [key, "description"],
+                                                    "-"
+                                                )}
+                                            </div>
+                                        </div>
+                                    }
+                                    icon={faIcon({
+                                        icon: _.get(
+                                            APPEARANCE_SETTINGS,
+                                            [key, "icon"],
+                                            null
+                                        ),
+                                    })}
+                                    labelElement={
+                                        <Switch
+                                            checked={_.get(
+                                                settings,
+                                                key,
+                                                false
+                                            )}
+                                            style={{ marginBottom: 0 }}
+                                            large
+                                            onChange={(event) => {
+                                                updateSettings(
+                                                    key,
+                                                    event.target.checked
+                                                );
+                                            }}
+                                        />
+                                    }
+                                />
+                            ))}
+                        </Menu>
+                    </SectionCard>
+                </Section>
                 <Section
                     {...SECTION_PROPS}
                     icon={faIcon({ icon: faMessages })}

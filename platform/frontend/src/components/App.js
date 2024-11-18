@@ -13,6 +13,7 @@ import {
     ButtonGroup,
     Card,
     Classes,
+    Divider,
     H3,
     Intent,
     MenuDivider,
@@ -22,7 +23,13 @@ import {
     Tooltip,
 } from "@blueprintjs/core";
 import {
+    fa1,
+    fa2,
+    fa3,
+    fa4,
+    fa5,
     faGear,
+    faHashtag,
     faInboxArrowUp,
     faLayerGroup,
     faPencilRuler,
@@ -55,7 +62,9 @@ export default function App({ children }) {
                 .map((session) => session.id),
         [sessionDetails]
     );
-    const { user, permissions } = useContext(AuthContext);
+    const { user, permissions, settings } = useContext(AuthContext);
+    const compactSidebar = _.get(settings, "compact_sidebar", false);
+    const sidebarWidth = compactSidebar ? 80 : NAVIGATION_MENU_WIDTH;
     const {
         canWritePlatformUsers,
         canReadPlatformServices,
@@ -162,6 +171,13 @@ export default function App({ children }) {
             visible: canReadPlatformAgents,
         },
     };
+    const NUMBER_TO_ICON = {
+        1: fa1,
+        2: fa2,
+        3: fa3,
+        4: fa4,
+        5: fa5,
+    };
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     return (
         <div>
@@ -213,7 +229,7 @@ export default function App({ children }) {
                         top: 50,
                         left: 0,
                         height: "calc(100vh - 50px)",
-                        width: NAVIGATION_MENU_WIDTH,
+                        width: sidebarWidth,
                         borderRadius: 0,
                         display: "flex",
                         flexDirection: "column",
@@ -224,7 +240,9 @@ export default function App({ children }) {
                 >
                     {hasTrue([canReadSessions]) ? (
                         <>
-                            <MenuDivider title="Sessions" />
+                            {!compactSidebar && (
+                                <MenuDivider title="Sessions" />
+                            )}
                             <ButtonGroup
                                 alignText={Alignment.LEFT}
                                 vertical
@@ -232,55 +250,85 @@ export default function App({ children }) {
                                 className="full-parent-width"
                             >
                                 {canReadSessions &&
-                                    recentSessions.map((sessionId) => {
+                                    recentSessions.map((sessionId, index) => {
                                         const active =
-                                            _.isEqual(
-                                                sessionIdFocus,
-                                                sessionId
-                                            ) &&
-                                            _.startsWith(
-                                                router.asPath,
-                                                "/sessions"
-                                            );
-                                        return (
-                                            <Button
-                                                key={sessionId}
-                                                active={active}
-                                                style={{
-                                                    padding: "5px 15px",
-                                                    backgroundColor: !active
-                                                        ? "transparent"
-                                                        : null,
-                                                }}
-                                                onClick={() => {
-                                                    appActions.session.setSessionIdFocus(
+                                                _.isEqual(
+                                                    sessionIdFocus,
+                                                    sessionId
+                                                ) &&
+                                                _.startsWith(
+                                                    router.asPath,
+                                                    "/sessions"
+                                                ),
+                                            buttonText = (
+                                                <div
+                                                    style={{
+                                                        width: compactSidebar
+                                                            ? 200
+                                                            : 133,
+                                                    }}
+                                                    className={
+                                                        Classes.TEXT_OVERFLOW_ELLIPSIS
+                                                    }
+                                                >
+                                                    #&nbsp;
+                                                    {_.get(
+                                                        sessionDetails,
+                                                        [sessionId, "name"],
                                                         sessionId
-                                                    );
-                                                    appActions.session.observeSession(
-                                                        {
-                                                            sessionId,
-                                                            socket,
-                                                        }
-                                                    );
-                                                    if (!router.isReady) return;
-                                                    router.push("/sessions");
-                                                }}
-                                                text={
-                                                    <div
-                                                        style={{ width: 133 }}
-                                                        className={
-                                                            Classes.TEXT_OVERFLOW_ELLIPSIS
-                                                        }
-                                                    >
-                                                        #{" "}
-                                                        {_.get(
-                                                            sessionDetails,
-                                                            [sessionId, "name"],
-                                                            sessionId
-                                                        )}
-                                                    </div>
+                                                    )}
+                                                </div>
+                                            );
+
+                                        return (
+                                            <Tooltip
+                                                key={sessionId}
+                                                minimal
+                                                placement="right"
+                                                content={
+                                                    compactSidebar && buttonText
                                                 }
-                                            />
+                                            >
+                                                <Button
+                                                    icon={
+                                                        compactSidebar &&
+                                                        faIcon({
+                                                            icon: _.get(
+                                                                NUMBER_TO_ICON,
+                                                                index + 1,
+                                                                faHashtag
+                                                            ),
+                                                        })
+                                                    }
+                                                    active={active}
+                                                    style={{
+                                                        padding: "5px 15px",
+                                                        backgroundColor: !active
+                                                            ? "transparent"
+                                                            : null,
+                                                    }}
+                                                    onClick={() => {
+                                                        appActions.session.setSessionIdFocus(
+                                                            sessionId
+                                                        );
+                                                        appActions.session.observeSession(
+                                                            {
+                                                                sessionId,
+                                                                socket,
+                                                            }
+                                                        );
+                                                        if (!router.isReady)
+                                                            return;
+                                                        router.push(
+                                                            "/sessions"
+                                                        );
+                                                    }}
+                                                    text={
+                                                        !compactSidebar &&
+                                                        buttonText
+                                                    }
+                                                />
+                                            </Tooltip>
                                         );
                                     })}
                                 {[
@@ -302,20 +350,28 @@ export default function App({ children }) {
                                     }
                                     return (
                                         <Link href={href} key={index}>
-                                            <Button
-                                                intent={intent}
-                                                large
-                                                style={{
-                                                    backgroundColor:
-                                                        "transparent",
-                                                }}
-                                                text={text}
-                                                disabled={disabled}
-                                                icon={faIcon({
-                                                    icon: icon,
-                                                })}
-                                                onClick={onClick}
-                                            />
+                                            <Tooltip
+                                                minimal
+                                                placement="right"
+                                                content={compactSidebar && text}
+                                            >
+                                                <Button
+                                                    intent={intent}
+                                                    large
+                                                    style={{
+                                                        backgroundColor:
+                                                            "transparent",
+                                                    }}
+                                                    text={
+                                                        !compactSidebar && text
+                                                    }
+                                                    disabled={disabled}
+                                                    icon={faIcon({
+                                                        icon: icon,
+                                                    })}
+                                                    onClick={onClick}
+                                                />
+                                            </Tooltip>
                                         </Link>
                                     );
                                 })}
@@ -330,7 +386,13 @@ export default function App({ children }) {
                     ]) && showRegistryList ? (
                         <>
                             <div>&nbsp;</div>
-                            <MenuDivider title="Registries" />
+                            {compactSidebar ? (
+                                <Divider
+                                    style={{ marginBottom: 18, marginTop: 0 }}
+                                />
+                            ) : (
+                                <MenuDivider title="Registries" />
+                            )}
                             <ButtonGroup
                                 alignText={Alignment.LEFT}
                                 vertical
@@ -358,21 +420,29 @@ export default function App({ children }) {
                                     );
                                     return (
                                         <Link href={href} key={index}>
-                                            <Button
-                                                style={
-                                                    !active
-                                                        ? {
-                                                              backgroundColor:
-                                                                  "transparent",
-                                                          }
-                                                        : null
-                                                }
-                                                active={active}
-                                                text={text}
-                                                icon={faIcon({
-                                                    icon: icon,
-                                                })}
-                                            />
+                                            <Tooltip
+                                                minimal
+                                                placement="right"
+                                                content={compactSidebar && text}
+                                            >
+                                                <Button
+                                                    style={
+                                                        !active
+                                                            ? {
+                                                                  backgroundColor:
+                                                                      "transparent",
+                                                              }
+                                                            : null
+                                                    }
+                                                    active={active}
+                                                    text={
+                                                        !compactSidebar && text
+                                                    }
+                                                    icon={faIcon({
+                                                        icon: icon,
+                                                    })}
+                                                />
+                                            </Tooltip>
                                         </Link>
                                     );
                                 })}
@@ -382,7 +452,13 @@ export default function App({ children }) {
                     {hasTrue([showFormDesigner, showPromptDesigner]) ? (
                         <>
                             <div>&nbsp;</div>
-                            <MenuDivider title="Dev. Tools" />
+                            {compactSidebar ? (
+                                <Divider
+                                    style={{ marginBottom: 18, marginTop: 0 }}
+                                />
+                            ) : (
+                                <MenuDivider title="Dev. Tools" />
+                            )}
                             <ButtonGroup
                                 alignText={Alignment.LEFT}
                                 vertical
@@ -403,21 +479,32 @@ export default function App({ children }) {
                                         );
                                         return (
                                             <Link href={href} key={index}>
-                                                <Button
-                                                    style={
-                                                        !active
-                                                            ? {
-                                                                  backgroundColor:
-                                                                      "transparent",
-                                                              }
-                                                            : null
+                                                <Tooltip
+                                                    minimal
+                                                    placement="right"
+                                                    content={
+                                                        compactSidebar && text
                                                     }
-                                                    active={active}
-                                                    text={text}
-                                                    icon={faIcon({
-                                                        icon: icon,
-                                                    })}
-                                                />
+                                                >
+                                                    <Button
+                                                        style={
+                                                            !active
+                                                                ? {
+                                                                      backgroundColor:
+                                                                          "transparent",
+                                                                  }
+                                                                : null
+                                                        }
+                                                        active={active}
+                                                        text={
+                                                            !compactSidebar &&
+                                                            text
+                                                        }
+                                                        icon={faIcon({
+                                                            icon: icon,
+                                                        })}
+                                                    />
+                                                </Tooltip>
                                             </Link>
                                         );
                                     }
@@ -432,7 +519,13 @@ export default function App({ children }) {
                     ]) ? (
                         <>
                             <div>&nbsp;</div>
-                            <MenuDivider title="Admin. Tools" />
+                            {compactSidebar ? (
+                                <Divider
+                                    style={{ marginBottom: 18, marginTop: 0 }}
+                                />
+                            ) : (
+                                <MenuDivider title="Admin. Tools" />
+                            )}
                             <ButtonGroup
                                 alignText={Alignment.LEFT}
                                 vertical
@@ -459,21 +552,29 @@ export default function App({ children }) {
                                     );
                                     return (
                                         <Link href={href} key={index}>
-                                            <Button
-                                                style={
-                                                    !active
-                                                        ? {
-                                                              backgroundColor:
-                                                                  "transparent",
-                                                          }
-                                                        : null
-                                                }
-                                                active={active}
-                                                text={text}
-                                                icon={faIcon({
-                                                    icon: icon,
-                                                })}
-                                            />
+                                            <Tooltip
+                                                minimal
+                                                placement="right"
+                                                content={compactSidebar && text}
+                                            >
+                                                <Button
+                                                    style={
+                                                        !active
+                                                            ? {
+                                                                  backgroundColor:
+                                                                      "transparent",
+                                                              }
+                                                            : null
+                                                    }
+                                                    active={active}
+                                                    text={
+                                                        !compactSidebar && text
+                                                    }
+                                                    icon={faIcon({
+                                                        icon: icon,
+                                                    })}
+                                                />
+                                            </Tooltip>
                                         </Link>
                                     );
                                 })}
@@ -486,7 +587,7 @@ export default function App({ children }) {
                 style={{
                     marginLeft:
                         !launchScreenMode && !_.isEmpty(user)
-                            ? NAVIGATION_MENU_WIDTH
+                            ? sidebarWidth
                             : null,
                     height: "calc(100vh - 50px)",
                     position: "relative",
