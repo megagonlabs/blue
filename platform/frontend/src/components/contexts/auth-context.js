@@ -1,6 +1,7 @@
 // Import the functions you need from the SDKs you need
 import { AppToaster } from "@/components/toaster";
 import {
+    Alert,
     Button,
     Drawer,
     DrawerSize,
@@ -250,12 +251,24 @@ export const AuthProvider = ({ children }) => {
         <AuthContext.Provider
             value={{ user, permissions, settings, updateSettings, signOut }}
         >
+            <Alert
+                intent={Intent.DANGER}
+                isOpen={
+                    !_.isEmpty(user) &&
+                    _.isEmpty(_.get(user, "role", null)) &&
+                    authInitialized
+                }
+                confirmButtonText="Sign out"
+                onConfirm={signOut}
+            >
+                An error has occured; please re-authenticate your account.
+            </Alert>
             <Drawer
                 size={DrawerSize.SMALL}
                 portalClassName="z-index-36"
                 position="bottom"
                 backdropClassName="glassmorphism-5"
-                isOpen={_.isNil(user) && authInitialized}
+                isOpen={_.isEmpty(user) && authInitialized}
             >
                 <div style={{ margin: "auto" }}>
                     <H1>Blue</H1>
@@ -275,7 +288,7 @@ export const AuthProvider = ({ children }) => {
             <div style={{ display: authInitialized ? null : "none" }}>
                 {children}
             </div>
-            {!authInitialized ? (
+            {!authInitialized && (
                 <div style={{ height: "100vh", width: "100vw" }}>
                     <div
                         style={{
@@ -290,7 +303,7 @@ export const AuthProvider = ({ children }) => {
                         <div style={{ marginTop: 5 }}>Initializing...</div>
                     </div>
                 </div>
-            ) : null}
+            )}
         </AuthContext.Provider>
     );
 };
