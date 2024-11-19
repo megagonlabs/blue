@@ -17,6 +17,7 @@ import {
     faBug,
     faClipboard,
     faCode,
+    faComments,
     faMessages,
     faPaintRoller,
     faSidebar,
@@ -61,6 +62,12 @@ export default function Settings({ isOpen, setIsSettingsOpen }) {
             description:
                 "Automatically expand all session messages to show full content",
             icon: faArrowsFromLine,
+        },
+        conversation_view: {
+            title: "Conversation view",
+            description:
+                "Whether messages should appear as left & right aligned",
+            icon: faComments,
         },
     };
     const APPEARANCE_SETTINGS = {
@@ -181,6 +188,7 @@ export default function Settings({ isOpen, setIsSettingsOpen }) {
                                 "show_workspace",
                                 "show_session_list",
                                 "expand_message",
+                                "conversation_view",
                             ].map((key) => (
                                 <MenuItem
                                     key={key}

@@ -32,6 +32,7 @@ const Row = ({ index, data, style }) => {
     const messages = appState.session.sessions[sessionIdFocus].messages;
     const streams = appState.session.sessions[sessionIdFocus].streams;
     const { user, settings } = useContext(AuthContext);
+    const conversationView = _.get(settings, "conversation_view", false);
     const rowRef = useRef({});
     const debugMode = _.get(settings, "debug_mode", false);
     const expandMessage = _.get(settings, "expand_message", false);
@@ -88,17 +89,23 @@ const Row = ({ index, data, style }) => {
                     isOverflown.current = true;
                 }
             }
-            setRowHeight(
-                index,
+            // 53: 1 line message height
+            // 20: gap space between messages
+            // 25: message metadata height
+            let height =
+                30 +
+                20 +
                 (isOverflown.current
                     ? MESSAGE_OVERFLOW_THRESHOLD
-                    : rowRef.current.clientHeight) +
-                    75 +
-                    (debugMode ? 25 : 0) +
-                    (isOverflown.current ? 35 : 0)
-            );
+                    : rowRef.current.clientHeight);
+            if (isOverflown.current) height += 35;
+            if (!conversationView) {
+                height += 25; // message metadata height
+                if (debugMode) height += 25;
+            }
+            setRowHeight(index, height);
         }
-    }, [rowRef, debugMode, expandMessage]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [rowRef, debugMode, expandMessage, conversationView]); // eslint-disable-line react-hooks/exhaustive-deps
     const streamData = _.get(streams, [stream, "data"], []);
     const contentType = _.get(messages, [index, "contentType"], null);
     const { ref: resizeRef } = useResizeDetector({
@@ -129,7 +136,13 @@ const Row = ({ index, data, style }) => {
         >
             <div
                 className="full-parent-width"
-                style={{ display: "flex", gap: 10, position: "relative" }}
+                style={{
+                    display: "flex",
+                    gap: 10,
+                    position: "relative",
+                    flexDirection:
+                        conversationView && own ? "row-reverse" : null,
+                }}
             >
                 <div
                     style={{
@@ -208,9 +221,17 @@ const Row = ({ index, data, style }) => {
                         ) : null}
                     </ButtonGroup>
                 </div>
-                <MessageIcon message={messages[index]} />
-                <div style={{ width: "calc(100% - 50px)" }}>
-                    <MessageMetadata message={messages[index]} />
+                {!conversationView && <MessageIcon message={messages[index]} />}
+                <div
+                    style={{
+                        width: conversationView
+                            ? null
+                            : `calc(100% - ${conversationView ? 0 : 50}px)`,
+                    }}
+                >
+                    {!conversationView && (
+                        <MessageMetadata message={messages[index]} />
+                    )}
                     <Callout
                         intent={
                             hasError.current
@@ -287,11 +308,20 @@ export default function SessionMessages() {
     const rowHeights = useRef({});
     const { appState } = useContext(AppContext);
     const { settings } = useContext(AuthContext);
+    const conversationView = _.get(settings, "conversation_view", false);
     const sessionIdFocus = appState.session.sessionIdFocus;
     const messages = appState.session.sessions[sessionIdFocus].messages;
     const debugMode = _.get(settings, "debug_mode", false);
     function getRowHeight(index) {
-        return rowHeights.current[index] || 96 + (debugMode ? 25 : 0);
+        // 53: 1 line message height
+        // 20: gap space between messages
+        // 25: message metadata height
+        let height = 53 + 20;
+        if (!conversationView) {
+            height += 25; // message metadata height
+            if (debugMode) height += 25;
+        }
+        return rowHeights.current[index] || height;
     }
     function setRowHeight(index, size) {
         rowHeights.current = { ...rowHeights.current, [index]: size };

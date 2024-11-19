@@ -10,16 +10,14 @@ export default function MessageContent({
     streamData,
     hasError,
 }) {
-    if (_.isEqual(contentType, "JSON_FORM")) {
+    const lastStreamData = _.last(streamData);
+    if (_.isEqual(contentType, "JSON_FORM") && !_.isEmpty(lastStreamData)) {
         return isDragPreview ? (
             <Tag minimal icon={faIcon({ icon: faPenLine })}>
                 FORM
             </Tag>
         ) : (
-            <JsonForm
-                content={_.last(streamData).content}
-                hasError={hasError}
-            />
+            <JsonForm content={lastStreamData.content} hasError={hasError} />
         );
     }
     return streamData.map((e, index) => {
