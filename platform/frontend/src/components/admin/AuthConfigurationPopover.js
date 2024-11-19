@@ -88,6 +88,7 @@ export default function AuthConfigurationPopover({
                                 "guest",
                             ].map((role) => (
                                 <option
+                                    key={role}
                                     label={_.capitalize(role)}
                                     value={role}
                                 />
