@@ -168,7 +168,7 @@ async def signin_cli(request: Request):
         return ERROR_RESPONSE
 
 
-@router.post('/profile/settings/{name}')
+@router.put('/profile/settings/{name}')
 async def set_settings(request: Request, name):
     payload = await request.json()
     p.set_metadata(f'users.{request.state.user["uid"]}.settings.{name}', payload.get('value'))

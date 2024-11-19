@@ -35,6 +35,7 @@ from routers import data
 from routers import models
 from routers import operators
 from routers import sessions
+from routers import containers
 from routers import platform
 from routers import accounts
 
@@ -99,6 +100,7 @@ app.include_router(data.router)
 app.include_router(models.router)
 app.include_router(operators.router)
 app.include_router(sessions.router)
+app.include_router(containers.router)
 app.include_router(platform.router)
 app.include_router(accounts.router)
 connection_manager = ConnectionManager()

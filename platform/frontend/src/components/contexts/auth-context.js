@@ -199,7 +199,7 @@ export const AuthProvider = ({ children }) => {
     };
     const updateSettings = (key, value) => {
         setSettings({ ...settings, [key]: value });
-        axios.post(`/accounts/profile/settings/${key}`, { value: value });
+        axios.put(`/accounts/profile/settings/${key}`, { value });
     };
     const signInWithGoogle = () => {
         setPopupOpen(true);

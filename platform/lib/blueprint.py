@@ -146,10 +146,21 @@ class Platform:
     ###### METADATA RELATED
     def create_update_user(self, user):
         uid = user['uid']
+        default_user_role = self.get_metadata(f'settings.default_user_role')
+        if pydash.is_empty(default_user_role):
+            default_user_role = 'guest'
         # create user profile with guest role if does not exist
         self.set_metadata(
             f'users.{uid}',
-            {'uid': user['uid'], 'role': 'guest', 'email': user['email'], 'name': user['name'], 'picture': user['picture'], 'settings': {}, 'sessions': {"pinned": {}, "owner": {}, "member": {}}},
+            {
+                'uid': user['uid'],
+                'role': default_user_role,
+                'email': user['email'],
+                'name': user['name'],
+                'picture': user['picture'],
+                'settings': {},
+                'sessions': {"pinned": {}, "owner": {}, "member": {}},
+            },
             nx=True,
         )
         self.set_metadata(f'users.{uid}.email', user['email'])
@@ -172,7 +183,7 @@ class Platform:
         self.connection.json().set(
             self._get_metadata_namespace(),
             "$",
-            {'users': {}},
+            {'users': {}, "settings": {}},
             nx=True,
         )
 

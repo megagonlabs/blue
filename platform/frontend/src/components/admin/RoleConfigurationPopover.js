@@ -230,12 +230,12 @@ export default function RoleConfigurationPopover({
     return (
         <Dialog
             onClose={onClose}
-            title="Role configuration"
+            title="Role Configuration"
             isOpen={isRoleConfigOpen}
         >
             <DialogBody>
                 <p>Select a new role</p>
-                {["admin", "member", "developer", "demo", "guest"].map(
+                {["admin", "developer", "member", "demo", "guest"].map(
                     (role) => (
                         <div style={{ display: "flex" }} key={role}>
                             <Radio
