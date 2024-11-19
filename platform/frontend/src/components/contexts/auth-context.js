@@ -254,9 +254,7 @@ export const AuthProvider = ({ children }) => {
             <Alert
                 intent={Intent.DANGER}
                 isOpen={
-                    !_.isEmpty(user) &&
-                    _.isEmpty(_.get(user, "role", null)) &&
-                    authInitialized
+                    !_.isEmpty(user) && _.isEmpty(_.get(user, "role", null))
                 }
                 confirmButtonText="Sign out"
                 onConfirm={signOut}

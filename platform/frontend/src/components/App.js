@@ -35,6 +35,7 @@ import {
     faPencilRuler,
     faRectangleTerminal,
     faSearch,
+    faSparkles,
     faUser,
     faUserGroup,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
@@ -179,6 +180,19 @@ export default function App({ children }) {
         5: fa5,
     };
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+    const [isWhatsNewOpen, setIsWhatsNewOpen] = useState(false);
+    const RIGHT_HAND_ACTIONS = [
+        {
+            content: "What's new",
+            icon: faSparkles,
+            onClick: () => setIsWhatsNewOpen(true),
+        },
+        {
+            content: "Settings",
+            icon: faGear,
+            onClick: () => setIsSettingsOpen(true),
+        },
+    ];
     return (
         <div>
             <Navbar style={{ paddingLeft: 20, paddingRight: 20 }}>
@@ -199,21 +213,21 @@ export default function App({ children }) {
                     </Link>
                 </Navbar.Group>
                 <Navbar.Group align={Alignment.RIGHT}>
-                    <Tooltip
-                        placement="bottom"
-                        minimal
-                        content="Settings"
-                        openOnTargetFocus={false}
-                    >
-                        <Button
-                            onClick={() => {
-                                setIsSettingsOpen(true);
-                            }}
-                            large
+                    {RIGHT_HAND_ACTIONS.map((action) => (
+                        <Tooltip
+                            placement="bottom"
                             minimal
-                            icon={faIcon({ icon: faGear })}
-                        />
-                    </Tooltip>
+                            content={action.content}
+                            openOnTargetFocus={false}
+                        >
+                            <Button
+                                large
+                                minimal
+                                onClick={action.onClick}
+                                icon={faIcon({ icon: action.icon })}
+                            />
+                        </Tooltip>
+                    ))}
                     <UserAccountPanel />
                 </Navbar.Group>
             </Navbar>
@@ -629,7 +643,9 @@ export default function App({ children }) {
             >
                 {_.isEmpty(user) ? <AccessDeniedNonIdealState /> : children}
             </div>
-            <DebugPanel />
+            {!_.isEmpty(user) && _.isEmpty(_.get(user, "role", null)) ? null : (
+                <DebugPanel />
+            )}
         </div>
     );
 }
