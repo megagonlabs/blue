@@ -54,12 +54,23 @@ module.exports = {
                     "Vega",
                     "Markdown",
                     "Callout",
+                    "Table",
                 ],
             },
             label: { type: "string", minLength: 1 },
             tabs: {
                 type: "array",
                 items: { type: "string", minLength: 1 },
+                minItems: 1,
+            },
+            columns: {
+                type: "array",
+                items: { type: "string", minLength: 1 },
+                minItems: 1,
+            },
+            rowCells: {
+                type: "array",
+                items: { type: "object", minLength: 1 },
                 minItems: 1,
             },
             props: {
@@ -69,6 +80,8 @@ module.exports = {
                     outlined: { type: "boolean" },
                     intent: { type: "string" },
                     inline: { type: "boolean" },
+                    bordered: { type: "boolean" },
+                    striped: { type: "boolean" },
                     helperText: { type: "string", minLength: 1 },
                     collapsible: { type: "boolean" },
                     defaultIsOpen: { type: "boolean" },

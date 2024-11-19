@@ -34,13 +34,7 @@ export default function GroupDoc({ closePanel }) {
                     overflowY: "auto",
                 }}
             >
-                <div
-                    style={{
-                        display: "flex",
-                        alignItems: "center",
-                        marginBottom: 20,
-                    }}
-                >
+                <div style={{ marginBottom: 20 }}>
                     <H1 style={{ margin: 0 }}>Group</H1>
                 </div>
                 <pre style={{ position: "relative", overflow: "hidden" }}>

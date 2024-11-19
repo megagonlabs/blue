@@ -54,13 +54,7 @@ export default function ArrayDoc({ closePanel }) {
                     overflowY: "auto",
                 }}
             >
-                <div
-                    style={{
-                        display: "flex",
-                        alignItems: "center",
-                        marginBottom: 20,
-                    }}
-                >
+                <div style={{ marginBottom: 20 }}>
                     <H1 style={{ margin: 0 }}>Array</H1>
                 </div>
                 <Callout intent={Intent.WARNING} icon={null}>

@@ -40,6 +40,7 @@ import {
     faRectanglesMixed,
     faSquareCheck,
     faSquareM,
+    faTable,
     faTimes,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import _ from "lodash";
@@ -48,27 +49,29 @@ import ArrayDoc from "./ArrayDoc";
 import BasicsDoc from "./BasicsDoc";
 import CalloutDoc from "./CalloutDoc";
 import MarkdownDoc from "./MarkdownDoc";
+import TableDoc from "./TableDoc";
 import TabsDoc from "./TabsDoc";
 import VegaDoc from "./VegaDoc";
-const RendererDetailPanel = (props) => {
+const RendererDetailPanel = ({ closePanel, type }) => {
     const DOCS = {
-        callout: <CalloutDoc closePanel={props.closePanel} />,
-        boolean: <BooleanDoc closePanel={props.closePanel} />,
-        button: <ButtonDoc closePanel={props.closePanel} />,
-        enum: <EnumDoc closePanel={props.closePanel} />,
-        group: <GroupDoc closePanel={props.closePanel} />,
-        integer: <IntegerDoc closePanel={props.closePanel} />,
-        label: <LabelDoc closePanel={props.closePanel} />,
-        layout: <LayoutDoc closePanel={props.closePanel} />,
-        number: <NumberDoc closePanel={props.closePanel} />,
-        string: <StringDoc closePanel={props.closePanel} />,
-        array: <ArrayDoc closePanel={props.closePanel} />,
-        vega: <VegaDoc closePanel={props.closePanel} />,
-        markdown: <MarkdownDoc closePanel={props.closePanel} />,
-        basics: <BasicsDoc closePanel={props.closePanel} />,
-        tabs: <TabsDoc closePanel={props.closePanel} />,
+        callout: <CalloutDoc closePanel={closePanel} />,
+        boolean: <BooleanDoc closePanel={closePanel} />,
+        button: <ButtonDoc closePanel={closePanel} />,
+        enum: <EnumDoc closePanel={closePanel} />,
+        group: <GroupDoc closePanel={closePanel} />,
+        integer: <IntegerDoc closePanel={closePanel} />,
+        label: <LabelDoc closePanel={closePanel} />,
+        layout: <LayoutDoc closePanel={closePanel} />,
+        number: <NumberDoc closePanel={closePanel} />,
+        string: <StringDoc closePanel={closePanel} />,
+        array: <ArrayDoc closePanel={closePanel} />,
+        vega: <VegaDoc closePanel={closePanel} />,
+        markdown: <MarkdownDoc closePanel={closePanel} />,
+        basics: <BasicsDoc closePanel={closePanel} />,
+        tabs: <TabsDoc closePanel={closePanel} />,
+        table: <TableDoc closePanel={closePanel} />,
     };
-    return _.get(DOCS, props.type, null);
+    return _.get(DOCS, type, null);
 };
 const MainMenuPanel = (props) => {
     const TYPES = [
@@ -93,6 +96,7 @@ const MainMenuPanel = (props) => {
         { text: "Markdown", icon: faSquareM },
         { text: "Number", icon: faInputNumeric },
         { text: "String", icon: faInputText },
+        { text: "Table", icon: faTable },
         { text: "Tabs", icon: faPause, iconClass: "fa-rotate-90" },
         {
             text: "Vega",

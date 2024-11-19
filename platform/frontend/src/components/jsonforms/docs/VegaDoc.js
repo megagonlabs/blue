@@ -79,13 +79,7 @@ export default function VegaDoc({ closePanel }) {
                     overflowY: "auto",
                 }}
             >
-                <div
-                    style={{
-                        display: "flex",
-                        alignItems: "center",
-                        marginBottom: 20,
-                    }}
-                >
+                <div style={{ marginBottom: 20 }}>
                     <H1 style={{ margin: 0 }}>Vega</H1>
                 </div>
                 <Callout icon={null} intent={Intent.SUCCESS}>

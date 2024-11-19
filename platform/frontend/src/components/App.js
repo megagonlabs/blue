@@ -35,7 +35,6 @@ import {
     faPencilRuler,
     faRectangleTerminal,
     faSearch,
-    faSparkles,
     faUser,
     faUserGroup,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
@@ -180,13 +179,7 @@ export default function App({ children }) {
         5: fa5,
     };
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-    const [isWhatsNewOpen, setIsWhatsNewOpen] = useState(false);
     const RIGHT_HAND_ACTIONS = [
-        {
-            content: "What's new",
-            icon: faSparkles,
-            onClick: () => setIsWhatsNewOpen(true),
-        },
         {
             content: "Settings",
             icon: faGear,

@@ -56,13 +56,7 @@ export default function TabsDoc({ closePanel }) {
                 className={Classes.RUNNING_TEXT}
                 style={{ padding: 20, overflowY: "auto" }}
             >
-                <div
-                    style={{
-                        display: "flex",
-                        alignItems: "center",
-                        marginBottom: 20,
-                    }}
-                >
+                <div style={{ marginBottom: 20 }}>
                     <H1 style={{ margin: 0 }}>Tabs</H1>
                 </div>
                 <Callout intent={Intent.SUCCESS} icon={null}>

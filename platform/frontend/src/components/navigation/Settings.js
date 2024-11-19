@@ -81,9 +81,7 @@ export default function Settings({ isOpen, setIsSettingsOpen }) {
         <Drawer
             size={DrawerSize.SMALL}
             isOpen={isOpen}
-            onClose={() => {
-                setIsSettingsOpen(false);
-            }}
+            onClose={() => setIsSettingsOpen(false)}
         >
             <div style={{ padding: 20 }}>
                 <div
