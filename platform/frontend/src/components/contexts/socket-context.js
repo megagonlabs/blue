@@ -42,7 +42,7 @@ export const SocketProvider = ({ children }) => {
                     if (!_.isEmpty(appState.session.sessionIdFocus))
                         appActions.session.observeSession({
                             sessionId: appState.session.sessionIdFocus,
-                            webSocket,
+                            socket: webSocket,
                         });
                     setWs(webSocket);
                 } catch (error) {
