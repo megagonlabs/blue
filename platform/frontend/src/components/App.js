@@ -256,14 +256,14 @@ export default function App({ children }) {
                                                     sessionIdFocus,
                                                     sessionId
                                                 ) &&
-                                                _.startsWith(
-                                                    router.asPath,
-                                                    "/sessions"
+                                                _.includes(
+                                                    ["/sessions"],
+                                                    router.pathname
                                                 ),
                                             buttonText = (
                                                 <div
                                                     style={{
-                                                        width: compactSidebar
+                                                        maxWidth: compactSidebar
                                                             ? 200
                                                             : 133,
                                                     }}
@@ -286,7 +286,9 @@ export default function App({ children }) {
                                                 minimal
                                                 placement="right"
                                                 content={
-                                                    compactSidebar && buttonText
+                                                    compactSidebar
+                                                        ? buttonText
+                                                        : null
                                                 }
                                             >
                                                 <Button
@@ -348,20 +350,34 @@ export default function App({ children }) {
                                     if (!visible) {
                                         return null;
                                     }
+                                    const active =
+                                        _.startsWith(router.pathname, href) &&
+                                        _.includes(["all_sessions"], key);
                                     return (
-                                        <Link href={href} key={index}>
+                                        <Link
+                                            className="no-link-decoration"
+                                            href={href}
+                                            key={index}
+                                        >
                                             <Tooltip
                                                 minimal
                                                 placement="right"
-                                                content={compactSidebar && text}
+                                                content={
+                                                    compactSidebar ? text : null
+                                                }
                                             >
                                                 <Button
                                                     intent={intent}
                                                     large
-                                                    style={{
-                                                        backgroundColor:
-                                                            "transparent",
-                                                    }}
+                                                    style={
+                                                        !active
+                                                            ? {
+                                                                  backgroundColor:
+                                                                      "transparent",
+                                                              }
+                                                            : null
+                                                    }
+                                                    active={active}
                                                     text={
                                                         !compactSidebar && text
                                                     }
@@ -419,11 +435,17 @@ export default function App({ children }) {
                                         href
                                     );
                                     return (
-                                        <Link href={href} key={index}>
+                                        <Link
+                                            className="no-link-decoration"
+                                            href={href}
+                                            key={index}
+                                        >
                                             <Tooltip
                                                 minimal
                                                 placement="right"
-                                                content={compactSidebar && text}
+                                                content={
+                                                    compactSidebar ? text : null
+                                                }
                                             >
                                                 <Button
                                                     style={
@@ -474,16 +496,22 @@ export default function App({ children }) {
                                             return null;
                                         }
                                         const active = _.startsWith(
-                                            router.asPath,
+                                            router.pathname,
                                             href
                                         );
                                         return (
-                                            <Link href={href} key={index}>
+                                            <Link
+                                                className="no-link-decoration"
+                                                href={href}
+                                                key={index}
+                                            >
                                                 <Tooltip
                                                     minimal
                                                     placement="right"
                                                     content={
-                                                        compactSidebar && text
+                                                        compactSidebar
+                                                            ? text
+                                                            : null
                                                     }
                                                 >
                                                     <Button
@@ -547,15 +575,21 @@ export default function App({ children }) {
                                         return null;
                                     }
                                     const active = _.startsWith(
-                                        router.asPath,
+                                        router.pathname,
                                         href
                                     );
                                     return (
-                                        <Link href={href} key={index}>
+                                        <Link
+                                            className="no-link-decoration"
+                                            href={href}
+                                            key={index}
+                                        >
                                             <Tooltip
                                                 minimal
                                                 placement="right"
-                                                content={compactSidebar && text}
+                                                content={
+                                                    compactSidebar ? text : null
+                                                }
                                             >
                                                 <Button
                                                     style={

@@ -205,7 +205,7 @@ export default function Sessions() {
                             minimal
                         >
                             <Button
-                                outlined
+                                minimal
                                 onClick={() =>
                                     appActions.session.setState({
                                         key: "sessionListPanelCollapsed",
@@ -219,7 +219,7 @@ export default function Sessions() {
                                 })}
                             />
                         </Tooltip>
-                        {!sessionListPanelCollapsed ? (
+                        {!sessionListPanelCollapsed && (
                             <Tooltip
                                 content="Refresh"
                                 placement="bottom"
@@ -232,7 +232,7 @@ export default function Sessions() {
                                     icon={faIcon({ icon: faRefresh })}
                                 />
                             </Tooltip>
-                        ) : null}
+                        )}
                     </ButtonGroup>
                     {!sessionListPanelCollapsed ? (
                         !isSocketOpen ? (
