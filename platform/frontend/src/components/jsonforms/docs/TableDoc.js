@@ -1,4 +1,5 @@
 import { faIcon } from "@/components/icon";
+import * as docProps from "@/components/jsonforms/docs/constant";
 import JsonViewer from "@/components/sessions/message/renderers/JsonViewer";
 import {
     Button,
@@ -164,6 +165,86 @@ export default function TableDoc({ closePanel }) {
                                 <div>Consists of table column headers.</div>
                             </td>
                         </tr>
+                        <tr>
+                            <td>
+                                <Code>rowCells</Code>
+                            </td>
+                            <td>
+                                <strong>array</strong>
+                                <em
+                                    className={classNames(
+                                        Classes.TEXT_MUTED,
+                                        "docs-prop-default"
+                                    )}
+                                >
+                                    &#91;at least 1 element&#93;
+                                </em>
+                                <div>
+                                    Consists of layout definition for table
+                                    cells &#40;repeats for each row of
+                                    data&#41;.
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <Code>compact</Code>
+                            </td>
+                            <td>
+                                <strong>boolean</strong>
+                                <em
+                                    className={classNames(
+                                        Classes.TEXT_MUTED,
+                                        "docs-prop-default"
+                                    )}
+                                >
+                                    false
+                                </em>
+                                <div>
+                                    Use compact appearance with less padding.
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <Code>bordered</Code>
+                            </td>
+                            <td>
+                                <strong>boolean</strong>
+                                <em
+                                    className={classNames(
+                                        Classes.TEXT_MUTED,
+                                        "docs-prop-default"
+                                    )}
+                                >
+                                    false
+                                </em>
+                                <div>
+                                    Enable borders between rows and cells.
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <Code>striped</Code>
+                            </td>
+                            <td>
+                                <strong>boolean</strong>
+                                <em
+                                    className={classNames(
+                                        Classes.TEXT_MUTED,
+                                        "docs-prop-default"
+                                    )}
+                                >
+                                    false
+                                </em>
+                                <div>
+                                    Use an alternate background color on
+                                    odd-numbered rows.
+                                </div>
+                            </td>
+                        </tr>
+                        {docProps.style}
                     </tbody>
                 </HTMLTable>
             </div>
