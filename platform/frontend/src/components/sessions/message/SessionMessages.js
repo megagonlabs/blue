@@ -244,6 +244,15 @@ const Row = ({ index, data, style }) => {
                         style={{
                             maxWidth: "100%",
                             width: "fit-content",
+                            ...(conversationView
+                                ? {
+                                      borderRadius: own
+                                          ? "20px 20px 2px 20px"
+                                          : "20px 20px 20px 2px",
+                                      paddingLeft: 20,
+                                      paddingRight: 20,
+                                  }
+                                : {}),
                         }}
                     >
                         <div
