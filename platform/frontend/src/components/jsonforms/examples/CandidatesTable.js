@@ -132,15 +132,27 @@ export default function CandidatesTable({
                     text="Try"
                 />
                 <Callout>
-                    <JsonForms
-                        schema={dataSchemaJson}
-                        uischema={uiSchemaJson}
-                        data={dataJson}
-                        renderers={JSONFORMS_RENDERERS}
-                        cells={vanillaCells}
-                    />
+                    <div
+                        style={{
+                            maxWidth: "100%",
+                            minWidth: 50,
+                            whiteSpace: "pre-wrap",
+                            wordBreak: "break-all",
+                            width: "fit-content",
+                            minHeight: 21,
+                            overflow: "hidden",
+                            padding: 1,
+                        }}
+                    >
+                        <JsonForms
+                            schema={dataSchemaJson}
+                            uischema={uiSchemaJson}
+                            data={dataJson}
+                            renderers={JSONFORMS_RENDERERS}
+                            cells={vanillaCells}
+                        />
+                    </div>
                 </Callout>
-
                 <pre style={{ position: "relative", overflow: "hidden" }}>
                     <div style={{ position: "absolute", right: 15, top: 13 }}>
                         <CopyDocJsonButton
