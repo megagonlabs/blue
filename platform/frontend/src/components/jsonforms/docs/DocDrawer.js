@@ -43,8 +43,10 @@ import {
     faTable,
     faTimes,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
+import classNames from "classnames";
 import _ from "lodash";
 import { useCallback, useState } from "react";
+import CandidatesTable from "../examples/CandidatesTable";
 import ArrayDoc from "./ArrayDoc";
 import BasicsDoc from "./BasicsDoc";
 import CalloutDoc from "./CalloutDoc";
@@ -52,6 +54,21 @@ import MarkdownDoc from "./MarkdownDoc";
 import TableDoc from "./TableDoc";
 import TabsDoc from "./TabsDoc";
 import VegaDoc from "./VegaDoc";
+const EXAMPLE_LIST = [
+    {
+        id: "candidates-table",
+        title: "Candidates table",
+        icon: faTable,
+        description:
+            "Table view for a list of candidates with name, job title, and skill matches.",
+    },
+];
+const RendererExamplePanel = ({ closePanel, id }) => {
+    const EXAMPLES = {
+        "candidates-table": <CandidatesTable closePanel={closePanel} />,
+    };
+    return _.get(EXAMPLES, id, null);
+};
 const RendererDetailPanel = ({ closePanel, type }) => {
     const DOCS = {
         callout: <CalloutDoc closePanel={closePanel} />,
@@ -233,6 +250,47 @@ const MainMenuPanel = (props) => {
                     </tbody>
                 </HTMLTable>
                 <MenuDivider title="Examples" />
+                <div style={{ marginBottom: 15 }}>
+                    <Menu large style={{ padding: 0 }}>
+                        {EXAMPLE_LIST.map((example) => (
+                            <MenuItem
+                                icon={faIcon({
+                                    icon: example.icon,
+                                    style: { marginLeft: 4 },
+                                })}
+                                onClick={() => {
+                                    if (openingPanel) return;
+                                    setOpeningPanel(true);
+                                    props.openPanel({
+                                        props: { id: example.id },
+                                        renderPanel: RendererExamplePanel,
+                                    });
+                                    setTimeout(() => {
+                                        setOpeningPanel(false);
+                                    }, 500);
+                                }}
+                                text={
+                                    <div style={{ marginLeft: 3 }}>
+                                        <div>{example.title}</div>
+                                        <div
+                                            style={{
+                                                marginTop: 5,
+                                                whiteSpace: "initial",
+                                                lineHeight: "initial",
+                                            }}
+                                            className={classNames(
+                                                Classes.TEXT_SMALL,
+                                                Classes.TEXT_MUTED
+                                            )}
+                                        >
+                                            {example.description}
+                                        </div>
+                                    </div>
+                                }
+                            />
+                        ))}
+                    </Menu>
+                </div>
                 <Callout icon={null} intent={Intent.PRIMARY}>
                     Didn&apos;t find an useful example here? Please request for
                     an example by&nbsp;

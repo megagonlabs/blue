@@ -103,6 +103,13 @@ module.exports = {
         }
         return { updated, deleted, added };
     },
+    safeJsonParse: (json) => {
+        try {
+            return JSON.parse(json);
+        } catch (error) {
+            return JSON.parse("{}");
+        }
+    },
     constructSavePropertyRequests: ({ axios, url, difference, properties }) => {
         let tasks = [];
         const { updated, deleted, added } = difference;
