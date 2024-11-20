@@ -99,5 +99,5 @@ export default function JsonEditor({
             view.destroy();
         };
     }, []);
-    return <div className="full-parent-height" ref={editor} />;
+    return <div className="full-parent-height cm-json-editor" ref={editor} />;
 }

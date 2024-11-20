@@ -102,6 +102,9 @@ table.entity-section-card-table tr td {
 .settings-menus a[class^="bp"][class*="-menu-item"] {
     cursor: initial;
 }
+.cm-json-editor .cm-scroller {
+    overscroll-behavior: contain;
+}
 /* react markdown content */
 /* light */
 .react-markdown-content {

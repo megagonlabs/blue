@@ -3,12 +3,11 @@ import { withJsonFormsControlProps } from "@jsonforms/react";
 const {
     default: Markdown,
 } = require("@/components/sessions/message/renderers/Markdown");
-const MarkdownRenderer = ({ schema, uischema }) => {
-    const content = _.get(schema, "md-content", "");
+const MarkdownRenderer = ({ uischema, data }) => {
     const style = _.get(uischema, "props.style", {});
     return (
         <div style={{ ...style, overflow: "auto", padding: 1 }}>
-            <Markdown content={content} />
+            <Markdown content={data} />
         </div>
     );
 };

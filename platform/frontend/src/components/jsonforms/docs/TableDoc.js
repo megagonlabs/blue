@@ -18,6 +18,7 @@ import CopyDocJsonButton from "./CopyDocJsonButton";
 export default function TableDoc({ closePanel }) {
     const docJson = {
             type: "Table",
+            scope: "#/properties/...",
             columns: [],
             rowCells: [],
             props: {
@@ -29,6 +30,7 @@ export default function TableDoc({ closePanel }) {
         },
         exampleJson = {
             type: "Table",
+            scope: "...",
             columns: ["Column 1", "Column 2"],
             rowCells: [
                 {
@@ -79,9 +81,10 @@ export default function TableDoc({ closePanel }) {
                     </div>
                     <JsonViewer json={exampleJson} enableClipboard={false} />
                 </pre>
-                <Card
+                <div
                     style={{
                         display: "flex",
+                        alignItems: "flex-start",
                         gap: 20,
                         marginTop: 20,
                     }}
@@ -109,7 +112,7 @@ export default function TableDoc({ closePanel }) {
                             </tr>
                         </tbody>
                     </HTMLTable>
-                    <div>
+                    <Card interactive>
                         <Checkbox
                             onChange={(event) =>
                                 setCompact(event.target.checked)
@@ -134,8 +137,8 @@ export default function TableDoc({ closePanel }) {
                         >
                             Striped
                         </Checkbox>
-                    </div>
-                </Card>
+                    </Card>
+                </div>
                 <H2>Props</H2>
                 <HTMLTable
                     className="docs-prop-table"

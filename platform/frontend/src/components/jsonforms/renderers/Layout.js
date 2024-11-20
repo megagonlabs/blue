@@ -38,7 +38,6 @@ const LayoutRenderer = ({
                                 path={path}
                                 renderers={renderers}
                                 cells={cells}
-                                key={index}
                             />
                         </div>
                     );

@@ -3,7 +3,6 @@ import { rankWith, uiTypeIs } from "@jsonforms/core";
 import { JsonFormsDispatch, withJsonFormsLayoutProps } from "@jsonforms/react";
 import _ from "lodash";
 import { useState } from "react";
-
 const TabsRenderer = ({
     cells,
     path,
