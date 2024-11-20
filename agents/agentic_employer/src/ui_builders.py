@@ -159,9 +159,9 @@ def get_column_ui(row, header, actions=None):
 
             label = job_posting_skill
             if not job_seeker_has_skill and job_posting_must_have_skill:
-                label = "𐄂" + label
+                label = "𐄂 " + label
             if job_seeker_has_skill and job_posting_must_have_skill:
-                label = "✓" + label
+                label = "✓ " + label
 
             match_elements.append({
                 "type": "Label",
@@ -200,10 +200,10 @@ def get_column_ui(row, header, actions=None):
             "elements": action_elements
         }
     
-    elif header == 'Interested':
+    elif header == 'Interested?':
         return  {
             "type": "Control",
-            "scope": "#/properties" + "JOB_SEEKER_" + str(row['job_seeker_id']) + "_Interested",
+            "scope": "#/properties/" + "JOB_SEEKER_" + str(row['job_seeker_id']) + "_Interested",
             "props": {
                 "style": {
                     "width": 200,
@@ -227,8 +227,24 @@ def get_row_ui(row, headers=None):
         column_uis.append(get_column_ui(row, header))
 
     return  {
-        "type": "HorizontalLayout",
-        "elements": column_uis
+        "type": "VerticalLayout",
+        "elements": [
+            {
+            "type": "HorizontalLayout",
+            "elements": column_uis
+            },
+            {
+                "type": "Label",
+                "label": " ",
+                "props": {
+                    "muted": True,
+                    "style": {
+                        "marginBottom": 10,
+                        "fontStyle": "italic"
+                    }
+                }
+            }
+        ]
     }
 
 def process_data(data):
@@ -378,6 +394,7 @@ def build_ats_form(job_postings, lists, data):
             # ui
             for row in rows:
                 list_contents.append(get_row_ui(row))
+
 
             # properties
             for job_seeker_id in list:
