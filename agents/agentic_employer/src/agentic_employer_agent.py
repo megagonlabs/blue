@@ -86,6 +86,7 @@ class AgenticEmployerAgent(Agent):
 
             # init results, todos
             self.lists = {}
+            self.selected_job_posting_id = None
             self.job_postings = {}
             self.results = {}
             self.todos = set()
@@ -229,7 +230,7 @@ class AgenticEmployerAgent(Agent):
             worker = self.create_worker(None)
 
 
-        form = ui_builders.build_ats_form(self.job_postings, self.lists, self.results)
+        form = ui_builders.build_ats_form(self.selected_job_posting_id, self.job_postings, self.lists, self.results)
         form['form_id'] = "ats"
 
         # write form, updating existing if necessary 
@@ -315,6 +316,7 @@ class AgenticEmployerAgent(Agent):
                                     if JOB_POSTING_ID:
                                         # save to session
                                         worker.set_session_data("JOB_POSTING_ID", JOB_POSTING_ID)
+                                        self.selected_job_posting_id = JOB_POSTING_ID
 
                                         # issue other queries
                                         self.issue_queries(properties=properties, worker=worker)

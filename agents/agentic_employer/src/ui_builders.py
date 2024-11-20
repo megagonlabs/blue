@@ -320,8 +320,11 @@ def process_data(data):
     return by_list
     
 
-def build_ats_form(job_postings, lists, data):
+def build_ats_form(selected_job_posting_id, job_postings, lists, data):
     
+    if type(selected_job_posting_id) == str:
+        selected_job_posting_id = int(selected_job_posting_id)
+
     by_list = process_data(data)
     # print(json.dumps(by_list, indent=3))
 
@@ -380,10 +383,14 @@ def build_ats_form(job_postings, lists, data):
     ### build form schema
     #job_postings
     
+    selected_job_posting_label = None
     if len (job_postings) > 0:
         form_schema['properties']['job_posting']['enum'] = []
         for job_posting in job_postings:
-            form_schema['properties']['job_posting']['enum'].append(job_posting['job_posting_title'] + ', ' + job_posting['job_posting_company'] + " [#" + str(job_posting['job_posting_id']) + "]" )
+            job_posting_label = job_posting['job_posting_title'] + ', ' + job_posting['job_posting_company'] + " [#" + str(job_posting['job_posting_id']) + "]" 
+            form_schema['properties']['job_posting']['enum'].append(job_posting_label)
+            if job_posting['job_posting_id'] == selected_job_posting_id:
+                selected_job_posting_label = job_posting_label
 
         for list_id in by_list:
             list_contents = all_list_contents[list_id]
@@ -410,6 +417,9 @@ def build_ats_form(job_postings, lists, data):
     ## data element
     form_data = {}
 
+    if selected_job_posting_label:
+        form_data["job_posting"] = selected_job_posting_label
+        
     form = {
         "schema": form_schema,
         "data": form_data,
