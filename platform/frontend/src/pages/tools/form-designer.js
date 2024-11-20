@@ -177,7 +177,13 @@ function FormDesigner() {
     );
     return (
         <>
-            <DocDrawer isOpen={isDocOpen} setIsDocOpen={setIsDocOpen} />
+            <DocDrawer
+                setJsonUischema={setJsonUischema}
+                setJsonData={setJsonData}
+                setJsonSchema={setJsonSchema}
+                isOpen={isDocOpen}
+                setIsDocOpen={setIsDocOpen}
+            />
             <Card interactive style={{ padding: 5, borderRadius: 0 }}>
                 <ButtonGroup large minimal>
                     <Tooltip

@@ -63,9 +63,22 @@ const EXAMPLE_LIST = [
             "Table view for a list of candidates with name, job title, and skill matches.",
     },
 ];
-const RendererExamplePanel = ({ closePanel, id }) => {
+const RendererExamplePanel = ({
+    closePanel,
+    id,
+    setJsonUischema,
+    setJsonData,
+    setJsonSchema,
+}) => {
     const EXAMPLES = {
-        "candidates-table": <CandidatesTable closePanel={closePanel} />,
+        "candidates-table": (
+            <CandidatesTable
+                setJsonUischema={setJsonUischema}
+                setJsonData={setJsonData}
+                setJsonSchema={setJsonSchema}
+                closePanel={closePanel}
+            />
+        ),
     };
     return _.get(EXAMPLES, id, null);
 };
@@ -90,7 +103,13 @@ const RendererDetailPanel = ({ closePanel, type }) => {
     };
     return _.get(DOCS, type, null);
 };
-const MainMenuPanel = (props) => {
+const MainMenuPanel = ({
+    openPanel,
+    setIsDocOpen,
+    setJsonUischema,
+    setJsonData,
+    setJsonSchema,
+}) => {
     const TYPES = [
         {
             text: "Basics",
@@ -136,7 +155,7 @@ const MainMenuPanel = (props) => {
                         minimal
                         icon={faIcon({ icon: faTimes })}
                         onClick={() => {
-                            props.setIsDocOpen(false);
+                            setIsDocOpen(false);
                             sessionStorage.setItem("isDocOpen", "false");
                         }}
                     />
@@ -156,7 +175,7 @@ const MainMenuPanel = (props) => {
                         onClick={() => {
                             if (openingPanel) return;
                             setOpeningPanel(true);
-                            props.openPanel({
+                            openPanel({
                                 props: { type: _.lowerCase(type.text) },
                                 renderPanel: RendererDetailPanel,
                             });
@@ -261,8 +280,13 @@ const MainMenuPanel = (props) => {
                                 onClick={() => {
                                     if (openingPanel) return;
                                     setOpeningPanel(true);
-                                    props.openPanel({
-                                        props: { id: example.id },
+                                    openPanel({
+                                        props: {
+                                            id: example.id,
+                                            setJsonUischema,
+                                            setJsonData,
+                                            setJsonSchema,
+                                        },
                                         renderPanel: RendererExamplePanel,
                                     });
                                     setTimeout(() => {
@@ -307,10 +331,16 @@ const MainMenuPanel = (props) => {
         </div>
     );
 };
-export default function DocDrawer({ isOpen, setIsDocOpen }) {
+export default function DocDrawer({
+    isOpen,
+    setIsDocOpen,
+    setJsonUischema,
+    setJsonData,
+    setJsonSchema,
+}) {
     const initialPanel = {
         renderPanel: MainMenuPanel,
-        props: { setIsDocOpen },
+        props: { setIsDocOpen, setJsonUischema, setJsonData, setJsonSchema },
     };
     const [currentPanelStack, setCurrentPanelStack] = useState([initialPanel]);
     const addToPanelStack = useCallback((newPanel) => {
@@ -336,7 +366,7 @@ export default function DocDrawer({ isOpen, setIsDocOpen }) {
             size={"min(40%, 716.8px)"}
         >
             <PanelStack2
-                renderActivePanelOnly={false}
+                renderActivePanelOnly
                 className="full-parent-height transition-none"
                 onOpen={addToPanelStack}
                 onClose={removeFromPanelStack}

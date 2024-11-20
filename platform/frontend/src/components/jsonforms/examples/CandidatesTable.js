@@ -1,12 +1,20 @@
 import { JSONFORMS_RENDERERS } from "@/components/constant";
 import { faIcon } from "@/components/icon";
 import JsonViewer from "@/components/sessions/message/renderers/JsonViewer";
-import { Button, Callout, Classes, H1, Tag } from "@blueprintjs/core";
-import { faArrowLeft } from "@fortawesome/sharp-duotone-solid-svg-icons";
+import { Button, Callout, Classes, H1, Intent, Tag } from "@blueprintjs/core";
+import {
+    faArrowLeft,
+    faSparkles,
+} from "@fortawesome/sharp-duotone-solid-svg-icons";
 import { JsonForms } from "@jsonforms/react";
 import { vanillaCells } from "@jsonforms/vanilla-renderers";
 import CopyDocJsonButton from "../docs/CopyDocJsonButton";
-export default function CandidatesTable({ closePanel }) {
+export default function CandidatesTable({
+    closePanel,
+    setJsonUischema,
+    setJsonData,
+    setJsonSchema,
+}) {
     const uiSchemaJson = {
             type: "VerticalLayout",
             elements: [
@@ -112,6 +120,17 @@ export default function CandidatesTable({ closePanel }) {
                 <div style={{ marginBottom: 20 }}>
                     <H1 style={{ margin: 0 }}>Candidates table</H1>
                 </div>
+                <Button
+                    onClick={() => {
+                        setJsonUischema(JSON.stringify(uiSchemaJson, null, 4));
+                        setJsonData(JSON.stringify(dataJson, null, 4));
+                        setJsonSchema(JSON.stringify(dataSchemaJson, null, 4));
+                    }}
+                    icon={faIcon({ icon: faSparkles })}
+                    large
+                    intent={Intent.SUCCESS}
+                    text="Try"
+                />
                 <Callout>
                     <JsonForms
                         schema={dataSchemaJson}
