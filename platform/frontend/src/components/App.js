@@ -206,10 +206,11 @@ export default function App({ children }) {
                     </Link>
                 </Navbar.Group>
                 <Navbar.Group align={Alignment.RIGHT}>
-                    {RIGHT_HAND_ACTIONS.map((action) => (
+                    {RIGHT_HAND_ACTIONS.map((action, index) => (
                         <Tooltip
                             placement="bottom"
                             minimal
+                            key={index}
                             content={action.content}
                             openOnTargetFocus={false}
                         >
