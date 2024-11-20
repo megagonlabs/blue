@@ -271,8 +271,9 @@ const MainMenuPanel = ({
                 <MenuDivider title="Examples" />
                 <div style={{ marginBottom: 15 }}>
                     <Menu large style={{ padding: 0 }}>
-                        {EXAMPLE_LIST.map((example) => (
+                        {EXAMPLE_LIST.map((example, index) => (
                             <MenuItem
+                                key={index}
                                 icon={faIcon({
                                     icon: example.icon,
                                     style: { marginLeft: 4 },
