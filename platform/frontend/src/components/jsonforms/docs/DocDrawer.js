@@ -43,8 +43,10 @@ import {
     faTable,
     faTimes,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
+import classNames from "classnames";
 import _ from "lodash";
 import { useCallback, useState } from "react";
+import CandidatesTable from "../examples/CandidatesTable";
 import ArrayDoc from "./ArrayDoc";
 import BasicsDoc from "./BasicsDoc";
 import CalloutDoc from "./CalloutDoc";
@@ -52,6 +54,34 @@ import MarkdownDoc from "./MarkdownDoc";
 import TableDoc from "./TableDoc";
 import TabsDoc from "./TabsDoc";
 import VegaDoc from "./VegaDoc";
+const EXAMPLE_LIST = [
+    {
+        id: "candidates-table",
+        title: "Candidates table",
+        icon: faTable,
+        description:
+            "Table view for a list of candidates with name, job title, and skill matches.",
+    },
+];
+const RendererExamplePanel = ({
+    closePanel,
+    id,
+    setJsonUischema,
+    setJsonData,
+    setJsonSchema,
+}) => {
+    const EXAMPLES = {
+        "candidates-table": (
+            <CandidatesTable
+                setJsonUischema={setJsonUischema}
+                setJsonData={setJsonData}
+                setJsonSchema={setJsonSchema}
+                closePanel={closePanel}
+            />
+        ),
+    };
+    return _.get(EXAMPLES, id, null);
+};
 const RendererDetailPanel = ({ closePanel, type }) => {
     const DOCS = {
         callout: <CalloutDoc closePanel={closePanel} />,
@@ -73,7 +103,13 @@ const RendererDetailPanel = ({ closePanel, type }) => {
     };
     return _.get(DOCS, type, null);
 };
-const MainMenuPanel = (props) => {
+const MainMenuPanel = ({
+    openPanel,
+    setIsDocOpen,
+    setJsonUischema,
+    setJsonData,
+    setJsonSchema,
+}) => {
     const TYPES = [
         {
             text: "Basics",
@@ -119,7 +155,7 @@ const MainMenuPanel = (props) => {
                         minimal
                         icon={faIcon({ icon: faTimes })}
                         onClick={() => {
-                            props.setIsDocOpen(false);
+                            setIsDocOpen(false);
                             sessionStorage.setItem("isDocOpen", "false");
                         }}
                     />
@@ -139,7 +175,7 @@ const MainMenuPanel = (props) => {
                         onClick={() => {
                             if (openingPanel) return;
                             setOpeningPanel(true);
-                            props.openPanel({
+                            openPanel({
                                 props: { type: _.lowerCase(type.text) },
                                 renderPanel: RendererDetailPanel,
                             });
@@ -233,6 +269,53 @@ const MainMenuPanel = (props) => {
                     </tbody>
                 </HTMLTable>
                 <MenuDivider title="Examples" />
+                <div style={{ marginBottom: 15 }}>
+                    <Menu large style={{ padding: 0 }}>
+                        {EXAMPLE_LIST.map((example, index) => (
+                            <MenuItem
+                                key={index}
+                                icon={faIcon({
+                                    icon: example.icon,
+                                    style: { marginLeft: 4 },
+                                })}
+                                onClick={() => {
+                                    if (openingPanel) return;
+                                    setOpeningPanel(true);
+                                    openPanel({
+                                        props: {
+                                            id: example.id,
+                                            setJsonUischema,
+                                            setJsonData,
+                                            setJsonSchema,
+                                        },
+                                        renderPanel: RendererExamplePanel,
+                                    });
+                                    setTimeout(() => {
+                                        setOpeningPanel(false);
+                                    }, 500);
+                                }}
+                                text={
+                                    <div style={{ marginLeft: 3 }}>
+                                        <div>{example.title}</div>
+                                        <div
+                                            style={{
+                                                marginTop: 5,
+                                                whiteSpace: "initial",
+                                                lineHeight: "initial",
+                                            }}
+                                            className={classNames(
+                                                Classes.TEXT_SMALL,
+                                                Classes.TEXT_MUTED
+                                            )}
+                                        >
+                                            {example.description}
+                                        </div>
+                                    </div>
+                                }
+                            />
+                        ))}
+                    </Menu>
+                </div>
                 <Callout icon={null} intent={Intent.PRIMARY}>
                     Didn&apos;t find an useful example here? Please request for
                     an example by&nbsp;
@@ -249,10 +332,16 @@ const MainMenuPanel = (props) => {
         </div>
     );
 };
-export default function DocDrawer({ isOpen, setIsDocOpen }) {
+export default function DocDrawer({
+    isOpen,
+    setIsDocOpen,
+    setJsonUischema,
+    setJsonData,
+    setJsonSchema,
+}) {
     const initialPanel = {
         renderPanel: MainMenuPanel,
-        props: { setIsDocOpen },
+        props: { setIsDocOpen, setJsonUischema, setJsonData, setJsonSchema },
     };
     const [currentPanelStack, setCurrentPanelStack] = useState([initialPanel]);
     const addToPanelStack = useCallback((newPanel) => {
@@ -278,7 +367,7 @@ export default function DocDrawer({ isOpen, setIsDocOpen }) {
             size={"min(40%, 716.8px)"}
         >
             <PanelStack2
-                renderActivePanelOnly={false}
+                renderActivePanelOnly
                 className="full-parent-height transition-none"
                 onOpen={addToPanelStack}
                 onClose={removeFromPanelStack}

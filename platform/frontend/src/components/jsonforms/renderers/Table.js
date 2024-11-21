@@ -28,7 +28,7 @@ const TableRenderer = ({ cells, path, renderers, schema, uischema, data }) => {
             </Callout>
         );
     return (
-        <div>
+        <div className="full-parent-width" style={{ overflow: "auto" }}>
             <HTMLTable
                 style={style}
                 compact={compact}
