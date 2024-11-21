@@ -194,6 +194,32 @@ class AgenticEmployerAgent(Agent):
                 self.todos.add(query_id)
                 self.issue_sql_query(query, worker, id=query_id)
 
+    def move_job_seeker_to_list(self, job_seeker_id, from_list, to_list, properties=None, worker=None):
+        if worker == None:
+            worker = self.create_worker(None)
+
+        if properties is None:
+            properties = self.properties
+
+        session_data = worker.get_all_session_data()
+        
+        if type(from_list) == list:
+            from_list = ",".join(map(str, from_list))
+        else:
+            from_list = str(from_list)
+
+        to_list = str(to_list)
+
+        if 'move_job_seeker_to_list' in properties:
+            move_job_seeker_to_list_query_template = properties['move_job_seeker_to_list']
+            query_template = move_job_seeker_to_list_query_template['query']
+            query = string_utils.safe_substitute(query_template, **properties, **session_data, JOB_SEEKER_ID=job_seeker_id, FROM_LIST=from_list, TO_LIST=to_list)
+            q = copy.deepcopy(move_job_seeker_to_list_query_template)
+            q["query"] = query
+            self.issue_sql_query(q, worker, id="move_job_seeker_to_list")
+        else:
+            logging.error("No `move_job_seeker_to_list` query template found in agent properties!")
+
     def get_lists(self, properties=None, worker=None):
 
         if worker == None:
@@ -229,12 +255,11 @@ class AgenticEmployerAgent(Agent):
         if worker == None:
             worker = self.create_worker(None)
 
-
         form = ui_builders.build_ats_form(self.selected_job_posting_id, self.job_postings, self.lists, self.results)
         form['form_id'] = "ats"
 
         # write form, updating existing if necessary 
-        update = False
+        # update = False
         if update:
             worker.write_control(
                 ControlCode.UPDATE_FORM, form, output="FORM", id="ats", scope="agent", tags=["WORKSPACE"]
@@ -266,15 +291,22 @@ class AgenticEmployerAgent(Agent):
 
                     if query == "job_postings":
                         self.job_postings = query_results
+                        # render ats form with job postings
                         self.show_ats_form(properties=properties, worker=worker, update=True)
                     elif query == "lists":
                         self.lists = query_results
+                        # render ats form with lists
                         self.show_ats_form(properties=properties, worker=worker, update=True)
+                    elif query == "move_job_seeker_to_list":
+                        # reissue queries, to reflect update in ui
+                        # self.issue_queries(properties=properties, worker=worker)
+                        pass
                     else:
                         self.todos.remove(query)
                         self.results[query] = query_results
                         # all queries received
                         if len(self.todos) == 0:
+                            # render ats form with jobseekers data
                             self.show_ats_form(properties=properties, worker=worker, update=True)
                 else:
                     logging.info("nothing found")
@@ -307,10 +339,10 @@ class AgenticEmployerAgent(Agent):
                                 }
                             )
                             
-                            # new value
-                            if prev_value != value:
-
-                                if path == "job_posting":
+                            # new job posting selected
+                            if path == "job_posting":
+                                # new value
+                                if prev_value != value:
                                     # extract JOB_POSTING_ID
                                     JOB_POSTING_ID = self.extract_job_posting_id(value)
                                     if JOB_POSTING_ID:
@@ -320,6 +352,21 @@ class AgenticEmployerAgent(Agent):
 
                                         # issue other queries
                                         self.issue_queries(properties=properties, worker=worker)
+
+                            # job seeker interested
+                            elif path.find("JOB_SEEKER_") == 0:
+                                ps = path.split("_")
+                                if len(ps) == 4 and ps[3] == "Interested":
+                                    job_seeker_id = int(ps[2])
+
+                                    # interested value to code
+                                    interested_enums_by_list_code = {"✓": 2, "?": 3, "𐄂":4 }
+                                    from_list = list(interested_enums_by_list_code.values())
+                                    to_list = interested_enums_by_list_code[value]
+
+                                    # issue db delete/insert transaction
+                                    self.move_job_seeker_to_list(job_seeker_id, from_list, to_list, properties=properties, worker=worker)
+
 
                     
  

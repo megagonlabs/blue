@@ -98,7 +98,7 @@ def get_list_header(headers=None):
         }
     }
 
-def get_separator(separator='┄', length=50, margin=10):
+def get_separator(separator='┄', length=52, margin=10):
     return {
         "type": "Label",
         "label": separator * length,
@@ -195,9 +195,20 @@ def get_column_ui(row, header, actions=None):
                 }
             })
 
+        action_elements.append({
+            "type": "Label",
+            "label": " ",
+            "props": {
+                "style": {
+                    "width": 200,
+                    "fontSize": 12
+                }
+            }
+        })
+        
         return  {
             "type": "VerticalLayout",
-            "elements": action_elements
+            "elements": action_elements,
         }
     
     elif header == 'Interested?':
