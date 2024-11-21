@@ -224,6 +224,8 @@ class Worker:
                 event_producer.start()
                 event_stream = event_producer.get_stream()
 
+                self.agent.event_producers[form_id] = event_producer
+
                 # inject stream and form id into ui
                 self._update_form_ids(message.getArg("uischema"), event_stream, form_id)
 
@@ -243,8 +245,18 @@ class Worker:
                 if form_id is None:
                     raise Exception('missing form_id in UPDATE_FORM')
 
+                event_producer = None
+                if form_id in self.agent.event_producers:
+                    event_producer = self.agent.event_producers[form_id]
+
+
+                if event_producer is None:
+                    raise Exception("no matching event producer for form")
+                
+                event_stream = event_producer.get_stream()
+                
                 # inject stream and form id into ui
-                # self._update_form_ids(message.getArg("uischema"), event_stream, form_id)                    
+                self._update_form_ids(message.getArg("uischema"), event_stream, form_id)                    
 
         # append output variable with id, if not None
         if id is not None:
@@ -273,6 +285,8 @@ class Worker:
 
     def _start_consumer(self):
         # start a consumer to listen to stream
+
+        # if no input stream do not create consumer 
         if self.input_stream is None:
             return
 
