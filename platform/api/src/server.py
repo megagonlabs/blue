@@ -4,6 +4,7 @@ import sys
 import logging
 
 import pydash
+import redis
 
 ###### Add lib path
 sys.path.append("./lib/")
@@ -27,6 +28,11 @@ from firebase_admin import auth
 
 ###### Settings
 from settings import PROPERTIES, DISABLE_AUTHENTICATION
+
+# start redis connection
+db_host = PROPERTIES['db.host']
+db_port = PROPERTIES['db.port']
+connection = redis.Redis(host=db_host, port=db_port, decode_responses=True)
 
 ###### API Routers
 from constant import EMAIL_DOMAIN_ADDRESS_REGEXP, InvalidRequestJson, PermissionDenied
@@ -68,7 +74,7 @@ print("blue-platform-api: " + version)
 logging.getLogger().setLevel("INFO")
 
 ###### Initialization
-p = Platform(id=platform_id, properties=PROPERTIES)
+p = Platform(id=platform_id, properties=PROPERTIES, connection=connection)
 
 ## Create Registries, Load
 agent_registry = AgentRegistry(id=agent_registry_id, prefix=prefix, properties=PROPERTIES)

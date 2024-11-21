@@ -37,6 +37,7 @@ from session import Session
 
 ###### Properties
 from settings import ACL, PROPERTIES
+from server import connection
 
 ### Assign from platform properties
 platform_id = PROPERTIES["platform.name"]
@@ -45,7 +46,7 @@ agent_registry_id = PROPERTIES["agent_registry.name"]
 PLATFORM_PREFIX = f'/blue/platform/{platform_id}'
 
 ###### Initialization
-p = Platform(id=platform_id, properties=PROPERTIES)
+p = Platform(id=platform_id, properties=PROPERTIES, connection=connection)
 agent_registry = AgentRegistry(id=agent_registry_id, prefix=prefix, properties=PROPERTIES)
 
 ##### ROUTER

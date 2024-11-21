@@ -19,6 +19,7 @@ PROPERTIES["model_registry.name"] = os.getenv("BLUE_MODEL_REGISTRY")
 PROPERTIES["operator_registry.name"] = os.getenv("BLUE_OPERATOR_REGISTRY")
 PROPERTIES["embeddings_model"] = os.getenv("BLUE_AGENT_REGISTRY_MODEL")
 PROPERTIES["db.host"] = os.getenv("BLUE_DB_HOST", 'blue_db_redis')
+PROPERTIES["db.port"] = os.getenv("BLUE_DB_PORT", '6379')
 PROPERTIES["rbac.config.folder"] = os.getenv("BLUE_RBAC_CONFIG_FOLDER")
 
 ##### Other Settings
