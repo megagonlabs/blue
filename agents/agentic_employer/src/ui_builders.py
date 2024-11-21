@@ -333,9 +333,14 @@ def build_ats_form(selected_job_posting_id, job_postings, lists, data):
     lists_uis = []
     lists_labels = []
 
+    list_id_by_code = {}
     for l in lists:
         list_contents = []
+        list_id_by_code[l['list_code']] = l['list_id']
         all_list_contents[l['list_id']] = list_contents
+
+
+    form_data = {}
 
     form_ui = {
         "type": "VerticalLayout",
@@ -369,7 +374,9 @@ def build_ats_form(selected_job_posting_id, job_postings, lists, data):
     }
         
     interested_enums = ["✓","?","𐄂"]
+    interested_enums_by_list_code = {"interested": "✓", "undecided": "?", "rejected": "𐄂"}
 
+   
     form_schema = {
         "type": "object",
         "properties": {
@@ -382,7 +389,6 @@ def build_ats_form(selected_job_posting_id, job_postings, lists, data):
 
     ### build form schema
     #job_postings
-    
     selected_job_posting_label = None
     if len (job_postings) > 0:
         form_schema['properties']['job_posting']['enum'] = []
@@ -402,11 +408,20 @@ def build_ats_form(selected_job_posting_id, job_postings, lists, data):
             for row in rows:
                 list_contents.append(get_row_ui(row))
 
-
             # properties
             for job_seeker_id in list:
                 form_schema['properties']["JOB_SEEKER_" + str(job_seeker_id)] = { "type": "boolean" }
                 form_schema['properties']["JOB_SEEKER_" + str(job_seeker_id) + "_Interested"] = { "type": "string", "enum": copy.deepcopy(interested_enums) }
+
+                # update interested status
+                if list_id == list_id_by_code['interested']:
+                    form_data["JOB_SEEKER_" + str(job_seeker_id) + "_Interested"] = interested_enums_by_list_code['interested']
+                elif list_id == list_id_by_code['undecided']:
+                    form_data["JOB_SEEKER_" + str(job_seeker_id) + "_Interested"] = interested_enums_by_list_code['undecided']
+                elif list_id == list_id_by_code['rejected']:
+                    form_data["JOB_SEEKER_" + str(job_seeker_id) + "_Interested"] = interested_enums_by_list_code['rejected']
+                
+
 
     for l in lists:
         list_id = l['list_id']
@@ -414,11 +429,11 @@ def build_ats_form(selected_job_posting_id, job_postings, lists, data):
         lists_labels.append(l['list_name'] + " [" + str(len(list_contents)) + "]")
         lists_uis.append(get_list_ui(l['list_id'], l['list_code'], l['list_name'], list_contents))
 
-    ## data element
-    form_data = {}
-
+   
+    ### data element
     if selected_job_posting_label:
         form_data["job_posting"] = selected_job_posting_label
+        
         
     form = {
         "schema": form_schema,
