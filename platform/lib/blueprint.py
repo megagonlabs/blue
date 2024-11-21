@@ -26,8 +26,8 @@ from message import Message, MessageType, ContentType, ControlCode
 
 
 class Platform:
-    def __init__(self, name="PLATFORM", id=None, sid=None, cid=None, prefix=None, suffix=None, properties={}):
-
+    def __init__(self, name="PLATFORM", id=None, sid=None, cid=None, prefix=None, suffix=None, properties={}, connection=None):
+        self.connection = None
         self.name = name
         if id:
             self.id = id
@@ -52,7 +52,8 @@ class Platform:
                 self.cid = self.cid + ":" + self.suffix
 
         self._initialize(properties=properties)
-
+        if connection is not None:
+            self.connection = connection
         # platform stream
         self.producer = None
 
@@ -97,14 +98,15 @@ class Platform:
         result = []
         for session_sid in session_sids:
             session = self.get_session(session_sid)
-            result.append(session.to_dict())
+            if session is not None:
+                result.append(session.to_dict())
         return result
 
     def get_session(self, session_sid):
         session_sids = self.get_session_sids()
 
         if session_sid in set(session_sids):
-            return Session(sid=session_sid, prefix=self.cid, properties=self.properties)
+            return Session(sid=session_sid, prefix=self.cid, properties=self.properties, connection=self.connection)
         else:
             return None
 
@@ -210,7 +212,8 @@ class Platform:
 
     def _start(self):
         # logging.info('Starting session {name}'.format(name=self.sid))
-        self._start_connection()
+        if self.connection is None:
+            self._start_connection()
 
         # initialize platform metadata
         self._init_metadata_namespace()

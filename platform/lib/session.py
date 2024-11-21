@@ -28,8 +28,8 @@ from message import Message, MessageType, ContentType, ControlCode
 
 
 class Session:
-    def __init__(self, name="SESSION", id=None, sid=None, cid=None, prefix=None, suffix=None, properties={}):
-
+    def __init__(self, name="SESSION", id=None, sid=None, cid=None, prefix=None, suffix=None, properties={}, connection=None):
+        self.connection = None
         self.name = name
         if id:
             self.id = id
@@ -52,7 +52,8 @@ class Session:
                 self.cid = self.prefix + ":" + self.cid
             if self.suffix:
                 self.cid = self.cid + ":" + self.suffix
-
+        if connection is not None:
+            self.connection = connection
         # session stream
         self.producer = None
 
@@ -420,7 +421,8 @@ class Session:
     ###### OPERATIONS
     def _start(self):
         # logging.info('Starting session {name}'.format(name=self.name))
-        self._start_connection()
+        if self.connection is None:
+            self._start_connection()
 
         # initialize session metadata
         self._init_metadata_namespace()
