@@ -46,8 +46,14 @@ export default function sessionReducer(
     let pinnedSessionIds = _.clone(state.pinnedSessionIds);
     switch (type) {
         case "session/workspace/clear": {
+            let contents = _.get(sessionWorkspace, sessionIdFocus, []);
+            for (let i = 0; i < _.size(contents); i++) {
+                const stream = _.get(contents, [i, "message", "stream"], null);
+                workspaceStreams.delete(stream);
+            }
             return {
                 ...state,
+                workspaceStreams,
                 sessionWorkspace: { ...sessionWorkspace, [sessionIdFocus]: [] },
             };
         }
@@ -71,7 +77,7 @@ export default function sessionReducer(
         }
         case "session/sessions/addToWorkspace": {
             const stream = _.get(payload, "message.stream", null);
-            if (!_.isEmpty(stream) && !workspaceStreams.has(stream)) {
+            if (!workspaceStreams.has(stream)) {
                 let workspaceContents = _.get(
                     sessionWorkspace,
                     sessionIdFocus,

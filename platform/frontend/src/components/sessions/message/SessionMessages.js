@@ -73,7 +73,7 @@ const Row = ({ index, data, style }) => {
             }
         }
         return _.isEqual(uid, user.uid) && _.isEqual(created_by, "USER");
-    }, [user.uid]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [user.uid, messages]); // eslint-disable-line react-hooks/exhaustive-deps
     const isOverflown = useRef(false);
     const message = messages[index];
     const stream = message.stream;
