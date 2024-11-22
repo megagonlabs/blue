@@ -247,7 +247,7 @@ export default function sessionReducer(
                             ...baseData,
                             content: { form_id },
                         });
-                        // create/update forms
+                        // create or update forms
                         _.set(jsonformSpecs, form_id, messageContentsArgs);
                     } else if (_.isEqual("CLOSE_FORM", messageContentsCode)) {
                         closedJsonforms.add(

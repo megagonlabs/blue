@@ -149,6 +149,7 @@ const Row = ({ index, data, style }) => {
                         position: "absolute",
                         right: 0,
                         top: 0,
+                        zIndex: 22,
                         display: showActions.current ? null : "none",
                     }}
                 >
