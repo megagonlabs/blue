@@ -13,6 +13,7 @@ export const defaultState = {
     showWorkspacePanel: false,
     sessionWorkspaceCollapse: {},
     sessionWorkspace: {},
+    workspaceStreams: new Set(),
     unreadSessionIds: new Set(),
     pinnedSessionIds: new Set(),
     closedJsonforms: new Set(),
@@ -38,6 +39,7 @@ export default function sessionReducer(
         sessionWorkspaceCollapse,
         sessionAgentProgress,
         jsonformSpecs,
+        workspaceStreams,
     } = state;
     const { sessionIdFocus } = state;
     let sessions = _.cloneDeep(state.sessions);
@@ -51,9 +53,16 @@ export default function sessionReducer(
         }
         case "session/workspace/remove": {
             let contents = _.get(sessionWorkspace, sessionIdFocus, []);
+            const stream = _.get(
+                contents,
+                [payload, "message", "stream"],
+                null
+            );
             _.pullAt(contents, [payload]);
+            workspaceStreams.delete(stream);
             return {
                 ...state,
+                workspaceStreams,
                 sessionWorkspace: {
                     ...sessionWorkspace,
                     [sessionIdFocus]: contents,
@@ -61,10 +70,18 @@ export default function sessionReducer(
             };
         }
         case "session/sessions/addToWorkspace": {
-            let workspaceContents = _.get(sessionWorkspace, sessionIdFocus, []);
-            workspaceContents.push(payload);
-            _.set(sessionWorkspace, sessionIdFocus, workspaceContents);
-            return { ...state, sessionWorkspace };
+            const stream = _.get(payload, "message.stream", null);
+            if (!_.isEmpty(stream) && !workspaceStreams.has(stream)) {
+                let workspaceContents = _.get(
+                    sessionWorkspace,
+                    sessionIdFocus,
+                    []
+                );
+                workspaceContents.push(payload);
+                workspaceStreams.add(stream);
+                _.set(sessionWorkspace, sessionIdFocus, workspaceContents);
+            }
+            return { ...state, sessionWorkspace, workspaceStreams };
         }
         case "session/sessions/jsonform/setData": {
             const { data, formId } = payload;
@@ -300,11 +317,14 @@ export default function sessionReducer(
                     considerWorkspace &&
                     _.get(payload, "metadata.tags.WORKSPACE", false)
                 ) {
-                    workspaceContents.push({
-                        type: "session",
-                        message: baseMessage,
-                        loading: true,
-                    });
+                    if (!workspaceStreams.has(stream)) {
+                        workspaceContents.push({
+                            type: "session",
+                            message: baseMessage,
+                            loading: true,
+                        });
+                        workspaceStreams.add(stream);
+                    }
                 }
                 _.set(sessionWorkspace, sessionIdFocus, workspaceContents);
             }
@@ -313,6 +333,7 @@ export default function sessionReducer(
                 sessions,
                 sessionIds,
                 unreadSessionIds,
+                workspaceStreams,
                 closedJsonforms,
                 jsonformSpecs,
                 sessionAgentProgress,
