@@ -128,7 +128,14 @@ class AgenticEmployerAgent(Agent):
 
         return output_stream
 
-    def issue_nl_query(self, question, worker, id=None):
+    def issue_nl_query(self, question, worker, name=None, id=None):
+
+        # create a unique id
+        if id is None:
+            id = util_functions.create_uuid()
+
+        if name is None:
+            name = "unspecified"
 
         # progress
         worker.write_progress(progress_id=worker.sid, label='Issuing question:' + question, value=self.current_step/self.num_steps)
@@ -136,7 +143,7 @@ class AgenticEmployerAgent(Agent):
         # query plan
         query_plan = [
             [self.name + ".Q", "NL2SQL-E2E_INPLAN.DEFAULT"],
-            ["NL2SQL-E2E_INPLAN.DEFAULT", self.name+".RESULTS"],
+            ["NL2SQL-E2E_INPLAN.DEFAULT", self.name+".QUESTION_RESULTS_" + name],
         ]
        
         # write query to stream
@@ -151,12 +158,19 @@ class AgenticEmployerAgent(Agent):
 
         return
 
-    def issue_sql_query(self, query, worker, id=None):
+    def issue_sql_query(self, query, worker, name=None, id=None):
+
+        # create a unique id
+        if id is None:
+            id = util_functions.create_uuid()
+
+        if name is None:
+            name = "unspecified"
 
         # query plan
         query_plan = [
             [self.name + ".Q", "QUERYEXECUTOR.DEFAULT"],
-            ["QUERYEXECUTOR.DEFAULT", self.name+".QUERY_RESULTS_" + id],
+            ["QUERYEXECUTOR.DEFAULT", self.name+".QUERY_RESULTS_" + name],
         ]
        
         # write query to stream
@@ -184,15 +198,15 @@ class AgenticEmployerAgent(Agent):
         # issue queries
         if 'queries' in self.properties:
             queries = self.properties['queries']
-            for query_id in queries:
-                q = queries[query_id]
+            for query_name in queries:
+                q = queries[query_name]
                 if type(q) == dict:
                     q = json.dumps(q)
                 else:
                     q = str(q)
                 query = string_utils.safe_substitute(q, **properties, **session_data)
-                self.todos.add(query_id)
-                self.issue_sql_query(query, worker, id=query_id)
+                self.todos.add(query_name)
+                self.issue_sql_query(query, worker, name=query_name)
 
     def move_job_seeker_to_list(self, job_seeker_id, from_list, to_list, properties=None, worker=None):
         if worker == None:
@@ -216,7 +230,7 @@ class AgenticEmployerAgent(Agent):
             query = string_utils.safe_substitute(query_template, **properties, **session_data, JOB_SEEKER_ID=job_seeker_id, FROM_LIST=from_list, TO_LIST=to_list)
             q = copy.deepcopy(move_job_seeker_to_list_query_template)
             q["query"] = query
-            self.issue_sql_query(q, worker, id="move_job_seeker_to_list")
+            self.issue_sql_query(q, worker, name="move_job_seeker_to_list")
         else:
             logging.error("No `move_job_seeker_to_list` query template found in agent properties!")
 
@@ -233,7 +247,7 @@ class AgenticEmployerAgent(Agent):
             else:
                 # query lists
                 query = lists_property
-                self.issue_sql_query(query, worker, id="lists")
+                self.issue_sql_query(query, worker, name="lists")
 
     def get_job_postings(self, properties=None, worker=None):
 
@@ -248,7 +262,7 @@ class AgenticEmployerAgent(Agent):
             else:
                 # query job_postings
                 query = job_postings_property
-                self.issue_sql_query(query, worker, id="job_postings")
+                self.issue_sql_query(query, worker, name="job_postings")
 
     def show_ats_form(self, properties=None, worker=None, update=False):
 
@@ -299,8 +313,8 @@ class AgenticEmployerAgent(Agent):
                         self.show_ats_form(properties=properties, worker=worker, update=True)
                     elif query == "move_job_seeker_to_list":
                         # reissue queries, to reflect update in ui
-                        # self.issue_queries(properties=properties, worker=worker)
-                        pass
+                        logging.info("REISSUE SQL QUERIES")
+                        self.issue_queries(properties=properties)
                     else:
                         self.todos.remove(query)
                         self.results[query] = query_results
