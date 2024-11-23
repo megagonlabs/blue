@@ -282,6 +282,56 @@ class AgenticEmployerAgent(Agent):
             worker.write_control(
                 ControlCode.CREATE_FORM, form, output="FORM", id="ats", scope="agent", tags=["WORKSPACE"]
             )
+
+
+    def view_jd(self,  properties=None, worker=None):
+
+        if worker == None:
+            worker = self.create_worker(None)
+    
+        # create a unique id
+        id = util_functions.create_uuid()
+
+        # view plan
+        view_plan = [
+            [self.name + ".DEFAULT", "DOCUMENTER_JD.DEFAULT"]
+        ]
+    
+        # write job_seeker_id to stream
+        a_stream = self.write_to_new_stream(worker, "jd", "DEFAULT", tags=["HIDDEN"], id=id)
+
+        # build plan
+        plan = self.build_plan(view_plan, a_stream, id=id)
+
+        # write plan
+        self.write_to_new_stream(worker, plan, "PLAN", tags=["PLAN"], id=id)
+
+        return
+    
+    def view_job_seeker(self, job_seeker_id, properties=None, worker=None):
+
+        if worker == None:
+            worker = self.create_worker(None)
+
+        # create a unique id
+        id = util_functions.create_uuid()
+
+        # view plan
+        view_plan = [
+            [self.name + ".DEFAULT", "DOCUMENTER_JOBSEEKER.DEFAULT"]
+        ]
+    
+        # write job_seeker_id to stream
+        a_stream = self.write_to_new_stream(worker, str(job_seeker_id), "DEFAULT", tags=["HIDDEN"], id=id)
+
+        # build plan
+        plan = self.build_plan(view_plan, a_stream, id=id)
+
+        # write plan
+        self.write_to_new_stream(worker, plan, "PLAN", tags=["PLAN"], id=id)
+
+        return
+    
     
     def extract_job_posting_id(self, s):
         results = re.findall(r"\[\s*\+?#(-?\d+)\s*\]", s)
@@ -289,6 +339,24 @@ class AgenticEmployerAgent(Agent):
             return results[0]
         else:
             return None
+
+    def extract_job_seeker_id(self, s):
+        si =  s.find("JOB_SEEKER_")
+        if si == -1:
+            return None, None, None
+
+        action = None
+        if si > 0:
+            action = s[:si-1]
+
+        s = s[si+len("JOB_SEEKER_"):]
+        ss = s.split("_")
+        category = None
+        job_seeker_id = ss[0]
+        if len(ss) > 1:
+            category = ss[1]
+
+        return job_seeker_id, action, category
 
     def default_processor(self, message, input="DEFAULT", properties=None, worker=None):
         if input.find("QUERY_RESULTS_") == 0:
@@ -369,10 +437,10 @@ class AgenticEmployerAgent(Agent):
 
                             # job seeker interested
                             elif path.find("JOB_SEEKER_") == 0:
-                                ps = path.split("_")
-                                if len(ps) == 4 and ps[3] == "Interested":
-                                    job_seeker_id = int(ps[2])
+                                job_seeker_id, action, category = self.extract_job_seeker_id(path)
 
+                                if job_seeker_id and category == "Interested":
+                                    
                                     # interested value to code
                                     interested_enums_by_list_code = {"✓": 2, "?": 3, "𐄂":4 }
                                     from_list = list(interested_enums_by_list_code.values())
@@ -380,6 +448,12 @@ class AgenticEmployerAgent(Agent):
 
                                     # issue db delete/insert transaction
                                     self.move_job_seeker_to_list(job_seeker_id, from_list, to_list, properties=properties, worker=worker)
+                    elif action == "VIEW_JD":
+                        self.view_jd(properties=properties, worker=None)
+                    else:
+                        job_seeker_id, action, category = self.extract_job_seeker_id(action)
+                        if action == "VIEW":
+                            self.view_job_seeker(job_seeker_id, properties=properties, worker=None)
 
 
                     
