@@ -20,18 +20,10 @@ def build_doc_form(doc):
         ]
     }
 
-    doc_schema = {
-        "type": "object",
-        "properties": {
-            "markdown": {
-                "md-content": doc
-            }
-        }
-    }
-
     doc_form = {
-        "schema": doc_schema,
+        "schema": {},
         "uischema": doc_ui,
+        "data": { "markdown": doc }
     }
 
     return doc_form
