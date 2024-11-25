@@ -93,15 +93,23 @@ class DocumenterAgent(Agent):
 
         return output_stream
 
-    def issue_nl_query(self, question, worker, id=None):
+    def issue_nl_query(self, question, worker, name=None, id=None):
+
+       # create a unique id
+        if id is None:
+            id = util_functions.create_uuid()
+
+        if name is None:
+            name = "unspecified"
 
         # progress
         worker.write_progress(progress_id=worker.sid, label='Issuing question:' + question, value=self.current_step/self.num_steps)
 
+  
         # query plan
         query_plan = [
             [self.name + ".Q", "NL2SQL-E2E_INPLAN.DEFAULT"],
-            ["NL2SQL-E2E_INPLAN.DEFAULT", self.name+".RESULTS"],
+            ["NL2SQL-E2E_INPLAN.DEFAULT", self.name+".QUESTION_RESULTS_" + name],
         ]
        
         # write query to stream
@@ -116,15 +124,19 @@ class DocumenterAgent(Agent):
 
         return
 
-    def issue_sql_query(self, query, worker, id=None):
+    def issue_sql_query(self, query, worker, name=None, id=None):
 
-        # progress
-        worker.write_progress(progress_id=worker.sid, label='Issuing query:' + query, value=self.current_step/self.num_steps)
+        # create a unique id
+        if id is None:
+            id = util_functions.create_uuid()
 
-        # query plan        
+        if name is None:
+            name = "unspecified"
+
+        # query plan
         query_plan = [
             [self.name + ".Q", "QUERYEXECUTOR.DEFAULT"],
-            ["QUERYEXECUTOR.DEFAULT", self.name+".RESULTS"],
+            ["QUERYEXECUTOR.DEFAULT", self.name+".QUERY_RESULTS_" + name],
         ]
        
         # write query to stream
@@ -139,21 +151,29 @@ class DocumenterAgent(Agent):
 
         return
     
-    def hilite_doc(self, worker, processed_doc, results, properties):
+    def hilite_doc(self, doc, properties=None, worker=None):
         if 'hilite' in properties:
             hilite = properties['hilite']
 
-             # progress
+            if worker == None:
+                worker = self.create_worker(None)
+
+            if properties is None:
+                properties = self.properties
+
+            # progress
             worker.write_progress(progress_id=worker.sid, label='Highlighting document...', value=self.current_step/self.num_steps)
 
             session_data = worker.get_all_session_data()
+
             if session_data is None:
                 session_data = {}
 
             processed_hilite = string_utils.safe_substitute(hilite, **properties,  **session_data)
             t = Environment(loader=BaseLoader()).from_string(processed_hilite)
-            processed_hilite = t.render(**results)
+            processed_hilite = t.render(**self.results)
 
+            # create a unique id
             id = util_functions.create_uuid()
 
             hilite_plan = [
@@ -162,13 +182,11 @@ class DocumenterAgent(Agent):
             ]
         
             hilite_contents = {
-                "doc": processed_doc,
+                "doc": doc,
                 "hilite": processed_hilite
             }
 
             hilite_contents_json = json.dumps(hilite_contents, indent=3)
-
-            logging.info(hilite_contents_json)
 
             # write doc/hiliter to stream
             stream = self.write_to_new_stream(worker, hilite_contents_json, "DOC", tags=["HIDDEN"], id=id)
@@ -177,21 +195,27 @@ class DocumenterAgent(Agent):
             plan = self.build_plan(hilite_plan, stream, id=id)
 
             # write plan
-            # TODO: this shouldn't necessarily be into a new stream
             self.write_to_new_stream(worker, plan, "PLAN", tags=["PLAN","HIDDEN"], id=id)
 
             return
 
-    def process_doc(self, worker, results, properties):
+    def process_doc(self, properties=None, worker=None):
+
+        if worker == None:
+            worker = self.create_worker(None)
+
+        if properties is None:
+            properties = self.properties
+
         # progress
         worker.write_progress(progress_id=worker.sid, label='Processing document...', value=self.current_step/self.num_steps)
 
-        doc = self.substitute_doc(worker, results, properties)
+        doc = self.substitute_doc(worker, self.results, properties)
 
         if 'hilite' in properties:
-            self.hilite_doc(worker, doc, results, properties)
+            self.hilite_doc(doc, properties=properties, worker=worker)
         else:
-            self.render_doc(worker, doc, properties)
+            self.render_doc(doc, properties=properties, worker=worker)
 
     def substitute_doc(self, worker, results, properties):
         session_data = worker.get_all_session_data()
@@ -208,7 +232,13 @@ class DocumenterAgent(Agent):
 
         return doc
 
-    def render_doc(self, worker, doc, properties):
+    def render_doc(self, doc, properties=None, worker=None):
+        if worker == None:
+            worker = self.create_worker(None)
+
+        if properties is None:
+            properties = self.properties
+
         doc_form = ui_builders.build_doc_form(doc)
 
         # write vis
@@ -227,7 +257,6 @@ class DocumenterAgent(Agent):
                 # get all data received from user stream
                 stream = message.getStream()
 
-            
                 stream_data = worker.get_data(stream)
                 input_data = " ".join(stream_data)
                 if worker:
@@ -254,25 +283,25 @@ class DocumenterAgent(Agent):
                     # nl questions
                     if 'questions' in self.properties:
                         questions = self.properties['questions']
-                        for question_id in questions:
-                            q = questions[question_id]
+                        for question_name in questions:
+                            q = questions[question_name]
                             question = string_utils.safe_substitute(q, **self.properties, **session_data, input=input_data)
-                            self.todos.add(question_id)
-                            self.issue_nl_query(question, worker, id=query_id)
+                            self.todos.add(question_name)
+                            self.issue_nl_query(question, worker, name=question_name)
                     # db queries
                     if 'queries' in self.properties:
                         queries = self.properties['queries']
-                        for query_id in queries:
-                            q = queries[query_id]
+                        for query_name in queries:
+                            q = queries[query_name]
                             if type(q) == dict:
                                 q = json.dumps(q)
                             else:
                                 q = str(q) 
                             query = string_utils.safe_substitute(q, **self.properties, **session_data, input=input_data)
-                            self.todos.add(query_id)
-                            self.issue_sql_query(query, worker, id=query_id)
+                            self.todos.add(query_name)
+                            self.issue_sql_query(query, worker, name=query_name)
                     if 'questions' not in self.properties and 'queries' not in self.properties:
-                        self.process_doc(worker, {}, properties)
+                        self.process_doc(properties=properties, worker=None)
 
                     return
 
@@ -292,23 +321,21 @@ class DocumenterAgent(Agent):
                 if worker:
                     worker.append_data(stream, data)
 
-        elif input == "RESULTS":
+        elif input.find("QUERY_RESULTS_") == 0:
             if message.isData():
                 stream = message.getStream()
-                # TODO: REVISE
-                # get query from incoming stream
-                query = stream[stream.find("Q"):].split(":")[1]
+                
+                # get query 
+                query = input[len("QUERY_RESULTS_"):]
 
                 data = message.getData()
-
-                logging.info(data)
             
                 if 'result' in data:
                     query_results = data['result']
 
                     self.results[query] = query_results
                     self.todos.remove(query)
-
+                    
                     # progress
                     self.current_step = len(self.results)
                     q = ""
@@ -320,7 +347,7 @@ class DocumenterAgent(Agent):
                     worker.write_progress(progress_id=worker.sid, label='Received query results: ' + q, value=self.current_step/self.num_steps)
 
                     if len(self.todos) == 0:
-                        self.process_doc(worker, self.results, properties)
+                        self.process_doc(properties=properties, worker=worker)
                 else:
                     logging.info("nothing found")
         elif input == "DOC":
@@ -332,7 +359,7 @@ class DocumenterAgent(Agent):
                 worker.write_progress(progress_id=worker.sid, label='Received highlighted document...', value=self.current_step/self.num_steps)
 
                 doc = str(data)
-                self.render_doc(worker, doc, properties)
+                self.render_doc(doc, properties=properties, worker=worker)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

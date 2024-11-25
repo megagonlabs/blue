@@ -92,15 +92,23 @@ class VisualizerAgent(Agent):
 
         return output_stream
 
-    def issue_nl_query(self, question, worker, id=None):
+    def issue_nl_query(self, question, worker, name=None, id=None):
+
+       # create a unique id
+        if id is None:
+            id = util_functions.create_uuid()
+
+        if name is None:
+            name = "unspecified"
 
         # progress
         worker.write_progress(progress_id=worker.sid, label='Issuing question:' + question, value=self.current_step/self.num_steps)
 
+  
         # query plan
         query_plan = [
             [self.name + ".Q", "NL2SQL-E2E_INPLAN.DEFAULT"],
-            ["NL2SQL-E2E_INPLAN.DEFAULT", self.name+".RESULTS"],
+            ["NL2SQL-E2E_INPLAN.DEFAULT", self.name+".QUESTION_RESULTS_" + name],
         ]
        
         # write query to stream
@@ -115,15 +123,19 @@ class VisualizerAgent(Agent):
 
         return
 
-    def issue_sql_query(self, query, worker, id=None):
-       
-        # progress
-        worker.write_progress(progress_id=worker.sid, label='Issuing query:' + query, value=self.current_step/self.num_steps)
+    def issue_sql_query(self, query, worker, name=None, id=None):
+
+        # create a unique id
+        if id is None:
+            id = util_functions.create_uuid()
+
+        if name is None:
+            name = "unspecified"
 
         # query plan
         query_plan = [
             [self.name + ".Q", "QUERYEXECUTOR.DEFAULT"],
-            ["QUERYEXECUTOR.DEFAULT", self.name+".RESULTS"],
+            ["QUERYEXECUTOR.DEFAULT", self.name+".QUERY_RESULTS_" + name],
         ]
        
         # write query to stream
@@ -138,21 +150,31 @@ class VisualizerAgent(Agent):
 
         return
     
-    def render_vis(self, worker, results):
+    def render_vis(self, properties=None, worker=None):
+
+        if worker == None:
+            worker = self.create_worker(None)
+
+        if properties is None:
+            properties = self.properties
+
         # progress
         worker.write_progress(progress_id=worker.sid, label='Rendering visualization...', value=self.current_step/self.num_steps)
 
         session_data = worker.get_all_session_data()
+
         if session_data is None:
             session_data = {}
+
+        # create a unique id
+        id = util_functions.create_uuid()
 
         template = self.properties['template']
         if type(template) is dict:
             template = json.dumps(template)
 
-        vis_json = string_utils.safe_substitute(template, **self.properties, **results,  **session_data)
+        vis_json = string_utils.safe_substitute(template, **self.properties, **self.results,  **session_data)
 
-        logging.info(vis_json)
         vis = json.loads(vis_json)
         vis_form = ui_builders.build_vis_form(vis)
 
@@ -173,7 +195,6 @@ class VisualizerAgent(Agent):
                 # get all data received from user stream
                 stream = message.getStream()
 
-            
                 stream_data = worker.get_data(stream)
                 input_data = " ".join(stream_data)
                 if worker:
@@ -197,25 +218,25 @@ class VisualizerAgent(Agent):
                     # nl questions
                     if 'questions' in self.properties:
                         questions = self.properties['questions']
-                        for question_id in questions:
-                            q = questions[question_id]
+                        for question_name in questions:
+                            q = questions[question_name]
                             question = string_utils.safe_substitute(q, **self.properties, **session_data, input=input_data)
-                            self.todos.add(question_id)
-                            self.issue_nl_query(question, worker, id=query_id)
+                            self.todos.add(question_name)
+                            self.issue_nl_query(question, worker, name=question_name)
                     # db queries
                     if 'queries' in self.properties:
                         queries = self.properties['queries']
-                        for query_id in queries:
-                            q = queries[query_id]
+                        for question_name in queries:
+                            q = queries[question_name]
                             if type(q) == dict:
                                 q = json.dumps(q)
                             else:
                                 q = str(q) 
                             query = string_utils.safe_substitute(q, **self.properties, **session_data, input=input_data)
-                            self.todos.add(query_id)
-                            self.issue_sql_query(query, worker, id=query_id)
+                            self.todos.add(question_name)
+                            self.issue_sql_query(query, worker, name=query_name)
                     if 'questions' not in self.properties and 'queries' not in self.properties:
-                        self.render_vis(worker, {})
+                        self.render_vis(properties=properties, worker=None)
 
                     return
 
@@ -235,16 +256,14 @@ class VisualizerAgent(Agent):
                 if worker:
                     worker.append_data(stream, data)
 
-        elif input == "RESULTS":
+        elif input.find("QUERY_RESULTS_") == 0:
             if message.isData():
                 stream = message.getStream()
-                # TODO: REVISE
-                # get query from incoming stream
-                query = stream[stream.find("Q"):].split(":")[1]
+                
+                # get query 
+                query = input[len("QUERY_RESULTS_"):]
 
                 data = message.getData()
-
-                logging.info(data)
             
                 if 'result' in data:
                     query_results = data['result']
@@ -262,13 +281,12 @@ class VisualizerAgent(Agent):
 
                     worker.write_progress(progress_id=worker.sid, label='Received query results: ' + q, value=self.current_step/self.num_steps)
 
-
                     if len(self.todos) == 0:
                         if len(query_results) == 0:
                             self.write_to_new_stream(worker, "No results...", "TEXT")
                             worker.write_progress(progress_id=worker.sid, label='Done...', value=1.0)
                         else:
-                            self.render_vis(worker, self.results)
+                            self.render_vis(properties=properties, worker=worker)
                 else:
                     logging.info("nothing found")
 
