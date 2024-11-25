@@ -17,18 +17,18 @@ def build_vis_form(vis):
         ]
     }
 
-    vis_schema = {
-        "type": "object",
-        "properties": {
-            "vis": {
-                 "vl-spec": vis 
-            }
+    vis_schema = {}
+
+    vis_data = {
+        "vis": {
+                "vl-spec": vis 
         }
     }
 
     vis_form = {
         "schema": vis_schema,
         "uischema": vis_ui,
+        "data": vis_data
     }
 
     return vis_form
