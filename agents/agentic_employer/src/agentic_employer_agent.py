@@ -78,7 +78,6 @@ class AgenticEmployerAgent(Agent):
             "Let’s get started!"
         )
 
-
         # say welcome, show form
         if self.session:
             # welcome
@@ -86,6 +85,7 @@ class AgenticEmployerAgent(Agent):
 
             # init results, todos
             self.lists = {}
+            self.list_id_by_code = {}
             self.selected_job_posting_id = None
             self.job_postings = {}
             self.results = {}
@@ -332,6 +332,52 @@ class AgenticEmployerAgent(Agent):
 
         return
     
+    def summarize_list(self, list_code, properties=None, worker=None):
+
+        if worker == None:
+            worker = self.create_worker(None)
+
+        if properties is None:
+            properties = self.properties
+
+        session_data = worker.get_all_session_data()
+
+        # create a unique id
+        id = util_functions.create_uuid()
+
+        # get code from id
+        logging.info(self.list_id_by_code)
+        list_id = self.list_id_by_code[list_code]
+
+        # set query
+        query = ""
+        if "job_seekers_in_list" in properties:
+            job_seekers_in_list_query_template = properties['job_seekers_in_list']
+            query_template = job_seekers_in_list_query_template['query']
+            query = string_utils.safe_substitute(query_template, **properties, **session_data, LIST_ID=list_id)
+            
+        # choose summarizer agent
+        summarizer = "SUMMARIZER_LIST"
+        if list_code == "all":
+            summarizer = "SUMMARIZER_ALL"
+        elif list_code == "new":
+            summarizer = "SUMMARIZER_RECENT"
+
+        # summary plans
+        summary_plan = [
+            [self.name + ".SQ", summarizer + ".DEFAULT"]
+        ]
+
+        # write query to stream
+        query_stream = self.write_to_new_stream(worker, query, "SQ", tags=["HIDDEN"], id=id)
+
+        # build query plan
+        plan = self.build_plan(summary_plan, query_stream, id=id)
+
+        # write plan
+        self.write_to_new_stream(worker, plan, "PLAN", tags=["PLAN","HIDDEN"], id=id)
+
+        return
     
     def extract_job_posting_id(self, s):
         results = re.findall(r"\[\s*\+?#(-?\d+)\s*\]", s)
@@ -377,15 +423,22 @@ class AgenticEmployerAgent(Agent):
                         self.show_ats_form(properties=properties, worker=worker, update=True)
                     elif query == "lists":
                         self.lists = query_results
+
+                        # build id by code
+                        for l in self.lists:
+                            self.list_id_by_code[l["list_code"]]= l["list_id"]
+
+                        logging.info(self.list_id_by_code)
+                        
                         # render ats form with lists
                         self.show_ats_form(properties=properties, worker=worker, update=True)
                     elif query == "move_job_seeker_to_list":
                         # reissue queries, to reflect update in ui
-                        logging.info("REISSUE SQL QUERIES")
                         self.issue_queries(properties=properties)
                     else:
                         self.todos.remove(query)
                         self.results[query] = query_results
+                        
                         # all queries received
                         if len(self.todos) == 0:
                             # render ats form with jobseekers data
@@ -432,8 +485,12 @@ class AgenticEmployerAgent(Agent):
                                         worker.set_session_data("JOB_POSTING_ID", JOB_POSTING_ID)
                                         self.selected_job_posting_id = JOB_POSTING_ID
 
-                                        # issue other queries
+                                        # issue other queries to populate tabs
                                         self.issue_queries(properties=properties, worker=worker)
+
+                                        # issue recent summarizer
+                                        self.summarize_list("new", properties=properties, worker=None)
+
 
                             # job seeker interested
                             elif path.find("JOB_SEEKER_") == 0:
