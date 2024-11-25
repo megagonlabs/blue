@@ -269,7 +269,20 @@ class AgenticEmployerAgent(Agent):
         if worker == None:
             worker = self.create_worker(None)
 
-        form = ui_builders.build_ats_form(self.selected_job_posting_id, self.job_postings, self.lists, self.results)
+        list_actions = []
+        job_seeker_actions = []
+
+        if 'actions' in properties:
+            if 'LIST' in properties['actions']:
+                list_actions = properties['actions']['LIST']
+                list_actions = list(list_actions.values())
+        
+        if 'actions' in properties:
+            if 'JOB_SEEKER' in properties['actions']:
+                job_seeker_actions = properties['actions']['JOB_SEEKER']
+                job_seeker_actions = list(job_seeker_actions.values())
+
+        form = ui_builders.build_ats_form(self.selected_job_posting_id, self.job_postings, self.lists, self.results, list_actions=list_actions, job_seeker_actions=job_seeker_actions)
         form['form_id'] = "ats"
 
         # write form, updating existing if necessary 
@@ -386,23 +399,97 @@ class AgenticEmployerAgent(Agent):
         else:
             return None
 
-    def extract_job_seeker_id(self, s):
-        si =  s.find("JOB_SEEKER_")
-        if si == -1:
-            return None, None, None
+    def extract_action(self, s):
 
+        # identify scope
+        scope = None
+        if s.find("_JD_") >= 0:
+            scope = "JD"
+        elif s.find("_JOB_SEEKER_") >= 0:
+            scope = "JOB_SEEKER"
+        elif s.find("_LIST_") >= 0:
+            scope = "LIST"
+
+        if scope is None:
+            return None, None, None, None
+        
+        # process s
+        si =  s.find(scope+"_")
+
+        # action
         action = None
         if si > 0:
             action = s[:si-1]
 
-        s = s[si+len("JOB_SEEKER_"):]
+        s = s[si+len(scope + "_"):]
         ss = s.split("_")
         category = None
-        job_seeker_id = ss[0]
+        id = ss[0]
         if len(ss) > 1:
             category = ss[1]
 
-        return job_seeker_id, action, category
+        return scope, action, id, category
+
+        
+    # def handle_jd_action(self, action, id, category, properties=None, worker=None):
+    #     if action == "VIEW":
+    #         self.view_jd(properties=properties, worker=None)
+    #     pass
+
+    # def handle_list_action(self, action, id, category, properties=None, worker=None):
+    #     pass
+
+    # def handle_job_seeker_action(self, action, id, category, properties=None, worker=None):
+    #     if action == "VIEW":
+    #         self.view_job_seeker(id, properties=properties, worker=None)
+
+    def handle_action_with_plan(self, scope, action, data, properties=None, worker=None):
+        if properties is None:
+            properties = self.properties
+
+        actions = None
+        if "actions" in properties:
+            actions = properties['actions']
+
+            if scope in actions:
+                scope_actions = actions[scope]
+
+                if action in scope_actions:
+                    action_properties = scope_actions[action]
+
+                    if 'plan' in action_properties:
+                        p = action_properties['plan']
+
+                        ## fix plan
+                        action_plan = []
+                        # substitue self
+                        for step in p:
+                            f = step[0]
+                            t = step[1]
+
+                            if f == "self":
+                                f = self.name + "." + action + "_" + scope + "_INPUT"
+                            if t == "self":
+                                t = self.name + "." + action + "_" + scope + "_OUTPUT"
+
+                            action_plan.append([f,t])
+
+                        # create worker if not given
+                        if worker == None:
+                            worker = self.create_worker(None)
+
+                        # create a unique id
+                        id = util_functions.create_uuid()
+
+                        # feed data as input, to output variable SCOPE + ACTION + "DATA"
+                        a_stream = self.write_to_new_stream(worker, data, action + "_" + scope + "_" + "INPUT", tags=["HIDDEN"], id=id)
+
+                        # build plan
+                        plan = self.build_plan(action_plan, a_stream, id=id)
+
+                        # write plan
+                        self.write_to_new_stream(worker, plan, "PLAN", tags=["PLAN"], id=id)
+
 
     def default_processor(self, message, input="DEFAULT", properties=None, worker=None):
         if input.find("QUERY_RESULTS_") == 0:
@@ -438,7 +525,7 @@ class AgenticEmployerAgent(Agent):
                     else:
                         self.todos.remove(query)
                         self.results[query] = query_results
-                        
+
                         # all queries received
                         if len(self.todos) == 0:
                             # render ats form with jobseekers data
@@ -494,9 +581,9 @@ class AgenticEmployerAgent(Agent):
 
                             # job seeker interested
                             elif path.find("JOB_SEEKER_") == 0:
-                                job_seeker_id, action, category = self.extract_job_seeker_id(path)
+                                scope, action, id, category = self.extract_action(path)
 
-                                if job_seeker_id and category == "Interested":
+                                if id and category == "Interested":
                                     
                                     # interested value to code
                                     interested_enums_by_list_code = {"✓": 2, "?": 3, "𐄂":4 }
@@ -504,17 +591,10 @@ class AgenticEmployerAgent(Agent):
                                     to_list = interested_enums_by_list_code[value]
 
                                     # issue db delete/insert transaction
-                                    self.move_job_seeker_to_list(job_seeker_id, from_list, to_list, properties=properties, worker=worker)
-                    elif action == "VIEW_JD":
-                        self.view_jd(properties=properties, worker=None)
+                                    self.move_job_seeker_to_list(id, from_list, to_list, properties=properties, worker=worker)
                     else:
-                        job_seeker_id, action, category = self.extract_job_seeker_id(action)
-                        if action == "VIEW":
-                            self.view_job_seeker(job_seeker_id, properties=properties, worker=None)
-
-
-                    
- 
+                        scope, action, id, category = self.extract_action(action)
+                        self.handle_action_with_plan(scope, action, str(id), properties=properties, worker=None)
 
 
 if __name__ == "__main__":
