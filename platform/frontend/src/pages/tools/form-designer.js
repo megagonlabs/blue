@@ -106,7 +106,8 @@ function FormDesigner() {
         sessionStorage.setItem("data", jsonData);
     }, [jsonData]);
     useEffect(() => {
-        setJsonData(JSON.stringify(data, null, 4));
+        if (!_.isEqual(data, JSON.parse(jsonData)))
+            setJsonData(JSON.stringify(data, null, 4));
     }, [data]);
     useEffect(() => {
         try {
@@ -148,6 +149,15 @@ function FormDesigner() {
                 setJsonSchema(jsonFormatter.format(jsonSchema, "    "));
             }
         } catch (error) {}
+        try {
+            if (_.isEqual(jsonData.replace(/\s/g, ""), "{}")) {
+                setJsonData("{}");
+            } else {
+                setJsonData(jsonFormatter.format(jsonData, "    "));
+            }
+        } catch (error) {
+            console.log(error);
+        }
     };
     const handleExportConfig = (withData) => {
         let result = { schema: schema, uischema: uischema };
