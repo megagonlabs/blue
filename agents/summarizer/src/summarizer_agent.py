@@ -128,15 +128,23 @@ class SummarizerAgent(OpenAIAgent):
 
         return output_stream
 
-    def issue_nl_query(self, question, worker, id=None):
+    def issue_nl_query(self, question, worker, name=None, id=None):
+
+       # create a unique id
+        if id is None:
+            id = util_functions.create_uuid()
+
+        if name is None:
+            name = "unspecified"
 
         # progress
         worker.write_progress(progress_id=worker.sid, label='Issuing question:' + question, value=self.current_step/self.num_steps)
 
+  
         # query plan
         query_plan = [
             [self.name + ".Q", "NL2SQL-E2E_INPLAN.DEFAULT"],
-            ["NL2SQL-E2E_INPLAN.DEFAULT", self.name+".RESULTS"],
+            ["NL2SQL-E2E_INPLAN.DEFAULT", self.name+".QUESTION_RESULTS_" + name],
         ]
        
         # write query to stream
@@ -151,15 +159,19 @@ class SummarizerAgent(OpenAIAgent):
 
         return
 
-    def issue_sql_query(self, query, worker, id=None):
+    def issue_sql_query(self, query, worker, name=None, id=None):
 
-        # progress
-        worker.write_progress(progress_id=worker.sid, label='Issuing query:' + query, value=self.current_step/self.num_steps)
+        # create a unique id
+        if id is None:
+            id = util_functions.create_uuid()
+
+        if name is None:
+            name = "unspecified"
 
         # query plan
         query_plan = [
             [self.name + ".Q", "QUERYEXECUTOR.DEFAULT"],
-            ["QUERYEXECUTOR.DEFAULT", self.name+".RESULTS"],
+            ["QUERYEXECUTOR.DEFAULT", self.name+".QUERY_RESULTS_" + name],
         ]
        
         # write query to stream
@@ -174,13 +186,24 @@ class SummarizerAgent(OpenAIAgent):
 
         return
 
-    def summarize_doc(self, worker, results, properties):
+    def summarize_doc(self, properties=None, worker=None):
+
+        if worker == None:
+            worker = self.create_worker(None)
+
+        if properties is None:
+            properties = self.properties
+
         # progress
         worker.write_progress(progress_id=worker.sid, label='Summarizing doc...', value=self.current_step/self.num_steps)
 
         session_data = worker.get_all_session_data()
+        
         if session_data is None:
             session_data = {}
+
+        # create a unique id
+        id = util_functions.create_uuid()
 
         summary_template = properties['template']
         summary = string_utils.safe_substitute(summary_template, **self.results,  **session_data)
@@ -212,8 +235,7 @@ class SummarizerAgent(OpenAIAgent):
                 input_data = " ".join(stream_data)
                 if worker:
                     session_data = worker.get_all_session_data()
-                    logging.info(worker.session.cid)
-                    logging.info(json.dumps(session_data, indent=3)) 
+
                     if session_data is None:
                         session_data = {}
 
@@ -232,23 +254,24 @@ class SummarizerAgent(OpenAIAgent):
                     # nl questions
                     if 'questions' in self.properties:
                         questions = self.properties['questions']
-                        for question_id in questions:
-                            q = questions[question_id]
+                        for question_name in questions:
+                            q = questions[question_name]
                             question = string_utils.safe_substitute(q, **self.properties, **session_data, input=input_data)
-                            self.todos.add(question_id)
-                            self.issue_nl_query(question, worker, id=query_id)
+                            self.todos.add(question_name)
+                            self.issue_nl_query(question, worker, name=query_name)
+
                     # db queries
                     if 'queries' in self.properties:
                         queries = self.properties['queries']
-                        for query_id in queries:
-                            q = queries[query_id]
+                        for query_name in queries:
+                            q = queries[query_name]
                             if type(q) == dict:
                                 q = json.dumps(q)
                             else:
                                 q = str(q)
                             query = string_utils.safe_substitute(q, **self.properties, **session_data, input=input_data)
-                            self.todos.add(query_id)
-                            self.issue_sql_query(query, worker, id=query_id)
+                            self.todos.add(query_name)
+                            self.issue_sql_query(query, worker, name=query_name)
                     return
 
             elif message.isBOS():
@@ -267,25 +290,24 @@ class SummarizerAgent(OpenAIAgent):
                 if worker:
                     worker.append_data(stream, data)
 
-        elif input == "RESULTS":
+        elif input.find("QUERY_RESULTS_") == 0:
             if message.isData():
                 stream = message.getStream()
-                # TODO: REVISE
-                # get query from incoming stream
-                query = stream[stream.find("Q"):].split(":")[1]
+                
+                # get query 
+                query = input[len("QUERY_RESULTS_"):]
 
                 data = message.getData()
-
-                logging.info(data)
             
                 if 'result' in data:
                     query_results = data['result']
 
-                    self.results[query] = query_results
                     self.todos.remove(query)
-
+                    self.results[query] = query_results
+                    
+                    # all queries received
                     if len(self.todos) == 0:
-                        self.summarize_doc(worker, self.results, properties)
+                        self.summarize_doc(properties=properties, worker=worker)
                 else:
                     logging.info("nothing found")
 
