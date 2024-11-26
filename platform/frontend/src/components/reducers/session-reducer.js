@@ -184,8 +184,9 @@ export default function sessionReducer(
                 new Set()
             );
             for (let i = 0; i < _.size(tagEntries); i++) {
-                if (tagEntries[i][1])
-                    currentSessionMessageTags.add(tagEntries[i][0]);
+                const [tag, value] = tagEntries[i];
+                if (_.isEqual(tag, "WORKSPACE_ONLY")) continue;
+                if (value) currentSessionMessageTags.add(tag);
             }
             _.set(sessionMessageTags, session_id, currentSessionMessageTags);
             if (!_.includes(sessionIds, session_id)) {
@@ -354,7 +355,8 @@ export default function sessionReducer(
                 );
                 if (
                     considerWorkspace &&
-                    _.get(payload, "metadata.tags.WORKSPACE", false)
+                    (_.get(payload, "metadata.tags.WORKSPACE", false) ||
+                        _.get(payload, "metadata.tags.WORKSPACE_ONLY", false))
                 ) {
                     if (!workspaceStreams.has(stream)) {
                         workspaceContents.push({

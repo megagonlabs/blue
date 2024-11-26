@@ -15,7 +15,6 @@ import {
     Menu,
     MenuDivider,
     MenuItem,
-    NonIdealState,
     Popover,
     Tag,
     Tooltip,
@@ -26,7 +25,6 @@ import {
     faBinary,
     faCheck,
     faEllipsisH,
-    faMessages,
     faSidebar,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import _ from "lodash";
@@ -49,6 +47,7 @@ const Row = ({ index, data, style }) => {
         ["session", "sessions", sessionIdFocus, "messages"],
         []
     ).filter((message) => {
+        if (_.get(message, "metadata.tags.WORKSPACE_ONLY")) return false;
         let include = false;
         for (let i = 0; i < _.size(sessionMessageFilterTags); i++) {
             const tag = sessionMessageFilterTags[i];
@@ -368,6 +367,7 @@ export default function SessionMessages() {
         ["session", "sessions", sessionIdFocus, "messages"],
         []
     ).filter((message) => {
+        if (_.get(message, "metadata.tags.WORKSPACE_ONLY")) return false;
         let include = false;
         for (let i = 0; i < _.size(sessionMessageFilterTags); i++) {
             const tag = sessionMessageFilterTags[i];
@@ -408,13 +408,6 @@ export default function SessionMessages() {
             });
         }, 0);
     }, [variableSizeListRef, sessionIdFocus]); // eslint-disable-line react-hooks/exhaustive-deps
-    if (_.isEmpty(messages))
-        return (
-            <NonIdealState
-                icon={faIcon({ icon: faMessages, size: 50 })}
-                title="Messages"
-            />
-        );
     return (
         <>
             <div className="border-bottom" style={{ padding: "5px 20px" }}>
