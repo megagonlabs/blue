@@ -7,15 +7,12 @@ export const sessionAction = (dispatch) => ({
             type: "session/state/set",
             payload,
         }),
-    addSessionMessageFilterTag: (payload) => {
-        dispatch({ type: "session/sessionMessageFilterTags/add", payload });
-    },
-    removeSessionMessageFilterTag: (payload) => {
-        dispatch({ type: "session/sessionMessageFilterTags/remove", payload });
-    },
-    clearSessionMessageFilterTag: () => {
-        dispatch({ type: "session/sessionMessageFilterTags/clear" });
-    },
+    addSessionMessageFilterTag: (payload) =>
+        dispatch({ type: "session/sessionMessageFilterTags/add", payload }),
+    removeSessionMessageFilterTag: (payload) =>
+        dispatch({ type: "session/sessionMessageFilterTags/remove", payload }),
+    clearSessionMessageFilterTag: () =>
+        dispatch({ type: "session/sessionMessageFilterTags/clear" }),
     setSessionDetails: (payload) =>
         dispatch({
             type: "session/sessions/detail/set",
