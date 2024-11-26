@@ -2,51 +2,47 @@ import axios from "axios";
 import _ from "lodash";
 import { sendSocketMessage } from "../helper";
 export const sessionAction = (dispatch) => ({
-    setState: (payload) => {
+    setState: (payload) =>
         dispatch({
             type: "session/state/set",
             payload,
-        });
+        }),
+    addSessionMessageFilterTag: (payload) => {
+        dispatch({ type: "session/sessionMessageFilterTags/add", payload });
     },
-    setSessionDetails: (payload) => {
+    removeSessionMessageFilterTag: (payload) => {
+        dispatch({ type: "session/sessionMessageFilterTags/remove", payload });
+    },
+    clearSessionMessageFilterTag: () => {
+        dispatch({ type: "session/sessionMessageFilterTags/clear" });
+    },
+    setSessionDetails: (payload) =>
         dispatch({
             type: "session/sessions/detail/set",
             payload,
-        });
-    },
-    removeProgress: (payload) => {
-        dispatch({ type: "session/sessions/progress/remove", payload });
-    },
-    setSessionDetailMembers: (payload) => {
+        }),
+    removeProgress: (payload) =>
+        dispatch({ type: "session/sessions/progress/remove", payload }),
+    setSessionDetailMembers: (payload) =>
         dispatch({
             type: "session/sessions/detail/members/set",
             payload,
-        });
-    },
-    expandMessageStream: (payload) => {
-        dispatch({ type: "session/expandedMessageStream/add", payload });
-    },
-    addPinnedSessionId: (payload) => {
-        dispatch({ type: "session/pinnedSessionIds/add", payload });
-    },
-    removePinnedSessionId: (payload) => {
-        dispatch({ type: "session/pinnedSessionIds/remove", payload });
-    },
-    reorderWorkspace: (payload) => {
-        dispatch({ type: "session/workspace/reorder", payload });
-    },
-    clearCurrentWorkspace: () => {
-        dispatch({ type: "session/workspace/clear" });
-    },
-    removeWorkspaceContent: (payload) => {
-        dispatch({ type: "session/workspace/remove", payload });
-    },
-    toggleWorkspaceCollapse: (payload) => {
-        dispatch({ type: "session/workspaceCollapse/toggle", payload });
-    },
-    collapseAllWorkspace: (payload) => {
-        dispatch({ type: "session/workspaceCollapse/all", payload });
-    },
+        }),
+    expandMessageStream: (payload) =>
+        dispatch({ type: "session/expandedMessageStream/add", payload }),
+    addPinnedSessionId: (payload) =>
+        dispatch({ type: "session/pinnedSessionIds/add", payload }),
+    removePinnedSessionId: (payload) =>
+        dispatch({ type: "session/pinnedSessionIds/remove", payload }),
+    reorderWorkspace: (payload) =>
+        dispatch({ type: "session/workspace/reorder", payload }),
+    clearCurrentWorkspace: () => dispatch({ type: "session/workspace/clear" }),
+    removeWorkspaceContent: (payload) =>
+        dispatch({ type: "session/workspace/remove", payload }),
+    toggleWorkspaceCollapse: (payload) =>
+        dispatch({ type: "session/workspaceCollapse/toggle", payload }),
+    collapseAllWorkspace: (payload) =>
+        dispatch({ type: "session/workspaceCollapse/all", payload }),
     createSession: ({ socket, groupName = null }) => {
         let postSessionUrl = `/sessions/session${
             _.isEmpty(groupName) ? "" : "/" + groupName
@@ -108,18 +104,14 @@ export const sessionAction = (dispatch) => ({
             }
         });
     },
-    setFormData: (payload) => {
-        dispatch({ type: "session/sessions/jsonform/setData", payload });
-    },
-    addSession: (payload) => {
-        dispatch({ type: "session/sessions/add", payload });
-    },
-    removeSession: (payload) => {
-        dispatch({ type: "session/sessions/remove", payload });
-    },
-    addToWorkspace: (payload) => {
-        dispatch({ type: "session/sessions/addToWorkspace", payload });
-    },
+    setFormData: (payload) =>
+        dispatch({ type: "session/sessions/jsonform/setData", payload }),
+    addSession: (payload) =>
+        dispatch({ type: "session/sessions/add", payload }),
+    removeSession: (payload) =>
+        dispatch({ type: "session/sessions/remove", payload }),
+    addToWorkspace: (payload) =>
+        dispatch({ type: "session/sessions/addToWorkspace", payload }),
     observeSession: (payload) => {
         dispatch({ type: "session/sessions/add", payload: payload.sessionId });
         sendSocketMessage(
@@ -130,10 +122,8 @@ export const sessionAction = (dispatch) => ({
             })
         );
     },
-    addSessionMessage: (payload) => {
-        dispatch({ type: "session/sessions/message/add", payload });
-    },
-    setSessionIdFocus: (payload) => {
-        dispatch({ type: "session/sessionIdFocus/set", payload });
-    },
+    addSessionMessage: (payload) =>
+        dispatch({ type: "session/sessions/message/add", payload }),
+    setSessionIdFocus: (payload) =>
+        dispatch({ type: "session/sessionIdFocus/set", payload }),
 });

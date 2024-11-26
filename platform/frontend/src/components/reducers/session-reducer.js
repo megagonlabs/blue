@@ -8,6 +8,8 @@ export const defaultState = {
     groupedSessionIds: [],
     sessionIdFocus: null,
     sessionDetails: {},
+    sessionMessageTags: {},
+    sessionMessageFilterTags: {},
     userId: null,
     sessionListPanelCollapsed: true,
     showWorkspacePanel: false,
@@ -40,11 +42,29 @@ export default function sessionReducer(
         sessionAgentProgress,
         jsonformSpecs,
         workspaceStreams,
+        sessionMessageFilterTags,
+        sessionMessageTags,
     } = state;
     const { sessionIdFocus } = state;
     let sessions = _.cloneDeep(state.sessions);
     let pinnedSessionIds = _.clone(state.pinnedSessionIds);
     switch (type) {
+        case "session/sessionMessageFilterTags/add": {
+            let current = _.get(sessionMessageFilterTags, sessionIdFocus, []);
+            if (!_.includes(current, payload)) current.push(payload);
+            _.set(sessionMessageFilterTags, sessionIdFocus, current);
+            return { ...state, sessionMessageFilterTags };
+        }
+        case "session/sessionMessageFilterTags/remove": {
+            let current = _.get(sessionMessageFilterTags, sessionIdFocus, []);
+            current = _.remove(current, payload);
+            _.set(sessionMessageFilterTags, sessionIdFocus, current);
+            return { ...state, sessionMessageFilterTags };
+        }
+        case "session/sessionMessageFilterTags/clear": {
+            _.set(sessionMessageFilterTags, sessionIdFocus, []);
+            return { ...state, sessionMessageFilterTags };
+        }
         case "session/workspace/clear": {
             let contents = _.get(sessionWorkspace, sessionIdFocus, []);
             for (let i = 0; i < _.size(contents); i++) {
@@ -155,6 +175,19 @@ export default function sessionReducer(
             const contentType = _.get(payload, "message.content_type", null);
             const mode = _.get(payload, "mode", "batch");
             const { session_id, metadata, timestamp, order, stream } = payload;
+            const tagEntries = Object.entries(
+                _.get(payload, "metadata.tags", {})
+            );
+            let currentSessionMessageTags = _.get(
+                sessionMessageTags,
+                session_id,
+                new Set()
+            );
+            for (let i = 0; i < _.size(tagEntries); i++) {
+                if (tagEntries[i][1])
+                    currentSessionMessageTags.add(tagEntries[i][0]);
+            }
+            _.set(sessionMessageTags, session_id, currentSessionMessageTags);
             if (!_.includes(sessionIds, session_id)) {
                 sessionIds.push(session_id);
             }
@@ -337,6 +370,7 @@ export default function sessionReducer(
             return {
                 ...state,
                 sessions,
+                sessionMessageTags,
                 sessionIds,
                 unreadSessionIds,
                 workspaceStreams,
