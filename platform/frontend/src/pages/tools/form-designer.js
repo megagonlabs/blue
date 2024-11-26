@@ -475,7 +475,7 @@ function FormDesigner() {
                                             maxWidth: "100%",
                                             minWidth: 50,
                                             whiteSpace: "pre-wrap",
-                                            wordBreak: "break-all",
+                                            wordBreak: "break-word",
                                             width: "fit-content",
                                             minHeight: 21,
                                             overflow: "hidden",
