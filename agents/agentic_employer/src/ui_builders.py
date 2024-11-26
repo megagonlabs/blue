@@ -129,7 +129,7 @@ def get_column_ui(row, header, actions=None):
                 {
                     "type": "Control",
                     "label": "Candidate " + str(row['job_seeker_id']),
-                    "scope": "#/properties/" + "JOB_SEEKER_" + str(row['job_seeker_id']),
+                    "scope": "#/properties/" + "CHECK" + "_JOB_SEEKER_" + str(row['job_seeker_id']),
                     "props": {
                         "style": {
                             "width": 200,
@@ -218,7 +218,7 @@ def get_column_ui(row, header, actions=None):
     elif header == 'Interested?':
         return  {
             "type": "Control",
-            "scope": "#/properties/" + "JOB_SEEKER_" + str(row['job_seeker_id']) + "_Interested",
+            "scope": "#/properties/" + "INTEREST" + "_JOB_SEEKER_" + str(row['job_seeker_id']),
             "props": {
                 "style": {
                     "width": 200,
@@ -425,16 +425,16 @@ def build_ats_form(selected_job_posting_id, job_postings, lists, data, list_acti
 
             # properties
             for job_seeker_id in list:
-                form_schema['properties']["JOB_SEEKER_" + str(job_seeker_id)] = { "type": "boolean" }
-                form_schema['properties']["JOB_SEEKER_" + str(job_seeker_id) + "_Interested"] = { "type": "string", "enum": copy.deepcopy(interested_enums) }
+                form_schema['properties']["CHECK" + "_JOB_SEEKER_" + str(job_seeker_id)] = { "type": "boolean" }
+                form_schema['properties']["INTEREST" + "_JOB_SEEKER_" + str(job_seeker_id)] = { "type": "string", "enum": copy.deepcopy(interested_enums) }
 
                 # update interested status
                 if list_id == list_id_by_code['interested']:
-                    form_data["JOB_SEEKER_" + str(job_seeker_id) + "_Interested"] = interested_enums_by_list_code['interested']
+                    form_data["INTEREST" + "_JOB_SEEKER_" + str(job_seeker_id)] = interested_enums_by_list_code['interested']
                 elif list_id == list_id_by_code['undecided']:
-                    form_data["JOB_SEEKER_" + str(job_seeker_id) + "_Interested"] = interested_enums_by_list_code['undecided']
+                    form_data["INTEREST" + "_JOB_SEEKER_" + str(job_seeker_id)] = interested_enums_by_list_code['undecided']
                 elif list_id == list_id_by_code['rejected']:
-                    form_data["JOB_SEEKER_" + str(job_seeker_id) + "_Interested"] = interested_enums_by_list_code['rejected']
+                    form_data["INTEREST" + "_JOB_SEEKER_" + str(job_seeker_id)] = interested_enums_by_list_code['rejected']
                 
 
 
