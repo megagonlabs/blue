@@ -75,7 +75,8 @@ class AgenticEmployerAgent(Agent):
         welcome_message = (
             "Hi! \n\n"
             "I’m here to help you find the perfect candidates for your JDs.\n"
-            "Let’s get started!"
+            "Let’s get started!\n"
+            "Select a JD to work on...\n"
         )
 
         # say welcome, show form
@@ -446,7 +447,7 @@ class AgenticEmployerAgent(Agent):
     def handle_action_with_plan(self, scope, action, data, properties=None, worker=None):
         if properties is None:
             properties = self.properties
-
+            
         actions = None
         if "actions" in properties:
             actions = properties['actions']
@@ -459,6 +460,28 @@ class AgenticEmployerAgent(Agent):
 
                     if 'plan' in action_properties:
                         p = action_properties['plan']
+
+                        # create worker if not given
+                        if worker == None:
+                            worker = self.create_worker(None)
+
+                        session_data = worker.get_all_session_data()
+
+                        # input data 
+                        if 'input' in action_properties:
+                            input = action_properties['input']
+
+                            # additional scope-specific data
+                            scope_data = {}
+                            if scope == "LIST":
+                                list_code = data
+                                list_id = self.list_id_by_code[list_code]
+                                scope_data["LIST_ID"] = list_id
+                                scope_data["LIST_CODE"] = list_code 
+
+                            # substitute, if string
+                            if type(input) == str:
+                                data = string_utils.safe_substitute(input, **properties, **session_data, **scope_data)
 
                         ## fix plan
                         action_plan = []
@@ -474,12 +497,10 @@ class AgenticEmployerAgent(Agent):
 
                             action_plan.append([f,t])
 
-                        # create worker if not given
-                        if worker == None:
-                            worker = self.create_worker(None)
-
                         # create a unique id
                         id = util_functions.create_uuid()
+
+                       
 
                         # feed data as input, to output variable SCOPE + ACTION + "DATA"
                         a_stream = self.write_to_new_stream(worker, data, action + "_" + scope + "_" + "INPUT", tags=["HIDDEN"], id=id)

@@ -152,12 +152,14 @@ class VisualizerAgent(Agent):
     
     def render_vis(self, properties=None, worker=None):
 
+        logging.info("r1")
         if worker == None:
             worker = self.create_worker(None)
 
         if properties is None:
             properties = self.properties
 
+        logging.info("r2")
         # progress
         worker.write_progress(progress_id=worker.sid, label='Rendering visualization...', value=self.current_step/self.num_steps)
 
@@ -166,13 +168,11 @@ class VisualizerAgent(Agent):
         if session_data is None:
             session_data = {}
 
-        # create a unique id
-        id = util_functions.create_uuid()
-
         template = self.properties['template']
         if type(template) is dict:
             template = json.dumps(template)
 
+        logging.info("r3")
         vis_json = string_utils.safe_substitute(template, **self.properties, **self.results,  **session_data)
 
         vis = json.loads(vis_json)
@@ -234,7 +234,7 @@ class VisualizerAgent(Agent):
                                 q = str(q) 
                             query = string_utils.safe_substitute(q, **self.properties, **session_data, input=input_data)
                             self.todos.add(question_name)
-                            self.issue_sql_query(query, worker, name=query_name)
+                            self.issue_sql_query(query, worker, name=question_name)
                     if 'questions' not in self.properties and 'queries' not in self.properties:
                         self.render_vis(properties=properties, worker=None)
 
@@ -264,7 +264,7 @@ class VisualizerAgent(Agent):
                 query = input[len("QUERY_RESULTS_"):]
 
                 data = message.getData()
-            
+
                 if 'result' in data:
                     query_results = data['result']
 
