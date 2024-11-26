@@ -145,20 +145,21 @@ class ClustererAgent(Agent):
                 values.append({'Cluster Name': cluster_name, 'Cluster Size': cluster_size, 'Distinctive Feature': feat, 'Feature Presence Relative to Mean': presence})
 
         template = {
-            "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
-            "data": {
-                "values": values
-            },
-            "transform": [
-                {"window": [{"op": "row_number", "as": "row_num"}]},
-                {"fold": ["Cluster Name", "Cluster Size", "Distinctive Feature", "Feature Presence Relative to Mean"]}
-            ],
-            "mark": "text",
-            "encoding": {
-                "y": {"field": "row_num", "type": "ordinal", "axis": None},
-                "text": {"field": "value", "type": "nominal"},
-                "x": {"field": "key", "type": "nominal", "axis": {"orient": "top", "labelAngle": 0, "title": None, "domain": False, "ticks": False}, "scale": {"padding": 15}}
-            }, "config": {"view": {"stroke": None}}
+            "vega-spec": {
+                "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+                "data": {
+                    "values": values
+                },
+                "transform": [
+                    {"window": [{"op": "row_number", "as": "row_num"}]},
+                    {"fold": ["Cluster Name", "Cluster Size", "Distinctive Feature", "Feature Presence Relative to Mean"]}
+                ],
+                "mark": "text",
+                "encoding": {
+                    "y": {"field": "row_num", "type": "ordinal", "axis": None},
+                    "text": {"field": "value", "type": "nominal"},
+                    "x": {"field": "key", "type": "nominal", "axis": {"orient": "top", "labelAngle": 0, "title": None, "domain": False, "ticks": False}, "scale": {"padding": 15}}
+                }, "config": {"view": {"stroke": None}}}
         }
 
         vis_form = ui_builders.build_vis_form(template)
@@ -178,25 +179,25 @@ class ClustererAgent(Agent):
 
         values = [{"x": float(x),"y": float(y),"cluster": str(label)} for (x, y), label in zip(embedded_data, labels)]
         template = {
-            "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
-            "data": {
-                "values": values
-            },
-            "mark": {"type": "point", "size": 3},
-            "encoding": {
-                "x": {
-                "field": "x",
-                "type": "quantitative",
-                "scale": {"zero": False}
+            "vega-spec": {"$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+                "data": {
+                    "values": values
                 },
-                "y": {
-                "field": "y",
-                "type": "quantitative",
-                "scale": {"zero": False}
-                },
-                "color": {"field": "cluster", "type": "nominal"},
-                "shape": {"field": "cluster", "type": "nominal"}
-            }
+                "mark": {"type": "point", "size": 3},
+                "encoding": {
+                    "x": {
+                    "field": "x",
+                    "type": "quantitative",
+                    "scale": {"zero": False}
+                    },
+                    "y": {
+                    "field": "y",
+                    "type": "quantitative",
+                    "scale": {"zero": False}
+                    },
+                    "color": {"field": "cluster", "type": "nominal"},
+                    "shape": {"field": "cluster", "type": "nominal"}
+                }}
         }
         
         vis_form = ui_builders.build_vis_form(template)

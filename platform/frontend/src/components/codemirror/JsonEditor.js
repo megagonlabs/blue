@@ -6,6 +6,7 @@ import { forEachDiagnostic, lintGutter, linter } from "@codemirror/lint";
 import { EditorState } from "@codemirror/state";
 import { keymap, lineNumbers } from "@codemirror/view";
 import { showMinimap } from "@replit/codemirror-minimap";
+import classNames from "classnames";
 import { EditorView, minimalSetup } from "codemirror";
 import { jsonSchema } from "codemirror-json-schema";
 import _ from "lodash";
@@ -18,6 +19,8 @@ export default function JsonEditor({
     allowEditWithError = false,
     allowPopulateOnce = false,
     alwaysAllowPopulate = false,
+    useMinimap = true,
+    containOverscrollBehavior = true,
 }) {
     const prePopulateOnce = useRef(!allowPopulateOnce);
     const [doc, setDoc] = useState(code);
@@ -66,13 +69,6 @@ export default function JsonEditor({
         };
         let extensionList = [
             minimalSetup,
-            showMinimap.compute(["doc"], (state) => {
-                return {
-                    create,
-                    displayText: "blocks",
-                    showOverlay: "mouse-over",
-                };
-            }),
             lineNumbers(),
             bracketMatching(),
             closeBrackets(),
@@ -83,6 +79,16 @@ export default function JsonEditor({
             json(),
             onUpdate,
         ];
+        if (useMinimap)
+            extensionList.push(
+                showMinimap.compute(["doc"], (state) => {
+                    return {
+                        create,
+                        displayText: "blocks",
+                        showOverlay: "mouse-over",
+                    };
+                })
+            );
         if (!_.isEmpty(schema)) {
             extensionList.push(jsonSchema(schema));
         }
@@ -99,5 +105,13 @@ export default function JsonEditor({
             view.destroy();
         };
     }, []);
-    return <div className="full-parent-height cm-json-editor" ref={editor} />;
+    return (
+        <div
+            className={classNames({
+                "full-parent-height": true,
+                "cm-overscroll-behavior-contain": containOverscrollBehavior,
+            })}
+            ref={editor}
+        />
+    );
 }
