@@ -137,7 +137,7 @@ class Worker:
         if "elements" in form_element:
             for element in form_element["elements"]:
                 self._update_form_ids(element, stream_id, form_id)
-        elif pydash.includes(["Control", "Button"], form_element["type"]):
+        elif pydash.includes(["Control", "Button", 'Tabs'], form_element["type"]):
             if form_element["type"] == "Control":
                 if pydash.objects.has(form_element, "options.detail.type"):
                     self._update_form_ids(
@@ -204,7 +204,7 @@ class Worker:
         ]:
             if message.getCode() == ControlCode.CREATE_FORM:
                 form_id = message.getArg('form_id')
-            
+
                 # create a new form id
                 if id == None:
                     id = str(hex(uuid.uuid4().fields[0]))[2:]
@@ -249,14 +249,13 @@ class Worker:
                 if form_id in self.agent.event_producers:
                     event_producer = self.agent.event_producers[form_id]
 
-
                 if event_producer is None:
                     raise Exception("no matching event producer for form")
-                
+
                 event_stream = event_producer.get_stream()
-                
+
                 # inject stream and form id into ui
-                self._update_form_ids(message.getArg("uischema"), event_stream, form_id)                    
+                self._update_form_ids(message.getArg("uischema"), event_stream, form_id)
 
         # append output variable with id, if not None
         if id is not None:
@@ -286,7 +285,7 @@ class Worker:
     def _start_consumer(self):
         # start a consumer to listen to stream
 
-        # if no input stream do not create consumer 
+        # if no input stream do not create consumer
         if self.input_stream is None:
             return
 
