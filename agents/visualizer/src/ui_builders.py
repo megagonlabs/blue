@@ -20,9 +20,7 @@ def build_vis_form(vis):
     vis_schema = {}
 
     vis_data = {
-        "vis": {
-                "vl-spec": vis 
-        }
+        "vis": vis
     }
 
     vis_form = {
