@@ -600,11 +600,11 @@ class AgenticEmployerAgent(Agent):
                                         self.summarize_list("new", properties=properties, worker=None)
 
 
-                            # job seeker interested
-                            elif path.find("JOB_SEEKER_") == 0:
+                            # job seeker actions
+                            else:
                                 scope, action, id, category = self.extract_action(path)
-
-                                if id and category == "Interested":
+                                
+                                if scope == "JOB_SEEKER" and action == "INTEREST":
                                     
                                     # interested value to code
                                     interested_enums_by_list_code = {"✓": 2, "?": 3, "𐄂":4 }
