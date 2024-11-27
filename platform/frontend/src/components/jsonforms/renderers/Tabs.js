@@ -27,7 +27,7 @@ const TabsRenderer = ({
             </Callout>
         );
     const handleTabChange = (tabIndex) => {
-        handleChange(path, tabIndex);
+        if (!_.isEmpty(path)) handleChange(path, tabIndex);
         if (!_.isEqual(socket.readyState, WebSocket.OPEN)) return;
         setTimeout(() => {
             sendSocketMessage(
