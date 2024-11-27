@@ -84,14 +84,9 @@ class AgenticEmployerAgent(Agent):
             # welcome
             self.interact(welcome_message)
 
-            # init results, todos
-            self.lists = {}
-            self.list_id_by_code = {}
-            self.selected_job_posting_id = None
-            self.job_postings = {}
-            self.results = {}
-            self.todos = set()
-
+            # init session
+            self.init_session()
+            
             # ats form
             self.show_ats_form(properties=self.properties)
             
@@ -100,6 +95,25 @@ class AgenticEmployerAgent(Agent):
 
             # get job postings 
             self.get_job_postings(properties=self.properties)
+
+    def init_session(self):
+        worker = self.create_worker(None)
+
+        # init data, todos
+        self.lists = {}
+        self.list_id_by_code = {}
+        self.job_postings = {}
+        self.results = {}
+        self.todos = set()
+
+        self.selected_job_posting_id = None
+        self.selected_list_id = None
+
+        # session data
+        worker.set_session_data("JOB_POSTING_ID", self.selected_job_posting_id)
+        worker.set_session_data("LISTS", self.lists)
+        worker.set_session_data("LIST_ID", self.selected_list_id)
+
 
     def build_plan(self, plan_dag, stream, id=None):
         
@@ -363,12 +377,16 @@ class AgenticEmployerAgent(Agent):
         logging.info(self.list_id_by_code)
         list_id = self.list_id_by_code[list_code]
 
+        # context
+        context = session_data
+        context['LIST_ID'] = list_id
+
         # set query
         query = ""
         if "job_seekers_in_list" in properties:
             job_seekers_in_list_query_template = properties['job_seekers_in_list']
             query_template = job_seekers_in_list_query_template['query']
-            query = string_utils.safe_substitute(query_template, **properties, **session_data, LIST_ID=list_id)
+            query = string_utils.safe_substitute(query_template, **properties, **context)
             
         # choose summarizer agent
         summarizer = "SUMMARIZER_LIST"
@@ -431,18 +449,6 @@ class AgenticEmployerAgent(Agent):
 
         return scope, action, id, category
 
-        
-    # def handle_jd_action(self, action, id, category, properties=None, worker=None):
-    #     if action == "VIEW":
-    #         self.view_jd(properties=properties, worker=None)
-    #     pass
-
-    # def handle_list_action(self, action, id, category, properties=None, worker=None):
-    #     pass
-
-    # def handle_job_seeker_action(self, action, id, category, properties=None, worker=None):
-    #     if action == "VIEW":
-    #         self.view_job_seeker(id, properties=properties, worker=None)
 
     def handle_action_with_plan(self, scope, action, data, properties=None, worker=None):
         if properties is None:
@@ -512,8 +518,168 @@ class AgenticEmployerAgent(Agent):
                         self.write_to_new_stream(worker, plan, "PLAN", tags=["PLAN"], id=id)
 
 
+    #### INTENT
+    def identify_intent(self, input_stream, properties=None, worker=None):
+
+        if worker == None:
+            worker = self.create_worker(None)
+
+        if properties is None:
+            properties = self.properties
+
+        # create a unique id
+        id = util_functions.create_uuid()
+
+        # intent plan
+        intent_plan = [
+            ["USER.TEXT", "OPENAI_CLASSIFIER.DEFAULT"],
+            ["OPENAI_CLASSIFIER.DEFAULT", self.name + ".INTENT"]
+        ]
+    
+        # build query plan
+        plan = self.build_plan(intent_plan, input_stream, id=id)
+
+        # write plan
+        self.write_to_new_stream(worker, plan, "PLAN", tags=["PLAN", "HIDDEN"], id=id)
+
+        return
+
+    ## INIT ACTION BASED ON INTENT
+    def init_action(self, intent, entities, input, properties=None, worker=None):
+
+        if worker == None:
+            worker = self.create_worker(None)
+
+        if properties is None:
+            properties = self.properties
+
+        # get session data
+        context = worker.get_all_session_data()
+
+        if context is None:
+            context = {}
+
+        if entities is None:
+            entities = {}
+
+        # update context, if JOB_POSTING_ID, JOB_SEEKER_ID specified in user input
+        if "JOB_POSTING_ID" in entities:
+            worker.set_session_data("JOB_POSTING_ID", entities["JOB_POSTING_ID"])
+
+        if "JOB_SEEKER_ID" in entities:
+            worker.set_session_data("JOB_SEEKER_ID", entities["JOB_SEEKER_ID"])
+
+        logging.info(intent)
+        logging.info(json.dumps(entities))
+        logging.info(input)
+    
+        if intent == "QUERY":
+            self.issue_smart_query(context, entities, input, properties=properties, worker=worker)
+        elif intent == "VIEW":
+            if "JOB_POSTING_ID" in entities:
+                self.view_jd(properties=properties, worker=None)
+            elif "JOB_SEEKER_ID" in entities:
+                job_seeker_id = entities['JOB_SEEKER_ID']
+                job_seeker_id = int(job_seeker_id)
+                self.view_job_seeker(job_seeker_id, properties=properties, worker=None)
+        else:
+            self.write_to_new_stream(worker, "I don't know how to help you on that, try summarizing, querying, comparing applies...", "TEXT")  
+
+    #### ACTIONS FROM USER INPUT
+    def context_to_nl(self, context):
+        context_text = ""
+        if 'JOB_SEEKER_ID' in context:
+            if context['JOB_SEEKER_ID']:
+                context_text += "Job seeker id is " + context['JOB_SEEKER_ID'] + "\n"
+        if 'JOB_POSTING_ID' in context:
+            if context['JOB_POSTING_ID']:
+                context_text += "Job posting id is " + context['JOB_POSTING_ID'] + "\n"
+        if 'LIST' in context:
+            if context['LIST'] and len(context['LIST']) > 0:
+                context_text += "The current list is " + context['LIST'] + "\n"
+        return context_text
+
+    def issue_smart_query(self, context, entities, input, properties=None, worker=None):
+        if worker == None:
+            worker = self.create_worker(None)
+
+        if properties is None:
+            properties = self.properties
+
+        if "QUESTION" in entities:
+            question = entities["QUESTION"]
+        else:
+            question = input
+
+        # Convert context into text
+        context_text = self.context_to_nl(context)
+       
+        # Provide additional context to user question
+        expanded_question = "Answer the following question with the below context. Ignore information in context if the query overrides context:\n"
+        expanded_question += "question: " + question + "\n"
+        expanded_question += "context: " + "\n" + context_text + "\n"
+        
+        logging.info("ISSUE NL QUERY:" + expanded_question)
+
+        # create a unique id
+        id = util_functions.create_uuid()
+
+        # question plan
+        question_plan = [
+            [self.name + ".QUESTION", "NL2SQL-E2E_INPLAN.DEFAULT"],
+            ["NL2SQL-E2E_INPLAN.DEFAULT", "OPENAI_EXPLAINER.DEFAULT"],
+        ]
+
+        # write query to strea
+        question_stream = self.write_to_new_stream(worker, expanded_question, "QUESTION",  tags=["HIDDEN"], id=id)
+
+        # build query plan
+        plan = self.build_plan(question_plan, question_stream, id=id)
+
+        # write plan
+        self.write_to_new_stream(worker, plan, "PLAN", tags=["PLAN", "HIDDEN"], id=id)
+
+        return
+
+
     def default_processor(self, message, input="DEFAULT", properties=None, worker=None):
-        if input.find("QUERY_RESULTS_") == 0:
+
+
+        ##### PROCESS USER input text
+        if input == "DEFAULT":
+           
+            if message.isEOS():
+                stream = message.getStream()
+
+                # identify intent
+                self.identify_intent(stream, properties=properties, worker=None)
+                
+        ##### PROCESS RESULTS FROM INTENT CLASSIFICATION   
+        elif input == "INTENT":
+            if message.isData():
+                if worker:
+                    data = message.getData()
+                    logging.info(json.dumps(data, indent=3))
+
+                    input = None
+                    intent = None
+                    entities = {}
+
+                    # massage extracted intent, entities
+                    for key in data:
+                        if key.upper() == 'INPUT':
+                            input = data[key]
+                        elif key.upper() == 'INTENT':
+                            intent = data[key]
+                        elif key.upper() == 'ENTITIES' or key.upper() == "ENTITY":
+                            entities = data[key]
+                        else:
+                            entities[key.upper()] = data[key]
+
+                    self.init_action(intent, entities, input, properties=properties, worker=None)
+
+        ##### PROCESS QUERY RESULTS
+        elif input.find("QUERY_RESULTS_") == 0:
             if message.isData():
                 stream = message.getStream()
             
@@ -553,6 +719,8 @@ class AgenticEmployerAgent(Agent):
                             self.show_ats_form(properties=properties, worker=worker, update=True)
                 else:
                     logging.info("nothing found")
+    
+        ##### PROCESS FORM UI EVENTS
         elif input == "EVENT":
             if message.isData():
                 if worker:

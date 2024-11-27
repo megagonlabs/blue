@@ -136,7 +136,6 @@ class ClustererAgent(Agent):
     
     # Show table of clusters and distinctive features to user
     def display_cluster_summaries(self, worker, analysis):
-        logging.info('Creating cluster summary tables')
         values = []
         for cluster_name in analysis.keys():
             cluster_size = analysis[cluster_name]['cluster_size']
@@ -171,8 +170,6 @@ class ClustererAgent(Agent):
 
     # Show visualization of clusters in 2D scatterplot
     def create_visualization(self, worker, df, label_column):   
-        logging.info('Creating dimensionality reduction visualization')
-
         # embedded_data = TSNE(n_components=2, random_state=self.properties['random_seed']).fit_transform(self.cluster_df)
         embedded_data = umap.UMAP(random_state=self.properties['cluster_config']['random_seed']).fit_transform(self.cluster_df)[:, :2]
         labels = df[label_column].values
@@ -281,6 +278,7 @@ class ClustererAgent(Agent):
         
         return df_processed.groupby(self.id_column).max().reset_index()
 
+    # Create embeddings for clustering
     def get_embeddings_df(self, df):
         logging.info('Loading embedding model')
         encoder = SentenceTransformer(self.properties['embeddings_config']['encoder_name'], trust_remote_code=True)
@@ -312,7 +310,6 @@ class ClustererAgent(Agent):
                 df.drop(col, axis=1, inplace=True)
         else:
             self.id_column = self.properties['id_columns'][0]
-        logging.info('Self.id_column ' + self.id_column + self.id_column in df.columns)
 
         # Clean and process data
         exclude_columns = self.properties['cluster_config']['exclude_columns'] + [self.id_column]
@@ -342,22 +339,19 @@ class ClustererAgent(Agent):
                 cluster_labels.append(df['cluster_labels'].values)    
             
             self.cluster_labels = cluster_labels
-            logging.info('Issuing OpenAI multilabel call')
             self.issue_agent_call(cluster_descriptions, worker, 'OPENAI_LABELERMULTI', ".LABELER_RESULTS", "AUTO_CLUSTER_LABELS")
         else:
+            # Simply cluster number of clusters specified
             if type(self.properties['cluster_config']['num_clusters']) == type(1):
-                # Number of clusters specified
                 model = KMeans(n_clusters = self.properties['cluster_config']['num_clusters'], random_state=self.properties['cluster_config']['random_seed']).fit(cluster_df)
                 df['cluster_labels'] = model.labels_
+            # Rank cluster options by silhouette score
             else: 
-                #Rank clusters by silhouette score
-                logging.info('Using silhouette score.')
                 highest_score = -1
                 best_labels = None
                 for num_clusters in self.properties['cluster_config']['cluster_size_options']:
                     model = KMeans(n_clusters = num_clusters, random_state=self.properties['cluster_config']['random_seed']).fit(cluster_df)
                     score = silhouette_score(cluster_df, model.labels_).mean()
-                    logging.info(f'Num Clusters: {num_clusters}, Score: {score}')
                     if score >= highest_score:
                         highest_score = score
                         best_labels = model.labels_
@@ -366,41 +360,37 @@ class ClustererAgent(Agent):
             df['cluster_labels'] = df['cluster_labels'].map(int)
             analysis = self.cluster_analysis(df, 'cluster_labels', exclude_cols=exclude_columns)
 
+            # No labels or descriptions, end here
             if not self.properties['create_cluster_labels'] and not self.properties['create_cluster_descriptions']:
                 self.save_results(df, worker, analysis, 'cluster_labels')
+            # Get cluster descriptions but not labels
             elif not self.properties['create_cluster_labels'] and self.properties['create_cluster_descriptions']:
-                # Get cluster descriptions but not labels
-                self.issue_agent_call(analysis, worker, 'OPENAI_SUMMARIZER', ".SUMMARIZER_RESULTS", "CLUSTER_SUMMARIES")
+                self.issue_agent_call(f"{self.properties['summarization_context']} Here is the cluster data: {json.dumps(analysis)}", worker, 'OPENAI_SUMMARIZER', ".SUMMARIZER_RESULTS", "CLUSTER_SUMMARIES")
+            # Get cluster labels from LLM
             else:
-                # Get cluster labels from LLM
                 self.issue_agent_call(analysis, worker, 'OPENAI_LABELER', ".LABELER_RESULTS", "CLUSTER_LABELS")
-
 
         # Save data
         self.df = df
 
+    # Save cluster analysis and cluster mapping to new streams, optionally show visualization.
     def save_results(self, df, worker, analysis, cluster_column):
         if self.properties['create_visualization']:
             self.display_cluster_summaries(worker, analysis)
             self.create_visualization(worker, df, cluster_column)
 
         # Save cluster descriptions
-        self.write_to_new_stream(worker, json.dumps(analysis), "JSON")
+        self.write_to_new_stream(worker, analysis, "JSON")
 
         # Save cluster mapping
-        cluster_mapping = {}
-        cluster_mapping['id'] = df[self.id_column].to_list()
-        cluster_mapping['cluster'] = df[cluster_column].to_list()
-        self.write_to_new_stream(worker, json.dumps(cluster_mapping), "JSON")
+        temp_df = pd.DataFrame()
+        temp_df['id'] = df[self.id_column]
+        temp_df['cluster'] = df[cluster_column]
+        s = temp_df.to_json(None, orient="records")
+        d = {"result": json.loads(s)}
+        self.write_to_new_stream(worker, d, "JSON")
 
     def default_processor(self, message, input="DEFAULT", properties=None, worker=None):
-        logging.info('-------------------------------------------')
-        logging.info('-------------------------------------------')
-        logging.info('-------------------------------------------')
-        logging.info('-------------------------------------------')
-        logging.info('Entering processor')
-        logging.info(input)
-
         if "random_seed" not in self.properties['cluster_config']:
             self.properties['cluster_config']['random_seed'] = np.random.choice(500000)
 
@@ -410,12 +400,8 @@ class ClustererAgent(Agent):
             if message.isEOS():
                 # get all data received from user stream
                 stream = message.getStream()
-                logging.info(message.getData())
-                stream_data = ""
                 if worker:
                     session_data = worker.get_all_session_data()
-                    logging.info(worker.session.cid)
-                    logging.info(json.dumps(session_data, indent=3)) 
 
                     if session_data is None:
                         session_data = {}
@@ -450,11 +436,7 @@ class ClustererAgent(Agent):
         elif input == "QUERY_RESULTS":
             if message.isData():
                 stream = message.getStream()
-
-                # get query from incoming stream
-                query = stream[stream.find("Q"):].split(":")[1]
                 data = message.getData()
-            
                 if 'result' in data:
                     self.results = data['result']
                     # Perform clustering on query results
@@ -471,7 +453,6 @@ class ClustererAgent(Agent):
                 # Parse response for cluster label mapping
                 match = re.search(r'\{.*\}', data, re.DOTALL).group()
                 cluster_label_mapping = json.loads(match)
-                logging.info(cluster_label_mapping)
 
                 # Retrieve correct number of clusters if using LLM auto-cluster
                 if self.properties['cluster_config']['num_clusters'] == 'auto' and self.properties['cluster_config']['auto_cluster_method'] == 'llm':
@@ -483,7 +464,7 @@ class ClustererAgent(Agent):
 
                 # Get cluster descriptions
                 if self.properties['create_cluster_descriptions']:
-                    self.issue_agent_call(analysis, worker, 'OPENAI_SUMMARIZER', ".SUMMARIZER_RESULTS", "CLUSTER_SUMMARIES")
+                    self.issue_agent_call(f"{self.properties['summarization_context']} Here is the cluster data: {json.dumps(analysis)}", worker, 'OPENAI_SUMMARIZER', ".SUMMARIZER_RESULTS", "CLUSTER_SUMMARIES")
                 else:
                     self.save_results(self.df, worker, analysis, 'cluster_labels_names')
             else:
@@ -491,14 +472,11 @@ class ClustererAgent(Agent):
         
         elif input == "SUMMARIZER_RESULTS":
             if message.isData():
-                logging.info("Summarization results")
                 stream = message.getStream()
                 data = message.getData()
-                logging.info(data)
 
                 match = re.search(r'\{.*\}', data, re.DOTALL).group()
                 mapping = json.loads(match)
-                logging.info(mapping)
 
                 if 'cluster_labels_names' in self.df.columns:
                     analysis = self.cluster_analysis(self.df, 'cluster_labels_names', ['cluster_labels'])
@@ -508,7 +486,7 @@ class ClustererAgent(Agent):
                     label_column = 'cluster_labels'
 
                 for cluster_name in analysis.keys():
-                    analysis[cluster_name]['description'] = mapping[str(cluster_name)]                
+                    analysis[cluster_name]['description'] = mapping[str(cluster_name)]         
                 self.save_results(self.df, worker, analysis, label_column)
 
             else:
