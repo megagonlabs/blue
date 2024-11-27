@@ -372,7 +372,7 @@ class ClustererAgent(Agent):
                 self.save_results(df, worker, analysis, 'cluster_labels')
             # Get cluster descriptions but not labels
             elif not self.properties['create_cluster_labels'] and self.properties['create_cluster_descriptions']:
-                self.issue_agent_call(analysis, worker, 'OPENAI_SUMMARIZER', ".SUMMARIZER_RESULTS", "CLUSTER_SUMMARIES")
+                self.issue_agent_call(f"{self.properties['summarization_context']} Here is the cluster data: {json.dumps(analysis)}", worker, 'OPENAI_SUMMARIZER', ".SUMMARIZER_RESULTS", "CLUSTER_SUMMARIES")
             # Get cluster labels from LLM
             else:
                 self.issue_agent_call(analysis, worker, 'OPENAI_LABELER', ".LABELER_RESULTS", "CLUSTER_LABELS")
@@ -480,7 +480,7 @@ class ClustererAgent(Agent):
 
                 # Get cluster descriptions
                 if self.properties['create_cluster_descriptions']:
-                    self.issue_agent_call(analysis, worker, 'OPENAI_SUMMARIZER', ".SUMMARIZER_RESULTS", "CLUSTER_SUMMARIES")
+                    self.issue_agent_call(f"{self.properties['summarization_context']} Here is the cluster data: {json.dumps(analysis)}", worker, 'OPENAI_SUMMARIZER', ".SUMMARIZER_RESULTS", "CLUSTER_SUMMARIES")
                 else:
                     self.save_results(self.df, worker, analysis, 'cluster_labels_names')
             else:
