@@ -281,6 +281,7 @@ class ClustererAgent(Agent):
         
         return df_processed.groupby(self.id_column).max().reset_index()
 
+    # Create embeddings for clustering
     def get_embeddings_df(self, df):
         logging.info('Loading embedding model')
         encoder = SentenceTransformer(self.properties['embeddings_config']['encoder_name'], trust_remote_code=True)
@@ -345,12 +346,12 @@ class ClustererAgent(Agent):
             logging.info('Issuing OpenAI multilabel call')
             self.issue_agent_call(cluster_descriptions, worker, 'OPENAI_LABELERMULTI', ".LABELER_RESULTS", "AUTO_CLUSTER_LABELS")
         else:
+            # Simply cluster number of clusters specified
             if type(self.properties['cluster_config']['num_clusters']) == type(1):
-                # Number of clusters specified
                 model = KMeans(n_clusters = self.properties['cluster_config']['num_clusters'], random_state=self.properties['cluster_config']['random_seed']).fit(cluster_df)
                 df['cluster_labels'] = model.labels_
+            # Rank cluster options by silhouette score
             else: 
-                #Rank clusters by silhouette score
                 logging.info('Using silhouette score.')
                 highest_score = -1
                 best_labels = None
@@ -366,19 +367,20 @@ class ClustererAgent(Agent):
             df['cluster_labels'] = df['cluster_labels'].map(int)
             analysis = self.cluster_analysis(df, 'cluster_labels', exclude_cols=exclude_columns)
 
+            # No labels or descriptions, end here
             if not self.properties['create_cluster_labels'] and not self.properties['create_cluster_descriptions']:
                 self.save_results(df, worker, analysis, 'cluster_labels')
+            # Get cluster descriptions but not labels
             elif not self.properties['create_cluster_labels'] and self.properties['create_cluster_descriptions']:
-                # Get cluster descriptions but not labels
                 self.issue_agent_call(analysis, worker, 'OPENAI_SUMMARIZER', ".SUMMARIZER_RESULTS", "CLUSTER_SUMMARIES")
+            # Get cluster labels from LLM
             else:
-                # Get cluster labels from LLM
                 self.issue_agent_call(analysis, worker, 'OPENAI_LABELER', ".LABELER_RESULTS", "CLUSTER_LABELS")
-
 
         # Save data
         self.df = df
 
+    # Save cluster analysis and cluster mapping to new streams, optionally show visualization.
     def save_results(self, df, worker, analysis, cluster_column):
         if self.properties['create_visualization']:
             self.display_cluster_summaries(worker, analysis)
@@ -411,7 +413,6 @@ class ClustererAgent(Agent):
                 # get all data received from user stream
                 stream = message.getStream()
                 logging.info(message.getData())
-                stream_data = ""
                 if worker:
                     session_data = worker.get_all_session_data()
                     logging.info(worker.session.cid)
@@ -450,11 +451,7 @@ class ClustererAgent(Agent):
         elif input == "QUERY_RESULTS":
             if message.isData():
                 stream = message.getStream()
-
-                # get query from incoming stream
-                query = stream[stream.find("Q"):].split(":")[1]
                 data = message.getData()
-            
                 if 'result' in data:
                     self.results = data['result']
                     # Perform clustering on query results
@@ -494,7 +491,6 @@ class ClustererAgent(Agent):
                 logging.info("Summarization results")
                 stream = message.getStream()
                 data = message.getData()
-                logging.info(data)
 
                 match = re.search(r'\{.*\}', data, re.DOTALL).group()
                 mapping = json.loads(match)
@@ -508,7 +504,7 @@ class ClustererAgent(Agent):
                     label_column = 'cluster_labels'
 
                 for cluster_name in analysis.keys():
-                    analysis[cluster_name]['description'] = mapping[str(cluster_name)]                
+                    analysis[cluster_name]['description'] = mapping[str(cluster_name)]         
                 self.save_results(self.df, worker, analysis, label_column)
 
             else:
