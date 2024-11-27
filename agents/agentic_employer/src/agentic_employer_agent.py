@@ -575,6 +575,13 @@ class AgenticEmployerAgent(Agent):
     
         if intent == "QUERY":
             self.issue_smart_query(context, entities, input, properties=properties, worker=worker)
+        elif intent == "VIEW":
+            if "JOB_POSTING_ID" in entities:
+                self.view_jd(properties=properties, worker=None)
+            elif "JOB_SEEKER_ID" in entities:
+                job_seeker_id = entities['JOB_SEEKER_ID']
+                job_seeker_id = int(job_seeker_id)
+                self.view_job_seeker(job_seeker_id, properties=properties, worker=None)
         else:
             self.write_to_new_stream(worker, "I don't know how to help you on that, try summarizing, querying, comparing applies...", "TEXT")  
 
