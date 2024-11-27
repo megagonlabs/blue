@@ -2,7 +2,11 @@ import { sendSocketMessage } from "@/components/helper";
 import { useSocket } from "@/components/hooks/useSocket";
 import { Button, ButtonGroup, Callout, Card, Intent } from "@blueprintjs/core";
 import { rankWith, uiTypeIs } from "@jsonforms/core";
-import { JsonFormsDispatch, withJsonFormsControlProps } from "@jsonforms/react";
+import {
+    JsonFormsDispatch,
+    withJsonFormsControlProps,
+    withJsonFormsLayoutProps,
+} from "@jsonforms/react";
 import _ from "lodash";
 import { useState } from "react";
 const TabsRenderer = ({
@@ -27,7 +31,7 @@ const TabsRenderer = ({
             </Callout>
         );
     const handleTabChange = (tabIndex) => {
-        handleChange(path, tabIndex);
+        if (!_.isEmpty(path)) handleChange(path, tabIndex);
         if (!_.isEqual(socket.readyState, WebSocket.OPEN)) return;
         setTimeout(() => {
             sendSocketMessage(
@@ -94,7 +98,6 @@ const TabsRenderer = ({
                             <JsonFormsDispatch
                                 schema={schema}
                                 uischema={child}
-                                path={path}
                                 renderers={renderers}
                                 cells={cells}
                             />
@@ -104,5 +107,7 @@ const TabsRenderer = ({
         </div>
     );
 };
-export default withJsonFormsControlProps(TabsRenderer);
+export default withJsonFormsLayoutProps(
+    withJsonFormsControlProps(TabsRenderer)
+);
 export const TabsTester = rankWith(3, uiTypeIs("Tabs"));
