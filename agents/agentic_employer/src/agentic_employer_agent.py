@@ -377,12 +377,16 @@ class AgenticEmployerAgent(Agent):
         logging.info(self.list_id_by_code)
         list_id = self.list_id_by_code[list_code]
 
+        # context
+        context = session_data
+        context['LIST_ID'] = list_id
+
         # set query
         query = ""
         if "job_seekers_in_list" in properties:
             job_seekers_in_list_query_template = properties['job_seekers_in_list']
             query_template = job_seekers_in_list_query_template['query']
-            query = string_utils.safe_substitute(query_template, **properties, **session_data, LIST_ID=list_id)
+            query = string_utils.safe_substitute(query_template, **properties, **context)
             
         # choose summarizer agent
         summarizer = "SUMMARIZER_LIST"
@@ -549,10 +553,6 @@ class AgenticEmployerAgent(Agent):
         if properties is None:
             properties = self.properties
 
-        ### Possible Intents
-        # Intent: SUMMARIZE, ADD, REMOVE 
-        # Entities: JOB_POSTING_ID, JOB_SEEKER_ID, LIST, QUERY
-
         # get session data
         context = worker.get_all_session_data()
 
@@ -562,7 +562,7 @@ class AgenticEmployerAgent(Agent):
         if entities is None:
             entities = {}
 
-        # update context, if JOB_ID present
+        # update context, if JOB_POSTING_ID, JOB_SEEKER_ID specified in user input
         if "JOB_POSTING_ID" in entities:
             worker.set_session_data("JOB_POSTING_ID", entities["JOB_POSTING_ID"])
 
@@ -573,6 +573,67 @@ class AgenticEmployerAgent(Agent):
         logging.info(json.dumps(entities))
         logging.info(input)
     
+        if intent == "QUERY":
+            self.issue_smart_query(context, entities, input, properties=properties, worker=worker)
+        else:
+            self.write_to_new_stream(worker, "I don't know how to help you on that, try summarizing, querying, comparing applies...", "TEXT")  
+
+    #### ACTIONS FROM USER INPUT
+    def context_to_nl(self, context):
+        context_text = ""
+        if 'JOB_SEEKER_ID' in context:
+            if context['JOB_SEEKER_ID']:
+                context_text += "Job seeker id is " + context['JOB_SEEKER_ID'] + "\n"
+        if 'JOB_POSTING_ID' in context:
+            if context['JOB_POSTING_ID']:
+                context_text += "Job posting id is " + context['JOB_POSTING_ID'] + "\n"
+        if 'LIST' in context:
+            if context['LIST'] and len(context['LIST']) > 0:
+                context_text += "The current list is " + context['LIST'] + "\n"
+        return context_text
+
+    def issue_smart_query(self, context, entities, input, properties=None, worker=None):
+        if worker == None:
+            worker = self.create_worker(None)
+
+        if properties is None:
+            properties = self.properties
+
+        if "QUESTION" in entities:
+            question = entities["QUESTION"]
+        else:
+            question = input
+
+        # Convert context into text
+        context_text = self.context_to_nl(context)
+       
+        # Provide additional context to user question
+        expanded_question = "Answer the following question with the below context. Ignore information in context if the query overrides context:\n"
+        expanded_question += "question: " + question + "\n"
+        expanded_question += "context: " + "\n" + context_text + "\n"
+        
+        logging.info("ISSUE NL QUERY:" + expanded_question)
+
+        # create a unique id
+        id = util_functions.create_uuid()
+
+        # question plan
+        question_plan = [
+            [self.name + ".QUESTION", "NL2SQL-E2E_INPLAN.DEFAULT"],
+            ["NL2SQL-E2E_INPLAN.DEFAULT", "OPENAI_EXPLAINER.DEFAULT"],
+        ]
+
+        # write query to strea
+        question_stream = self.write_to_new_stream(worker, expanded_question, "QUESTION",  tags=["HIDDEN"], id=id)
+
+        # build query plan
+        plan = self.build_plan(question_plan, question_stream, id=id)
+
+        # write plan
+        self.write_to_new_stream(worker, plan, "PLAN", tags=["PLAN", "HIDDEN"], id=id)
+
+        return
+
 
     def default_processor(self, message, input="DEFAULT", properties=None, worker=None):
 
@@ -583,11 +644,8 @@ class AgenticEmployerAgent(Agent):
             if message.isEOS():
                 stream = message.getStream()
 
-                # check if welcomed
-                welcome = worker.get_session_data("welcome")
-                if welcome:
-                    # identify intent
-                    self.identify_intent(stream, properties=properties, worker=None)
+                # identify intent
+                self.identify_intent(stream, properties=properties, worker=None)
                 
         ##### PROCESS RESULTS FROM INTENT CLASSIFICATION   
         elif input == "INTENT":
