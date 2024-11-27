@@ -365,6 +365,7 @@ export default function sessionReducer(
                             loading: true,
                         });
                         workspaceStreams.add(stream);
+                        _.set(sessionWorkspaceCollapse, stream, false);
                     }
                 }
                 _.set(sessionWorkspace, sessionIdFocus, workspaceContents);
@@ -372,6 +373,7 @@ export default function sessionReducer(
             return {
                 ...state,
                 sessions,
+                sessionWorkspaceCollapse,
                 sessionMessageTags,
                 sessionIds,
                 unreadSessionIds,

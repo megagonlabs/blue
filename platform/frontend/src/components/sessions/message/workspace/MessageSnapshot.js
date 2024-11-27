@@ -216,7 +216,7 @@ export default function MessageSnapshot({ content, index }) {
                                 position: "relative",
                                 whiteSpace: "pre-wrap",
                                 wordBreak: "break-all",
-                                padding: "15px 20px",
+                                padding: 15,
                             }}
                         >
                             {hasError.current ? (
