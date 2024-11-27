@@ -382,6 +382,7 @@ def build_ats_form(selected_job_posting_id, job_postings, lists, data, list_acti
             },
             {
                 "type": "Tabs",
+                "scope": "#/properties/LIST_ID",
                 "tabs": lists_labels,
                 "elements": lists_uis
             }
@@ -449,6 +450,12 @@ def build_ats_form(selected_job_posting_id, job_postings, lists, data, list_acti
     if selected_job_posting_label:
         form_data["job_posting"] = selected_job_posting_label
         
+    ### selected tab
+    selected_list_id = None
+    if selected_list_id is None:
+        selected_list_id = 1
+
+    form_data["LIST_ID"] = selected_list_id
         
     form = {
         "schema": form_schema,
