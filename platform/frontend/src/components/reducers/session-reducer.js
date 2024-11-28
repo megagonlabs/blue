@@ -206,11 +206,7 @@ export default function sessionReducer(
                     dataType: contentType,
                 };
                 const baseMessage = { stream, metadata, timestamp, order };
-                let workspaceContents = _.get(
-                    sessionWorkspace,
-                    sessionIdFocus,
-                    []
-                );
+                let workspaceContents = _.get(sessionWorkspace, session_id, []);
                 let considerWorkspace = false;
                 if (_.isEqual(messageLabel, "CONTROL")) {
                     const messageContentsCode = _.get(
@@ -368,7 +364,7 @@ export default function sessionReducer(
                         _.set(sessionWorkspaceCollapse, stream, false);
                     }
                 }
-                _.set(sessionWorkspace, sessionIdFocus, workspaceContents);
+                _.set(sessionWorkspace, session_id, workspaceContents);
             }
             return {
                 ...state,
