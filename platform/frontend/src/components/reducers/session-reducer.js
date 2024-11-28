@@ -57,7 +57,7 @@ export default function sessionReducer(
         }
         case "session/sessionMessageFilterTags/remove": {
             let current = _.get(sessionMessageFilterTags, sessionIdFocus, []);
-            current = _.remove(current, payload);
+            current = _.without(current, payload);
             _.set(sessionMessageFilterTags, sessionIdFocus, current);
             return { ...state, sessionMessageFilterTags };
         }
