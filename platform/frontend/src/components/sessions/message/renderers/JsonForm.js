@@ -30,7 +30,7 @@ export default function JsonForm({ content, hasError }) {
                     appActions.session.setFormData({ data, formId });
                 }}
             />
-            {isFormClosed || 1 ? (
+            {isFormClosed ? (
                 <>
                     <Tag
                         fill
