@@ -30,7 +30,7 @@ export default function JsonForm({ content, hasError }) {
                     appActions.session.setFormData({ data, formId });
                 }}
             />
-            {isFormClosed ? (
+            {isFormClosed || 1 ? (
                 <>
                     <Tag
                         fill
@@ -38,6 +38,7 @@ export default function JsonForm({ content, hasError }) {
                         style={{
                             position: "absolute",
                             left: 0,
+                            backgroundColor: Colors.GRAY2,
                             bottom: 0,
                             borderTopLeftRadius: 0,
                             borderTopRightRadius: 0,

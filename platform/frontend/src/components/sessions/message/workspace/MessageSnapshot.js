@@ -146,20 +146,26 @@ export default function MessageSnapshot({ content, index }) {
     return (
         <div style={{ position: "relative" }}>
             <div ref={ref}>
-                <Callout style={{ opacity: dragging ? 0.54 : 1, padding: 0 }}>
+                <Callout
+                    style={{
+                        opacity: dragging ? 0.54 : 1,
+                        padding: 0,
+                        overflow: "hidden",
+                    }}
+                >
                     <div
                         style={{
                             display: "flex",
                             alignItems: "center",
                             justifyContent: "space-between",
                             cursor: "pointer",
-                            padding: `15px 15px ${
+                            padding: `10px 20px ${
                                 !isCollapsed &&
                                 !dragging &&
                                 !_.isEqual(contentType, "JSON_FORM")
                                     ? 0
-                                    : 15
-                            }px 15px`,
+                                    : 10
+                            }px 10px`,
                         }}
                         onClick={() =>
                             appActions.session.toggleWorkspaceCollapse({
@@ -171,6 +177,7 @@ export default function MessageSnapshot({ content, index }) {
                             intent={Intent.PRIMARY}
                             large
                             minimal
+                            style={{ backgroundColor: "transparent" }}
                             icon={faIcon({ icon: faMessage })}
                         >
                             Message
@@ -216,7 +223,7 @@ export default function MessageSnapshot({ content, index }) {
                                 position: "relative",
                                 whiteSpace: "pre-wrap",
                                 wordBreak: "break-all",
-                                padding: 15,
+                                padding: "15px 20px",
                             }}
                         >
                             {hasError.current ? (
