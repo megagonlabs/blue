@@ -257,6 +257,7 @@ const Row = ({ index, data, style }) => {
                 {!conversationView && <MessageIcon message={messages[index]} />}
                 <div
                     style={{
+                        maxWidth: "100%",
                         width: conversationView
                             ? null
                             : `calc(100% - ${conversationView ? 0 : 50}px)`,
@@ -277,6 +278,7 @@ const Row = ({ index, data, style }) => {
                         style={{
                             maxWidth: "100%",
                             width: "fit-content",
+                            overflow: "hidden",
                             ...(conversationView
                                 ? {
                                       borderRadius: own

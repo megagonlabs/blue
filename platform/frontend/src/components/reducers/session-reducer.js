@@ -57,7 +57,7 @@ export default function sessionReducer(
         }
         case "session/sessionMessageFilterTags/remove": {
             let current = _.get(sessionMessageFilterTags, sessionIdFocus, []);
-            current = _.remove(current, payload);
+            current = _.without(current, payload);
             _.set(sessionMessageFilterTags, sessionIdFocus, current);
             return { ...state, sessionMessageFilterTags };
         }
@@ -206,11 +206,7 @@ export default function sessionReducer(
                     dataType: contentType,
                 };
                 const baseMessage = { stream, metadata, timestamp, order };
-                let workspaceContents = _.get(
-                    sessionWorkspace,
-                    sessionIdFocus,
-                    []
-                );
+                let workspaceContents = _.get(sessionWorkspace, session_id, []);
                 let considerWorkspace = false;
                 if (_.isEqual(messageLabel, "CONTROL")) {
                     const messageContentsCode = _.get(
@@ -365,13 +361,15 @@ export default function sessionReducer(
                             loading: true,
                         });
                         workspaceStreams.add(stream);
+                        _.set(sessionWorkspaceCollapse, stream, false);
                     }
                 }
-                _.set(sessionWorkspace, sessionIdFocus, workspaceContents);
+                _.set(sessionWorkspace, session_id, workspaceContents);
             }
             return {
                 ...state,
                 sessions,
+                sessionWorkspaceCollapse,
                 sessionMessageTags,
                 sessionIds,
                 unreadSessionIds,
