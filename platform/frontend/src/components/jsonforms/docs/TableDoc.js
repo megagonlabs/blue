@@ -112,7 +112,7 @@ export default function TableDoc({ closePanel }) {
                             </tr>
                         </tbody>
                     </HTMLTable>
-                    <Card interactive>
+                    <Card interactive className="no-text-selection">
                         <Checkbox
                             onChange={(event) =>
                                 setCompact(event.target.checked)

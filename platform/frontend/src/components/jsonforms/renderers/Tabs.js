@@ -1,18 +1,27 @@
+import { sendSocketMessage } from "@/components/helper";
+import { useSocket } from "@/components/hooks/useSocket";
 import { Button, ButtonGroup, Callout, Card, Intent } from "@blueprintjs/core";
 import { rankWith, uiTypeIs } from "@jsonforms/core";
-import { JsonFormsDispatch, withJsonFormsLayoutProps } from "@jsonforms/react";
+import {
+    JsonFormsDispatch,
+    withJsonFormsControlProps,
+    withJsonFormsLayoutProps,
+} from "@jsonforms/react";
 import _ from "lodash";
 import { useState } from "react";
 const TabsRenderer = ({
     cells,
     path,
+    data,
+    handleChange,
     renderers,
     schema,
     uischema,
     visible,
 }) => {
+    const { socket } = useSocket();
     const tabs = _.get(uischema, "tabs");
-    const [activeTab, setActiveTab] = useState(0);
+    const [activeTab, setActiveTab] = useState(_.isNumber(data) ? data : 0);
     if (_.size(tabs) != _.size(uischema.elements))
         return (
             <Callout intent={Intent.DANGER} icon={null}>
@@ -21,6 +30,23 @@ const TabsRenderer = ({
                 {_.size(tabs)} tabs, {_.size(uischema.elements)} elements.
             </Callout>
         );
+    const handleTabChange = (tabIndex) => {
+        if (!_.isEmpty(path)) handleChange(path, tabIndex);
+        if (!_.isEqual(socket.readyState, WebSocket.OPEN)) return;
+        setTimeout(() => {
+            sendSocketMessage(
+                socket,
+                JSON.stringify({
+                    type: "INTERACTIVE_EVENT_MESSAGE",
+                    stream_id: _.get(uischema, "props.streamId", null),
+                    path: path,
+                    form_id: _.get(uischema, "props.formId", null),
+                    value: tabIndex,
+                    timestamp: performance.timeOrigin + performance.now(),
+                })
+            );
+        }, 0);
+    };
     const style = _.get(uischema, "props.style", {});
     const large = _.get(uischema, "props.large", false);
     const compact = _.get(uischema, "props.compact", false);
@@ -47,7 +73,10 @@ const TabsRenderer = ({
                     {tabs.map((tab, index) => (
                         <Button
                             key={index}
-                            onClick={() => setActiveTab(index)}
+                            onClick={() => {
+                                setActiveTab(index);
+                                handleTabChange(index);
+                            }}
                             active={_.isEqual(activeTab, index)}
                             text={tab}
                         />
@@ -69,7 +98,6 @@ const TabsRenderer = ({
                             <JsonFormsDispatch
                                 schema={schema}
                                 uischema={child}
-                                path={path}
                                 renderers={renderers}
                                 cells={cells}
                             />
@@ -79,5 +107,7 @@ const TabsRenderer = ({
         </div>
     );
 };
-export default withJsonFormsLayoutProps(TabsRenderer);
+export default withJsonFormsLayoutProps(
+    withJsonFormsControlProps(TabsRenderer)
+);
 export const TabsTester = rankWith(3, uiTypeIs("Tabs"));

@@ -94,6 +94,9 @@ class Agent:
         # workers of an agent in a session
         self.workers = []
 
+        # event producers, by form_id
+        self.event_producers = {}
+
         self._start()
 
     ###### initialization

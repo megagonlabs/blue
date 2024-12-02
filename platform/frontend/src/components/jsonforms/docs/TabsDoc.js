@@ -23,12 +23,14 @@ import CopyDocJsonButton from "./CopyDocJsonButton";
 export default function TabsDoc({ closePanel }) {
     const docJson = {
         type: "Tabs",
+        scope: "#/properties/...",
         tabs: [],
         props: { vertical: false, large: false, compact: false, style: {} },
         elements: [],
     };
     const exampleJson = {
         type: "Tabs",
+        scope: "...",
         tabs: ["Tab 1", "Tab 2"],
         elements: [
             {

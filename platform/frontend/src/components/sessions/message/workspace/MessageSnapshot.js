@@ -146,14 +146,26 @@ export default function MessageSnapshot({ content, index }) {
     return (
         <div style={{ position: "relative" }}>
             <div ref={ref}>
-                <Callout style={{ opacity: dragging ? 0.54 : 1 }}>
+                <Callout
+                    style={{
+                        opacity: dragging ? 0.54 : 1,
+                        padding: 0,
+                        overflow: "hidden",
+                    }}
+                >
                     <div
                         style={{
-                            marginBottom: !isCollapsed && !dragging ? 15 : 0,
                             display: "flex",
                             alignItems: "center",
                             justifyContent: "space-between",
                             cursor: "pointer",
+                            padding: `10px 20px ${
+                                !isCollapsed &&
+                                !dragging &&
+                                !_.isEqual(contentType, "JSON_FORM")
+                                    ? 0
+                                    : 10
+                            }px 10px`,
                         }}
                         onClick={() =>
                             appActions.session.toggleWorkspaceCollapse({
@@ -165,6 +177,7 @@ export default function MessageSnapshot({ content, index }) {
                             intent={Intent.PRIMARY}
                             large
                             minimal
+                            style={{ backgroundColor: "transparent" }}
                             icon={faIcon({ icon: faMessage })}
                         >
                             Message
@@ -178,6 +191,7 @@ export default function MessageSnapshot({ content, index }) {
                                         content="Remove"
                                     >
                                         <Button
+                                            intent={Intent.DANGER}
                                             onClick={() =>
                                                 appActions.session.removeWorkspaceContent(
                                                     index
@@ -209,7 +223,7 @@ export default function MessageSnapshot({ content, index }) {
                                 position: "relative",
                                 whiteSpace: "pre-wrap",
                                 wordBreak: "break-all",
-                                padding: 1,
+                                padding: "15px 20px",
                             }}
                         >
                             {hasError.current ? (

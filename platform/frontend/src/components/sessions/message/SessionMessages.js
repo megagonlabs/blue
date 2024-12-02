@@ -5,17 +5,25 @@ import MessageContent from "@/components/sessions/message/MessageContent";
 import MessageIcon from "@/components/sessions/message/MessageIcon";
 import MessageMetadata from "@/components/sessions/message/MessageMetadata";
 import {
+    Alignment,
     Button,
     ButtonGroup,
     Callout,
     Colors,
+    Icon,
     Intent,
+    Menu,
+    MenuDivider,
+    MenuItem,
+    Popover,
     Tag,
     Tooltip,
     mergeRefs,
 } from "@blueprintjs/core";
 import {
+    faBarsFilter,
     faBinary,
+    faCheck,
     faEllipsisH,
     faSidebar,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
@@ -27,10 +35,34 @@ import { VariableSizeList } from "react-window";
 const Row = ({ index, data, style }) => {
     const { setRowHeight } = data;
     const { appState, appActions } = useContext(AppContext);
-    const { expandedMessageStream, jsonformSpecs } = appState.session;
-    const sessionIdFocus = appState.session.sessionIdFocus;
-    const messages = appState.session.sessions[sessionIdFocus].messages;
-    const streams = appState.session.sessions[sessionIdFocus].streams;
+    const { expandedMessageStream, jsonformSpecs, sessionIdFocus } =
+        appState.session;
+    const sessionMessageFilterTags = _.get(
+        appState,
+        ["session", "sessionMessageFilterTags", sessionIdFocus],
+        []
+    );
+    const messages = _.get(
+        appState,
+        ["session", "sessions", sessionIdFocus, "messages"],
+        []
+    ).filter((message) => {
+        if (_.get(message, "metadata.tags.WORKSPACE_ONLY")) return false;
+        let include = false;
+        for (let i = 0; i < _.size(sessionMessageFilterTags); i++) {
+            const tag = sessionMessageFilterTags[i];
+            if (_.get(message, ["metadata", "tags", tag])) {
+                include = true;
+                break;
+            }
+        }
+        return _.isEmpty(sessionMessageFilterTags) || include;
+    });
+    const streams = _.get(
+        appState,
+        ["session", "sessions", sessionIdFocus, "streams"],
+        {}
+    );
     const { user, settings } = useContext(AuthContext);
     const conversationView = _.get(settings, "conversation_view", false);
     const rowRef = useRef({});
@@ -73,7 +105,7 @@ const Row = ({ index, data, style }) => {
             }
         }
         return _.isEqual(uid, user.uid) && _.isEqual(created_by, "USER");
-    }, [user.uid]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [user.uid, messages]); // eslint-disable-line react-hooks/exhaustive-deps
     const isOverflown = useRef(false);
     const message = messages[index];
     const stream = message.stream;
@@ -149,6 +181,7 @@ const Row = ({ index, data, style }) => {
                         position: "absolute",
                         right: 0,
                         top: 0,
+                        zIndex: 22,
                         display: showActions.current ? null : "none",
                     }}
                 >
@@ -224,6 +257,7 @@ const Row = ({ index, data, style }) => {
                 {!conversationView && <MessageIcon message={messages[index]} />}
                 <div
                     style={{
+                        maxWidth: "100%",
                         width: conversationView
                             ? null
                             : `calc(100% - ${conversationView ? 0 : 50}px)`,
@@ -244,6 +278,7 @@ const Row = ({ index, data, style }) => {
                         style={{
                             maxWidth: "100%",
                             width: "fit-content",
+                            overflow: "hidden",
                             ...(conversationView
                                 ? {
                                       borderRadius: own
@@ -315,11 +350,36 @@ const Row = ({ index, data, style }) => {
 export default function SessionMessages() {
     const variableSizeListRef = useRef();
     const rowHeights = useRef({});
-    const { appState } = useContext(AppContext);
+    const { appState, appActions } = useContext(AppContext);
     const { settings } = useContext(AuthContext);
     const conversationView = _.get(settings, "conversation_view", false);
     const sessionIdFocus = appState.session.sessionIdFocus;
-    const messages = appState.session.sessions[sessionIdFocus].messages;
+    const sessionMessageTags = _.get(
+        appState,
+        ["session", "sessionMessageTags", sessionIdFocus],
+        new Set()
+    );
+    const sessionMessageFilterTags = _.get(
+        appState,
+        ["session", "sessionMessageFilterTags", sessionIdFocus],
+        []
+    );
+    const messages = _.get(
+        appState,
+        ["session", "sessions", sessionIdFocus, "messages"],
+        []
+    ).filter((message) => {
+        if (_.get(message, "metadata.tags.WORKSPACE_ONLY")) return false;
+        let include = false;
+        for (let i = 0; i < _.size(sessionMessageFilterTags); i++) {
+            const tag = sessionMessageFilterTags[i];
+            if (_.get(message, ["metadata", "tags", tag])) {
+                include = true;
+                break;
+            }
+        }
+        return _.isEmpty(sessionMessageFilterTags) || include;
+    });
     const debugMode = _.get(settings, "debug_mode", false);
     function getRowHeight(index) {
         // 53: 1 line message height
@@ -351,19 +411,92 @@ export default function SessionMessages() {
         }, 0);
     }, [variableSizeListRef, sessionIdFocus]); // eslint-disable-line react-hooks/exhaustive-deps
     return (
-        <AutoSizer>
-            {({ width, height }) => (
-                <VariableSizeList
-                    itemData={{ setRowHeight }}
-                    height={height}
-                    itemCount={messages.length}
-                    itemSize={getRowHeight}
-                    ref={variableSizeListRef}
-                    width={width}
+        <>
+            <div className="border-bottom" style={{ padding: "5px 20px" }}>
+                <Popover
+                    minimal
+                    content={
+                        <div>
+                            <Menu>
+                                <MenuItem
+                                    text="Clear all"
+                                    onClick={() =>
+                                        appActions.session.clearSessionMessageFilterTag()
+                                    }
+                                />
+                                <MenuDivider title="By tags" />
+                                {_.toArray(sessionMessageTags).map(
+                                    (tag, index) => {
+                                        const selected = _.includes(
+                                            sessionMessageFilterTags,
+                                            tag
+                                        );
+                                        return (
+                                            <MenuItem
+                                                key={index}
+                                                icon={
+                                                    selected ? (
+                                                        faIcon({
+                                                            icon: faCheck,
+                                                            style: {
+                                                                color: Colors.GREEN3,
+                                                            },
+                                                        })
+                                                    ) : (
+                                                        <Icon icon="blank" />
+                                                    )
+                                                }
+                                                onClick={() => {
+                                                    if (selected)
+                                                        appActions.session.removeSessionMessageFilterTag(
+                                                            tag
+                                                        );
+                                                    else
+                                                        appActions.session.addSessionMessageFilterTag(
+                                                            tag
+                                                        );
+                                                }}
+                                                shouldDismissPopover={false}
+                                                text={tag}
+                                            />
+                                        );
+                                    }
+                                )}
+                            </Menu>
+                        </div>
+                    }
+                    placement="bottom-start"
                 >
-                    {Row}
-                </VariableSizeList>
-            )}
-        </AutoSizer>
+                    <Tooltip
+                        openOnTargetFocus={false}
+                        minimal
+                        placement="bottom-start"
+                        content="Filter"
+                    >
+                        <ButtonGroup minimal>
+                            <Button
+                                alignText={Alignment.LEFT}
+                                icon={faIcon({ icon: faBarsFilter })}
+                                text={_.size(sessionMessageFilterTags)}
+                            />
+                        </ButtonGroup>
+                    </Tooltip>
+                </Popover>
+            </div>
+            <AutoSizer>
+                {({ width, height }) => (
+                    <VariableSizeList
+                        itemData={{ setRowHeight }}
+                        height={height - 40}
+                        itemCount={messages.length}
+                        itemSize={getRowHeight}
+                        ref={variableSizeListRef}
+                        width={width}
+                    >
+                        {Row}
+                    </VariableSizeList>
+                )}
+            </AutoSizer>
+        </>
     );
 }

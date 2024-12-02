@@ -34,7 +34,7 @@ from session import Session
 from message import Message, MessageType, ContentType, ControlCode
 
 # set log level
-logging.getLogger().setLevel(logging.INFO)
+logging.getLogger().setLevel(logging.ERROR)
 logging.basicConfig(
     format="%(asctime)s [%(levelname)s] [%(process)d:%(threadName)s:%(thread)d](%(filename)s:%(lineno)d) %(name)s -  %(message)s",
     level=logging.ERROR,
@@ -94,13 +94,13 @@ class QueryExecutorAgent(Agent):
                 # extract json
                 input = " ".join(worker.get_data(stream))
 
-                logging.info("input: "  + input)
+                # logging.info("input: "  + input)
                 
                 if worker:
                     try:
                         data = json.loads(input)
                     except:
-                        logging.info("Input is not JSON")
+                        logging.error("Input is not JSON")
                         return
 
                     # extract path, query

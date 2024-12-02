@@ -52,6 +52,8 @@ export default function EntityProperties({
                         code={JSON.stringify(entity.properties, null, 4)}
                         setCode={setProperties}
                         setError={setJsonError}
+                        useMinimap={false}
+                        containOverscrollBehavior={false}
                     />
                 )}
             </SectionCard>

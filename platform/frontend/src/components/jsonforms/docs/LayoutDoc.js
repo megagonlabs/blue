@@ -1,4 +1,5 @@
 import { faIcon } from "@/components/icon";
+import * as docProps from "@/components/jsonforms/docs/constant";
 import JsonViewer from "@/components/sessions/message/renderers/JsonViewer";
 import {
     Button,
@@ -22,7 +23,7 @@ export default function LayoutDoc({ closePanel }) {
     };
     const docJSonHorizontal = {
         type: "HorizontalLayout",
-        props: { spaceEvenly: true },
+        props: { spaceEvenly: true, style: {} },
         elements: [],
     };
     return (
@@ -134,6 +135,7 @@ export default function LayoutDoc({ closePanel }) {
                                 </Tag>
                             </td>
                         </tr>
+                        {docProps.style}
                     </tbody>
                 </HTMLTable>
             </div>

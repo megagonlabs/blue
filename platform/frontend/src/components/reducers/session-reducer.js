@@ -8,11 +8,14 @@ export const defaultState = {
     groupedSessionIds: [],
     sessionIdFocus: null,
     sessionDetails: {},
+    sessionMessageTags: {},
+    sessionMessageFilterTags: {},
     userId: null,
     sessionListPanelCollapsed: true,
     showWorkspacePanel: false,
     sessionWorkspaceCollapse: {},
     sessionWorkspace: {},
+    workspaceStreams: new Set(),
     unreadSessionIds: new Set(),
     pinnedSessionIds: new Set(),
     closedJsonforms: new Set(),
@@ -38,22 +41,54 @@ export default function sessionReducer(
         sessionWorkspaceCollapse,
         sessionAgentProgress,
         jsonformSpecs,
+        workspaceStreams,
+        sessionMessageFilterTags,
+        sessionMessageTags,
     } = state;
     const { sessionIdFocus } = state;
     let sessions = _.cloneDeep(state.sessions);
     let pinnedSessionIds = _.clone(state.pinnedSessionIds);
     switch (type) {
+        case "session/sessionMessageFilterTags/add": {
+            let current = _.get(sessionMessageFilterTags, sessionIdFocus, []);
+            if (!_.includes(current, payload)) current.push(payload);
+            _.set(sessionMessageFilterTags, sessionIdFocus, current);
+            return { ...state, sessionMessageFilterTags };
+        }
+        case "session/sessionMessageFilterTags/remove": {
+            let current = _.get(sessionMessageFilterTags, sessionIdFocus, []);
+            current = _.without(current, payload);
+            _.set(sessionMessageFilterTags, sessionIdFocus, current);
+            return { ...state, sessionMessageFilterTags };
+        }
+        case "session/sessionMessageFilterTags/clear": {
+            _.set(sessionMessageFilterTags, sessionIdFocus, []);
+            return { ...state, sessionMessageFilterTags };
+        }
         case "session/workspace/clear": {
+            let contents = _.get(sessionWorkspace, sessionIdFocus, []);
+            for (let i = 0; i < _.size(contents); i++) {
+                const stream = _.get(contents, [i, "message", "stream"], null);
+                workspaceStreams.delete(stream);
+            }
             return {
                 ...state,
+                workspaceStreams,
                 sessionWorkspace: { ...sessionWorkspace, [sessionIdFocus]: [] },
             };
         }
         case "session/workspace/remove": {
             let contents = _.get(sessionWorkspace, sessionIdFocus, []);
+            const stream = _.get(
+                contents,
+                [payload, "message", "stream"],
+                null
+            );
             _.pullAt(contents, [payload]);
+            workspaceStreams.delete(stream);
             return {
                 ...state,
+                workspaceStreams,
                 sessionWorkspace: {
                     ...sessionWorkspace,
                     [sessionIdFocus]: contents,
@@ -61,10 +96,18 @@ export default function sessionReducer(
             };
         }
         case "session/sessions/addToWorkspace": {
-            let workspaceContents = _.get(sessionWorkspace, sessionIdFocus, []);
-            workspaceContents.push(payload);
-            _.set(sessionWorkspace, sessionIdFocus, workspaceContents);
-            return { ...state, sessionWorkspace };
+            const stream = _.get(payload, "message.stream", null);
+            if (!workspaceStreams.has(stream)) {
+                let workspaceContents = _.get(
+                    sessionWorkspace,
+                    sessionIdFocus,
+                    []
+                );
+                workspaceContents.push(payload);
+                workspaceStreams.add(stream);
+                _.set(sessionWorkspace, sessionIdFocus, workspaceContents);
+            }
+            return { ...state, sessionWorkspace, workspaceStreams };
         }
         case "session/sessions/jsonform/setData": {
             const { data, formId } = payload;
@@ -132,6 +175,20 @@ export default function sessionReducer(
             const contentType = _.get(payload, "message.content_type", null);
             const mode = _.get(payload, "mode", "batch");
             const { session_id, metadata, timestamp, order, stream } = payload;
+            const tagEntries = Object.entries(
+                _.get(payload, "metadata.tags", {})
+            );
+            let currentSessionMessageTags = _.get(
+                sessionMessageTags,
+                session_id,
+                new Set()
+            );
+            for (let i = 0; i < _.size(tagEntries); i++) {
+                const [tag, value] = tagEntries[i];
+                if (_.isEqual(tag, "WORKSPACE_ONLY")) continue;
+                if (value) currentSessionMessageTags.add(tag);
+            }
+            _.set(sessionMessageTags, session_id, currentSessionMessageTags);
             if (!_.includes(sessionIds, session_id)) {
                 sessionIds.push(session_id);
             }
@@ -149,11 +206,7 @@ export default function sessionReducer(
                     dataType: contentType,
                 };
                 const baseMessage = { stream, metadata, timestamp, order };
-                let workspaceContents = _.get(
-                    sessionWorkspace,
-                    sessionIdFocus,
-                    []
-                );
+                let workspaceContents = _.get(sessionWorkspace, session_id, []);
                 let considerWorkspace = false;
                 if (_.isEqual(messageLabel, "CONTROL")) {
                     const messageContentsCode = _.get(
@@ -230,7 +283,7 @@ export default function sessionReducer(
                             ...baseData,
                             content: { form_id },
                         });
-                        // create/update forms
+                        // create or update forms
                         _.set(jsonformSpecs, form_id, messageContentsArgs);
                     } else if (_.isEqual("CLOSE_FORM", messageContentsCode)) {
                         closedJsonforms.add(
@@ -298,21 +351,29 @@ export default function sessionReducer(
                 );
                 if (
                     considerWorkspace &&
-                    _.get(payload, "metadata.tags.WORKSPACE", false)
+                    (_.get(payload, "metadata.tags.WORKSPACE", false) ||
+                        _.get(payload, "metadata.tags.WORKSPACE_ONLY", false))
                 ) {
-                    workspaceContents.push({
-                        type: "session",
-                        message: baseMessage,
-                        loading: true,
-                    });
+                    if (!workspaceStreams.has(stream)) {
+                        workspaceContents.push({
+                            type: "session",
+                            message: baseMessage,
+                            loading: true,
+                        });
+                        workspaceStreams.add(stream);
+                        _.set(sessionWorkspaceCollapse, stream, false);
+                    }
                 }
-                _.set(sessionWorkspace, sessionIdFocus, workspaceContents);
+                _.set(sessionWorkspace, session_id, workspaceContents);
             }
             return {
                 ...state,
                 sessions,
+                sessionWorkspaceCollapse,
+                sessionMessageTags,
                 sessionIds,
                 unreadSessionIds,
+                workspaceStreams,
                 closedJsonforms,
                 jsonformSpecs,
                 sessionAgentProgress,

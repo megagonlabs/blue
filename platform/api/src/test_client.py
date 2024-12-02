@@ -223,12 +223,7 @@ def words(count):
     return " ".join(word_list)
 
 
-session_id = input("session_id: ")
-connection_id = input("connection_id: ")
-for _ in range(1):
-    stream_id = f"local-test-client-{int(time.time() * 1000)}"
-    sentence_string = sentence()
-    words_string = words(random.randint(4, 11))
+def send_bos(ws, session_id, connection_id, stream_id):
     ws.send(
         json.dumps(
             {
@@ -245,13 +240,16 @@ for _ in range(1):
             }
         )
     )
+
+
+def send_eos(ws, session_id, connection_id, stream_id):
     ws.send(
         json.dumps(
             {
                 "type": "OBSERVER_SESSION_MESSAGE",
-                "connection_id": connection_id,
                 "session_id": session_id,
-                "message": {"label": "DATA", "contents": random.choice([sentence_string, words_string]), "content_type": "STR"},
+                "connection_id": connection_id,
+                "message": {'label': "CONTROL", 'contents': {"code": "EOS"}, 'content_type': None},
                 "stream": stream_id,
                 "metadata": {'created_by': 'OBSERVER'},
                 "mode": "streaming",
@@ -261,13 +259,16 @@ for _ in range(1):
             }
         )
     )
+
+
+def send_message(ws, session_id, connection_id, stream_id, message):
     ws.send(
         json.dumps(
             {
                 "type": "OBSERVER_SESSION_MESSAGE",
-                "session_id": session_id,
                 "connection_id": connection_id,
-                "message": {'label': "CONTROL", 'contents': {"code": 'EOS'}, 'content_type': None},
+                "session_id": session_id,
+                "message": message,
                 "stream": stream_id,
                 "metadata": {'created_by': 'OBSERVER'},
                 "mode": "streaming",
@@ -277,6 +278,17 @@ for _ in range(1):
             }
         )
     )
+
+
+session_id = input("session_id: ")
+connection_id = input("connection_id: ")
+for _ in range(1):
+    stream_id = f"local-test-client-{int(time.time() * 1000)}"
+    sentence_string = sentence()
+    words_string = words(random.randint(4, 11))
+    send_bos(ws, session_id, connection_id, stream_id)
+    send_message(ws, session_id, connection_id, stream_id, message={"label": "DATA", "contents": random.choice([sentence_string, words_string]), "content_type": "STR"})
+    send_eos(ws, session_id, connection_id, stream_id)
 time.sleep(2)
 # sys.exit()
 stream_id = f"local-test-client-{int(time.time() * 1000)}"
@@ -289,6 +301,7 @@ ws.send(
             "message": {'label': "CONTROL", 'contents': {"code": "BOS"}, 'content_type': None},
             "stream": stream_id,
             "mode": "streaming",
+            "metadata": {"tags": {"WORKSPACE": True}},
             "timestamp": int(time.time() * 1000),
             "id": str(uuid.uuid4()),
             "order": 0,
@@ -299,13 +312,6 @@ json_form = {
     "code": "CREATE_FORM",
     "args": {
         "form_id": 'local-test-client-form-1',
-        "schema": {
-            "type": "object",
-            "properties": {
-                "first_name": {"type": "string"},
-                "last_name": {"type": "string"},
-            },
-        },
         "uischema": {
             "type": "HorizontalLayout",
             "elements": [
@@ -321,8 +327,10 @@ json_form = {
                 },
             ],
         },
+        "schema": {"type": "object", "properties": {"first_name": {"type": "string"}, "last_name": {"type": "string"}}},
     },
 }
+send_bos(ws, session_id, connection_id, stream_id)
 ws.send(
     json.dumps(
         {
@@ -334,6 +342,7 @@ ws.send(
                 "contents": json_form,
                 "content_type": 'JSON',
             },
+            "metadata": {"tags": {"WORKSPACE": True}},
             "stream": stream_id,
             "mode": "streaming",
             "timestamp": int(time.time() * 1000),
@@ -342,9 +351,27 @@ ws.send(
         }
     )
 )
+send_eos(ws, session_id, connection_id, stream_id)
 time.sleep(2)
-sentence_string = sentence()
-words_string = words(random.randint(4, 11))
+stream_id = f"local-test-client-{int(time.time() * 1000)}"
+send_bos(ws, session_id, connection_id, stream_id)
+json_form["code"] = 'UPDATE_FORM'
+json_form["args"]['uischema'] = {
+    "type": "HorizontalLayout",
+    "elements": [
+        {
+            "type": "Control",
+            "label": "Last Name",
+            "scope": "#/properties/last_name",
+        },
+        {
+            "type": "Control",
+            "label": "First Name",
+            "scope": "#/properties/first_name",
+        },
+    ],
+}
+json_form['args']['schema'] = {"type": "object", "properties": {"first_name": {"type": "string"}, "last_name": {"type": "string"}}}
 ws.send(
     json.dumps(
         {
@@ -353,8 +380,10 @@ ws.send(
             "connection_id": connection_id,
             "message": {
                 "label": "CONTROL",
-                "contents": {"code": "CLOSE_FORM", "args": {"form_id": 'local-test-client-form-1'}},
+                "contents": json_form,
+                "content_type": 'JSON',
             },
+            "metadata": {"tags": {"WORKSPACE": True}},
             "stream": stream_id,
             "mode": "streaming",
             "timestamp": int(time.time() * 1000),
@@ -362,23 +391,24 @@ ws.send(
             "order": 0,
         }
     )
+)
+send_eos(ws, session_id, connection_id, stream_id)
+# sys.exit()
+time.sleep(2)
+sentence_string = sentence()
+words_string = words(random.randint(4, 11))
+send_message(
+    ws,
+    session_id,
+    connection_id,
+    stream_id,
+    message={
+        "label": "CONTROL",
+        "contents": {"code": "CLOSE_FORM", "args": {"form_id": 'local-test-client-form-1'}},
+    },
 )
 time.sleep(1)
-ws.send(
-    json.dumps(
-        {
-            "type": "OBSERVER_SESSION_MESSAGE",
-            "session_id": session_id,
-            "connection_id": connection_id,
-            "message": {'label': "CONTROL", 'contents': {"code": "EOS"}, 'content_type': None},
-            "stream": stream_id,
-            "mode": "streaming",
-            "timestamp": int(time.time() * 1000),
-            "id": str(uuid.uuid4()),
-            "order": 0,
-        }
-    )
-)
+send_eos(ws, session_id, connection_id, stream_id)
 time.sleep(1)
 stream_id = f"local-test-client-{int(time.time() * 1000)}"
 json_form = {
@@ -523,21 +553,7 @@ json_form = {
         "form_id": "d15ef06d",
     },
 }
-ws.send(
-    json.dumps(
-        {
-            "type": "OBSERVER_SESSION_MESSAGE",
-            "session_id": session_id,
-            "connection_id": connection_id,
-            "message": {'label': "CONTROL", 'contents': {"code": "BOS"}, 'content_type': None},
-            "stream": stream_id,
-            "mode": "streaming",
-            "timestamp": int(time.time() * 1000),
-            "id": str(uuid.uuid4()),
-            "order": 0,
-        }
-    )
-)
+send_bos(ws, session_id, connection_id, stream_id)
 ws.send(
     json.dumps(
         {
@@ -557,98 +573,40 @@ ws.send(
         }
     )
 )
-ws.send(
-    json.dumps(
-        {
-            "type": "OBSERVER_SESSION_MESSAGE",
-            "session_id": session_id,
-            "connection_id": connection_id,
-            "message": {'label': "CONTROL", 'contents': {"code": "EOS"}, 'content_type': None},
-            "stream": stream_id,
-            "mode": "streaming",
-            "timestamp": int(time.time() * 1000),
-            "id": str(uuid.uuid4()),
-            "order": 0,
-        }
-    )
-)
+send_eos(ws, session_id, connection_id, stream_id)
 time.sleep(1)
 stream_id = f"local-test-client-{int(time.time() * 1000)}"
-ws.send(
-    json.dumps(
-        {
-            "type": "OBSERVER_SESSION_MESSAGE",
-            "session_id": session_id,
-            "connection_id": connection_id,
-            "message": {'label': "CONTROL", 'contents': {"code": "BOS"}, 'content_type': None},
-            "stream": stream_id,
-            "mode": "streaming",
-            "timestamp": int(time.time() * 1000),
-            "id": str(uuid.uuid4()),
-            "order": 0,
-        }
-    )
-)
-ws.send(
-    json.dumps(
-        {
-            "type": "OBSERVER_SESSION_MESSAGE",
-            "session_id": session_id,
-            "connection_id": connection_id,
-            "message": {
-                "label": "DATA",
-                "contents": {
-                    "id": "d15ef06d",
-                    "steps": [["USER.TEXT", "FORM_PROFILER.CRITERIA"], ["FORM_PROFILER.PROFILE", "JOBSEARCH.JOBSEEKERDATA"]],
-                    "context": {
-                        "scope": "PLATFORM:default:SESSION:74a7ce7:AGENT:USER:5WgRzdacRdOEvj8JBmCXFZSvWmH3:OUTPUT:TEXT:29051a4d",
-                        "streams": {"USER.TEXT": "PLATFORM:default:SESSION:74a7ce7:AGENT:USER:5WgRzdacRdOEvj8JBmCXFZSvWmH3:OUTPUT:TEXT:29051a4d:STREAM"},
-                    },
-                },
-                "content_type": "JSON",
+send_bos(ws, session_id, connection_id, stream_id)
+send_message(
+    ws,
+    session_id,
+    connection_id,
+    stream_id,
+    message={
+        "label": "DATA",
+        "contents": {
+            "id": "d15ef06d",
+            "steps": [["USER.TEXT", "FORM_PROFILER.CRITERIA"], ["FORM_PROFILER.PROFILE", "JOBSEARCH.JOBSEEKERDATA"]],
+            "context": {
+                "scope": "PLATFORM:default:SESSION:74a7ce7:AGENT:USER:5WgRzdacRdOEvj8JBmCXFZSvWmH3:OUTPUT:TEXT:29051a4d",
+                "streams": {"USER.TEXT": "PLATFORM:default:SESSION:74a7ce7:AGENT:USER:5WgRzdacRdOEvj8JBmCXFZSvWmH3:OUTPUT:TEXT:29051a4d:STREAM"},
             },
-            "stream": stream_id,
-            "mode": "streaming",
-            "timestamp": int(time.time() * 1000),
-            "id": str(uuid.uuid4()),
-            "order": 0,
-        }
-    )
+        },
+        "content_type": "JSON",
+    },
 )
-ws.send(
-    json.dumps(
-        {
-            "type": "OBSERVER_SESSION_MESSAGE",
-            "session_id": session_id,
-            "connection_id": connection_id,
-            "message": {
-                "label": "DATA",
-                "contents": {"name": "John", "current_title": "engineer", "desired_title": "engineer", "desired_location": "mountan view", "skills": "python"},
-                "content_type": "JSON",
-            },
-            "stream": stream_id,
-            "mode": "streaming",
-            "timestamp": int(time.time() * 1000),
-            "id": str(uuid.uuid4()),
-            "order": 0,
-        }
-    )
+send_message(
+    ws,
+    session_id,
+    connection_id,
+    stream_id,
+    message={
+        "label": "DATA",
+        "contents": {"name": "John", "current_title": "engineer", "desired_title": "engineer", "desired_location": "mountan view", "skills": "python"},
+        "content_type": "JSON",
+    },
 )
-ws.send(
-    json.dumps(
-        {
-            "type": "OBSERVER_SESSION_MESSAGE",
-            "session_id": session_id,
-            "connection_id": connection_id,
-            "message": {'label': "CONTROL", 'contents': {"code": 'EOS'}, 'content_type': None},
-            "stream": stream_id,
-            "mode": "streaming",
-            "timestamp": int(time.time() * 1000),
-            "id": str(uuid.uuid4()),
-            "order": 0,
-        }
-    )
-)
+send_eos(ws, session_id, connection_id, stream_id)
 time.sleep(1)
 stream_id = f"local-test-client-{int(time.time() * 1000)}"
 json_form = {
@@ -745,54 +703,18 @@ json_form = {
         "form_id": "a7d80949",
     },
 }
-ws.send(
-    json.dumps(
-        {
-            "type": "OBSERVER_SESSION_MESSAGE",
-            "session_id": session_id,
-            "connection_id": connection_id,
-            "message": {'label': "CONTROL", 'contents': {"code": "BOS"}, 'content_type': None},
-            "stream": stream_id,
-            "mode": "streaming",
-            "timestamp": int(time.time() * 1000),
-            "id": str(uuid.uuid4()),
-            "order": 0,
-        }
-    )
+send_bos(ws, session_id, connection_id, stream_id)
+send_message(
+    ws,
+    session_id,
+    connection_id,
+    stream_id,
+    message={
+        "label": "CONTROL",
+        "contents": json_form,
+        "content_type": 'JSON',
+    },
 )
-ws.send(
-    json.dumps(
-        {
-            "type": "OBSERVER_SESSION_MESSAGE",
-            "session_id": session_id,
-            "connection_id": connection_id,
-            "message": {
-                "label": "CONTROL",
-                "contents": json_form,
-                "content_type": 'JSON',
-            },
-            "stream": stream_id,
-            "mode": "streaming",
-            "timestamp": int(time.time() * 1000),
-            "id": str(uuid.uuid4()),
-            "order": 0,
-        }
-    )
-)
-ws.send(
-    json.dumps(
-        {
-            "type": "OBSERVER_SESSION_MESSAGE",
-            "session_id": session_id,
-            "connection_id": connection_id,
-            "message": {'label': "CONTROL", 'contents': {"code": "EOS"}, 'content_type': None},
-            "stream": stream_id,
-            "mode": "streaming",
-            "timestamp": int(time.time() * 1000),
-            "id": str(uuid.uuid4()),
-            "order": 0,
-        }
-    )
-)
+send_eos(ws, session_id, connection_id, stream_id)
 time.sleep(1)
 ws.close()

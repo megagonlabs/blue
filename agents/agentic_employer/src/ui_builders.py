@@ -12,7 +12,7 @@ def get_list_action_ui(action, list_id, list_code):
         "type": "Button",
         "label": action['label'],
         "props": {
-            "action": action['name']+'_'+list_code,
+            "action": action['name']+'_LIST_'+list_code,
             "large": False
         }
     }
@@ -98,7 +98,7 @@ def get_list_header(headers=None):
         }
     }
 
-def get_separator(separator='┄', length=50, margin=10):
+def get_separator(separator='┄', length=52, margin=10):
     return {
         "type": "Label",
         "label": separator * length,
@@ -112,7 +112,7 @@ def get_separator(separator='┄', length=50, margin=10):
 
 def get_column_ui(row, header, actions=None):
     if actions is None:
-        actions = ['VIEW']
+        actions =  [{"name":"VIEW", "label":"View"}]
 
     if header == 'Candidate':
         jst = row['job_seeker_title']
@@ -129,7 +129,7 @@ def get_column_ui(row, header, actions=None):
                 {
                     "type": "Control",
                     "label": "Candidate " + str(row['job_seeker_id']),
-                    "scope": "#/properties/" + "JOB_SEEKER_" + str(row['job_seeker_id']),
+                    "scope": "#/properties/" + "CHECK" + "_JOB_SEEKER_" + str(row['job_seeker_id']),
                     "props": {
                         "style": {
                             "width": 200,
@@ -158,10 +158,13 @@ def get_column_ui(row, header, actions=None):
             job_posting_must_have_skill = skill["job_posting_must_have_skill"]
 
             label = job_posting_skill
+            font_weight = 400
             if not job_seeker_has_skill and job_posting_must_have_skill:
                 label = "𐄂 " + label
+                font_weight = 200
             if job_seeker_has_skill and job_posting_must_have_skill:
                 label = "✓ " + label
+                font_weight = 600
 
             match_elements.append({
                 "type": "Label",
@@ -169,7 +172,8 @@ def get_column_ui(row, header, actions=None):
                 "props": {
                     "style": {
                         "width": 200,
-                        "fontSize": 12
+                        "fontSize": 12,
+                        "fontWeight": font_weight
                     }
                 }
             })
@@ -183,9 +187,9 @@ def get_column_ui(row, header, actions=None):
         for action in actions:
             action_elements.append({
                 "type": "Button",
-                "label": "View",
+                "label": action['label'],
                 "props": {
-                    "action": action + "_JOB_SEEKER_" + str(row['job_seeker_id']),
+                    "action": action['name'] + "_JOB_SEEKER_" + str(row['job_seeker_id']),
                     "large": False,
                     "style": {
                         "width": 100,
@@ -195,15 +199,26 @@ def get_column_ui(row, header, actions=None):
                 }
             })
 
+        action_elements.append({
+            "type": "Label",
+            "label": " ",
+            "props": {
+                "style": {
+                    "width": 200,
+                    "fontSize": 12
+                }
+            }
+        })
+        
         return  {
             "type": "VerticalLayout",
-            "elements": action_elements
+            "elements": action_elements,
         }
     
     elif header == 'Interested?':
         return  {
             "type": "Control",
-            "scope": "#/properties/" + "JOB_SEEKER_" + str(row['job_seeker_id']) + "_Interested",
+            "scope": "#/properties/" + "INTEREST" + "_JOB_SEEKER_" + str(row['job_seeker_id']),
             "props": {
                 "style": {
                     "width": 200,
@@ -218,13 +233,13 @@ def get_column_ui(row, header, actions=None):
         "elements": []
     }
     
-def get_row_ui(row, headers=None):
+def get_row_ui(row, headers=None, actions=None):
     if headers == None:
         headers = ["Candidate", "Matches", "Actions", "Interested?"]
 
     column_uis = []
     for header in headers:
-        column_uis.append(get_column_ui(row, header))
+        column_uis.append(get_column_ui(row, header, actions=actions))
 
     return  {
         "type": "VerticalLayout",
@@ -320,7 +335,7 @@ def process_data(data):
     return by_list
     
 
-def build_ats_form(selected_job_posting_id, job_postings, lists, data):
+def build_ats_form(selected_job_posting_id, job_postings, lists, data, list_actions=None, job_seeker_actions=None):
     
     if type(selected_job_posting_id) == str:
         selected_job_posting_id = int(selected_job_posting_id)
@@ -367,6 +382,7 @@ def build_ats_form(selected_job_posting_id, job_postings, lists, data):
             },
             {
                 "type": "Tabs",
+                "scope": "#/properties/LIST_ID",
                 "tabs": lists_labels,
                 "elements": lists_uis
             }
@@ -406,20 +422,20 @@ def build_ats_form(selected_job_posting_id, job_postings, lists, data):
 
             # ui
             for row in rows:
-                list_contents.append(get_row_ui(row))
+                list_contents.append(get_row_ui(row, actions=job_seeker_actions))
 
             # properties
             for job_seeker_id in list:
-                form_schema['properties']["JOB_SEEKER_" + str(job_seeker_id)] = { "type": "boolean" }
-                form_schema['properties']["JOB_SEEKER_" + str(job_seeker_id) + "_Interested"] = { "type": "string", "enum": copy.deepcopy(interested_enums) }
+                form_schema['properties']["CHECK" + "_JOB_SEEKER_" + str(job_seeker_id)] = { "type": "boolean" }
+                form_schema['properties']["INTEREST" + "_JOB_SEEKER_" + str(job_seeker_id)] = { "type": "string", "enum": copy.deepcopy(interested_enums) }
 
                 # update interested status
                 if list_id == list_id_by_code['interested']:
-                    form_data["JOB_SEEKER_" + str(job_seeker_id) + "_Interested"] = interested_enums_by_list_code['interested']
+                    form_data["INTEREST" + "_JOB_SEEKER_" + str(job_seeker_id)] = interested_enums_by_list_code['interested']
                 elif list_id == list_id_by_code['undecided']:
-                    form_data["JOB_SEEKER_" + str(job_seeker_id) + "_Interested"] = interested_enums_by_list_code['undecided']
+                    form_data["INTEREST" + "_JOB_SEEKER_" + str(job_seeker_id)] = interested_enums_by_list_code['undecided']
                 elif list_id == list_id_by_code['rejected']:
-                    form_data["JOB_SEEKER_" + str(job_seeker_id) + "_Interested"] = interested_enums_by_list_code['rejected']
+                    form_data["INTEREST" + "_JOB_SEEKER_" + str(job_seeker_id)] = interested_enums_by_list_code['rejected']
                 
 
 
@@ -427,13 +443,19 @@ def build_ats_form(selected_job_posting_id, job_postings, lists, data):
         list_id = l['list_id']
         list_contents = all_list_contents[list_id]
         lists_labels.append(l['list_name'] + " [" + str(len(list_contents)) + "]")
-        lists_uis.append(get_list_ui(l['list_id'], l['list_code'], l['list_name'], list_contents))
+        lists_uis.append(get_list_ui(l['list_id'], l['list_code'], l['list_name'], list_contents, actions=list_actions))
 
    
     ### data element
     if selected_job_posting_label:
         form_data["job_posting"] = selected_job_posting_label
         
+    ### selected tab
+    selected_list_id = None
+    if selected_list_id is None:
+        selected_list_id = 1
+
+    form_data["LIST_ID"] = selected_list_id
         
     form = {
         "schema": form_schema,
