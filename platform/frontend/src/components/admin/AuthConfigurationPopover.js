@@ -7,24 +7,82 @@ import {
     DialogFooter,
     HTMLSelect,
     Intent,
+    Menu,
+    MenuItem,
+    Switch,
 } from "@blueprintjs/core";
-import { faCheck } from "@fortawesome/sharp-duotone-solid-svg-icons";
+import {
+    faCheck,
+    faComments,
+    faSidebar,
+    faTableColumns,
+} from "@fortawesome/sharp-duotone-solid-svg-icons";
 import axios from "axios";
+import classNames from "classnames";
 import _ from "lodash";
 import { useEffect, useState } from "react";
+import { settlePromises } from "../helper";
 import { faIcon } from "../icon";
+import { AppToaster } from "../toaster";
+const EXPLANATION_TEXT = {
+    style: {
+        marginTop: 5,
+        whiteSpace: "initial",
+        lineHeight: "initial",
+    },
+    className: classNames(Classes.TEXT_SMALL, Classes.TEXT_MUTED),
+};
+const DEFAULT_SETTINGS = {
+    compact_sidebar: {
+        title: "Compact sidebar",
+        description: "Use minimal style for vavigation menu",
+        icon: faSidebar,
+    },
+    show_workspace: {
+        title: "Show workspace",
+        description: "Default show session workspace",
+        icon: faTableColumns,
+    },
+    conversation_view: {
+        title: "Conversation view",
+        description: "Whether messages should appear as left & right aligned",
+        icon: faComments,
+    },
+};
 export default function AuthConfigurationPopover({
     isAuthConfigOpen,
     setIsAuthConfigOpen,
 }) {
     const [loading, setLoading] = useState(false);
     const [defaultRole, setDefaultRole] = useState("guest");
+    const [defaultSettings, setDefaultSettings] = useState({
+        compact_sidebar: false,
+        show_workspace: false,
+        conversation_view: false,
+    });
     const getPlatformSettings = () => {
         setLoading(true);
         axios.get("/platform/settings").then((response) => {
             setDefaultRole(
                 _.get(response, "data.settings.default_user_role", "guest")
             );
+            setDefaultSettings({
+                compact_sidebar: _.get(
+                    response,
+                    "data.settings.default_user_settings.compact_sidebar",
+                    false
+                ),
+                show_workspace: _.get(
+                    response,
+                    "data.settings.default_user_settings.show_workspace",
+                    false
+                ),
+                conversation_view: _.get(
+                    response,
+                    "data.settings.default_user_settings.conversation_view",
+                    false
+                ),
+            });
             setLoading(false);
         });
     };
@@ -33,16 +91,44 @@ export default function AuthConfigurationPopover({
     }, [isAuthConfigOpen]);
     const savePlatformDefaultUserRole = () => {
         setLoading(true);
-        axios
-            .put("/platform/settings/default_user_role", { value: defaultRole })
-            .then(() => {
-                setLoading(false);
-            });
+        const tasks = [
+            new Promise((resolve, reject) => {
+                axios
+                    .put("/platform/settings/default_user_role", {
+                        value: defaultRole,
+                    })
+                    .then(() => resolve(true))
+                    .catch((error) => {
+                        AppToaster.show({
+                            intent: Intent.DANGER,
+                            message: `${error.name}: ${error.message}`,
+                        });
+                        reject(false);
+                    });
+            }),
+            new Promise((resolve, reject) => {
+                axios
+                    .put("/platform/settings/default_user_settings", {
+                        value: defaultSettings,
+                    })
+                    .then(() => resolve(true))
+                    .catch((error) => {
+                        AppToaster.show({
+                            intent: Intent.DANGER,
+                            message: `${error.name}: ${error.message}`,
+                        });
+                        reject(false);
+                    });
+            }),
+        ];
+        settlePromises(tasks, (error) => setLoading(false));
     };
     const onClose = () => {
         if (loading) return;
         setIsAuthConfigOpen(false);
     };
+    const updateDefaultSettings = (key, value) =>
+        setDefaultSettings({ ...defaultSettings, [key]: value });
     return (
         <Dialog
             onClose={onClose}
@@ -61,7 +147,7 @@ export default function AuthConfigurationPopover({
                     >
                         <div
                             style={{
-                                maxWidth: "calc(100% - 156.57px)",
+                                maxWidth: "calc(100% - 134px)",
                             }}
                         >
                             <label style={{ fontWeight: 600 }}>
@@ -94,6 +180,70 @@ export default function AuthConfigurationPopover({
                                 />
                             ))}
                         </HTMLSelect>
+                    </div>
+                </Card>
+                <Card compact style={{ marginTop: 15 }}>
+                    <label style={{ fontWeight: 600 }}>
+                        Default User Settings
+                    </label>
+                    <div style={{ marginTop: 5 }}>
+                        <Menu large style={{ padding: 0 }}>
+                            {[
+                                "compact_sidebar",
+                                "show_workspace",
+                                "conversation_view",
+                            ].map((key) => (
+                                <MenuItem
+                                    key={key}
+                                    text={
+                                        <div style={{ marginLeft: 3 }}>
+                                            <div>
+                                                {_.get(
+                                                    DEFAULT_SETTINGS,
+                                                    [key, "title"],
+                                                    "-"
+                                                )}
+                                            </div>
+                                            <div {...EXPLANATION_TEXT}>
+                                                {_.get(
+                                                    DEFAULT_SETTINGS,
+                                                    [key, "description"],
+                                                    "-"
+                                                )}
+                                            </div>
+                                        </div>
+                                    }
+                                    icon={faIcon({
+                                        icon: _.get(
+                                            DEFAULT_SETTINGS,
+                                            [key, "icon"],
+                                            null
+                                        ),
+                                    })}
+                                    labelElement={
+                                        <Switch
+                                            checked={_.get(
+                                                defaultSettings,
+                                                key,
+                                                false
+                                            )}
+                                            className={
+                                                loading
+                                                    ? Classes.SKELETON
+                                                    : null
+                                            }
+                                            onChange={(event) =>
+                                                updateDefaultSettings(
+                                                    key,
+                                                    event.target.checked
+                                                )
+                                            }
+                                            large
+                                        />
+                                    }
+                                />
+                            ))}
+                        </Menu>
                     </div>
                 </Card>
             </DialogBody>

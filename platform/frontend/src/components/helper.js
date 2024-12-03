@@ -5,7 +5,7 @@ const classNames = require("classnames");
 const _ = require("lodash");
 const { AppToaster, ProgressToaster } = require("@/components/toaster");
 const { default: transform } = require("css-to-react-native");
-const renderProgress = (progress, requestError = false) => {
+const renderProgress = (progress = 0, requestError = false) => {
     return {
         icon: faIcon({ icon: faPenSwirl }),
         isCloseButtonShown: false,
@@ -116,7 +116,7 @@ module.exports = {
         if (!_.isEmpty(deleted)) {
             for (let i = 0; i < _.size(deleted); i++) {
                 tasks.push(
-                    new Promise((resolve, reject) => {
+                    new Promise((resolve, reject) =>
                         axios
                             .delete(`${url}/${deleted[i]}`)
                             .then(() => resolve(true))
@@ -126,8 +126,8 @@ module.exports = {
                                     message: `${error.name}: ${error.message}`,
                                 });
                                 reject(false);
-                            });
-                    })
+                            })
+                    )
                 );
             }
         }
@@ -136,7 +136,7 @@ module.exports = {
             for (let i = 0; i < _.size(posts); i++) {
                 const key = posts[i];
                 tasks.push(
-                    new Promise((resolve, reject) => {
+                    new Promise((resolve, reject) =>
                         axios
                             .post(
                                 `${url}/${key}`,
@@ -154,8 +154,8 @@ module.exports = {
                                     message: `${error.name}: ${error.message}`,
                                 });
                                 reject(false);
-                            });
-                    })
+                            })
+                    )
                 );
             }
         }
@@ -163,20 +163,17 @@ module.exports = {
     },
     settlePromises: (tasks, callback) => {
         (async () => {
-            let progress = 0,
-                requestError = false;
+            let requestError = false;
             const key = ProgressToaster.show(
-                renderProgress(_.isEmpty(tasks) ? 100 : progress)
+                renderProgress(_.isEmpty(tasks) ? 100 : 0)
             );
-            const promises = tasks.map((task) => {
+            const promises = tasks.map((task, index) => {
                 return task
                     .catch((status) => {
-                        if (!status) {
-                            requestError = true;
-                        }
+                        if (!status) requestError = true;
                     })
                     .finally(() => {
-                        progress += 100 / tasks.length;
+                        progress = ((index + 1) / tasks.length) * 100;
                         ProgressToaster.show(
                             renderProgress(progress, requestError),
                             key

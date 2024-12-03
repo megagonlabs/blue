@@ -73,7 +73,7 @@ export default function AgentEntity() {
                 icon: icon,
             })
             .then(() => {
-                let tasks = constructSavePropertyRequests({
+                const tasks = constructSavePropertyRequests({
                     axios,
                     url: `${urlPrefix}/${entity.name}/property`,
                     difference: shallowDiff(
