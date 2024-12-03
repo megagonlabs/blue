@@ -380,7 +380,7 @@ class ClustererAgent(Agent):
             self.create_visualization(worker, df, cluster_column)
 
         # Save cluster descriptions
-        self.write_to_new_stream(worker, analysis, "JSON")
+        self.write_to_new_stream(worker, analysis, "CLUSTER_INFO", tags=["CLUSTER_INFO"])
 
         # Save cluster mapping
         temp_df = pd.DataFrame()
@@ -388,7 +388,7 @@ class ClustererAgent(Agent):
         temp_df['cluster'] = df[cluster_column]
         s = temp_df.to_json(None, orient="records")
         d = {"result": json.loads(s)}
-        self.write_to_new_stream(worker, d, "JSON")
+        self.write_to_new_stream(worker, d, "CLUSTER_MAPPINGS", tags=["CLUSTER_MAPPINGS"])
 
     def default_processor(self, message, input="DEFAULT", properties=None, worker=None):
         if "random_seed" not in self.properties['cluster_config']:

@@ -411,6 +411,56 @@ class AgenticEmployerAgent(Agent):
 
         return
     
+    def identify_clusters(self, list_code, properties=None, worker=None):
+
+        if worker == None:
+            worker = self.create_worker(None)
+
+        if properties is None:
+            properties = self.properties
+
+        session_data = worker.get_all_session_data()
+
+        # create a unique id
+        id = util_functions.create_uuid()
+
+        # get code from id
+        logging.info(self.list_id_by_code)
+        list_id = self.list_id_by_code[list_code]
+
+        # context
+        context = session_data
+        context['LIST_ID'] = list_id
+
+        # set query
+        query = ""
+        if "job_seekers_in_list" in properties:
+            job_seekers_in_list_query_template = properties['job_seekers_in_list']
+            query_template = job_seekers_in_list_query_template['query']
+            query = string_utils.safe_substitute(query_template, **properties, **context)
+            
+
+        # cluster plans
+        # cluster_plan = [
+        #     [self.name + ".CQ", "CLUSTERER_JOBSEEKER.DEFAULT"],
+        #     ["CLUSTERER_JOBSEEKER.CLUSTER_INFO", self.name + ".CLUSTER_INFO_RESULTS"]
+        # ]
+
+        cluster_plan = [
+            [self.name + ".CQ", "CLUSTERER_JOBSEEKER.DEFAULT"]
+        ]
+
+        # write query to stream
+        query_stream = self.write_to_new_stream(worker, query, "CQ", tags=["HIDDEN"], id=id)
+
+        # build query plan
+        plan = self.build_plan(cluster_plan, query_stream, id=id)
+
+        # write plan
+        self.write_to_new_stream(worker, plan, "PLAN", tags=["PLAN","HIDDEN"], id=id)
+
+        return
+    
     def extract_job_posting_id(self, s):
         results = re.findall(r"\[\s*\+?#(-?\d+)\s*\]", s)
         if len(results) > 0:
@@ -720,6 +770,23 @@ class AgenticEmployerAgent(Agent):
                 else:
                     logging.info("nothing found")
     
+        ##### PROCESS CLUSTER RESULTS
+        elif input == "CLUSTER_INFO_RESULTS":
+            if message.isData():
+                if worker:
+                    data = message.getData()
+                    stream = message.getStream()
+
+                    clusters = data
+                    self.write_to_new_stream(worker, "Analyzing all job seekers, we found " + str(len(clusters)) + " groups...", "TEXT")  
+                    for cluster_label in clusters:
+                        cluster = clusters[cluster_label]
+                        cluster_info = ""
+                        cluster_info += str(cluster["cluster_size"]) + " job seekers with " + cluster_label + " experience.\n"
+                        cluster_info += cluster["description"] 
+                        self.write_to_new_stream(worker, cluster_info, "TEXT")  
+                        
+
         ##### PROCESS FORM UI EVENTS
         elif input == "EVENT":
             if message.isData():
@@ -766,6 +833,9 @@ class AgenticEmployerAgent(Agent):
 
                                         # issue recent summarizer
                                         self.summarize_list("new", properties=properties, worker=None)
+
+                                        # issue clusters
+                                        self.identify_clusters("all", properties=properties, worker=None)
 
 
                             # job seeker actions
