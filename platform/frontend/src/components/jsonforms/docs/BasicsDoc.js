@@ -37,7 +37,7 @@ export default function BasicsDoc({ closePanel }) {
                     This is not a type, but a documentation. For full
                     documentation, please click&nbsp;
                     <a
-                        rel="noreferrer"
+                        rel="noopener noreferrer"
                         target="_blank"
                         href="https://jsonforms.io/"
                     >
@@ -64,7 +64,7 @@ export default function BasicsDoc({ closePanel }) {
                     The mandatory <Code>scope</Code> property, which expects
                     a&nbsp;
                     <a
-                        rel="noreferrer"
+                        rel="noopener noreferrer"
                         target="_blank"
                         href="https://json-schema.org/understanding-json-schema/structuring"
                     >

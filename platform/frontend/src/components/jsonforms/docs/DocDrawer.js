@@ -321,7 +321,7 @@ const MainMenuPanel = ({
                     an example by&nbsp;
                     <a
                         href="https://github.com/rit-git/blue/issues/new"
-                        rel="noreferrer"
+                        rel="noopener noreferrer"
                         target="_blank"
                     >
                         creating an issue on Blue GitHub repository
