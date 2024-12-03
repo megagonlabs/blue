@@ -1,5 +1,4 @@
 // Import the functions you need from the SDKs you need
-import { AppToaster } from "@/components/toaster";
 import {
     Alert,
     Button,
@@ -15,7 +14,7 @@ import { initializeApp } from "firebase/app";
 import { GoogleAuthProvider, getAuth, signInWithPopup } from "firebase/auth";
 import _ from "lodash";
 import { createContext, useContext, useEffect, useState } from "react";
-import { hasIntersection } from "../helper";
+import { axiosErrorToast, hasIntersection } from "../helper";
 import { AppContext } from "./app-context";
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
@@ -215,33 +214,13 @@ export const AuthProvider = ({ children }) => {
                         })
                         .catch((error) => {
                             setPopupOpen(false);
-                            AppToaster.show({
-                                intent: Intent.DANGER,
-                                message: (
-                                    <>
-                                        <div>
-                                            {_.get(
-                                                error,
-                                                "response.data.message"
-                                            )}
-                                        </div>
-                                        <div>
-                                            {error.name}: {error.message}
-                                        </div>
-                                    </>
-                                ),
-                            });
+                            axiosErrorToast(error);
                         });
                 });
             })
             .catch((error) => {
                 setPopupOpen(false);
-                AppToaster.show({
-                    intent: Intent.DANGER,
-                    message: `${error.code ? `[${error.code}]` : ""} ${
-                        error.message
-                    }`,
-                });
+                axiosErrorToast(error);
             });
     };
     useEffect(() => {

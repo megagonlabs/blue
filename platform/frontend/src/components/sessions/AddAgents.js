@@ -1,6 +1,5 @@
 import { AppContext } from "@/components/contexts/app-context";
 import { faIcon } from "@/components/icon";
-import { AppToaster } from "@/components/toaster";
 import {
     Button,
     Card,
@@ -27,6 +26,7 @@ import { useContext, useEffect, useState } from "react";
 import { FixedSizeList } from "react-window";
 import { ENTITY_ICON_40 } from "../constant";
 import EntityIcon from "../entity/EntityIcon";
+import { axiosErrorToast } from "../helper";
 export default function AddAgents({
     isOpen,
     setIsAddAgentsOpen,
@@ -124,10 +124,7 @@ export default function AddAgents({
                             resolve(agentName);
                         })
                         .catch((error) => {
-                            AppToaster.show({
-                                intent: Intent.DANGER,
-                                message: `${error.name}: ${error.message}`,
-                            });
+                            axiosErrorToast(error);
                             reject(agentName);
                         });
                 })

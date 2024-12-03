@@ -1,9 +1,7 @@
 import { AppContext } from "@/components/contexts/app-context";
 import EntityDescription from "@/components/entity/EntityDescription";
 import EntityMain from "@/components/entity/EntityMain";
-import { settlePromises } from "@/components/helper";
-import { AppToaster } from "@/components/toaster";
-import { Intent } from "@blueprintjs/core";
+import { axiosErrorToast, settlePromises } from "@/components/helper";
 import axios from "axios";
 import _ from "lodash";
 import { useRouter } from "next/router";
@@ -60,10 +58,7 @@ export default function AgentGroupEntity() {
                         resolve(true);
                     })
                     .catch((error) => {
-                        AppToaster.show({
-                            intent: Intent.DANGER,
-                            message: `${error.name}: ${error.message}`,
-                        });
+                        axiosErrorToast(error);
                         reject(false);
                     });
             }),

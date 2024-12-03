@@ -1,7 +1,6 @@
 import { AppContext } from "@/components/contexts/app-context";
-import { settlePromises } from "@/components/helper";
+import { axiosErrorToast, settlePromises } from "@/components/helper";
 import { faIcon } from "@/components/icon";
-import { AppToaster } from "@/components/toaster";
 import {
     Button,
     Card,
@@ -104,10 +103,7 @@ export default function SessionBudget({
                         resolve(true);
                     })
                     .catch((error) => {
-                        AppToaster.show({
-                            intent: Intent.DANGER,
-                            message: `${error.name}: ${error.message}`,
-                        });
+                        axiosErrorToast(error);
                         reject(false);
                     });
             }),
@@ -122,10 +118,7 @@ export default function SessionBudget({
                         resolve(true);
                     })
                     .catch((error) => {
-                        AppToaster.show({
-                            intent: Intent.DANGER,
-                            message: `${error.name}: ${error.message}`,
-                        });
+                        axiosErrorToast(error);
                         reject(false);
                     });
             }),
@@ -140,10 +133,7 @@ export default function SessionBudget({
                         resolve(true);
                     })
                     .catch((error) => {
-                        AppToaster.show({
-                            intent: Intent.DANGER,
-                            message: `${error.name}: ${error.message}`,
-                        });
+                        axiosErrorToast(error);
                         reject(false);
                     });
             }),

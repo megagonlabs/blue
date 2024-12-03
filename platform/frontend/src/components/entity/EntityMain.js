@@ -31,6 +31,7 @@ import axios from "axios";
 import _ from "lodash";
 import { useRouter } from "next/router";
 import { useContext, useState } from "react";
+import { axiosErrorToast } from "../helper";
 import EntityIcon from "./EntityIcon";
 export default function EntityMain({
     entity,
@@ -55,12 +56,7 @@ export default function EntityMain({
                     message: `Deployed ${entity.name} ${entity.type}`,
                 });
             })
-            .catch((error) => {
-                AppToaster.show({
-                    intent: Intent.DANGER,
-                    message: `${error.name}: ${error.message}`,
-                });
-            });
+            .catch((error) => axiosErrorToast(error));
     };
     const routerQueryParams = _.get(router, "query.pathParams", []);
     const routerQueryPath = "/" + routerQueryParams.join("/");
@@ -103,12 +99,7 @@ export default function EntityMain({
                 }
                 router.push(`/${params.join("/")}`);
             })
-            .catch((error) => {
-                AppToaster.show({
-                    intent: Intent.DANGER,
-                    message: `${error.name}: ${error.message}`,
-                });
-            });
+            .catch((error) => axiosErrorToast(error));
     };
     const syncData = () => {
         axios
@@ -119,12 +110,7 @@ export default function EntityMain({
                     message: `Synced ${entity.name} ${entity.type}`,
                 });
             })
-            .catch((error) => {
-                AppToaster.show({
-                    intent: Intent.DANGER,
-                    message: `${error.name}: ${error.message}`,
-                });
-            });
+            .catch((error) => axiosErrorToast(error));
     };
     const [isIconEditorOpen, setIsIconEditorOpen] = useState(false);
     const { user, permissions } = useContext(AuthContext);

@@ -21,9 +21,8 @@ import axios from "axios";
 import classNames from "classnames";
 import _ from "lodash";
 import { useEffect, useState } from "react";
-import { settlePromises } from "../helper";
+import { axiosErrorToast, settlePromises } from "../helper";
 import { faIcon } from "../icon";
-import { AppToaster } from "../toaster";
 const EXPLANATION_TEXT = {
     style: {
         marginTop: 5,
@@ -99,10 +98,7 @@ export default function AuthConfigurationPopover({
                     })
                     .then(() => resolve(true))
                     .catch((error) => {
-                        AppToaster.show({
-                            intent: Intent.DANGER,
-                            message: `${error.name}: ${error.message}`,
-                        });
+                        axiosErrorToast(error);
                         reject(false);
                     });
             }),
@@ -113,10 +109,7 @@ export default function AuthConfigurationPopover({
                     })
                     .then(() => resolve(true))
                     .catch((error) => {
-                        AppToaster.show({
-                            intent: Intent.DANGER,
-                            message: `${error.name}: ${error.message}`,
-                        });
+                        axiosErrorToast(error);
                         reject(false);
                     });
             }),

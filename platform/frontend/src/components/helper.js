@@ -1,10 +1,19 @@
-const { faPenSwirl } = require("@fortawesome/sharp-duotone-solid-svg-icons");
+const {
+    faPenSwirl,
+    faTriangleExclamation,
+    faCopy,
+    faCloudExclamation,
+    faSquareExclamation,
+    faExclamation,
+    faCircleExclamation,
+} = require("@fortawesome/sharp-duotone-solid-svg-icons");
 const { faIcon } = require("@/components/icon");
-const { ProgressBar, Classes, Intent } = require("@blueprintjs/core");
+const { ProgressBar, Classes, Intent, Button } = require("@blueprintjs/core");
 const classNames = require("classnames");
 const _ = require("lodash");
 const { AppToaster, ProgressToaster } = require("@/components/toaster");
 const { default: transform } = require("css-to-react-native");
+const copy = require("copy-to-clipboard");
 const renderProgress = (progress = 0, requestError = false) => {
     return {
         icon: faIcon({ icon: faPenSwirl }),
@@ -110,6 +119,32 @@ module.exports = {
             return JSON.parse("{}");
         }
     },
+    axiosErrorToast: (error) => {
+        let message = "";
+        try {
+            message = `${error.name}: ${error.message}`;
+            // The request was made and the server responded with a status code
+            // that falls out of the range of 2xx
+            if (error.response)
+                message = `[${error.response.status}]: ${_.get(
+                    error,
+                    "response.data.message",
+                    "-"
+                )}`;
+        } catch (error) {
+            message = "Request Error";
+        }
+        AppToaster.show({
+            icon: faIcon({ icon: faExclamation }),
+            intent: Intent.DANGER,
+            message: <div className="multiline-ellipsis-5">{message}</div>,
+            action: {
+                icon: faIcon({ icon: faCopy }),
+                onClick: () => copy(message),
+                text: "Copy",
+            },
+        });
+    },
     constructSavePropertyRequests: ({ axios, url, difference, properties }) => {
         let tasks = [];
         const { updated, deleted, added } = difference;
@@ -120,13 +155,7 @@ module.exports = {
                         axios
                             .delete(`${url}/${deleted[i]}`)
                             .then(() => resolve(true))
-                            .catch((error) => {
-                                AppToaster.show({
-                                    intent: Intent.DANGER,
-                                    message: `${error.name}: ${error.message}`,
-                                });
-                                reject(false);
-                            })
+                            .catch((error) => axiosErrorToast(error))
                     )
                 );
             }
@@ -149,10 +178,7 @@ module.exports = {
                             )
                             .then(() => resolve(true))
                             .catch((error) => {
-                                AppToaster.show({
-                                    intent: Intent.DANGER,
-                                    message: `${error.name}: ${error.message}`,
-                                });
+                                axiosErrorToast(error);
                                 reject(false);
                             })
                     )

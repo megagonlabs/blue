@@ -67,7 +67,7 @@ export default function RegistryCard({
                     {title}
                 </H5>
                 <div
-                    className="multiline-ellipsis"
+                    className="multiline-ellipsis-2"
                     style={{ height: 36, marginTop: 10 }}
                 >
                     {description}

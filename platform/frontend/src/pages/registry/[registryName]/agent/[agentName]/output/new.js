@@ -2,6 +2,7 @@ import { ENTITY_TYPE_LOOKUP } from "@/components/constant";
 import Breadcrumbs from "@/components/entity/Breadcrumbs";
 import NewEntity from "@/components/entity/NewEntity";
 import {
+    axiosErrorToast,
     constructSavePropertyRequests,
     settlePromises,
     shallowDiff,
@@ -60,17 +61,7 @@ export default function New() {
                 );
             })
             .catch((error) => {
-                AppToaster.show({
-                    intent: Intent.DANGER,
-                    message: (
-                        <>
-                            <div>{_.get(error, "response.data.message")}</div>
-                            <div>
-                                {error.name}: {error.message}
-                            </div>
-                        </>
-                    ),
-                });
+                axiosErrorToast(error);
                 setLoading(false);
             });
     };
