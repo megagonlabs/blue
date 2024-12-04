@@ -374,7 +374,6 @@ class AgenticEmployerAgent(Agent):
         id = util_functions.create_uuid()
 
         # get code from id
-        logging.info(self.list_id_by_code)
         list_id = self.list_id_by_code[list_code]
 
         # context
@@ -425,7 +424,6 @@ class AgenticEmployerAgent(Agent):
         id = util_functions.create_uuid()
 
         # get code from id
-        logging.info(self.list_id_by_code)
         list_id = self.list_id_by_code[list_code]
 
         # context
@@ -756,8 +754,6 @@ class AgenticEmployerAgent(Agent):
                         # build id by code
                         for l in self.lists:
                             self.list_id_by_code[l["list_code"]]= l["list_id"]
-
-                        logging.info(self.list_id_by_code)
                         
                         # render ats form with lists
                         self.show_ats_form(properties=properties, worker=worker, update=True)
