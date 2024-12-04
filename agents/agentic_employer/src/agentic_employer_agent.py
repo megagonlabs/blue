@@ -521,7 +521,10 @@ class AgenticEmployerAgent(Agent):
                         if worker == None:
                             worker = self.create_worker(None)
 
+                        action_context = {}
+                        # merge session data to action context
                         session_data = worker.get_all_session_data()
+                        action_context = json_utils.merge_json(action_context, session_data)
 
                         # input data 
                         if 'input' in action_properties:
@@ -535,9 +538,11 @@ class AgenticEmployerAgent(Agent):
                                 scope_data["LIST_ID"] = list_id
                                 scope_data["LIST_CODE"] = list_code 
 
+                            # merge scope data to action context
+                            action_context = json_utils.merge_json(action_context, scope_data)
                             # substitute, if string
                             if type(input) == str:
-                                data = string_utils.safe_substitute(input, **properties, **session_data, **scope_data)
+                                data = string_utils.safe_substitute(input, **properties, **action_context)
 
                         ## fix plan
                         action_plan = []
