@@ -23,10 +23,10 @@ from redis.commands.json.path import Path
 from producer import Producer
 from session import Session
 from message import Message, MessageType, ContentType, ControlCode
-
+from connection import PooledConnectionFactory
 
 class Platform:
-    def __init__(self, name="PLATFORM", id=None, sid=None, cid=None, prefix=None, suffix=None, properties={}, connection=None):
+    def __init__(self, name="PLATFORM", id=None, sid=None, cid=None, prefix=None, suffix=None, properties={}):
         self.connection = None
         self.name = name
         if id:
@@ -52,8 +52,7 @@ class Platform:
                 self.cid = self.cid + ":" + self.suffix
 
         self._initialize(properties=properties)
-        if connection is not None:
-            self.connection = connection
+        
         # platform stream
         self.producer = None
 
@@ -106,7 +105,7 @@ class Platform:
         session_sids = self.get_session_sids()
 
         if session_sid in set(session_sids):
-            return Session(sid=session_sid, prefix=self.cid, properties=self.properties, connection=self.connection)
+            return Session(sid=session_sid, prefix=self.cid, properties=self.properties)
         else:
             return None
 
@@ -212,8 +211,7 @@ class Platform:
 
     def _start(self):
         # logging.info('Starting session {name}'.format(name=self.sid))
-        if self.connection is None:
-            self._start_connection()
+        self._start_connection()
 
         # initialize platform metadata
         self._init_metadata_namespace()
@@ -224,10 +222,8 @@ class Platform:
         logging.info('Started platform {name}'.format(name=self.sid))
 
     def _start_connection(self):
-        host = self.properties["db.host"]
-        port = self.properties["db.port"]
-
-        self.connection = redis.Redis(host=host, port=port, decode_responses=True)
+        self.connection_factory = PooledConnectionFactory(properties=self.properties)
+        self.connection = self.connection_factory.get_connection()
 
     def stop(self):
         # TODO

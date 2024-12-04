@@ -33,7 +33,7 @@ from consumer import Consumer
 from session import Session
 from worker import Worker
 from message import Message, MessageType, ContentType, ControlCode
-
+from connection import PooledConnectionFactory
 
 def create_uuid():
     return str(hex(uuid.uuid4().fields[0]))[2:]
@@ -142,12 +142,8 @@ class Agent:
 
     ###### database, data
     def _start_connection(self):
-        host = self.properties["db.host"]
-        port = self.properties["db.port"]
-
-        # db connection
-        logging.info("Starting connection to: " + host + ":" + str(port))
-        self.connection = redis.Redis(host=host, port=port, decode_responses=True)
+        self.connection_factory = PooledConnectionFactory(properties=self.properties)
+        self.connection = self.connection_factory.get_connection()
 
     ###### worker
     # input_stream is data stream for input param, default 'DEFAULT'
@@ -465,12 +461,8 @@ class AgentFactory:
 
     ###### database, data
     def _start_connection(self):
-        host = self.properties["db.host"]
-        port = self.properties["db.port"]
-
-        # db connection
-        logging.info("Starting connection to: " + host + ":" + str(port))
-        self.connection = redis.Redis(host=host, port=port, decode_responses=True)
+        self.connection_factory = PooledConnectionFactory(properties=self.properties)
+        self.connection = self.connection_factory.get_connection()
 
     ###### factory functions
     def create(self, **kwargs):

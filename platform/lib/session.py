@@ -25,10 +25,10 @@ from redis.commands.json.path import Path
 ###### Blue
 from producer import Producer
 from message import Message, MessageType, ContentType, ControlCode
-
+from connection import PooledConnectionFactory
 
 class Session:
-    def __init__(self, name="SESSION", id=None, sid=None, cid=None, prefix=None, suffix=None, properties={}, connection=None):
+    def __init__(self, name="SESSION", id=None, sid=None, cid=None, prefix=None, suffix=None, properties={}):
         self.connection = None
         self.name = name
         if id:
@@ -52,8 +52,7 @@ class Session:
                 self.cid = self.prefix + ":" + self.cid
             if self.suffix:
                 self.cid = self.cid + ":" + self.suffix
-        if connection is not None:
-            self.connection = connection
+        
         # session stream
         self.producer = None
 
@@ -421,8 +420,7 @@ class Session:
     ###### OPERATIONS
     def _start(self):
         # logging.info('Starting session {name}'.format(name=self.name))
-        if self.connection is None:
-            self._start_connection()
+        self._start_connection()
 
         # initialize session metadata
         self._init_metadata_namespace()
@@ -436,10 +434,8 @@ class Session:
         # logging.info("Started session {cid}".format(cid=self.cid))
 
     def _start_connection(self):
-        host = self.properties["db.host"]
-        port = self.properties["db.port"]
-
-        self.connection = redis.Redis(host=host, port=port, decode_responses=True)
+        self.connection_factory = PooledConnectionFactory(properties=self.properties)
+        self.connection = self.connection_factory.get_connection()
 
     def _start_producer(self):
         # start, if not started

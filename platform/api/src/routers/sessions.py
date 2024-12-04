@@ -46,7 +46,7 @@ agent_registry_id = PROPERTIES["agent_registry.name"]
 PLATFORM_PREFIX = f'/blue/platform/{platform_id}'
 
 ###### Initialization
-p = Platform(id=platform_id, properties=PROPERTIES, connection=connection)
+p = Platform(id=platform_id, properties=PROPERTIES)
 agent_registry = AgentRegistry(id=agent_registry_id, prefix=prefix, properties=PROPERTIES)
 
 ##### ROUTER
