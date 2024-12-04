@@ -7,6 +7,43 @@ from string import Template
 import copy
 
 
+def get_cluster_summary_ui(count, label, description):
+
+    ### ui 
+    form_ui = {
+        "type": "VerticalLayout",
+        "elements": [
+            {
+                "type": "Markdown",
+                "scope": "#/properties/summary"
+            }
+        ]
+    }
+
+    ### schema
+    form_schema = {
+        "type": "object",
+        "properties": {
+        }
+    }
+
+    ### data
+    summary_markdown = "### " + label + " (" + str(count) + ") "
+    summary_markdown += "\n"
+    summary_markdown += description
+
+    form_data = { 
+        "summary": summary_markdown
+    }
+
+    form = {
+        "schema": form_schema,
+        "data": form_data,
+        "uischema": form_ui
+    }
+
+    return form
+
 def get_list_action_ui(action, list_id, list_code):
    return {
         "type": "Button",

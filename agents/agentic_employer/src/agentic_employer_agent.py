@@ -780,11 +780,17 @@ class AgenticEmployerAgent(Agent):
                     clusters = data
                     self.write_to_new_stream(worker, "Analyzing all job seekers, we found " + str(len(clusters)) + " groups...", "TEXT")  
                     for cluster_label in clusters:
+                        
                         cluster = clusters[cluster_label]
-                        cluster_info = ""
-                        cluster_info += str(cluster["cluster_size"]) + " job seekers with " + cluster_label + " experience.\n"
-                        cluster_info += cluster["description"] 
-                        self.write_to_new_stream(worker, cluster_info, "TEXT")  
+                        cluster_size = cluster["cluster_size"]
+                        cluster_description = cluster["description"]
+
+                        cluster_form = ui_builders.get_cluster_summary_ui(cluster_size, cluster_label, cluster_description)
+
+                        id = util_functions.create_uuid()
+                        worker.write_control(
+                            ControlCode.CREATE_FORM, cluster_form, output="CLUSTER_FORM", id=id, tags=[]
+                        )
                         
 
         ##### PROCESS FORM UI EVENTS
