@@ -23,11 +23,11 @@ from redis.commands.json.path import Path
 from producer import Producer
 from session import Session
 from message import Message, MessageType, ContentType, ControlCode
-
+from connection import PooledConnectionFactory
 
 class Platform:
     def __init__(self, name="PLATFORM", id=None, sid=None, cid=None, prefix=None, suffix=None, properties={}):
-
+        self.connection = None
         self.name = name
         if id:
             self.id = id
@@ -52,7 +52,7 @@ class Platform:
                 self.cid = self.cid + ":" + self.suffix
 
         self._initialize(properties=properties)
-
+        
         # platform stream
         self.producer = None
 
@@ -97,7 +97,8 @@ class Platform:
         result = []
         for session_sid in session_sids:
             session = self.get_session(session_sid)
-            result.append(session.to_dict())
+            if session is not None:
+                result.append(session.to_dict())
         return result
 
     def get_session(self, session_sid):
@@ -224,10 +225,8 @@ class Platform:
         logging.info('Started platform {name}'.format(name=self.sid))
 
     def _start_connection(self):
-        host = self.properties["db.host"]
-        port = self.properties["db.port"]
-
-        self.connection = redis.Redis(host=host, port=port, decode_responses=True)
+        self.connection_factory = PooledConnectionFactory(properties=self.properties)
+        self.connection = self.connection_factory.get_connection()
 
     def stop(self):
         # TODO

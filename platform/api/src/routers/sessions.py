@@ -37,6 +37,7 @@ from session import Session
 
 ###### Properties
 from settings import ACL, PROPERTIES
+from server import connection
 
 ### Assign from platform properties
 platform_id = PROPERTIES["platform.name"]

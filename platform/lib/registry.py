@@ -36,6 +36,9 @@ from redis.commands.search.query import Query
 import numpy as np
 from sentence_transformers import SentenceTransformer
 
+###### Blue
+from connection import PooledConnectionFactory
+
 
 class Registry:
     def __init__(self, name="REGISTRY", id=None, sid=None, cid=None, prefix=None, suffix=None, properties={}):
@@ -94,10 +97,8 @@ class Registry:
 
     ###### database, data, index
     def _start_connection(self):
-        host = self.properties['db.host']
-        port = self.properties['db.port']
-
-        self.connection = redis.Redis(host=host, port=port, decode_responses=True)
+        self.connection_factory = PooledConnectionFactory(properties=self.properties)
+        self.connection = self.connection_factory.get_connection()
 
     def _get_data_namespace(self):
         return self.cid + ':DATA'
@@ -186,7 +187,7 @@ class Registry:
         records = self.list_records()
 
         # instantiate a redis pipeline
-        pipe = self.connection.pipeline()
+        pipe = self.connection.pipeline(transaction=False)
 
         for name in records:
             record = records[name]

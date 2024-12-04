@@ -1,7 +1,20 @@
+import sys
+
+###### Backend, Databases
 import redis
 from redis.commands.json.path import Path
 import pydash
 
+
+###### Add lib path
+sys.path.append("./lib/")
+sys.path.append("./lib/utils/")
+
+###### Blue
+from producer import Producer
+from session import Session
+from message import Message, MessageType, ContentType, ControlCode
+from connection import PooledConnectionFactory
 
 class Stream:
     def __init__(self, cid, properties={}):
@@ -29,10 +42,8 @@ class Stream:
             self.properties[p] = properties[p]
 
     def _start_connection(self):
-        host = self.properties["db.host"]
-        port = self.properties["db.port"]
-
-        self.connection = redis.Redis(host=host, port=port, decode_responses=True)
+        self.connection_factory = PooledConnectionFactory(properties=self.properties)
+        self.connection = self.connection_factory.get_connection()
 
     def _get_metadata_namespace(self):
         return self.cid + ":METADATA"
