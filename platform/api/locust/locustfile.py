@@ -3,7 +3,7 @@ import uuid
 
 
 class BlueUser(HttpUser):
-    # users wait between 1 and 5 seconds after each task
+    # users wait between 1 and 3 seconds after each task
     wait_time = between(1, 3)
     account_id = str(uuid.uuid4())
     host = 'http://0.0.0.0:5050'

@@ -2,7 +2,7 @@ import json
 import logging
 import uuid
 import re
-
+import string
 
 def create_uuid():
     return str(hex(uuid.uuid4().fields[0]))[2:]
@@ -52,3 +52,4 @@ def parse_result(result):
 def camel_case(string):
     words = string.split("_")
     return " ".join(word.capitalize() for word in words)
+

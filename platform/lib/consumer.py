@@ -34,7 +34,7 @@ logging.basicConfig(format="%(asctime)s [%(levelname)s] [%(process)d:%(threadNam
 
 ###### Blue
 from message import Message, MessageType, ContentType, ControlCode
-
+from connection import PooledConnectionFactory
 
 class Consumer:
     def __init__(self, stream, name="STREAM", id=None, sid=None, cid=None, prefix=None, suffix=None, listener=None, properties={}):
@@ -154,10 +154,9 @@ class Consumer:
             t.join()
 
     def _start_connection(self):
-        host = self.properties['db.host']
-        port = self.properties['db.port']
+        self.connection_factory = PooledConnectionFactory(properties=self.properties)
+        self.connection = self.connection_factory.get_connection()
 
-        self.connection = redis.Redis(host=host, port=port, decode_responses=True)
 
     def _start_group(self):
         # create group if it doesn't exists, print group info

@@ -28,6 +28,7 @@ import concurrent.futures
 
 ###### Blue
 from message import Message, MessageType, ContentType, ControlCode
+from connection import PooledConnectionFactory
 
 # set log level
 logging.getLogger().setLevel(logging.INFO)
@@ -104,10 +105,9 @@ class Producer:
         # logging.info("Started producer {p}".format(p=self.sid))
 
     def _start_connection(self):
-        host = self.properties["db.host"]
-        port = self.properties["db.port"]
+        self.connection_factory = PooledConnectionFactory(properties=self.properties)
+        self.connection = self.connection_factory.get_connection()
 
-        self.connection = redis.Redis(host=host, port=port, decode_responses=True)
 
     def _start_stream(self):
         # start stream by adding BOS

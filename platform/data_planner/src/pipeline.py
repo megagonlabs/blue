@@ -24,7 +24,7 @@ from redis.commands.json.path import Path
 ###### Blue
 from producer import Producer
 from message import Message, MessageType, ContentType, ControlCode
-
+from connection import PooledConnectionFactory
 
 class Pipeline:
     def __init__(self, name="PIPELINE", id=None, sid=None, cid=None, prefix=None, suffix=None, properties={}):
@@ -152,11 +152,9 @@ class Pipeline:
         logging.info("Started pipeline {cid}".format(cid=self.cid))
 
     def _start_connection(self):
-        host = self.properties["db.host"]
-        port = self.properties["db.port"]
-
-        self.connection = redis.Redis(host=host, port=port, decode_responses=True)
-
+        self.connection_factory = PooledConnectionFactory(properties=self.properties)
+        self.connection = self.connection_factory.get_connection()
+        
     def _start_producer(self):
         # start, if not started
         if self.producer == None:

@@ -39,6 +39,7 @@ from sentence_transformers import SentenceTransformer
 
 ###### Blue
 from registry import Registry
+from connection import PooledConnectionFactory
 
 ###### Supported Data Sources
 from mongodb_source import MongoDBSource

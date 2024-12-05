@@ -7,6 +7,43 @@ from string import Template
 import copy
 
 
+def get_cluster_summary_ui(count, label, description):
+
+    ### ui 
+    form_ui = {
+        "type": "VerticalLayout",
+        "elements": [
+            {
+                "type": "Markdown",
+                "scope": "#/properties/summary"
+            }
+        ]
+    }
+
+    ### schema
+    form_schema = {
+        "type": "object",
+        "properties": {
+        }
+    }
+
+    ### data
+    summary_markdown = "### " + label + " (" + str(count) + ") "
+    summary_markdown += "\n"
+    summary_markdown += description
+
+    form_data = { 
+        "summary": summary_markdown
+    }
+
+    form = {
+        "schema": form_schema,
+        "data": form_data,
+        "uischema": form_ui
+    }
+
+    return form
+
 def get_list_action_ui(action, list_id, list_code):
    return {
         "type": "Button",
@@ -295,6 +332,7 @@ def process_data(data):
                 else:
                     job_seeker_data = {}
                     by_job_seeker[job_seeker_id] = job_seeker_data
+                    job_seeker_data['job_seeker_id'] = job_seeker_id
                     job_seeker_data['job_seeker_title'] = "unknown"
                     job_seeker_data['job_seeker_company'] = "unknown"
                     job_seeker_data['skills'] = []
@@ -331,11 +369,31 @@ def process_data(data):
 
             l[job_seeker_id] = copy.deepcopy(job_seeker_data)
 
-    
+    # process "all" from experience list
+    if 'job_posting_job_seeker_last_experience' in data:
+        job_posting_job_seeker_last_experience = data['job_posting_job_seeker_last_experience']
+        for e in job_posting_job_seeker_last_experience:
+            job_seeker_id = e['job_seeker_id']
+
+            # all
+            list_id = 0
+            if list_id in by_list:
+                l = by_list[list_id]
+            else:
+                l = {}
+                by_list[list_id] = l
+
+            if job_seeker_id in l:
+                continue
+
+            if job_seeker_id in by_job_seeker:
+                job_seeker_data = by_job_seeker[job_seeker_id]
+                l[job_seeker_id] = copy.deepcopy(job_seeker_data)
+
     return by_list
     
 
-def build_ats_form(selected_job_posting_id, job_postings, lists, data, list_actions=None, job_seeker_actions=None):
+def build_ats_form(selected_job_posting_id, job_postings, lists, data, list_actions=None, job_seeker_actions=None, page=0, page_size=10):
     
     if type(selected_job_posting_id) == str:
         selected_job_posting_id = int(selected_job_posting_id)
@@ -421,28 +479,45 @@ def build_ats_form(selected_job_posting_id, job_postings, lists, data, list_acti
             rows = list.values()
 
             # ui
+            job_seekers_page_set = set()
+
+            i = 0 
             for row in rows:
+                if 'job_seeker_id' not in row:
+                    continue 
+                # filter by page
+                if i < page * page_size:
+                    i = i + 1
+                    continue
+                if i >= ( page + 1 ) * page_size:
+                    break
+                job_seeker_id = row['job_seeker_id']
+                job_seekers_page_set.add(job_seeker_id)
                 list_contents.append(get_row_ui(row, actions=job_seeker_actions))
+                i = i + 1
 
-            # properties
-            for job_seeker_id in list:
-                form_schema['properties']["CHECK" + "_JOB_SEEKER_" + str(job_seeker_id)] = { "type": "boolean" }
-                form_schema['properties']["INTEREST" + "_JOB_SEEKER_" + str(job_seeker_id)] = { "type": "string", "enum": copy.deepcopy(interested_enums) }
+                # properties
+                if job_seeker_id in job_seekers_page_set:
 
-                # update interested status
-                if list_id == list_id_by_code['interested']:
-                    form_data["INTEREST" + "_JOB_SEEKER_" + str(job_seeker_id)] = interested_enums_by_list_code['interested']
-                elif list_id == list_id_by_code['undecided']:
-                    form_data["INTEREST" + "_JOB_SEEKER_" + str(job_seeker_id)] = interested_enums_by_list_code['undecided']
-                elif list_id == list_id_by_code['rejected']:
-                    form_data["INTEREST" + "_JOB_SEEKER_" + str(job_seeker_id)] = interested_enums_by_list_code['rejected']
+                    form_schema['properties']["CHECK" + "_JOB_SEEKER_" + str(job_seeker_id)] = { "type": "boolean" }
+                    form_schema['properties']["INTEREST" + "_JOB_SEEKER_" + str(job_seeker_id)] = { "type": "string", "enum": copy.deepcopy(interested_enums) }
+
+                    # update interested status
+                    if list_id == list_id_by_code['interested']:
+                        form_data["INTEREST" + "_JOB_SEEKER_" + str(job_seeker_id)] = interested_enums_by_list_code['interested']
+                    elif list_id == list_id_by_code['undecided']:
+                        form_data["INTEREST" + "_JOB_SEEKER_" + str(job_seeker_id)] = interested_enums_by_list_code['undecided']
+                    elif list_id == list_id_by_code['rejected']:
+                        form_data["INTEREST" + "_JOB_SEEKER_" + str(job_seeker_id)] = interested_enums_by_list_code['rejected']
                 
 
 
     for l in lists:
         list_id = l['list_id']
+        if list_id not in by_list:
+            continue
         list_contents = all_list_contents[list_id]
-        lists_labels.append(l['list_name'] + " [" + str(len(list_contents)) + "]")
+        lists_labels.append(l['list_name'] + " [" + str(len(by_list[list_id].values())) + "]")
         lists_uis.append(get_list_ui(l['list_id'], l['list_code'], l['list_name'], list_contents, actions=list_actions))
 
    

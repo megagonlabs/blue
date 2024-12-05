@@ -374,7 +374,6 @@ class AgenticEmployerAgent(Agent):
         id = util_functions.create_uuid()
 
         # get code from id
-        logging.info(self.list_id_by_code)
         list_id = self.list_id_by_code[list_code]
 
         # context
@@ -425,7 +424,6 @@ class AgenticEmployerAgent(Agent):
         id = util_functions.create_uuid()
 
         # get code from id
-        logging.info(self.list_id_by_code)
         list_id = self.list_id_by_code[list_code]
 
         # context
@@ -521,7 +519,10 @@ class AgenticEmployerAgent(Agent):
                         if worker == None:
                             worker = self.create_worker(None)
 
+                        action_context = {}
+                        # merge session data to action context
                         session_data = worker.get_all_session_data()
+                        action_context = json_utils.merge_json(action_context, session_data)
 
                         # input data 
                         if 'input' in action_properties:
@@ -535,9 +536,11 @@ class AgenticEmployerAgent(Agent):
                                 scope_data["LIST_ID"] = list_id
                                 scope_data["LIST_CODE"] = list_code 
 
+                            # merge scope data to action context
+                            action_context = json_utils.merge_json(action_context, scope_data)
                             # substitute, if string
                             if type(input) == str:
-                                data = string_utils.safe_substitute(input, **properties, **session_data, **scope_data)
+                                data = string_utils.safe_substitute(input, **properties, **action_context)
 
                         ## fix plan
                         action_plan = []
@@ -751,8 +754,6 @@ class AgenticEmployerAgent(Agent):
                         # build id by code
                         for l in self.lists:
                             self.list_id_by_code[l["list_code"]]= l["list_id"]
-
-                        logging.info(self.list_id_by_code)
                         
                         # render ats form with lists
                         self.show_ats_form(properties=properties, worker=worker, update=True)
@@ -780,11 +781,17 @@ class AgenticEmployerAgent(Agent):
                     clusters = data
                     self.write_to_new_stream(worker, "Analyzing all job seekers, we found " + str(len(clusters)) + " groups...", "TEXT")  
                     for cluster_label in clusters:
+                        
                         cluster = clusters[cluster_label]
-                        cluster_info = ""
-                        cluster_info += str(cluster["cluster_size"]) + " job seekers with " + cluster_label + " experience.\n"
-                        cluster_info += cluster["description"] 
-                        self.write_to_new_stream(worker, cluster_info, "TEXT")  
+                        cluster_size = cluster["cluster_size"]
+                        cluster_description = cluster["description"]
+
+                        cluster_form = ui_builders.get_cluster_summary_ui(cluster_size, cluster_label, cluster_description)
+
+                        id = util_functions.create_uuid()
+                        worker.write_control(
+                            ControlCode.CREATE_FORM, cluster_form, output="CLUSTER_FORM", id=id, tags=[]
+                        )
                         
 
         ##### PROCESS FORM UI EVENTS
