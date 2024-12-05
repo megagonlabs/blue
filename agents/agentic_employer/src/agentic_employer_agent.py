@@ -105,6 +105,8 @@ class AgenticEmployerAgent(Agent):
         self.job_postings = {}
         self.results = {}
         self.todos = set()
+        self.clusters = {}
+        self.cluster_id_by_label = {}
 
         self.selected_job_posting_id = None
         self.selected_list_id = None
@@ -409,7 +411,15 @@ class AgenticEmployerAgent(Agent):
         self.write_to_new_stream(worker, plan, "PLAN", tags=["PLAN","HIDDEN"], id=id)
 
         return
-    
+
+    def cluster_label_to_id(self, cluster_label):
+        if cluster_label in self.cluster_id_by_label:
+            return self.cluster_id_by_label[cluster_label]
+        else:
+            cluster_id = util_functions.create_uuid()
+            self.cluster_id_by_label[cluster_label] = cluster_id
+            return cluster_id
+        
     def identify_clusters(self, list_code, properties=None, worker=None):
 
         if worker == None:
@@ -476,6 +486,8 @@ class AgenticEmployerAgent(Agent):
             scope = "JOB_SEEKER"
         elif s.find("_LIST_") >= 0:
             scope = "LIST"
+        elif s.find("_CLUSTER_") >= 0:
+            scope = "CLUSTER"
 
         if scope is None:
             return None, None, None, None
@@ -541,6 +553,7 @@ class AgenticEmployerAgent(Agent):
                             # substitute, if string
                             if type(input) == str:
                                 data = string_utils.safe_substitute(input, **properties, **action_context)
+
 
                         ## fix plan
                         action_plan = []
@@ -695,6 +708,7 @@ class AgenticEmployerAgent(Agent):
         return
 
 
+
     def default_processor(self, message, input="DEFAULT", properties=None, worker=None):
 
 
@@ -780,18 +794,76 @@ class AgenticEmployerAgent(Agent):
 
                     clusters = data
                     self.write_to_new_stream(worker, "Analyzing all job seekers, we found " + str(len(clusters)) + " groups...", "TEXT")  
+
+                    cluster_actions = []
+
+                    if 'actions' in properties:
+                        if 'CLUSTER' in properties['actions']:
+                            cluster_actions = properties['actions']['CLUSTER']
+                            cluster_actions = list(cluster_actions.values())
+                            
                     for cluster_label in clusters:
                         
                         cluster = clusters[cluster_label]
                         cluster_size = cluster["cluster_size"]
                         cluster_description = cluster["description"]
 
-                        cluster_form = ui_builders.get_cluster_summary_ui(cluster_size, cluster_label, cluster_description)
+                        # create a unique id
+                        cluster_id = self.cluster_label_to_id(cluster_label)
+                        
 
-                        id = util_functions.create_uuid()
+                        cluster_info = {}
+                        if cluster_id in self.clusters:
+                            cluster_info = self.clusters[cluster_id]
+                        else:
+                            self.clusters[cluster_id] = cluster_info
+
+                        cluster_info["id"] = cluster_id
+                        cluster_info["label"] = cluster_label
+                        cluster_info["size"] = cluster_size
+                        cluster_info["description"] = cluster_description
+
+                        cluster_form = ui_builders.get_cluster_summary_ui(cluster_id, cluster_size, cluster_label, cluster_description, actions=cluster_actions)
+                        cluster_form['form_id']= "CLUSTER_" + cluster_id
+
                         worker.write_control(
-                            ControlCode.CREATE_FORM, cluster_form, output="CLUSTER_FORM", id=id, tags=[]
+                            ControlCode.CREATE_FORM, cluster_form, output="CLUSTER_FORM", id=cluster_id, tags=[]
                         )
+
+        elif input == "CLUSTER_MAPPINGS_RESULTS":
+            if message.isData():
+                if worker:
+                    data = message.getData()
+                    stream = message.getStream()
+
+                    cluster_mappings = data["result"]
+                    self.cluster_to_job_seeker = {}
+
+                    for cluster_mapping in cluster_mappings:
+
+                        job_seeker_id = cluster_mapping['id']
+                        cluster_label = cluster_mapping['cluster']
+                        cluster_id = self.cluster_label_to_id(cluster_label)
+
+                        cluster_info = {}
+                        if cluster_id in self.clusters:
+                            cluster_info = self.clusters[cluster_id]
+                        else:
+                            self.clusters[cluster_id] = cluster_info
+
+                        cluster_info["id"] = cluster_id
+                        cluster_job_seekers = []
+                        if "job_seekers" in cluster_info:
+                            cluster_job_seekers = cluster_info["job_seekers"]
+                        else:
+                            cluster_info["job_seekers"] = cluster_job_seekers
+                        
+                        cluster_job_seekers.append(job_seeker_id)
+
+
+
+
+
                         
 
         ##### PROCESS FORM UI EVENTS
@@ -806,62 +878,76 @@ class AgenticEmployerAgent(Agent):
                     # get form stream
                     form_data_stream = stream.replace("EVENT", "OUTPUT:FORM")
                     
-                    if action is None:
-                        # save form data
-                        path = data["path"]
-                        value = data["value"]
+                    print(action)
+                    print(form_id)
+                    if form_id == "ats":
+                        if action is None:
+                            # save form data
+                            path = data["path"]
+                            value = data["value"]
 
-                        timestamp = worker.get_data(path + ".timestamp")
+                            timestamp = worker.get_data(path + ".timestamp")
 
-                        if timestamp is None or data["timestamp"] > timestamp:
+                            if timestamp is None or data["timestamp"] > timestamp:
 
-                            prev_value = worker.get_data(path + ".value")
-                            
-                            worker.set_data(path,
-                                {
-                                    "value": value,
-                                    "timestamp": data["timestamp"],
-                                }
-                            )
-                            
-                            # new job posting selected
-                            if path == "job_posting":
-                                # new value
-                                if prev_value != value:
-                                    # extract JOB_POSTING_ID
-                                    JOB_POSTING_ID = self.extract_job_posting_id(value)
-                                    if JOB_POSTING_ID:
-                                        # save to session
-                                        worker.set_session_data("JOB_POSTING_ID", JOB_POSTING_ID)
-                                        self.selected_job_posting_id = JOB_POSTING_ID
-
-                                        # issue other queries to populate tabs
-                                        self.issue_queries(properties=properties, worker=worker)
-
-                                        # issue recent summarizer
-                                        self.summarize_list("new", properties=properties, worker=None)
-
-                                        # issue clusters
-                                        self.identify_clusters("all", properties=properties, worker=None)
-
-
-                            # job seeker actions
-                            else:
-                                scope, action, id, category = self.extract_action(path)
+                                prev_value = worker.get_data(path + ".value")
                                 
-                                if scope == "JOB_SEEKER" and action == "INTEREST":
+                                worker.set_data(path,
+                                    {
+                                        "value": value,
+                                        "timestamp": data["timestamp"],
+                                    }
+                                )
+                                
+                                # new job posting selected
+                                if path == "job_posting":
+                                    # new value
+                                    if prev_value != value:
+                                        # extract JOB_POSTING_ID
+                                        JOB_POSTING_ID = self.extract_job_posting_id(value)
+                                        if JOB_POSTING_ID:
+                                            # save to session
+                                            worker.set_session_data("JOB_POSTING_ID", JOB_POSTING_ID)
+                                            self.selected_job_posting_id = JOB_POSTING_ID
+
+                                            # issue other queries to populate tabs
+                                            self.issue_queries(properties=properties, worker=worker)
+
+                                            # issue recent summarizer
+                                            self.summarize_list("new", properties=properties, worker=None)
+
+                                            # issue clusters
+                                            self.identify_clusters("all", properties=properties, worker=None)
+
+
+                                # job seeker actions
+                                else:
+                                    scope, action, id, category = self.extract_action(path)
                                     
-                                    # interested value to code
-                                    interested_enums_by_list_code = {"✓": 2, "?": 3, "𐄂":4 }
-                                    from_list = list(interested_enums_by_list_code.values())
-                                    to_list = interested_enums_by_list_code[value]
+                                    if scope == "JOB_SEEKER" and action == "INTEREST":
+                                        
+                                        # interested value to code
+                                        interested_enums_by_list_code = {"✓": 2, "?": 3, "𐄂":4 }
+                                        from_list = list(interested_enums_by_list_code.values())
+                                        to_list = interested_enums_by_list_code[value]
 
-                                    # issue db delete/insert transaction
-                                    self.move_job_seeker_to_list(id, from_list, to_list, properties=properties, worker=worker)
-                    else:
+                                        # issue db delete/insert transaction
+                                        self.move_job_seeker_to_list(id, from_list, to_list, properties=properties, worker=worker)
+                        else:
+                            scope, action, id, category = self.extract_action(action)
+                            self.handle_action_with_plan(scope, action, str(id), properties=properties, worker=None)
+
+                    elif form_id.find("CLUSTER_") == 0:
                         scope, action, id, category = self.extract_action(action)
-                        self.handle_action_with_plan(scope, action, str(id), properties=properties, worker=None)
+                        
+                        cluster_id = id
+                        if cluster_id in self.clusters:
+                            cluster_info = self.clusters[cluster_id]
+                            if "job_seekers" in cluster_info:
+                                job_seekers = cluster_info["job_seekers"]
+                                self.handle_action_with_plan(scope, action, ",".join([str(js) for js in job_seekers]), properties=properties, worker=None)
 
+                        
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

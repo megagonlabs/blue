@@ -7,8 +7,25 @@ from string import Template
 import copy
 
 
-def get_cluster_summary_ui(count, label, description):
+def get_cluster_action_ui(action, cluster_id):
+   return {
+        "type": "Button",
+        "label": action['label'],
+        "props": {
+            "action": action['name']+'_CLUSTER_'+cluster_id,
+            "large": False
+        }
+    }
 
+def get_cluster_summary_ui(id, count, label, description, actions=None):
+
+    if actions is None:
+        actions = []
+
+    cluster_actions = []
+    for action in actions:
+        cluster_actions.append(get_cluster_action_ui(action, id))
+    
     ### ui 
     form_ui = {
         "type": "VerticalLayout",
@@ -16,6 +33,10 @@ def get_cluster_summary_ui(count, label, description):
             {
                 "type": "Markdown",
                 "scope": "#/properties/summary"
+            },
+            { 
+                "type": "HorizontalLayout",
+                "elements": cluster_actions
             }
         ]
     }
