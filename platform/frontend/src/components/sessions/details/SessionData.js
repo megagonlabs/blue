@@ -38,6 +38,7 @@ export default function SessionData() {
     const discard = () => {
         setEdit(false);
         setEditData(data);
+        setJsonError(false);
     };
     useEffect(() => {
         // fetch session data
@@ -72,7 +73,7 @@ export default function SessionData() {
     return (
         <>
             <DialogBody className="dialog-body">
-                <div style={{ maxHeight: 463 }}>
+                <div style={{ maxHeight: 463, minHeight: 141 }}>
                     {!edit ? (
                         _.isEmpty(data) ? (
                             <div style={{ height: 141 }}>
@@ -105,9 +106,10 @@ export default function SessionData() {
                 </div>
             </DialogBody>
             <DialogFooter className="position-relative">
-                <ButtonGroup large>
+                <ButtonGroup>
                     {edit && (
                         <Popover
+                            usePortal={false}
                             placement="top-start"
                             content={
                                 <div style={{ padding: 15 }}>
@@ -121,11 +123,13 @@ export default function SessionData() {
                             }
                         >
                             <Tooltip
+                                usePortal={false}
                                 minimal
                                 placement="top-start"
                                 content="Discard"
                             >
                                 <Button
+                                    large
                                     minimal
                                     icon={faIcon({ icon: faXmarkLarge })}
                                 />
@@ -133,6 +137,7 @@ export default function SessionData() {
                         </Popover>
                     )}
                     <Button
+                        large
                         className={loading ? Classes.SKELETON : null}
                         text={edit ? "Save" : "Edit"}
                         onClick={() => {
