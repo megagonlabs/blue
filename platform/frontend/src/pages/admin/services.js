@@ -3,6 +3,7 @@ import AdminServiceListCheckbox from "@/components/admin/AdminServiceListCheckbo
 import { CONTAINER_STATUS_INDICATOR } from "@/components/constant";
 import { AppContext } from "@/components/contexts/app-context";
 import { AuthContext } from "@/components/contexts/auth-context";
+import { axiosErrorToast } from "@/components/helper";
 import { faIcon } from "@/components/icon";
 import { AppToaster } from "@/components/toaster";
 import {
@@ -52,10 +53,7 @@ export default function Services() {
                             resolve(selectedServices[i]);
                         })
                         .catch((error) => {
-                            AppToaster.show({
-                                intent: Intent.DANGER,
-                                message: `${error.name}: ${error.message}`,
-                            });
+                            axiosErrorToast(error);
                             reject(selectedServices[i]);
                         });
                 })

@@ -31,52 +31,51 @@ import { useContext } from "react";
 import { AuthContext } from "../contexts/auth-context";
 import { faIcon } from "../icon";
 import { AppToaster } from "../toaster";
+const EXPLANATION_TEXT = {
+    style: {
+        marginTop: 5,
+        whiteSpace: "initial",
+        lineHeight: "initial",
+    },
+    className: classNames(Classes.TEXT_SMALL, Classes.TEXT_MUTED),
+};
+const SECTION_PROPS = {
+    collapsible: true,
+    collapseProps: { defaultIsOpen: false },
+    compact: true,
+};
+const SESSION_MESSAGE_SETTINGS = {
+    show_workspace: {
+        title: "Show workspace",
+        description: "Default show session workspace",
+        icon: faTableColumns,
+    },
+    show_session_list: {
+        title: "Show sessions",
+        description: "Default show session categorization list",
+        icon: faTableList,
+    },
+    expand_message: {
+        title: "Expand messages",
+        description:
+            "Automatically expand all session messages to show full content",
+        icon: faArrowsFromLine,
+    },
+    conversation_view: {
+        title: "Conversation view",
+        description: "Whether messages should appear as left & right aligned",
+        icon: faComments,
+    },
+};
+const APPEARANCE_SETTINGS = {
+    compact_sidebar: {
+        title: "Compact sidebar",
+        description: "Use minimal style for vavigation menu",
+        icon: faSidebar,
+    },
+};
 export default function Settings({ isOpen, setIsSettingsOpen }) {
     const { settings, updateSettings } = useContext(AuthContext);
-    const SECTION_PROPS = {
-        collapsible: true,
-        collapseProps: { defaultIsOpen: false },
-        compact: true,
-    };
-    const EXPLANATION_TEXT = {
-        style: {
-            marginTop: 5,
-            whiteSpace: "initial",
-            lineHeight: "initial",
-        },
-        className: classNames(Classes.TEXT_SMALL, Classes.TEXT_MUTED),
-    };
-    const SESSION_MESSAGE_SETTINGS = {
-        show_workspace: {
-            title: "Show workspace",
-            description: "Default show session workspace",
-            icon: faTableColumns,
-        },
-        show_session_list: {
-            title: "Show sessions",
-            description: "Default show session categorization list",
-            icon: faTableList,
-        },
-        expand_message: {
-            title: "Expand messages",
-            description:
-                "Automatically expand all session messages to show full content",
-            icon: faArrowsFromLine,
-        },
-        conversation_view: {
-            title: "Conversation view",
-            description:
-                "Whether messages should appear as left & right aligned",
-            icon: faComments,
-        },
-    };
-    const APPEARANCE_SETTINGS = {
-        compact_sidebar: {
-            title: "Compact sidebar",
-            description: "Use minimal style for vavigation menu",
-            icon: faSidebar,
-        },
-    };
     return (
         <Drawer
             size={DrawerSize.SMALL}
@@ -159,14 +158,13 @@ export default function Settings({ isOpen, setIsSettingsOpen }) {
                                                 key,
                                                 false
                                             )}
-                                            style={{ marginBottom: 0 }}
                                             large
-                                            onChange={(event) => {
+                                            onChange={(event) =>
                                                 updateSettings(
                                                     key,
                                                     event.target.checked
-                                                );
-                                            }}
+                                                )
+                                            }
                                         />
                                     }
                                 />

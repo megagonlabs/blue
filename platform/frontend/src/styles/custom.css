@@ -23,10 +23,17 @@ a.no-link-decoration {
 .session-search-result-row:hover .session-search-result-row-actions {
     display: inline-flex;
 }
-.multiline-ellipsis {
+.multiline-ellipsis-2 {
     display: -webkit-box;
     -webkit-line-clamp: 2;
     line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+.multiline-ellipsis-5 {
+    display: -webkit-box;
+    -webkit-line-clamp: 5;
+    line-clamp: 5;
     -webkit-box-orient: vertical;
     overflow: hidden;
 }
@@ -114,4 +121,7 @@ table.entity-section-card-table tr td {
     min-height: 21px;
     overflow: hidden;
     padding: 1px;
+}
+.portal-overlay-z-index-36 div[class^="bp"][class*="-overlay"] {
+    z-index: 36;
 }

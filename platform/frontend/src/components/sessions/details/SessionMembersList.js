@@ -7,6 +7,7 @@ import {
     Card,
     Classes,
     DialogBody,
+    Icon,
     InputGroup,
     Intent,
     Popover,
@@ -15,6 +16,7 @@ import {
 } from "@blueprintjs/core";
 import {
     faCircleCheck,
+    faQuestion,
     faSearch,
     faTrash,
     faUserPlus,
@@ -24,14 +26,21 @@ import classNames from "classnames";
 import _ from "lodash";
 import Image from "next/image";
 import { useCallback, useContext, useEffect, useState } from "react";
-const UserAvatar = ({ user, loading = false }) => (
-    <Card
-        style={PROFILE_PICTURE_40}
-        className={loading ? Classes.SKELETON : null}
-    >
-        <Image alt="" src={_.get(user, "picture", "")} width={40} height={40} />
-    </Card>
-);
+const UserAvatar = ({ user, loading = false }) => {
+    const picture = _.get(user, "picture", "");
+    return (
+        <Card
+            style={PROFILE_PICTURE_40}
+            className={loading ? Classes.SKELETON : null}
+        >
+            {_.isEmpty(picture) ? (
+                <Icon icon={faIcon({ icon: faQuestion, size: 20 })} />
+            ) : (
+                <Image alt="" src={picture} width={40} height={40} />
+            )}
+        </Card>
+    );
+};
 const UserInfo = ({ user, loading = false }) => (
     <div className={loading ? Classes.SKELETON : null}>
         <div style={{ fontWeight: 600 }}>{_.get(user, "name", "-")}</div>
@@ -223,7 +232,6 @@ export default function SessionMembersList({ loading, setLoading }) {
                                             user={user}
                                             loading={isTyping}
                                         />
-
                                         <UserInfo
                                             user={user}
                                             loading={isTyping}

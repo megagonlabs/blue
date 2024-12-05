@@ -150,6 +150,9 @@ class Platform:
         default_user_role = self.get_metadata(f'settings.default_user_role')
         if pydash.is_empty(default_user_role):
             default_user_role = 'guest'
+        default_user_settings = self.get_metadata(f'settings.default_user_settings')
+        if pydash.is_empty(default_user_settings):
+            default_user_settings = {}
         # create user profile with guest role if does not exist
         self.set_metadata(
             f'users.{uid}',
@@ -159,7 +162,7 @@ class Platform:
                 'email': user['email'],
                 'name': user['name'],
                 'picture': user['picture'],
-                'settings': {},
+                'settings': default_user_settings,
                 'sessions': {"pinned": {}, "owner": {}, "member": {}},
             },
             nx=True,

@@ -2,12 +2,11 @@ import EntityDescription from "@/components/entity/EntityDescription";
 import EntityMain from "@/components/entity/EntityMain";
 import EntityProperties from "@/components/entity/EntityProperties";
 import {
+    axiosErrorToast,
     constructSavePropertyRequests,
     settlePromises,
     shallowDiff,
 } from "@/components/helper";
-import { AppToaster } from "@/components/toaster";
-import { Intent } from "@blueprintjs/core";
 import axios from "axios";
 import _ from "lodash";
 import { useRouter } from "next/router";
@@ -64,12 +63,7 @@ export default function InputEntity() {
                     setLoading(false);
                 });
             })
-            .catch((error) => {
-                AppToaster.show({
-                    intent: Intent.DANGER,
-                    message: `${error.name}: ${error.message}`,
-                });
-            });
+            .catch((error) => axiosErrorToast(error));
     };
     return (
         <div style={{ padding: "10px 20px 20px" }}>

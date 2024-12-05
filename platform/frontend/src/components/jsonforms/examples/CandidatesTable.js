@@ -81,18 +81,18 @@ export default function CandidatesTable({
             table_data: [
                 {
                     name: "candidate 3711",
-                    title: "technical manager, cisco",
+                    title: "Technical Manager, Cisco",
                     matches: "pytorch\nmachine learning\nc++\nllms",
                 },
                 {
                     name: "candidate 3712",
-                    title: "data scientist 3, google",
+                    title: "Data Scientist 3, Google",
                     matches:
                         "scikit learn\npytorch\nclustering\nalgorithm design\ndepp learning",
                 },
                 {
                     name: "candidate 3713",
-                    title: "staff research scientist, deepmind",
+                    title: "Staff Research Scientist, DeepMind",
                     matches:
                         "pytorch\nmodel training\nllm architecture\nfine tuning",
                 },

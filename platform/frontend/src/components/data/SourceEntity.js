@@ -1,7 +1,6 @@
 import EntityDescription from "@/components/entity/EntityDescription";
 import EntityMain from "@/components/entity/EntityMain";
 import EntityProperties from "@/components/entity/EntityProperties";
-import { AppToaster } from "@/components/toaster";
 import {
     HTMLTable,
     Intent,
@@ -16,6 +15,7 @@ import { useRouter } from "next/router";
 import { useContext, useEffect, useState } from "react";
 import { AppContext } from "../contexts/app-context";
 import {
+    axiosErrorToast,
     constructSavePropertyRequests,
     settlePromises,
     shallowDiff,
@@ -89,12 +89,7 @@ export default function SourceEntity() {
                     setLoading(false);
                 });
             })
-            .catch((error) => {
-                AppToaster.show({
-                    intent: Intent.DANGER,
-                    message: `${error.name}: ${error.message}`,
-                });
-            });
+            .catch((error) => axiosErrorToast(error));
     };
     return (
         <div style={{ padding: "10px 20px 20px" }}>

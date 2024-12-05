@@ -2,12 +2,12 @@ import EntityDescription from "@/components/entity/EntityDescription";
 import EntityMain from "@/components/entity/EntityMain";
 import EntityProperties from "@/components/entity/EntityProperties";
 import {
+    axiosErrorToast,
     constructSavePropertyRequests,
     settlePromises,
     shallowDiff,
 } from "@/components/helper";
 import { faIcon } from "@/components/icon";
-import { AppToaster } from "@/components/toaster";
 import {
     Button,
     Classes,
@@ -73,7 +73,7 @@ export default function AgentEntity() {
                 icon: icon,
             })
             .then(() => {
-                let tasks = constructSavePropertyRequests({
+                const tasks = constructSavePropertyRequests({
                     axios,
                     url: `${urlPrefix}/${entity.name}/property`,
                     difference: shallowDiff(
@@ -94,12 +94,7 @@ export default function AgentEntity() {
                     setLoading(false);
                 });
             })
-            .catch((error) => {
-                AppToaster.show({
-                    intent: Intent.DANGER,
-                    message: `${error.name}: ${error.message}`,
-                });
-            });
+            .catch((error) => axiosErrorToast(error));
     };
     const addInputOutput = (type) => {
         if (!router.isReady) return;

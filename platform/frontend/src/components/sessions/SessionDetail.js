@@ -45,6 +45,7 @@ export default function SessionDetail({ isOpen, setIsSessionDetailOpen }) {
     }, [sessionIdFocus]); // eslint-disable-line react-hooks/exhaustive-deps
     return (
         <Dialog
+            portalClassName="portal-overlay-z-index-36"
             title={
                 _.isEmpty(_.trim(sessionName)) ||
                 _.isEqual(sessionName, sessionIdFocus) ? (

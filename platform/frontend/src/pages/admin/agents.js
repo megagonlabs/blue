@@ -3,6 +3,7 @@ import AdminAgentListCheckbox from "@/components/admin/AdminAgentListCheckbox";
 import { CONTAINER_STATUS_INDICATOR } from "@/components/constant";
 import { AppContext } from "@/components/contexts/app-context";
 import { AuthContext } from "@/components/contexts/auth-context";
+import { axiosErrorToast } from "@/components/helper";
 import { faIcon } from "@/components/icon";
 import { AppToaster } from "@/components/toaster";
 import {
@@ -50,10 +51,7 @@ export default function Agents() {
                             resolve(selectedAgents[i]);
                         })
                         .catch((error) => {
-                            AppToaster.show({
-                                intent: Intent.DANGER,
-                                message: `${error.name}: ${error.message}`,
-                            });
+                            axiosErrorToast(error);
                             reject(selectedAgents[i]);
                         });
                 })

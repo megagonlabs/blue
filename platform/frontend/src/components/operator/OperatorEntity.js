@@ -1,4 +1,3 @@
-import { Intent } from "@blueprintjs/core";
 import axios from "axios";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
@@ -6,11 +5,11 @@ import EntityDescription from "../entity/EntityDescription";
 import EntityMain from "../entity/EntityMain";
 import EntityProperties from "../entity/EntityProperties";
 import {
+    axiosErrorToast,
     constructSavePropertyRequests,
     settlePromises,
     shallowDiff,
 } from "../helper";
-import { AppToaster } from "../toaster";
 export default function OperatorEntity() {
     const BLANK_ENTITY = { type: "operator" };
     const router = useRouter();
@@ -75,12 +74,7 @@ export default function OperatorEntity() {
                     setLoading(false);
                 });
             })
-            .catch((error) => {
-                AppToaster.show({
-                    intent: Intent.DANGER,
-                    message: `${error.name}: ${error.message}`,
-                });
-            });
+            .catch((error) => axiosErrorToast(error));
     };
     return (
         <div style={{ padding: "10px 20px 20px" }}>
