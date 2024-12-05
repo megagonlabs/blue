@@ -89,7 +89,9 @@ export default function SessionMemberStack({
                         style={{ ...USER_AVATAR_STYLE, zIndex: size - index }}
                     >
                         {_.isEmpty(user) ? (
-                            <Icon icon={faIcon({ icon: faQuestion })} />
+                            <Icon
+                                icon={faIcon({ icon: faQuestion, size: 20 })}
+                            />
                         ) : (
                             <Image
                                 alt=""
