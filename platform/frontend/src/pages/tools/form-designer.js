@@ -66,11 +66,8 @@ function FormDesigner() {
     const leftPaneRef = createRef();
     const [uischema, setUischema] = useState({});
     const [schema, setSchema] = useState({});
-    const ssData = sessionStorage.getItem("data");
-    const [data, setData] = useState(
-        _.isNil(ssData) ? {} : safeJsonParse(ssData)
-    );
-    const [jsonData, setJsonData] = useState(ssData);
+    const [data, setData] = useState({});
+    const [jsonData, setJsonData] = useState("{}");
     const [jsonUischema, setJsonUischema] = useState(DEFAULT_UI_SCHEMA);
     const [jsonSchema, setJsonSchema] = useState(DEFAULT_SCHEMA);
     const [uiSchemaError, setUiSchemaError] = useState(false);
@@ -86,18 +83,25 @@ function FormDesigner() {
         }
     }, [error]);
     useEffect(() => {
+        // uischema
         let uiSchemaCache = sessionStorage.getItem("jsonUischema");
         if (!uiSchemaInitialized && uiSchemaCache) {
             setJsonUischema(uiSchemaCache);
         }
         setUiSchemaInitialized(true);
         setUiSchemaLoading(false);
+        // schema
         let schemaCache = sessionStorage.getItem("jsonSchema");
         if (!schemaInitialized && schemaCache) {
             setJsonSchema(schemaCache);
         }
         setSchemaInitialized(true);
         setSchemaLoading(false);
+        // data
+        let dataCache = sessionStorage.getItem("data");
+        setTimeout(() => {
+            setData(safeJsonParse(dataCache));
+        }, 0);
     }, []);
     useEffect(() => {
         try {
