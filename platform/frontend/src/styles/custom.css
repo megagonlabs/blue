@@ -105,3 +105,13 @@ table.entity-section-card-table tr td {
 .cm-overscroll-behavior-contain .cm-scroller {
     overscroll-behavior: contain;
 }
+.message-bubble-callout {
+    max-width: 100%;
+    min-width: 50px;
+    white-space: pre-wrap;
+    word-break: break-word;
+    width: fit-content;
+    min-height: 21px;
+    overflow: hidden;
+    padding: 1px;
+}

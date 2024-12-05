@@ -222,7 +222,7 @@ export default function MessageSnapshot({ content, index }) {
                                 overflowX: "auto",
                                 position: "relative",
                                 whiteSpace: "pre-wrap",
-                                wordBreak: "break-all",
+                                wordBreak: "break-word",
                                 padding: "15px 20px",
                             }}
                         >

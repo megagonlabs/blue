@@ -112,7 +112,7 @@ function FormDesigner() {
                     setJsonData(JSON.stringify(value, null, 4));
             } catch (error) {}
         }, 300),
-        []
+        [jsonData]
     );
     useEffect(() => debounced(data), [data]);
     useEffect(() => {
@@ -183,6 +183,7 @@ function FormDesigner() {
         setUiSchemaError(false);
         setSchemaError(false);
         setJsonUischema(DEFAULT_UI_SCHEMA);
+        setJsonData("{}");
         setJsonSchema(DEFAULT_SCHEMA);
         setResultPanel(true);
         sessionStorage.removeItem("jsonUischema");
@@ -195,7 +196,7 @@ function FormDesigner() {
         <>
             <DocDrawer
                 setJsonUischema={setJsonUischema}
-                setJsonData={setJsonData}
+                setData={setData}
                 setJsonSchema={setJsonSchema}
                 isOpen={isDocOpen}
                 setIsDocOpen={setIsDocOpen}
