@@ -67,14 +67,14 @@ const RendererExamplePanel = ({
     closePanel,
     id,
     setJsonUischema,
-    setJsonData,
+    setData,
     setJsonSchema,
 }) => {
     const EXAMPLES = {
         "candidates-table": (
             <CandidatesTable
                 setJsonUischema={setJsonUischema}
-                setJsonData={setJsonData}
+                setData={setData}
                 setJsonSchema={setJsonSchema}
                 closePanel={closePanel}
             />
@@ -107,7 +107,7 @@ const MainMenuPanel = ({
     openPanel,
     setIsDocOpen,
     setJsonUischema,
-    setJsonData,
+    setData,
     setJsonSchema,
 }) => {
     const TYPES = [
@@ -285,7 +285,7 @@ const MainMenuPanel = ({
                                         props: {
                                             id: example.id,
                                             setJsonUischema,
-                                            setJsonData,
+                                            setData,
                                             setJsonSchema,
                                         },
                                         renderPanel: RendererExamplePanel,
@@ -336,12 +336,12 @@ export default function DocDrawer({
     isOpen,
     setIsDocOpen,
     setJsonUischema,
-    setJsonData,
+    setData,
     setJsonSchema,
 }) {
     const initialPanel = {
         renderPanel: MainMenuPanel,
-        props: { setIsDocOpen, setJsonUischema, setJsonData, setJsonSchema },
+        props: { setIsDocOpen, setJsonUischema, setData, setJsonSchema },
     };
     const [currentPanelStack, setCurrentPanelStack] = useState([initialPanel]);
     const addToPanelStack = useCallback((newPanel) => {

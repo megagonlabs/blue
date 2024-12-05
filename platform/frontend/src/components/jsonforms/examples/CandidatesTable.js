@@ -12,7 +12,7 @@ import CopyDocJsonButton from "../docs/CopyDocJsonButton";
 export default function CandidatesTable({
     closePanel,
     setJsonUischema,
-    setJsonData,
+    setData,
     setJsonSchema,
 }) {
     const uiSchemaJson = {
@@ -21,9 +21,7 @@ export default function CandidatesTable({
                 {
                     type: "Table",
                     scope: "#/properties/table_data",
-                    props: {
-                        bordered: true,
-                    },
+                    props: { bordered: true },
                     columns: ["Candidate", "Matches", "Actions"],
                     rowCells: [
                         {
@@ -123,8 +121,10 @@ export default function CandidatesTable({
                 <Button
                     onClick={() => {
                         setJsonUischema(JSON.stringify(uiSchemaJson, null, 4));
-                        setJsonData(JSON.stringify(dataJson, null, 4));
                         setJsonSchema(JSON.stringify(dataSchemaJson, null, 4));
+                        setTimeout(() => {
+                            setData(dataJson);
+                        }, 0);
                     }}
                     icon={faIcon({ icon: faSparkles })}
                     large
@@ -132,18 +132,7 @@ export default function CandidatesTable({
                     text="Try"
                 />
                 <Callout>
-                    <div
-                        style={{
-                            maxWidth: "100%",
-                            minWidth: 50,
-                            whiteSpace: "pre-wrap",
-                            wordBreak: "break-all",
-                            width: "fit-content",
-                            minHeight: 21,
-                            overflow: "hidden",
-                            padding: 1,
-                        }}
-                    >
+                    <div className="message-bubble-callout">
                         <JsonForms
                             schema={dataSchemaJson}
                             uischema={uiSchemaJson}

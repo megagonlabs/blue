@@ -66,11 +66,8 @@ function FormDesigner() {
     const leftPaneRef = createRef();
     const [uischema, setUischema] = useState({});
     const [schema, setSchema] = useState({});
-    const ssData = sessionStorage.getItem("data");
-    const [data, setData] = useState(
-        _.isNil(ssData) ? {} : safeJsonParse(ssData)
-    );
-    const [jsonData, setJsonData] = useState(ssData);
+    const [data, setData] = useState({});
+    const [jsonData, setJsonData] = useState("{}");
     const [jsonUischema, setJsonUischema] = useState(DEFAULT_UI_SCHEMA);
     const [jsonSchema, setJsonSchema] = useState(DEFAULT_SCHEMA);
     const [uiSchemaError, setUiSchemaError] = useState(false);
@@ -86,18 +83,25 @@ function FormDesigner() {
         }
     }, [error]);
     useEffect(() => {
+        // uischema
         let uiSchemaCache = sessionStorage.getItem("jsonUischema");
         if (!uiSchemaInitialized && uiSchemaCache) {
             setJsonUischema(uiSchemaCache);
         }
         setUiSchemaInitialized(true);
         setUiSchemaLoading(false);
+        // schema
         let schemaCache = sessionStorage.getItem("jsonSchema");
         if (!schemaInitialized && schemaCache) {
             setJsonSchema(schemaCache);
         }
         setSchemaInitialized(true);
         setSchemaLoading(false);
+        // data
+        let dataCache = sessionStorage.getItem("data");
+        setTimeout(() => {
+            setData(safeJsonParse(dataCache));
+        }, 0);
     }, []);
     useEffect(() => {
         try {
@@ -112,7 +116,7 @@ function FormDesigner() {
                     setJsonData(JSON.stringify(value, null, 4));
             } catch (error) {}
         }, 300),
-        []
+        [jsonData]
     );
     useEffect(() => debounced(data), [data]);
     useEffect(() => {
@@ -183,6 +187,7 @@ function FormDesigner() {
         setUiSchemaError(false);
         setSchemaError(false);
         setJsonUischema(DEFAULT_UI_SCHEMA);
+        setJsonData("{}");
         setJsonSchema(DEFAULT_SCHEMA);
         setResultPanel(true);
         sessionStorage.removeItem("jsonUischema");
@@ -195,7 +200,7 @@ function FormDesigner() {
         <>
             <DocDrawer
                 setJsonUischema={setJsonUischema}
-                setJsonData={setJsonData}
+                setData={setData}
                 setJsonSchema={setJsonSchema}
                 isOpen={isDocOpen}
                 setIsDocOpen={setIsDocOpen}

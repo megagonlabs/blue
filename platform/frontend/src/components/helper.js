@@ -114,9 +114,10 @@ module.exports = {
     },
     safeJsonParse: (json) => {
         try {
+            if (_.isNil(json)) return {};
             return JSON.parse(json);
         } catch (error) {
-            return JSON.parse("{}");
+            return {};
         }
     },
     axiosErrorToast: (error) => {
