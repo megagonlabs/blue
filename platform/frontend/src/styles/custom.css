@@ -112,3 +112,6 @@ table.entity-section-card-table tr td {
 .cm-overscroll-behavior-contain .cm-scroller {
     overscroll-behavior: contain;
 }
+.portal-overlay-z-index-36 div[class^="bp"][class*="-overlay"] {
+    z-index: 36;
+}

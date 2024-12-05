@@ -1,3 +1,4 @@
+from importlib import metadata
 import json
 import random
 import time
@@ -223,7 +224,7 @@ def words(count):
     return " ".join(word_list)
 
 
-def send_bos(ws, session_id, connection_id, stream_id):
+def send_bos(ws, session_id, connection_id, stream_id, metadata={}):
     ws.send(
         json.dumps(
             {
@@ -232,7 +233,7 @@ def send_bos(ws, session_id, connection_id, stream_id):
                 "connection_id": connection_id,
                 "message": {'label': "CONTROL", 'contents': {"code": "BOS"}, 'content_type': None},
                 "stream": stream_id,
-                "metadata": {'created_by': 'OBSERVER'},
+                "metadata": {'created_by': 'OBSERVER', **metadata},
                 "mode": "streaming",
                 "timestamp": int(time.time() * 1000),
                 "id": str(uuid.uuid4()),
@@ -292,22 +293,7 @@ for _ in range(1):
 time.sleep(2)
 # sys.exit()
 stream_id = f"local-test-client-{int(time.time() * 1000)}"
-ws.send(
-    json.dumps(
-        {
-            "type": "OBSERVER_SESSION_MESSAGE",
-            "session_id": session_id,
-            "connection_id": connection_id,
-            "message": {'label': "CONTROL", 'contents': {"code": "BOS"}, 'content_type': None},
-            "stream": stream_id,
-            "mode": "streaming",
-            "metadata": {"tags": {"WORKSPACE": True}},
-            "timestamp": int(time.time() * 1000),
-            "id": str(uuid.uuid4()),
-            "order": 0,
-        }
-    )
-)
+send_bos(ws, session_id, connection_id, stream_id, metadata={"tags": {"WORKSPACE": True}})
 json_form = {
     "code": "CREATE_FORM",
     "args": {
@@ -330,31 +316,20 @@ json_form = {
         "schema": {"type": "object", "properties": {"first_name": {"type": "string"}, "last_name": {"type": "string"}}},
     },
 }
-send_bos(ws, session_id, connection_id, stream_id)
-ws.send(
-    json.dumps(
-        {
-            "type": "OBSERVER_SESSION_MESSAGE",
-            "session_id": session_id,
-            "connection_id": connection_id,
-            "message": {
-                "label": "CONTROL",
-                "contents": json_form,
-                "content_type": 'JSON',
-            },
-            "metadata": {"tags": {"WORKSPACE": True}},
-            "stream": stream_id,
-            "mode": "streaming",
-            "timestamp": int(time.time() * 1000),
-            "id": str(uuid.uuid4()),
-            "order": 0,
-        }
-    )
+send_message(
+    ws,
+    session_id,
+    connection_id,
+    stream_id,
+    message={
+        "label": "CONTROL",
+        "contents": json_form,
+        "content_type": 'JSON',
+    },
 )
 send_eos(ws, session_id, connection_id, stream_id)
 time.sleep(2)
-stream_id = f"local-test-client-{int(time.time() * 1000)}"
-send_bos(ws, session_id, connection_id, stream_id)
+send_bos(ws, session_id, connection_id, stream_id, metadata={"tags": {"WORKSPACE": True}})
 json_form["code"] = 'UPDATE_FORM'
 json_form["args"]['uischema'] = {
     "type": "HorizontalLayout",
@@ -372,31 +347,20 @@ json_form["args"]['uischema'] = {
     ],
 }
 json_form['args']['schema'] = {"type": "object", "properties": {"first_name": {"type": "string"}, "last_name": {"type": "string"}}}
-ws.send(
-    json.dumps(
-        {
-            "type": "OBSERVER_SESSION_MESSAGE",
-            "session_id": session_id,
-            "connection_id": connection_id,
-            "message": {
-                "label": "CONTROL",
-                "contents": json_form,
-                "content_type": 'JSON',
-            },
-            "metadata": {"tags": {"WORKSPACE": True}},
-            "stream": stream_id,
-            "mode": "streaming",
-            "timestamp": int(time.time() * 1000),
-            "id": str(uuid.uuid4()),
-            "order": 0,
-        }
-    )
+send_message(
+    ws,
+    session_id,
+    connection_id,
+    stream_id,
+    message={
+        "label": "CONTROL",
+        "contents": json_form,
+        "content_type": 'JSON',
+    },
 )
 send_eos(ws, session_id, connection_id, stream_id)
 # sys.exit()
 time.sleep(2)
-sentence_string = sentence()
-words_string = words(random.randint(4, 11))
 send_message(
     ws,
     session_id,
@@ -409,6 +373,7 @@ send_message(
 )
 time.sleep(1)
 send_eos(ws, session_id, connection_id, stream_id)
+# sys.exit()
 time.sleep(1)
 stream_id = f"local-test-client-{int(time.time() * 1000)}"
 json_form = {
