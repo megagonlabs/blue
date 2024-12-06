@@ -34,11 +34,28 @@ from session import Session
 from worker import Worker
 from message import Message, MessageType, ContentType, ControlCode
 from connection import PooledConnectionFactory
+from tracker import PerformanceTracker
 
 def create_uuid():
     return str(hex(uuid.uuid4().fields[0]))[2:]
 
+class AgentPerformanceTracker(PerformanceTracker):
+    def __init__(self, agent, properties=None, callback=None):
+        self.agent = agent
+        super().__init__(agent.sid, properties=properties, callback=callback)
 
+    def collect(self): 
+        data = super().collect()
+
+        # add num workers
+        data["num_workers"] = len(self.agent.workers)
+        # db connection
+        data["num_created_connections"] = self.agent.connection_factory.count_created_connections()
+        data["num_in_use_connections"] = self.agent.connection_factory.count_in_use_connections()
+        data["num_available_connections"] = self.agent.connection_factory.count_available_connections()
+
+        return data
+    
 class Agent:
     def __init__(
         self,
@@ -131,6 +148,11 @@ class Agent:
         # DEFAULT is the default output parameter
         default_tags = []
         tags["DEFAULT"] = default_tags
+
+        # perf tracker
+        self.properties["tracker.autostart"] = False
+        self.properties["tracker.output"] = "log.INFO"
+
 
     def _update_properties(self, properties=None):
         if properties is None:
@@ -378,8 +400,47 @@ class Agent:
     def get_data_len(self, key):
         return self.session.get_agent_data_len(self, key)
 
+    def _start_tracker(self):
+        
+        output = None 
+        if 'tracker.output' in self.properties:
+            output = self.properties['tracker.output']
+
+        callback = None
+        if output == 'stream':
+            # start stream producer
+            self._perf_producer = Producer(
+                name=self.name,
+                id=self.id,
+                prefix=self.prefix,
+                suffix="PERF",
+                properties=self.properties,
+            )
+            self._perf_producer.start()
+            # callback to write to stream
+            callback = lambda *args, **kwargs,: self._tracker_callback(*args, **kwargs)
+
+        # start tracker
+        self._tracker = AgentPerformanceTracker(self, properties=self.properties, callback=callback)
+        self._tracker.start()
+
+    def _stop_tracker(self):
+        self._tracker.stop()
+
+    def _tracker_callback(self, data):
+        # perf data as message
+        logging.info(data)
+        message = Message(MessageType.DATA, data, ContentType.JSON)
+        self._perf_producer.write(message)
+
     def _start(self):
         self._start_connection()
+
+        # auto-start perf tracker
+        if 'tracker.autostart' in self.properties:
+            autostart = self.properties['tracker.autostart']
+            if autostart:
+                self._start_tracker()
 
         # if agent is associated with a session
         if self.session:
