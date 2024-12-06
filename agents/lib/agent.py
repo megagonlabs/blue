@@ -50,6 +50,7 @@ class AgentPerformanceTracker(PerformanceTracker):
         # agent info
         data["name"] = self.agent.name
         data["cid"] = self.agent.cid
+
         # session
         session = None
         if self.agent.session:
@@ -65,6 +66,7 @@ class AgentPerformanceTracker(PerformanceTracker):
                 if worker.consumer.stream:
                     stream = worker.consumer.stream
             data["workers"][worker.sid] = { "name": worker.name, "cid": worker.cid, "stream": worker.consumer.stream}
+            
         # db connection
         data["connection_factory_id"] = self.agent.connection_factory.get_id()
         data["num_created_connections"] = self.agent.connection_factory.count_created_connections()

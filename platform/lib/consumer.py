@@ -274,6 +274,10 @@ class Consumer:
                 # ack
                 r.xack(s, g, id)
 
+                # on EOS stop
+                if message.isEOS():
+                    self.stop()
+
         # logging.info("[Thread {c}]: finished".format(c=c))
 
     def _start_threads(self):
@@ -283,6 +287,7 @@ class Consumer:
         for i in range(num_threads):
             # t = threading.Thread(target=lambda: asyncio.run(self._consume_stream(self.cid + "-" + str(i))), daemon=True)
             t = threading.Thread(target=lambda: self._consume_stream(self.cid + "-" + str(i)), daemon=True)
+            t.name = "Thread-" + self.__class__.__name__ + "-" + self.sid
             t.start()
             self.threads.append(t)
 

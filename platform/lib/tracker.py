@@ -27,6 +27,7 @@ class Tracker:
     def _run_tracker(self):
         if self.state == "RUNNING":
             thread = threading.Timer(6.0, lambda: self._run_tracker())
+            thread.name = "Thread-" + self.__class__.__name__ + "-" + self.id
             thread.start()
             self.track()
 
@@ -79,8 +80,14 @@ class PerformanceTracker(Tracker):
         # add num threads
         data["num_threads"] = threading.active_count()
 
-        return data
-
-
+        # thread info
+        data["threads"] = {}
+        for thread in threading.enumerate():
+            id = thread.ident
+            name = thread.name 
+            daemon = thread.isDaemon()
+            alive = thread.is_alive()
+            data["threads"][id] = { "name": name, "id": id, "daemon": daemon, "alive": alive}
     
+        return data
 
