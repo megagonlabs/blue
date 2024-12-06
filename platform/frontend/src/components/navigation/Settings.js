@@ -70,7 +70,7 @@ const SESSION_MESSAGE_SETTINGS = {
 const APPEARANCE_SETTINGS = {
     compact_sidebar: {
         title: "Compact sidebar",
-        description: "Use minimal style for vavigation menu",
+        description: "Use minimal style for navigation menu",
         icon: faSidebar,
     },
 };

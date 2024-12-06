@@ -496,55 +496,53 @@ export default function App({ children }) {
                                 large
                                 className="full-parent-width"
                             >
-                                {["form_designer", "prompt_designer"].map(
-                                    (key, index) => {
-                                        const { href, icon, text, visible } =
-                                            _.get(MENU_ITEMS, key, {});
-                                        if (!visible) {
-                                            return null;
-                                        }
-                                        const active = _.startsWith(
-                                            router.pathname,
-                                            href
-                                        );
-                                        return (
-                                            <Link
-                                                className="no-link-decoration"
-                                                href={href}
-                                                key={index}
+                                {["form_designer"].map((key, index) => {
+                                    const { href, icon, text, visible } = _.get(
+                                        MENU_ITEMS,
+                                        key,
+                                        {}
+                                    );
+                                    if (!visible) {
+                                        return null;
+                                    }
+                                    const active = _.startsWith(
+                                        router.pathname,
+                                        href
+                                    );
+                                    return (
+                                        <Link
+                                            className="no-link-decoration"
+                                            href={href}
+                                            key={index}
+                                        >
+                                            <Tooltip
+                                                minimal
+                                                placement="right"
+                                                content={
+                                                    compactSidebar ? text : null
+                                                }
                                             >
-                                                <Tooltip
-                                                    minimal
-                                                    placement="right"
-                                                    content={
-                                                        compactSidebar
-                                                            ? text
+                                                <Button
+                                                    style={
+                                                        !active
+                                                            ? {
+                                                                  backgroundColor:
+                                                                      "transparent",
+                                                              }
                                                             : null
                                                     }
-                                                >
-                                                    <Button
-                                                        style={
-                                                            !active
-                                                                ? {
-                                                                      backgroundColor:
-                                                                          "transparent",
-                                                                  }
-                                                                : null
-                                                        }
-                                                        active={active}
-                                                        text={
-                                                            !compactSidebar &&
-                                                            text
-                                                        }
-                                                        icon={faIcon({
-                                                            icon: icon,
-                                                        })}
-                                                    />
-                                                </Tooltip>
-                                            </Link>
-                                        );
-                                    }
-                                )}
+                                                    active={active}
+                                                    text={
+                                                        !compactSidebar && text
+                                                    }
+                                                    icon={faIcon({
+                                                        icon: icon,
+                                                    })}
+                                                />
+                                            </Tooltip>
+                                        </Link>
+                                    );
+                                })}
                             </ButtonGroup>
                         </>
                     ) : null}

@@ -34,7 +34,7 @@ const EXPLANATION_TEXT = {
 const DEFAULT_SETTINGS = {
     compact_sidebar: {
         title: "Compact sidebar",
-        description: "Use minimal style for vavigation menu",
+        description: "Use minimal style for navigation menu",
         icon: faSidebar,
     },
     show_workspace: {
