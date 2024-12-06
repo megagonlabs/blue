@@ -64,6 +64,32 @@ const sendSocketMessage = async (socket, message, retries = 0) => {
         }
     }
 };
+const axiosErrorToast = (error) => {
+    let message = "";
+    try {
+        message = `${error.name}: ${error.message}`;
+        // The request was made and the server responded with a status code
+        // that falls out of the range of 2xx
+        if (error.response)
+            message = `[${error.response.status}]: ${_.get(
+                error,
+                "response.data.message",
+                "-"
+            )}`;
+    } catch (error) {
+        message = "Request Error";
+    }
+    AppToaster.show({
+        icon: faIcon({ icon: faExclamation }),
+        intent: Intent.DANGER,
+        message: <div className="multiline-ellipsis-5">{message}</div>,
+        action: {
+            icon: faIcon({ icon: faCopy }),
+            onClick: () => copy(message),
+            text: "Copy",
+        },
+    });
+};
 module.exports = {
     Queue: class Queue {
         constructor() {
@@ -120,32 +146,7 @@ module.exports = {
             return {};
         }
     },
-    axiosErrorToast: (error) => {
-        let message = "";
-        try {
-            message = `${error.name}: ${error.message}`;
-            // The request was made and the server responded with a status code
-            // that falls out of the range of 2xx
-            if (error.response)
-                message = `[${error.response.status}]: ${_.get(
-                    error,
-                    "response.data.message",
-                    "-"
-                )}`;
-        } catch (error) {
-            message = "Request Error";
-        }
-        AppToaster.show({
-            icon: faIcon({ icon: faExclamation }),
-            intent: Intent.DANGER,
-            message: <div className="multiline-ellipsis-5">{message}</div>,
-            action: {
-                icon: faIcon({ icon: faCopy }),
-                onClick: () => copy(message),
-                text: "Copy",
-            },
-        });
-    },
+    axiosErrorToast,
     constructSavePropertyRequests: ({ axios, url, difference, properties }) => {
         let tasks = [];
         const { updated, deleted, added } = difference;
@@ -200,7 +201,7 @@ module.exports = {
                         if (!status) requestError = true;
                     })
                     .finally(() => {
-                        progress = ((index + 1) / tasks.length) * 100;
+                        const progress = ((index + 1) / tasks.length) * 100;
                         ProgressToaster.show(
                             renderProgress(progress, requestError),
                             key
