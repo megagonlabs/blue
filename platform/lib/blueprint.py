@@ -14,6 +14,7 @@ import uuid
 
 ###### Parsers, Formats, Utils
 import re
+import json
 
 ###### Backend, Databases
 import redis
@@ -24,6 +25,31 @@ from producer import Producer
 from session import Session
 from message import Message, MessageType, ContentType, ControlCode
 from connection import PooledConnectionFactory
+from tracker import PerformanceTracker
+
+def create_uuid():
+    return str(hex(uuid.uuid4().fields[0]))[2:]
+
+class PlatformPerformanceTracker(PerformanceTracker):
+    def __init__(self, platform, properties=None, callback=None):
+        self.platform = platform
+        super().__init__(platform.sid, properties=properties, callback=callback)
+
+    def collect(self): 
+        data = super().collect()
+
+        # agent info
+        data["name"] = self.platform.name
+        data["cid"] = self.platform.cid
+
+        # db connection
+        data["connection_factory_id"] = self.platform.connection_factory.get_id()
+        data["num_created_connections"] = self.platform.connection_factory.count_created_connections()
+        data["num_in_use_connections"] = self.platform.connection_factory.count_in_use_connections()
+        data["num_available_connections"] = self.platform.connection_factory.count_available_connections()
+
+        return data
+    
 
 class Platform:
     def __init__(self, name="PLATFORM", id=None, sid=None, cid=None, prefix=None, suffix=None, properties={}):
@@ -212,12 +238,61 @@ class Platform:
             producer.start()
             self.producer = producer
 
+    def _start_tracker(self):
+        
+        output = None 
+        if 'tracker.output' in self.properties:
+            output = self.properties['tracker.output']
+
+        callback = None
+
+        if output == 'stream':
+            # start stream producer
+            self._perf_producer = Producer(
+                name=self.name,
+                id=self.id,
+                prefix=self.prefix,
+                suffix="PERF",
+                properties=self.properties,
+            )
+            self._perf_producer.start()
+            # callback to write to stream
+            callback = lambda *args, **kwargs,: self._tracker_callback_to_stream(*args, **kwargs)
+        elif output == 'pubsub':
+            self._pubsub_connection = self.connection_factory.get_connection()
+            # callback to publish
+            callback = lambda *args, **kwargs,: self._tracker_callback_to_publish(*args, **kwargs)
+            
+
+        # start tracker
+        self._tracker = PlatformPerformanceTracker(self, properties=self.properties, callback=callback)
+        self._tracker.start()
+
+    def _stop_tracker(self):
+        self._tracker.stop()
+
+    def _tracker_callback_to_stream(self, data):
+        if self._perf_producer:
+            message = Message(MessageType.DATA, data, ContentType.JSON)
+            self._perf_producer.write(message)
+
+    def _tracker_callback_to_publish(self, data):
+        logging.info(json.dumps(data))
+        if self._pubsub_connection:
+            self._pubsub_connection.publish(self.cid + ":" + "PERF", json.dumps(data))
+
     def _start(self):
         # logging.info('Starting session {name}'.format(name=self.sid))
         self._start_connection()
 
         # initialize platform metadata
         self._init_metadata_namespace()
+
+        # auto-start perf tracker
+        if 'tracker.autostart' in self.properties:
+            autostart = self.properties['tracker.autostart']
+            if autostart:
+                self._start_tracker()
 
         # start platform communication stream
         self._start_producer()

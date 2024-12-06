@@ -66,7 +66,7 @@ class AgentPerformanceTracker(PerformanceTracker):
                 if worker.consumer.stream:
                     stream = worker.consumer.stream
             data["workers"][worker.sid] = { "name": worker.name, "cid": worker.cid, "stream": worker.consumer.stream}
-            
+
         # db connection
         data["connection_factory_id"] = self.agent.connection_factory.get_id()
         data["num_created_connections"] = self.agent.connection_factory.count_created_connections()
@@ -426,6 +426,7 @@ class Agent:
             output = self.properties['tracker.output']
 
         callback = None
+
         if output == 'stream':
             # start stream producer
             self._perf_producer = Producer(
@@ -437,7 +438,12 @@ class Agent:
             )
             self._perf_producer.start()
             # callback to write to stream
-            callback = lambda *args, **kwargs,: self._tracker_callback(*args, **kwargs)
+            callback = lambda *args, **kwargs,: self._tracker_callback_to_stream(*args, **kwargs)
+        elif output == 'pubsub':
+            self._pubsub_connection = self.connection_factory.get_connection()
+            # callback to publish
+            callback = lambda *args, **kwargs,: self._tracker_callback_to_publish(*args, **kwargs)
+            
 
         # start tracker
         self._tracker = AgentPerformanceTracker(self, properties=self.properties, callback=callback)
@@ -446,11 +452,15 @@ class Agent:
     def _stop_tracker(self):
         self._tracker.stop()
 
-    def _tracker_callback(self, data):
-        # perf data as message
-        logging.info(data)
-        message = Message(MessageType.DATA, data, ContentType.JSON)
-        self._perf_producer.write(message)
+    def _tracker_callback_to_stream(self, data):
+        if self._perf_producer:
+            message = Message(MessageType.DATA, data, ContentType.JSON)
+            self._perf_producer.write(message)
+
+    def _tracker_callback_to_publish(self, data):
+        if self._pubsub_connection:
+            logging.info(json.dumps(data))
+            self._pubsub_connection.publish(self.cid + ":" + "PERF", json.dumps(data))
 
     def _start(self):
         self._start_connection()

@@ -26,7 +26,7 @@ class Tracker:
 
     def _run_tracker(self):
         if self.state == "RUNNING":
-            thread = threading.Timer(6.0, lambda: self._run_tracker())
+            thread = threading.Timer(60.0, lambda: self._run_tracker())
             thread.name = "Thread-" + self.__class__.__name__ + "-" + self.id
             thread.start()
             self.track()
