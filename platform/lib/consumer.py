@@ -9,8 +9,8 @@ import logging
 import time
 import uuid
 import random
-import asyncio
-from asyncio import Queue
+# import asyncio
+# from asyncio import Queue
 
 ###### Parsers, Formats, Utils
 import re
@@ -74,11 +74,11 @@ class Consumer:
         self.threads = []
 
         # for pairing mode
-        self.pairer_task = None
-        self.left_param = None
-        self.left_queue = None
-        self.right_param = None
-        self.right_queue = None
+        # self.pairer_task = None
+        # self.left_param = None
+        # self.left_queue = None
+        # self.right_param = None
+        # self.right_queue = None
 
     ###### initialization
     def _initialize(self, properties=None):
@@ -91,13 +91,13 @@ class Consumer:
         #         right: <param>
         #     }
         # }
-        output_type = pydash.objects.get(properties, 'output.type', None)
-        if pydash.is_equal(output_type, 'pair'):
-            self.pairer_task = asyncio.get_event_loop().create_task(self.pairer(self.left_queue, self.right_queue))
-            self.left_param = properties["output"].get('left')
-            self.left_queue = Queue()
-            self.right_param = properties["output"].get('right')
-            self.right_queue = Queue()
+        # output_type = pydash.objects.get(properties, 'output.type', None)
+        # if pydash.is_equal(output_type, 'pair'):
+        #     self.pairer_task = asyncio.get_event_loop().create_task(self.pairer(self.left_queue, self.right_queue))
+        #     self.left_param = properties["output"].get('left')
+        #     self.left_queue = Queue()
+        #     self.right_param = properties["output"].get('right')
+        #     self.right_queue = Queue()
 
     def _initialize_properties(self):
         self.properties = {}
@@ -114,22 +114,22 @@ class Consumer:
             self.properties[p] = properties[p]
 
     # non-blocking, run until cancelled
-    async def pairer(self, left_queue: Queue, right_queue: Queue):
-        while True:
-            # item {value, type}
-            left_item: Message = await left_queue.get()
-            right_item: Message = await right_queue.get()
-            # always use right_item ID
-            message = Message.fromJSON(
-                {
-                    'label': 'DATA',
-                    'contents': {'args': {'params': {self.left_param: left_item, self.right_param: right_item}}},
-                    'content_type': 'JSON',
-                }
-            )
-            self.listener(message)
-            left_queue.task_done()
-            right_queue.task_done()
+    # async def pairer(self, left_queue: Queue, right_queue: Queue):
+    #     while True:
+    #         # item {value, type}
+    #         left_item: Message = await left_queue.get()
+    #         right_item: Message = await right_queue.get()
+    #         # always use right_item ID
+    #         message = Message.fromJSON(
+    #             {
+    #                 'label': 'DATA',
+    #                 'contents': {'args': {'params': {self.left_param: left_item, self.right_param: right_item}}},
+    #                 'content_type': 'JSON',
+    #             }
+    #         )
+    #         self.listener(message)
+    #         left_queue.task_done()
+    #         right_queue.task_done()
 
     ####### open connection, create group, start threads
     def start(self):
@@ -188,28 +188,29 @@ class Consumer:
     def get_group(self):
         return self.cid
 
-    async def response_handler(self, message: Message):
-        if self.pairer_task is not None:
-            if message.isEOS():
-                await asyncio.sleep(1)
-                # wait until all items in the queue have been processed
-                if self.left_queue is not None:
-                    self.left_queue.join()
-                if self.right_queue is not None:
-                    self.right_queue.join()
-                self.pairer_task.cancel()
-            else:
-                # pushing messages to pairing queue
-                left_parameter = message.getParam(self.left_param)
-                right_parameter = message.getParam(self.right_param)
-                if left_parameter is not None:
-                    await self.left_queue.put(left_parameter)
-                if right_parameter is not None:
-                    await self.right_queue.put(right_parameter)
-        else:
-            self.listener(message)
+    # async def response_handler(self, message: Message):
+    #     if self.pairer_task is not None:
+    #         if message.isEOS():
+    #             await asyncio.sleep(1)
+    #             # wait until all items in the queue have been processed
+    #             if self.left_queue is not None:
+    #                 self.left_queue.join()
+    #             if self.right_queue is not None:
+    #                 self.right_queue.join()
+    #             self.pairer_task.cancel()
+    #         else:
+    #             # pushing messages to pairing queue
+    #             left_parameter = message.getParam(self.left_param)
+    #             right_parameter = message.getParam(self.right_param)
+    #             if left_parameter is not None:
+    #                 await self.left_queue.put(left_parameter)
+    #             if right_parameter is not None:
+    #                 await self.right_queue.put(right_parameter)
+    #     else:
+    #         self.listener(message)
 
-    async def _consume_stream(self, c):
+    # async def _consume_stream(self, c):
+    def _consume_stream(self, c):
         s = self.stream
         g = self.cid
         r = self.connection
@@ -238,7 +239,8 @@ class Consumer:
                     message = Message.fromJSON(json.dumps(m_json))
                     message.setID(id)
                     message.setStream(s)
-                    await self.response_handler(message)
+                    # await self.response_handler(message)
+                    self.listener(message)
                     #
 
                     # ack
@@ -261,7 +263,8 @@ class Consumer:
                 message = Message.fromJSON(json.dumps(m_json))
                 message.setID(id)
                 message.setStream(s)
-                await self.response_handler(message)
+                # await self.response_handler(message)
+                self.listener(message)
 
                 # occasionally throw exception (for testing failed threads)
                 # if random.random() > 0.5:
@@ -278,7 +281,8 @@ class Consumer:
         num_threads = self.properties['num_threads']
 
         for i in range(num_threads):
-            t = threading.Thread(target=lambda: asyncio.run(self._consume_stream(self.cid + "-" + str(i))), daemon=True)
+            # t = threading.Thread(target=lambda: asyncio.run(self._consume_stream(self.cid + "-" + str(i))), daemon=True)
+            t = threading.Thread(target=lambda: self._consume_stream(self.cid + "-" + str(i)), daemon=True)
             t.start()
             self.threads.append(t)
 
