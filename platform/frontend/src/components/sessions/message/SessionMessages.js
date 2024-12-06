@@ -292,15 +292,8 @@ const Row = ({ index, data, style }) => {
                     >
                         <div
                             ref={mergeRefs(rowRef, resizeRef)}
+                            className="message-bubble-callout"
                             style={{
-                                maxWidth: "100%",
-                                minWidth: 50,
-                                whiteSpace: "pre-wrap",
-                                wordBreak: "break-word",
-                                width: "fit-content",
-                                minHeight: 21,
-                                overflow: "hidden",
-                                padding: 1,
                                 maxHeight:
                                     expandMessage ||
                                     expandedMessageStream.has(stream)

@@ -119,7 +119,7 @@ export default function Settings({ isOpen, setIsSettingsOpen }) {
                     {...SECTION_PROPS}
                     icon={faIcon({ icon: faPaintRoller })}
                     title="Appearance"
-                    style={{ marginBottom: 15 }}
+                    style={{ marginBottom: 20 }}
                 >
                     <SectionCard padded={false}>
                         <Menu className="settings-menus" large>
@@ -176,7 +176,7 @@ export default function Settings({ isOpen, setIsSettingsOpen }) {
                     {...SECTION_PROPS}
                     icon={faIcon({ icon: faMessages })}
                     title="Sessions & Messages"
-                    style={{ marginBottom: 15 }}
+                    style={{ marginBottom: 20 }}
                 >
                     <SectionCard padded={false}>
                         <Menu className="settings-menus" large>
