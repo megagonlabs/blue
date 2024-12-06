@@ -1,8 +1,13 @@
 
 import redis
+import uuid
+
+def create_uuid():
+    return str(hex(uuid.uuid4().fields[0]))[2:]
 
 class PooledConnectionFactory:
     __pool = None
+    __pool_id = None
 
     def __init__(self, properties=None):
         self.properties = properties
@@ -25,8 +30,12 @@ class PooledConnectionFactory:
 
         # init class connection 
         if PooledConnectionFactory.__pool is None:
+            PooledConnectionFactory.__pool_id = create_uuid()
             PooledConnectionFactory.__pool = redis.connection.ConnectionPool(host=host, port=port, max_connections=max_connections, decode_responses=True)
 
+    def get_id(self):
+        return PooledConnectionFactory.__pool_id
+    
     def get_connection(self):
         if self.connection is None:
             self.connection = redis.Redis(connection_pool=PooledConnectionFactory.__pool)

@@ -74,11 +74,11 @@ class Consumer:
         self.threads = []
 
         # for pairing mode
-        self.pairer_task = None
-        self.left_param = None
-        self.left_queue = None
-        self.right_param = None
-        self.right_queue = None
+        # self.pairer_task = None
+        # self.left_param = None
+        # self.left_queue = None
+        # self.right_param = None
+        # self.right_queue = None
 
     ###### initialization
     def _initialize(self, properties=None):

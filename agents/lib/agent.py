@@ -47,9 +47,26 @@ class AgentPerformanceTracker(PerformanceTracker):
     def collect(self): 
         data = super().collect()
 
-        # add num workers
+        # agent info
+        data["name"] = self.agent.name
+        data["cid"] = self.agent.cid
+        # session
+        session = None
+        if self.agent.session:
+            session = self.agent.session.cid
+        data["session"] = session
+
+        # add num workers, workers
         data["num_workers"] = len(self.agent.workers)
+        data["workers"] = {}
+        for worker in self.agent.workers:
+            stream = None
+            if worker.consumer:
+                if worker.consumer.stream:
+                    stream = worker.consumer.stream
+            data["workers"][worker.sid] = { "name": worker.name, "cid": worker.cid, "stream": worker.consumer.stream}
         # db connection
+        data["connection_factory_id"] = self.agent.connection_factory.get_id()
         data["num_created_connections"] = self.agent.connection_factory.count_created_connections()
         data["num_in_use_connections"] = self.agent.connection_factory.count_in_use_connections()
         data["num_available_connections"] = self.agent.connection_factory.count_available_connections()
