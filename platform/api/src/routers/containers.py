@@ -276,7 +276,7 @@ def list_service_containers(request: Request):
             c["image"] = container.attrs["Config"]["Image"]
             c["status"] = container.attrs["State"]["Status"]
             labels = container.attrs["Config"]["Labels"]
-            if 'blue.agent' in labels:
+            if 'blue.service' in labels:
                 l = labels['blue.service']
                 la = l.split(".")
                 c["service"] = la[1]
