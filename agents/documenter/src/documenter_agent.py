@@ -169,9 +169,7 @@ class DocumenterAgent(Agent):
             if session_data is None:
                 session_data = {}
 
-            processed_hilite = string_utils.safe_substitute(hilite, **properties,  **session_data)
-            t = Environment(loader=BaseLoader()).from_string(processed_hilite)
-            processed_hilite = t.render(**self.results)
+            processed_hilite = string_utils.safe_substitute(hilite, **properties,  **session_data, **self.results)
 
             # create a unique id
             id = util_functions.create_uuid()
@@ -226,11 +224,9 @@ class DocumenterAgent(Agent):
         if type(template) is dict:
             template = json.dumps(template)
 
-        processed_template = string_utils.safe_substitute(template, **properties,  **session_data)
-        t = Environment(loader=BaseLoader()).from_string(processed_template)
-        doc = t.render(**results)
+        processed_template = string_utils.safe_substitute(template, **properties,  **session_data, **results)
 
-        return doc
+        return processed_template
 
     def render_doc(self, doc, properties=None, worker=None):
         if worker == None:
