@@ -41,6 +41,7 @@ class Worker:
         processor=None,
         session=None,
         properties={},
+        on_stop = None
     ):
 
         self.name = name
@@ -82,6 +83,7 @@ class Worker:
 
         self.producers = {}
         self.consumer = None
+        self.on_stop = on_stop
 
         self._start()
 
@@ -295,10 +297,14 @@ class Worker:
             prefix=self.cid,
             listener=lambda message: self.listener(message, input=self.input),
             properties=self.properties,
+            on_stop=lambda sid: self.on_consumer_stop_handler(sid)
         )
 
         self.consumer = consumer
         consumer.start()
+
+    def on_consumer_stop_handler(self, consumer_sid):
+        self._stop()
 
     def _start_producer(self, output="DEFAULT", tags=None, prefix=None):
         if prefix is None:
@@ -430,6 +436,10 @@ class Worker:
         # send stop signal to consumer(s)
         if self.consumer:
             self.consumer.stop()
+
+    def _stop(self):
+        if self.on_stop:
+            self.on_stop(self.sid)
 
     def wait(self):
         # send wait to consumer(s)

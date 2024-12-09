@@ -58,14 +58,15 @@ class AgentPerformanceTracker(PerformanceTracker):
         data["session"] = session
 
         # add num workers, workers
-        data["num_workers"] = len(self.agent.workers)
+        data["num_workers"] = len(list(self.agent.workers.values()))
         data["workers"] = {}
-        for worker in self.agent.workers:
+        for worker_id in self.agent.workers:
+            worker = self.agent.workers[worker_id]
             stream = None
             if worker.consumer:
                 if worker.consumer.stream:
                     stream = worker.consumer.stream
-            data["workers"][worker.sid] = { "name": worker.name, "cid": worker.cid, "stream": worker.consumer.stream}
+            data["workers"][worker.sid] = { "name": worker.name, "cid": worker.cid, "stream": stream}
 
         # db connection
         data["connection_factory_id"] = self.agent.connection_factory.get_id()
@@ -128,7 +129,7 @@ class Agent:
         self.session_consumer = None
 
         # workers of an agent in a session
-        self.workers = []
+        self.workers = {}
 
         # event producers, by form_id
         self.event_producers = {}
@@ -210,11 +211,15 @@ class Agent:
             processor=processor,
             session=self.session,
             properties=self.properties,
+            on_stop=lambda sid: self.on_worker_stop_handler(sid)
         )
 
-        self.workers.append(worker)
+        self.workers[worker.sid] = worker
 
         return worker
+
+    def on_worker_stop_handler(self, worker_sid):
+        del self.workers[worker_sid]
 
     ###### default processor, override
     def default_processor(
@@ -302,6 +307,10 @@ class Agent:
                 worker = self.create_worker(stream, input=param, context=stream)
 
                 # logging.info("Spawned worker for stream {stream}...".format(stream=stream))
+        
+        # session ended, stop agent
+        elif message.isEOS():
+            self.stop()
 
     def _match_listen_to_tags(self, tags):
         matched_params = {}
@@ -450,7 +459,8 @@ class Agent:
         self._tracker.start()
 
     def _stop_tracker(self):
-        self._tracker.stop()
+        if self._tracker:
+            self._tracker.stop()
 
     def _tracker_callback_to_stream(self, data):
         if self._perf_producer:
@@ -492,17 +502,26 @@ class Agent:
                 self.session_consumer.start()
 
     def stop(self):
+        # stop tracker
+        self._stop_tracker()
+
         # leave session
         self.leave_session()
 
         # send stop to each worker
-        for w in self.workers:
-            w.stop()
+        for worker_id in self.workers:
+            worker = self.workers[worker_id]
+            worker.stop()
+
+        for worker_id in self.workers:
+            del self.workers[worker_id]
+        
 
     def wait(self):
         # send wait to each worker
-        for w in self.workers:
-            w.wait()
+        for worker_id in self.workers:
+            worker = self.workers[worker_id]
+            worker.wait()
 
 
 class AgentFactory:

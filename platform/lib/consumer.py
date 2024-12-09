@@ -37,7 +37,7 @@ from message import Message, MessageType, ContentType, ControlCode
 from connection import PooledConnectionFactory
 
 class Consumer:
-    def __init__(self, stream, name="STREAM", id=None, sid=None, cid=None, prefix=None, suffix=None, listener=None, properties={}):
+    def __init__(self, stream, name="STREAM", id=None, sid=None, cid=None, prefix=None, suffix=None, listener=None, properties={}, on_stop=None):
 
         self.stream = stream
 
@@ -71,6 +71,7 @@ class Consumer:
 
         self.listener = listener
 
+        self.on_stop = on_stop
         self.threads = []
 
         # for pairing mode
@@ -146,8 +147,13 @@ class Consumer:
         # logging.info("Started consumer {c} for stream {s}".format(c=self.sid, s=self.stream))
 
     def stop(self):
-        # logging.info("Stopping consumer {c} for stream {s}".format(c=self.sid, s=self.stream))
-        self.stop_signal = True
+        self.stop_signal = True 
+
+    def _stop(self):
+        self.stop_signal = True 
+
+        if self.on_stop:
+            self.on_stop(self.sid)
 
     def wait(self):
         for t in self.threads:
@@ -274,9 +280,9 @@ class Consumer:
                 # ack
                 r.xack(s, g, id)
 
-                # on EOS stop
+                # on EOS, stop
                 if message.isEOS():
-                    self.stop()
+                    self._stop()
 
         # logging.info("[Thread {c}]: finished".format(c=c))
 
