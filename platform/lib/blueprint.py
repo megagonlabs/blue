@@ -98,6 +98,9 @@ class Platform:
         self.properties['db.host'] = 'localhost'
         self.properties['db.port'] = 6379
 
+        # tracking for platform
+        self.properties['tracker.output'] = "log.INFO"
+
     def _update_properties(self, properties=None):
         if properties is None:
             return

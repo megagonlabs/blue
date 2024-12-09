@@ -37,19 +37,6 @@ from blueprint import Platform
 
 ACL = casbin.Enforcer(os.path.join(PROPERTIES["rbac.config.folder"], "model.conf"), os.path.join(PROPERTIES["rbac.config.folder"], "policy.csv"))
 
-### Assign from platform properties
-platform_id = PROPERTIES["platform.name"]
-prefix = 'PLATFORM:' + platform_id
-agent_registry_id = PROPERTIES["agent_registry.name"]
-PLATFORM_PREFIX = f'/blue/platform/{platform_id}'
-
-# Turn on tracking, for only one instance
-properties = copy.deepcopy(PROPERTIES)
-properties["tracker.output"] = "pubsub"
-
-p = Platform(id=platform_id, properties=properties)
-
-
 def contains(actions, action):
     return isinstance(actions, list) and action in actions
 
