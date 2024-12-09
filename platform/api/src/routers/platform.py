@@ -16,6 +16,7 @@ sys.path.append("./lib/platform/")
 import json
 import logging
 from utils import json_utils
+import copy
 
 ###### Docker
 import docker
@@ -51,10 +52,6 @@ PLATFORM_PREFIX = f'/blue/platform/{platform_id}'
 
 
 ###### Initialization
-# Turn on tracking
-PROPERTIES["tracker.autostart"] = True
-PROPERTIES["tracker.output"] = "pubsub"
-
 p = Platform(id=platform_id, properties=PROPERTIES)
 agent_registry = AgentRegistry(id=agent_registry_id, prefix=prefix, properties=PROPERTIES)
 
