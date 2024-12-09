@@ -45,7 +45,6 @@ PLATFORM_PREFIX = f'/blue/platform/{platform_id}'
 
 # Turn on tracking, for only one instance
 properties = copy.deepcopy(PROPERTIES)
-properties["tracker.autostart"] = True
 properties["tracker.output"] = "pubsub"
 
 p = Platform(id=platform_id, properties=properties)

@@ -27,15 +27,17 @@ from message import Message, MessageType, ContentType, ControlCode
 from connection import PooledConnectionFactory
 from tracker import PerformanceTracker
 
+
 def create_uuid():
     return str(hex(uuid.uuid4().fields[0]))[2:]
+
 
 class PlatformPerformanceTracker(PerformanceTracker):
     def __init__(self, platform, properties=None, callback=None):
         self.platform = platform
         super().__init__(platform.sid, properties=properties, callback=callback)
 
-    def collect(self): 
+    def collect(self):
         data = super().collect()
 
         # agent info
@@ -49,7 +51,7 @@ class PlatformPerformanceTracker(PerformanceTracker):
         data["num_available_connections"] = self.platform.connection_factory.count_available_connections()
 
         return data
-    
+
 
 class Platform:
     def __init__(self, name="PLATFORM", id=None, sid=None, cid=None, prefix=None, suffix=None, properties={}):
@@ -78,7 +80,7 @@ class Platform:
                 self.cid = self.cid + ":" + self.suffix
 
         self._initialize(properties=properties)
-        
+
         # platform stream
         self.producer = None
 
@@ -239,8 +241,7 @@ class Platform:
             self.producer = producer
 
     def _start_tracker(self):
-        
-        output = None 
+        output = None
         if 'tracker.output' in self.properties:
             output = self.properties['tracker.output']
 
@@ -262,7 +263,6 @@ class Platform:
             self._pubsub_connection = self.connection_factory.get_connection()
             # callback to publish
             callback = lambda *args, **kwargs,: self._tracker_callback_to_publish(*args, **kwargs)
-            
 
         # start tracker
         self._tracker = PlatformPerformanceTracker(self, properties=self.properties, callback=callback)
@@ -270,6 +270,9 @@ class Platform:
 
     def _stop_tracker(self):
         self._tracker.stop()
+
+    def _terminate_tracker(self):
+        self._tracker.terminate()
 
     def _tracker_callback_to_stream(self, data):
         if self._perf_producer:

@@ -1,4 +1,5 @@
 ###### OS / Systems
+from contextlib import asynccontextmanager
 from curses import noecho
 import sys
 import logging
@@ -44,6 +45,7 @@ from routers import sessions
 from routers import containers
 from routers import platform
 from routers import accounts
+from routers import status
 
 from ConnectionManager import ConnectionManager
 
@@ -100,7 +102,17 @@ web_server_port = PROPERTIES["web.server.port"]
 # local & cloud frontend
 allowed_origins = ["http://localhost:3000", "http://localhost:3001", "http://localhost:25830", "https://" + web_server, "http://" + web_server + ":" + web_server_port]
 
-app = FastAPI()
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # start platform performance tracker
+    p._start_tracker()
+    yield
+    # stop platform performance tracker
+    p._terminate_tracker()
+
+
+app = FastAPI(lifespan=lifespan)
 app.include_router(agents.router)
 app.include_router(data.router)
 app.include_router(models.router)
@@ -109,6 +121,7 @@ app.include_router(sessions.router)
 app.include_router(containers.router)
 app.include_router(platform.router)
 app.include_router(accounts.router)
+app.include_router(status.router)
 connection_manager = ConnectionManager()
 app.connection_manager = connection_manager
 
