@@ -1,9 +1,10 @@
 ###### OS / Systems
+import asyncio
+import signal
 from contextlib import asynccontextmanager
 from curses import noecho
 import sys
 import logging
-
 import pydash
 import redis
 
@@ -37,15 +38,8 @@ connection = redis.Redis(host=db_host, port=db_port, decode_responses=True)
 
 ###### API Routers
 from constant import EMAIL_DOMAIN_ADDRESS_REGEXP, InvalidRequestJson, PermissionDenied
-from routers import agents
-from routers import data
-from routers import models
-from routers import operators
-from routers import sessions
-from routers import containers
-from routers import platform
-from routers import accounts
-from routers import status
+from routers import agents, data, models, operators, sessions, containers, platform, accounts, status
+from routers.status import should_stop
 
 from ConnectionManager import ConnectionManager
 
@@ -103,13 +97,21 @@ web_server_port = PROPERTIES["web.server.port"]
 allowed_origins = ["http://localhost:3000", "http://localhost:3001", "http://localhost:25830", "https://" + web_server, "http://" + web_server + ":" + web_server_port]
 
 
+def handle_signal(signum, frame):
+    should_stop.set()
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # start platform performance tracker
     p._start_tracker()
+    signal.signal(signal.SIGINT, handle_signal)
+    signal.signal(signal.SIGTERM, handle_signal)
     yield
     # stop platform performance tracker
     p._terminate_tracker()
+    signal.signal(signal.SIGINT, signal.SIG_DFL)
+    signal.signal(signal.SIGTERM, signal.SIG_DFL)
 
 
 app = FastAPI(lifespan=lifespan)

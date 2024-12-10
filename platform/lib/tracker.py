@@ -41,8 +41,8 @@ class Tracker:
     def _terminate_tracker(self):
         try:
             self.timer.cancel()
-        except:
-            pass
+        except Exception as ex:
+            print(ex)
 
     def collect(self):
         return {"id": self.id, "pid": os.getpid(), "epoch": int(time.time()), "date": str(datetime.now())}
