@@ -99,7 +99,8 @@ class Platform:
         self.properties['db.port'] = 6379
 
         # tracking for platform
-        self.properties['tracker.outputs'] = ["pubsub"]
+        self.properties['tracker.outputs'] = ["pubsub", "log.INFO"]
+        self.properties['tracker.period'] = 60
 
     def _update_properties(self, properties=None):
         if properties is None:
