@@ -100,6 +100,7 @@ class Platform:
 
         # tracking for platform
         self.properties['tracker.output'] = "pubsub"
+        self.properties['tracker.period'] = 4
 
     def _update_properties(self, properties=None):
         if properties is None:
