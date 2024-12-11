@@ -35,14 +35,14 @@ def create_uuid():
 class PlatformPerformanceTracker(PerformanceTracker):
     def __init__(self, platform, properties=None, callback=None):
         self.platform = platform
-        super().__init__(platform.sid, properties=properties, callback=callback)
+        super().__init__(prefix=platform.cid, properties=properties, callback=callback)
 
     def collect(self):
         data = super().collect()
 
-        # agent info
-        data["name"] = self.platform.name
-        data["cid"] = self.platform.cid
+        # platform info
+        data["platform.name"] = self.platform.name
+        data["platform.cid"] = self.platform.cid
 
         # db connection
         data["connection_factory_id"] = self.platform.connection_factory.get_id()
@@ -99,7 +99,7 @@ class Platform:
         self.properties['db.port'] = 6379
 
         # tracking for platform
-        self.properties['tracker.output'] = "pubsub"
+        self.properties['tracker.outputs'] = ["pubsub"]
 
     def _update_properties(self, properties=None):
         if properties is None:
@@ -243,32 +243,14 @@ class Platform:
             producer.start()
             self.producer = producer
 
+    def perf_tracker_callback(self, data, properties=None):
+        pass
+
+    def _init_tracker(self):
+        self._tracker = PlatformPerformanceTracker(self, properties=self.properties, callback= lambda *args, **kwargs: self.perf_tracker_callback(*args, **kwargs) )
+
     def _start_tracker(self):
-        output = None
-        if 'tracker.output' in self.properties:
-            output = self.properties['tracker.output']
-
-        callback = None
-
-        if output == 'stream':
-            # start stream producer
-            self._perf_producer = Producer(
-                name=self.name,
-                id=self.id,
-                prefix=self.prefix,
-                suffix="PERF",
-                properties=self.properties,
-            )
-            self._perf_producer.start()
-            # callback to write to stream
-            callback = lambda *args, **kwargs,: self._tracker_callback_to_stream(*args, **kwargs)
-        elif output == 'pubsub':
-            self._pubsub_connection = self.connection_factory.get_connection()
-            # callback to publish
-            callback = lambda *args, **kwargs,: self._tracker_callback_to_publish(*args, **kwargs)
-
         # start tracker
-        self._tracker = PlatformPerformanceTracker(self, properties=self.properties, callback=callback)
         self._tracker.start()
 
     def _stop_tracker(self):
@@ -277,16 +259,6 @@ class Platform:
     def _terminate_tracker(self):
         self._tracker.terminate()
 
-    def _tracker_callback_to_stream(self, data):
-        if self._perf_producer:
-            message = Message(MessageType.DATA, data, ContentType.JSON)
-            self._perf_producer.write(message)
-
-    def _tracker_callback_to_publish(self, data):
-        logging.info(json.dumps(data))
-        if self._pubsub_connection:
-            self._pubsub_connection.publish(self.cid + ":" + "PERF", json.dumps(data))
-
     def _start(self):
         # logging.info('Starting session {name}'.format(name=self.sid))
         self._start_connection()
@@ -294,11 +266,8 @@ class Platform:
         # initialize platform metadata
         self._init_metadata_namespace()
 
-        # auto-start perf tracker
-        if 'tracker.autostart' in self.properties:
-            autostart = self.properties['tracker.autostart']
-            if autostart:
-                self._start_tracker()
+        # init tracker
+        self._init_tracker()
 
         # start platform communication stream
         self._start_producer()
@@ -310,8 +279,8 @@ class Platform:
         self.connection = self.connection_factory.get_connection()
 
     def stop(self):
-        # TODO
-        pass
+        # stop tracker
+        self._stop_tracker()
 
 
 #######################

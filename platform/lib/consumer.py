@@ -41,7 +41,7 @@ from tracker import Tracker
 class ConsumerIdleTracker(Tracker):
     def __init__(self, consumer, properties=None, callback=None):
         self.consumer = consumer
-        super().__init__(consumer.sid, properties=properties, callback=callback)
+        super().__init__(id="IDLE", prefix=consumer.sid, properties=properties, callback=callback)
 
     def collect(self):
         data = super().collect()
@@ -155,30 +155,31 @@ class Consumer:
         e = id.split("-")[0]
         return int(int(e) / 1000)
 
-    def _idle_tracker_callback(self, data):
-        logging.info(data)
-        
-        expiration = 600 # 10 minutes
-        if "tracker.idle.expiration" in self.properties:
-            expiration = self.properties['tracker.idle.expiration']
+    def _idle_tracker_callback(self, data, properties=None):
+        if properties is None:
+            properties = self.properties
+
+        expiration = None 
+        if "consumer.expiration" in properties:
+            expiration = properties['consumer.expiration']
 
         # expire?
-        if data['last_active']:
-            if data['last_active'] + expiration < data['epoch']:
-                logging.info("Expired Consumer: " + self.cid)
-                self._stop() 
+        if expiration != None and expiration > 0:
+            if data['last_active']:
+                if data['last_active'] + expiration < data['epoch']:
+                    logging.info("Expired Consumer: " + self.cid)
+                    self._stop() 
+
+    def _init_tracker(self):
+        self._tracker = ConsumerIdleTracker(self, properties=self.properties, callback=lambda *args, **kwargs,: self._idle_tracker_callback(*args, **kwargs))
+        self._tracker.start()
 
     def _start_tracker(self):
         # start tracker
-        tracker_properties = copy.deepcopy(self.properties)
-        if 'tracker.idle.period' in tracker_properties:
-            tracker_properties['tracker.period'] = tracker_properties['tracker.idle.period']
-
-        # callback to publish
-        callback = lambda *args, **kwargs,: self._idle_tracker_callback(*args, **kwargs)
-        
-        self._tracker = ConsumerIdleTracker(self, properties=tracker_properties, callback=callback)
         self._tracker.start()
+
+    def _stop_tracker(self):
+        self._tracker.stop()
 
     def _terminate_tracker(self):
         self._tracker.terminate()
@@ -194,7 +195,8 @@ class Consumer:
 
         self._start_threads()
 
-        self._start_tracker()
+        # init tracker
+        self._init_tracker()
 
         # logging.info("Started consumer {c} for stream {s}".format(c=self.sid, s=self.stream))
 
@@ -305,7 +307,7 @@ class Consumer:
                     # await self.response_handler(message)
                     self.listener(message)
                     # last processed
-                    self.last_processed = self._extract_epoch(id)
+                    self.last_processed =  int(time.time()) # self._extract_epoch(id)
 
                     # ack
                     r.xack(s, g, id)
@@ -330,7 +332,7 @@ class Consumer:
                 # await self.response_handler(message)
                 self.listener(message)
                 # last processed
-                self.last_processed = self._extract_epoch(id)
+                self.last_processed = int(time.time())  # self._extract_epoch(id)
 
                 # occasionally throw exception (for testing failed threads)
                 # if random.random() > 0.5:

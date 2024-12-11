@@ -42,14 +42,14 @@ def create_uuid():
 class AgentPerformanceTracker(PerformanceTracker):
     def __init__(self, agent, properties=None, callback=None):
         self.agent = agent
-        super().__init__(agent.sid, properties=properties, callback=callback)
+        super().__init__(prefix=agent.cid, properties=properties, callback=callback)
 
     def collect(self): 
         data = super().collect()
 
         # agent info
-        data["name"] = self.agent.name
-        data["cid"] = self.agent.cid
+        data["agent.name"] = self.agent.name
+        data["agent.cid"] = self.agent.cid
 
         # session
         session = None
@@ -171,7 +171,9 @@ class Agent:
 
         # perf tracker
         self.properties["tracker.autostart"] = False
-        self.properties["tracker.output"] = "log.INFO"
+        self.properties["tracker.outputs"] = ["log.INFO"]
+        # consumer streams expire 
+        self.properties["consumer.expiration"] = 600 #10 minutes
 
 
     def _update_properties(self, properties=None):
@@ -429,58 +431,27 @@ class Agent:
     def get_data_len(self, key):
         return self.session.get_agent_data_len(self, key)
 
+    def perf_tracker_callback(self, dat, properties=None):
+        pass
+
+    def _init_tracker(self):
+        self._tracker = AgentPerformanceTracker(self, properties=self.properties, callback= lambda *args, **kwargs: self.perf_tracker_callback(*args, **kwargs) )
+
     def _start_tracker(self):
-        
-        output = None 
-        if 'tracker.output' in self.properties:
-            output = self.properties['tracker.output']
-
-        callback = None
-
-        if output == 'stream':
-            # start stream producer
-            self._perf_producer = Producer(
-                name=self.name,
-                id=self.id,
-                prefix=self.prefix,
-                suffix="PERF",
-                properties=self.properties,
-            )
-            self._perf_producer.start()
-            # callback to write to stream
-            callback = lambda *args, **kwargs,: self._tracker_callback_to_stream(*args, **kwargs)
-        elif output == 'pubsub':
-            self._pubsub_connection = self.connection_factory.get_connection()
-            # callback to publish
-            callback = lambda *args, **kwargs,: self._tracker_callback_to_publish(*args, **kwargs)
-            
-
         # start tracker
-        self._tracker = AgentPerformanceTracker(self, properties=self.properties, callback=callback)
         self._tracker.start()
 
     def _stop_tracker(self):
-        if self._tracker:
-            self._tracker.stop()
+        self._tracker.stop()
 
-    def _tracker_callback_to_stream(self, data):
-        if self._perf_producer:
-            message = Message(MessageType.DATA, data, ContentType.JSON)
-            self._perf_producer.write(message)
-
-    def _tracker_callback_to_publish(self, data):
-        if self._pubsub_connection:
-            logging.info(json.dumps(data))
-            self._pubsub_connection.publish(self.cid + ":" + "PERF", json.dumps(data))
+    def _terminate_tracker(self):
+        self._tracker.terminate()
 
     def _start(self):
         self._start_connection()
 
-        # auto-start perf tracker
-        if 'tracker.autostart' in self.properties:
-            autostart = self.properties['tracker.autostart']
-            if autostart:
-                self._start_tracker()
+        # init tracker
+        self._init_tracker()
 
         # if agent is associated with a session
         if self.session:
@@ -569,6 +540,11 @@ class AgentFactory:
         for p in properties:
             self.properties[p] = properties[p]
 
+        # override agent factory idle tracker expiration
+        # to never expire, as platform streams that agent
+        # factories listen to are long running streams
+        self.properties['consumer.expiration'] = None
+
     ###### database, data
     def _start_connection(self):
         self.connection_factory = PooledConnectionFactory(properties=self.properties)
@@ -643,7 +619,7 @@ class AgentFactory:
                 properties_from_api = message.getArg("properties")
                 properties_from_factory = self.properties
                 agent_properties = {}
-                agent_properties = json_utils.merge_json(agent_properties, properties_from_factory)
+                # agent_properties = json_utils.merge_json(agent_properties, properties_from_factory)
                 agent_properties = json_utils.merge_json(agent_properties, properties_from_api)
                 input = None
 
