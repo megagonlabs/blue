@@ -49,7 +49,7 @@ class Tracker:
             print(ex)
 
     def collect(self):
-        return {"id": self.id, "pid": os.getpid(), "epoch": int(time.time()), "date": str(datetime.now())}
+        return {"id": self.id, "pid": os.getpid(), "epoch": int(time.time())}
 
     def track(self):
         data = self.collect()
