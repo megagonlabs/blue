@@ -206,6 +206,7 @@ class Agent:
         worker = Worker(
             input_stream,
             input=input,
+            name=self.name + "-WORKER",
             prefix=p,
             agent=self,
             processor=processor,

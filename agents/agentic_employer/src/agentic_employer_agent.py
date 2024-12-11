@@ -400,6 +400,13 @@ class AgenticEmployerAgent(Agent):
         summary_plan = [
             [self.name + ".SQ", summarizer + ".DEFAULT"]
         ]
+        # DEMO
+        if list_code == "new":
+            summary_plan = [
+                [self.name + ".SQ", "SUMMARIZER_RECENTP1" + ".DEFAULT"],
+                [self.name + ".SQ", "SUMMARIZER_RECENTP2" + ".DEFAULT"],
+                [self.name + ".SQ", "SUMMARIZER_RECENTP3" + ".DEFAULT"]
+            ]
 
         # write query to stream
         query_stream = self.write_to_new_stream(worker, query, "SQ", tags=["HIDDEN"], id=id)

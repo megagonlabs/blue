@@ -25,8 +25,12 @@ class Tracker:
         self._stop_tracker()
 
     def _run_tracker(self):
+        # default period, 60 secs
+        period = 60.0
+        if 'tracker.period' in self.properties:
+            period = self.properties['tracker.period']
         if self.state == "RUNNING":
-            self.timer = thread = threading.Timer(4, lambda: self._run_tracker())
+            self.timer = thread = threading.Timer(period, lambda: self._run_tracker())
             thread.name = "Thread-" + self.__class__.__name__ + "-" + self.id
             self.track()
             thread.start()
@@ -70,9 +74,9 @@ class Tracker:
                     level = getattr(logging, level)
 
                 logging.log(level, json.dumps(data, indent=indent))
-        else:
-            if self.callback:
-                self.callback(data)
+
+        if self.callback:
+            self.callback(data)
 
 
 class PerformanceTracker(Tracker):
