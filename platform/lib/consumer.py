@@ -16,6 +16,7 @@ import random
 import re
 import csv
 import json
+import copy
 
 import itertools
 import pydash
@@ -35,7 +36,21 @@ logging.basicConfig(format="%(asctime)s [%(levelname)s] [%(process)d:%(threadNam
 ###### Blue
 from message import Message, MessageType, ContentType, ControlCode
 from connection import PooledConnectionFactory
+from tracker import Tracker
 
+class ConsumerIdleTracker(Tracker):
+    def __init__(self, consumer, properties=None, callback=None):
+        self.consumer = consumer
+        super().__init__(consumer.sid, properties=properties, callback=callback)
+
+    def collect(self):
+        data = super().collect()
+
+        # add last active time
+        data["last_active"] = self.consumer.last_processed
+
+        return data
+    
 class Consumer:
     def __init__(self, stream, name="STREAM", id=None, sid=None, cid=None, prefix=None, suffix=None, listener=None, properties={}, on_stop=None):
 
@@ -73,6 +88,9 @@ class Consumer:
 
         self.on_stop = on_stop
         self.threads = []
+
+        # last processed
+        self.last_processed = None
 
         # for pairing mode
         # self.pairer_task = None
@@ -133,6 +151,38 @@ class Consumer:
     #         right_queue.task_done()
 
     ####### open connection, create group, start threads
+    def _extract_epoch(self, id):
+        e = id.split("-")[0]
+        return int(int(e) / 1000)
+
+    def _idle_tracker_callback(self, data):
+        logging.info(data)
+        
+        expiration = 600 # 10 minutes
+        if "tracker.idle.expiration" in self.properties:
+            expiration = self.properties['tracker.idle.expiration']
+
+        # expire?
+        if data['last_active']:
+            if data['last_active'] + expiration < data['epoch']:
+                logging.info("Expired Consumer: " + self.cid)
+                self._stop() 
+
+    def _start_tracker(self):
+        # start tracker
+        tracker_properties = copy.deepcopy(self.properties)
+        if 'tracker.idle.period' in tracker_properties:
+            tracker_properties['tracker.period'] = tracker_properties['tracker.idle.period']
+
+        # callback to publish
+        callback = lambda *args, **kwargs,: self._idle_tracker_callback(*args, **kwargs)
+        
+        self._tracker = ConsumerIdleTracker(self, properties=tracker_properties, callback=callback)
+        self._tracker.start()
+
+    def _terminate_tracker(self):
+        self._tracker.terminate()
+
     def start(self):
 
         # logging.info("Starting consumer {c} for stream {s}".format(c=self.sid,s=self.stream))
@@ -144,12 +194,18 @@ class Consumer:
 
         self._start_threads()
 
+        self._start_tracker()
+
         # logging.info("Started consumer {c} for stream {s}".format(c=self.sid, s=self.stream))
 
     def stop(self):
+        self._terminate_tracker()
+
         self.stop_signal = True 
 
     def _stop(self):
+        self._terminate_tracker()
+
         self.stop_signal = True 
 
         if self.on_stop:
@@ -160,6 +216,7 @@ class Consumer:
             t.join()
 
     def _start_connection(self):
+       
         self.connection_factory = PooledConnectionFactory(properties=self.properties)
         self.connection = self.connection_factory.get_connection()
 
@@ -247,7 +304,8 @@ class Consumer:
                     message.setStream(s)
                     # await self.response_handler(message)
                     self.listener(message)
-                    #
+                    # last processed
+                    self.last_processed = self._extract_epoch(id)
 
                     # ack
                     r.xack(s, g, id)
@@ -271,6 +329,8 @@ class Consumer:
                 message.setStream(s)
                 # await self.response_handler(message)
                 self.listener(message)
+                # last processed
+                self.last_processed = self._extract_epoch(id)
 
                 # occasionally throw exception (for testing failed threads)
                 # if random.random() > 0.5:
