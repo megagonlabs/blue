@@ -37,6 +37,7 @@ import {
     faSearch,
     faUser,
     faUserGroup,
+    faWavePulse,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import _ from "lodash";
 import Image from "next/image";
@@ -63,6 +64,7 @@ export default function App({ children }) {
         [sessionDetails]
     );
     const { user, permissions, settings } = useContext(AuthContext);
+    const userRole = _.get(user, "role", null);
     const compactSidebar = _.get(settings, "compact_sidebar", false);
     const sidebarWidth = compactSidebar ? 80 : NAVIGATION_MENU_WIDTH;
     const {
@@ -169,6 +171,12 @@ export default function App({ children }) {
             text: "Agents",
             icon: ENTITY_TYPE_LOOKUP.agent.icon,
             visible: canReadPlatformAgents,
+        },
+        admin_status: {
+            href: "/admin/status",
+            text: "Status",
+            icon: faWavePulse,
+            visible: _.isEqual(userRole, "admin"),
         },
     };
     const NUMBER_TO_ICON = {
@@ -568,6 +576,7 @@ export default function App({ children }) {
                                 className="full-parent-width"
                             >
                                 {[
+                                    "admin_status",
                                     "admin_services",
                                     "admin_agents",
                                     "admin_users",

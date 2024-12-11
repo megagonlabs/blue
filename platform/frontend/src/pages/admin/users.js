@@ -12,6 +12,7 @@ import {
     Card,
     Classes,
     Divider,
+    H4,
     Intent,
     NonIdealState,
     Tooltip,
@@ -155,10 +156,16 @@ export default function Users() {
                     borderRadius: 0,
                     position: "relative",
                     zIndex: 1,
+                    cursor: "default",
                 }}
             >
                 <ButtonGroup large minimal>
-                    <Tooltip placement="bottom-start" minimal content="Refresh">
+                    <Button
+                        disabled
+                        style={{ cursor: "default" }}
+                        text={<H4 className="margin-0">Users</H4>}
+                    />
+                    <Tooltip placement="bottom" minimal content="Refresh">
                         <Button
                             onClick={fetchUserList}
                             loading={loading}

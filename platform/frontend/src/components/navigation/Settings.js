@@ -74,6 +74,14 @@ const APPEARANCE_SETTINGS = {
         icon: faSidebar,
     },
 };
+const DEVELOPER_SETTINGS = {
+    debug_mode: {
+        title: "Debugger",
+        description:
+            "Show data inspection tool and other debugging information",
+        icon: faBug,
+    },
+};
 export default function Settings({ isOpen, setIsSettingsOpen }) {
     const { settings, updateSettings } = useContext(AuthContext);
     return (
@@ -242,35 +250,53 @@ export default function Settings({ isOpen, setIsSettingsOpen }) {
                 >
                     <SectionCard padded={false}>
                         <Menu className="settings-menus" large>
-                            <MenuItem
-                                text={
-                                    <div style={{ marginLeft: 3 }}>
-                                        <div>Debug mode</div>
-                                        <div {...EXPLANATION_TEXT}>
-                                            Show data inspection tool and other
-                                            debugging information
+                            {["debug_mode"].map((key) => (
+                                <MenuItem
+                                    key={key}
+                                    text={
+                                        <div style={{ marginLeft: 3 }}>
+                                            <div>
+                                                {_.get(
+                                                    DEVELOPER_SETTINGS,
+                                                    [key, "title"],
+                                                    "-"
+                                                )}
+                                            </div>
+                                            <div {...EXPLANATION_TEXT}>
+                                                {_.get(
+                                                    DEVELOPER_SETTINGS,
+                                                    [key, "description"],
+                                                    "-"
+                                                )}
+                                            </div>
                                         </div>
-                                    </div>
-                                }
-                                icon={faIcon({ icon: faBug })}
-                                labelElement={
-                                    <Switch
-                                        checked={_.get(
-                                            settings,
-                                            "debug_mode",
-                                            false
-                                        )}
-                                        style={{ marginBottom: 0 }}
-                                        large
-                                        onChange={(event) => {
-                                            updateSettings(
-                                                "debug_mode",
-                                                event.target.checked
-                                            );
-                                        }}
-                                    />
-                                }
-                            />
+                                    }
+                                    icon={faIcon({
+                                        icon: _.get(
+                                            DEVELOPER_SETTINGS,
+                                            [key, "icon"],
+                                            null
+                                        ),
+                                    })}
+                                    labelElement={
+                                        <Switch
+                                            checked={_.get(
+                                                settings,
+                                                key,
+                                                false
+                                            )}
+                                            style={{ marginBottom: 0 }}
+                                            large
+                                            onChange={(event) => {
+                                                updateSettings(
+                                                    key,
+                                                    event.target.checked
+                                                );
+                                            }}
+                                        />
+                                    }
+                                />
+                            ))}
                         </Menu>
                     </SectionCard>
                 </Section>
