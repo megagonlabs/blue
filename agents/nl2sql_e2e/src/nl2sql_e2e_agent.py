@@ -113,8 +113,12 @@ class Nl2SqlE2EAgent(OpenAIAgent):
         # register all sources for Data Discovery only if source is not provided in the properties
         if "nl2q.source" in self.properties:
             self.selected_source = self.properties["nl2q.source"]
+            self.selected_database = None
+            if "nl2q.source.database" in self.properties:
+                self.selected_database = self.properties['nl2q.source.database']
+
             source_properties = self.registry.get_source_properties(self.selected_source)
-            self._add_sources_schema(self.selected_source, source_properties)
+            self._add_sources_schema(self.selected_source, source_properties, database=self.selected_database)
             self.selected_source_protocol = source_properties['connection']['protocol']
         else:
             for source in self.registry.get_sources():
@@ -127,7 +131,7 @@ class Nl2SqlE2EAgent(OpenAIAgent):
         for key in agent_properties:
             self.properties[key] = agent_properties[key]
 
-    def _add_sources_schema(self, source, properties):
+    def _add_sources_schema(self, source, properties, database=None):
         if ('connection' not in properties) or (properties['connection']['protocol'] not in self.properties["nl2q.protocols"]):
             return
         source_connection = self.registry.connect_source(source)
@@ -135,6 +139,9 @@ class Nl2SqlE2EAgent(OpenAIAgent):
             databases = self.registry.get_source_databases(source)
             
             for db in databases:  # TODO: remove LLM data discovery
+                if database:
+                    if db['name'] != database:
+                        continue
                 try:
                     db = db['name']
                     #note: collection refers to table in mysql
