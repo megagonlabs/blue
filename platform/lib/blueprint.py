@@ -100,7 +100,7 @@ class Platform:
 
         # tracking for platform
         self.properties['tracker.perf.platform.outputs'] = ["pubsub", "log.INFO"]
-        self.properties['tracker.perf.platform.period'] = 20
+        self.properties['tracker.perf.platform.period'] = 10
 
     def _update_properties(self, properties=None):
         if properties is None:
@@ -248,7 +248,7 @@ class Platform:
         pass
 
     def _init_tracker(self):
-        self._tracker = PlatformPerformanceTracker(self, properties=self.properties, callback= lambda *args, **kwargs: self.perf_tracker_callback(*args, **kwargs) )
+        self._tracker = PlatformPerformanceTracker(self, properties=self.properties, callback=lambda *args, **kwargs: self.perf_tracker_callback(*args, **kwargs))
 
     def _start_tracker(self):
         # start tracker

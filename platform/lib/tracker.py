@@ -16,6 +16,7 @@ from producer import Producer
 from message import Message, MessageType, ContentType, ControlCode
 from connection import PooledConnectionFactory
 
+
 class Tracker:
 
     def __init__(self, name="TRACKER", id=None, sid=None, cid=None, prefix=None, suffix=None, properties=None, inheritance=None, callback=None):
@@ -96,14 +97,13 @@ class Tracker:
         # inherit properties from inheritance
         path = "tracker"
         for parent in inheritance:
-            pp = path + "." + parent 
+            pp = path + "." + parent
             for inherited_property in inherited_properties:
                 to_p = "tracker" + "." + inherited_property
                 from_p = pp + "." + inherited_property
                 if from_p in self.properties:
                     self.properties[to_p] = self.properties[from_p]
             path = pp
-
 
     def _auto_start(self):
         if 'tracker.autostart' in self.properties:
@@ -118,7 +118,7 @@ class Tracker:
 
         # create outputs
         outputs = []
-    
+
         if 'tracker.outputs' in self.properties:
             outputs = self.properties['tracker.outputs']
 
@@ -126,7 +126,7 @@ class Tracker:
             outputs = [outputs]
 
         self.outputs = outputs
-        
+
         if "stream" in set(self.outputs):
             self._start_connection()
             # create stream producer
@@ -190,9 +190,9 @@ class Tracker:
 
     def get_current_epoch(self):
         return int(time.time())
-    
+
     def collect(self):
-        return { "id": self.id, "name": self.name, "cid": self.cid, "pid": os.getpid(), "state": self.state, "epoch": self.get_current_epoch(), "started": self.started }
+        return {"id": self.id, "name": self.name, "cid": self.cid, "pid": os.getpid(), "state": self.state, "epoch": self.get_current_epoch(), "started": self.started}
 
     def track(self):
         data = self.collect()
@@ -244,7 +244,7 @@ class PerformanceTracker(Tracker):
             data["threads"][id] = {"name": name, "id": id, "daemon": daemon, "alive": alive}
 
         return data
-    
+
 
 class SystemPerformanceTracker(Tracker):
     def __init__(self, properties=None, callback=None):
@@ -265,7 +265,7 @@ class SystemPerformanceTracker(Tracker):
         data["cpu.cpu_times.user"] = cpu_times.user
         data["cpu.cpu_times.system"] = cpu_times.system
         data["cpu.cpu_times.idle"] = cpu_times.idle
-        
+
         # memory
         virtual_memory = psutil.virtual_memory()
         data["memory.virtual.total"] = virtual_memory.total
@@ -278,49 +278,37 @@ class SystemPerformanceTracker(Tracker):
         pids = psutil.pids()
         data["num_processes"] = len(pids)
 
-
         # process info
         data["processes"] = {}
         for pid in pids:
+            process = psutil.Process(pid)
+            process_info = {"pid": process.pid, "name": process.name(), "status": process.status(), "started": int(process.create_time())}
+            data["processes"][process.pid] = process_info
+
             try:
-            
-                process = psutil.Process(pid)
-                process_info = {
-                    "pid": process.pid, 
-                    "name": process.name(),
-                    "status": process.status(),
-                    "started": int(process.create_time())
-                }
-                data["processes"][process.pid] = process_info
+                # cpu
+                process_info["cpu.percent"] = process.cpu_percent()
+                process_info["cpu.num"] = process.cpu_num()
+                cpu_times = process.cpu_times()
+                process_info["cpu.cpu_times.user"] = cpu_times.user
+                process_info["cpu.cpu_times.system"] = cpu_times.system
+
+                # memory
+                process_info["memory.percent"] = process.memory_percent()
+                memory_info = process.memory_info()
+                process_info["memory.rss"] = memory_info.rss
+                process_info["memory.vms"] = memory_info.vms
+                process_info["memory.shared"] = memory_info.shared
+
+                # threads
+                process_info["num_threads"] = process.num_threads()
+
+                threads = process.threads()
+                process_info["threads"] = {}
+                for thread in threads:
+                    thread_info = {"id": thread.id, "user_time": thread.user_time, "system_time": thread.system_time}
+                    process_info["threads"][thread.id] = thread_info
             except:
-                continue
+                pass
 
-            # cpu
-            process_info["cpu.percent"] = process.cpu_percent()
-            process_info["cpu.num"] = process.cpu_num()
-            cpu_times = process.cpu_times()
-            process_info["cpu.cpu_times.user"] = cpu_times.user
-            process_info["cpu.cpu_times.system"] = cpu_times.system
-
-            # memory
-            process_info["memory.percent"] = process.memory_percent()
-            memory_info = process.memory_info()
-            process_info["memory.rss"] = memory_info.rss
-            process_info["memory.vms"] = memory_info.vms
-            process_info["memory.shared"] = memory_info.shared
-
-
-            # threads
-            process_info["num_threads"] = process.num_threads()
-
-            threads = process.threads()
-            process_info["threads"] = {}
-            for thread in threads:
-                thread_info = {
-                    "id": thread.id,
-                    "user_time": thread.user_time,
-                    "system_time": thread.system_time
-                }
-                process_info["threads"][thread.id] = thread_info
-        
         return data
