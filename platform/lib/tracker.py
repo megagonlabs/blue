@@ -15,7 +15,7 @@ from connection import PooledConnectionFactory
 
 class Tracker:
 
-    def __init__(self, name="TRACKER", id=None, sid=None, cid=None, prefix=None, suffix=None, properties=None, callback=None):
+    def __init__(self, name="TRACKER", id=None, sid=None, cid=None, prefix=None, suffix=None, properties=None, inheritance=None, callback=None):
 
         self.name = name
         if id:
@@ -48,6 +48,7 @@ class Tracker:
         self.connection = None
         self._producer = None
 
+        self.inheritance = inheritance
         self._initialize(properties=properties)
 
         # auto start, optionally
@@ -79,6 +80,26 @@ class Tracker:
         # override
         for p in properties:
             self.properties[p] = properties[p]
+
+        # inherit properties
+        inheritance = self.inheritance
+        if inheritance is None:
+            inheritance = []
+        else:
+            inheritance = inheritance.split(".")
+
+        inherited_properties = ["autostart", "outputs", "output.indent", "period", "expiration"]
+
+        # inherit properties from inheritance
+        path = "tracker"
+        for parent in inheritance:
+            pp = path + "." + parent 
+            for inherited_property in inherited_properties:
+                to_p = "tracker" + "." + inherited_property
+                from_p = pp + "." + inherited_property
+                if from_p in self.properties:
+                    self.properties[to_p] = self.properties[from_p]
+            path = pp
 
 
     def _auto_start(self):
@@ -145,7 +166,7 @@ class Tracker:
 
         if period and self.state == "RUNNING":
             self.timer = thread = threading.Timer(period, lambda: self._run_tracker())
-            thread.name = "Thread-" + self.__class__.__name__ + "-" + self.id
+            thread.name = "Thread-" + self.__class__.__name__ + "-" + self.cid
             self.track()
             thread.start()
 
@@ -201,8 +222,8 @@ class Tracker:
 
 
 class PerformanceTracker(Tracker):
-    def __init__(self, prefix=None, properties=None, callback=None):
-        super().__init__(id="PERF", prefix=prefix, properties=properties, callback=callback)
+    def __init__(self, prefix=None, properties=None, inheritance=None, callback=None):
+        super().__init__(id="PERF", prefix=prefix, properties=properties, inheritance=inheritance, callback=callback)
 
     def collect(self):
         data = super().collect()

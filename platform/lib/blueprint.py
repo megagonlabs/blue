@@ -35,7 +35,7 @@ def create_uuid():
 class PlatformPerformanceTracker(PerformanceTracker):
     def __init__(self, platform, properties=None, callback=None):
         self.platform = platform
-        super().__init__(prefix=platform.cid, properties=properties, callback=callback)
+        super().__init__(prefix=platform.cid, properties=properties, inheritance="perf.platform", callback=callback)
 
     def collect(self):
         data = super().collect()
@@ -99,8 +99,8 @@ class Platform:
         self.properties['db.port'] = 6379
 
         # tracking for platform
-        self.properties['tracker.outputs'] = ["pubsub", "log.INFO"]
-        self.properties['tracker.period'] = 60
+        self.properties['tracker.perf.platform.outputs'] = ["pubsub", "log.INFO"]
+        self.properties['tracker.perf.platform.period'] = 20
 
     def _update_properties(self, properties=None):
         if properties is None:

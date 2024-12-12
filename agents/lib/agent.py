@@ -42,7 +42,7 @@ def create_uuid():
 class AgentPerformanceTracker(PerformanceTracker):
     def __init__(self, agent, properties=None, callback=None):
         self.agent = agent
-        super().__init__(prefix=agent.cid, properties=properties, callback=callback)
+        super().__init__(prefix=agent.cid, properties=properties, inheritance="perf.platform.agent", callback=callback)
 
     def collect(self): 
         data = super().collect()
@@ -68,11 +68,24 @@ class AgentPerformanceTracker(PerformanceTracker):
                     stream = worker.consumer.stream
             data["workers"][worker.sid] = { "name": worker.name, "cid": worker.cid, "stream": stream}
 
+        return data
+    
+class AgentFactoryPerformanceTracker(PerformanceTracker):
+    def __init__(self, agent_factory, properties=None, callback=None):
+        self.agent_factory = agent_factory
+        super().__init__(prefix=agent_factory.cid, properties=properties, inheritance="perf.platform.agentfactory", callback=callback)
+
+    def collect(self): 
+        data = super().collect()
+
+        # agent info
+        # TBD
+    
         # db connection
-        data["connection_factory_id"] = self.agent.connection_factory.get_id()
-        data["num_created_connections"] = self.agent.connection_factory.count_created_connections()
-        data["num_in_use_connections"] = self.agent.connection_factory.count_in_use_connections()
-        data["num_available_connections"] = self.agent.connection_factory.count_available_connections()
+        data["connection_factory_id"] = self.agent_factory.connection_factory.get_id()
+        data["num_created_connections"] = self.agent_factory.connection_factory.count_created_connections()
+        data["num_in_use_connections"] = self.agent_factory.connection_factory.count_in_use_connections()
+        data["num_available_connections"] = self.agent_factory.connection_factory.count_available_connections()
 
         return data
     
@@ -170,9 +183,10 @@ class Agent:
         tags["DEFAULT"] = default_tags
 
         # perf tracker
-        self.properties["tracker.autostart"] = False
-        self.properties["tracker.outputs"] = ["log.INFO"]
-        # consumer streams expire 
+        self.properties["tracker.perf.platform.agent.autostart"] = False
+        self.properties["tracker.perf.platform.agent.outputs"] = ["log.INFO"]
+
+        # let consumer streams expire 
         self.properties["consumer.expiration"] = 600 #10 minutes
 
 
@@ -222,7 +236,8 @@ class Agent:
         return worker
 
     def on_worker_stop_handler(self, worker_sid):
-        del self.workers[worker_sid]
+        if worker_sid in self.workers:
+            del self.workers[worker_sid]
 
     ###### default processor, override
     def default_processor(
@@ -431,7 +446,7 @@ class Agent:
     def get_data_len(self, key):
         return self.session.get_agent_data_len(self, key)
 
-    def perf_tracker_callback(self, dat, properties=None):
+    def perf_tracker_callback(self, data, properties=None):
         pass
 
     def _init_tracker(self):
@@ -511,12 +526,19 @@ class AgentFactory:
 
         self.platform = platform
 
+        self.name = "AGENT_FACTORY"
+        self.id = self._name 
+        self.sid = self.name + ":" + self.id
+
+        self.prefix = self.platform
+        self.cid = self.prefix + ":" + self.sid
+
         self._initialize(properties=properties)
 
         self.platform_consumer = None
 
         # creation time
-        self.ct = math.floor(time.time_ns() / 1000000)
+        self.started = int(time.time()) #math.floor(time.time_ns() / 1000000)
 
         self._start()
 
@@ -531,6 +553,13 @@ class AgentFactory:
         # db connectivity
         self.properties["db.host"] = "localhost"
         self.properties["db.port"] = 6379
+
+        # perf tracker
+        self.properties["tracker.perf.platform.agentfactory.autostart"] = True
+        self.properties["tracker.perf.platform.agentfactory.outputs"] = ["log.INFO", "pubsub"]
+
+        # no consumer idle tracking
+        self.properties['tracker.idle.consumer.autostart'] = False
 
     def _update_properties(self, properties=None):
         if properties is None:
@@ -557,8 +586,27 @@ class AgentFactory:
         instanz = klasse(**kwargs)
         return instanz
 
+    def perf_tracker_callback(self, data, properties=None):
+        pass
+
+    def _init_tracker(self):
+        self._tracker = AgentFactoryPerformanceTracker(self, properties=self.properties, callback= lambda *args, **kwargs: self.perf_tracker_callback(*args, **kwargs) )
+
+    def _start_tracker(self):
+        # start tracker
+        self._tracker.start()
+
+    def _stop_tracker(self):
+        self._tracker.stop()
+
+    def _terminate_tracker(self):
+        self._tracker.terminate()
+
     def _start(self):
         self._start_connection()
+
+        # init tracker
+        self._init_tracker()
 
         self._start_consumer()
         logging.info(
@@ -583,6 +631,10 @@ class AgentFactory:
         )
         self.platform_consumer.start()
 
+    def _extract_epoch(self, id):
+        e = id.split("-")[0]
+        return int(int(e) / 1000)
+    
     def platform_listener(self, message):
         # listen to platform stream
 
@@ -590,10 +642,10 @@ class AgentFactory:
         id = message.getID()
 
         # only process newer instructions
-        mt = int(id.split("-")[0])
+        message_time = self._extract_epoch(id)
 
         # ignore past instructions
-        if mt < self.ct:
+        if message_time < self.started:
             return
 
         # check if join session
@@ -617,7 +669,7 @@ class AgentFactory:
 
                 # start with factory properties, merge properties from API call
                 properties_from_api = message.getArg("properties")
-                properties_from_factory = self.properties
+                # properties_from_factory = self.properties
                 agent_properties = {}
                 # agent_properties = json_utils.merge_json(agent_properties, properties_from_factory)
                 agent_properties = json_utils.merge_json(agent_properties, properties_from_api)

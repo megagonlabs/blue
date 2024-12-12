@@ -18,7 +18,7 @@ connection: Redis = PooledConnectionFactory(properties={'db.host': PROPERTIES["d
 @router.get("/platform")
 async def stream_data(request: Request):
     pubsub = connection.pubsub()
-    pubsub.subscribe(f'PLATFORM:{platform_id}:PERF')
+    pubsub.subscribe(f'PLATFORM:{platform_id}:TRACKER:PERF')
 
     async def generate(should_stop):
         while True:

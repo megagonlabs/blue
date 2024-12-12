@@ -41,7 +41,17 @@ from tracker import Tracker
 class ConsumerIdleTracker(Tracker):
     def __init__(self, consumer, properties=None, callback=None):
         self.consumer = consumer
-        super().__init__(id="IDLE", prefix=consumer.sid, properties=properties, callback=callback)
+        super().__init__(id="IDLE", prefix=consumer.sid, properties=properties, inheritance="idle.consumer", callback=callback)
+
+    def _initialize_properties(self):
+        super()._initialize_properties()
+
+        # tracking defaults
+        self.properties['tracker.idle.consumer.autostart'] = True
+        self.properties['tracker.idle.consumer.outputs'] = []
+        self.properties['tracker.idle.consumer.period'] = 60
+
+
 
     def collect(self):
         data = super().collect()
