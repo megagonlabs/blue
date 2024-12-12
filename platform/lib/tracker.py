@@ -282,14 +282,18 @@ class SystemPerformanceTracker(Tracker):
         # process info
         data["processes"] = {}
         for pid in pids:
-            process = psutil.Process(pid)
-            process_info = {
-                "pid": process.pid, 
-                "name": process.name(),
-                "status": process.status(),
-                "started": int(process.create_time())
-            }
-            data["processes"][process.pid] = process_info
+            try:
+            
+                process = psutil.Process(pid)
+                process_info = {
+                    "pid": process.pid, 
+                    "name": process.name(),
+                    "status": process.status(),
+                    "started": int(process.create_time())
+                }
+                data["processes"][process.pid] = process_info
+            except:
+                continue
 
             # cpu
             process_info["cpu.percent"] = process.cpu_percent()
