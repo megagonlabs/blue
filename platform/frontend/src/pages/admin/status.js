@@ -16,6 +16,7 @@ import {
 } from "@blueprintjs/core";
 import {
     faCircleDot,
+    faCircleSmall,
     faClipboard,
     faCopy,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
@@ -271,7 +272,14 @@ export default function Status() {
                             interactionKind={PopoverInteractionKind.CLICK}
                             placement="bottom-start"
                             content={
-                                <div style={{ padding: 15 }}>
+                                <div
+                                    style={{
+                                        padding: 15,
+                                        maxWidth: 360,
+                                        maxHeight: 360,
+                                        overflowY: "auto",
+                                    }}
+                                >
                                     {threads.map((thread, index) => (
                                         <div
                                             key={index}
@@ -283,7 +291,21 @@ export default function Status() {
                                             }}
                                         >
                                             {index > 0 && <Divider />}
-                                            <div style={{ marginBottom: 5 }}>
+                                            <div
+                                                style={{
+                                                    marginBottom: 5,
+                                                    display: "flex",
+                                                    gap: 5,
+                                                }}
+                                            >
+                                                {faIcon({
+                                                    icon: faCircleSmall,
+                                                    style: {
+                                                        color: thread.alive
+                                                            ? Colors.GREEN3
+                                                            : Colors.RED3,
+                                                    },
+                                                })}
                                                 {_.get(thread, "name", "-")}
                                             </div>
                                             <div
@@ -296,14 +318,6 @@ export default function Status() {
                                                 <Tag minimal>
                                                     ID:&nbsp;{thread.id}
                                                 </Tag>
-                                                {thread.alive && (
-                                                    <Tag
-                                                        minimal
-                                                        intent={Intent.SUCCESS}
-                                                    >
-                                                        alive
-                                                    </Tag>
-                                                )}
                                                 {thread.daemon && (
                                                     <Tag
                                                         minimal
