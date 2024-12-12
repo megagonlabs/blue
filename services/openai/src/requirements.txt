@@ -25,6 +25,7 @@ openai==1.2.0
 python-engineio==4.4.1
 python-socketio==5.8.0
 rpyc==6.0.0
+psutil==6.1.0
 pydash==7.0.6
 redis==5.2.0
 requests==2.31.0

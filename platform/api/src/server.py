@@ -4,6 +4,7 @@ import signal
 from contextlib import asynccontextmanager
 from curses import noecho
 import sys
+import copy
 import logging
 import pydash
 import redis
@@ -50,6 +51,7 @@ from agent_registry import AgentRegistry
 from data_registry import DataRegistry
 from model_registry import ModelRegistry
 from operator_registry import OperatorRegistry
+from tracker import SystemPerformanceTracker
 
 ### Assign from platform properties
 platform_id = PROPERTIES["platform.name"]
@@ -100,6 +102,11 @@ allowed_origins = ["http://localhost:3000", "http://localhost:3001", "http://loc
 def handle_signal(signum, frame):
     should_stop.set()
 
+# global system tracker
+system_tracker_properties = copy.deepcopy(PROPERTIES)
+system_tracker_properties["tracker.perf.system.autostart"] = True
+system_tracker_properties["tracker.perf.system.outputs"] = ["log.INFO", "pubsub"]
+system_tracker = SystemPerformanceTracker(properties=system_tracker_properties)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):

@@ -13,6 +13,7 @@ redis==5.2.0
 psycopg2-binary==2.9.6
 mysql-connector-python
 rpyc==6.0.0
+psutil==6.1.0
 pydash==7.0.6
 huggingface-hub==0.25.1
 sentence_transformers==2.2.2
@@ -23,3 +24,4 @@ websockets==11.0.3
 firebase-admin==6.5.0
 jsonschema==4.21.1
 casbin==1.36.3
+psutil==6.1.0

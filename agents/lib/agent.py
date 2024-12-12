@@ -34,10 +34,13 @@ from session import Session
 from worker import Worker
 from message import Message, MessageType, ContentType, ControlCode
 from connection import PooledConnectionFactory
-from tracker import PerformanceTracker
+from tracker import PerformanceTracker, SystemPerformanceTracker
 
 def create_uuid():
     return str(hex(uuid.uuid4().fields[0]))[2:]
+
+# system tracker
+system_tracker = None
 
 class AgentPerformanceTracker(PerformanceTracker):
     def __init__(self, agent, properties=None, callback=None):
@@ -558,6 +561,10 @@ class AgentFactory:
         self.properties["tracker.perf.platform.agentfactory.autostart"] = True
         self.properties["tracker.perf.platform.agentfactory.outputs"] = ["log.INFO", "pubsub"]
 
+        # system perf tracker
+        self.properties["tracker.perf.system.autostart"] = True
+        self.properties["tracker.perf.system.outputs"] = ["log.INFO", "pubsub"]
+       
         # no consumer idle tracking
         self.properties['tracker.idle.consumer.autostart'] = False
 
@@ -590,7 +597,12 @@ class AgentFactory:
         pass
 
     def _init_tracker(self):
+        # agent factory perf tracker
         self._tracker = AgentFactoryPerformanceTracker(self, properties=self.properties, callback= lambda *args, **kwargs: self.perf_tracker_callback(*args, **kwargs) )
+
+        # system tracker
+        global system_tracker 
+        system_tracker = SystemPerformanceTracker(properties=self.properties)
 
     def _start_tracker(self):
         # start tracker

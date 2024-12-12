@@ -20,6 +20,7 @@ python-socketio==5.8.0
 jsonmerge==1.9.2
 jsonpath_ng==1.5.3
 rpyc==6.0.0
+psutil==6.1.0
 pydash==7.0.6
 redis==5.2.0
 six==1.16.0

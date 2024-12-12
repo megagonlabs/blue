@@ -8,6 +8,9 @@ import json
 import logging
 import uuid
 
+import psutil
+import socket
+
 ###### Blue
 from producer import Producer
 from message import Message, MessageType, ContentType, ControlCode
@@ -240,4 +243,80 @@ class PerformanceTracker(Tracker):
             alive = thread.is_alive()
             data["threads"][id] = {"name": name, "id": id, "daemon": daemon, "alive": alive}
 
+        return data
+    
+
+class SystemPerformanceTracker(Tracker):
+    def __init__(self, properties=None, callback=None):
+        super().__init__(id="PERF", prefix="SYSTEM:" + socket.gethostname(), properties=properties, inheritance="perf.system", callback=callback)
+
+    def collect(self):
+        data = super().collect()
+
+        # cpu
+        data["cpu.percent"] = psutil.cpu_percent()
+        data["cpu.count"] = psutil.cpu_count()
+        data["cpu.freq"] = psutil.cpu_freq().current
+        cpu_load = psutil.getloadavg()
+        data["cpu.load_average.1min"] = cpu_load[0]
+        data["cpu.load_average.5min"] = cpu_load[1]
+        data["cpu.load_average.15min"] = cpu_load[2]
+        cpu_times = psutil.cpu_times()
+        data["cpu.cpu_times.user"] = cpu_times.user
+        data["cpu.cpu_times.system"] = cpu_times.system
+        data["cpu.cpu_times.idle"] = cpu_times.idle
+        
+        # memory
+        virtual_memory = psutil.virtual_memory()
+        data["memory.virtual.total"] = virtual_memory.total
+        data["memory.virtual.available"] = virtual_memory.available
+        data["memory.virtual.percent"] = virtual_memory.percent
+        data["memory.virtual.used"] = virtual_memory.used
+        data["memory.virtual.free"] = virtual_memory.free
+
+        # add num processes
+        pids = psutil.pids()
+        data["num_processes"] = len(pids)
+
+
+        # process info
+        data["processes"] = {}
+        for pid in pids:
+            process = psutil.Process(pid)
+            process_info = {
+                "pid": process.pid, 
+                "name": process.name(),
+                "status": process.status(),
+                "started": int(process.create_time())
+            }
+            data["processes"][process.pid] = process_info
+
+            # cpu
+            process_info["cpu.percent"] = process.cpu_percent()
+            process_info["cpu.num"] = process.cpu_num()
+            cpu_times = process.cpu_times()
+            process_info["cpu.cpu_times.user"] = cpu_times.user
+            process_info["cpu.cpu_times.system"] = cpu_times.system
+
+            # memory
+            process_info["memory.percent"] = process.memory_percent()
+            memory_info = process.memory_info()
+            process_info["memory.rss"] = memory_info.rss
+            process_info["memory.vms"] = memory_info.vms
+            process_info["memory.shared"] = memory_info.shared
+
+
+            # threads
+            process_info["num_threads"] = process.num_threads()
+
+            threads = process.threads()
+            process_info["threads"] = {}
+            for thread in threads:
+                thread_info = {
+                    "id": thread.id,
+                    "user_time": thread.user_time,
+                    "system_time": thread.system_time
+                }
+                process_info["threads"][thread.id] = thread_info
+        
         return data
