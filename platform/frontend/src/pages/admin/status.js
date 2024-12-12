@@ -1,4 +1,5 @@
 import { faIcon } from "@/components/icon";
+import { AppToaster } from "@/components/toaster";
 import {
     Button,
     ButtonGroup,
@@ -8,9 +9,18 @@ import {
     Divider,
     H4,
     H5,
+    Intent,
+    Popover,
+    PopoverInteractionKind,
     Tag,
 } from "@blueprintjs/core";
-import { faCircleDot } from "@fortawesome/sharp-duotone-solid-svg-icons";
+import {
+    faCircleDot,
+    faClipboard,
+    faCopy,
+} from "@fortawesome/sharp-duotone-solid-svg-icons";
+import classNames from "classnames";
+import copy from "copy-to-clipboard";
 import _ from "lodash";
 import { useEffect, useRef, useState } from "react";
 import { VegaLite } from "react-vega";
@@ -34,7 +44,10 @@ export default function Status() {
         eventSource.addEventListener("platform_status", (event) => {
             const eventData = JSON.parse(event.data);
             setDetails({
-                threads: eventData.num_threads,
+                threads: _.orderBy(
+                    Object.entries(eventData.threads).map((e) => e[1]),
+                    "name"
+                ),
                 cid: eventData.cid,
                 connection_factory_id: eventData.connection_factory_id,
             });
@@ -188,11 +201,13 @@ export default function Status() {
                 field: "epoch",
             },
             y: {
-                title: "Connections",
+                title: "Connection",
                 type: "quantitative",
             },
         },
     };
+    const threads = _.get(details, "threads", []);
+    const connectionFactoryId = _.get(details, "connection_factory_id", "");
     return (
         <>
             <Card
@@ -229,7 +244,13 @@ export default function Status() {
                             alignItems: "center",
                         }}
                     >
-                        <H5 className="margin-0">
+                        <H5
+                            style={{ minWidth: 50 }}
+                            className={classNames({
+                                "margin-0": true,
+                                [Classes.SKELETON]: _.isEmpty(details),
+                            })}
+                        >
                             {_.get(details, "cid", "-")}
                         </H5>
                         {isLive &&
@@ -246,13 +267,82 @@ export default function Status() {
                         className={_.isEmpty(details) && Classes.SKELETON}
                         style={{ display: "flex", gap: 5, marginBottom: 10 }}
                     >
-                        <Tag minimal large>
-                            Threads:&nbsp;{_.get(details, "threads", "-")}
-                        </Tag>
+                        <Popover
+                            interactionKind={PopoverInteractionKind.CLICK}
+                            placement="bottom-start"
+                            content={
+                                <div style={{ padding: 15 }}>
+                                    {threads.map((thread, index) => (
+                                        <div
+                                            key={index}
+                                            style={{
+                                                marginBottom:
+                                                    _.size(threads) > index + 1
+                                                        ? 10
+                                                        : 0,
+                                            }}
+                                        >
+                                            {index > 0 && <Divider />}
+                                            <div style={{ marginBottom: 5 }}>
+                                                {_.get(thread, "name", "-")}
+                                            </div>
+                                            <div
+                                                style={{
+                                                    display: "flex",
+                                                    gap: 10,
+                                                    alignItems: "center",
+                                                }}
+                                            >
+                                                <Tag minimal>
+                                                    ID:&nbsp;{thread.id}
+                                                </Tag>
+                                                {thread.alive && (
+                                                    <Tag
+                                                        minimal
+                                                        intent={Intent.SUCCESS}
+                                                    >
+                                                        alive
+                                                    </Tag>
+                                                )}
+                                                {thread.daemon && (
+                                                    <Tag
+                                                        minimal
+                                                        intent={Intent.SUCCESS}
+                                                    >
+                                                        daemon
+                                                    </Tag>
+                                                )}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            }
+                        >
+                            <Tag interactive minimal large>
+                                Thread:&nbsp;
+                                {_.size(threads)}
+                            </Tag>
+                        </Popover>
                         <Divider />
-                        <Tag minimal large>
-                            Connection Factory:&nbsp;
-                            {_.get(details, "connection_factory_id", "-")}
+                        <Tag
+                            rightIcon={faIcon({ icon: faCopy })}
+                            onClick={() => {
+                                copy(connectionFactoryId);
+                                AppToaster.show({
+                                    icon: faIcon({
+                                        icon: faClipboard,
+                                    }),
+                                    message: `Copied "${connectionFactoryId}"`,
+                                });
+                            }}
+                            interactive
+                            minimal
+                            large
+                        >
+                            Connection factory:&nbsp;
+                            {_.isEmpty(connectionFactoryId)
+                                ? "-"
+                                : connectionFactoryId}
                         </Tag>
                     </div>
                     <VegaLite
