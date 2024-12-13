@@ -280,7 +280,7 @@ export default function Status() {
                                 icon: faCircleDot,
                                 className: "fa-fade",
                                 style: {
-                                    "--fa-animation-duration": "5s",
+                                    "--fa-animation-duration": "2s",
                                     color: Colors.GREEN3,
                                 },
                             })}
