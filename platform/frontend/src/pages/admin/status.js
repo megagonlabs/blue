@@ -333,7 +333,13 @@ export default function Status() {
                                                         marginTop: 1,
                                                     },
                                                 })}
-                                                {_.get(thread, "name", "-")}
+                                                <div
+                                                    className={
+                                                        Classes.TEXT_OVERFLOW_ELLIPSIS
+                                                    }
+                                                >
+                                                    {_.get(thread, "name", "-")}
+                                                </div>
                                             </div>
                                             <div
                                                 style={{
