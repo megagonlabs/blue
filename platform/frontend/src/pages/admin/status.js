@@ -33,6 +33,10 @@ export default function Status() {
     const dataRef = useRef();
     const [isLive, setIsLive] = useState(false);
     const [details, setDetails] = useState({});
+    const detailsRef = useRef();
+    useEffect(() => {
+        detailsRef.current = details;
+    }, [details]);
     useEffect(() => {
         dataRef.current = data;
     }, [data]);
@@ -87,9 +91,10 @@ export default function Status() {
         });
         // terminating the connection on component unmount
         return () => {
-            if (!_.isEmpty(cid))
+            let refCid = _.get(detailsRef.current, "cid", "");
+            if (!_.isEmpty(refCid))
                 appActions.tracker.addTrackerData({
-                    key: cid,
+                    key: refCid,
                     data: dataRef.current,
                 });
             eventSource.close();
@@ -382,7 +387,7 @@ export default function Status() {
                         </Tag>
                     </div>
                     <VegaLite
-                        className={_.isEmpty(data) && Classes.SKELETON}
+                        className={_.isEmpty(data) ? Classes.SKELETON : null}
                         data={{ values: data }}
                         style={{ width: "100%" }}
                         spec={CONNECTION_VEGA_SPEC}
