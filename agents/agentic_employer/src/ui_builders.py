@@ -453,7 +453,7 @@ def build_ats_form(selected_job_posting_id, job_postings, lists, data, list_acti
                         "type": "Button",
                         "label": "View JD",
                         "props": {
-                            "action": "VIEW_JD",
+                            "action": "VIEW_JD_" + str(selected_job_posting_id),
                             "large": False
                         }
                     }
