@@ -1,11 +1,7 @@
 const {
     faPenSwirl,
-    faTriangleExclamation,
     faCopy,
-    faCloudExclamation,
-    faSquareExclamation,
     faExclamation,
-    faCircleExclamation,
 } = require("@fortawesome/sharp-duotone-solid-svg-icons");
 const { faIcon } = require("@/components/icon");
 const { ProgressBar, Classes, Intent, Button } = require("@blueprintjs/core");
@@ -113,6 +109,13 @@ module.exports = {
         peek() {
             return this.items[this.front];
         }
+    },
+    mergeTrackerData: (oldData = [], newData = []) => {
+        const combinedData = oldData.concat(newData);
+        return _.takeRight(
+            _.sortBy(_.uniqBy(combinedData, "epoch"), "epoch"),
+            60
+        );
     },
     shallowDiff: (base, compared) => {
         let updated = [],

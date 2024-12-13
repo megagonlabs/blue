@@ -26,7 +26,7 @@ async def stream_data(request: Request):
                 break
             message = pubsub.get_message()
             if message and message["type"] == "message":
-                yield f"event: platform_status\ndata: {message['data']}\n\n"
+                yield f"event: message\ndata: {message['data']}\n\n"
             await asyncio.sleep(2)  # adjust sleep as needed
 
     return StreamingResponse(generate(should_stop), media_type="text/event-stream")

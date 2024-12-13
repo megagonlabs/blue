@@ -1,3 +1,5 @@
+import { AppContext } from "@/components/contexts/app-context";
+import { mergeTrackerData } from "@/components/helper";
 import { faIcon } from "@/components/icon";
 import { AppToaster } from "@/components/toaster";
 import {
@@ -23,9 +25,10 @@ import {
 import classNames from "classnames";
 import copy from "copy-to-clipboard";
 import _ from "lodash";
-import { useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { VegaLite } from "react-vega";
 export default function Status() {
+    const { appState, appActions } = useContext(AppContext);
     const [data, setData] = useState([]);
     const dataRef = useRef();
     const [isLive, setIsLive] = useState(false);
@@ -33,6 +36,17 @@ export default function Status() {
     useEffect(() => {
         dataRef.current = data;
     }, [data]);
+    const cid = _.get(details, "cid", "");
+    useEffect(() => {
+        if (!_.isEmpty(cid)) {
+            setData(
+                mergeTrackerData(
+                    _.get(appState, ["tracker", "data", cid], []),
+                    data
+                )
+            );
+        }
+    }, [cid]);
     useEffect(() => {
         // opening a connection to the server to begin receiving events from it
         const eventSource = new EventSource(
@@ -42,7 +56,7 @@ export default function Status() {
         eventSource.addEventListener("open", () => setIsLive(true));
         eventSource.addEventListener("error", () => setIsLive(false));
         // attaching a handler to receive message events
-        eventSource.addEventListener("platform_status", (event) => {
+        eventSource.addEventListener("message", (event) => {
             const eventData = JSON.parse(event.data);
             setDetails({
                 threads: _.orderBy(
@@ -72,7 +86,14 @@ export default function Status() {
             setIsLive(true);
         });
         // terminating the connection on component unmount
-        return () => eventSource.close();
+        return () => {
+            if (!_.isEmpty(cid))
+                appActions.tracker.addTrackerData({
+                    key: cid,
+                    data: dataRef.current,
+                });
+            eventSource.close();
+        };
     }, []);
     const CONNECTION_FIELDS = [
         "created_connections",
@@ -252,14 +273,14 @@ export default function Status() {
                                 [Classes.SKELETON]: _.isEmpty(details),
                             })}
                         >
-                            {_.get(details, "cid", "-")}
+                            {_.isEmpty(cid) ? "-" : cid}
                         </H5>
                         {isLive &&
                             faIcon({
                                 icon: faCircleDot,
                                 className: "fa-fade",
                                 style: {
-                                    "--fa-animation-duration": "2s",
+                                    "--fa-animation-duration": "5s",
                                     color: Colors.GREEN3,
                                 },
                             })}
@@ -304,6 +325,7 @@ export default function Status() {
                                                         color: thread.alive
                                                             ? Colors.GREEN3
                                                             : Colors.RED3,
+                                                        marginTop: 1,
                                                     },
                                                 })}
                                                 {_.get(thread, "name", "-")}
