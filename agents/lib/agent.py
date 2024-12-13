@@ -533,7 +533,7 @@ class AgentFactory:
         self.id = self._name 
         self.sid = self.name + ":" + self.id
 
-        self.prefix = self.platform
+        self.prefix = "PLATFORM:" + self.platform
         self.cid = self.prefix + ":" + self.sid
 
         self._initialize(properties=properties)

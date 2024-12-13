@@ -248,7 +248,10 @@ class PerformanceTracker(Tracker):
 
 class SystemPerformanceTracker(Tracker):
     def __init__(self, properties=None, callback=None):
-        super().__init__(id="PERF", prefix="SYSTEM:" + socket.gethostname(), properties=properties, inheritance="perf.system", callback=callback)
+        platform_id = "UNKNOWN"
+        if properties and "platform.name" in properties:
+            platform_id = properties["platform.name"]
+        super().__init__(id="PERF", prefix="PLATFORM:" + platform_id + ":SYSTEM:" + socket.gethostname(), properties=properties, inheritance="perf.system", callback=callback)
 
     def collect(self):
         data = super().collect()
@@ -281,11 +284,11 @@ class SystemPerformanceTracker(Tracker):
         # process info
         data["processes"] = {}
         for pid in pids:
-            process = psutil.Process(pid)
-            process_info = {"pid": process.pid, "name": process.name(), "status": process.status(), "started": int(process.create_time())}
-            data["processes"][process.pid] = process_info
-
             try:
+                process = psutil.Process(pid)
+                process_info = {"pid": process.pid, "name": process.name(), "status": process.status(), "started": int(process.create_time())}
+                data["processes"][process.pid] = process_info
+
                 # cpu
                 process_info["cpu.percent"] = process.cpu_percent()
                 process_info["cpu.num"] = process.cpu_num()
@@ -309,6 +312,6 @@ class SystemPerformanceTracker(Tracker):
                     thread_info = {"id": thread.id, "user_time": thread.user_time, "system_time": thread.system_time}
                     process_info["threads"][thread.id] = thread_info
             except:
-                pass
+                continue
 
         return data
