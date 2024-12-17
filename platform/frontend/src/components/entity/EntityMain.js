@@ -125,6 +125,7 @@ export default function EntityMain({
             agent: "agent_registry",
             input: "agent_registry",
             output: "agent_registry",
+            database: "data_registry",
             source: "data_registry",
             model: "model_registry",
             operator: "operator_registry",
@@ -165,16 +166,18 @@ export default function EntityMain({
     })();
     const canDeployAgent =
         _.isEqual(entity.type, "agent") && permissions.canWritePlatformAgents;
-    const showActionMenuDivider =
-        (_.isFunction(setEdit) && canEditEntity) ||
-        canDuplicateEntity ||
-        canDeployAgent;
     const canSyncData = _.includes(
         ["source", "database", "collection"],
         entity.type
     );
+    const showActionMenuDivider =
+        (_.isFunction(setEdit) && canEditEntity) ||
+        canDuplicateEntity ||
+        canDeployAgent ||
+        (canEditEntity && canSyncData);
+    const canDeregister = _.isEqual("database", entity.type);
     const showActionMenu =
-        showActionMenuDivider || canEditEntity || canSyncData;
+        showActionMenuDivider || canEditEntity || canSyncData || canDeregister;
     return (
         <>
             <EntityIconEditor
@@ -417,7 +420,7 @@ export default function EntityMain({
                                                 {showActionMenuDivider ? (
                                                     <MenuDivider />
                                                 ) : null}
-                                                {canEditEntity ? (
+                                                {canEditEntity && (
                                                     <Popover
                                                         placement="left"
                                                         className="full-parent-width"
@@ -455,7 +458,7 @@ export default function EntityMain({
                                                             text="Delete"
                                                         />
                                                     </Popover>
-                                                ) : null}
+                                                )}
                                             </Menu>
                                         }
                                     >
