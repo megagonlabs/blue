@@ -113,9 +113,7 @@ export default function SearchResultRow({ sessionId, style = {} }) {
                                 onClick={(event) => {
                                     copy(sessionId);
                                     AppToaster.show({
-                                        icon: faIcon({
-                                            icon: faClipboard,
-                                        }),
+                                        icon: faIcon({ icon: faClipboard }),
                                         message: `Copied "${sessionId}"`,
                                     });
                                     event.stopPropagation();

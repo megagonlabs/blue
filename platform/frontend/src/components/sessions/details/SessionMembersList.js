@@ -147,17 +147,14 @@ export default function SessionMembersList({ loading, setLoading }) {
         </div>
     );
     const removeMember = (user) => {
+        const userName = _.get(user, "name", "-");
         axios
             .delete(`/sessions/session/${sessionIdFocus}/members/${user.uid}`)
             .then(() => {
                 fetchMemberList();
                 AppToaster.show({
                     intent: Intent.SUCCESS,
-                    message: `Removed ${_.get(
-                        user,
-                        "name",
-                        "-"
-                    )} from the session`,
+                    message: `Removed ${userName} from the session`,
                 });
             });
     };
