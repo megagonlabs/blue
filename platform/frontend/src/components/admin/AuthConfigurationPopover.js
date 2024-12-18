@@ -44,7 +44,7 @@ const DEFAULT_SETTINGS = {
     },
     conversation_view: {
         title: "Conversation view",
-        description: "Whether messages should appear as left & right aligned",
+        description: "Whether messages should appear on opposite sides",
         icon: faComments,
     },
 };
