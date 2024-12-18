@@ -241,6 +241,7 @@ class Tracker:
         if period and self.state == "RUNNING":
             self.timer = thread = threading.Timer(period, lambda: self._run_tracker())
             thread.name = "Thread-" + self.__class__.__name__ + "-" + self.cid
+            thread.daemon = True
             self.track()
             thread.start()
 

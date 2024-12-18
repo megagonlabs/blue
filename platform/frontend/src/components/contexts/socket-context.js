@@ -81,8 +81,9 @@ export const SocketProvider = ({ children }) => {
             } catch (e) {
                 AppToaster.show({
                     intent: Intent.DANGER,
-                    message: event.data,
+                    message: e,
                 });
+                console.log(event.data);
                 console.error(e);
             }
         };

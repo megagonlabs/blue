@@ -4,6 +4,7 @@ import NewEntity from "@/components/entity/NewEntity";
 import {
     axiosErrorToast,
     constructSavePropertyRequests,
+    populateRouterPathname,
     settlePromises,
     shallowDiff,
 } from "@/components/helper";
@@ -66,7 +67,7 @@ export default function New() {
     };
     useEffect(() => {
         if (_.isEmpty(router.query)) return;
-        const pathParams = router.asPath
+        const pathParams = populateRouterPathname(router)
             .split("/")
             .filter((param) => !_.isEmpty(param))
             .slice(0, -2);

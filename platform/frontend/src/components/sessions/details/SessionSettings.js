@@ -52,25 +52,30 @@ export default function SessionSettings() {
                                     DATA and METADATA will be removed.
                                 </div>
                             </div>
-                            <Popover
-                                placement="left"
-                                content={
-                                    <div style={{ padding: 15 }}>
-                                        <Button
-                                            className={Classes.POPOVER_DISMISS}
-                                            text="Confirm"
-                                            onClick={deleteSession}
-                                            intent={Intent.DANGER}
-                                        />
-                                    </div>
-                                }
-                            >
-                                <Button
-                                    loading={deleting}
-                                    intent={Intent.DANGER}
-                                    text="Delete this session"
-                                />
-                            </Popover>
+                            <div>
+                                <Popover
+                                    usePortal={false}
+                                    placement="left"
+                                    content={
+                                        <div style={{ padding: 15 }}>
+                                            <Button
+                                                className={
+                                                    Classes.POPOVER_DISMISS
+                                                }
+                                                text="Confirm"
+                                                onClick={deleteSession}
+                                                intent={Intent.DANGER}
+                                            />
+                                        </div>
+                                    }
+                                >
+                                    <Button
+                                        loading={deleting}
+                                        intent={Intent.DANGER}
+                                        text="Delete this session"
+                                    />
+                                </Popover>
+                            </div>
                         </div>
                     </Card>
                 </div>

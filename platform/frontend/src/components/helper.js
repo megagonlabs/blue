@@ -117,6 +117,17 @@ module.exports = {
             60
         );
     },
+    populateRouterPathname: (router) => {
+        let pathname = router.pathname;
+        const params = Object.keys(router.query);
+        for (let i = 0; i < _.size(params); i++) {
+            pathname = pathname.replace(
+                `[${params[i]}]`,
+                router.query[params[i]]
+            );
+        }
+        return pathname;
+    },
     shallowDiff: (base, compared) => {
         let updated = [],
             deleted = [],

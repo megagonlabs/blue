@@ -45,7 +45,7 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { useContext, useMemo, useState } from "react";
 import DebugPanel from "./debugger/DebugPanel";
-import { hasTrue } from "./helper";
+import { hasTrue, populateRouterPathname } from "./helper";
 import Settings from "./navigation/Settings";
 import UserAccountPanel from "./navigation/UserAccountPanel";
 export default function App({ children }) {
@@ -447,7 +447,7 @@ export default function App({ children }) {
                                         return null;
                                     }
                                     const active = _.startsWith(
-                                        router.asPath,
+                                        populateRouterPathname(router),
                                         href
                                     );
                                     return (

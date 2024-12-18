@@ -177,7 +177,7 @@ function FormDesigner() {
         copy(JSON.stringify(result));
         AppToaster.show({
             icon: faIcon({ icon: faClipboard }),
-            message: `Copied interactive message configuration (with${
+            message: `Copied schema (with${
                 withData ? "" : "out"
             } default data)`,
         });
