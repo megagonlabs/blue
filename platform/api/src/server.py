@@ -102,11 +102,13 @@ allowed_origins = ["http://localhost:3000", "http://localhost:3001", "http://loc
 def handle_signal(signum, frame):
     should_stop.set()
 
+
 # global system tracker
 system_tracker_properties = copy.deepcopy(PROPERTIES)
 system_tracker_properties["tracker.perf.system.autostart"] = True
 system_tracker_properties["tracker.perf.system.outputs"] = ["log.INFO", "pubsub"]
 system_tracker = SystemPerformanceTracker(properties=system_tracker_properties)
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -117,6 +119,7 @@ async def lifespan(app: FastAPI):
     yield
     # stop platform performance tracker
     p._terminate_tracker()
+    system_tracker._terminate_tracker()
     signal.signal(signal.SIGINT, signal.SIG_DFL)
     signal.signal(signal.SIGTERM, signal.SIG_DFL)
 
