@@ -34,7 +34,7 @@ from session import Session
 from worker import Worker
 from message import Message, MessageType, ContentType, ControlCode
 from connection import PooledConnectionFactory
-from tracker import PerformanceTracker, SystemPerformanceTracker
+from tracker import PerformanceTracker, SystemPerformanceTracker, Metric, MetricGroup
 
 def create_uuid():
     return str(hex(uuid.uuid4().fields[0]))[2:]
@@ -48,30 +48,53 @@ class AgentPerformanceTracker(PerformanceTracker):
         super().__init__(prefix=agent.cid, properties=properties, inheritance="perf.platform.agent", callback=callback)
 
     def collect(self): 
-        data = super().collect()
+        super().collect()
+
+        ### agent group
+        agent_group = MetricGroup(id="agent", label="Agent Info", visibility=False)
+        self.data.add(agent_group)
+
 
         # agent info
-        data["agent.name"] = self.agent.name
-        data["agent.cid"] = self.agent.cid
+        name_metric = Metric(id="name", label="Name", value=self.agent.name, visibility=False)
+        agent_group.add(name_metric)
+        cid_metric = Metric(id="id", label="ID", value=self.agent.cid, visibility=False)
+        agent_group.add(cid_metric)
+        session_metric = Metric(id="sessuib", label="Session", value=self.agent.session.cid, visibility=False)
+        agent_group.add(session_metric)
 
-        # session
-        session = None
-        if self.agent.session:
-            session = self.agent.session.cid
-        data["session"] = session
+        ### workers group
+        workers_group = MetricGroup(id="workers", label="Workers Info")
+        self.data.add(agent_group)
 
-        # add num workers, workers
-        data["num_workers"] = len(list(self.agent.workers.values()))
-        data["workers"] = {}
+        num_workers_metric = Metric(id="num_workers", label="Num Workers", value=len(list(self.agent.workers.values())), visibility=True)
+        workers_group.add(num_workers_metric)
+        
+        workers_list_group = MetricGroup(id="workers_list", label="Workers List", type="list")
+        workers_group.add(workers_list_group)
+
+
         for worker_id in self.agent.workers:
             worker = self.agent.workers[worker_id]
             stream = None
             if worker.consumer:
                 if worker.consumer.stream:
                     stream = worker.consumer.stream
-            data["workers"][worker.sid] = { "name": worker.name, "cid": worker.cid, "stream": stream}
 
-        return data
+            worker_group = MetricGroup(id=worker_id, label=worker.cid)
+            workers_list_group.add(worker_group)
+
+            worker_name_metric = Metric(id="name", label="Name", value=worker.name, type="text")
+            worker_group.add(worker_name_metric)
+
+            worker_cid_metric = Metric(id="cid", label="ID", value=worker.cid, type="text", visibility=False)
+            worker_group.add(worker_cid_metric)
+
+            worker_stream_metric =  Metric(id="strean", label="Stream", value=stream, type="text")
+            worker_group.add(worker_stream_metric)
+           
+
+        return self.data.toDict()
     
 class AgentFactoryPerformanceTracker(PerformanceTracker):
     def __init__(self, agent_factory, properties=None, callback=None):
@@ -79,18 +102,29 @@ class AgentFactoryPerformanceTracker(PerformanceTracker):
         super().__init__(prefix=agent_factory.cid, properties=properties, inheritance="perf.platform.agentfactory", callback=callback)
 
     def collect(self): 
-        data = super().collect()
+        super().collect()
 
-        # agent info
-        # TBD
-    
-        # db connection
-        data["connection_factory_id"] = self.agent_factory.connection_factory.get_id()
-        data["num_created_connections"] = self.agent_factory.connection_factory.count_created_connections()
-        data["num_in_use_connections"] = self.agent_factory.connection_factory.count_in_use_connections()
-        data["num_available_connections"] = self.agent_factory.connection_factory.count_available_connections()
+         ### db group
+        db_group = MetricGroup(id="database", label="Database Info")
+        self.data.add(db_group)
 
-        return data
+        ### db connections group
+        db_connections_group = MetricGroup(id="database_connections", label="Connections Info")
+        db_group.add(db_connections_group)
+
+        connections_factory_id = Metric(id="connection_factory_id", label="Connections Factory ID", type="text", value=self.agent_factory.connection_factory.get_id())
+        db_connections_group.add(connections_factory_id)
+
+        # db connection info
+        num_created_connections_metric = Metric(id="num_created_connections", label="Num Total Connections", type="series", value=self.agent_factory.connection_factory.count_created_connections())
+        db_connections_group.add(num_created_connections_metric)
+        num_in_use_connections_metric = Metric(id="num_in_use_connections", label="Num In Use Connections", type="series", value=self.agent_factory.connection_factory.count_in_use_connections())
+        db_connections_group.add(num_in_use_connections_metric)
+        num_available_connections_metric = Metric(id="num_available_connections", label="Num Available Connections", type="series", value=self.agent_factory.connection_factory.count_available_connections())
+        db_connections_group.add(num_available_connections_metric)
+
+        return self.data.toDict()
+
     
 class Agent:
     def __init__(
@@ -190,7 +224,7 @@ class Agent:
         self.properties["tracker.perf.platform.agent.outputs"] = ["log.INFO"]
 
         # let consumer streams expire 
-        self.properties["consumer.expiration"] = 600 #10 minutes
+        self.properties["consumer.expiration"] = 3600 #60 minutes
 
 
     def _update_properties(self, properties=None):
@@ -449,7 +483,7 @@ class Agent:
     def get_data_len(self, key):
         return self.session.get_agent_data_len(self, key)
 
-    def perf_tracker_callback(self, data, properties=None):
+    def perf_tracker_callback(self, data, tracker=None, properties=None):
         pass
 
     def _init_tracker(self):
@@ -593,7 +627,7 @@ class AgentFactory:
         instanz = klasse(**kwargs)
         return instanz
 
-    def perf_tracker_callback(self, data, properties=None):
+    def perf_tracker_callback(self, data, tracker=None, properties=None):
         pass
 
     def _init_tracker(self):

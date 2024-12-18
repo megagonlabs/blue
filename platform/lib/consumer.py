@@ -36,7 +36,7 @@ logging.basicConfig(format="%(asctime)s [%(levelname)s] [%(process)d:%(threadNam
 ###### Blue
 from message import Message, MessageType, ContentType, ControlCode
 from connection import PooledConnectionFactory
-from tracker import Tracker
+from tracker import Tracker, Metric
 
 class ConsumerIdleTracker(Tracker):
     def __init__(self, consumer, properties=None, callback=None):
@@ -51,15 +51,14 @@ class ConsumerIdleTracker(Tracker):
         self.properties['tracker.idle.consumer.outputs'] = []
         self.properties['tracker.idle.consumer.period'] = 60
 
-
-
     def collect(self):
-        data = super().collect()
+        super().collect()
 
         # add last active time
-        data["last_active"] = self.consumer.last_processed
-
-        return data
+        last_active_metric = Metric(id="last_active", label="Last Active Time", type="time", value=self.consumer.last_processed)
+        self.data.add(last_active_metric)
+       
+        return self.data.toDict()
     
 class Consumer:
     def __init__(self, stream, name="STREAM", id=None, sid=None, cid=None, prefix=None, suffix=None, listener=None, properties={}, on_stop=None):
@@ -165,7 +164,7 @@ class Consumer:
         e = id.split("-")[0]
         return int(int(e) / 1000)
 
-    def _idle_tracker_callback(self, data, properties=None):
+    def _idle_tracker_callback(self, data, tracker=None, properties=None):
         if properties is None:
             properties = self.properties
 
@@ -175,8 +174,11 @@ class Consumer:
 
         # expire?
         if expiration != None and expiration > 0:
-            if data['last_active']:
-                if data['last_active'] + expiration < data['epoch']:
+            last_active = tracker.getValue('last_active')
+            current = tracker.getValue('metadata.current')
+
+            if last_active and current:
+                if last_active + expiration < current:
                     logging.info("Expired Consumer: " + self.cid)
                     self._stop() 
 

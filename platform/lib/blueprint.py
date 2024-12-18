@@ -25,7 +25,7 @@ from producer import Producer
 from session import Session
 from message import Message, MessageType, ContentType, ControlCode
 from connection import PooledConnectionFactory
-from tracker import PerformanceTracker
+from tracker import PerformanceTracker, Metric, MetricGroup
 
 
 def create_uuid():
@@ -38,19 +38,39 @@ class PlatformPerformanceTracker(PerformanceTracker):
         super().__init__(prefix=platform.cid, properties=properties, inheritance="perf.platform", callback=callback)
 
     def collect(self):
-        data = super().collect()
+        super().collect()
+
+        ### platform group
+        platform_group = MetricGroup(id="platform", label="Platform Info", visibility=False)
+        self.data.add(platform_group)
+
 
         # platform info
-        data["platform.name"] = self.platform.name
-        data["platform.cid"] = self.platform.cid
+        name_metric = Metric(id="name", label="Name", value=self.platform.name, visibility=False)
+        platform_group.add(name_metric)
+        cid_metric = Metric(id="id", label="ID", value=self.platform.cid, visibility=False)
+        platform_group.add(cid_metric)
 
-        # db connection
-        data["connection_factory_id"] = self.platform.connection_factory.get_id()
-        data["num_created_connections"] = self.platform.connection_factory.count_created_connections()
-        data["num_in_use_connections"] = self.platform.connection_factory.count_in_use_connections()
-        data["num_available_connections"] = self.platform.connection_factory.count_available_connections()
+        ### db group
+        db_group = MetricGroup(id="database", label="Database Info")
+        self.data.add(db_group)
 
-        return data
+        ### db connections group
+        db_connections_group = MetricGroup(id="database_connections", label="Connections Info")
+        db_group.add(db_connections_group)
+
+        connections_factory_id = Metric(id="connection_factory_id", label="Connections Factory ID", type="text", value=self.platform.connection_factory.get_id())
+        db_connections_group.add(connections_factory_id)
+
+        # db connection info
+        num_created_connections_metric = Metric(id="num_created_connections", label="Num Total Connections", type="series", value=self.platform.connection_factory.count_created_connections())
+        db_connections_group.add(num_created_connections_metric)
+        num_in_use_connections_metric = Metric(id="num_in_use_connections", label="Num In Use Connections", type="series", value=self.platform.connection_factory.count_in_use_connections())
+        db_connections_group.add(num_in_use_connections_metric)
+        num_available_connections_metric = Metric(id="num_available_connections", label="Num Available Connections", type="series", value=self.platform.connection_factory.count_available_connections())
+        db_connections_group.add(num_available_connections_metric)
+
+        return self.data.toDict()
 
 
 class Platform:
@@ -100,7 +120,7 @@ class Platform:
 
         # tracking for platform
         self.properties['tracker.perf.platform.outputs'] = ["pubsub", "log.INFO"]
-        self.properties['tracker.perf.platform.period'] = 10
+        self.properties['tracker.perf.platform.period'] = 30
 
     def _update_properties(self, properties=None):
         if properties is None:
@@ -244,7 +264,7 @@ class Platform:
             producer.start()
             self.producer = producer
 
-    def perf_tracker_callback(self, data, properties=None):
+    def perf_tracker_callback(self, data, tracker=None, properties=None):
         pass
 
     def _init_tracker(self):
