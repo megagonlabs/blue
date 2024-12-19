@@ -285,7 +285,7 @@ class Tracker:
         started_time_metric = Metric(id="started", label="Started Time", type="time", value=self.started, visibility=False)
         tracker_metadata_group.add(started_time_metric)
         # pid
-        process_id_metric = Metric(id="pid", label="Process Id", type="int", value=os.getpid(), visibility=False)
+        process_id_metric = Metric(id="pid", label="Process Id", type="number", value=os.getpid(), visibility=False)
         tracker_metadata_group.add(process_id_metric)
         # state
         state_metric = Metric(id="status", label="Status", type="status", value=self.state)
