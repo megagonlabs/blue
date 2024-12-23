@@ -110,13 +110,6 @@ module.exports = {
             return this.items[this.front];
         }
     },
-    mergeTrackerData: (oldData = [], newData = []) => {
-        const combinedData = oldData.concat(newData);
-        return _.takeRight(
-            _.sortBy(_.uniqBy(combinedData, "epoch"), "epoch"),
-            60
-        );
-    },
     populateRouterPathname: (router) => {
         let pathname = router.pathname;
         const params = Object.keys(router.query);

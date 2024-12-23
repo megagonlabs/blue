@@ -25,6 +25,7 @@ import { useRouter } from "next/router";
 import { useContext, useEffect, useState } from "react";
 import { AppContext } from "../contexts/app-context";
 import { AuthContext } from "../contexts/auth-context";
+import EntityGeneral from "./EntityGeneral";
 export default function AgentEntity() {
     const BLANK_ENTITY = { type: "agent" };
     const router = useRouter();
@@ -126,6 +127,14 @@ export default function AgentEntity() {
                 discard={discard}
                 loading={loading}
                 jsonError={jsonError}
+            />
+            <EntityGeneral
+                edit={edit}
+                setEdit={setEdit}
+                entity={editEntity}
+                loading={loading}
+                jsonError={jsonError}
+                updateEntity={updateEntity}
             />
             <EntityDescription
                 edit={edit}

@@ -1,20 +1,22 @@
 import _ from "lodash";
-import { mergeTrackerData } from "../helper";
-export const defaultState = { data: {} };
+export const defaultState = { data: {}, list: [] };
 export default function trackerReducer(
     state = defaultState,
     { type, payload }
 ) {
-    let { data } = state;
+    let { data, list } = state;
     switch (type) {
         case "tracker/data/add": {
-            const trackerData = _.get(data, payload.key, []);
+            const { key, data, graph } = payload;
             return {
                 ...state,
-                data: {
-                    ...state.data,
-                    [payload.key]: mergeTrackerData(trackerData, payload.data),
-                },
+                data: { ...state.data, [key]: { data, graph } },
+            };
+        }
+        case "tracker/add": {
+            return {
+                ...state,
+                list: _.uniq([...list, payload]).sort(),
             };
         }
         default:

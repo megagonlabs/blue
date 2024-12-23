@@ -1,240 +1,162 @@
+import TrackerCard from "@/components/admin/TrackerCard";
+import Series from "@/components/admin/trackers/Series";
 import { AppContext } from "@/components/contexts/app-context";
-import { mergeTrackerData } from "@/components/helper";
 import { faIcon } from "@/components/icon";
-import { AppToaster } from "@/components/toaster";
+import Timestamp from "@/components/Timestamp";
 import {
     Button,
     ButtonGroup,
     Card,
     Classes,
     Colors,
-    Divider,
     H4,
     H5,
-    Intent,
+    H6,
+    Menu,
+    MenuItem,
     Popover,
-    PopoverInteractionKind,
-    Tag,
+    Tooltip,
 } from "@blueprintjs/core";
 import {
     faCircleDot,
-    faCircleSmall,
-    faClipboard,
-    faCopy,
+    faMegaphone,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
-import classNames from "classnames";
-import copy from "copy-to-clipboard";
 import _ from "lodash";
 import { useContext, useEffect, useRef, useState } from "react";
-import { VegaLite } from "react-vega";
 export default function Status() {
     const { appState, appActions } = useContext(AppContext);
-    const [data, setData] = useState([]);
-    const dataRef = useRef();
     const [isLive, setIsLive] = useState(false);
-    const [details, setDetails] = useState({});
-    const detailsRef = useRef();
+    const { list: trackerList } = appState.tracker;
+    const appStateRef = useRef();
     useEffect(() => {
-        detailsRef.current = details;
-    }, [details]);
-    useEffect(() => {
-        dataRef.current = data;
-    }, [data]);
-    const cid = _.get(details, "cid", "");
-    useEffect(() => {
-        if (!_.isEmpty(cid)) {
-            setData(
-                mergeTrackerData(
-                    _.get(appState, ["tracker", "data", cid], []),
-                    data
-                )
-            );
+        appStateRef.current = appState;
+    }, [appState.tracker]);
+    const render = (
+        time,
+        object,
+        path = [],
+        graph = {},
+        graphKeys = new Set()
+    ) => {
+        let result = [];
+        let { id, type, data, label, visibility } = object;
+        if (visibility) {
+            if (_.isEqual(type, "tracker")) {
+                let keys = Object.keys(data);
+                result.push(
+                    <H5 className={Classes.TEXT_OVERFLOW_ELLIPSIS}>{id}</H5>
+                );
+                for (let i = 0; i < _.size(keys); i++) {
+                    const response = render(
+                        time,
+                        data[keys[i]],
+                        [...path, id],
+                        graph,
+                        graphKeys
+                    );
+                    graph = response["graph"];
+                    result = result.concat(response["result"]);
+                }
+            } else if (_.isEqual(type, "group")) {
+                let keys = Object.keys(data);
+                result.push(<H6 style={{ marginTop: 20 }}>{label}</H6>);
+                let group = [];
+                for (let i = 0; i < _.size(keys); i++) {
+                    const response = render(
+                        time,
+                        data[keys[i]],
+                        [...path, id],
+                        graph,
+                        graphKeys
+                    );
+                    graph = response["graph"];
+                    group = group.concat(response["result"]);
+                }
+                if (!_.isEmpty(group))
+                    result.push(
+                        <div
+                            style={{
+                                flexGrow: 1,
+                                display: "flex",
+                                gap: 10,
+                                alignItems: "flex-start",
+                            }}
+                        >
+                            {group.map((e) => e)}
+                        </div>
+                    );
+            } else if (["time", "number", "status", "text"].includes(type)) {
+                let { value } = object;
+                result.push(
+                    <Card style={{ padding: 0, overflow: "hidden" }}>
+                        <div
+                            style={{ padding: "10px 10px 5px" }}
+                            className={Classes.TEXT_MUTED}
+                        >
+                            {label}
+                        </div>
+                        <div
+                            style={{
+                                height: "50%",
+                                padding: "5px 10px 10px",
+                                backgroundColor: Colors.LIGHT_GRAY5,
+                            }}
+                        >
+                            {_.isEqual(type, "time") ? (
+                                <Timestamp timestamp={value * 1000} />
+                            ) : (
+                                value
+                            )}
+                        </div>
+                    </Card>
+                );
+            } else if (_.isEqual(type, "series")) {
+                let { label, value } = object;
+                const graphKey = path.join(":");
+                let temp = _.get(graph, [graphKey, _.toString(time)], {});
+                temp[id] = { label, value };
+                _.setWith(graph, [graphKey, time], temp, Object);
+                if (!graphKeys.has(graphKey)) {
+                    graphKeys.add(graphKey);
+                    result.push(
+                        <Series tracker={_.first(path)} graphKey={graphKey} />
+                    );
+                }
+            }
         }
-    }, [cid]);
+        return { result, graph, graphKeys };
+    };
     useEffect(() => {
         // opening a connection to the server to begin receiving events from it
         const eventSource = new EventSource(
-            `${process.env.NEXT_PUBLIC_REST_API_SERVER}/blue/platform/${process.env.NEXT_PUBLIC_PLATFORM_NAME}/status/platform`,
+            `${process.env.NEXT_PUBLIC_REST_API_SERVER}/blue/platform/${process.env.NEXT_PUBLIC_PLATFORM_NAME}/status`,
             { withCredentials: true }
         );
         eventSource.addEventListener("open", () => setIsLive(true));
         eventSource.addEventListener("error", () => setIsLive(false));
         // attaching a handler to receive message events
         eventSource.addEventListener("message", (event) => {
-            const eventData = JSON.parse(event.data);
-            setDetails({
-                threads: _.orderBy(
-                    Object.entries(eventData.threads).map((e) => e[1]),
-                    "name"
-                ),
-                cid: eventData.cid,
-                connection_factory_id: eventData.connection_factory_id,
-            });
-            setData(
-                _.takeRight(
-                    [
-                        ...dataRef.current,
-                        {
-                            epoch: eventData.epoch * 1000,
-                            created_connections:
-                                eventData.num_created_connections,
-                            in_use_connections:
-                                eventData.num_in_use_connections,
-                            available_connections:
-                                eventData.num_available_connections,
-                        },
-                    ],
-                    60
-                )
+            const { data, channel } = JSON.parse(event.data);
+            appActions.tracker.addTracker(channel);
+            let time = _.get(data, "data.metadata.data.current.value", 0);
+            if (_.isNumber(time)) time *= 1000;
+            const trackerGraph = _.get(
+                appStateRef.current.tracker.data,
+                [channel, "graph"],
+                {}
             );
-            setIsLive(true);
+            const { result, graph } = render(time, data, [], trackerGraph);
+            appActions.tracker.addTrackerData({
+                key: channel,
+                data: result,
+                graph,
+            });
         });
         // terminating the connection on component unmount
         return () => {
-            let refCid = _.get(detailsRef.current, "cid", "");
-            if (!_.isEmpty(refCid))
-                appActions.tracker.addTrackerData({
-                    key: refCid,
-                    data: dataRef.current,
-                });
             eventSource.close();
         };
     }, []);
-    const CONNECTION_FIELDS = [
-        "created_connections",
-        "in_use_connections",
-        "available_connections",
-    ];
-    const CONNECTION_VEGA_SPEC = {
-        $schema: "https://vega.github.io/schema/vega-lite/v5.json",
-        data: { name: "values" },
-        width: "container",
-        height: 100,
-        layer: [
-            {
-                layer: [
-                    {
-                        encoding: {
-                            y: {
-                                axis: {
-                                    format: ",.2f",
-                                    orient: "left",
-                                },
-                                field: "value",
-                            },
-                        },
-                        mark: {
-                            type: "line",
-                            interpolate: "step-after",
-                        },
-                        params: [
-                            {
-                                name: "legend_select",
-                                bind: "legend",
-                                select: {
-                                    fields: ["key"],
-                                    type: "point",
-                                },
-                            },
-                        ],
-                        transform: [
-                            {
-                                filter: {
-                                    field: "key",
-                                    oneOf: CONNECTION_FIELDS,
-                                },
-                            },
-                        ],
-                    },
-                ],
-                encoding: {
-                    color: {
-                        sort: CONNECTION_FIELDS,
-                        field: "key",
-                        title: null,
-                        type: "nominal",
-                        scale: {
-                            range: [
-                                Colors.BLUE3,
-                                Colors.ORANGE3,
-                                Colors.GREEN3,
-                            ],
-                        },
-                    },
-                    opacity: {
-                        condition: {
-                            param: "legend_select",
-                            value: 1,
-                        },
-                        value: 0.2,
-                    },
-                },
-            },
-            {
-                encoding: {
-                    tooltip: [
-                        {
-                            format: "%X",
-                            field: "epoch",
-                            title: "timestamp",
-                            type: "temporal",
-                        },
-                        {
-                            field: "created_connections",
-                            title: "created",
-                            type: "quantitative",
-                        },
-                        {
-                            field: "in_use_connections",
-                            title: "in_use",
-                            type: "quantitative",
-                        },
-                        {
-                            field: "available_connections",
-                            title: "available",
-                            type: "quantitative",
-                        },
-                    ],
-                    opacity: {
-                        condition: { param: "hover", value: 0.3, empty: false },
-                        value: 0,
-                    },
-                },
-                params: [
-                    {
-                        name: "hover",
-                        select: {
-                            nearest: true,
-                            fields: ["epoch"],
-                            on: "mouseover",
-                            type: "point",
-                        },
-                    },
-                ],
-                mark: { point: false, stroke: Colors.DARK_GRAY3, type: "rule" },
-            },
-        ],
-        transform: [{ fold: CONNECTION_FIELDS }],
-        encoding: {
-            x: {
-                axis: {
-                    format: "%X",
-                    labelSeparation: 5,
-                    labelOverlap: "parity",
-                    tickCount: 10,
-                },
-                type: "temporal",
-                title: "",
-                field: "epoch",
-            },
-            y: {
-                title: "Connection",
-                type: "quantitative",
-            },
-        },
-    };
-    const threads = _.get(details, "threads", []);
-    const connectionFactoryId = _.get(details, "connection_factory_id", "");
     return (
         <>
             <Card
@@ -253,6 +175,37 @@ export default function Status() {
                         style={{ cursor: "default" }}
                         text={<H4 className="margin-0">Status</H4>}
                     />
+                    {isLive && (
+                        <Button
+                            style={{ pointerEvents: "none" }}
+                            icon={faIcon({
+                                icon: faCircleDot,
+                                className: "fa-fade",
+                                style: {
+                                    "--fa-animation-duration": "2s",
+                                    color: Colors.GREEN3,
+                                },
+                            })}
+                        />
+                    )}
+                    <Popover
+                        placement="bottom-start"
+                        minimal
+                        content={
+                            <Menu>
+                                {trackerList.map((tracker, index) => (
+                                    <MenuItem key={index} text={tracker} />
+                                ))}
+                            </Menu>
+                        }
+                    >
+                        <Tooltip minimal placement="bottom" content="Trackers">
+                            <Button
+                                icon={faIcon({ icon: faMegaphone })}
+                                text={_.size(trackerList)}
+                            />
+                        </Tooltip>
+                    </Popover>
                 </ButtonGroup>
             </Card>
             <div
@@ -262,144 +215,11 @@ export default function Status() {
                     height: "calc(100% - 50px)",
                 }}
             >
-                <Card>
-                    <div
-                        style={{
-                            display: "flex",
-                            gap: 10,
-                            marginBottom: 10,
-                            alignItems: "center",
-                        }}
-                    >
-                        <H5
-                            style={{ minWidth: 50 }}
-                            className={classNames({
-                                "margin-0": true,
-                                [Classes.SKELETON]: _.isEmpty(details),
-                            })}
-                        >
-                            {_.isEmpty(cid) ? "-" : cid}
-                        </H5>
-                        {isLive &&
-                            faIcon({
-                                icon: faCircleDot,
-                                className: "fa-fade",
-                                style: {
-                                    "--fa-animation-duration": "2s",
-                                    color: Colors.GREEN3,
-                                },
-                            })}
+                {trackerList.map((tracker, index) => (
+                    <div key={index} style={{ marginTop: index > 0 ? 20 : 0 }}>
+                        <TrackerCard tracker={tracker} />
                     </div>
-                    <div
-                        className={_.isEmpty(details) && Classes.SKELETON}
-                        style={{ display: "flex", gap: 5, marginBottom: 10 }}
-                    >
-                        <Popover
-                            interactionKind={PopoverInteractionKind.CLICK}
-                            placement="bottom-start"
-                            content={
-                                <div
-                                    style={{
-                                        padding: 15,
-                                        maxWidth: 360,
-                                        maxHeight: 360,
-                                        overflowY: "auto",
-                                    }}
-                                >
-                                    {threads.map((thread, index) => (
-                                        <div
-                                            key={index}
-                                            style={{
-                                                marginBottom:
-                                                    _.size(threads) > index + 1
-                                                        ? 10
-                                                        : 0,
-                                            }}
-                                        >
-                                            {index > 0 && <Divider />}
-                                            <div
-                                                style={{
-                                                    marginBottom: 5,
-                                                    display: "flex",
-                                                    gap: 5,
-                                                }}
-                                            >
-                                                {faIcon({
-                                                    icon: faCircleSmall,
-                                                    style: {
-                                                        color: thread.alive
-                                                            ? Colors.GREEN3
-                                                            : Colors.RED3,
-                                                        marginTop: 1,
-                                                    },
-                                                })}
-                                                <div
-                                                    className={
-                                                        Classes.TEXT_OVERFLOW_ELLIPSIS
-                                                    }
-                                                >
-                                                    {_.get(thread, "name", "-")}
-                                                </div>
-                                            </div>
-                                            <div
-                                                style={{
-                                                    display: "flex",
-                                                    gap: 10,
-                                                    alignItems: "center",
-                                                }}
-                                            >
-                                                <Tag minimal>
-                                                    ID:&nbsp;{thread.id}
-                                                </Tag>
-                                                {thread.daemon && (
-                                                    <Tag
-                                                        minimal
-                                                        intent={Intent.SUCCESS}
-                                                    >
-                                                        daemon
-                                                    </Tag>
-                                                )}
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            }
-                        >
-                            <Tag interactive minimal large>
-                                Thread:&nbsp;
-                                {_.size(threads)}
-                            </Tag>
-                        </Popover>
-                        <Divider />
-                        <Tag
-                            rightIcon={faIcon({ icon: faCopy })}
-                            onClick={() => {
-                                copy(connectionFactoryId);
-                                AppToaster.show({
-                                    icon: faIcon({
-                                        icon: faClipboard,
-                                    }),
-                                    message: `Copied "${connectionFactoryId}"`,
-                                });
-                            }}
-                            interactive
-                            minimal
-                            large
-                        >
-                            Connection factory:&nbsp;
-                            {_.isEmpty(connectionFactoryId)
-                                ? "-"
-                                : connectionFactoryId}
-                        </Tag>
-                    </div>
-                    <VegaLite
-                        className={_.isEmpty(data) ? Classes.SKELETON : null}
-                        data={{ values: data }}
-                        style={{ width: "100%" }}
-                        spec={CONNECTION_VEGA_SPEC}
-                        actions={false}
-                    />
-                </Card>
+                ))}
             </div>
         </>
     );
