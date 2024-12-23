@@ -13,12 +13,11 @@ export default function Series({ tracker, graphKey }) {
         {}
     );
     useEffect(() => {
-        console.log(trackerGraph);
         let newFields = [],
             newData = [];
         const entries = Object.entries(trackerGraph);
         for (let i = 0; i < _.size(entries); i++) {
-            let data = { epoch: entries[i][0] };
+            let data = { epoch: _.toInteger(entries[i][0]) };
             const entry = entries[i][1],
                 entryKeys = Object.keys(entry);
             for (let j = 0; j < _.size(entryKeys); j++) {
@@ -158,7 +157,6 @@ export default function Series({ tracker, graphKey }) {
             y: { title: "", type: "quantitative" },
         },
     };
-    console.log(JSON.stringify(VEGA_SPEC), data);
     return (
         <Card style={{ padding: 10 }} className="full-parent-width">
             <VegaLite
