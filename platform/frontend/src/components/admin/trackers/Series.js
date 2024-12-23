@@ -32,15 +32,6 @@ export default function Series({ tracker, graphKey }) {
         }
         setData(newData);
         setFields(_.uniqBy(newFields, "field"));
-        console.log(
-            "rafael",
-            newData,
-            fields.map((field) => field["field"]),
-            fields.map((field) => ({
-                ...field,
-                type: "quantitative",
-            }))
-        );
     }, [trackerGraph]);
     const fieldKeys = fields.map((field) => field["field"]);
     const VEGA_SPEC = {
@@ -93,9 +84,16 @@ export default function Series({ tracker, graphKey }) {
                         type: "nominal",
                         scale: {
                             range: [
-                                Colors.BLUE3,
-                                Colors.ORANGE3,
-                                Colors.GREEN3,
+                                Colors.VERMILION3,
+                                Colors.VIOLET3,
+                                Colors.CERULEAN3,
+                                Colors.FOREST3,
+                                Colors.GOLD3,
+                                Colors.ROSE3,
+                                Colors.INDIGO3,
+                                Colors.TURQUOISE3,
+                                Colors.LIME3,
+                                Colors.SEPIA3,
                             ],
                         },
                     },

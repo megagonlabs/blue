@@ -4,6 +4,7 @@ import { AppContext } from "@/components/contexts/app-context";
 import { faIcon } from "@/components/icon";
 import Timestamp from "@/components/Timestamp";
 import {
+    Blockquote,
     Button,
     ButtonGroup,
     Card,
@@ -59,7 +60,7 @@ export default function Status() {
                 }
             } else if (_.isEqual(type, "group")) {
                 let keys = Object.keys(data);
-                result.push(<H6 style={{ marginTop: 20 }}>{label}</H6>);
+                result.push(<H6>{label}</H6>);
                 let group = [];
                 for (let i = 0; i < _.size(keys); i++) {
                     const response = render(
@@ -74,16 +75,18 @@ export default function Status() {
                 }
                 if (!_.isEmpty(group))
                     result.push(
-                        <div
+                        <Blockquote
                             style={{
-                                flexGrow: 1,
+                                width: "100%",
                                 display: "flex",
                                 gap: 10,
                                 alignItems: "flex-start",
+                                flexWrap: "wrap",
+                                paddingRight: 0,
                             }}
                         >
                             {group.map((e) => e)}
-                        </div>
+                        </Blockquote>
                     );
             } else if (["time", "number", "status", "text"].includes(type)) {
                 let { value } = object;
