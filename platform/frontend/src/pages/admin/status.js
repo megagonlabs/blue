@@ -73,21 +73,29 @@ export default function Status() {
                     graph = response["graph"];
                     group = group.concat(response["result"]);
                 }
-                if (!_.isEmpty(group))
-                    result.push(
-                        <Blockquote
-                            style={{
-                                width: "100%",
-                                display: "flex",
-                                gap: 10,
-                                alignItems: "flex-start",
-                                flexWrap: "wrap",
-                                paddingRight: 0,
-                            }}
-                        >
-                            {group.map((e) => e)}
-                        </Blockquote>
-                    );
+                const GROUP_STYLE = {
+                    width: "100%",
+                    display: "flex",
+                    gap: 10,
+                    alignItems: "flex-start",
+                    flexWrap: "wrap",
+                };
+                if (!_.isEmpty(group)) {
+                    if (_.size(group) > 1)
+                        result.push(
+                            <Blockquote
+                                style={{ ...GROUP_STYLE, paddingRight: 0 }}
+                            >
+                                {group.map((e) => e)}
+                            </Blockquote>
+                        );
+                    else
+                        result.push(
+                            <div style={{ ...GROUP_STYLE, marginBottom: 10 }}>
+                                {group.map((e) => e)}
+                            </div>
+                        );
+                }
             } else if (["time", "number", "status", "text"].includes(type)) {
                 let { value } = object;
                 result.push(
@@ -143,10 +151,8 @@ export default function Status() {
             appActions.tracker.addTracker(channel);
             let time = _.get(data, "data.metadata.data.current.value", 0);
             if (_.isNumber(time)) time *= 1000;
-            const trackerGraph = _.get(
-                appStateRef.current.tracker.data,
-                [channel, "graph"],
-                {}
+            const trackerGraph = _.cloneDeep(
+                _.get(appStateRef.current.tracker.data, [channel, "graph"], {})
             );
             const { result, graph } = render(time, data, [], trackerGraph);
             appActions.tracker.addTrackerData({

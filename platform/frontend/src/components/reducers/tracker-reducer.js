@@ -4,7 +4,7 @@ export default function trackerReducer(
     state = defaultState,
     { type, payload }
 ) {
-    let { data, list } = state;
+    let { list } = state;
     switch (type) {
         case "tracker/data/add": {
             const { key, data, graph } = payload;
