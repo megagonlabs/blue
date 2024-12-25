@@ -1,4 +1,5 @@
 import TrackerCard from "@/components/admin/TrackerCard";
+import List from "@/components/admin/trackers/List";
 import Series from "@/components/admin/trackers/Series";
 import { AppContext } from "@/components/contexts/app-context";
 import { faIcon } from "@/components/icon";
@@ -13,15 +14,8 @@ import {
     H4,
     H5,
     H6,
-    Menu,
-    MenuItem,
-    Popover,
-    Tooltip,
 } from "@blueprintjs/core";
-import {
-    faCircleDot,
-    faMegaphone,
-} from "@fortawesome/sharp-duotone-solid-svg-icons";
+import { faCircleDot } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import _ from "lodash";
 import { useContext, useEffect, useRef, useState } from "react";
 export default function Status() {
@@ -121,6 +115,8 @@ export default function Status() {
                         </div>
                     </Card>
                 );
+            } else if (_.isEqual(type, "list")) {
+                result.push(<List label={label} object={object} />);
             } else if (_.isEqual(type, "series")) {
                 let { label, value } = object;
                 const graphKey = path.join(":");
@@ -197,24 +193,6 @@ export default function Status() {
                             })}
                         />
                     )}
-                    <Popover
-                        placement="bottom-start"
-                        minimal
-                        content={
-                            <Menu>
-                                {trackerList.map((tracker, index) => (
-                                    <MenuItem key={index} text={tracker} />
-                                ))}
-                            </Menu>
-                        }
-                    >
-                        <Tooltip minimal placement="bottom" content="Trackers">
-                            <Button
-                                icon={faIcon({ icon: faMegaphone })}
-                                text={_.size(trackerList)}
-                            />
-                        </Tooltip>
-                    </Popover>
                 </ButtonGroup>
             </Card>
             <div
