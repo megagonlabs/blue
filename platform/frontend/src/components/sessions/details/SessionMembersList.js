@@ -182,6 +182,7 @@ export default function SessionMembersList({ loading, setLoading }) {
                 }}
             >
                 <Popover
+                    usePortal={false}
                     onInteraction={(state) => {
                         setIsSearchPopoverOpen(state);
                         if (!state && !_.isEmpty(recentlyAdded)) {
@@ -200,10 +201,9 @@ export default function SessionMembersList({ loading, setLoading }) {
                     isOpen={isSearchPopoverOpen}
                     placement="bottom-start"
                     content={
-                        <div style={{ padding: 7.5 }}>
+                        <div style={{ padding: 15 }}>
                             {_.isEmpty(searchResult) ? (
                                 <div
-                                    style={{ padding: 7.5 }}
                                     className={
                                         isTyping ? Classes.SKELETON : null
                                     }
@@ -349,6 +349,7 @@ export default function SessionMembersList({ loading, setLoading }) {
                                         }}
                                     >
                                         <Popover
+                                            usePortal={false}
                                             placement="left"
                                             content={
                                                 <div style={{ padding: 15 }}>

@@ -409,60 +409,56 @@ export default function SessionMessages() {
                 <Popover
                     minimal
                     content={
-                        <div>
-                            <Menu>
-                                <MenuItem
-                                    text="Clear all"
-                                    onClick={() =>
-                                        appActions.session.clearSessionMessageFilterTag()
-                                    }
-                                />
-                                {!_.isEmpty(sessionMessageTags) && (
-                                    <>
-                                        <MenuDivider title="By tags" />
-                                        {_.toArray(sessionMessageTags).map(
-                                            (tag, index) => {
-                                                const selected = _.includes(
-                                                    sessionMessageFilterTags,
-                                                    tag
-                                                );
-                                                return (
-                                                    <MenuItem
-                                                        key={index}
-                                                        icon={
-                                                            selected ? (
-                                                                faIcon({
-                                                                    icon: faCheck,
-                                                                    style: {
-                                                                        color: Colors.GREEN3,
-                                                                    },
-                                                                })
-                                                            ) : (
-                                                                <Icon icon="blank" />
-                                                            )
-                                                        }
-                                                        onClick={() => {
-                                                            if (selected)
-                                                                appActions.session.removeSessionMessageFilterTag(
-                                                                    tag
-                                                                );
-                                                            else
-                                                                appActions.session.addSessionMessageFilterTag(
-                                                                    tag
-                                                                );
-                                                        }}
-                                                        shouldDismissPopover={
-                                                            false
-                                                        }
-                                                        text={tag}
-                                                    />
-                                                );
-                                            }
-                                        )}
-                                    </>
-                                )}
-                            </Menu>
-                        </div>
+                        <Menu>
+                            <MenuItem
+                                text="Clear all"
+                                onClick={() =>
+                                    appActions.session.clearSessionMessageFilterTag()
+                                }
+                            />
+                            {!_.isEmpty(sessionMessageTags) && (
+                                <>
+                                    <MenuDivider title="By tags" />
+                                    {_.toArray(sessionMessageTags).map(
+                                        (tag, index) => {
+                                            const selected = _.includes(
+                                                sessionMessageFilterTags,
+                                                tag
+                                            );
+                                            return (
+                                                <MenuItem
+                                                    key={index}
+                                                    icon={
+                                                        selected ? (
+                                                            faIcon({
+                                                                icon: faCheck,
+                                                                style: {
+                                                                    color: Colors.GREEN3,
+                                                                },
+                                                            })
+                                                        ) : (
+                                                            <Icon icon="blank" />
+                                                        )
+                                                    }
+                                                    onClick={() => {
+                                                        if (selected)
+                                                            appActions.session.removeSessionMessageFilterTag(
+                                                                tag
+                                                            );
+                                                        else
+                                                            appActions.session.addSessionMessageFilterTag(
+                                                                tag
+                                                            );
+                                                    }}
+                                                    shouldDismissPopover={false}
+                                                    text={tag}
+                                                />
+                                            );
+                                        }
+                                    )}
+                                </>
+                            )}
+                        </Menu>
                     }
                     placement="bottom-start"
                 >

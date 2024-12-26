@@ -46,7 +46,7 @@ export default function Pagination({
                 minimal
                 placement="bottom-end"
                 content={
-                    <div style={{ padding: 10, width: 150 }}>
+                    <div style={{ padding: 15, width: 150 }}>
                         {[10, 25, 50].map((size) => {
                             return (
                                 <Button
