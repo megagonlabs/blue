@@ -34,7 +34,9 @@ export default function List({ label, object }) {
                         className="full-parent-width"
                         style={{ display: "flex", gap: 5, flexWrap: "wrap" }}
                     >
-                        {group.map((e) => e)}
+                        {group.map((e, index) => (
+                            <div key={index}>{e}</div>
+                        ))}
                     </div>
                 );
             } else if (
@@ -68,14 +70,14 @@ export default function List({ label, object }) {
                     }}
                 >
                     {render(object).map((e, index) => (
-                        <>
+                        <div key={index}>
                             {index > 0 && (
                                 <Divider
                                     style={{ marginTop: 10, marginBottom: 10 }}
                                 />
                             )}
                             {e}
-                        </>
+                        </div>
                     ))}
                 </div>
             }

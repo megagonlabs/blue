@@ -5,5 +5,11 @@ import { AppContext } from "../contexts/app-context";
 export default function TrackerCard({ tracker }) {
     const { appState } = useContext(AppContext);
     const trackerData = _.get(appState.tracker.data, [tracker, "data"], []);
-    return <Card>{trackerData.map((data) => data)}</Card>;
+    return (
+        <Card>
+            {trackerData.map((data, index) => (
+                <div key={index}>{data}</div>
+            ))}
+        </Card>
+    );
 }
