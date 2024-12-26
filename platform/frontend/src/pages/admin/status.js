@@ -150,7 +150,19 @@ export default function Status() {
             const trackerGraph = _.cloneDeep(
                 _.get(appStateRef.current.tracker.data, [channel, "graph"], {})
             );
-            const { result, graph } = render(time, data, [], trackerGraph);
+            let { result, graph } = render(time, data, [], trackerGraph);
+            const trackers = Object.keys(graph);
+            for (let i = 0; i < _.size(trackers); i++) {
+                const content = Object.entries(_.get(graph, trackers[i], {}));
+                if (_.size(content) > 60) {
+                    const sorted = _.sortBy(content, (e) => _.toNumber(e[0]));
+                    _.set(
+                        graph,
+                        trackers[i],
+                        Object.fromEntries(_.takeRight(sorted, 60))
+                    );
+                }
+            }
             appActions.tracker.addTrackerData({
                 key: channel,
                 data: result,
