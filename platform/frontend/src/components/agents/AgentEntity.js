@@ -33,6 +33,7 @@ export default function AgentEntity() {
     const [entity, setEntity] = useState(BLANK_ENTITY);
     const [editEntity, setEditEntity] = useState(BLANK_ENTITY);
     const [edit, setEdit] = useState(false);
+    const [general, setGeneral] = useState({});
     const [loading, setLoading] = useState(true);
     const [jsonError, setJsonError] = useState(false);
     const discard = () => {
@@ -53,6 +54,9 @@ export default function AgentEntity() {
             setEntity(result);
             setEditEntity(result);
             setLoading(false);
+            setGeneral({
+                system_agent: _.get(result, "properties.system_agent", false),
+            });
         });
     }, [router]);
     const updateEntity = ({ path, value }) => {
@@ -74,14 +78,15 @@ export default function AgentEntity() {
                 icon: icon,
             })
             .then(() => {
+                const changes = {
+                    ...editEntity.properties,
+                    ...general,
+                };
                 const tasks = constructSavePropertyRequests({
                     axios,
                     url: `${urlPrefix}/${entity.name}/property`,
-                    difference: shallowDiff(
-                        entity.properties,
-                        editEntity.properties
-                    ),
-                    properties: editEntity.properties,
+                    difference: shallowDiff(entity.properties, changes),
+                    properties: changes,
                 });
                 settlePromises(tasks, (error) => {
                     if (!error) {
@@ -90,7 +95,16 @@ export default function AgentEntity() {
                             key: entity.name,
                             value: _.get(editEntity, "icon", null),
                         });
-                        setEntity(editEntity);
+                        console.log("assign changes", {
+                            ...editEntity,
+                            properties: changes,
+                        });
+                        const newEntity = {
+                            ...editEntity,
+                            properties: changes,
+                        };
+                        setEntity(newEntity);
+                        setEditEntity(newEntity);
                     }
                     setLoading(false);
                 });
@@ -133,8 +147,8 @@ export default function AgentEntity() {
                 setEdit={setEdit}
                 entity={editEntity}
                 loading={loading}
-                jsonError={jsonError}
-                updateEntity={updateEntity}
+                general={general}
+                setGeneral={setGeneral}
             />
             <EntityDescription
                 edit={edit}
