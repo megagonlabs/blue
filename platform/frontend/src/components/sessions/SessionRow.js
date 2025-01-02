@@ -106,7 +106,6 @@ export default function SessionRow({ index, style }) {
             sessionId,
             socket,
         });
-        appActions.session.setSessionIdFocus(sessionId);
     };
     const [updatingPin, setUpdatingPin] = useState(false);
     const handlePinSession = () => {

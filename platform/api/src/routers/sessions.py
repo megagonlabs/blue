@@ -142,7 +142,10 @@ def get_sessions(request: Request, my_sessions: bool = False):
 def get_session(request: Request, session_id):
     session = p.get_session(session_id).to_dict()
     session_acl_enforce(request, session, read=True)
-    return JSONResponse(content={"result": session})
+    uid = request.state.user['uid']
+    owner_of = pydash.is_equal(pydash.objects.get(session, 'created_by', None), uid)
+    member_of = pydash.objects.get(session, f'members.{uid}', False)
+    return JSONResponse(content={"result": {**session, 'group_by': {'owner': owner_of, 'member': not owner_of and member_of}}})
 
 
 @router.get("/session/{session_id}/agents")

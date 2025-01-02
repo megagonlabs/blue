@@ -56,14 +56,7 @@ export default function SearchResultRow({ sessionId, style = {} }) {
         <div style={style}>
             <Card
                 className="session-search-result-row"
-                onClick={() => {
-                    appActions.session.setSessionIdFocus(sessionId);
-                    appActions.session.observeSession({
-                        sessionId,
-                        socket,
-                    });
-                    router.push("/sessions");
-                }}
+                onClick={() => router.push(`/sessions/${sessionId}`)}
                 style={{
                     cursor: "pointer",
                     display: "flex",
@@ -118,9 +111,7 @@ export default function SearchResultRow({ sessionId, style = {} }) {
                                     });
                                     event.stopPropagation();
                                 }}
-                                icon={faIcon({
-                                    icon: faCopy,
-                                })}
+                                icon={faIcon({ icon: faCopy })}
                             />
                         </Tooltip>
                     </ButtonGroup>

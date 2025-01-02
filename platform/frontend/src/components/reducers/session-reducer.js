@@ -11,7 +11,6 @@ export const defaultState = {
     sessionMessageTags: {},
     sessionMessageFilterTags: {},
     userId: null,
-    sessionListPanelCollapsed: true,
     showWorkspacePanel: false,
     sessionWorkspaceCollapse: {},
     sessionWorkspace: {},

@@ -95,10 +95,6 @@ export default function AgentEntity() {
                             key: entity.name,
                             value: _.get(editEntity, "icon", null),
                         });
-                        console.log("assign changes", {
-                            ...editEntity,
-                            properties: changes,
-                        });
                         const newEntity = {
                             ...editEntity,
                             properties: changes,

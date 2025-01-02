@@ -15,9 +15,7 @@ export const SocketProvider = ({ children }) => {
     const reconnectWs = () => {
         // close existing WS connection
         try {
-            if (isSocketOpen) {
-                ws.close();
-            }
+            if (isSocketOpen) ws.close();
         } catch (error) {
             console.log(error);
         }
@@ -59,7 +57,9 @@ export const SocketProvider = ({ children }) => {
         }, 0);
     };
     useEffect(() => {
-        reconnectWs();
+        if (!_.isUndefined(settings.debug_mode)) {
+            reconnectWs();
+        }
     }, [settings.debug_mode]);
     useEffect(() => {
         const onMessage = (event) => {

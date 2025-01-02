@@ -22,7 +22,6 @@ import {
     faPaintRoller,
     faSidebar,
     faTableColumns,
-    faTableList,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import classNames from "classnames";
 import copy from "copy-to-clipboard";
@@ -49,11 +48,6 @@ const SESSION_MESSAGE_SETTINGS = {
         title: "Show workspace",
         description: "Default show session workspace",
         icon: faTableColumns,
-    },
-    show_session_list: {
-        title: "Show sessions",
-        description: "Default show session categorization list",
-        icon: faTableList,
     },
     expand_message: {
         title: "Expand messages",
@@ -190,7 +184,6 @@ export default function Settings({ isOpen, setIsSettingsOpen }) {
                         <Menu className="settings-menus" large>
                             {[
                                 "show_workspace",
-                                "show_session_list",
                                 "expand_message",
                                 "conversation_view",
                             ].map((key) => (

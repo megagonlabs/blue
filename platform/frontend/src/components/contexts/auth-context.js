@@ -187,10 +187,6 @@ export const AuthProvider = ({ children }) => {
                 }
                 setSettings(profileSettings);
                 appActions.session.setState({
-                    key: "sessionListPanelCollapsed",
-                    value: !_.get(profileSettings, "show_session_list", false),
-                });
-                appActions.session.setState({
                     key: "showWorkspacePanel",
                     value: _.get(profileSettings, "show_workspace", false),
                 });

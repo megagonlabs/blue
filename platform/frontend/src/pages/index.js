@@ -65,17 +65,16 @@ export default function LaunchScreen() {
     const [launchGroup, setLaunchGroup] = useState(null);
     const { creatingSession } = appState.session;
     const joinAgentGroupSession = (groupName) => {
-        if (!isSocketOpen || creatingSession) return;
+        if (!isSocketOpen || creatingSession || !router.isReady) return;
         setLaunchGroup(groupName);
         AppToaster.show({
             message: `Launching ${groupName}`,
             icon: faIcon({ icon: faHourglassStart }),
         });
-        appActions.session.createSession({ socket, groupName });
+        appActions.session.createSession({ groupName, router });
     };
     useEffect(() => {
         if (appState.session.joinAgentGroupSession) {
-            router.push("/sessions");
             appActions.session.setState({
                 key: "joinAgentGroupSession",
                 value: false,

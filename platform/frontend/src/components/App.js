@@ -32,10 +32,9 @@ import {
     faHashtag,
     faInboxArrowUp,
     faLayerGroup,
+    faMessages,
     faPencilRuler,
     faRectangleTerminal,
-    faSearch,
-    faUser,
     faUserGroup,
     faWavePulse,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
@@ -51,17 +50,20 @@ import UserAccountPanel from "./navigation/UserAccountPanel";
 export default function App({ children }) {
     const router = useRouter();
     const { appState, appActions } = useContext(AppContext);
-    const { sessionDetails, sessionIdFocus, creatingSession } =
-        appState.session;
+    const { sessionDetails, creatingSession, sessionIds } = appState.session;
     const { socket, isSocketOpen } = useSocket();
     const recentSessions = useMemo(
         () =>
-            Object.values(sessionDetails)
-                .filter((session) => _.get(session, "group_by.owner", false))
-                .sort((a, b) => b.created_date - a.created_date)
-                .slice(0, 5)
-                .map((session) => session.id),
-        [sessionDetails]
+            _.intersection(
+                Object.values(sessionDetails)
+                    .filter((session) =>
+                        _.get(session, "group_by.owner", false)
+                    )
+                    .sort((a, b) => b.created_date - a.created_date)
+                    .map((session) => session.id),
+                sessionIds
+            ).slice(0, 5),
+        [sessionDetails, sessionIds]
     );
     const { user, permissions, settings } = useContext(AuthContext);
     const userRole = _.get(user, "role", null);
@@ -75,7 +77,6 @@ export default function App({ children }) {
         canReadPlatformAgents,
         canReadSessions,
         canReadDataRegistry,
-        canWriteSessions,
         canReadAgentRegistry,
         canReadOperatorRegistry,
         canReadModelRegistry,
@@ -84,39 +85,11 @@ export default function App({ children }) {
     } = permissions;
     const launchScreenMode = launchScreen && _.isEqual(router.pathname, "/");
     const MENU_ITEMS = {
-        my_sessions: {
-            href: "/sessions",
-            text: "My Sessions",
-            icon: faUser,
-            visible: canReadSessions,
-            onClick: () => {
-                appActions.session.setState({
-                    key: "sessionGroupBy",
-                    value: "owner",
-                });
-                appActions.session.setState({
-                    key: "sessionListPanelCollapsed",
-                    value: false,
-                });
-            },
-        },
         all_sessions: {
-            href: "/sessions/search",
-            text: "All Sessions",
-            icon: faSearch,
-            visible: canReadSessions,
-        },
-        new_session: {
             href: "/sessions",
-            text: "New Session",
-            icon: faInboxArrowUp,
-            visible: canWriteSessions,
-            disabled: creatingSession || !isSocketOpen,
-            intent: Intent.PRIMARY,
-            onClick: () => {
-                if (!isSocketOpen) return;
-                appActions.session.createSession({ socket });
-            },
+            text: "Sessions",
+            icon: faMessages,
+            visible: canReadSessions,
         },
         data_registry: {
             href: `/registry/${process.env.NEXT_PUBLIC_DATA_REGISTRY_NAME}/data`,
@@ -267,34 +240,25 @@ export default function App({ children }) {
                             >
                                 {canReadSessions &&
                                     recentSessions.map((sessionId, index) => {
-                                        const active =
-                                                _.isEqual(
-                                                    sessionIdFocus,
+                                        const buttonText = (
+                                            <div
+                                                style={{
+                                                    maxWidth: compactSidebar
+                                                        ? 200
+                                                        : 133,
+                                                }}
+                                                className={
+                                                    Classes.TEXT_OVERFLOW_ELLIPSIS
+                                                }
+                                            >
+                                                #&nbsp;
+                                                {_.get(
+                                                    sessionDetails,
+                                                    [sessionId, "name"],
                                                     sessionId
-                                                ) &&
-                                                _.includes(
-                                                    ["/sessions"],
-                                                    router.pathname
-                                                ),
-                                            buttonText = (
-                                                <div
-                                                    style={{
-                                                        maxWidth: compactSidebar
-                                                            ? 200
-                                                            : 133,
-                                                    }}
-                                                    className={
-                                                        Classes.TEXT_OVERFLOW_ELLIPSIS
-                                                    }
-                                                >
-                                                    #&nbsp;
-                                                    {_.get(
-                                                        sessionDetails,
-                                                        [sessionId, "name"],
-                                                        sessionId
-                                                    )}
-                                                </div>
-                                            );
+                                                )}
+                                            </div>
+                                        );
 
                                         return (
                                             <Tooltip
@@ -318,27 +282,20 @@ export default function App({ children }) {
                                                             ),
                                                         })
                                                     }
-                                                    active={active}
                                                     style={{
                                                         padding: "5px 15px",
-                                                        backgroundColor: !active
-                                                            ? "transparent"
-                                                            : null,
                                                     }}
                                                     onClick={() => {
-                                                        appActions.session.setSessionIdFocus(
-                                                            sessionId
+                                                        if (!router.isReady)
+                                                            return;
+                                                        router.push(
+                                                            `/sessions/${sessionId}`
                                                         );
                                                         appActions.session.observeSession(
                                                             {
                                                                 sessionId,
                                                                 socket,
                                                             }
-                                                        );
-                                                        if (!router.isReady)
-                                                            return;
-                                                        router.push(
-                                                            "/sessions"
                                                         );
                                                     }}
                                                     text={
@@ -349,11 +306,7 @@ export default function App({ children }) {
                                             </Tooltip>
                                         );
                                     })}
-                                {[
-                                    "my_sessions",
-                                    "all_sessions",
-                                    "new_session",
-                                ].map((key, index) => {
+                                {["all_sessions"].map((key, index) => {
                                     const {
                                         href,
                                         icon,
@@ -366,9 +319,10 @@ export default function App({ children }) {
                                     if (!visible) {
                                         return null;
                                     }
-                                    const active =
-                                        _.startsWith(router.pathname, href) &&
-                                        _.includes(["all_sessions"], key);
+                                    const active = _.startsWith(
+                                        router.pathname,
+                                        href
+                                    );
                                     return (
                                         <Link
                                             className="no-link-decoration"
@@ -407,6 +361,33 @@ export default function App({ children }) {
                                         </Link>
                                     );
                                 })}
+                                <Tooltip
+                                    minimal
+                                    placement="right"
+                                    content={
+                                        compactSidebar ? "New Session" : null
+                                    }
+                                >
+                                    <Button
+                                        intent={Intent.PRIMARY}
+                                        large
+                                        text={!compactSidebar && "New Session"}
+                                        disabled={
+                                            creatingSession || !isSocketOpen
+                                        }
+                                        icon={faIcon({ icon: faInboxArrowUp })}
+                                        onClick={() => {
+                                            if (
+                                                !isSocketOpen ||
+                                                !router.isReady
+                                            )
+                                                return;
+                                            appActions.session.createSession({
+                                                router,
+                                            });
+                                        }}
+                                    />
+                                </Tooltip>
                             </ButtonGroup>
                         </>
                     ) : null}

@@ -40,7 +40,7 @@ export const sessionAction = (dispatch) => ({
         dispatch({ type: "session/workspaceCollapse/toggle", payload }),
     collapseAllWorkspace: (payload) =>
         dispatch({ type: "session/workspaceCollapse/all", payload }),
-    createSession: ({ socket, groupName = null }) => {
+    createSession: ({ router, groupName = null }) => {
         let postSessionUrl = `/sessions/session${
             _.isEmpty(groupName) ? "" : "/" + groupName
         }`;
@@ -62,12 +62,7 @@ export const sessionAction = (dispatch) => ({
                     type: "session/sessions/add",
                     payload: session.id,
                 });
-                socket.send(
-                    JSON.stringify({
-                        type: "OBSERVE_SESSION",
-                        session_id: session.id,
-                    })
-                );
+                router.push(`/sessions/${session.id}`);
                 dispatch({
                     type: "session/sessionIdFocus/set",
                     payload: session.id,
