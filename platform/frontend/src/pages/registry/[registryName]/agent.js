@@ -212,21 +212,19 @@ export default function Agent() {
                                             { value: "agent", text: "Agent" },
                                             { value: "input", text: "Input" },
                                             { value: "output", text: "Output" },
-                                        ].map(({ value, text }, index) => {
-                                            return (
-                                                <Radio
-                                                    key={index}
-                                                    className={
-                                                        appState.agent.loading
-                                                            ? Classes.SKELETON
-                                                            : null
-                                                    }
-                                                    large
-                                                    value={value}
-                                                    label={text}
-                                                />
-                                            );
-                                        })}
+                                        ].map(({ value, text }, index) => (
+                                            <Radio
+                                                key={index}
+                                                className={
+                                                    appState.agent.loading
+                                                        ? Classes.SKELETON
+                                                        : null
+                                                }
+                                                large
+                                                value={value}
+                                                label={text}
+                                            />
+                                        ))}
                                     </RadioGroup>
                                 </div>
                             }
