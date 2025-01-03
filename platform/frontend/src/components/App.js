@@ -31,8 +31,8 @@ import {
     faGear,
     faHashtag,
     faInboxArrowUp,
+    faInboxFull,
     faLayerGroup,
-    faMessages,
     faPencilRuler,
     faRectangleTerminal,
     faUserGroup,
@@ -88,7 +88,7 @@ export default function App({ children }) {
         all_sessions: {
             href: "/sessions",
             text: "Sessions",
-            icon: faMessages,
+            icon: faInboxFull,
             visible: canReadSessions,
         },
         data_registry: {

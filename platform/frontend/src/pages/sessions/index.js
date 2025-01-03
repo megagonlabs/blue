@@ -6,6 +6,7 @@ import {
     Classes,
     ControlGroup,
     H4,
+    H5,
     InputGroup,
     NonIdealState,
 } from "@blueprintjs/core";
@@ -21,7 +22,8 @@ import AutoSizer from "react-virtualized-auto-sizer";
 import { FixedSizeList } from "react-window";
 export default function AllSessions() {
     const { appState, appActions } = useContext(AppContext);
-    const { sessionIds, sessionDetails, filter } = appState.session;
+    const { sessionIds, sessionDetails, filter, pinnedSessionIds } =
+        appState.session;
     const [loading, setLoading] = useState(false);
     const [allSessions, setAllSessions] = useState([]);
     const [keywords, setKeywords] = useState(filter.keywords);
@@ -31,35 +33,52 @@ export default function AllSessions() {
             key: "filter",
             value: { keywords: searchTerm },
         });
-        setAllSessions(
-            sessionIds
-                .filter((id) => {
-                    if (_.includes(id, searchTerm)) return true;
-                    const name = _.get(sessionDetails, [id, "name"], id);
-                    if (_.includes(name, searchTerm)) return true;
-                    const description = _.get(
-                        sessionDetails,
-                        [id, "description"],
-                        id
-                    );
-                    if (_.includes(description, searchTerm)) return true;
-                    return false;
-                })
-                .sort(
-                    (a, b) =>
+        let result = sessionIds
+            .filter((id) => {
+                if (_.includes(id, searchTerm)) return true;
+                const name = _.get(sessionDetails, [id, "name"], id);
+                if (_.includes(name, searchTerm)) return true;
+                const description = _.get(
+                    sessionDetails,
+                    [id, "description"],
+                    id
+                );
+                if (_.includes(description, searchTerm)) return true;
+                return false;
+            })
+            .sort((a, b) => {
+                let aPinned = pinnedSessionIds.has(a),
+                    bPinned = pinnedSessionIds.has(b);
+                if (_.isEqual(aPinned, bPinned)) {
+                    return (
                         sessionDetails[b].created_date -
                         sessionDetails[a].created_date
-                )
-        );
+                    );
+                } else {
+                    return bPinned - aPinned;
+                }
+            });
+        let insertedPinned = false;
+        if (pinnedSessionIds.has(_.first(result))) {
+            result.splice(0, 0, { header: "Pinned" });
+            insertedPinned = true;
+        }
+        for (let i = 0 + (insertedPinned ? 1 : 0); i < _.size(result); i++) {
+            if (!pinnedSessionIds.has(result[i])) {
+                result.splice(i, 0, { header: "Everything else" });
+                break;
+            }
+        }
+        setAllSessions(result);
         setSearch(!_.isEmpty(searchTerm));
     };
     useEffect(() => {
         searchSessions(keywords);
-    }, [sessionIds]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [sessionIds, pinnedSessionIds]); // eslint-disable-line react-hooks/exhaustive-deps
     useEffect(() => {
         // automatically fetch all existing sessions onload
         setLoading(true);
-        // can use param my_sessions: true/false
+        // param: my_sessions, true/false
         axios
             .get("/sessions")
             .then((response) => {
@@ -190,12 +209,25 @@ export default function AllSessions() {
                                     itemCount={_.size(allSessions)}
                                     itemSize={69}
                                 >
-                                    {({ index, style }) => (
-                                        <SearchResultRow
-                                            style={style}
-                                            sessionId={allSessions[index]}
-                                        />
-                                    )}
+                                    {({ index, style }) => {
+                                        const element = allSessions[index];
+                                        return _.has(element, "header") ? (
+                                            <div style={style}>
+                                                <H5
+                                                    style={{
+                                                        margin: "30px 21px 0px",
+                                                    }}
+                                                >
+                                                    {element.header}
+                                                </H5>
+                                            </div>
+                                        ) : (
+                                            <SearchResultRow
+                                                style={style}
+                                                sessionId={element}
+                                            />
+                                        );
+                                    }}
                                 </FixedSizeList>
                             )}
                         </AutoSizer>

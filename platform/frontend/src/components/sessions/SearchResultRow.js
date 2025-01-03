@@ -21,7 +21,6 @@ import _ from "lodash";
 import { useRouter } from "next/router";
 import { useContext, useState } from "react";
 import { AppContext } from "../contexts/app-context";
-import { useSocket } from "../hooks/useSocket";
 export default function SearchResultRow({ sessionId, style = {} }) {
     const { appState, appActions } = useContext(AppContext);
     const { pinnedSessionIds, sessionDetails } = appState.session;
@@ -32,7 +31,6 @@ export default function SearchResultRow({ sessionId, style = {} }) {
         ""
     );
     const router = useRouter();
-    const { socket } = useSocket();
     const [updatingPin, setUpdatingPin] = useState(false);
     const isPinned = pinnedSessionIds.has(sessionId);
     const handlePinSession = () => {
