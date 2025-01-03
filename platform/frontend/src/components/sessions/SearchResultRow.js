@@ -6,10 +6,12 @@ import {
     ButtonGroup,
     Card,
     Classes,
+    Colors,
     H5,
     Tooltip,
 } from "@blueprintjs/core";
 import {
+    faCircleSmall,
     faClipboard,
     faCopy,
     faThumbTack,
@@ -23,7 +25,8 @@ import { useContext, useState } from "react";
 import { AppContext } from "../contexts/app-context";
 export default function SearchResultRow({ sessionId, style = {} }) {
     const { appState, appActions } = useContext(AppContext);
-    const { pinnedSessionIds, sessionDetails } = appState.session;
+    const { pinnedSessionIds, sessionDetails, unreadSessionIds } =
+        appState.session;
     const sessionName = _.get(sessionDetails, [sessionId, "name"], sessionId);
     const sessionDescription = _.get(
         sessionDetails,
@@ -65,6 +68,16 @@ export default function SearchResultRow({ sessionId, style = {} }) {
                     height: 58,
                 }}
             >
+                {unreadSessionIds.has(sessionId) &&
+                    faIcon({
+                        icon: faCircleSmall,
+                        style: {
+                            color: Colors.RED3,
+                            position: "absolute",
+                            top: 21,
+                            left: 2,
+                        },
+                    })}
                 <div
                     className="session-search-result-row-actions"
                     style={{
