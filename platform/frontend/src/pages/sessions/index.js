@@ -215,7 +215,7 @@ export default function AllSessions() {
                                             <div style={style}>
                                                 <H5
                                                     style={{
-                                                        margin: "30px 21px 0px",
+                                                        margin: "31px 21px 0px",
                                                     }}
                                                 >
                                                     {element.header}
