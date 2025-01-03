@@ -19,7 +19,7 @@ export const defaultState = {
     pinnedSessionIds: new Set(),
     closedJsonforms: new Set(),
     expandedMessageStream: new Set(),
-    sessionGroupBy: "all",
+    sessionGroupBy: "owner",
     creatingSession: false,
     joinAgentGroupSession: false,
     sessionAgentProgress: {},

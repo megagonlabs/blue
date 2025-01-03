@@ -13,6 +13,7 @@ import {
     ButtonGroup,
     Card,
     Classes,
+    Colors,
     Divider,
     H3,
     Intent,
@@ -28,6 +29,7 @@ import {
     fa3,
     fa4,
     fa5,
+    faCircleSmall,
     faGear,
     faHashtag,
     faInboxArrowUp,
@@ -50,7 +52,8 @@ import UserAccountPanel from "./navigation/UserAccountPanel";
 export default function App({ children }) {
     const router = useRouter();
     const { appState, appActions } = useContext(AppContext);
-    const { sessionDetails, creatingSession, sessionIds } = appState.session;
+    const { sessionDetails, creatingSession, sessionIds, unreadSessionIds } =
+        appState.session;
     const { socket, isSocketOpen } = useSocket();
     const recentSessions = useMemo(
         () =>
@@ -356,6 +359,21 @@ export default function App({ children }) {
                                                         icon: icon,
                                                     })}
                                                     onClick={onClick}
+                                                    rightIcon={
+                                                        _.isEqual(
+                                                            key,
+                                                            "all_sessions"
+                                                        ) &&
+                                                        !_.isEmpty(
+                                                            unreadSessionIds
+                                                        ) &&
+                                                        faIcon({
+                                                            icon: faCircleSmall,
+                                                            style: {
+                                                                color: Colors.RED3,
+                                                            },
+                                                        })
+                                                    }
                                                 />
                                             </Tooltip>
                                         </Link>

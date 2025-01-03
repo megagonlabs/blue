@@ -9,8 +9,12 @@ import {
     H5,
     InputGroup,
     NonIdealState,
+    Popover,
+    Radio,
+    RadioGroup,
 } from "@blueprintjs/core";
 import {
+    faBarsFilter,
     faInboxes,
     faSearch,
     faTimes,
@@ -22,8 +26,13 @@ import AutoSizer from "react-virtualized-auto-sizer";
 import { FixedSizeList } from "react-window";
 export default function AllSessions() {
     const { appState, appActions } = useContext(AppContext);
-    const { sessionIds, sessionDetails, filter, pinnedSessionIds } =
-        appState.session;
+    const {
+        sessionIds,
+        sessionDetails,
+        filter,
+        pinnedSessionIds,
+        sessionGroupBy,
+    } = appState.session;
     const [loading, setLoading] = useState(false);
     const [allSessions, setAllSessions] = useState([]);
     const [keywords, setKeywords] = useState(filter.keywords);
@@ -34,6 +43,14 @@ export default function AllSessions() {
             value: { keywords: searchTerm },
         });
         let result = sessionIds
+            .filter((id) => {
+                const groupByFlag = _.get(
+                    appState,
+                    `session.sessionDetails.${id}.group_by.${sessionGroupBy}`,
+                    false
+                );
+                return _.isEqual(sessionGroupBy, "all") || groupByFlag;
+            })
             .filter((id) => {
                 if (_.includes(id, searchTerm)) return true;
                 const name = _.get(sessionDetails, [id, "name"], id);
@@ -74,13 +91,14 @@ export default function AllSessions() {
     };
     useEffect(() => {
         searchSessions(keywords);
-    }, [sessionIds, pinnedSessionIds]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [sessionIds, pinnedSessionIds, sessionGroupBy, sessionDetails]); // eslint-disable-line react-hooks/exhaustive-deps
     useEffect(() => {
         // automatically fetch all existing sessions onload
         setLoading(true);
         // param: my_sessions, true/false
+        const my_sessions = _.includes(["owner", "member"], sessionGroupBy);
         axios
-            .get("/sessions")
+            .get("/sessions", { params: { my_sessions } })
             .then((response) => {
                 let sessions = _.get(response, "data.results", []);
                 let members = new Set();
@@ -124,7 +142,7 @@ export default function AllSessions() {
                 setLoading(false);
             })
             .catch(() => {});
-    }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [sessionGroupBy]); // eslint-disable-line react-hooks/exhaustive-deps
     return (
         <>
             <div style={{ padding: "20px 20px 10px 20px", display: "flex" }}>
@@ -176,6 +194,55 @@ export default function AllSessions() {
                                 ) : null
                             }
                         />
+                        <Popover
+                            minimal
+                            placement="bottom-end"
+                            content={
+                                <div
+                                    style={{
+                                        padding: "15px 15px 5px",
+                                        maxWidth: 500,
+                                    }}
+                                >
+                                    <RadioGroup
+                                        inline
+                                        label="Type"
+                                        selectedValue={sessionGroupBy}
+                                        onChange={(event) =>
+                                            appActions.session.setState({
+                                                key: "sessionGroupBy",
+                                                value: event.target.value,
+                                            })
+                                        }
+                                    >
+                                        {[
+                                            { value: "all", text: "All" },
+                                            { value: "owner", text: "My" },
+                                            { value: "member", text: "Shared" },
+                                        ].map(({ value, text }, index) => (
+                                            <Radio
+                                                className={
+                                                    loading
+                                                        ? Classes.SKELETON
+                                                        : null
+                                                }
+                                                key={index}
+                                                large
+                                                value={value}
+                                                label={text}
+                                            />
+                                        ))}
+                                    </RadioGroup>
+                                </div>
+                            }
+                        >
+                            <Button
+                                large
+                                outlined
+                                text="Filter"
+                                rightIcon={faIcon({ icon: faBarsFilter })}
+                            />
+                        </Popover>
                     </ControlGroup>
                 </div>
             </div>
