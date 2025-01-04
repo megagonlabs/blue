@@ -142,6 +142,7 @@ export default function AddAgents({
     };
     return (
         <Dialog
+            portalClassName="portal-overlay-z-index-36"
             title="Add Agents"
             canOutsideClickClose={_.isEqual(selectionSize, 0)}
             isOpen={isOpen}
