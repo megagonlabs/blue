@@ -40,7 +40,10 @@ from sentence_transformers import SentenceTransformer
 from connection import PooledConnectionFactory
 
 
+
 class Registry:
+    NESTING___SEPARATOR = "___"
+
     def __init__(self, name="REGISTRY", id=None, sid=None, cid=None, prefix=None, suffix=None, properties={}):
 
         self.name = name
@@ -184,13 +187,12 @@ class Registry:
         index_name = self._get_index_name()
         doc_prefix = self._get_doc_prefix()
 
-        records = self.list_records()
+        records = self.list_records(recursive=True)
 
         # instantiate a redis pipeline
         pipe = self.connection.pipeline(transaction=False)
 
-        for name in records:
-            record = records[name]
+        for record in records:
             self._set_index_record(record, recursive=True, pipe=pipe)
 
         res = pipe.execute()
@@ -199,6 +201,9 @@ class Registry:
         logging.info(self.connection.ft(index_name).info())
 
     def _set_index_record(self, record, recursive=False, pipe=None):
+
+        if 'name' not in record:
+            return
 
         name = record['name']
         type = record['type']
@@ -428,21 +433,34 @@ class Registry:
         # return original and merged
         return original_record, merged_record
 
+    def _identify_scope(self, name, full=False):
+        # use name to identify scope
+        s = name.split(Registry.NESTING___SEPARATOR)
+        if not full:
+            s = s[:-1]
+        scope = "/" + "/".join(s)
+        return scope
+    
     def _get_record_path(self, name, scope):
+        if scope is None:
+            scope = self._identify_scope(name)
+
         sp = self._get_scope_path(scope)
-        p = sp + "." + name
+        p = sp + name
         return p
 
-    def _get_scope_path(self, scope):
+    def _get_scope_path(self, scope, recursive=False):
         if scope[len(scope) - 1] == '/':
             scope = scope[:-1]
 
         # compute json path given prefix, scope, and name
         sa = scope.split("/")
-        p = "$" + ".contents.".join(sa) + ".contents"
+        p = "$" + ".contents.".join(sa) + ".contents."
+        if recursive:
+            p = p + "."
         return p
 
-    def get_record(self, name, scope):
+    def get_record(self, name, scope=None):
         p = self._get_record_path(name, scope)
         record = self.connection.json().get(self._get_data_namespace(), Path(p))
         if len(record) == 0:
@@ -547,18 +565,15 @@ class Registry:
         if rebuild:
             self._delete_index_record(record)
 
-    def list_records(self, type=None, scope="/"):
-        sp = self._get_scope_path(scope)
-
-        records = self.connection.json().get(self._get_data_namespace(), Path(sp))[0]
+    def list_records(self, type=None, scope="/", recursive=False):
+        sp = self._get_scope_path(scope, recursive=recursive)
 
         if type:
-            filtered_records = {}
-            for key in records:
-                record = records[key]
-                if record['type'] == type:
-                    filtered_records[key] = record
-            records = filtered_records
+            sp = sp + '[?(@.type=="' + type + '")]'
+        else:
+            sp = sp + '[?(@.type)]'
+
+        records = self.connection.json().get(self._get_data_namespace(), Path(sp))
 
         return records
 

@@ -89,7 +89,7 @@ def source_acl_enforce(request: Request, source: dict, write=False, throw=True):
 def get_data(request: Request):
     acl_enforce(request.state.user['role'], 'data_registry', 'read_all')
     results = data_registry.list_records()
-    return JSONResponse(content={"results": list(results.values())})
+    return JSONResponse(content={"results": results})
 
 
 @router.get("/search")
