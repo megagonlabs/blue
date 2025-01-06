@@ -21,13 +21,24 @@ import axios from "axios";
 import copy from "copy-to-clipboard";
 import _ from "lodash";
 import { useRouter } from "next/router";
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { AppContext } from "../contexts/app-context";
 export default function SearchResultRow({ sessionId, style = {} }) {
     const { appState, appActions } = useContext(AppContext);
     const { pinnedSessionIds, sessionDetails, unreadSessionIds } =
         appState.session;
     const sessionName = _.get(sessionDetails, [sessionId, "name"], sessionId);
+    const [sessionDisplayName, setSessionDisplayName] = useState(sessionName);
+    useEffect(() => {
+        if (_.isEqual(sessionId, sessionName)) {
+            const utcSeconds = sessionDetails[sessionId].created_date;
+            let date = new Date(0); // The 0 here sets the date to the epoch
+            date.setUTCSeconds(utcSeconds);
+            setSessionDisplayName(date.toLocaleString());
+        } else {
+            setSessionDisplayName(sessionName);
+        }
+    }, [sessionName]);
     const sessionDescription = _.get(
         sessionDetails,
         [sessionId, "description"],
@@ -131,7 +142,7 @@ export default function SearchResultRow({ sessionId, style = {} }) {
                     className={`margin-0 ${Classes.TEXT_OVERFLOW_ELLIPSIS}`}
                     style={{ width: 300 }}
                 >
-                    #&nbsp;{sessionName}
+                    #&nbsp;{sessionDisplayName}
                 </H5>
                 <div
                     className={Classes.TEXT_OVERFLOW_ELLIPSIS}
