@@ -118,6 +118,17 @@ export default function SessionMessagePage() {
     const [isAddAgentsOpen, setIsAddAgentsOpen] = useState(false);
     const [skippable, setSkippable] = useState(false);
     const sessionName = _.get(sessionDetails, "name", sessionId);
+    const [sessionDisplayName, setSessionDisplayName] = useState(sessionName);
+    useEffect(() => {
+        if (_.isEqual(sessionId, sessionName)) {
+            const utcSeconds = sessionDetails.created_date;
+            let date = new Date(0); // The 0 here sets the date to the epoch
+            date.setUTCSeconds(utcSeconds);
+            setSessionDisplayName(date.toLocaleString());
+        } else {
+            setSessionDisplayName(sessionName);
+        }
+    }, [sessionName, sessionDetails]);
     const sessionDescription = _.get(sessionDetails, "description", "");
     useEffect(() => {
         if (openAgentsDialogTrigger) {
@@ -273,7 +284,7 @@ export default function SessionMessagePage() {
                                                     Classes.TEXT_OVERFLOW_ELLIPSIS
                                                 )}
                                             >
-                                                #&nbsp;{sessionName}
+                                                #&nbsp;{sessionDisplayName}
                                             </H4>
                                         }
                                     />

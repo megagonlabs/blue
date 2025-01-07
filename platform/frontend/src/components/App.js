@@ -243,6 +243,27 @@ export default function App({ children }) {
                             >
                                 {canReadSessions &&
                                     recentSessions.map((sessionId, index) => {
+                                        let sessionDisplayName = _.get(
+                                            sessionDetails,
+                                            [sessionId, "name"],
+                                            sessionId
+                                        );
+                                        if (
+                                            _.isEqual(
+                                                sessionDisplayName,
+                                                sessionId
+                                            )
+                                        ) {
+                                            const utcSeconds = _.get(
+                                                sessionDetails,
+                                                [sessionId, "created_date"],
+                                                0
+                                            );
+                                            let date = new Date(0); // The 0 here sets the date to the epoch
+                                            date.setUTCSeconds(utcSeconds);
+                                            sessionDisplayName =
+                                                date.toLocaleString();
+                                        }
                                         const buttonText = (
                                             <div
                                                 style={{
@@ -255,14 +276,9 @@ export default function App({ children }) {
                                                 }
                                             >
                                                 #&nbsp;
-                                                {_.get(
-                                                    sessionDetails,
-                                                    [sessionId, "name"],
-                                                    sessionId
-                                                )}
+                                                {sessionDisplayName}
                                             </div>
                                         );
-
                                         return (
                                             <Tooltip
                                                 key={sessionId}
