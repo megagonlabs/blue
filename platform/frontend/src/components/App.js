@@ -23,6 +23,7 @@ import {
     Tag,
     Tooltip,
 } from "@blueprintjs/core";
+import { faCircleSmall as faCircleSmallSolid } from "@fortawesome/pro-solid-svg-icons";
 import {
     fa1,
     fa2,
@@ -339,14 +340,18 @@ export default function App({ children }) {
                                         return null;
                                     }
                                     const active = _.startsWith(
-                                        router.pathname,
-                                        href
-                                    );
+                                            router.pathname,
+                                            href
+                                        ),
+                                        showUnreadIndicator =
+                                            _.isEqual(key, "all_sessions") &&
+                                            !_.isEmpty(unreadSessionIds);
                                     return (
                                         <Link
                                             className="no-link-decoration"
                                             href={href}
                                             key={index}
+                                            style={{ position: "relative" }}
                                         >
                                             <Tooltip
                                                 minimal
@@ -376,13 +381,8 @@ export default function App({ children }) {
                                                     })}
                                                     onClick={onClick}
                                                     rightIcon={
-                                                        _.isEqual(
-                                                            key,
-                                                            "all_sessions"
-                                                        ) &&
-                                                        !_.isEmpty(
-                                                            unreadSessionIds
-                                                        ) &&
+                                                        !compactSidebar &&
+                                                        showUnreadIndicator &&
                                                         faIcon({
                                                             icon: faCircleSmall,
                                                             style: {
@@ -392,6 +392,25 @@ export default function App({ children }) {
                                                     }
                                                 />
                                             </Tooltip>
+                                            {compactSidebar &&
+                                                showUnreadIndicator && (
+                                                    <div
+                                                        style={{
+                                                            position:
+                                                                "absolute",
+                                                            right: 5,
+                                                            top: 5,
+                                                            zIndex: 7,
+                                                        }}
+                                                    >
+                                                        {faIcon({
+                                                            icon: faCircleSmallSolid,
+                                                            style: {
+                                                                color: Colors.RED3,
+                                                            },
+                                                        })}
+                                                    </div>
+                                                )}
                                         </Link>
                                     );
                                 })}

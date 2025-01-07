@@ -45,7 +45,7 @@ export default function EntityGeneral({ general, setGeneral, edit, loading }) {
                             },
                         })
                     )}
-                    <div style={{ marginLeft: 15 }}>
+                    <div style={{ marginLeft: edit ? 5 : 15 }}>
                         <div>System Agent</div>
                         <div
                             className={classNames(
