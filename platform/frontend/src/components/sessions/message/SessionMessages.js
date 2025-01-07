@@ -20,10 +20,10 @@ import {
     Tooltip,
     mergeRefs,
 } from "@blueprintjs/core";
+import { faCheck } from "@fortawesome/pro-solid-svg-icons";
 import {
     faBarsFilter,
     faBinary,
-    faCheck,
     faEllipsisH,
     faSidebar,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
