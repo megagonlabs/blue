@@ -3,6 +3,7 @@ import {
     Button,
     Card,
     Classes,
+    Code,
     DialogBody,
     Intent,
     Popover,
@@ -52,8 +53,10 @@ export default function SessionSettings() {
                                     Delete this session
                                 </label>
                                 <div>
-                                    Once you delete this session, its STREAM,
-                                    DATA and METADATA will be removed.
+                                    Once you delete this session, its&nbsp;
+                                    <Code>STREAM</Code>,&nbsp;<Code>DATA</Code>
+                                    &nbsp;and&nbsp;
+                                    <Code>METADATA</Code>&nbsp;will be removed.
                                 </div>
                             </div>
                             <div>
