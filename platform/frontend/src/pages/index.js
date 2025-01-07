@@ -14,9 +14,11 @@ import {
     Colors,
     H1,
     Intent,
+    Tooltip,
 } from "@blueprintjs/core";
 import {
     faHourglassStart,
+    faPen,
     faPlus,
     faSatelliteDish,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
@@ -25,6 +27,7 @@ import _ from "lodash";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useContext, useEffect, useState } from "react";
+const ROW_ACTION_STYLES = { position: "absolute", right: 15 };
 export default function LaunchScreen() {
     const { user, permissions } = useContext(AuthContext);
     const { appState, appActions } = useContext(AppContext);
@@ -148,12 +151,13 @@ export default function LaunchScreen() {
                                     padding: 15,
                                     whiteSpace: "pre-wrap",
                                     cursor: "pointer",
-                                    opacity: !isSocketOpen ? 0.54 : null,
+                                    opacity: !isSocketOpen ? 0.6 : null,
                                     pointerEvents:
                                         creatingSession || !isSocketOpen
                                             ? "none"
                                             : null,
                                 }}
+                                className="agent-group-row"
                                 onClick={() =>
                                     joinAgentGroupSession(agentGroup.name)
                                 }
@@ -169,18 +173,39 @@ export default function LaunchScreen() {
                                 >
                                     {_.get(agentGroup, "description", "-")}
                                 </div>
-                                {creatingSession &&
-                                _.isEqual(launchGroup, agentGroup.name) ? (
-                                    <Button
-                                        large
-                                        style={{
-                                            position: "absolute",
-                                            right: 15,
-                                        }}
+                                <div
+                                    className="agent-group-row-actions"
+                                    style={ROW_ACTION_STYLES}
+                                >
+                                    <Tooltip
+                                        content="Edit"
                                         minimal
-                                        loading={creatingSession}
-                                    />
-                                ) : null}
+                                        placement="left"
+                                    >
+                                        <Button
+                                            intent={Intent.PRIMARY}
+                                            icon={faIcon({ icon: faPen })}
+                                            onClick={(event) => {
+                                                event.stopPropagation();
+                                                router.push(
+                                                    `/registry/${process.env.NEXT_PUBLIC_AGENT_REGISTRY_NAME}/agent_group/${agentGroup.name}`
+                                                );
+                                            }}
+                                            large
+                                            minimal
+                                            disabled={creatingSession}
+                                        />
+                                    </Tooltip>
+                                </div>
+                                {creatingSession &&
+                                    _.isEqual(launchGroup, agentGroup.name) && (
+                                        <Button
+                                            large
+                                            style={ROW_ACTION_STYLES}
+                                            minimal
+                                            loading={creatingSession}
+                                        />
+                                    )}
                             </Card>
                         );
                     })

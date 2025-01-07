@@ -486,6 +486,7 @@ def get_agent_derived_agents(request: Request, agent_name):
     results = agent_registry.get_agent_derived_agents(agent_name)
     return JSONResponse(content={"results": results})
 
+
 #############
 # agent groups
 @router.get("/agent_groups")
@@ -493,8 +494,7 @@ def get_agent_groups(request: Request):
     acl_enforce(request.state.user['role'], 'agent_registry', 'read_all')
     registry_results = agent_registry.get_agent_groups()
     if registry_results is None:
-        registry_results = {}
-    registry_results = list(registry_results.values())
+        registry_results = []
     return JSONResponse(content={"results": registry_results})
 
 
