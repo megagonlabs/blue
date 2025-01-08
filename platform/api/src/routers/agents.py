@@ -213,8 +213,16 @@ def agent_group_acl_enforce(request: Request, agent_group: dict, write=False, th
 @router.get("/agents")
 def get_agents(request: Request, recursive: bool = False):
     acl_enforce(request.state.user['role'], 'agent_registry', 'read_all')
-    registry_results = agent_registry.list_records(type="agent", recursive=recursive)
-    merged_results = merge_container_results(registry_results)
+    # get base agents
+    results = []
+    base_agents = agent_registry.list_records(type="agent", recursive=False)
+    results.extend(base_agents)
+    if recursive:
+        # get derived agents
+        derived_agents = agent_registry.list_records(condition='[?(@.type=="agent")]..[?(@.type=="agent")]')
+        results.extend(derived_agents)
+
+    merged_results = merge_container_results(results)
     return JSONResponse(content={"results": merged_results})
 
 
