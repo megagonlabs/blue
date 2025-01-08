@@ -555,10 +555,10 @@ def get_agent_group_agents(request: Request, group_name):
 def add_agent_to_agent_group(request: Request, group_name, agent_name, agent: Agent):
     agent_existing = agent_registry.get_agent_group_agent(group_name, agent_name)
     if agent_name in BANNED_ENTITY_NAMES:
-        return JSONResponse(content={"message": "The name cannot be used."}, status_code=403)
+        return JSONResponse(content={"message": f"\"{agent_name}\" cannot be used."}, status_code=403)
     # if name already exists, return 409 conflict error
     if not pydash.is_empty(agent_existing):
-        return JSONResponse(content={"message": "The name already exists."}, status_code=409)
+        return JSONResponse(content={"message": f"\"{agent_name}\" already exists."}, status_code=409)
     agent_group_db = agent_registry.get_agent_group(group_name)
     agent_group_acl_enforce(request, agent_group_db, write=True)
     # TODO: properties
