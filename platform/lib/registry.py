@@ -565,13 +565,16 @@ class Registry:
         if rebuild:
             self._delete_index_record(record)
 
-    def list_records(self, type=None, scope="/", recursive=False):
+    def list_records(self, type=None, scope="/", recursive=False, condition=None):
         sp = self._get_scope_path(scope, recursive=recursive)
 
-        if type:
-            sp = sp + '[?(@.type=="' + type + '")]'
+        if condition:
+            sp = sp + condition
         else:
-            sp = sp + '[?(@.type)]'
+            if type:
+                sp = sp + '[?(@.type=="' + type + '")]'
+            else:
+                sp = sp + '[?(@.type)]'
 
         records = self.connection.json().get(self._get_data_namespace(), Path(sp))
 
