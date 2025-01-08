@@ -94,7 +94,6 @@ def model_acl_enforce(request: Request, source: dict, write=False, throw=True):
 def get_models(request: Request):
     acl_enforce(request.state.user['role'], 'model_registry', 'read_all')
     registry_results = model_registry.list_records()
-    registry_results = list(registry_results.values())
     return JSONResponse(content={"results": registry_results})
 
 

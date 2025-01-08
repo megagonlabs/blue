@@ -94,7 +94,6 @@ def operator_acl_enforce(request: Request, source: dict, write=False, throw=True
 def get_operators(request: Request):
     acl_enforce(request.state.user['role'], 'operator_registry', 'read_all')
     registry_results = operator_registry.list_records()
-    registry_results = list(registry_results.values())
     return JSONResponse(content={"results": registry_results})
 
 
