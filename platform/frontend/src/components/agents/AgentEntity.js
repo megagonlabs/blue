@@ -208,7 +208,7 @@ export default function AgentEntity() {
                                     </tr>
                                 );
                             })}
-                            {canEditEntity ? (
+                            {canEditEntity && !edit ? (
                                 <tr>
                                     <td colSpan={2}>
                                         <Button
@@ -277,7 +277,7 @@ export default function AgentEntity() {
                                     </tr>
                                 );
                             })}
-                            {canEditEntity ? (
+                            {canEditEntity && !edit ? (
                                 <tr>
                                     <td colSpan={2}>
                                         <Button
