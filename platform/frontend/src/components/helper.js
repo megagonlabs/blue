@@ -202,13 +202,14 @@ module.exports = {
             const key = ProgressToaster.show(
                 renderProgress(_.isEmpty(tasks) ? 100 : 0)
             );
-            const promises = tasks.map((task, index) => {
+            let count = 0;
+            const promises = tasks.map((task) => {
                 return task
                     .catch((status) => {
                         if (!status) requestError = true;
                     })
                     .finally(() => {
-                        const progress = ((index + 1) / tasks.length) * 100;
+                        const progress = (++count / tasks.length) * 100;
                         ProgressToaster.show(
                             renderProgress(progress, requestError),
                             key
