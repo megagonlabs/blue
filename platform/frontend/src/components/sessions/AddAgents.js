@@ -27,6 +27,7 @@ import { FixedSizeList } from "react-window";
 import { ENTITY_ICON_40 } from "../constant";
 import EntityIcon from "../entity/EntityIcon";
 import { axiosErrorToast } from "../helper";
+const agentRegistryName = process.env.NEXT_PUBLIC_AGENT_REGISTRY_NAME;
 export default function AddAgents({
     isOpen,
     setIsAddAgentsOpen,
@@ -35,7 +36,6 @@ export default function AddAgents({
 }) {
     const { appState, appActions } = useContext(AppContext);
     const sessionIdFocus = appState.session.sessionIdFocus;
-    const registryName = process.env.NEXT_PUBLIC_AGENT_REGISTRY_NAME;
     const [loading, setLoading] = useState(true);
     const [agents, setAgents] = useState(null);
     const [unavailableAgents, setUnavailableAgents] = useState(null);
@@ -62,7 +62,7 @@ export default function AddAgents({
         }
         setLoading(true);
         axios
-            .get(`/registry/${registryName}/agents`)
+            .get(`/registry/${agentRegistryName}/agents`)
             .then((response) => {
                 const list = _.get(response, "data.results", []);
                 let options = [];

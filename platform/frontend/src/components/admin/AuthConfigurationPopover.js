@@ -114,7 +114,7 @@ export default function AuthConfigurationPopover({
                     });
             }),
         ];
-        settlePromises(tasks, (error) => setLoading(false));
+        settlePromises(tasks, () => setLoading(false));
     };
     const onClose = () => {
         if (loading) return;
@@ -147,8 +147,8 @@ export default function AuthConfigurationPopover({
                                 Default User Role
                             </label>
                             <div>
-                                This role is assigned to the first-time users
-                                signning in on the platform.
+                                This role will be assigned to those first-time
+                                users signning in on the platform.
                             </div>
                         </div>
                         <HTMLSelect

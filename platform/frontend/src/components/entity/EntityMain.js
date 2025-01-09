@@ -171,10 +171,11 @@ export default function EntityMain({
         entity.type
     );
     const showActionMenuDivider =
-        (_.isFunction(setEdit) && canEditEntity) ||
-        canDuplicateEntity ||
-        canDeployAgent ||
-        (canEditEntity && canSyncData);
+        canEditEntity &&
+        (_.isFunction(setEdit) ||
+            canDuplicateEntity ||
+            canDeployAgent ||
+            canSyncData);
     const canDeregister = _.isEqual("database", entity.type);
     const showActionMenu =
         showActionMenuDivider || canEditEntity || canSyncData || canDeregister;
@@ -343,9 +344,9 @@ export default function EntityMain({
                                                 {_.isFunction(setEdit) &&
                                                 canEditEntity ? (
                                                     <MenuItem
-                                                        onClick={() => {
-                                                            setEdit(true);
-                                                        }}
+                                                        onClick={() =>
+                                                            setEdit(true)
+                                                        }
                                                         intent={Intent.PRIMARY}
                                                         icon={faIcon({
                                                             icon: faPen,

@@ -88,7 +88,7 @@ export default function AgentEntity() {
                     difference: shallowDiff(entity.properties, changes),
                     properties: changes,
                 });
-                settlePromises(tasks, (error) => {
+                settlePromises(tasks, ({ error }) => {
                     if (!error) {
                         setEdit(false);
                         appActions.agent.setIcon({

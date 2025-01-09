@@ -62,7 +62,7 @@ export default function SessionData() {
             difference,
             properties: editData,
         });
-        settlePromises(tasks, (error) => {
+        settlePromises(tasks, ({ error }) => {
             if (!error) {
                 setEdit(false);
                 setData(editData);
