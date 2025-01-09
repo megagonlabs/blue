@@ -701,16 +701,11 @@ class AgentFactory:
             agent = message.getArg("agent")
 
             # check match in canonical name space, i.e.
-            # <_name> or <_name>.<derivative__name>
+            # <base_name> or <base_name>___<derivative__name>___<derivative__name>...
             ca = agent.split("_")
-            parent_name = ca[0]
-            child_name = ca[0]
+            base_name = ca[0]
 
-            # if derivative__name
-            if len(ca) > 1:
-                child_name = ca[1]
-
-            if self._name == ca[0]:
+            if self._name == base_name:
                 name = agent
 
                 # start with factory properties, merge properties from API call

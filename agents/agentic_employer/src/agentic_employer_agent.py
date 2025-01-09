@@ -159,8 +159,8 @@ class AgenticEmployerAgent(Agent):
 
         # query plan
         query_plan = [
-            [self.name + ".Q", "NL2SQL-E2E_INPLAN.DEFAULT"],
-            ["NL2SQL-E2E_INPLAN.DEFAULT", self.name+".QUESTION_RESULTS_" + name],
+            [self.name + ".Q", "NL2SQL-E2E___INPLAN.DEFAULT"],
+            ["NL2SQL-E2E___INPLAN.DEFAULT", self.name+".QUESTION_RESULTS_" + name],
         ]
        
         # write query to stream
@@ -324,7 +324,7 @@ class AgenticEmployerAgent(Agent):
 
         # view plan
         view_plan = [
-            [self.name + ".DEFAULT", "DOCUMENTER_JD.DEFAULT"]
+            [self.name + ".DEFAULT", "DOCUMENTER___JD.DEFAULT"]
         ]
     
         # write job_seeker_id to stream
@@ -348,7 +348,7 @@ class AgenticEmployerAgent(Agent):
 
         # view plan
         view_plan = [
-            [self.name + ".DEFAULT", "DOCUMENTER_JOBSEEKER.DEFAULT"]
+            [self.name + ".DEFAULT", "DOCUMENTER___JOBSEEKER.DEFAULT"]
         ]
     
         # write job_seeker_id to stream
@@ -390,11 +390,11 @@ class AgenticEmployerAgent(Agent):
             query = string_utils.safe_substitute(query_template, **properties, **context)
             
         # choose summarizer agent
-        summarizer = "SUMMARIZER_LIST"
+        summarizer = "SUMMARIZER___LIST"
         if list_code == "all":
-            summarizer = "SUMMARIZER_ALL"
+            summarizer = "SUMMARIZER___ALL"
         elif list_code == "new":
-            summarizer = "SUMMARIZER_RECENT"
+            summarizer = "SUMMARIZER___RECENT"
 
         # summary plans
         summary_plan = [
@@ -403,9 +403,9 @@ class AgenticEmployerAgent(Agent):
         # DEMO
         if list_code == "new":
             summary_plan = [
-                [self.name + ".SQ", "SUMMARIZER_RECENTP1" + ".DEFAULT"],
-                [self.name + ".SQ", "SUMMARIZER_RECENTP2" + ".DEFAULT"],
-                [self.name + ".SQ", "SUMMARIZER_RECENTP3" + ".DEFAULT"]
+                [self.name + ".SQ", "SUMMARIZER___RECENTP1" + ".DEFAULT"],
+                [self.name + ".SQ", "SUMMARIZER___RECENTP2" + ".DEFAULT"],
+                [self.name + ".SQ", "SUMMARIZER___RECENTP3" + ".DEFAULT"]
             ]
 
         # write query to stream
@@ -457,12 +457,12 @@ class AgenticEmployerAgent(Agent):
 
         # cluster plans
         # cluster_plan = [
-        #     [self.name + ".CQ", "CLUSTERER_JOBSEEKER.DEFAULT"],
-        #     ["CLUSTERER_JOBSEEKER.CLUSTER_INFO", self.name + ".CLUSTER_INFO_RESULTS"]
+        #     [self.name + ".CQ", "CLUSTERER___JOBSEEKER.DEFAULT"],
+        #     ["CLUSTERER___JOBSEEKER.CLUSTER_INFO", self.name + ".CLUSTER_INFO_RESULTS"]
         # ]
 
         cluster_plan = [
-            [self.name + ".CQ", "CLUSTERER_JOBSEEKER.DEFAULT"]
+            [self.name + ".CQ", "CLUSTERER___JOBSEEKER.DEFAULT"]
         ]
 
         # write query to stream
@@ -605,8 +605,8 @@ class AgenticEmployerAgent(Agent):
 
         # intent plan
         intent_plan = [
-            ["USER.TEXT", "OPENAI_CLASSIFIER.DEFAULT"],
-            ["OPENAI_CLASSIFIER.DEFAULT", self.name + ".INTENT"]
+            ["USER.TEXT", "OPENAI___CLASSIFIER.DEFAULT"],
+            ["OPENAI___CLASSIFIER.DEFAULT", self.name + ".INTENT"]
         ]
     
         # build query plan
@@ -699,8 +699,8 @@ class AgenticEmployerAgent(Agent):
 
         # question plan
         question_plan = [
-            [self.name + ".QUESTION", "NL2SQL-E2E_INPLAN.DEFAULT"],
-            ["NL2SQL-E2E_INPLAN.DEFAULT", "OPENAI_EXPLAINER.DEFAULT"],
+            [self.name + ".QUESTION", "NL2SQL-E2E___INPLAN.DEFAULT"],
+            ["NL2SQL-E2E___INPLAN.DEFAULT", "OPENAI___EXPLAINER.DEFAULT"],
         ]
 
         # write query to strea

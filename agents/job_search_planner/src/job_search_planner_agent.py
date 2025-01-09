@@ -142,12 +142,12 @@ class JobSearchPlannerAgent(Agent):
 
         # TODO: hard-coded plan and agent names
         plan_query_planner = [
-            ["JOBSEARCHPLANNER.QUERYPLANNER", "NL2SQL-E2E_INPLAN.DEFAULT"],
-            ["NL2SQL-E2E_INPLAN.DEFAULT", "JOBSEARCHPLANNER.ANSWERPLANNER"],
+            ["JOBSEARCHPLANNER.QUERYPLANNER", "NL2SQL-E2E___INPLAN.DEFAULT"],
+            ["NL2SQL-E2E___INPLAN.DEFAULT", "JOBSEARCHPLANNER.ANSWERPLANNER"],
         ]
         plan_query_final = [
-            ["JOBSEARCHPLANNER.QUERYFINAL", "NL2SQL-E2E_INPLAN.DEFAULT"],
-            ["NL2SQL-E2E_INPLAN.DEFAULT", "JOBSEARCHPLANNER.ANSWERFINAL"],
+            ["JOBSEARCHPLANNER.QUERYFINAL", "NL2SQL-E2E___INPLAN.DEFAULT"],
+            ["NL2SQL-E2E___INPLAN.DEFAULT", "JOBSEARCHPLANNER.ANSWERFINAL"],
         ]
         if final:
             plan_query = plan_query_final
@@ -283,12 +283,12 @@ class JobSearchPlannerAgent(Agent):
         logging.info([input_type, input_content, user_stream])
         # TODO: hard-coded agent name
         plan_extraction = [
-            ["USER.TEXT", "OPENAI_EXTRACTOR2.DEFAULT"],
-            ["OPENAI_EXTRACTOR2.DEFAULT", "JOBSEARCHPLANNER.EXTRACTIONS"],
+            ["USER.TEXT", "OPENAI___EXTRACTOR2.DEFAULT"],
+            ["OPENAI___EXTRACTOR2.DEFAULT", "JOBSEARCHPLANNER.EXTRACTIONS"],
         ]
         plan_query_user = [
-            ["USER.TEXT", "NL2SQL-E2E_INPLAN.DEFAULT"],
-            ["NL2SQL-E2E_INPLAN.DEFAULT", "JOBSEARCHPLANNER.ANSWERUSER"],
+            ["USER.TEXT", "NL2SQL-E2E___INPLAN.DEFAULT"],
+            ["NL2SQL-E2E___INPLAN.DEFAULT", "JOBSEARCHPLANNER.ANSWERUSER"],
         ]
 
         # user asking exploration questions, call NL2Q

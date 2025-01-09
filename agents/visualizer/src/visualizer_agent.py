@@ -107,8 +107,8 @@ class VisualizerAgent(Agent):
   
         # query plan
         query_plan = [
-            [self.name + ".Q", "NL2SQL-E2E_INPLAN.DEFAULT"],
-            ["NL2SQL-E2E_INPLAN.DEFAULT", self.name+".QUESTION_RESULTS_" + name],
+            [self.name + ".Q", "NL2SQL-E2E___INPLAN.DEFAULT"],
+            ["NL2SQL-E2E___INPLAN.DEFAULT", self.name+".QUESTION_RESULTS_" + name],
         ]
        
         # write query to stream

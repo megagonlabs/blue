@@ -108,8 +108,8 @@ class DocumenterAgent(Agent):
   
         # query plan
         query_plan = [
-            [self.name + ".Q", "NL2SQL-E2E_INPLAN.DEFAULT"],
-            ["NL2SQL-E2E_INPLAN.DEFAULT", self.name+".QUESTION_RESULTS_" + name],
+            [self.name + ".Q", "NL2SQL-E2E___INPLAN.DEFAULT"],
+            ["NL2SQL-E2E___INPLAN.DEFAULT", self.name+".QUESTION_RESULTS_" + name],
         ]
        
         # write query to stream
@@ -175,8 +175,8 @@ class DocumenterAgent(Agent):
             id = util_functions.create_uuid()
 
             hilite_plan = [
-                [self.name + ".DOC", "OPENAI_HILITER.DEFAULT"],
-                ["OPENAI_HILITER.DEFAULT", self.name+".DOC"],
+                [self.name + ".DOC", "OPENAI___HILITER.DEFAULT"],
+                ["OPENAI___HILITER.DEFAULT", self.name+".DOC"],
             ]
         
             hilite_contents = {
