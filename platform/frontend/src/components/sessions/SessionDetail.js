@@ -26,7 +26,18 @@ export default function SessionDetail({ isOpen, setIsSessionDetailOpen }) {
         ["session", "sessionDetails", sessionIdFocus],
         {}
     );
-    const sessionName = _.get(sessionDetails, "name", "");
+    const sessionName = _.get(sessionDetails, "name", sessionIdFocus);
+    const [sessionDisplayName, setSessionDisplayName] = useState(sessionName);
+    useEffect(() => {
+        if (_.isEqual(sessionIdFocus, sessionName)) {
+            const utcSeconds = sessionDetails.created_date;
+            let date = new Date(0); // The 0 here sets the date to the epoch
+            date.setUTCSeconds(utcSeconds);
+            setSessionDisplayName(date.toLocaleString());
+        } else {
+            setSessionDisplayName(sessionName);
+        }
+    }, [sessionName, sessionDetails]);
     const [loading, setLoading] = useState(false);
     const [tab, setTab] = useState("about");
     const TAB_BUTTONS = [
@@ -47,14 +58,9 @@ export default function SessionDetail({ isOpen, setIsSessionDetailOpen }) {
         <Dialog
             portalClassName="portal-overlay-z-index-36"
             title={
-                _.isEmpty(_.trim(sessionName)) ||
-                _.isEqual(sessionName, sessionIdFocus) ? (
-                    sessionIdFocus
-                ) : (
-                    <div className={Classes.TEXT_OVERFLOW_ELLIPSIS}>
-                        {sessionName}
-                    </div>
-                )
+                <div className={Classes.TEXT_OVERFLOW_ELLIPSIS}>
+                    {sessionDisplayName}
+                </div>
             }
             canOutsideClickClose={allowQuickClose}
             onClose={() => {
