@@ -40,7 +40,6 @@ from sentence_transformers import SentenceTransformer
 from connection import PooledConnectionFactory
 
 
-
 class Registry:
     NESTING___SEPARATOR = "___"
 
@@ -440,7 +439,7 @@ class Registry:
             s = s[:-1]
         scope = "/" + "/".join(s)
         return scope
-    
+
     def _get_record_path(self, name, scope):
         if scope is None:
             scope = self._identify_scope(name)
@@ -541,7 +540,7 @@ class Registry:
         contents = self.get_contents()
         records = []
         r = json_utils.json_query(contents, "$..contents.*", single=False)
-        for ri in r:                
+        for ri in r:
             # make a copy
             ric = copy.deepcopy(ri)
             del ric['contents']
@@ -550,20 +549,20 @@ class Registry:
         return records
 
     def deregister(self, record, rebuild=False):
+        if record is not None:
+            name = record['name']
+            scope = record['scope']
 
-        name = record['name']
-        scope = record['scope']
+            # get full record so we can recursively delete
+            record = self.get_record(name, scope)
+            type = record['type']
 
-        # get full record so we can recursively delete
-        record = self.get_record(name, scope)
-        type = record['type']
+            p = self._get_record_path(name, scope)
+            self.connection.json().delete(self._get_data_namespace(), p)
 
-        p = self._get_record_path(name, scope)
-        self.connection.json().delete(self._get_data_namespace(), p)
-
-        # rebuild now
-        if rebuild:
-            self._delete_index_record(record)
+            # rebuild now
+            if rebuild:
+                self._delete_index_record(record)
 
     def list_records(self, type=None, scope="/", recursive=False, condition=None):
         sp = self._get_scope_path(scope, recursive=recursive)
@@ -625,17 +624,17 @@ class Registry:
         self.build_index()
 
     # encode/decode keys
-    encodings = { ".": "__DOT__", "*": "__STAR__", "?": "__Q__" }
+    encodings = {".": "__DOT__", "*": "__STAR__", "?": "__Q__"}
+
     def _encode(self, s):
-        for (k,v) in encodings.items():
-            s = s.replace(k,v)
+        for k, v in encodings.items():
+            s = s.replace(k, v)
         return s
 
     def _decode(self, s):
-        for (k,v) in encodings.items():
-            s = s.replace(v,k)
+        for k, v in encodings.items():
+            s = s.replace(v, k)
         return s
-
 
 
 #######################
