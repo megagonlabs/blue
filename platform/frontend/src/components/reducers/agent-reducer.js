@@ -16,10 +16,30 @@ export const defaultState = {
         page_size: 10,
     },
     pendingAttributesRequests: {},
+    agentGroupSelection: {
+        available: {},
+        added: {},
+    },
 };
 export default function agentReducer(state = defaultState, { type, payload }) {
-    let { icon, pendingAttributesRequests, propertyLookups } = state;
+    let {
+        icon,
+        pendingAttributesRequests,
+        propertyLookups,
+        agentGroupSelection,
+    } = state;
     switch (type) {
+        case "agent/agent_group/selection/clear": {
+            return {
+                ...state,
+                agentGroupSelection: { available: {}, added: {} },
+            };
+        }
+        case "agent/agent_group/selection/set": {
+            const { name, type, value } = payload;
+            _.set(agentGroupSelection, [type, name], value);
+            return { ...state, agentGroupSelection };
+        }
         case "agent/propertyLookups/set": {
             let agentLookups = _.get(propertyLookups, payload.agent, {});
             _.set(agentLookups, payload.key, payload.value);

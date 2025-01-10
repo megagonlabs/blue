@@ -170,9 +170,8 @@ export default function AgentEntity() {
             >
                 <SectionCard padded={false}>
                     <HTMLTable
-                        className="entity-section-card-table"
+                        className="entity-section-card-table full-parent-width"
                         bordered
-                        style={{ width: "100%" }}
                     >
                         <thead>
                             <tr>
@@ -208,7 +207,7 @@ export default function AgentEntity() {
                                     </tr>
                                 );
                             })}
-                            {canEditEntity && !edit ? (
+                            {canEditEntity && !edit && (
                                 <tr>
                                     <td colSpan={2}>
                                         <Button
@@ -226,7 +225,7 @@ export default function AgentEntity() {
                                         />
                                     </td>
                                 </tr>
-                            ) : null}
+                            )}
                         </tbody>
                     </HTMLTable>
                 </SectionCard>
@@ -239,9 +238,8 @@ export default function AgentEntity() {
             >
                 <SectionCard padded={false}>
                     <HTMLTable
-                        className="entity-section-card-table"
+                        className="entity-section-card-table full-parent-width"
                         bordered
-                        style={{ width: "100%" }}
                     >
                         <thead>
                             <tr>
@@ -277,7 +275,7 @@ export default function AgentEntity() {
                                     </tr>
                                 );
                             })}
-                            {canEditEntity && !edit ? (
+                            {canEditEntity && !edit && (
                                 <tr>
                                     <td colSpan={2}>
                                         <Button
@@ -295,7 +293,7 @@ export default function AgentEntity() {
                                         />
                                     </td>
                                 </tr>
-                            ) : null}
+                            )}
                         </tbody>
                     </HTMLTable>
                 </SectionCard>

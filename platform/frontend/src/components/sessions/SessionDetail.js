@@ -37,7 +37,7 @@ export default function SessionDetail({ isOpen, setIsSessionDetailOpen }) {
         } else {
             setSessionDisplayName(sessionName);
         }
-    }, [sessionName, sessionDetails]);
+    }, [sessionName, sessionDetails, sessionIdFocus]);
     const [loading, setLoading] = useState(false);
     const [tab, setTab] = useState("about");
     const TAB_BUTTONS = [
