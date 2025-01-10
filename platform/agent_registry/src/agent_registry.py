@@ -64,7 +64,7 @@ class AgentRegistry(Registry):
         return self.list_records(type="agent_group", scope="/")
 
     def get_agent_group(self, agent_group):
-        return super().get_record(agent_group, '/')
+        return super().get_record(agent_group, type='agent_group', scope='/')
 
     def get_agent_group_description(self, agent_group):
         return super().get_record_description(agent_group, '/')
@@ -117,7 +117,7 @@ class AgentRegistry(Registry):
         return self.list_records(type="agent", scope=scope, recursive=recursive)
 
     def get_agent(self, agent):
-        return super().get_record(agent, None)
+        return super().get_record(agent, type='agent', scope=None)
 
     def get_agent_description(self, agent):
         return super().get_record_description(agent, None)

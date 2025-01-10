@@ -356,7 +356,7 @@ class Registry:
         record['contents'] = {}
 
         ## create a record on the registry name space
-        p = self._get_record_path(name, scope)
+        p = self._get_record_path(name, scope=scope)
 
         self.connection.json().set(self._get_data_namespace(), p, record)
 
@@ -422,7 +422,7 @@ class Registry:
             scope = record['scope']
 
         # fetch original
-        original_record = self.get_record(name, scope)
+        original_record = self.get_record(name, scope=scope)
 
         # merge
         merged_record = json_utils.merge_json(original_record, record)
@@ -440,13 +440,17 @@ class Registry:
         scope = "/" + "/".join(s)
         return scope
 
-    def _get_record_path(self, name, scope):
+    def _get_record_path(self, name, type=None, scope=None):
         if scope is None:
             scope = self._identify_scope(name)
 
         sp = self._get_scope_path(scope)
-        p = sp + name
-        return p
+
+        if type:
+            sp = sp + '[?(@.type=="' + type + '" && @.name=="' + name + '")]'
+        else:
+            sp = sp + name
+        return sp
 
     def _get_scope_path(self, scope, recursive=False):
         if scope[len(scope) - 1] == '/':
@@ -459,9 +463,22 @@ class Registry:
             p = p + "."
         return p
 
-    def get_record(self, name, scope=None):
-        p = self._get_record_path(name, scope)
-        record = self.connection.json().get(self._get_data_namespace(), Path(p))
+
+    def list_records(self, type=None, scope="/", recursive=False, condition=None):
+        sp = self._get_scope_path(scope, recursive=recursive)
+
+        if condition:
+            sp = sp + condition
+        else:
+            if type:
+                sp = sp + '[?(@.type=="' + type + '")]'
+            else:
+                sp = sp + '[?(@.type)]'
+
+    def get_record(self, name, type=None, scope=None):
+        sp = self._get_record_path(name, type=type, scope=scope)
+        
+        record = self.connection.json().get(self._get_data_namespace(), Path(sp))
         if len(record) == 0:
             return {}
         else:
@@ -469,26 +486,26 @@ class Registry:
         return self.__get_json_value(record)
 
     def get_record_data(self, name, scope, key, single=True):
-        p = self._get_record_path(name, scope)
+        p = self._get_record_path(name, scope=scope)
         value = self.connection.json().get(self._get_data_namespace(), Path(p + '.' + key))
         return self.__get_json_value(value, single=single)
 
     def set_record_data(self, name, scope, key, value, rebuild=False):
-        p = self._get_record_path(name, scope)
+        p = self._get_record_path(name, scope=scope)
         self.connection.json().set(self._get_data_namespace(), p + '.' + key, value)
 
         # rebuild now
         if rebuild:
-            record = self.get_record(name, scope)
+            record = self.get_record(name, scope=scope)
             self._set_index_record(record)
 
     def delete_record_data(self, name, scope, key, rebuild=False):
-        p = self._get_record_path(name, scope)
+        p = self._get_record_path(name, scope=scope)
         self.connection.json().delete(self._get_data_namespace(), p + '.' + key)
 
         # rebuild now
         if rebuild:
-            record = self.get_record(name, scope)
+            record = self.get_record(name, scope=scope)
             self._set_index_record(record)
 
     def get_record_description(self, scope, name):
@@ -554,10 +571,10 @@ class Registry:
             scope = record['scope']
 
             # get full record so we can recursively delete
-            record = self.get_record(name, scope)
+            record = self.get_record(name, scope=scope)
             type = record['type']
 
-            p = self._get_record_path(name, scope)
+            p = self._get_record_path(name, scope=scope)
             self.connection.json().delete(self._get_data_namespace(), p)
 
             # rebuild now
