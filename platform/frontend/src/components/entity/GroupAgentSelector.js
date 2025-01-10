@@ -40,6 +40,8 @@ export default function GroupAgentSelector({
     const [addedAgents, setAddedAgents] = useState([]);
     const [addedAgentTreeNodes, setAddedAgentTreeNodes] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [loadingAvailableAgentsTree, setLoadingAvailableAgentsTree] =
+        useState(false);
     const [addingAgent, setAddingAgent] = useState(false);
     const [removingAgent, setRemovingAgent] = useState(false);
     const { appState, appActions } = useContext(AppContext);
@@ -73,7 +75,7 @@ export default function GroupAgentSelector({
             ),
         };
         for (let i = 0; i < _.size(contents); i++) {
-            node.childNodes.push(constructTree(contents[i], path));
+            node.childNodes.push(constructTree(contents[i], path, type));
         }
         if (_.isEmpty(node.childNodes)) {
             _.set(node, "hasCaret", false);
@@ -244,19 +246,17 @@ export default function GroupAgentSelector({
     }, [entity.contents]);
     const constructAvailableAgentsTree = () => {
         setLoading(true);
-        axios
-            .get(`/registry/${agentRegistryName}/agents`, {
-                params: { recursive: true },
-            })
-            .then((response) => {
-                const result = _.get(response, "data.results", []);
-                let tree = [];
-                for (let i = 0; i < _.size(result); i++) {
-                    tree.push(constructTree(result[i], "", "available"));
-                }
-                setAvailableAgentTreeNodes(tree);
-                setLoading(false);
-            });
+        setLoadingAvailableAgentsTree(true);
+        axios.get(`/registry/${agentRegistryName}/agents`).then((response) => {
+            const result = _.get(response, "data.results", []);
+            let tree = [];
+            for (let i = 0; i < _.size(result); i++) {
+                tree.push(constructTree(result[i], "", "available"));
+            }
+            setAvailableAgentTreeNodes(tree);
+            setLoading(false);
+            setLoadingAvailableAgentsTree(false);
+        });
     };
     useEffect(() => {
         if (isOpen) constructAvailableAgentsTree();
@@ -270,12 +270,17 @@ export default function GroupAgentSelector({
                 onDeselectAll();
                 setIsGroupAgentSelectorDialogOpen(false);
             }}
-            title={`"${entity.name}" agents`}
+            title="Agents"
             style={{ width: 913 }}
         >
             <DialogBody>
                 <div style={{ display: "flex", gap: 15, alignItems: "center" }}>
-                    <Card style={TREE_CARD_STYLE}>
+                    <Card
+                        className={
+                            loadingAvailableAgentsTree ? Classes.SKELETON : null
+                        }
+                        style={TREE_CARD_STYLE}
+                    >
                         <Tree
                             onNodeExpand={onNodeExpandAvailable}
                             onNodeCollapse={onNodeCollapseAvailable}
