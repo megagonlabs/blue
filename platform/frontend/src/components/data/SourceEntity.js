@@ -77,7 +77,7 @@ export default function SourceEntity() {
                     ),
                     properties: editEntity.properties,
                 });
-                settlePromises(tasks, (error) => {
+                settlePromises(tasks, ({ error }) => {
                     if (!error) {
                         setEdit(false);
                         appActions.agent.setIcon({

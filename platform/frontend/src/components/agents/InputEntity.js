@@ -55,7 +55,7 @@ export default function InputEntity() {
                     entity,
                     properties: editEntity.properties,
                 });
-                settlePromises(tasks, (error) => {
+                settlePromises(tasks, ({ error }) => {
                     if (!error) {
                         setEdit(false);
                         setEntity(editEntity);

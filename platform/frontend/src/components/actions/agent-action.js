@@ -70,6 +70,12 @@ export const agentAction = (dispatch) => ({
             })
             .catch(() => {});
     },
+    updateAgentGroupSelection: (payload) => {
+        dispatch({ type: "agent/agent_group/selection/set", payload });
+    },
+    clearAgentGroupSelection: (payload) => {
+        dispatch({ type: "agent/agent_group/selection/clear", payload });
+    },
     searchList: (payload) => {
         const filter = {
             keywords: payload.keywords,

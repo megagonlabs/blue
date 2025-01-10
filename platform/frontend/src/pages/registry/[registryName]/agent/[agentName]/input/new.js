@@ -53,7 +53,7 @@ export default function New() {
                         difference,
                         properties: entity.properties,
                     }),
-                    (error) => {
+                    ({ error }) => {
                         if (!error) {
                             router.push(`${urlPrefix}/${entity.name}`);
                         }

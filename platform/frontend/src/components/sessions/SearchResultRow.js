@@ -38,7 +38,7 @@ export default function SearchResultRow({ sessionId, style = {} }) {
         } else {
             setSessionDisplayName(sessionName);
         }
-    }, [sessionName]);
+    }, [sessionName, sessionDetails, sessionId]);
     const sessionDescription = _.get(
         sessionDetails,
         [sessionId, "description"],

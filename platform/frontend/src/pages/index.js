@@ -27,7 +27,8 @@ import _ from "lodash";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useContext, useEffect, useState } from "react";
-const ROW_ACTION_STYLES = { position: "absolute", right: 15 };
+const ROW_ACTION_STYLE = { position: "absolute", right: 15 };
+const agentRegistryName = process.env.NEXT_PUBLIC_AGENT_REGISTRY_NAME;
 export default function LaunchScreen() {
     const { user, permissions } = useContext(AuthContext);
     const { appState, appActions } = useContext(AppContext);
@@ -44,9 +45,7 @@ export default function LaunchScreen() {
     useEffect(() => {
         setLoading(true);
         axios
-            .get(
-                `/registry/${process.env.NEXT_PUBLIC_AGENT_REGISTRY_NAME}/agent_groups`
-            )
+            .get(`/registry/${agentRegistryName}/agent_groups`)
             .then((response) => {
                 let results = _.get(response, "data.results", []);
                 for (let i = 0; i < _.size(results); i++) {
@@ -175,7 +174,7 @@ export default function LaunchScreen() {
                                 </div>
                                 <div
                                     className="agent-group-row-actions"
-                                    style={ROW_ACTION_STYLES}
+                                    style={ROW_ACTION_STYLE}
                                 >
                                     <Tooltip
                                         content="Edit"
@@ -188,7 +187,7 @@ export default function LaunchScreen() {
                                             onClick={(event) => {
                                                 event.stopPropagation();
                                                 router.push(
-                                                    `/registry/${process.env.NEXT_PUBLIC_AGENT_REGISTRY_NAME}/agent_group/${agentGroup.name}`
+                                                    `/registry/${agentRegistryName}/agent_group/${agentGroup.name}`
                                                 );
                                             }}
                                             large
@@ -201,7 +200,7 @@ export default function LaunchScreen() {
                                     _.isEqual(launchGroup, agentGroup.name) && (
                                         <Button
                                             large
-                                            style={ROW_ACTION_STYLES}
+                                            style={ROW_ACTION_STYLE}
                                             minimal
                                             loading={creatingSession}
                                         />
@@ -213,7 +212,7 @@ export default function LaunchScreen() {
                 {permissions.canWriteAgentRegistry ? (
                     <Link
                         className="no-link-decoration"
-                        href={`/registry/${process.env.NEXT_PUBLIC_AGENT_REGISTRY_NAME}/agent_group/new`}
+                        href={`/registry/${agentRegistryName}/agent_group/new`}
                     >
                         <Button
                             disabled={creatingSession}

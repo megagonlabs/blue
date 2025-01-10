@@ -227,6 +227,7 @@ def get_agents(request: Request, recursive: bool = False):
 
 
 @router.get("/agent/{agent_name}")
+@router.get('/agent_group/{agent_group}/agent/{agent_name}')
 def get_agent(request: Request, agent_name):
     acl_enforce(request.state.user['role'], 'agent_registry', 'read_all')
     result = agent_registry.get_agent(agent_name)
@@ -315,6 +316,7 @@ def get_agent_inputs(request: Request, agent_name):
 
 
 @router.get("/agent/{agent_name}/input/{param_name}")
+@router.get("/agent_group/{agent_group}/agent/{agent_name}/input/{param_name}")
 def get_agent_input(request: Request, agent_name, param_name):
     acl_enforce(request.state.user['role'], 'agent_registry', 'read_all')
     result = agent_registry.get_agent_input(agent_name, param_name)
@@ -403,6 +405,7 @@ def get_agent_outputs(request: Request, agent_name):
 
 
 @router.get("/agent/{agent_name}/output/{param_name}")
+@router.get("/agent_group/{agent_group}/agent/{agent_name}/output/{param_name}")
 def get_agent_output(request: Request, agent_name, param_name):
     acl_enforce(request.state.user['role'], 'agent_registry', 'read_all')
     result = agent_registry.get_agent_output(agent_name, param_name)

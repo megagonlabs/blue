@@ -66,7 +66,7 @@ export default function OperatorEntity() {
                     ),
                     properties: editEntity.properties,
                 });
-                settlePromises(tasks, (error) => {
+                settlePromises(tasks, ({ error }) => {
                     if (!error) {
                         setEdit(false);
                         setEntity(editEntity);

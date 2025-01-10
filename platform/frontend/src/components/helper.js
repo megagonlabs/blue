@@ -67,11 +67,9 @@ const axiosErrorToast = (error) => {
         // The request was made and the server responded with a status code
         // that falls out of the range of 2xx
         if (error.response)
-            message = `[${error.response.status}]: ${_.get(
-                error,
-                "response.data.message",
-                "-"
-            )}`;
+            message = `[${error.response.status} ${
+                error.response.statusText
+            }]: ${_.get(error, "response.data.message", "-")}`;
     } catch (error) {
         message = "Request Error";
     }
@@ -198,26 +196,28 @@ module.exports = {
     },
     settlePromises: (tasks, callback) => {
         (async () => {
-            let requestError = false;
+            let error = false;
             const key = ProgressToaster.show(
                 renderProgress(_.isEmpty(tasks) ? 100 : 0)
             );
             let count = 0;
             const promises = tasks.map((task) => {
                 return task
-                    .catch((status) => {
-                        if (!status) requestError = true;
+                    .catch((reason) => {
+                        error = true;
+                        return new Promise((resolve, reject) => reject(reason));
                     })
                     .finally(() => {
                         const progress = (++count / tasks.length) * 100;
                         ProgressToaster.show(
-                            renderProgress(progress, requestError),
+                            renderProgress(progress, error),
                             key
                         );
                     });
             });
-            await Promise.allSettled(promises);
-            callback(requestError);
+            Promise.allSettled(promises).then((results) => {
+                callback({ results, error });
+            });
         })();
     },
     hasIntersection: (array1, array2) => {

@@ -61,9 +61,12 @@ export default function RegistryEntity() {
     }, [router]);
     const ENTITY_TYPE_TO_COMPONENT = {
         "/agent": <AgentEntity />,
+        "/agent_group/agent": <AgentEntity />,
         "/agent_group": <AgentGroupEntity />,
         "/agent/input": <InputEntity />,
+        "/agent_group/agent/input": <InputEntity />,
         "/agent/output": <OutputEntity />,
+        "/agent_group/agent/output": <OutputEntity />,
         "/operator": <OperatorEntity />,
         "/model": <ModelEntity />,
         "/data": <SourceEntity />,

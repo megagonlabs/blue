@@ -128,7 +128,7 @@ export default function SessionMessagePage() {
         } else {
             setSessionDisplayName(sessionName);
         }
-    }, [sessionName, sessionDetails]);
+    }, [sessionName, sessionDetails, sessionId]);
     const sessionDescription = _.get(sessionDetails, "description", "");
     useEffect(() => {
         if (openAgentsDialogTrigger) {
