@@ -43,6 +43,9 @@ export default function RegistryEntity() {
                 end: i + 2 >= pathParams.length,
             });
         }
+        while (type.includes("/agent/agent")) {
+            type = type.replace("/agent/agent", "/agent");
+        }
         setEntityType(type);
         const crumb0 = _.get(crumbs, 0, {});
         let baseHref = _.nth(_.split(type, "/"), 1);
