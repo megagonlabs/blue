@@ -298,6 +298,54 @@ export default function AgentEntity() {
                     </HTMLTable>
                 </SectionCard>
             </Section>
+            <Section
+                compact
+                collapsible
+                title="Agents"
+                style={{ marginTop: 20 }}
+            >
+                <SectionCard padded={false}>
+                    <HTMLTable
+                        className="entity-section-card-table full-parent-width"
+                        bordered
+                    >
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {_.values(entity.contents).map((element, index) => {
+                                if (!_.isEqual(element.type, "agent"))
+                                    return null;
+                                return (
+                                    <tr key={index}>
+                                        <td>
+                                            <Link
+                                                href={`${routerQueryPath}/agent/${element.name}`}
+                                            >
+                                                <Tag
+                                                    style={{
+                                                        pointerEvents: "none",
+                                                    }}
+                                                    minimal
+                                                    interactive
+                                                    large
+                                                    intent={Intent.PRIMARY}
+                                                >
+                                                    {element.name}
+                                                </Tag>
+                                            </Link>
+                                        </td>
+                                        <td>{element.description}</td>
+                                    </tr>
+                                );
+                            })}
+                        </tbody>
+                    </HTMLTable>
+                </SectionCard>
+            </Section>
         </div>
     );
 }

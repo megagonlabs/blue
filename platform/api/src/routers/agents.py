@@ -227,7 +227,9 @@ def get_agents(request: Request, recursive: bool = False):
 
 
 @router.get("/agent/{agent_name}")
+@router.get("/agent/{path:path}/agent/{agent_name}")
 @router.get('/agent_group/{agent_group}/agent/{agent_name}')
+@router.get('/agent_group/{agent_group}/agent/{path:path}/agent/{agent_name}')
 def get_agent(request: Request, agent_name):
     acl_enforce(request.state.user['role'], 'agent_registry', 'read_all')
     result = agent_registry.get_agent(agent_name)
