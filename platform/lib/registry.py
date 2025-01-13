@@ -440,16 +440,25 @@ class Registry:
         scope = "/" + "/".join(s)
         return scope
 
+    def _extract_shortname(self, name):
+        # use name to identify scope, short name
+        s = name.split(Registry.NESTING___SEPARATOR)
+        sn = s[-1]
+        return sn
+    
+
     def _get_record_path(self, name, type=None, scope=None):
         if scope is None:
             scope = self._identify_scope(name)
 
         sp = self._get_scope_path(scope)
 
+        sn = self._extract_shortname(name)
+
         if type:
             sp = sp + '[?(@.type=="' + type + '" && @.name=="' + name + '")]'
         else:
-            sp = sp + name
+            sp = sp + sn
         return sp
 
     def _get_scope_path(self, scope, recursive=False):
