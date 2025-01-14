@@ -11,11 +11,19 @@ import {
     Card,
     Classes,
     Colors,
+    Divider,
     H4,
     H5,
     H6,
+    Menu,
+    MenuItem,
+    Popover,
+    Tooltip,
 } from "@blueprintjs/core";
-import { faCircleDot } from "@fortawesome/sharp-duotone-solid-svg-icons";
+import {
+    faCircleDot,
+    faForward,
+} from "@fortawesome/sharp-duotone-solid-svg-icons";
 import _ from "lodash";
 import { useContext, useEffect, useRef, useState } from "react";
 export default function Status() {
@@ -205,6 +213,42 @@ export default function Status() {
                             })}
                         />
                     )}
+                    <Divider />
+                    <Popover
+                        placement="bottom-start"
+                        minimal
+                        content={
+                            <Menu style={{ maxWidth: 400 }}>
+                                {trackerList.map((tracker, index) => (
+                                    <MenuItem
+                                        text={tracker}
+                                        key={index}
+                                        onClick={() => {
+                                            const element = _.first(
+                                                document.getElementsByClassName(
+                                                    `tracker-card-${tracker}`
+                                                )
+                                            );
+                                            if (element) {
+                                                console.log(element);
+                                                element.scrollIntoView({
+                                                    behavior: "smooth",
+                                                });
+                                            }
+                                        }}
+                                    />
+                                ))}
+                            </Menu>
+                        }
+                    >
+                        <Tooltip
+                            content="Jump to..."
+                            minimal
+                            placement="bottom"
+                        >
+                            <Button icon={faIcon({ icon: faForward })} />
+                        </Tooltip>
+                    </Popover>
                 </ButtonGroup>
             </Card>
             <div
@@ -215,7 +259,14 @@ export default function Status() {
                 }}
             >
                 {trackerList.map((tracker, index) => (
-                    <div key={index} style={{ marginTop: index > 0 ? 20 : 0 }}>
+                    <div
+                        className={`tracker-card-${tracker}`}
+                        key={index}
+                        style={{
+                            marginTop: index > 0 ? 21 : 0,
+                            scrollMargin: 20,
+                        }}
+                    >
                         <TrackerCard tracker={tracker} />
                     </div>
                 ))}
