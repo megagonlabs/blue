@@ -1,6 +1,6 @@
 import {
     ENTITY_TYPE_LOOKUP,
-    REGISTRY_NESTING___SEPARATOR,
+    REGISTRY_NESTING_SEPARATOR,
 } from "@/components/constant";
 import Breadcrumbs from "@/components/entity/Breadcrumbs";
 import NewEntity from "@/components/entity/NewEntity";
@@ -105,7 +105,7 @@ export default function New() {
         _.set(crumbs, 0, { ...crumb0, href: crumb0.href + type });
         setBreadcrumbs(crumbs);
         if (!_.isEmpty(value))
-            setNamePrefix(`${value}${REGISTRY_NESTING___SEPARATOR}`);
+            setNamePrefix(`${value}${REGISTRY_NESTING_SEPARATOR}`);
     }, [router]);
     return (
         <div style={{ height: "100%", overflowY: "auto" }}>

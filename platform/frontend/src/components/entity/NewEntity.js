@@ -18,6 +18,7 @@ import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/router";
 import { createRef, useEffect } from "react";
 import { Col, Row } from "react-grid-system";
+import { REGISTRY_NESTING_SEPARATOR } from "../constant";
 import { useRefDimensions } from "../hooks/useRefDimensions";
 export default function NewEntity({
     type,
@@ -55,6 +56,9 @@ export default function NewEntity({
         "output",
         "source",
     ].includes(type);
+    const isEntityNameValid =
+        !_.isEmpty(entity.name) &&
+        !_.includes(entity.name, REGISTRY_NESTING_SEPARATOR);
     return (
         <div style={{ padding: "10px 20px 20px" }}>
             <Section compact style={{ position: "relative" }}>
@@ -107,7 +111,7 @@ export default function NewEntity({
                                     <EditableText
                                         alwaysRenderInput
                                         intent={
-                                            _.isEmpty(entity.name)
+                                            !isEntityNameValid
                                                 ? Intent.DANGER
                                                 : null
                                         }
@@ -152,7 +156,7 @@ export default function NewEntity({
                         <Button
                             className={loading ? Classes.SKELETON : null}
                             large
-                            disabled={jsonError || _.isEmpty(entity.name)}
+                            disabled={jsonError || !isEntityNameValid}
                             intent={Intent.SUCCESS}
                             text="Save"
                             onClick={saveEntity}
