@@ -230,7 +230,6 @@ export default function Status() {
                                                 )
                                             );
                                             if (element) {
-                                                console.log(element);
                                                 element.scrollIntoView({
                                                     behavior: "smooth",
                                                 });
