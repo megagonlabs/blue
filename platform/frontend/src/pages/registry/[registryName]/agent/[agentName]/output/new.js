@@ -1,4 +1,7 @@
-import { ENTITY_TYPE_LOOKUP } from "@/components/constant";
+import {
+    ENTITY_TYPE_LOOKUP,
+    REGISTRY_NESTING___SEPARATOR,
+} from "@/components/constant";
 import Breadcrumbs from "@/components/entity/Breadcrumbs";
 import NewEntity from "@/components/entity/NewEntity";
 import {
@@ -26,6 +29,7 @@ export default function New() {
     const [jsonError, setJsonError] = useState(false);
     const agentName = _.get(router, "query.agentName", null);
     const urlPrefix = `/registry/${process.env.NEXT_PUBLIC_AGENT_REGISTRY_NAME}/agent/${agentName}/output`;
+    const [namePrefix, setNamePrefix] = useState("");
     const updateEntity = ({ path, value }) => {
         let newEntity = _.cloneDeep(entity);
         _.set(newEntity, path, value);
@@ -35,7 +39,7 @@ export default function New() {
         if (!router.isReady) return;
         setLoading(true);
         axios[created ? "put" : "post"](`${urlPrefix}/${entity.name}`, {
-            name: entity.name,
+            name: `${namePrefix}${entity.name}`,
             description: entity.description,
         })
             .then(() => {
@@ -54,7 +58,10 @@ export default function New() {
                     }),
                     ({ error }) => {
                         if (!error) {
-                            router.push(`${urlPrefix}/${entity.name}`);
+                            const nextUrl = router.asPath
+                                .split("?")[0]
+                                .replace("/new", `/${entity.name}`);
+                            router.push(nextUrl);
                         }
                         setLoading(false);
                     }
@@ -97,6 +104,8 @@ export default function New() {
         const crumb0 = _.get(crumbs, 0, {});
         _.set(crumbs, 0, { ...crumb0, href: crumb0.href + type });
         setBreadcrumbs(crumbs);
+        if (!_.isEmpty(value))
+            setNamePrefix(`${value}${REGISTRY_NESTING___SEPARATOR}`);
     }, [router]);
     return (
         <div style={{ height: "100%", overflowY: "auto" }}>
@@ -105,6 +114,7 @@ export default function New() {
             </div>
             <NewEntity
                 type="output"
+                namePrefix={namePrefix}
                 updateEntity={updateEntity}
                 saveEntity={saveEntity}
                 entity={entity}

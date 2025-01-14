@@ -127,3 +127,8 @@ table.entity-section-card-table tr td {
 .portal-overlay-z-index-36 div[class^="bp"][class*="-overlay"] {
     z-index: 36;
 }
+/* remember to add "&lrm;" at the end of the string */
+.reverse-ellipsis {
+    direction: rtl;
+    text-overflow: ellipsis;
+}

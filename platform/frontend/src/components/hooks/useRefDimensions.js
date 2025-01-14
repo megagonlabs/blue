@@ -10,12 +10,12 @@ export const useRefDimensions = (ref) => {
                 const boundingRect = current.getBoundingClientRect();
                 const { width, height } = boundingRect;
                 if (
-                    !_.isEqual(dimensions.width, Math.round(width)) ||
-                    !_.isEqual(dimensions.height, Math.round(height))
+                    !_.isEqual(dimensions.width, width) ||
+                    !_.isEqual(dimensions.height, height)
                 )
                     setDimensions({
-                        width: Math.round(width),
-                        height: Math.round(height),
+                        width: width,
+                        height: height,
                     });
             }
         }

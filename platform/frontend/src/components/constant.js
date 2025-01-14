@@ -135,6 +135,7 @@ export const ENTITY_TYPE_LOOKUP = {
         developer: { text: "Developer" },
         demo: { text: "Demo", icon: faKeynote },
     },
+    REGISTRY_NESTING___SEPARATOR = "___",
     COLOR_OPTIONS = [
         "#979B9D",
         "#FFA8A8",

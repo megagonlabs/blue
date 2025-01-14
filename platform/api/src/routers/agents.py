@@ -357,6 +357,9 @@ def update_agent_input(request: Request, agent_name, param_name, parameter: Para
 
 
 @router.delete("/agent/{agent_name}/input/{param_name}")
+@router.delete("/agent/{path:path}/agent/{agent_name}/input/{param_name}")
+@router.delete("/agent_group/{agent_group}/agent/{agent_name}/input/{param_name}")
+@router.delete("/agent_group/{agent_group}/agent/{path:path}/agent/{agent_name}/input/{param_name}")
 def delete_agent_input(request: Request, agent_name, param_name):
     agent_db = agent_registry.get_agent(agent_name)
     agent_acl_enforce(request, agent_db, write=True)
@@ -446,6 +449,9 @@ def update_agent_output(request: Request, agent_name, param_name, parameter: Par
 
 
 @router.delete("/agent/{agent_name}/output/{param_name}")
+@router.delete("/agent/{path:path}/agent/{agent_name}/output/{param_name}")
+@router.delete("/agent_group/{agent_group}/agent/{agent_name}/output/{param_name}")
+@router.delete("/agent_group/{agent_group}/agent/{path:path}/agent/{agent_name}/output/{param_name}")
 def delete_agent_output(request: Request, agent_name, param_name):
     agent_db = agent_registry.get_agent(agent_name)
     agent_acl_enforce(request, agent_db, write=True)
