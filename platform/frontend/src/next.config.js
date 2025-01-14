@@ -6,6 +6,10 @@ module.exports = {
                 source: `/registry/${agentRegistryName}/:l1Type(agent|agent_group)/:path(.*\/agent)/:agentName/:l2Type(input|output)/new`,
                 destination: `/registry/${agentRegistryName}/agent/:agentName/:l2Type/new`,
             },
+            {
+                source: `/registry/${agentRegistryName}/:l1Type(agent|agent_group)/:path(.*\/agent)/new`,
+                destination: `/registry/${agentRegistryName}/agent/new`,
+            },
         ];
     },
     reactStrictMode: true,

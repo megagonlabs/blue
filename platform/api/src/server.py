@@ -106,7 +106,7 @@ def handle_signal(signum, frame):
 # global system tracker
 system_tracker_properties = copy.deepcopy(PROPERTIES)
 system_tracker_properties["tracker.perf.system.autostart"] = True
-system_tracker_properties["tracker.perf.system.outputs"] = ["log.INFO", "pubsub"]
+system_tracker_properties["tracker.perf.system.outputs"] = ["pubsub"]
 system_tracker = SystemPerformanceTracker(properties=system_tracker_properties)
 
 

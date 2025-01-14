@@ -107,7 +107,7 @@ export default function AgentEntity() {
             })
             .catch((error) => axiosErrorToast(error));
     };
-    const addInputOutput = (type) => {
+    const addEntityRouterPush = (type) => {
         if (!router.isReady) return;
         router.push(`${routerQueryPath}/${type}/new`);
     };
@@ -220,7 +220,7 @@ export default function AgentEntity() {
                                             outlined
                                             text="Add input"
                                             onClick={() => {
-                                                addInputOutput("input");
+                                                addEntityRouterPush("input");
                                             }}
                                         />
                                     </td>
@@ -288,7 +288,7 @@ export default function AgentEntity() {
                                             outlined
                                             text="Add output"
                                             onClick={() => {
-                                                addInputOutput("output");
+                                                addEntityRouterPush("output");
                                             }}
                                         />
                                     </td>
@@ -342,6 +342,25 @@ export default function AgentEntity() {
                                     </tr>
                                 );
                             })}
+                            {canEditEntity && !edit && (
+                                <tr>
+                                    <td colSpan={2}>
+                                        <Button
+                                            className={
+                                                loading
+                                                    ? Classes.SKELETON
+                                                    : null
+                                            }
+                                            icon={faIcon({ icon: faPlus })}
+                                            outlined
+                                            text="Add agent"
+                                            onClick={() => {
+                                                addEntityRouterPush("agent");
+                                            }}
+                                        />
+                                    </td>
+                                </tr>
+                            )}
                         </tbody>
                     </HTMLTable>
                 </SectionCard>

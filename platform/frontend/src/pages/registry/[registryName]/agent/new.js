@@ -1,10 +1,12 @@
-import { ENTITY_TYPE_LOOKUP } from "@/components/constant";
+import {
+    ENTITY_TYPE_LOOKUP,
+    REGISTRY_NESTING_SEPARATOR,
+} from "@/components/constant";
 import Breadcrumbs from "@/components/entity/Breadcrumbs";
 import NewEntity from "@/components/entity/NewEntity";
 import {
     axiosErrorToast,
     constructSavePropertyRequests,
-    populateRouterPathname,
     settlePromises,
     shallowDiff,
 } from "@/components/helper";
@@ -26,6 +28,7 @@ export default function New() {
     const [loading, setLoading] = useState(false);
     const [jsonError, setJsonError] = useState(false);
     const urlPrefix = `/registry/${process.env.NEXT_PUBLIC_AGENT_REGISTRY_NAME}/agent`;
+    const [namePrefix, setNamePrefix] = useState("");
     const updateEntity = ({ path, value }) => {
         let newEntity = _.cloneDeep(entity);
         _.set(newEntity, path, value);
@@ -34,8 +37,9 @@ export default function New() {
     const saveEntity = () => {
         if (!router.isReady) return;
         setLoading(true);
-        axios[created ? "put" : "post"](`${urlPrefix}/${entity.name}`, {
-            name: entity.name,
+        const fullAgentName = `${namePrefix}${entity.name}`;
+        axios[created ? "put" : "post"](`${urlPrefix}/${fullAgentName}`, {
+            name: fullAgentName,
             description: entity.description,
         })
             .then(() => {
@@ -54,7 +58,10 @@ export default function New() {
                     }),
                     ({ error }) => {
                         if (!error) {
-                            router.push(`${urlPrefix}/${entity.name}`);
+                            const nextUrl = router.asPath
+                                .split("?")[0]
+                                .replace("/new", `/${fullAgentName}`);
+                            router.push(nextUrl);
                         }
                         setLoading(false);
                     }
@@ -67,7 +74,8 @@ export default function New() {
     };
     useEffect(() => {
         if (_.isEmpty(router.query)) return;
-        const pathParams = populateRouterPathname(router)
+        const pathParams = router.asPath
+            .split("?")[0]
             .split("/")
             .filter((param) => !_.isEmpty(param))
             .slice(0, -2);
@@ -97,6 +105,8 @@ export default function New() {
         // special case
         _.set(crumbs, 0, { ...crumb0, href: crumb0.href + "/agent" });
         setBreadcrumbs(crumbs);
+        if (!_.isEmpty(value))
+            setNamePrefix(`${value}${REGISTRY_NESTING_SEPARATOR}`);
     }, [router]);
     return (
         <div style={{ height: "100%", overflowY: "auto" }}>
@@ -105,6 +115,7 @@ export default function New() {
             </div>
             <NewEntity
                 type="agent"
+                namePrefix={namePrefix}
                 updateEntity={updateEntity}
                 saveEntity={saveEntity}
                 entity={entity}
