@@ -84,7 +84,7 @@ export default function New() {
             key = null,
             value = null,
             type = "";
-        for (var i = 0; i < pathParams.length; i += 2) {
+        for (var i = 0; i < _.size(pathParams); i += 2) {
             key = pathParams[i];
             value = pathParams[i + 1];
             basePath += `/${key}/${value}`;
@@ -105,7 +105,7 @@ export default function New() {
         // special case
         _.set(crumbs, 0, { ...crumb0, href: crumb0.href + "/agent" });
         setBreadcrumbs(crumbs);
-        if (!_.isEmpty(value))
+        if (!_.isEmpty(value) && _.size(pathParams) > 2)
             setNamePrefix(`${value}${REGISTRY_NESTING_SEPARATOR}`);
     }, [router]);
     return (

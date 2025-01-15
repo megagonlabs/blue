@@ -269,6 +269,10 @@ def delete_agent(request: Request, agent_name):
     agent_db = agent_registry.get_agent(agent_name)
     agent_acl_enforce(request, agent_db, write=True)
     agent_registry.remove_agent(agent_name, rebuild=True)
+    # remove agent from agent groups
+    agent_groups = agent_registry.get_agent_groups()
+    for group in agent_groups:
+        agent_registry.remove_agent_from_agent_group(group['name'], agent_name, rebuild=True)
     # save
     agent_registry.dump("/blue_data/config/" + agent_registry_id + ".agents.json")
     return JSONResponse(content={"message": "Success"})
