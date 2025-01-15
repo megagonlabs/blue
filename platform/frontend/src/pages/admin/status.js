@@ -213,41 +213,47 @@ export default function Status() {
                             })}
                         />
                     )}
-                    <Divider />
-                    <Popover
-                        placement="bottom-start"
-                        minimal
-                        content={
-                            <Menu style={{ maxWidth: 400 }}>
-                                {trackerList.map((tracker, index) => (
-                                    <MenuItem
-                                        text={tracker}
-                                        key={index}
-                                        onClick={() => {
-                                            const element = _.first(
-                                                document.getElementsByClassName(
-                                                    `tracker-card-${tracker}`
-                                                )
-                                            );
-                                            if (element) {
-                                                element.scrollIntoView({
-                                                    behavior: "smooth",
-                                                });
-                                            }
-                                        }}
+                    {!_.isEmpty(trackerList) && (
+                        <>
+                            <Divider />
+                            <Popover
+                                placement="bottom-start"
+                                minimal
+                                content={
+                                    <Menu style={{ maxWidth: 400 }}>
+                                        {trackerList.map((tracker, index) => (
+                                            <MenuItem
+                                                text={tracker}
+                                                key={index}
+                                                onClick={() => {
+                                                    const element = _.first(
+                                                        document.getElementsByClassName(
+                                                            `tracker-card-${tracker}`
+                                                        )
+                                                    );
+                                                    if (element) {
+                                                        element.scrollIntoView({
+                                                            behavior: "smooth",
+                                                        });
+                                                    }
+                                                }}
+                                            />
+                                        ))}
+                                    </Menu>
+                                }
+                            >
+                                <Tooltip
+                                    content="Jump to..."
+                                    minimal
+                                    placement="bottom"
+                                >
+                                    <Button
+                                        icon={faIcon({ icon: faForward })}
                                     />
-                                ))}
-                            </Menu>
-                        }
-                    >
-                        <Tooltip
-                            content="Jump to..."
-                            minimal
-                            placement="bottom"
-                        >
-                            <Button icon={faIcon({ icon: faForward })} />
-                        </Tooltip>
-                    </Popover>
+                                </Tooltip>
+                            </Popover>
+                        </>
+                    )}
                 </ButtonGroup>
             </Card>
             <div
