@@ -165,7 +165,9 @@ export default function EntityMain({
         return false;
     })();
     const canDeployAgent =
-        _.isEqual(entity.type, "agent") && permissions.canWritePlatformAgents;
+        _.isEqual(entity.type, "agent") &&
+        permissions.canWritePlatformAgents &&
+        !_.isEqual(containerStatus, "running");
     const canSyncData = _.includes(
         ["source", "database", "collection"],
         entity.type
@@ -375,7 +377,7 @@ export default function EntityMain({
                                                         onClick={syncData}
                                                     />
                                                 ) : null}
-                                                {canDeployAgent ? (
+                                                {canDeployAgent && (
                                                     <Popover
                                                         placement="left"
                                                         className="full-parent-width"
@@ -410,14 +412,10 @@ export default function EntityMain({
                                                             icon={faIcon({
                                                                 icon: faPlay,
                                                             })}
-                                                            disabled={_.isEqual(
-                                                                containerStatus,
-                                                                "running"
-                                                            )}
                                                             text="Deploy"
                                                         />
                                                     </Popover>
-                                                ) : null}
+                                                )}
                                                 {showActionMenuDivider ? (
                                                     <MenuDivider />
                                                 ) : null}
