@@ -1,5 +1,7 @@
 ###### OS / Systems
 import asyncio
+
+should_stop = asyncio.Event()
 import signal
 from contextlib import asynccontextmanager
 from curses import noecho
@@ -40,7 +42,6 @@ connection = redis.Redis(host=db_host, port=db_port, decode_responses=True)
 ###### API Routers
 from constant import EMAIL_DOMAIN_ADDRESS_REGEXP, InvalidRequestJson, PermissionDenied
 from routers import agents, data, models, operators, sessions, containers, platform, accounts, status
-from routers.status import should_stop
 
 from ConnectionManager import ConnectionManager
 
