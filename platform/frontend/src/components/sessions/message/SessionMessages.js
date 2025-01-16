@@ -418,7 +418,7 @@ export default function SessionMessages() {
                             />
                             {!_.isEmpty(sessionMessageTags) && (
                                 <>
-                                    <MenuDivider title="By tags" />
+                                    <MenuDivider title="By tag" />
                                     {_.toArray(sessionMessageTags).map(
                                         (tag, index) => {
                                             const selected = _.includes(
