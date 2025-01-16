@@ -1,10 +1,12 @@
 ###### OS / Systems
+import asyncio
 from curses import noecho
 import sys
 
 from fastapi import Depends, Request
 import pydash
 from constant import PermissionDenied, account_id_header, acl_enforce
+from server import should_stop
 
 ###### Add lib path
 sys.path.append("./lib/")
@@ -25,7 +27,7 @@ from typing import Union, Any, Dict, List
 
 ###### FastAPI, Web, Auth
 from APIRouter import APIRouter
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 
 
 ###### Schema
@@ -91,7 +93,7 @@ def list_agent_containers(request: Request):
     results = []
     # get list of docker containers based on deploy target
     if PROPERTIES["platform.deploy.target"] == "localhost":
-        containers = client.containers.list()
+        containers = client.containers.list(all=True)
         for container in containers:
             c = {}
             c["id"] = container.attrs["Id"]

@@ -11,11 +11,12 @@ import {
     Card,
     Classes,
     Colors,
-    Divider,
     H4,
     H5,
     H6,
+    InputGroup,
     Menu,
+    MenuDivider,
     MenuItem,
     Popover,
     Tooltip,
@@ -23,6 +24,7 @@ import {
 import {
     faCircleDot,
     faForward,
+    faSearch,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import _ from "lodash";
 import { useContext, useEffect, useRef, useState } from "react";
@@ -182,6 +184,7 @@ export default function Status() {
             eventSource.close();
         };
     }, []);
+    const [keyword, setKeyword] = useState("");
     return (
         <>
             <Card
@@ -213,39 +216,59 @@ export default function Status() {
                             })}
                         />
                     )}
-                    <Divider />
                     <Popover
                         placement="bottom-start"
+                        onClose={() => setKeyword("")}
                         minimal
                         content={
-                            <Menu style={{ maxWidth: 400 }}>
-                                {trackerList.map((tracker, index) => (
-                                    <MenuItem
-                                        text={tracker}
-                                        key={index}
-                                        onClick={() => {
-                                            const element = _.first(
-                                                document.getElementsByClassName(
-                                                    `tracker-card-${tracker}`
-                                                )
-                                            );
-                                            if (element) {
-                                                element.scrollIntoView({
-                                                    behavior: "smooth",
-                                                });
-                                            }
-                                        }}
-                                    />
-                                ))}
+                            <Menu
+                                style={{
+                                    maxWidth: 400,
+                                    maxHeight: 400,
+                                    overflowY: "auto",
+                                }}
+                            >
+                                <InputGroup
+                                    autoFocus
+                                    value={keyword}
+                                    onChange={(event) =>
+                                        setKeyword(event.target.value)
+                                    }
+                                    leftIcon={faIcon({ icon: faSearch })}
+                                />
+                                <MenuDivider title="To section" />
+                                {trackerList
+                                    .filter((e) =>
+                                        _.toLower(e).includes(
+                                            _.toLower(keyword)
+                                        )
+                                    )
+                                    .map((tracker, index) => (
+                                        <MenuItem
+                                            text={tracker}
+                                            key={index}
+                                            onClick={() => {
+                                                const element = _.first(
+                                                    document.getElementsByClassName(
+                                                        `tracker-card-${tracker}`
+                                                    )
+                                                );
+                                                if (element) {
+                                                    element.scrollIntoView({
+                                                        behavior: "smooth",
+                                                    });
+                                                }
+                                            }}
+                                        />
+                                    ))}
                             </Menu>
                         }
                     >
-                        <Tooltip
-                            content="Jump to..."
-                            minimal
-                            placement="bottom"
-                        >
-                            <Button icon={faIcon({ icon: faForward })} />
+                        <Tooltip content="Jump" minimal placement="bottom">
+                            <Button
+                                disabled={_.isEmpty(trackerList)}
+                                icon={faIcon({ icon: faForward })}
+                            />
                         </Tooltip>
                     </Popover>
                 </ButtonGroup>

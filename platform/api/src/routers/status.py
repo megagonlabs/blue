@@ -7,8 +7,8 @@ from constant import account_id_header
 from settings import PROPERTIES
 from connection import PooledConnectionFactory
 import asyncio
+from server import should_stop
 
-should_stop = asyncio.Event()
 platform_id = PROPERTIES["platform.name"]
 PLATFORM_PREFIX = f'/blue/platform/{platform_id}'
 router = APIRouter(prefix=f"{PLATFORM_PREFIX}/status", dependencies=[Depends(account_id_header)])
@@ -20,7 +20,7 @@ async def stream_data():
     pubsub = connection.pubsub()
     pubsub.psubscribe("*:TRACKER:PERF")
 
-    async def generate(should_stop):
+    async def generate():
         while True:
             if should_stop.is_set():
                 break
@@ -30,4 +30,4 @@ async def stream_data():
                 yield f"event: message\ndata: {json.dumps(data)}\n\n"
             await asyncio.sleep(2)  # adjust sleep as needed
 
-    return StreamingResponse(generate(should_stop), media_type="text/event-stream")
+    return StreamingResponse(generate(), media_type="text/event-stream")
