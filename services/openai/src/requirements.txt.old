@@ -21,7 +21,7 @@ idna==3.4
 importlib-metadata==6.6.0
 itsdangerous==2.1.2
 multidict==6.0.4
-openai==0.27.8
+openai==1.2.0
 python-engineio==4.4.1
 python-socketio==5.8.0
 rpyc==6.0.0
@@ -29,8 +29,6 @@ psutil==6.1.0
 pydash==7.0.6
 redis==5.2.0
 requests==2.31.0
-sqlvalidator==0.0.20
-psycopg2-binary==2.9.6
 six==1.16.0
 tqdm==4.65.0
 urllib3==2.0.3
@@ -38,7 +36,3 @@ uuid==1.30
 websockets==11.0.3
 yarl==1.18.3
 zipp==3.15.0
-neo4j==5.12.0
-jsonmerge==1.9.2
-jsonpath-ng==1.6.0
-jsonschema==4.21.1

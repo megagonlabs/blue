@@ -7,11 +7,14 @@ WORKDIR /app
 ADD src/requirements.txt /app/requirements.txt
 RUN pip install -r requirements.txt
 
+# Copy libs 
+ADD /lib /app/lib/
+
 # Copy service files
 ADD /src /app/
 
 ENTRYPOINT [ "python" ]
 
-CMD [ "service.py" ] 
+ENTRYPOINT ["python", "neo4j_service.py" ] 
 
 
