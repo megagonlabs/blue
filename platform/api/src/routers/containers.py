@@ -1,8 +1,10 @@
 ###### OS / Systems
 import asyncio
 from curses import noecho
+import subprocess
 import sys
 
+import docker.errors
 from fastapi import Depends, Request
 import pydash
 from constant import PermissionDenied, account_id_header, acl_enforce
@@ -354,3 +356,31 @@ def shutdown_service_container(request: Request, service_name):
     client.close()
 
     return JSONResponse(content={"result": result, "message": "Success"})
+
+
+@router.get('/agents/container/{container_id}')
+async def stream_log(container_id):
+    client = docker.from_env()
+    try:
+        client.containers.get(container_id)
+    except docker.errors.NotFound:
+        client.close()
+        return JSONResponse(content={"message": f"No such container: {container_id}"}, status_code=404)
+    client.close()
+
+    async def generate():
+        process = subprocess.Popen(["docker", "logs", "--follow", container_id], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        while True:
+            if should_stop.is_set():
+                break
+            if process.poll() is not None:
+                process.kill()
+                yield f"event: message\ndata: END_OF_EVENT\n\n"
+            else:
+                print("Process is still running")
+            line = process.stdout.readline()
+            if line:
+                yield f"event: message\ndata: {line.decode()}\n\n"
+            await asyncio.sleep(0)
+
+    return StreamingResponse(generate(), media_type="text/event-stream")
