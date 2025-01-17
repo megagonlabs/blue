@@ -20,7 +20,11 @@ gunicorn==20.1.0
 idna==3.4
 importlib-metadata==6.6.0
 itsdangerous==2.1.2
+jsonmerge==1.9.2
+jsonpath-ng==1.6.0
+jsonschema==4.21.1
 multidict==6.0.4
+httpx==0.27.2 
 openai==1.2.0
 python-engineio==4.4.1
 python-socketio==5.8.0

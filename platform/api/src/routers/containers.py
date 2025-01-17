@@ -244,6 +244,9 @@ def shutdown_agent_container(request: Request, agent_name):
             a = hs[3]
             if a == agent_name:
                 container.stop()
+            # prune
+            client.containers.prune()
+            
     elif PROPERTIES["platform.deploy.target"] == "swarm":
         services = client.services.list()
         for service in services:
