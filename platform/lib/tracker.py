@@ -48,8 +48,7 @@ class Metric:
     def toDict(self):
         d = { "id": self.id,  "label": self.label, "type": self.type, "visibility": self.visibility }
         
-        if self.value:
-            d['value'] = self.value
+        d['value'] = self.value
 
         return d 
 
