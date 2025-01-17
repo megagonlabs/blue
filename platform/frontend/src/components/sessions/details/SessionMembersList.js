@@ -208,7 +208,7 @@ export default function SessionMembersList({ loading, setLoading }) {
                                         isTyping ? Classes.SKELETON : null
                                     }
                                 >
-                                    No result
+                                    No results.
                                 </div>
                             ) : null}
                             {searchResult.map((user) => {

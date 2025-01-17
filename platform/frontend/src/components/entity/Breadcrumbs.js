@@ -35,7 +35,7 @@ export default function Breadcrumbs({ breadcrumbs }) {
                 <Popover
                     position={Position.BOTTOM_LEFT}
                     content={
-                        <Menu>
+                        <Menu large>
                             {_.reverse(items).map(
                                 ({ href, text, end, icon }, index) => {
                                     if (end) return null;

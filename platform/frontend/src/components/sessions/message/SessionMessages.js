@@ -409,7 +409,7 @@ export default function SessionMessages() {
                 <Popover
                     minimal
                     content={
-                        <Menu>
+                        <Menu large>
                             <MenuItem
                                 text="Clear all"
                                 onClick={() =>
@@ -468,7 +468,7 @@ export default function SessionMessages() {
                         placement="bottom-start"
                         content="Filter"
                     >
-                        <ButtonGroup minimal>
+                        <ButtonGroup large minimal>
                             <Button
                                 alignText={Alignment.LEFT}
                                 icon={faIcon({ icon: faBarsFilter })}
@@ -482,7 +482,7 @@ export default function SessionMessages() {
                 {({ width, height }) => (
                     <VariableSizeList
                         itemData={{ setRowHeight }}
-                        height={height - 40}
+                        height={height - 51}
                         itemCount={messages.length}
                         itemSize={getRowHeight}
                         ref={variableSizeListRef}

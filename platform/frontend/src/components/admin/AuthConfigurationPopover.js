@@ -31,6 +31,7 @@ const EXPLANATION_TEXT = {
     },
     className: classNames(Classes.TEXT_SMALL, Classes.TEXT_MUTED),
 };
+const SECTION_LABEL_STYLE = { fontWeight: 600, marginBottom: 5 };
 const DEFAULT_SETTINGS = {
     compact_sidebar: {
         title: "Compact sidebar",
@@ -143,9 +144,9 @@ export default function AuthConfigurationPopover({
                                 maxWidth: "calc(100% - 134px)",
                             }}
                         >
-                            <label style={{ fontWeight: 600 }}>
+                            <div style={SECTION_LABEL_STYLE}>
                                 Default User Role
-                            </label>
+                            </div>
                             <div>
                                 This role will be assigned to those first-time
                                 users signning in on the platform.
@@ -176,68 +177,62 @@ export default function AuthConfigurationPopover({
                     </div>
                 </Card>
                 <Card compact style={{ marginTop: 15 }}>
-                    <label style={{ fontWeight: 600 }}>
-                        Default User Settings
-                    </label>
-                    <div style={{ marginTop: 5 }}>
-                        <Menu large style={{ padding: 0 }}>
-                            {[
-                                "compact_sidebar",
-                                "show_workspace",
-                                "conversation_view",
-                            ].map((key) => (
-                                <MenuItem
-                                    key={key}
-                                    text={
-                                        <div style={{ marginLeft: 3 }}>
-                                            <div>
-                                                {_.get(
-                                                    DEFAULT_SETTINGS,
-                                                    [key, "title"],
-                                                    "-"
-                                                )}
-                                            </div>
-                                            <div {...EXPLANATION_TEXT}>
-                                                {_.get(
-                                                    DEFAULT_SETTINGS,
-                                                    [key, "description"],
-                                                    "-"
-                                                )}
-                                            </div>
-                                        </div>
-                                    }
-                                    icon={faIcon({
-                                        icon: _.get(
-                                            DEFAULT_SETTINGS,
-                                            [key, "icon"],
-                                            null
-                                        ),
-                                    })}
-                                    labelElement={
-                                        <Switch
-                                            checked={_.get(
-                                                defaultSettings,
-                                                key,
-                                                false
+                    <div style={SECTION_LABEL_STYLE}>Default User Settings</div>
+                    <Menu large style={{ padding: 0 }}>
+                        {[
+                            "compact_sidebar",
+                            "show_workspace",
+                            "conversation_view",
+                        ].map((key) => (
+                            <MenuItem
+                                key={key}
+                                text={
+                                    <div style={{ marginLeft: 3 }}>
+                                        <div>
+                                            {_.get(
+                                                DEFAULT_SETTINGS,
+                                                [key, "title"],
+                                                "-"
                                             )}
-                                            className={
-                                                loading
-                                                    ? Classes.SKELETON
-                                                    : null
-                                            }
-                                            onChange={(event) =>
-                                                updateDefaultSettings(
-                                                    key,
-                                                    event.target.checked
-                                                )
-                                            }
-                                            large
-                                        />
-                                    }
-                                />
-                            ))}
-                        </Menu>
-                    </div>
+                                        </div>
+                                        <div {...EXPLANATION_TEXT}>
+                                            {_.get(
+                                                DEFAULT_SETTINGS,
+                                                [key, "description"],
+                                                "-"
+                                            )}
+                                        </div>
+                                    </div>
+                                }
+                                icon={faIcon({
+                                    icon: _.get(
+                                        DEFAULT_SETTINGS,
+                                        [key, "icon"],
+                                        null
+                                    ),
+                                })}
+                                labelElement={
+                                    <Switch
+                                        checked={_.get(
+                                            defaultSettings,
+                                            key,
+                                            false
+                                        )}
+                                        className={
+                                            loading ? Classes.SKELETON : null
+                                        }
+                                        onChange={(event) =>
+                                            updateDefaultSettings(
+                                                key,
+                                                event.target.checked
+                                            )
+                                        }
+                                        large
+                                    />
+                                }
+                            />
+                        ))}
+                    </Menu>
                 </Card>
             </DialogBody>
             <DialogFooter>

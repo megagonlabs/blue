@@ -25,9 +25,10 @@ import {
     faCircleDot,
     faForward,
     faSearch,
+    faTimes,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import _ from "lodash";
-import { useContext, useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useMemo, useRef, useState } from "react";
 export default function Status() {
     const { appState, appActions } = useContext(AppContext);
     const [isLive, setIsLive] = useState(false);
@@ -185,6 +186,13 @@ export default function Status() {
         };
     }, []);
     const [keyword, setKeyword] = useState("");
+    const filteredTrackerList = useMemo(
+        () =>
+            trackerList.filter((e) =>
+                _.toLower(e).includes(_.toLower(keyword))
+            ),
+        [keyword, trackerList]
+    );
     return (
         <>
             <Card
@@ -222,6 +230,7 @@ export default function Status() {
                         minimal
                         content={
                             <Menu
+                                large
                                 style={{
                                     maxWidth: 400,
                                     maxHeight: 400,
@@ -229,38 +238,51 @@ export default function Status() {
                                 }}
                             >
                                 <InputGroup
+                                    large
                                     autoFocus
                                     value={keyword}
                                     onChange={(event) =>
                                         setKeyword(event.target.value)
                                     }
+                                    style={{ marginBottom: 5 }}
+                                    rightElement={
+                                        !_.isEmpty(keyword) && (
+                                            <Button
+                                                onClick={() => setKeyword("")}
+                                                minimal
+                                                icon={faIcon({ icon: faTimes })}
+                                            />
+                                        )
+                                    }
                                     leftIcon={faIcon({ icon: faSearch })}
                                 />
-                                <MenuDivider title="To section" />
-                                {trackerList
-                                    .filter((e) =>
-                                        _.toLower(e).includes(
-                                            _.toLower(keyword)
+                                {!_.isEmpty(filteredTrackerList) && (
+                                    <MenuDivider title="To section" />
+                                )}
+                                {!_.isEmpty(filteredTrackerList) ? (
+                                    filteredTrackerList.map(
+                                        (tracker, index) => (
+                                            <MenuItem
+                                                text={tracker}
+                                                key={index}
+                                                onClick={() => {
+                                                    const element = _.first(
+                                                        document.getElementsByClassName(
+                                                            `tracker-card-${tracker}`
+                                                        )
+                                                    );
+                                                    if (element) {
+                                                        element.scrollIntoView({
+                                                            behavior: "smooth",
+                                                        });
+                                                    }
+                                                }}
+                                            />
                                         )
                                     )
-                                    .map((tracker, index) => (
-                                        <MenuItem
-                                            text={tracker}
-                                            key={index}
-                                            onClick={() => {
-                                                const element = _.first(
-                                                    document.getElementsByClassName(
-                                                        `tracker-card-${tracker}`
-                                                    )
-                                                );
-                                                if (element) {
-                                                    element.scrollIntoView({
-                                                        behavior: "smooth",
-                                                    });
-                                                }
-                                            }}
-                                        />
-                                    ))}
+                                ) : (
+                                    <MenuItem disabled text="No results." />
+                                )}
                             </Menu>
                         }
                     >
