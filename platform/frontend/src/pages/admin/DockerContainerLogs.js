@@ -18,7 +18,10 @@ export default function DockerContainerLogs({ containerId }) {
             { withCredentials: true }
         );
         eventSource.addEventListener("open", () => setIsLive(true));
-        eventSource.addEventListener("error", () => setIsLive(false));
+        eventSource.onerror((error) => {
+            setIsLive(false);
+            console.log(error.data);
+        });
         eventSource.addEventListener("message", (event) => {
             const { epoch, line } = JSON.parse(event.data);
             if (_.isEqual(line, END_OF_SSE_SIGNAL)) {
@@ -95,8 +98,8 @@ export default function DockerContainerLogs({ containerId }) {
                         padding: 5,
                     }}
                 >
-                    {lines.map(({ line }) => (
-                        <div>{line}</div>
+                    {lines.map(({ line }, index) => (
+                        <div key={index}>{line}</div>
                     ))}
                 </div>
             </Card>

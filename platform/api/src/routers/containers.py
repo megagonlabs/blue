@@ -371,7 +371,7 @@ async def stream_log(container_id):
         container = client.containers.get(container_id)
     except docker.errors.NotFound:
         client.close()
-        return JSONResponse(content={"message": f"No such container: {container_id}"}, status_code=404)
+        return StreamingResponse(f"event: error\ndata: No such container: {container_id}\n\n", media_type="text/event-stream")
 
     # async def generate():
     #     process = subprocess.Popen(["docker", "logs", "--follow", container_id], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
