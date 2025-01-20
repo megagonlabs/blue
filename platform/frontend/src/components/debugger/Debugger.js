@@ -19,7 +19,7 @@ export default function Debugger() {
     return (
         <>
             <Card style={{ borderRadius: 0, padding: "5px 15px" }}>
-                <ButtonGroup minimal>
+                <ButtonGroup minimal large>
                     <Tooltip
                         minimal
                         content="Clear debugger"
@@ -35,14 +35,14 @@ export default function Debugger() {
                         />
                     </Tooltip>
                     <Divider />
-                    <HTMLSelect id="debugger-message-type" minimal>
+                    <HTMLSelect large id="debugger-message-type" minimal>
                         <option value="all">All</option>
                     </HTMLSelect>
                 </ButtonGroup>
             </Card>
             <div
                 style={{
-                    height: "calc(100% - 40px)",
+                    height: "calc(100% - 50px)",
                     overflowX: "auto",
                     padding: 15,
                 }}

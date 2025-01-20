@@ -70,6 +70,7 @@ export const ENTITY_TYPE_LOOKUP = {
         model: { icon: faCube, key: "model" },
         operator: { icon: faFunction, key: "operator" },
     },
+    END_OF_SSE_SIGNAL = "END_OF_EVENT_SIGNAL",
     JSONFORMS_RENDERERS = [
         ...vanillaRenderers,
         { tester: GroupTester, renderer: GroupRenderer },

@@ -1,13 +1,16 @@
 ###### OS / Systems
 import asyncio
+from concurrent.futures import ThreadPoolExecutor
 from curses import noecho
 import subprocess
 import sys
+import threading
+import time
 
 import docker.errors
 from fastapi import Depends, Request
 import pydash
-from constant import PermissionDenied, account_id_header, acl_enforce
+from constant import END_OF_SSE_SIGNAL, PermissionDenied, account_id_header, acl_enforce
 from server import should_stop
 
 ###### Add lib path
@@ -246,7 +249,7 @@ def shutdown_agent_container(request: Request, agent_name):
                 container.stop()
             # prune
             client.containers.prune()
-            
+
     elif PROPERTIES["platform.deploy.target"] == "swarm":
         services = client.services.list()
         for service in services:
@@ -365,25 +368,105 @@ def shutdown_service_container(request: Request, service_name):
 async def stream_log(container_id):
     client = docker.from_env()
     try:
-        client.containers.get(container_id)
+        container = client.containers.get(container_id)
     except docker.errors.NotFound:
         client.close()
         return JSONResponse(content={"message": f"No such container: {container_id}"}, status_code=404)
-    client.close()
+
+    # async def generate():
+    #     process = subprocess.Popen(["docker", "logs", "--follow", container_id], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    #     while True:
+    #         if should_stop.is_set():
+    #             break
+    #         if process.poll() is not None:
+    #             process.kill()
+    #             data = {'epoch': time.time(), 'line': END_OF_SSE_SIGNAL}
+    #             yield f"event: message\ndata: {json.dumps(data)}\n\n"
+    #         else:
+    #             print("Process is still running")
+    #         line = process.stdout.readline()
+    #         if line:
+    #             data = {'epoch': time.time(), 'line': line.decode()}
+    #             yield f"event: message\ndata: {json.dumps(data)}\n\n"
+    #         await asyncio.sleep(0)
+
+    # async def generate():
+    #     for line in container.logs(stream=True, follow=True):
+    #         if should_stop.is_set():
+    #             data = {'epoch': time.time(), 'line': END_OF_SSE_SIGNAL}
+    #             yield f"event: message\ndata: {json.dumps(data)}\n\n"
+    #             break
+    #         if line:
+    #             data = {'epoch': time.time(), 'line': line.decode().strip()}
+    #             yield f"event: message\ndata: {json.dumps(data)}\n\n"
+
+    # async def generate():
+    #     queue = asyncio.Queue()
+
+    #     async def get_logs():
+    #         try:
+    #             for line in container.logs(stream=True, follow=True):
+    #                 await queue.put(line.decode().strip())
+    #         except asyncio.CancelledError:
+    #             print("get_logs cancelled")
+
+    #     def wrapper():
+    #         try:
+    #             # create a new event loop for the thread
+    #             loop = asyncio.new_event_loop()
+    #             asyncio.set_event_loop(loop)
+    #             loop.run_until_complete(get_logs())
+    #         except asyncio.CancelledError:
+    #             print("wrapper cancelled")
+    #         finally:
+    #             loop.close()
+
+    #     loop = asyncio.get_event_loop()
+    #     executor = ThreadPoolExecutor()
+    #     # use the wrapper function with run_in_executor
+    #     future = loop.run_in_executor(executor, wrapper)
+    #     try:
+    #         while True:
+    #             if should_stop.is_set():
+    #                 data = {'epoch': time.time(), 'line': END_OF_SSE_SIGNAL}
+    #                 print('cancelling generate')
+    #                 future.cancel()
+    #                 yield f"event: message\ndata: {json.dumps(data)}\n\n"
+    #                 break
+    #             if not queue.empty():
+    #                 data = {'epoch': time.time(), 'line': await queue.get()}
+    #                 yield f"event: message\ndata: {json.dumps(data)}\n\n"
+    #             await asyncio.sleep(0)
+    #     except asyncio.CancelledError:
+    #         print("generate cancelled")
+    #     finally:
+    #         future.cancel()
+    #         print('shutting down executor')
+    #         executor.shutdown(wait=False)
+    #         client.close()
 
     async def generate():
-        process = subprocess.Popen(["docker", "logs", "--follow", container_id], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        queue = asyncio.Queue()
+
+        def get_logs(container, queue):
+            for line in container.logs(stream=True, follow=True, timestamps=True):
+                queue.put_nowait(line.decode().strip())
+
+        log_thread = threading.Thread(target=get_logs, args=(container, queue))
+        log_thread.daemon = True
+        log_thread.start()
+
         while True:
             if should_stop.is_set():
+                data = {'epoch': time.time(), 'line': END_OF_SSE_SIGNAL}
+                yield f"event: message\ndata: {json.dumps(data)}\n\n"
                 break
-            if process.poll() is not None:
-                process.kill()
-                yield f"event: message\ndata: END_OF_EVENT\n\n"
-            else:
-                print("Process is still running")
-            line = process.stdout.readline()
-            if line:
-                yield f"event: message\ndata: {line.decode()}\n\n"
+            if not queue.empty():
+                data = {'epoch': time.time(), 'line': await queue.get()}
+                yield f"event: message\ndata: {json.dumps(data)}\n\n"
             await asyncio.sleep(0)
+        log_thread.join(timeout=1)
+
+    client.close()
 
     return StreamingResponse(generate(), media_type="text/event-stream")

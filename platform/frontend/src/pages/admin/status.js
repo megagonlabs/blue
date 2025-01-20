@@ -154,31 +154,44 @@ export default function Status() {
         eventSource.addEventListener("error", () => setIsLive(false));
         // attaching a handler to receive message events
         eventSource.addEventListener("message", (event) => {
-            const { data, channel } = JSON.parse(event.data);
-            appActions.tracker.addTracker(channel);
-            let time = _.get(data, "data.metadata.data.current.value", 0);
-            if (_.isNumber(time)) time *= 1000;
-            const trackerGraph = _.cloneDeep(
-                _.get(appStateRef.current.tracker.data, [channel, "graph"], {})
-            );
-            let { result, graph } = render(time, data, [], trackerGraph);
-            const trackers = Object.keys(graph);
-            for (let i = 0; i < _.size(trackers); i++) {
-                const content = Object.entries(_.get(graph, trackers[i], {}));
-                if (_.size(content) > 60) {
-                    const sorted = _.sortBy(content, (e) => _.toNumber(e[0]));
-                    _.set(
-                        graph,
-                        trackers[i],
-                        Object.fromEntries(_.takeRight(sorted, 60))
+            const { data, channel, line } = JSON.parse(event.data);
+            if (_.isEqual(line, END_OF_SSE_SIGNAL)) {
+                setIsLive(false);
+                eventSource.close();
+            } else {
+                appActions.tracker.addTracker(channel);
+                let time = _.get(data, "data.metadata.data.current.value", 0);
+                if (_.isNumber(time)) time *= 1000;
+                const trackerGraph = _.cloneDeep(
+                    _.get(
+                        appStateRef.current.tracker.data,
+                        [channel, "graph"],
+                        {}
+                    )
+                );
+                let { result, graph } = render(time, data, [], trackerGraph);
+                const trackers = Object.keys(graph);
+                for (let i = 0; i < _.size(trackers); i++) {
+                    const content = Object.entries(
+                        _.get(graph, trackers[i], {})
                     );
+                    if (_.size(content) > 60) {
+                        const sorted = _.sortBy(content, (e) =>
+                            _.toNumber(e[0])
+                        );
+                        _.set(
+                            graph,
+                            trackers[i],
+                            Object.fromEntries(_.takeRight(sorted, 60))
+                        );
+                    }
                 }
+                appActions.tracker.addTrackerData({
+                    key: channel,
+                    data: result,
+                    graph,
+                });
             }
-            appActions.tracker.addTrackerData({
-                key: channel,
-                data: result,
-                graph,
-            });
         });
         // terminating the connection on component unmount
         return () => {

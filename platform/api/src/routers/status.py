@@ -1,9 +1,10 @@
 import json
+import time
 from fastapi import Depends
 from fastapi.responses import StreamingResponse
 from redis import Redis
 from APIRouter import APIRouter
-from constant import account_id_header
+from constant import END_OF_SSE_SIGNAL, account_id_header
 from settings import PROPERTIES
 from connection import PooledConnectionFactory
 import asyncio
@@ -17,12 +18,14 @@ connection: Redis = PooledConnectionFactory(properties={'db.host': PROPERTIES["d
 
 @router.get("/")
 async def stream_data():
-    pubsub = connection.pubsub()
-    pubsub.psubscribe("*:TRACKER:PERF")
 
     async def generate():
+        pubsub = connection.pubsub()
+        pubsub.psubscribe("*:TRACKER:PERF")
         while True:
             if should_stop.is_set():
+                data = {'epoch': time.time(), 'line': END_OF_SSE_SIGNAL}
+                yield f"event: message\ndata: {json.dumps(data)}\n\n"
                 break
             message = pubsub.get_message()
             if message and message["type"] == "pmessage":
