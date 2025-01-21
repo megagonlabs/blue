@@ -10,11 +10,13 @@ import {
     Button,
     ButtonGroup,
     Card,
+    Classes,
     Divider,
     Drawer,
     H4,
     Intent,
     NonIdealState,
+    Popover,
     Tag,
     Tooltip,
 } from "@blueprintjs/core";
@@ -32,7 +34,7 @@ import {
     faCircleA,
     faRectangleTerminal,
     faRefresh,
-    faStop,
+    faTrash,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import axios from "axios";
 import _ from "lodash";
@@ -65,6 +67,21 @@ export default function Agents() {
                 })
             );
         }
+        const result = await Promise.allSettled(tasks);
+        let updatedAgents = new Set();
+        for (let i = 0; i < _.size(result); i++) {
+            if (_.isEqual(result[i].status, "fulfilled")) {
+                updatedAgents.add(result[i].value);
+            }
+        }
+        if (!_.isEmpty(updatedAgents)) {
+            const size = _.size(updatedAgents);
+            let message = `Updated ${size} agents`;
+            if (_.isEqual(size, 1)) {
+                message = `Updated ${_.toArray(updatedAgents)[0]} agent`;
+            }
+            AppToaster.show({ intent: Intent.SUCCESS, message });
+        }
     };
     const stopSelectedAgents = async () => {
         let tasks = [];
@@ -94,7 +111,7 @@ export default function Agents() {
         if (!_.isEmpty(stoppedAgents)) {
             const size = _.size(stoppedAgents);
             let message = `Stopped ${size} agents`;
-            if (size == 1) {
+            if (_.isEqual(size, 1)) {
                 message = `Stopped ${_.toArray(stoppedAgents)[0]} agent`;
             }
             AppToaster.show({ intent: Intent.SUCCESS, message });
@@ -253,21 +270,38 @@ export default function Agents() {
                     <Tooltip placement="bottom" minimal content="Pull">
                         <Button
                             intent={Intent.PRIMARY}
-                            icon={faIcon({ icon: faArrowDownToLine })}
-                        />
-                    </Tooltip>
-                    <Divider />
-                    <Tooltip placement="bottom" minimal content="Delete">
-                        <Button
-                            intent={Intent.DANGER}
-                            onClick={stopSelectedAgents}
+                            onClick={updateSelectedAgents}
                             disabled={
                                 _.isEmpty(appState.admin.selectedAgents) ||
                                 loading
                             }
-                            icon={faIcon({ icon: faStop })}
+                            icon={faIcon({ icon: faArrowDownToLine })}
                         />
                     </Tooltip>
+                    <Popover
+                        placement="bottom"
+                        content={
+                            <div style={{ padding: 15 }}>
+                                <Button
+                                    onClick={stopSelectedAgents}
+                                    className={Classes.POPOVER_DISMISS}
+                                    text="Confirm"
+                                    intent={Intent.DANGER}
+                                />
+                            </div>
+                        }
+                    >
+                        <Tooltip placement="bottom" minimal content="Delete">
+                            <Button
+                                intent={Intent.DANGER}
+                                disabled={
+                                    _.isEmpty(appState.admin.selectedAgents) ||
+                                    loading
+                                }
+                                icon={faIcon({ icon: faTrash })}
+                            />
+                        </Tooltip>
+                    </Popover>
                 </ButtonGroup>
             </Card>
             <div style={{ height: "calc(100% - 50px)" }}>
