@@ -18,6 +18,7 @@ import {
     Tooltip,
 } from "@blueprintjs/core";
 import {
+    faArrowDownToLine,
     faCheck,
     faClone,
     faListDropdown,
@@ -98,6 +99,18 @@ export default function EntityMain({
                     );
                 }
                 router.push(`/${params.join("/")}`);
+            })
+            .catch((error) => axiosErrorToast(error));
+    };
+    const pullImage = () => {
+        axios
+            .put(`/containers/agents/agent/${entity.name}`)
+            .then((response) => {
+                AppToaster.show({
+                    message: _.get(response, "data.message", "-"),
+                    icon: faIcon({ icon: faArrowDownToLine }),
+                    intent: Intent.PRIMARY,
+                });
             })
             .catch((error) => axiosErrorToast(error));
     };
@@ -377,6 +390,14 @@ export default function EntityMain({
                                                         onClick={syncData}
                                                     />
                                                 ) : null}
+                                                <MenuItem
+                                                    intent={Intent.PRIMARY}
+                                                    icon={faIcon({
+                                                        icon: faArrowDownToLine,
+                                                    })}
+                                                    onClick={pullImage}
+                                                    text="Pull"
+                                                />
                                                 {canDeployAgent && (
                                                     <Popover
                                                         placement="left"

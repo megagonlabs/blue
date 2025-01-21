@@ -211,22 +211,28 @@ def update_agent_container(request: Request, agent_name):
     agent = agent_registry.get_agent(agent_name)
     container_acl_enforce(request, agent, write=True)
     properties = agent_registry.get_agent_properties(agent_name)
-    image = properties["image"]
+    if 'image' in properties:
+        image = 'redis/redis-stack'
+        # properties["image"]
 
-    # connect to docker
-    client = docker.from_env()
+        # connect to docker
+        client = docker.from_env()
 
-    if PROPERTIES["platform.deploy.target"] == "localhost":
-        client.images.pull(image)
-    elif PROPERTIES["platform.deploy.target"] == "swarm":
-        # TODO: pull image on all nodes where label.target==agent
-        pass
-    result = ""
+        if PROPERTIES["platform.deploy.target"] == "localhost":
+            pulled = client.images.pull(image)
+        elif PROPERTIES["platform.deploy.target"] == "swarm":
+            # TODO: pull image on all nodes where label.target==agent
+            pass
 
-    # close connection
-    client.close()
-
-    return JSONResponse(content={"result": result, "message": "Success"})
+        # close connection
+        client.close()
+        pulled_message = ""
+        if isinstance(pulled, list):
+            pulled_message = ", ".join([image.tags[0] for image in pulled])
+        else:
+            pulled_message = pulled.tags[0]
+        return JSONResponse(content={"message": f"Pulled {pulled_message}"})
+    return JSONResponse(content={"message": f"image is not defined in the properties"}, status_code=400)
 
 
 @router.delete("/agents/agent/{agent_name}")
