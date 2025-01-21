@@ -28,6 +28,7 @@ import {
     Utils,
 } from "@blueprintjs/table";
 import {
+    faArrowDownToLine,
     faCircleA,
     faRectangleTerminal,
     faRefresh,
@@ -45,8 +46,27 @@ export default function Agents() {
     const [data, setData] = useState([]);
     const [showLogs, setShowLogs] = useState(false);
     const [containerId, setContainerId] = useState(null);
+    const selectedAgents = _.toArray(appState.admin.selectedAgents);
+    const updateSelectedAgents = async () => {
+        let tasks = [];
+        for (let i = 0; i < _.size(selectedAgents); i++) {
+            tasks.push(
+                new Promise((resolve, reject) => {
+                    const agent = selectedAgents[i];
+                    axios
+                        .put(`/containers/agents/agent/${agent}`)
+                        .then(() => {
+                            resolve(agent);
+                        })
+                        .catch((error) => {
+                            axiosErrorToast(error);
+                            reject(agent);
+                        });
+                })
+            );
+        }
+    };
     const stopSelectedAgents = async () => {
-        const selectedAgents = _.toArray(appState.admin.selectedAgents);
         let tasks = [];
         for (let i = 0; i < _.size(selectedAgents); i++) {
             tasks.push(
@@ -55,7 +75,6 @@ export default function Agents() {
                     axios
                         .delete(`/containers/agents/agent/${agent}`)
                         .then(() => {
-                            appActions.admin.removeSelectedAgent(agent);
                             resolve(agent);
                         })
                         .catch((error) => {
@@ -231,7 +250,14 @@ export default function Agents() {
                         />
                     </Tooltip>
                     <Divider />
-                    <Tooltip placement="bottom" minimal content="Stop">
+                    <Tooltip placement="bottom" minimal content="Pull">
+                        <Button
+                            intent={Intent.PRIMARY}
+                            icon={faIcon({ icon: faArrowDownToLine })}
+                        />
+                    </Tooltip>
+                    <Divider />
+                    <Tooltip placement="bottom" minimal content="Delete">
                         <Button
                             intent={Intent.DANGER}
                             onClick={stopSelectedAgents}

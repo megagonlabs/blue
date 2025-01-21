@@ -12,6 +12,7 @@ import {
     Card,
     Classes,
     Colors,
+    Divider,
     H4,
     H5,
     H6,
@@ -226,17 +227,20 @@ export default function Status() {
                         text={<H4 className="margin-0">Status</H4>}
                     />
                     {isLive && (
-                        <Button
-                            style={{ pointerEvents: "none" }}
-                            icon={faIcon({
-                                icon: faCircleDot,
-                                className: "fa-fade",
-                                style: {
-                                    "--fa-animation-duration": "2s",
-                                    color: Colors.GREEN3,
-                                },
-                            })}
-                        />
+                        <>
+                            <Button
+                                style={{ pointerEvents: "none" }}
+                                icon={faIcon({
+                                    icon: faCircleDot,
+                                    className: "fa-fade",
+                                    style: {
+                                        "--fa-animation-duration": "2s",
+                                        color: Colors.GREEN3,
+                                    },
+                                })}
+                            />
+                            <Divider />
+                        </>
                     )}
                     <Popover
                         placement="bottom-start"

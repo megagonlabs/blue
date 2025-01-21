@@ -185,15 +185,8 @@ export default function EntityMain({
         ["source", "database", "collection"],
         entity.type
     );
-    const showActionMenuDivider =
-        canEditEntity &&
-        (_.isFunction(setEdit) ||
-            canDuplicateEntity ||
-            canDeployAgent ||
-            canSyncData);
     const canDeregister = _.isEqual("database", entity.type);
-    const showActionMenu =
-        showActionMenuDivider || canEditEntity || canSyncData || canDeregister;
+    const showActionMenu = canEditEntity || canSyncData || canDeregister;
     return (
         <>
             <EntityIconEditor
@@ -390,11 +383,12 @@ export default function EntityMain({
                                                         onClick={syncData}
                                                     />
                                                 ) : null}
+                                                <MenuDivider title="Docker" />
                                                 <MenuItem
-                                                    intent={Intent.PRIMARY}
                                                     icon={faIcon({
                                                         icon: faArrowDownToLine,
                                                     })}
+                                                    intent={Intent.PRIMARY}
                                                     onClick={pullImage}
                                                     text="Pull"
                                                 />
@@ -437,9 +431,7 @@ export default function EntityMain({
                                                         />
                                                     </Popover>
                                                 )}
-                                                {showActionMenuDivider ? (
-                                                    <MenuDivider />
-                                                ) : null}
+                                                <MenuDivider />
                                                 {canEditEntity && (
                                                     <Popover
                                                         placement="left"
