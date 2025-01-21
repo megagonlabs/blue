@@ -39,7 +39,7 @@ import { useContext, useEffect, useState } from "react";
 import ReactTimeAgo from "react-time-ago";
 import DockerContainerLogs from "./DockerContainerLogs";
 export default function Agents() {
-    const { appState } = useContext(AppContext);
+    const { appState, appActions } = useContext(AppContext);
     const [tableKey, setTableKey] = useState(Date.now());
     const [loading, setLoading] = useState(true);
     const [data, setData] = useState([]);
@@ -51,14 +51,16 @@ export default function Agents() {
         for (let i = 0; i < _.size(selectedAgents); i++) {
             tasks.push(
                 new Promise((resolve, reject) => {
+                    const agent = selectedAgents[i];
                     axios
-                        .delete(`/containers/container/${selectedAgents[i]}`)
+                        .delete(`/containers/agents/agent/${agent}`)
                         .then(() => {
-                            resolve(selectedAgents[i]);
+                            appActions.admin.removeSelectedAgent(agent);
+                            resolve(agent);
                         })
                         .catch((error) => {
                             axiosErrorToast(error);
-                            reject(selectedAgents[i]);
+                            reject(agent);
                         });
                 })
             );
