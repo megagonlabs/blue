@@ -18,7 +18,7 @@ export default function DockerContainerLogs({ containerId }) {
             { withCredentials: true }
         );
         eventSource.addEventListener("open", () => setIsLive(true));
-        eventSource.onerror((error) => {
+        eventSource.addEventListener("error", (error) => {
             setIsLive(false);
             console.log(error.data);
         });
