@@ -2,6 +2,7 @@
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
 from curses import noecho
+import datetime
 import subprocess
 import sys
 import threading
@@ -448,11 +449,14 @@ async def stream_log(container_id):
     async def generate():
         queue = asyncio.Queue()
 
-        def get_logs(container, queue):
-            for line in container.logs(stream=True, follow=True, timestamps=True):
+        # calculate the timestamp for 1 week ago
+        one_week_ago = datetime.datetime.now() - datetime.timedelta(weeks=1)
+
+        def get_logs(container, queue, epoch):
+            for line in container.logs(stream=True, follow=True, timestamps=True, since=epoch):
                 queue.put_nowait(line.decode().strip())
 
-        log_thread = threading.Thread(target=get_logs, args=(container, queue))
+        log_thread = threading.Thread(target=get_logs, args=(container, queue, int(one_week_ago.timestamp())))
         log_thread.daemon = True
         log_thread.start()
 
