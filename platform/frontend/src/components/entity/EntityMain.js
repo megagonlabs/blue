@@ -177,6 +177,8 @@ export default function EntityMain({
         }
         return false;
     })();
+    const canPullImage =
+        _.isEqual(entity.type, "agent") && _.has(entity.properties, "image");
     const canDeployAgent =
         _.isEqual(entity.type, "agent") &&
         permissions.canWritePlatformAgents &&
@@ -383,15 +385,20 @@ export default function EntityMain({
                                                         onClick={syncData}
                                                     />
                                                 ) : null}
-                                                <MenuDivider title="Docker" />
-                                                <MenuItem
-                                                    icon={faIcon({
-                                                        icon: faArrowDownToLine,
-                                                    })}
-                                                    intent={Intent.PRIMARY}
-                                                    onClick={pullImage}
-                                                    text="Pull"
-                                                />
+                                                {(canPullImage ||
+                                                    canDeployAgent) && (
+                                                    <MenuDivider title="Docker" />
+                                                )}
+                                                {canPullImage && (
+                                                    <MenuItem
+                                                        icon={faIcon({
+                                                            icon: faArrowDownToLine,
+                                                        })}
+                                                        intent={Intent.PRIMARY}
+                                                        onClick={pullImage}
+                                                        text="Pull"
+                                                    />
+                                                )}
                                                 {canDeployAgent && (
                                                     <Popover
                                                         placement="left"
