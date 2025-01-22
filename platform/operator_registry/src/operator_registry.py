@@ -61,7 +61,7 @@ class OperatorRegistry(Registry):
         super().deregister(record, rebuild=rebuild)
 
     def get_operator(self, operator):
-        return super().get_record(operator, '/')
+        return super().get_record(operator, 'operator')
 
     def get_operator_description(self, operator):
         return super().get_record_description(operator, '/')

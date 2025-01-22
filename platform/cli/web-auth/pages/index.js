@@ -100,7 +100,7 @@ export default function Index() {
             } catch (e) {
                 AppToaster.show({
                     intent: Intent.WARNING,
-                    message: event.data,
+                    message: e,
                 });
                 console.log(event.data);
                 console.error(e);

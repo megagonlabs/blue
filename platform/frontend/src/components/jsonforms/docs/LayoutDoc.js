@@ -1,4 +1,5 @@
 import { faIcon } from "@/components/icon";
+import * as docProps from "@/components/jsonforms/docs/constant";
 import JsonViewer from "@/components/sessions/message/renderers/JsonViewer";
 import {
     Button,
@@ -22,12 +23,12 @@ export default function LayoutDoc({ closePanel }) {
     };
     const docJSonHorizontal = {
         type: "HorizontalLayout",
-        props: { spaceEvenly: true },
+        props: { spaceEvenly: true, style: {} },
         elements: [],
     };
     return (
         <>
-            <div className="bp-border-bottom" style={{ padding: "10px 20px" }}>
+            <div className="border-bottom" style={{ padding: "10px 20px" }}>
                 <Button
                     outlined
                     text="Back"
@@ -42,13 +43,7 @@ export default function LayoutDoc({ closePanel }) {
                     overflowY: "auto",
                 }}
             >
-                <div
-                    style={{
-                        display: "flex",
-                        alignItems: "center",
-                        marginBottom: 20,
-                    }}
-                >
+                <div style={{ marginBottom: 20 }}>
                     <H1 style={{ margin: 0 }}>Layout</H1>
                 </div>
                 <pre style={{ position: "relative", overflow: "hidden" }}>
@@ -140,6 +135,7 @@ export default function LayoutDoc({ closePanel }) {
                                 </Tag>
                             </td>
                         </tr>
+                        {docProps.style}
                     </tbody>
                 </HTMLTable>
             </div>

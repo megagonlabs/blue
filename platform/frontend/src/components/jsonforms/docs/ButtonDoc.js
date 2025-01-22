@@ -28,7 +28,7 @@ export default function ButtonDoc({ closePanel }) {
     };
     return (
         <>
-            <div className="bp-border-bottom" style={{ padding: "10px 20px" }}>
+            <div className="border-bottom" style={{ padding: "10px 20px" }}>
                 <Button
                     outlined
                     text="Back"
@@ -43,13 +43,7 @@ export default function ButtonDoc({ closePanel }) {
                     overflowY: "auto",
                 }}
             >
-                <div
-                    style={{
-                        display: "flex",
-                        alignItems: "center",
-                        marginBottom: 20,
-                    }}
-                >
+                <div style={{ marginBottom: 20 }}>
                     <H1 style={{ margin: 0 }}>Button</H1>
                 </div>
                 <pre style={{ position: "relative", overflow: "hidden" }}>
@@ -90,6 +84,19 @@ export default function ButtonDoc({ closePanel }) {
                                 <div>
                                     Whether this button should use large styles.
                                 </div>
+                                <Callout
+                                    style={{
+                                        margin: 0,
+                                        marginTop: 5,
+                                        display: "flex",
+                                        gap: 10,
+                                        flexWrap: "wrap",
+                                        alignItems: "flex-start",
+                                    }}
+                                >
+                                    <Button large text="large: true" />
+                                    <Button text="large: false" />
+                                </Callout>
                             </td>
                         </tr>
                         <tr>
@@ -119,7 +126,7 @@ export default function ButtonDoc({ closePanel }) {
                                         flexWrap: "wrap",
                                     }}
                                 >
-                                    <Button text="outlined: false" />{" "}
+                                    <Button text="outlined: false" />
                                     <Button outlined text="outlined: true" />
                                 </Callout>
                             </td>
@@ -141,7 +148,6 @@ export default function ButtonDoc({ closePanel }) {
                                 <div>
                                     Visual intent color to apply to element.
                                 </div>
-
                                 <Callout
                                     style={{
                                         margin: 0,

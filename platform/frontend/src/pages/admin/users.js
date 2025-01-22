@@ -1,5 +1,6 @@
 import AccessDeniedNonIdealState from "@/components/AccessDeniedNonIdealState";
 import ActionCheckbox from "@/components/admin/ActionCheckbox";
+import AuthConfigurationPopover from "@/components/admin/AuthConfigurationPopover";
 import RoleConfigurationPopover from "@/components/admin/RoleConfigurationPopover";
 import { PROFILE_PICTURE_40, USER_ROLES_LOOKUP } from "@/components/constant";
 import { AppContext } from "@/components/contexts/app-context";
@@ -11,6 +12,8 @@ import {
     Card,
     Classes,
     Divider,
+    H4,
+    Intent,
     NonIdealState,
     Tooltip,
 } from "@blueprintjs/core";
@@ -24,6 +27,7 @@ import {
     Utils,
 } from "@blueprintjs/table";
 import {
+    faCog,
     faRefresh,
     faStamp,
     faUserGroup,
@@ -36,6 +40,7 @@ export default function Users() {
     const [tableKey, setTableKey] = useState(Date.now());
     const [loading, setLoading] = useState(true);
     const [isRoleConfigOpen, setIsRoleConfigOpen] = useState(false);
+    const [isAuthConfigOpen, setIsAuthConfigOpen] = useState(false);
     const { appState, appActions } = useContext(AppContext);
     const data = _.get(appState, "admin.users", []);
     const fetchUserList = () => {
@@ -48,8 +53,8 @@ export default function Users() {
     useEffect(() => {
         appActions.admin.setState({ key: "selectedUsers", value: new Set() });
         fetchUserList();
-    }, []);
-    const TABLE_CELL_HEIGHT = 55;
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    const TABLE_CELL_HEIGHT = 40;
     const INIT_COLUMNS = [
         {
             name: <div>&nbsp;</div>,
@@ -77,6 +82,8 @@ export default function Users() {
                                 className="margin-0"
                                 style={{
                                     ...PROFILE_PICTURE_40,
+                                    height: 25,
+                                    width: 25,
                                     position: "absolute",
                                     top: 7.5,
                                     left: 1,
@@ -85,12 +92,12 @@ export default function Users() {
                                 <Image
                                     alt=""
                                     src={picture}
-                                    width={40}
-                                    height={40}
+                                    width={25}
+                                    height={25}
                                 />
                             </Card>
                             <div
-                                style={{ paddingLeft: 52 }}
+                                style={{ paddingLeft: 35 }}
                                 className={Classes.TEXT_OVERFLOW_ELLIPSIS}
                             >
                                 {name}
@@ -138,22 +145,54 @@ export default function Users() {
                 setIsRoleConfigOpen={setIsRoleConfigOpen}
                 isRoleConfigOpen={isRoleConfigOpen}
             />
-            <Card interactive style={{ padding: 5, borderRadius: 0 }}>
+            <AuthConfigurationPopover
+                setIsAuthConfigOpen={setIsAuthConfigOpen}
+                isAuthConfigOpen={isAuthConfigOpen}
+            />
+            <Card
+                interactive
+                style={{
+                    padding: 5,
+                    borderRadius: 0,
+                    position: "relative",
+                    zIndex: 1,
+                    cursor: "default",
+                }}
+            >
                 <ButtonGroup large minimal>
-                    <Tooltip placement="bottom-start" minimal content="Refresh">
+                    <Button
+                        disabled
+                        style={{ cursor: "default" }}
+                        text={<H4 className="margin-0">Users</H4>}
+                    />
+                    <Tooltip placement="bottom" minimal content="Refresh">
                         <Button
                             onClick={fetchUserList}
                             loading={loading}
                             icon={faIcon({ icon: faRefresh })}
                         />
                     </Tooltip>
+                    <Tooltip
+                        openOnTargetFocus={false}
+                        placement="bottom"
+                        content="Settings"
+                        minimal
+                    >
+                        <Button
+                            disabled={loading}
+                            onClick={() => setIsAuthConfigOpen(true)}
+                            icon={faIcon({ icon: faCog })}
+                        />
+                    </Tooltip>
                     <Divider />
                     <Tooltip
+                        openOnTargetFocus={false}
                         placement="bottom"
                         content="Update role(s)"
                         minimal
                     >
                         <Button
+                            intent={Intent.SUCCESS}
                             disabled={
                                 _.isEmpty(appState.admin.selectedUsers) ||
                                 loading
@@ -171,7 +210,6 @@ export default function Users() {
                         position: "absolute",
                         bottom: 0,
                         right: 0,
-                        zIndex: 1,
                         height: "calc(100% - 50px)",
                     }}
                 >

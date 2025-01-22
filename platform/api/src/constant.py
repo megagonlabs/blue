@@ -1,7 +1,14 @@
+from fastapi import Header
 from jsonschema.validators import Draft7Validator
 import pydash
 
 EMAIL_DOMAIN_ADDRESS_REGEXP = r"@((\w+?\.)+\w+)"
+BANNED_ENTITY_NAMES = ['new']
+END_OF_SSE_SIGNAL = 'END_OF_EVENT_SIGNAL'
+
+
+def account_id_header(X_accountId: str = Header(None)):
+    return
 
 
 class InvalidRequestJson(Exception):

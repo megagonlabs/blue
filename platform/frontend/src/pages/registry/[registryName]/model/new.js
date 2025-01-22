@@ -2,13 +2,15 @@ import { ENTITY_TYPE_LOOKUP } from "@/components/constant";
 import Breadcrumbs from "@/components/entity/Breadcrumbs";
 import NewEntity from "@/components/entity/NewEntity";
 import {
+    axiosErrorToast,
     constructSavePropertyRequests,
+    populateRouterPathname,
     settlePromises,
+    shallowDiff,
 } from "@/components/helper";
 import { AppToaster } from "@/components/toaster";
 import { Intent } from "@blueprintjs/core";
 import axios from "axios";
-import { diff } from "deep-diff";
 import _ from "lodash";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
@@ -42,15 +44,15 @@ export default function New() {
                     intent: Intent.SUCCESS,
                     message: `Created ${entity.name} model`,
                 });
-                const difference = diff({}, entity.properties);
+                const difference = shallowDiff({}, entity.properties);
                 settlePromises(
                     constructSavePropertyRequests({
                         axios,
                         url: `${urlPrefix}/${entity.name}/property`,
                         difference,
-                        editEntity: entity,
+                        properties: entity.properties,
                     }),
-                    (error) => {
+                    ({ error }) => {
                         if (!error) {
                             router.push(`${urlPrefix}/${entity.name}`);
                         }
@@ -59,23 +61,13 @@ export default function New() {
                 );
             })
             .catch((error) => {
-                AppToaster.show({
-                    intent: Intent.DANGER,
-                    message: (
-                        <>
-                            <div>{_.get(error, "response.data.message")}</div>
-                            <div>
-                                {error.name}: {error.message}
-                            </div>
-                        </>
-                    ),
-                });
+                axiosErrorToast(error);
                 setLoading(false);
             });
     };
     useEffect(() => {
         if (_.isEmpty(router.query)) return;
-        const pathParams = router.asPath
+        const pathParams = populateRouterPathname(router)
             .split("/")
             .filter((param) => !_.isEmpty(param))
             .slice(0, -2);
@@ -119,7 +111,6 @@ export default function New() {
                 loading={loading}
                 jsonError={jsonError}
                 setJsonError={setJsonError}
-                setLoading={setLoading}
                 urlPrefix={urlPrefix}
                 setEntity={setEntity}
             />

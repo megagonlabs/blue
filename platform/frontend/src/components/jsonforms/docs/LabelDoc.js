@@ -9,6 +9,7 @@ import {
     H1,
     H2,
     HTMLTable,
+    Intent,
 } from "@blueprintjs/core";
 import { faArrowLeft } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import classNames from "classnames";
@@ -16,6 +17,7 @@ import CopyDocJsonButton from "./CopyDocJsonButton";
 export default function LabelDoc({ closePanel }) {
     const docJson = {
         type: "Label",
+        scope: "#/properties/...",
         label: "",
         props: {
             muted: false,
@@ -26,7 +28,7 @@ export default function LabelDoc({ closePanel }) {
     };
     return (
         <>
-            <div className="bp-border-bottom" style={{ padding: "10px 20px" }}>
+            <div className="border-bottom" style={{ padding: "10px 20px" }}>
                 <Button
                     outlined
                     text="Back"
@@ -41,15 +43,14 @@ export default function LabelDoc({ closePanel }) {
                     overflowY: "auto",
                 }}
             >
-                <div
-                    style={{
-                        display: "flex",
-                        alignItems: "center",
-                        marginBottom: 20,
-                    }}
-                >
+                <div style={{ marginBottom: 20 }}>
                     <H1 style={{ margin: 0 }}>Label</H1>
                 </div>
+                <Callout icon={null} intent={Intent.WARNING}>
+                    <Code>label</Code> and <Code>scope</Code> are mutually
+                    exclusive; if <Code>scope</Code> is not specified, then{" "}
+                    <Code>label</Code> value will be used.
+                </Callout>
                 <pre style={{ position: "relative", overflow: "hidden" }}>
                     <div style={{ position: "absolute", right: 15, top: 13 }}>
                         <CopyDocJsonButton

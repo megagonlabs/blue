@@ -36,8 +36,13 @@ from redis.commands.search.query import Query
 import numpy as np
 from sentence_transformers import SentenceTransformer
 
+###### Blue
+from connection import PooledConnectionFactory
+
 
 class Registry:
+    NESTING___SEPARATOR = "___"
+
     def __init__(self, name="REGISTRY", id=None, sid=None, cid=None, prefix=None, suffix=None, properties={}):
 
         self.name = name
@@ -94,10 +99,8 @@ class Registry:
 
     ###### database, data, index
     def _start_connection(self):
-        host = self.properties['db.host']
-        port = self.properties['db.port']
-
-        self.connection = redis.Redis(host=host, port=port, decode_responses=True)
+        self.connection_factory = PooledConnectionFactory(properties=self.properties)
+        self.connection = self.connection_factory.get_connection()
 
     def _get_data_namespace(self):
         return self.cid + ':DATA'
@@ -183,13 +186,12 @@ class Registry:
         index_name = self._get_index_name()
         doc_prefix = self._get_doc_prefix()
 
-        records = self.list_records()
+        records = self.list_records(recursive=True)
 
         # instantiate a redis pipeline
-        pipe = self.connection.pipeline()
+        pipe = self.connection.pipeline(transaction=False)
 
-        for name in records:
-            record = records[name]
+        for record in records:
             self._set_index_record(record, recursive=True, pipe=pipe)
 
         res = pipe.execute()
@@ -198,6 +200,9 @@ class Registry:
         logging.info(self.connection.ft(index_name).info())
 
     def _set_index_record(self, record, recursive=False, pipe=None):
+
+        if 'name' not in record:
+            return
 
         name = record['name']
         type = record['type']
@@ -351,7 +356,7 @@ class Registry:
         record['contents'] = {}
 
         ## create a record on the registry name space
-        p = self._get_record_path(name, scope)
+        p = self._get_record_path(name, scope=scope)
 
         self.connection.json().set(self._get_data_namespace(), p, record)
 
@@ -417,7 +422,7 @@ class Registry:
             scope = record['scope']
 
         # fetch original
-        original_record = self.get_record(name, scope)
+        original_record = self.get_record(name, scope=scope)
 
         # merge
         merged_record = json_utils.merge_json(original_record, record)
@@ -427,23 +432,62 @@ class Registry:
         # return original and merged
         return original_record, merged_record
 
-    def _get_record_path(self, name, scope):
-        sp = self._get_scope_path(scope)
-        p = sp + "." + name
-        return p
+    def _identify_scope(self, name, full=False):
+        # use name to identify scope
+        s = name.split(Registry.NESTING___SEPARATOR)
+        if not full:
+            s = s[:-1]
+        scope = "/" + "/".join(s)
+        return scope
 
-    def _get_scope_path(self, scope):
+    def _extract_shortname(self, name):
+        # use name to identify scope, short name
+        s = name.split(Registry.NESTING___SEPARATOR)
+        sn = s[-1]
+        return sn
+    
+
+    def _get_record_path(self, name, type=None, scope=None):
+        if scope is None:
+            scope = self._identify_scope(name)
+
+        sp = self._get_scope_path(scope)
+
+        sn = self._extract_shortname(name)
+
+        if type:
+            sp = sp + '[?(@.type=="' + type + '" && @.name=="' + name + '")]'
+        else:
+            sp = sp + sn
+        return sp
+
+    def _get_scope_path(self, scope, recursive=False):
         if scope[len(scope) - 1] == '/':
             scope = scope[:-1]
 
         # compute json path given prefix, scope, and name
         sa = scope.split("/")
-        p = "$" + ".contents.".join(sa) + ".contents"
+        p = "$" + ".contents.".join(sa) + ".contents."
+        if recursive:
+            p = p + "."
         return p
 
-    def get_record(self, name, scope):
-        p = self._get_record_path(name, scope)
-        record = self.connection.json().get(self._get_data_namespace(), Path(p))
+
+    def list_records(self, type=None, scope="/", recursive=False, condition=None):
+        sp = self._get_scope_path(scope, recursive=recursive)
+
+        if condition:
+            sp = sp + condition
+        else:
+            if type:
+                sp = sp + '[?(@.type=="' + type + '")]'
+            else:
+                sp = sp + '[?(@.type)]'
+
+    def get_record(self, name, type=None, scope=None):
+        sp = self._get_record_path(name, type=type, scope=scope)
+        
+        record = self.connection.json().get(self._get_data_namespace(), Path(sp))
         if len(record) == 0:
             return {}
         else:
@@ -451,26 +495,26 @@ class Registry:
         return self.__get_json_value(record)
 
     def get_record_data(self, name, scope, key, single=True):
-        p = self._get_record_path(name, scope)
+        p = self._get_record_path(name, scope=scope)
         value = self.connection.json().get(self._get_data_namespace(), Path(p + '.' + key))
         return self.__get_json_value(value, single=single)
 
     def set_record_data(self, name, scope, key, value, rebuild=False):
-        p = self._get_record_path(name, scope)
+        p = self._get_record_path(name, scope=scope)
         self.connection.json().set(self._get_data_namespace(), p + '.' + key, value)
 
         # rebuild now
         if rebuild:
-            record = self.get_record(name, scope)
+            record = self.get_record(name, scope=scope)
             self._set_index_record(record)
 
     def delete_record_data(self, name, scope, key, rebuild=False):
-        p = self._get_record_path(name, scope)
+        p = self._get_record_path(name, scope=scope)
         self.connection.json().delete(self._get_data_namespace(), p + '.' + key)
 
         # rebuild now
         if rebuild:
-            record = self.get_record(name, scope)
+            record = self.get_record(name, scope=scope)
             self._set_index_record(record)
 
     def get_record_description(self, scope, name):
@@ -521,44 +565,43 @@ class Registry:
     def get_records(self):
         contents = self.get_contents()
         records = []
-        r = json_utils.json_query(contents, "$..contents", single=False)
+        r = json_utils.json_query(contents, "$..contents.*", single=False)
         for ri in r:
-            rs = list(ri.values())
-            for rsi in rs:
-                rsic = copy.deepcopy(rsi)
-                del rsic['contents']
-                records.append(rsic)
+            # make a copy
+            ric = copy.deepcopy(ri)
+            del ric['contents']
+            records.append(ric)
 
         return records
 
     def deregister(self, record, rebuild=False):
+        if record is not None:
+            name = record['name']
+            scope = record['scope']
 
-        name = record['name']
-        scope = record['scope']
+            # get full record so we can recursively delete
+            record = self.get_record(name, scope=scope)
+            type = record['type']
 
-        # get full record so we can recursively delete
-        record = self.get_record(name, scope)
-        type = record['type']
+            p = self._get_record_path(name, scope=scope)
+            self.connection.json().delete(self._get_data_namespace(), p)
 
-        p = self._get_record_path(name, scope)
-        self.connection.json().delete(self._get_data_namespace(), p)
+            # rebuild now
+            if rebuild:
+                self._delete_index_record(record)
 
-        # rebuild now
-        if rebuild:
-            self._delete_index_record(record)
+    def list_records(self, type=None, scope="/", recursive=False, condition=None):
+        sp = self._get_scope_path(scope, recursive=recursive)
 
-    def list_records(self, type=None, scope="/"):
-        sp = self._get_scope_path(scope)
+        if condition:
+            sp = sp + condition
+        else:
+            if type:
+                sp = sp + '[?(@.type=="' + type + '")]'
+            else:
+                sp = sp + '[?(@.type)]'
 
-        records = self.connection.json().get(self._get_data_namespace(), Path(sp))[0]
-
-        if type:
-            filtered_records = {}
-            for key in records:
-                record = records[key]
-                if record['type'] == type:
-                    filtered_records[key] = record
-            records = filtered_records
+        records = self.connection.json().get(self._get_data_namespace(), Path(sp))
 
         return records
 
@@ -607,17 +650,17 @@ class Registry:
         self.build_index()
 
     # encode/decode keys
-    encodings = { ".": "__DOT__", "*": "__STAR__", "?": "__Q__" }
+    encodings = {".": "__DOT__", "*": "__STAR__", "?": "__Q__"}
+
     def _encode(self, s):
-        for (k,v) in encodings.items():
-            s = s.replace(k,v)
+        for k, v in encodings.items():
+            s = s.replace(k, v)
         return s
 
     def _decode(self, s):
-        for (k,v) in encodings.items():
-            s = s.replace(v,k)
+        for k, v in encodings.items():
+            s = s.replace(v, k)
         return s
-
 
 
 #######################

@@ -7,6 +7,7 @@ import {
     Card,
     Classes,
     DialogBody,
+    Icon,
     InputGroup,
     Intent,
     Popover,
@@ -15,22 +16,31 @@ import {
 } from "@blueprintjs/core";
 import {
     faCircleCheck,
+    faQuestion,
     faSearch,
     faTrash,
+    faUserPlus,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import axios from "axios";
 import classNames from "classnames";
 import _ from "lodash";
 import Image from "next/image";
 import { useCallback, useContext, useEffect, useState } from "react";
-const UserAvatar = ({ user, loading = false }) => (
-    <Card
-        style={PROFILE_PICTURE_40}
-        className={loading ? Classes.SKELETON : null}
-    >
-        <Image alt="" src={_.get(user, "picture", "")} width={40} height={40} />
-    </Card>
-);
+const UserAvatar = ({ user, loading = false }) => {
+    const picture = _.get(user, "picture", "");
+    return (
+        <Card
+            style={PROFILE_PICTURE_40}
+            className={loading ? Classes.SKELETON : null}
+        >
+            {_.isEmpty(picture) ? (
+                <Icon icon={faIcon({ icon: faQuestion, size: 20 })} />
+            ) : (
+                <Image alt="" src={picture} width={40} height={40} />
+            )}
+        </Card>
+    );
+};
 const UserInfo = ({ user, loading = false }) => (
     <div className={loading ? Classes.SKELETON : null}>
         <div style={{ fontWeight: 600 }}>{_.get(user, "name", "-")}</div>
@@ -67,7 +77,18 @@ export default function SessionMembersList({ loading, setLoading }) {
                         result.uid,
                     ]);
                     if (!hasUserProfile) {
-                        appActions.app.getUserProfile(result.uid);
+                        let pendingRquest = _.get(
+                            appState,
+                            [
+                                "app",
+                                "pendingRequests",
+                                `getUserProfile ${result.uid}`,
+                            ],
+                            false
+                        );
+                        if (!pendingRquest) {
+                            appActions.app.getUserProfile(result.uid);
+                        }
                     }
                 }
                 appActions.session.setSessionDetailMembers({
@@ -80,7 +101,7 @@ export default function SessionMembersList({ loading, setLoading }) {
     };
     useEffect(() => {
         fetchMemberList();
-    }, []);
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
     const handleSearchQuery = useCallback(
         _.debounce((keyword) => {
             if (!_.isEmpty(keyword)) {
@@ -89,9 +110,7 @@ export default function SessionMembersList({ loading, setLoading }) {
                     .then((response) => {
                         setSearchResult(_.get(response, "data.users", []));
                     })
-                    .finally(() => {
-                        setIsTyping(false);
-                    });
+                    .finally(() => setIsTyping(false));
             } else {
                 setSearchResult([]);
                 setIsTyping(false);
@@ -128,17 +147,14 @@ export default function SessionMembersList({ loading, setLoading }) {
         </div>
     );
     const removeMember = (user) => {
+        const userName = _.get(user, "name", "-");
         axios
             .delete(`/sessions/session/${sessionIdFocus}/members/${user.uid}`)
             .then(() => {
                 fetchMemberList();
                 AppToaster.show({
                     intent: Intent.SUCCESS,
-                    message: `Removed ${_.get(
-                        user,
-                        "name",
-                        "-"
-                    )} from the session`,
+                    message: `Removed ${userName} from the session`,
                 });
             });
     };
@@ -162,9 +178,11 @@ export default function SessionMembersList({ loading, setLoading }) {
                     padding: 15,
                     minHeight: 202,
                     height: _.isEmpty(members) ? 202 : null,
+                    maxHeight: 463,
                 }}
             >
                 <Popover
+                    usePortal={false}
                     onInteraction={(state) => {
                         setIsSearchPopoverOpen(state);
                         if (!state && !_.isEmpty(recentlyAdded)) {
@@ -183,15 +201,14 @@ export default function SessionMembersList({ loading, setLoading }) {
                     isOpen={isSearchPopoverOpen}
                     placement="bottom-start"
                     content={
-                        <div style={{ padding: 7.5 }}>
+                        <div style={{ padding: 15 }}>
                             {_.isEmpty(searchResult) ? (
                                 <div
-                                    style={{ padding: 7.5 }}
                                     className={
                                         isTyping ? Classes.SKELETON : null
                                     }
                                 >
-                                    No result
+                                    No results.
                                 </div>
                             ) : null}
                             {searchResult.map((user) => {
@@ -212,14 +229,15 @@ export default function SessionMembersList({ loading, setLoading }) {
                                             user={user}
                                             loading={isTyping}
                                         />
-
                                         <UserInfo
                                             user={user}
                                             loading={isTyping}
                                         />
                                         {!recentlyAdded.has(user.uid) &&
                                         !memberIds.has(user.uid) ? (
-                                            <a
+                                            <Button
+                                                intent={Intent.PRIMARY}
+                                                minimal
                                                 onClick={() => {
                                                     addMember(user);
                                                 }}
@@ -231,19 +249,19 @@ export default function SessionMembersList({ loading, setLoading }) {
                                                 style={{
                                                     position: "absolute",
                                                     right: 15,
-                                                    fontWeight: 600,
-                                                    cursor: "pointer",
                                                 }}
-                                            >
-                                                Add
-                                            </a>
+                                                icon={faIcon({
+                                                    icon: faUserPlus,
+                                                })}
+                                                text="Add"
+                                            />
                                         ) : (
                                             faIcon({
                                                 icon: faCircleCheck,
                                                 size: 20,
                                                 style: {
                                                     position: "absolute",
-                                                    right: 15,
+                                                    right: 39.387,
                                                     color: "#238551",
                                                 },
                                             })
@@ -331,6 +349,7 @@ export default function SessionMembersList({ loading, setLoading }) {
                                         }}
                                     >
                                         <Popover
+                                            usePortal={false}
                                             placement="left"
                                             content={
                                                 <div style={{ padding: 15 }}>
@@ -367,6 +386,7 @@ export default function SessionMembersList({ loading, setLoading }) {
                         );
                     })
                 )}
+                {!_.isEmpty(members) && <div style={{ height: 15 }}></div>}
             </div>
         </DialogBody>
     );

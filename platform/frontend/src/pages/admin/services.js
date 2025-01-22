@@ -3,6 +3,7 @@ import AdminServiceListCheckbox from "@/components/admin/AdminServiceListCheckbo
 import { CONTAINER_STATUS_INDICATOR } from "@/components/constant";
 import { AppContext } from "@/components/contexts/app-context";
 import { AuthContext } from "@/components/contexts/auth-context";
+import { axiosErrorToast } from "@/components/helper";
 import { faIcon } from "@/components/icon";
 import { AppToaster } from "@/components/toaster";
 import {
@@ -10,6 +11,7 @@ import {
     ButtonGroup,
     Card,
     Divider,
+    H4,
     Intent,
     NonIdealState,
     Tag,
@@ -52,10 +54,7 @@ export default function Services() {
                             resolve(selectedServices[i]);
                         })
                         .catch((error) => {
-                            AppToaster.show({
-                                intent: Intent.DANGER,
-                                message: `${error.name}: ${error.message}`,
-                            });
+                            axiosErrorToast(error);
                             reject(selectedServices[i]);
                         });
                 })
@@ -174,9 +173,23 @@ export default function Services() {
     }
     return (
         <>
-            <Card interactive style={{ padding: 5, borderRadius: 0 }}>
+            <Card
+                interactive
+                style={{
+                    padding: 5,
+                    borderRadius: 0,
+                    position: "relative",
+                    zIndex: 1,
+                    cursor: "default",
+                }}
+            >
                 <ButtonGroup large minimal>
-                    <Tooltip placement="bottom-start" minimal content="Refresh">
+                    <Button
+                        disabled
+                        style={{ cursor: "default" }}
+                        text={<H4 className="margin-0">Services</H4>}
+                    />
+                    <Tooltip placement="bottom" minimal content="Refresh">
                         <Button
                             onClick={fetchServiceList}
                             loading={loading}
@@ -204,7 +217,6 @@ export default function Services() {
                         position: "absolute",
                         bottom: 0,
                         right: 0,
-                        zIndex: 1,
                         height: "calc(100% - 50px)",
                     }}
                 >

@@ -19,11 +19,12 @@ export default function Debugger() {
     return (
         <>
             <Card style={{ borderRadius: 0, padding: "5px 15px" }}>
-                <ButtonGroup minimal>
-                    <HTMLSelect id="debugger-message-type" minimal>
-                        <option value="all">All</option>
-                    </HTMLSelect>
-                    <Tooltip minimal content="Clear all" placement="bottom">
+                <ButtonGroup minimal large>
+                    <Tooltip
+                        minimal
+                        content="Clear debugger"
+                        placement="bottom-start"
+                    >
                         <Button
                             onClick={appActions.debug.clearMessages}
                             icon={faIcon({
@@ -33,11 +34,15 @@ export default function Debugger() {
                             })}
                         />
                     </Tooltip>
+                    <Divider />
+                    <HTMLSelect large id="debugger-message-type" minimal>
+                        <option value="all">All</option>
+                    </HTMLSelect>
                 </ButtonGroup>
             </Card>
             <div
                 style={{
-                    height: "calc(100% - 40px)",
+                    height: "calc(100% - 50px)",
                     overflowX: "auto",
                     padding: 15,
                 }}
@@ -48,6 +53,11 @@ export default function Debugger() {
                             <JsonViewer
                                 json={_.omit(message, ["type"])}
                                 key={index}
+                                collapsed={({ indexOrName }) => {
+                                    return ["uischema", "schema"].includes(
+                                        indexOrName
+                                    );
+                                }}
                             />
                             {index < _.size(messages) - 1 ? <Divider /> : null}
                         </>

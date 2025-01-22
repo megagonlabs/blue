@@ -24,7 +24,7 @@ import random
 import csv
 import json
 from utils import json_utils
-from string import Template
+from utils import string_utils
 import copy
 import re
 import itertools
@@ -78,8 +78,8 @@ agent_properties = {
     "nl2q.case_insensitive": True,
     "rephrase": True,
     "tags": {"PLAN": ["PLAN"]},
-    "summary_template": "The average salary for an engineering job is {$average_salary}, while the highest paying would be {$highest_pay}",
-    "queries": {"average_salary": "what is the average salary in jurong for an engineering job?","highest_pay": "what is the highest paying job in jurong for engineer?"}
+    "summary_template": "",
+    "queries": {}
 }
 
 class SummarizerAgent(OpenAIAgent):
@@ -128,27 +128,100 @@ class SummarizerAgent(OpenAIAgent):
 
         return output_stream
 
-    def issue_sql_query(self, query, worker, id=None):
+    def issue_nl_query(self, question, worker, name=None, id=None):
 
+       # create a unique id
+        if id is None:
+            id = util_functions.create_uuid()
+
+        if name is None:
+            name = "unspecified"
+
+        # progress
+        worker.write_progress(progress_id=worker.sid, label='Issuing question:' + question, value=self.current_step/self.num_steps)
+
+  
         # query plan
-        
         query_plan = [
-            [self.name + ".QUERY", "NL2SQL-E2E_INPLAN.DEFAULT"],
-            ["NL2SQL-E2E_INPLAN.DEFAULT", self.name+".RESULTS"],
+            [self.name + ".Q", "NL2SQL-E2E___INPLAN.DEFAULT"],
+            ["NL2SQL-E2E___INPLAN.DEFAULT", self.name+".QUESTION_RESULTS_" + name],
         ]
        
         # write query to stream
-        query_stream = self.write_to_new_stream(worker, query, "QUERY", tags=["HIDDEN"], id=id)
+        query_stream = self.write_to_new_stream(worker, question, "Q", tags=["HIDDEN"], id=id)
 
         # build query plan
         plan = self.build_plan(query_plan, query_stream, id=id)
 
         # write plan
         # TODO: this shouldn't necessarily be into a new stream
-        self.write_to_new_stream(worker, plan, "PLAN", tags=["HIDDEN"], id=id)
+        self.write_to_new_stream(worker, plan, "PLAN", tags=["PLAN","HIDDEN"], id=id)
 
         return
 
+    def issue_sql_query(self, query, worker, name=None, id=None):
+
+        # create a unique id
+        if id is None:
+            id = util_functions.create_uuid()
+
+        if name is None:
+            name = "unspecified"
+
+        # query plan
+        query_plan = [
+            [self.name + ".Q", "QUERYEXECUTOR.DEFAULT"],
+            ["QUERYEXECUTOR.DEFAULT", self.name+".QUERY_RESULTS_" + name],
+        ]
+       
+        # write query to stream
+        query_stream = self.write_to_new_stream(worker, query, "Q", tags=["HIDDEN"], id=id)
+
+        # build query plan
+        plan = self.build_plan(query_plan, query_stream, id=id)
+
+        # write plan
+        # TODO: this shouldn't necessarily be into a new stream
+        self.write_to_new_stream(worker, plan, "PLAN", tags=["PLAN","HIDDEN"], id=id)
+
+        return
+
+    def summarize_doc(self, properties=None, worker=None):
+
+        if worker == None:
+            worker = self.create_worker(None)
+
+        if properties is None:
+            properties = self.properties
+
+        # progress
+        worker.write_progress(progress_id=worker.sid, label='Summarizing doc...', value=self.current_step/self.num_steps)
+
+        session_data = worker.get_all_session_data()
+        
+        if session_data is None:
+            session_data = {}
+
+        # create a unique id
+        id = util_functions.create_uuid()
+
+        summary_template = properties['template']
+        summary = string_utils.safe_substitute(summary_template, **self.results,  **session_data)
+
+        if 'rephrase' in properties and properties['rephrase']:
+            # progress 
+            worker.write_progress(progress_id=worker.sid, label='Rephrasing doc...', value=self.current_step/self.num_steps)
+            
+            #### call api to rephrase summary
+            worker.write_data(self.handle_api_call([summary], properties=properties))
+            worker.write_eos()
+
+        else:
+            worker.write_data(summary)
+            worker.write_eos()
+
+        # progress, done
+        worker.write_progress(progress_id=worker.sid, label='Done...', value=1.0)
 
     def default_processor(self, message, input="DEFAULT", properties=None, worker=None):
     
@@ -158,25 +231,47 @@ class SummarizerAgent(OpenAIAgent):
                 # get all data received from user stream
                 stream = message.getStream()
 
-                logging.info(message.getData())
-                stream_data = ""
+                stream_data = worker.get_data(stream)
+                input_data = " ".join(stream_data)
                 if worker:
                     session_data = worker.get_all_session_data()
-                    logging.info(worker.session.cid)
-                    logging.info(json.dumps(session_data, indent=3)) 
+
                     if session_data is None:
                         session_data = {}
 
                     # user initiated summarizer, kick off queries from template
                     self.results = {}
                     self.todos = set()
-                    queries = self.properties['queries']
-                    for query_id in queries:
-                        query_template = Template(queries[query_id])
-                        query = query_template.substitute(**self.properties, **session_data)
-                        self.todos.add(query_id)
-                        self.issue_sql_query(query, worker, id=query_id)
 
+                    self.num_steps = 1  
+                    self.current_step = 0
+
+                    if 'questions' in self.properties:
+                        self.num_steps = self.num_steps + len(self.properties['questions'].keys())
+                    if 'queries' in self.properties:
+                        self.num_steps = self.num_steps + len(self.properties['queries'].keys())
+
+                    # nl questions
+                    if 'questions' in self.properties:
+                        questions = self.properties['questions']
+                        for question_name in questions:
+                            q = questions[question_name]
+                            question = string_utils.safe_substitute(q, **self.properties, **session_data, input=input_data)
+                            self.todos.add(question_name)
+                            self.issue_nl_query(question, worker, name=query_name)
+
+                    # db queries
+                    if 'queries' in self.properties:
+                        queries = self.properties['queries']
+                        for query_name in queries:
+                            q = queries[query_name]
+                            if type(q) == dict:
+                                q = json.dumps(q)
+                            else:
+                                q = str(q)
+                            query = string_utils.safe_substitute(q, **self.properties, **session_data, input=input_data)
+                            self.todos.add(query_name)
+                            self.issue_sql_query(query, worker, name=query_name)
                     return
 
             elif message.isBOS():
@@ -195,39 +290,24 @@ class SummarizerAgent(OpenAIAgent):
                 if worker:
                     worker.append_data(stream, data)
 
-        elif input == "RESULTS":
+        elif input.find("QUERY_RESULTS_") == 0:
             if message.isData():
                 stream = message.getStream()
-                # TODO: REVISE
-                # get query from incoming stream
-                query = stream[stream.find("QUERY"):].split(":")[1]
+                
+                # get query 
+                query = input[len("QUERY_RESULTS_"):]
 
                 data = message.getData()
-
-                logging.info(data)
             
                 if 'result' in data:
                     query_results = data['result']
 
-                    self.results[query] = query_results
                     self.todos.remove(query)
-
+                    self.results[query] = query_results
+                    
+                    # all queries received
                     if len(self.todos) == 0:
-                        session_data = worker.get_all_session_data()
-                        if session_data is None:
-                            session_data = {}
-
-                        logging.info("DONE!")
-                        summary_template = Template(properties['template'])
-                        summary = summary_template.substitute(**self.results,  **session_data)
-
-                        if properties['rephrase']:
-                            #### call api to rephrase summary
-                            worker.write_data(self.handle_api_call([summary], properties=properties))
-                        else:
-                            worker.write_data(summary, properties=properties)
-                        worker.write_eos()
-
+                        self.summarize_doc(properties=properties, worker=worker)
                 else:
                     logging.info("nothing found")
 

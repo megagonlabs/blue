@@ -2,9 +2,9 @@
 from curses import noecho
 import sys
 
-from fastapi import Request
+from fastapi import Depends, Request
 import pydash
-from constant import PermissionDenied, acl_enforce
+from constant import BANNED_ENTITY_NAMES, PermissionDenied, account_id_header, acl_enforce
 
 ###### Add lib path
 sys.path.append("./lib/")
@@ -65,7 +65,7 @@ p = Platform(id=platform_id, properties=PROPERTIES)
 operator_registry = OperatorRegistry(id=operator_registry_id, prefix=prefix, properties=PROPERTIES)
 
 ##### ROUTER
-router = APIRouter(prefix=f"{PLATFORM_PREFIX}/registry/{operator_registry_id}")
+router = APIRouter(prefix=f"{PLATFORM_PREFIX}/registry/{operator_registry_id}", dependencies=[Depends(account_id_header)])
 
 # set logging
 logging.getLogger().setLevel("INFO")
@@ -94,7 +94,6 @@ def operator_acl_enforce(request: Request, source: dict, write=False, throw=True
 def get_operators(request: Request):
     acl_enforce(request.state.user['role'], 'operator_registry', 'read_all')
     registry_results = operator_registry.list_records()
-    registry_results = list(registry_results.values())
     return JSONResponse(content={"results": registry_results})
 
 
@@ -108,6 +107,8 @@ def get_operator(request: Request, operator_name):
 @router.post("/operator/{operator_name}")
 def add_operator(request: Request, operator_name, operator: Operator):
     operator_db = operator_registry.get_operator(operator_name)
+    if operator_name in BANNED_ENTITY_NAMES:
+        return JSONResponse(content={"message": "The name cannot be used."}, status_code=403)
     # if operator already exists, return 409 conflict error
     if not pydash.is_empty(operator_db):
         return JSONResponse(content={"message": "The name already exists."}, status_code=409)

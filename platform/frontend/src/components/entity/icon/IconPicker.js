@@ -66,6 +66,7 @@ export default function IconPicker({
                 }}
                 rightElement={
                     <Link
+                        rel="noopener noreferrer"
                         target="_blank"
                         href="https://fontawesome.com/search?o=r&s=solid&f=sharp-duotone"
                     >

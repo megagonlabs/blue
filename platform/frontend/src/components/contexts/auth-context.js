@@ -1,6 +1,6 @@
 // Import the functions you need from the SDKs you need
-import { AppToaster } from "@/components/toaster";
 import {
+    Alert,
     Button,
     Drawer,
     DrawerSize,
@@ -14,7 +14,7 @@ import { initializeApp } from "firebase/app";
 import { GoogleAuthProvider, getAuth, signInWithPopup } from "firebase/auth";
 import _ from "lodash";
 import { createContext, useContext, useEffect, useState } from "react";
-import { hasIntersection } from "../helper";
+import { axiosErrorToast, hasIntersection } from "../helper";
 import { AppContext } from "./app-context";
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
@@ -86,6 +86,10 @@ export const AuthProvider = ({ children }) => {
     const getPermissions = (user) => {
         const permissions = _.get(user, "permissions", null);
         return {
+            launchScreen: hasIntersection(
+                _.get(permissions, "launch_screen", []),
+                ["active"]
+            ),
             canWriteAgentRegistry: hasIntersection(
                 _.get(permissions, "agent_registry", []),
                 ["write_all", "write_own"]
@@ -108,6 +112,10 @@ export const AuthProvider = ({ children }) => {
             ),
             showFormDesigner: hasIntersection(
                 _.get(permissions, "form_designer", []),
+                ["visible"]
+            ),
+            showRegistryList: hasIntersection(
+                _.get(permissions, "registry_list", ["visible"]),
                 ["visible"]
             ),
             showPromptDesigner: hasIntersection(
@@ -179,21 +187,15 @@ export const AuthProvider = ({ children }) => {
                 }
                 setSettings(profileSettings);
                 appActions.session.setState({
-                    key: "sessionListPanelCollapsed",
-                    value: !_.get(profileSettings, "show_session_list", false),
-                });
-                appActions.session.setState({
                     key: "showWorkspacePanel",
                     value: _.get(profileSettings, "show_workspace", false),
                 });
             })
-            .finally(() => {
-                setAuthInitialized(true);
-            });
+            .finally(() => setAuthInitialized(true));
     };
     const updateSettings = (key, value) => {
         setSettings({ ...settings, [key]: value });
-        axios.post(`/accounts/profile/settings/${key}`, { value: value });
+        axios.put(`/accounts/profile/settings/${key}`, { value });
     };
     const signInWithGoogle = () => {
         setPopupOpen(true);
@@ -208,33 +210,13 @@ export const AuthProvider = ({ children }) => {
                         })
                         .catch((error) => {
                             setPopupOpen(false);
-                            AppToaster.show({
-                                intent: Intent.DANGER,
-                                message: (
-                                    <>
-                                        <div>
-                                            {_.get(
-                                                error,
-                                                "response.data.message"
-                                            )}
-                                        </div>
-                                        <div>
-                                            {error.name}: {error.message}
-                                        </div>
-                                    </>
-                                ),
-                            });
+                            axiosErrorToast(error);
                         });
                 });
             })
             .catch((error) => {
                 setPopupOpen(false);
-                AppToaster.show({
-                    intent: Intent.DANGER,
-                    message: `${error.code ? `[${error.code}]` : ""} ${
-                        error.message
-                    }`,
-                });
+                axiosErrorToast(error);
             });
     };
     useEffect(() => {
@@ -244,12 +226,22 @@ export const AuthProvider = ({ children }) => {
         <AuthContext.Provider
             value={{ user, permissions, settings, updateSettings, signOut }}
         >
+            <Alert
+                intent={Intent.DANGER}
+                isOpen={
+                    !_.isEmpty(user) && _.isEmpty(_.get(user, "role", null))
+                }
+                confirmButtonText="Sign out"
+                onConfirm={signOut}
+            >
+                An error has occured; please re-authenticate your account.
+            </Alert>
             <Drawer
                 size={DrawerSize.SMALL}
                 portalClassName="z-index-36"
                 position="bottom"
                 backdropClassName="glassmorphism-5"
-                isOpen={_.isNil(user) && authInitialized}
+                isOpen={_.isEmpty(user) && authInitialized}
             >
                 <div style={{ margin: "auto" }}>
                     <H1>Blue</H1>
@@ -269,20 +261,22 @@ export const AuthProvider = ({ children }) => {
             <div style={{ display: authInitialized ? null : "none" }}>
                 {children}
             </div>
-            {!authInitialized ? (
+            {!authInitialized && (
                 <div style={{ height: "100vh", width: "100vw" }}>
                     <div
                         style={{
                             width: "calc(100vw - 40px)",
                             maxWidth: 300,
                             height: 30,
+                            textAlign: "center",
                         }}
                         className="center-center"
                     >
                         <ProgressBar intent={Intent.PRIMARY} />
+                        <div style={{ marginTop: 5 }}>Initializing...</div>
                     </div>
                 </div>
-            ) : null}
+            )}
         </AuthContext.Provider>
     );
 };

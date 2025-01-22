@@ -18,6 +18,7 @@ import time
 import uuid
 import random
 import pandas as pd
+import numpy as np
 
 ###### Parsers, Formats, Utils
 import re
@@ -51,8 +52,15 @@ Here are the requirements:
   - "source": the name of the data source that the query will be executed on
   - "query": the SQL query that is translated from the natural language question
 - The SQL query should be compatible with the schema of the datasource.
+- The SQL query should be compatible with the syntax of the corresponding database's protocol. Examples of protocol include "mysql" and "postgres".
 - Always do case-${sensitivity} matching for string comparison.
+- The query should starts with any of the following prefixes: ${force_query_prefixes}
 - Output the JSON directly. Do not generate explanation or other additional output.
+
+Protocol:
+```
+${protocol}
+```
 
 Data sources:
 ```
@@ -74,6 +82,9 @@ agent_properties = {
     "openai.temperature": 0,
     "openai.max_tokens": 512,
     "nl2q.case_insensitive": True,
+    "nl2q.protocols":["postgres","mysql"],
+    "nl2q.valid_query_prefixes": ["SELECT"],
+    "nl2q.force_query_prefixes": ["SELECT"],
     "listens": {
         "DEFAULT": {
             "includes": ["USER"],
@@ -97,40 +108,63 @@ class Nl2SqlE2EAgent(OpenAIAgent):
         self.registry = DataRegistry(id=self.properties['data_registry.name'], prefix=prefix,
                                      properties=self.properties)
         self.schemas = {}
-        # logging.info('<sources>' + json.dumps(self.registry.get_sources(), indent=2) + '</sources>')
-        for source in self.registry.get_sources():
-            properties = self.registry.get_source_properties(source)
-            if 'connection' not in properties or properties['connection']['protocol'] != 'postgres':
-                continue
-            source_db = self.registry.connect_source(source)
-            try:
-                for db in self.registry.get_source_databases(source):  # TODO: remove LLM data discovery
-                    try:
-                        db = db['name']
-                        # Note: collection refers to schema in postgres (the level between database and table)
-                        for collection in self.registry.get_source_database_collections(source, db):
-                            collection = collection['name']
-                            assert all('/' not in s for s in [source, db, collection])
-                            key = f'/{source}/{db}/{collection}'
-                            if 'sample' in key or 'template' in key:
-                                continue
-                            schema = source_db.fetch_database_collection_schema(db, collection)
-                            self.schemas[key] = schema
-                    except Exception as e:
-                        logging.error(f'Error fetching schema for database: {db}, {str(e)}')
-            except Exception as e:
-                logging.error(f'Error fetching schema for source: {source}, {str(e)}')
+        self.selected_source = None
+        self.selected_source_protocol = None
+        # register all sources for Data Discovery only if source is not provided in the properties
+        if "nl2q.source" in self.properties:
+            self.selected_source = self.properties["nl2q.source"]
+            self.selected_database = None
+            if "nl2q.source.database" in self.properties:
+                self.selected_database = self.properties['nl2q.source.database']
+
+            source_properties = self.registry.get_source_properties(self.selected_source)
+            self._add_sources_schema(self.selected_source, source_properties, database=self.selected_database)
+            self.selected_source_protocol = source_properties['connection']['protocol']
+        else:
+            for source in self.registry.get_sources():
+                source_properties = self.registry.get_source_properties(self.properties["nl2q.source"])
+                self._add_sources_schema(source, source_properties)
+        
 
     def _initialize_properties(self):
         super()._initialize_properties()
         for key in agent_properties:
             self.properties[key] = agent_properties[key]
 
+    def _add_sources_schema(self, source, properties, database=None):
+        if ('connection' not in properties) or (properties['connection']['protocol'] not in self.properties["nl2q.protocols"]):
+            return
+        source_connection = self.registry.connect_source(source)
+        try:
+            databases = self.registry.get_source_databases(source)
+            
+            for db in databases:  # TODO: remove LLM data discovery
+                if database:
+                    if db['name'] != database:
+                        continue
+                try:
+                    db = db['name']
+                    #note: collection refers to table in mysql
+                    if properties['connection']['protocol'] == 'mysql':
+                        key = f'/{source}/{db}'
+                        schema =  source_connection.fetch_database_collection_schema(db, None)
+                        self.schemas[key] = schema
+                    # Note: collection refers to schema in postgres (the level between database and table)
+                    if properties['connection']['protocol'] == 'postgres':
+                        for collection in self.registry.get_source_database_collections(source, db):
+                            collection = collection['name']
+                            assert all('/' not in s for s in [source, db, collection])
+                            key = f'/{source}/{db}/{collection}'
+                            schema =  source_connection.fetch_database_collection_schema(db, collection)
+                            self.schemas[key] = schema
+                except Exception as e:
+                    logging.error(f'Error fetching schema for database: {db}, {str(e)}')
+        except Exception as e:
+            logging.error(f'Error fetching schema for source: {source}, {str(e)}')
+
     def _format_schema(self, schema):
         res = []
         for table_name, record in schema['entities'].items():
-            if len(res) >= 20:  # TODO: remove hard-coded limit
-                break
             res.append({
                 'table_name': table_name,
                 'columns': record['properties']
@@ -150,7 +184,9 @@ class Nl2SqlE2EAgent(OpenAIAgent):
         return {
             'sources': sources,
             'question': input_data,
-            'sensitivity': 'insensitive' if properties['nl2q.case_insensitive'] else 'sensitive'
+            'sensitivity': 'insensitive' if properties['nl2q.case_insensitive'] else 'sensitive',
+            'force_query_prefixes': ', '.join(properties['nl2q.force_query_prefixes']),
+            'protocol': self.selected_source_protocol if self.selected_source_protocol is not None else 'postgres'
         }
 
     def process_output(self, output_data, properties=None):
@@ -165,16 +201,13 @@ class Nl2SqlE2EAgent(OpenAIAgent):
             question = response['question']
             key = response['source']
             query = response['query']
-            _, source, db, collection = key.split('/')
-            source_db = self.registry.connect_source(source)
-            cursor = source_db._db_connect(db).cursor()
-            # Note: collection refers to schema in postgres (the level between database and table)
-            cursor.execute(f'SET search_path TO {collection}')
-            cursor.execute(query)
-            records = cursor.fetchall()
-            columns = [desc[0] for desc in cursor.description]
-            df = pd.DataFrame(records, columns=columns)
-            result = df.to_dict('records')
+            if not any(query.upper().startswith(prefix.upper()) for prefix in properties['nl2q.valid_query_prefixes']):
+                raise ValueError(f'Invalid query prefix: {query}')
+            _, source, database, collection = key.split('/')
+            # connect
+            source_connection = self.registry.connect_source(source)
+            # execute query
+            result = source_connection.execute_query(query, database=database, collection=collection)
         except Exception as e:
             error = str(e)
         return {

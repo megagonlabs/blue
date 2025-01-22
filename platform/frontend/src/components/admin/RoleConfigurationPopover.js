@@ -17,8 +17,8 @@ import axios from "axios";
 import _ from "lodash";
 import { useContext, useState } from "react";
 import { AppContext } from "../contexts/app-context";
+import { axiosErrorToast } from "../helper";
 import { faIcon } from "../icon";
-import { AppToaster } from "../toaster";
 const READ_TAG = (
     <Tag minimal intent={Intent.SUCCESS}>
         Read
@@ -192,10 +192,7 @@ export default function RoleConfigurationPopover({
                             resolve(uid);
                         })
                         .catch((error) => {
-                            AppToaster.show({
-                                intent: Intent.DANGER,
-                                message: `${error.name}: ${error.message}`,
-                            });
+                            axiosErrorToast(error);
                             reject(uid);
                         });
                 })
@@ -230,12 +227,12 @@ export default function RoleConfigurationPopover({
     return (
         <Dialog
             onClose={onClose}
-            title="Role configuration"
+            title="Role Configuration"
             isOpen={isRoleConfigOpen}
         >
             <DialogBody>
                 <p>Select a new role</p>
-                {["admin", "member", "developer", "demo", "guest"].map(
+                {["admin", "developer", "member", "demo", "guest"].map(
                     (role) => (
                         <div style={{ display: "flex" }} key={role}>
                             <Radio

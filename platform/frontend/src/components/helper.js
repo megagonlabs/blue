@@ -1,11 +1,16 @@
-const { faPenSwirl } = require("@fortawesome/sharp-duotone-solid-svg-icons");
+const {
+    faPenSwirl,
+    faCopy,
+    faExclamation,
+} = require("@fortawesome/sharp-duotone-solid-svg-icons");
 const { faIcon } = require("@/components/icon");
-const { ProgressBar, Classes, Intent } = require("@blueprintjs/core");
+const { ProgressBar, Classes, Intent, Button } = require("@blueprintjs/core");
 const classNames = require("classnames");
 const _ = require("lodash");
 const { AppToaster, ProgressToaster } = require("@/components/toaster");
 const { default: transform } = require("css-to-react-native");
-const renderProgress = (progress, requestError = false) => {
+const copy = require("copy-to-clipboard");
+const renderProgress = (progress = 0, requestError = false) => {
     return {
         icon: faIcon({ icon: faPenSwirl }),
         isCloseButtonShown: false,
@@ -55,6 +60,30 @@ const sendSocketMessage = async (socket, message, retries = 0) => {
         }
     }
 };
+const axiosErrorToast = (error) => {
+    let message = "";
+    try {
+        message = `${error.name}: ${error.message}`;
+        // The request was made and the server responded with a status code
+        // that falls out of the range of 2xx
+        if (error.response)
+            message = `[${error.response.status} ${
+                error.response.statusText
+            }]: ${_.get(error, "response.data.message", "-")}`;
+    } catch (error) {
+        message = "Request Error";
+    }
+    AppToaster.show({
+        icon: faIcon({ icon: faExclamation }),
+        intent: Intent.DANGER,
+        message: <div className="multiline-ellipsis-5">{message}</div>,
+        action: {
+            icon: faIcon({ icon: faCopy }),
+            onClick: () => copy(message),
+            text: "Copy",
+        },
+    });
+};
 module.exports = {
     Queue: class Queue {
         constructor() {
@@ -79,83 +108,116 @@ module.exports = {
             return this.items[this.front];
         }
     },
-    constructSavePropertyRequests: ({ axios, url, difference, editEntity }) => {
+    populateRouterPathname: (router) => {
+        let pathname = router.pathname;
+        const params = Object.keys(router.query);
+        for (let i = 0; i < _.size(params); i++) {
+            pathname = pathname.replace(
+                `[${params[i]}]`,
+                router.query[params[i]]
+            );
+        }
+        return pathname;
+    },
+    shallowDiff: (base, compared) => {
+        let updated = [],
+            deleted = [],
+            added = [];
+        const comparedKeys = _.keys(compared);
+        for (let i = 0; i < _.size(comparedKeys); i++) {
+            const key = comparedKeys[i];
+            // check for updated
+            if (_.has(base, key)) {
+                if (!_.isEqual(base[key], compared[key])) updated.push(key);
+            } else {
+                added.push(key);
+            }
+        }
+        const baseKeys = _.keys(base);
+        for (let i = 0; i < _.size(baseKeys); i++) {
+            const key = baseKeys[i];
+            // check for deleted
+            if (!_.has(compared, key)) {
+                deleted.push(key);
+            }
+        }
+        return { updated, deleted, added };
+    },
+    safeJsonParse: (json) => {
+        try {
+            if (_.isNil(json)) return {};
+            return JSON.parse(json);
+        } catch (error) {
+            return {};
+        }
+    },
+    axiosErrorToast,
+    constructSavePropertyRequests: ({ axios, url, difference, properties }) => {
         let tasks = [];
-        if (_.isArray(difference)) {
-            for (var i = 0; i < difference.length; i++) {
-                const kind = difference[i].kind,
-                    path = difference[i].path[0];
-                if (_.isEqual(kind, "D")) {
-                    tasks.push(
-                        new Promise((resolve, reject) => {
-                            axios
-                                .delete(url + "/" + path)
-                                .then(() => {
-                                    resolve(true);
-                                })
-                                .catch((error) => {
-                                    AppToaster.show({
-                                        intent: Intent.DANGER,
-                                        message: `${error.name}: ${error.message}`,
-                                    });
-                                    reject(false);
-                                });
-                        })
-                    );
-                } else {
-                    tasks.push(
-                        new Promise((resolve, reject) => {
-                            axios
-                                .post(
-                                    url + "/" + path,
-                                    editEntity.properties[path],
-                                    {
-                                        headers: {
-                                            "Content-type": "application/json",
-                                        },
-                                    }
-                                )
-                                .then(() => {
-                                    resolve(true);
-                                })
-                                .catch((error) => {
-                                    AppToaster.show({
-                                        intent: Intent.DANGER,
-                                        message: `${error.name}: ${error.message}`,
-                                    });
-                                    reject(false);
-                                });
-                        })
-                    );
-                }
+        const { updated, deleted, added } = difference;
+        if (!_.isEmpty(deleted)) {
+            for (let i = 0; i < _.size(deleted); i++) {
+                tasks.push(
+                    new Promise((resolve, reject) =>
+                        axios
+                            .delete(`${url}/${deleted[i]}`)
+                            .then(() => resolve(true))
+                            .catch((error) => axiosErrorToast(error))
+                    )
+                );
+            }
+        }
+        const posts = [...updated, ...added];
+        if (!_.isEmpty(posts)) {
+            for (let i = 0; i < _.size(posts); i++) {
+                const key = posts[i];
+                tasks.push(
+                    new Promise((resolve, reject) =>
+                        axios
+                            .post(
+                                `${url}/${key}`,
+                                _.get(properties, key, null),
+                                {
+                                    headers: {
+                                        "Content-type": "application/json",
+                                    },
+                                }
+                            )
+                            .then(() => resolve(true))
+                            .catch((error) => {
+                                axiosErrorToast(error);
+                                reject(false);
+                            })
+                    )
+                );
             }
         }
         return tasks;
     },
     settlePromises: (tasks, callback) => {
         (async () => {
-            let progress = 0,
-                requestError = false;
+            let error = false;
             const key = ProgressToaster.show(
-                renderProgress(_.isEmpty(tasks) ? 100 : progress)
+                renderProgress(_.isEmpty(tasks) ? 100 : 0)
             );
+            let count = 0;
             const promises = tasks.map((task) => {
                 return task
-                    .catch((status) => {
-                        if (!status) {
-                            requestError = true;
-                        }
+                    .catch((reason) => {
+                        error = true;
+                        return new Promise((resolve, reject) => reject(reason));
                     })
                     .finally(() => {
-                        progress += 100 / tasks.length;
+                        const progress = (++count / tasks.length) * 100;
                         ProgressToaster.show(
-                            renderProgress(progress, requestError),
+                            renderProgress(progress, error),
                             key
                         );
                     });
             });
-            await Promise.allSettled(promises);
-            callback(requestError);
+            Promise.allSettled(promises).then((results) => {
+                callback({ results, error });
+            });
         })();
     },
     hasIntersection: (array1, array2) => {

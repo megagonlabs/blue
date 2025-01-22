@@ -109,7 +109,7 @@ class APIOperator(Operator):
         if 'input_template' in properties and properties['input_template'] is not None:
             input_template = Template(properties['input_template'])
             input_params = self.extract_input_params(input_data, properties=properties)
-            input_data = input_template.substitute(**properties, **input_params, input=input_data)
+            input_data = input_template.safe_substitute(**properties, **input_params, input=input_data)
 
         # set input text to message
         input_object = input_data
@@ -133,7 +133,7 @@ class APIOperator(Operator):
         if 'output_template' in properties and properties['output_template'] is not None:
             output_template = Template(properties['output_template'])
             output_params = self.extract_output_params(output_data, properties=properties)
-            output_data = output_template.substitute(**properties, **output_params, output=output_data)
+            output_data = output_template.safe_substitute(**properties, **output_params, output=output_data)
         return output_data
 
     def validate_input(self, input_data, properties=None):

@@ -65,7 +65,7 @@ const ArrayRenderer = ({
                 uischema,
                 rootSchema
             ),
-        [uischemas, schema, uischema.scope, path, uischema, rootSchema]
+        [uischemas, schema, path, uischema, rootSchema]
     );
     const visualization = _.get(uischema, "props.visualization", null);
     useEffect(() => {
@@ -82,7 +82,7 @@ const ArrayRenderer = ({
                 })
             );
         }, 0);
-    }, [data]);
+    }, [data]); // eslint-disable-line react-hooks/exhaustive-deps
     const setVisualization = () => {
         try {
             let visualValue = null;
@@ -151,7 +151,7 @@ const ArrayRenderer = ({
                     let endNodes = new Set(),
                         visited = new Set(),
                         next = new Queue();
-                    const nodes = Object.keys(dag);
+                    const nodes = _.keys(dag);
                     for (let i = 0; i < _.size(nodes); i++) {
                         next.enqueue(nodes[i]);
                     }

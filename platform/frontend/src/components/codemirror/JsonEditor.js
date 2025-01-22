@@ -5,6 +5,8 @@ import { bracketMatching, indentUnit } from "@codemirror/language";
 import { forEachDiagnostic, lintGutter, linter } from "@codemirror/lint";
 import { EditorState } from "@codemirror/state";
 import { keymap, lineNumbers } from "@codemirror/view";
+import { showMinimap } from "@replit/codemirror-minimap";
+import classNames from "classnames";
 import { EditorView, minimalSetup } from "codemirror";
 import { jsonSchema } from "codemirror-json-schema";
 import _ from "lodash";
@@ -13,15 +15,23 @@ export default function JsonEditor({
     code,
     setCode,
     setError,
-    setLoading,
     schema = null,
-    allowSaveWithError = false,
+    allowEditWithError = false,
+    allowPopulateOnce = false,
+    alwaysAllowPopulate = false,
+    useMinimap = true,
+    containOverscrollBehavior = true,
 }) {
+    const prePopulateOnce = useRef(!allowPopulateOnce);
     const [doc, setDoc] = useState(code);
     useEffect(() => {
         setCode(doc);
     }, [doc]);
     const editor = useRef();
+    const onUpdate = EditorView.updateListener.of((v) => {
+        // v.docChanged
+        debounced(v);
+    });
     const debounced = useCallback(
         _.debounce((v) => {
             let error = false;
@@ -33,29 +43,30 @@ export default function JsonEditor({
             if (_.isFunction(setError)) {
                 setError(error);
             }
-            if (!error || allowSaveWithError) {
+            if (!error || allowEditWithError) {
                 setDoc(v.state.doc.toString());
-            }
-            if (_.isFunction(setLoading)) {
-                setLoading(false);
             }
         }, 300),
         []
     );
-    const onUpdate = EditorView.updateListener.of((v) => {
-        if (_.isFunction(setLoading) && v.docChanged) {
-            setLoading(true);
-        }
-        debounced(v);
-    });
     const [codeEditorView, setCodeEditorView] = useState(null);
     useEffect(() => {
-        if (_.isEqual(code, doc) || _.isNil(codeEditorView)) return;
+        if (
+            _.isEqual(code, doc) ||
+            _.isNil(codeEditorView) ||
+            (prePopulateOnce.current && !alwaysAllowPopulate)
+        )
+            return;
+        prePopulateOnce.current = true;
         codeEditorView.dispatch({
             changes: { from: 0, to: doc.length, insert: code },
         });
     }, [code]);
     useEffect(() => {
+        let create = (view) => {
+            const dom = document.createElement("div");
+            return { dom };
+        };
         let extensionList = [
             minimalSetup,
             lineNumbers(),
@@ -68,6 +79,16 @@ export default function JsonEditor({
             json(),
             onUpdate,
         ];
+        if (useMinimap)
+            extensionList.push(
+                showMinimap.compute(["doc"], (state) => {
+                    return {
+                        create,
+                        displayText: "blocks",
+                        showOverlay: "mouse-over",
+                    };
+                })
+            );
         if (!_.isEmpty(schema)) {
             extensionList.push(jsonSchema(schema));
         }
@@ -79,23 +100,18 @@ export default function JsonEditor({
             state,
             parent: editor.current,
         });
-        view.contentDOM.addEventListener("blur", () => {
-            var editableFix = document.createElement("input");
-            editableFix.style =
-                "position: absolute; width: 1px; left: 0px; top: 0px;";
-            editableFix.tabIndex = -1;
-            view.contentDOM.appendChild(editableFix);
-            editableFix.focus();
-            editableFix.setSelectionRange(0, 0);
-            editableFix.blur();
-            setTimeout(() => {
-                editableFix.remove();
-            }, 0);
-        });
         setCodeEditorView(view);
         return () => {
             view.destroy();
         };
     }, []);
-    return <div ref={editor} />;
+    return (
+        <div
+            className={classNames({
+                "full-parent-height": true,
+                "cm-overscroll-behavior-contain": containOverscrollBehavior,
+            })}
+            ref={editor}
+        />
+    );
 }

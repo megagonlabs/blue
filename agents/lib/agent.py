@@ -33,12 +33,99 @@ from consumer import Consumer
 from session import Session
 from worker import Worker
 from message import Message, MessageType, ContentType, ControlCode
-
+from connection import PooledConnectionFactory
+from tracker import PerformanceTracker, SystemPerformanceTracker, Metric, MetricGroup
 
 def create_uuid():
     return str(hex(uuid.uuid4().fields[0]))[2:]
 
+# system tracker
+system_tracker = None
 
+class AgentPerformanceTracker(PerformanceTracker):
+    def __init__(self, agent, properties=None, callback=None):
+        self.agent = agent
+        super().__init__(prefix=agent.cid, properties=properties, inheritance="perf.platform.agent", callback=callback)
+
+    def collect(self): 
+        super().collect()
+
+        ### agent group
+        agent_group = MetricGroup(id="agent", label="Agent Info", visibility=False)
+        self.data.add(agent_group)
+
+
+        # agent info
+        name_metric = Metric(id="name", label="Name", value=self.agent.name, visibility=False)
+        agent_group.add(name_metric)
+        cid_metric = Metric(id="id", label="ID", value=self.agent.cid, visibility=False)
+        agent_group.add(cid_metric)
+        session_metric = Metric(id="sessuib", label="Session", value=self.agent.session.cid, visibility=False)
+        agent_group.add(session_metric)
+
+        ### workers group
+        workers_group = MetricGroup(id="workers", label="Workers Info")
+        self.data.add(agent_group)
+
+        num_workers_metric = Metric(id="num_workers", label="Num Workers", value=len(list(self.agent.workers.values())), visibility=True)
+        workers_group.add(num_workers_metric)
+        
+        workers_list_group = MetricGroup(id="workers_list", label="Workers List", type="list")
+        workers_group.add(workers_list_group)
+
+
+        for worker_id in self.agent.workers:
+            worker = self.agent.workers[worker_id]
+            stream = None
+            if worker.consumer:
+                if worker.consumer.stream:
+                    stream = worker.consumer.stream
+
+            worker_group = MetricGroup(id=worker_id, label=worker.cid)
+            workers_list_group.add(worker_group)
+
+            worker_name_metric = Metric(id="name", label="Name", value=worker.name, type="text")
+            worker_group.add(worker_name_metric)
+
+            worker_cid_metric = Metric(id="cid", label="ID", value=worker.cid, type="text", visibility=False)
+            worker_group.add(worker_cid_metric)
+
+            worker_stream_metric =  Metric(id="strean", label="Stream", value=stream, type="text")
+            worker_group.add(worker_stream_metric)
+           
+
+        return self.data.toDict()
+    
+class AgentFactoryPerformanceTracker(PerformanceTracker):
+    def __init__(self, agent_factory, properties=None, callback=None):
+        self.agent_factory = agent_factory
+        super().__init__(prefix=agent_factory.cid, properties=properties, inheritance="perf.platform.agentfactory", callback=callback)
+
+    def collect(self): 
+        super().collect()
+
+         ### db group
+        db_group = MetricGroup(id="database", label="Database Info")
+        self.data.add(db_group)
+
+        ### db connections group
+        db_connections_group = MetricGroup(id="database_connections", label="Connections Info")
+        db_group.add(db_connections_group)
+
+        connections_factory_id = Metric(id="connection_factory_id", label="Connections Factory ID", type="text", value=self.agent_factory.connection_factory.get_id())
+        db_connections_group.add(connections_factory_id)
+
+        # db connection info
+        num_created_connections_metric = Metric(id="num_created_connections", label="Num Total Connections", type="series", value=self.agent_factory.connection_factory.count_created_connections())
+        db_connections_group.add(num_created_connections_metric)
+        num_in_use_connections_metric = Metric(id="num_in_use_connections", label="Num In Use Connections", type="series", value=self.agent_factory.connection_factory.count_in_use_connections())
+        db_connections_group.add(num_in_use_connections_metric)
+        num_available_connections_metric = Metric(id="num_available_connections", label="Num Available Connections", type="series", value=self.agent_factory.connection_factory.count_available_connections())
+        db_connections_group.add(num_available_connections_metric)
+
+        return self.data.toDict()
+
+    
 class Agent:
     def __init__(
         self,
@@ -92,7 +179,10 @@ class Agent:
         self.session_consumer = None
 
         # workers of an agent in a session
-        self.workers = []
+        self.workers = {}
+
+        # event producers, by form_id
+        self.event_producers = {}
 
         self._start()
 
@@ -129,6 +219,14 @@ class Agent:
         default_tags = []
         tags["DEFAULT"] = default_tags
 
+        # perf tracker
+        self.properties["tracker.perf.platform.agent.autostart"] = False
+        self.properties["tracker.perf.platform.agent.outputs"] = ["log.INFO"]
+
+        # let consumer streams expire 
+        self.properties["consumer.expiration"] = 3600 #60 minutes
+
+
     def _update_properties(self, properties=None):
         if properties is None:
             return
@@ -139,12 +237,8 @@ class Agent:
 
     ###### database, data
     def _start_connection(self):
-        host = self.properties["db.host"]
-        port = self.properties["db.port"]
-
-        # db connection
-        logging.info("Starting connection to: " + host + ":" + str(port))
-        self.connection = redis.Redis(host=host, port=port, decode_responses=True)
+        self.connection_factory = PooledConnectionFactory(properties=self.properties)
+        self.connection = self.connection_factory.get_connection()
 
     ###### worker
     # input_stream is data stream for input param, default 'DEFAULT'
@@ -165,16 +259,22 @@ class Agent:
         worker = Worker(
             input_stream,
             input=input,
+            name=self.name + "-WORKER",
             prefix=p,
             agent=self,
             processor=processor,
             session=self.session,
             properties=self.properties,
+            on_stop=lambda sid: self.on_worker_stop_handler(sid)
         )
 
-        self.workers.append(worker)
+        self.workers[worker.sid] = worker
 
         return worker
+
+    def on_worker_stop_handler(self, worker_sid):
+        if worker_sid in self.workers:
+            del self.workers[worker_sid]
 
     ###### default processor, override
     def default_processor(
@@ -262,6 +362,10 @@ class Agent:
                 worker = self.create_worker(stream, input=param, context=stream)
 
                 # logging.info("Spawned worker for stream {stream}...".format(stream=stream))
+        
+        # session ended, stop agent
+        elif message.isEOS():
+            self.stop()
 
     def _match_listen_to_tags(self, tags):
         matched_params = {}
@@ -379,8 +483,27 @@ class Agent:
     def get_data_len(self, key):
         return self.session.get_agent_data_len(self, key)
 
+    def perf_tracker_callback(self, data, tracker=None, properties=None):
+        pass
+
+    def _init_tracker(self):
+        self._tracker = AgentPerformanceTracker(self, properties=self.properties, callback= lambda *args, **kwargs: self.perf_tracker_callback(*args, **kwargs) )
+
+    def _start_tracker(self):
+        # start tracker
+        self._tracker.start()
+
+    def _stop_tracker(self):
+        self._tracker.stop()
+
+    def _terminate_tracker(self):
+        self._tracker.terminate()
+
     def _start(self):
         self._start_connection()
+
+        # init tracker
+        self._init_tracker()
 
         # if agent is associated with a session
         if self.session:
@@ -403,17 +526,26 @@ class Agent:
                 self.session_consumer.start()
 
     def stop(self):
+        # stop tracker
+        self._stop_tracker()
+
         # leave session
         self.leave_session()
 
         # send stop to each worker
-        for w in self.workers:
-            w.stop()
+        for worker_id in self.workers:
+            worker = self.workers[worker_id]
+            worker.stop()
+
+        for worker_id in self.workers:
+            del self.workers[worker_id]
+        
 
     def wait(self):
         # send wait to each worker
-        for w in self.workers:
-            w.wait()
+        for worker_id in self.workers:
+            worker = self.workers[worker_id]
+            worker.wait()
 
 
 class AgentFactory:
@@ -431,12 +563,19 @@ class AgentFactory:
 
         self.platform = platform
 
+        self.name = "AGENT_FACTORY"
+        self.id = self._name 
+        self.sid = self.name + ":" + self.id
+
+        self.prefix = "PLATFORM:" + self.platform
+        self.cid = self.prefix + ":" + self.sid
+
         self._initialize(properties=properties)
 
         self.platform_consumer = None
 
         # creation time
-        self.ct = math.floor(time.time_ns() / 1000000)
+        self.started = int(time.time()) #math.floor(time.time_ns() / 1000000)
 
         self._start()
 
@@ -452,6 +591,17 @@ class AgentFactory:
         self.properties["db.host"] = "localhost"
         self.properties["db.port"] = 6379
 
+        # perf tracker
+        self.properties["tracker.perf.platform.agentfactory.autostart"] = True
+        self.properties["tracker.perf.platform.agentfactory.outputs"] = ["log.INFO", "pubsub"]
+
+        # system perf tracker
+        self.properties["tracker.perf.system.autostart"] = True
+        self.properties["tracker.perf.system.outputs"] = ["log.INFO", "pubsub"]
+       
+        # no consumer idle tracking
+        self.properties['tracker.idle.consumer.autostart'] = False
+
     def _update_properties(self, properties=None):
         if properties is None:
             return
@@ -460,14 +610,15 @@ class AgentFactory:
         for p in properties:
             self.properties[p] = properties[p]
 
+        # override agent factory idle tracker expiration
+        # to never expire, as platform streams that agent
+        # factories listen to are long running streams
+        self.properties['consumer.expiration'] = None
+
     ###### database, data
     def _start_connection(self):
-        host = self.properties["db.host"]
-        port = self.properties["db.port"]
-
-        # db connection
-        logging.info("Starting connection to: " + host + ":" + str(port))
-        self.connection = redis.Redis(host=host, port=port, decode_responses=True)
+        self.connection_factory = PooledConnectionFactory(properties=self.properties)
+        self.connection = self.connection_factory.get_connection()
 
     ###### factory functions
     def create(self, **kwargs):
@@ -476,8 +627,32 @@ class AgentFactory:
         instanz = klasse(**kwargs)
         return instanz
 
+    def perf_tracker_callback(self, data, tracker=None, properties=None):
+        pass
+
+    def _init_tracker(self):
+        # agent factory perf tracker
+        self._tracker = AgentFactoryPerformanceTracker(self, properties=self.properties, callback= lambda *args, **kwargs: self.perf_tracker_callback(*args, **kwargs) )
+
+        # system tracker
+        global system_tracker 
+        system_tracker = SystemPerformanceTracker(properties=self.properties)
+
+    def _start_tracker(self):
+        # start tracker
+        self._tracker.start()
+
+    def _stop_tracker(self):
+        self._tracker.stop()
+
+    def _terminate_tracker(self):
+        self._tracker.terminate()
+
     def _start(self):
         self._start_connection()
+
+        # init tracker
+        self._init_tracker()
 
         self._start_consumer()
         logging.info(
@@ -502,6 +677,10 @@ class AgentFactory:
         )
         self.platform_consumer.start()
 
+    def _extract_epoch(self, id):
+        e = id.split("-")[0]
+        return int(int(e) / 1000)
+    
     def platform_listener(self, message):
         # listen to platform stream
 
@@ -509,10 +688,10 @@ class AgentFactory:
         id = message.getID()
 
         # only process newer instructions
-        mt = int(id.split("-")[0])
+        message_time = self._extract_epoch(id)
 
         # ignore past instructions
-        if mt < self.ct:
+        if message_time < self.started:
             return
 
         # check if join session
@@ -521,30 +700,25 @@ class AgentFactory:
             registry = message.getArg("registry")
             agent = message.getArg("agent")
 
-            # start with factory properties, merge properties from API call
-            properties_from_api = message.getArg("properties")
-            properties_from_factory = self.properties
-            agent_properties = {}
-            agent_properties = json_utils.merge_json(agent_properties, properties_from_factory)
-            agent_properties = json_utils.merge_json(agent_properties, properties_from_api)
-            input = None
-
-            if "input" in agent_properties:
-                input = agent_properties["input"]
-                del agent_properties["input"]
-
             # check match in canonical name space, i.e.
-            # <_name> or <_name>.<derivative__name>
+            # <base_name> or <base_name>___<derivative__name>___<derivative__name>...
             ca = agent.split("_")
-            parent_name = ca[0]
-            child_name = ca[0]
+            base_name = ca[0]
 
-            # if derivative__name
-            if len(ca) > 1:
-                child_name = ca[1]
-
-            if self._name == ca[0]:
+            if self._name == base_name:
                 name = agent
+
+                # start with factory properties, merge properties from API call
+                properties_from_api = message.getArg("properties")
+                # properties_from_factory = self.properties
+                agent_properties = {}
+                # agent_properties = json_utils.merge_json(agent_properties, properties_from_factory)
+                agent_properties = json_utils.merge_json(agent_properties, properties_from_api)
+                input = None
+
+                if "input" in agent_properties:
+                    input = agent_properties["input"]
+                    del agent_properties["input"]
 
                 logging.info("Launching Agent: " + name + "...")
                 logging.info("Agent Properties: " + json.dumps(agent_properties) + "...")

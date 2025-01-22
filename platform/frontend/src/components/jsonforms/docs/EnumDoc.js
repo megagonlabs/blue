@@ -20,13 +20,14 @@ export default function EnumDoc({ closePanel }) {
             inline: false,
             helperText: null,
             style: {},
+            large: false,
         },
         scope: "#/properties/...",
         required: false,
     };
     return (
         <>
-            <div className="bp-border-bottom" style={{ padding: "10px 20px" }}>
+            <div className="border-bottom" style={{ padding: "10px 20px" }}>
                 <Button
                     outlined
                     text="Back"

@@ -33,7 +33,7 @@ export default function UserAccountPanel() {
                         textAlign: "center",
                     }}
                 >
-                    <div style={{ fontWeight: 500 }}>
+                    <div style={{ fontWeight: 600 }}>
                         {_.get(user, "email", "-")}
                     </div>
                     <div
@@ -54,19 +54,26 @@ export default function UserAccountPanel() {
                             )}
                         </Tag>
                     </div>
-                    <Image
-                        alt=""
-                        src={_.get(user, "picture", "").replace(
-                            "=s96-c",
-                            "=s288-c"
-                        )}
+                    <Card
                         style={{
+                            ...PROFILE_PICTURE_40,
+                            height: 80,
+                            width: 80,
                             marginTop: 20,
-                            borderRadius: "50%",
+                            marginLeft: "auto",
+                            marginRight: "auto",
                         }}
-                        width={80}
-                        height={80}
-                    />
+                    >
+                        <Image
+                            alt=""
+                            src={_.get(user, "picture", "").replace(
+                                "=s96-c",
+                                "=s288-c"
+                            )}
+                            width={80}
+                            height={80}
+                        />
+                    </Card>
                     <div style={{ marginTop: 20 }}>
                         <Button
                             intent={Intent.WARNING}

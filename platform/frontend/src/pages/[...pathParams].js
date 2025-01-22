@@ -1,3 +1,4 @@
+import AgentGroupEntity from "@/components/agents/agent_groups/AgentGroupEntity";
 import AgentEntity from "@/components/agents/AgentEntity";
 import InputEntity from "@/components/agents/InputEntity";
 import OutputEntity from "@/components/agents/OutputEntity";
@@ -42,18 +43,33 @@ export default function RegistryEntity() {
                 end: i + 2 >= pathParams.length,
             });
         }
+        while (type.includes("/agent/agent")) {
+            type = type.replace("/agent/agent", "/agent");
+        }
         setEntityType(type);
         const crumb0 = _.get(crumbs, 0, {});
+        let baseHref = _.nth(_.split(type, "/"), 1);
+        if (_.has(ENTITY_TYPE_LOOKUP, [baseHref, "backtrackCrumb"])) {
+            baseHref = _.get(
+                ENTITY_TYPE_LOOKUP,
+                [baseHref, "backtrackCrumb"],
+                baseHref
+            );
+        }
         _.set(crumbs, 0, {
             ...crumb0,
-            href: crumb0.href + "/" + _.nth(_.split(type, "/"), 1),
+            href: crumb0.href + "/" + baseHref,
         });
         setBreadcrumbs(crumbs);
     }, [router]);
     const ENTITY_TYPE_TO_COMPONENT = {
         "/agent": <AgentEntity />,
+        "/agent_group/agent": <AgentEntity />,
+        "/agent_group": <AgentGroupEntity />,
         "/agent/input": <InputEntity />,
+        "/agent_group/agent/input": <InputEntity />,
         "/agent/output": <OutputEntity />,
+        "/agent_group/agent/output": <OutputEntity />,
         "/operator": <OperatorEntity />,
         "/model": <ModelEntity />,
         "/data": <SourceEntity />,

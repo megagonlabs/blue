@@ -2,12 +2,11 @@ import { rankWith, uiTypeIs } from "@jsonforms/core";
 import { withJsonFormsControlProps } from "@jsonforms/react";
 import _ from "lodash";
 import { VegaLite } from "react-vega";
-const VegaRenderer = ({ schema, uischema }) => {
-    const spec = _.get(schema, "vl-spec", {});
+const VegaRenderer = ({ uischema, data }) => {
     const style = _.get(uischema, "props.style", {});
     return (
         <div style={{ ...style, overflow: "auto", padding: 1 }}>
-            <VegaLite spec={spec} actions={false} />
+            <VegaLite spec={data} actions={false} />
         </div>
     );
 };

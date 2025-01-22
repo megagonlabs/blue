@@ -94,21 +94,24 @@ export default function DebugPanel() {
                             Classes.HEADING,
                             "margin-0"
                         )}
-                        style={{ cursor: "move", paddingLeft: 52.5 }}
+                        style={{ cursor: "move" }}
                         ref={dragRef}
                     >
                         Debugger
                     </div>
                     <div
-                        style={{ height: "calc(100% - 40px)" }}
+                        style={{
+                            height: "calc(100% - 40px)",
+                            overscrollBehavior: "contain",
+                        }}
                         className={classNames(Classes.DIALOG_BODY, "margin-0")}
                     >
                         <Debugger />
                     </div>
-                    <div style={{ position: "absolute", top: 5, left: 15 }}>
+                    <div style={{ position: "absolute", top: 5, right: 15 }}>
                         <Tooltip
                             content="Minimize"
-                            placement="bottom-start"
+                            placement="bottom-end"
                             minimal
                         >
                             <Button

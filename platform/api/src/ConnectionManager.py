@@ -144,7 +144,7 @@ class ConnectionManager:
     def user_session_message(self, connection_id: str, session_id: str, message: str):
         user_agent: Agent = pydash.objects.get(self.session_to_client, [session_id, connection_id, "user"], None)
         if user_agent is not None:
-            user_agent.interact(message, output="TEXT")
+            user_agent.interact(message)
 
     def interactive_event_message(self, json_data):
         if json_data["stream_id"] is not None:

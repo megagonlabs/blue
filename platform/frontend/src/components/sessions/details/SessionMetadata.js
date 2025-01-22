@@ -9,7 +9,6 @@ import {
     FormGroup,
     InputGroup,
     Intent,
-    Label,
 } from "@blueprintjs/core";
 import { faCheck } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import axios from "axios";
@@ -50,27 +49,29 @@ export default function SessionMetadata({
                 setAllowQuickClose(true);
                 setLoading(false);
             })
-            .finally(() => {
+            .finally(() =>
                 AppToaster.show({
                     intent: Intent.SUCCESS,
                     message: "Saved",
-                });
-            });
+                })
+            );
     };
     return (
         <>
             <DialogBody className="dialog-body">
                 <div style={{ padding: 15 }}>
-                    <FormGroup label="Session ID" inline>
-                        <Label
+                    <div style={{ marginBottom: 15 }}>
+                        <span style={{ marginRight: 10 }}>Session ID</span>
+                        <span
                             className={Classes.TEXT_MUTED}
-                            style={{ fontWeight: 600 }}
+                            style={{ fontWeight: 600, lineHeight: "30px" }}
                         >
                             {sessionIdFocus}
-                        </Label>
-                    </FormGroup>
-                    <FormGroup label="Name">
+                        </span>
+                    </div>
+                    <FormGroup label="Name" labelFor="session-detail-name">
                         <InputGroup
+                            id="session-detail-name"
                             className={loading ? Classes.SKELETON : null}
                             large
                             value={name}
@@ -80,8 +81,13 @@ export default function SessionMetadata({
                             }}
                         />
                     </FormGroup>
-                    <FormGroup label="Description" className="margin-0">
+                    <FormGroup
+                        label="Description"
+                        className="margin-0"
+                        labelFor="session-detail-description"
+                    >
                         <InputGroup
+                            id="session-detail-description"
                             className={loading ? Classes.SKELETON : null}
                             large
                             value={description}

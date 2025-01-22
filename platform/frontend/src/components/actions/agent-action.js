@@ -39,6 +39,18 @@ export const agentAction = (dispatch) => ({
                     },
                 });
                 dispatch({
+                    type: "agent/propertyLookups/set",
+                    payload: {
+                        agent: payload,
+                        key: "display_name",
+                        value: _.get(
+                            response,
+                            "data.result.properties.display_name",
+                            null
+                        ),
+                    },
+                });
+                dispatch({
                     type: "agent/pendingAttributesRequests/set",
                     payload: { key: requestKey, value: false },
                 });
@@ -57,6 +69,12 @@ export const agentAction = (dispatch) => ({
                 });
             })
             .catch(() => {});
+    },
+    updateAgentGroupSelection: (payload) => {
+        dispatch({ type: "agent/agent_group/selection/set", payload });
+    },
+    clearAgentGroupSelection: (payload) => {
+        dispatch({ type: "agent/agent_group/selection/clear", payload });
     },
     searchList: (payload) => {
         const filter = {

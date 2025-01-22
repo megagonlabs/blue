@@ -5,33 +5,32 @@ import { JsonForms } from "@jsonforms/react";
 import { vanillaCells } from "@jsonforms/vanilla-renderers";
 import classNames from "classnames";
 import _ from "lodash";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect } from "react";
 import { useErrorBoundary } from "react-use-error-boundary";
 export default function JsonForm({ content, hasError }) {
-    const { appState } = useContext(AppContext);
-    const terminatedInteraction = appState.session.terminatedInteraction;
+    const { appState, appActions } = useContext(AppContext);
+    const { closedJsonforms, jsonformSpecs } = appState.session;
     const [error] = useErrorBoundary();
-    const [data, setData] = useState(_.get(content, "data", {}));
-    const isFormTerminated = terminatedInteraction.has(
-        _.get(content, "form_id", null)
-    );
+    const formId = _.get(content, "form_id", null);
+    const formSpec = _.get(jsonformSpecs, formId, {});
+    const isFormClosed = closedJsonforms.has(formId);
     useEffect(() => {
         hasError.current = Boolean(error);
-    }, [error]);
+    }, [error]); // eslint-disable-line react-hooks/exhaustive-deps
     return !error ? (
         <>
             <JsonForms
-                schema={_.get(content, "schema", {})}
-                data={data}
-                uischema={_.get(content, "uischema", {})}
+                schema={_.get(formSpec, "schema", {})}
+                data={_.get(formSpec, "data", {})}
+                uischema={_.get(formSpec, "uischema", {})}
                 renderers={JSONFORMS_RENDERERS}
                 cells={vanillaCells}
                 onChange={({ data, errors }) => {
                     console.log(data, errors);
-                    setData(data);
+                    appActions.session.setFormData({ data, formId });
                 }}
             />
-            {isFormTerminated ? (
+            {isFormClosed ? (
                 <>
                     <Tag
                         fill
@@ -39,6 +38,7 @@ export default function JsonForm({ content, hasError }) {
                         style={{
                             position: "absolute",
                             left: 0,
+                            backgroundColor: Colors.GRAY2,
                             bottom: 0,
                             borderTopLeftRadius: 0,
                             borderTopRightRadius: 0,

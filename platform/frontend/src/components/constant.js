@@ -10,6 +10,7 @@ const {
     faFunction,
     faCube,
     faKeynote,
+    faUsersViewfinder,
 } = require("@fortawesome/sharp-duotone-solid-svg-icons");
 const { vanillaRenderers } = require("@jsonforms/vanilla-renderers");
 import BooleanRenderer, {
@@ -44,6 +45,7 @@ import UnknownRenderer, {
 } from "@/components/jsonforms/renderers/Unknown";
 import { Classes, Colors, Intent } from "@blueprintjs/core";
 import ArrayRenderer, { ArrayTester } from "./jsonforms/renderers/Array";
+import CalloutRenderer, { CalloutTester } from "./jsonforms/renderers/Callout";
 import DateRenderer, { DateTester } from "./jsonforms/renderers/Date";
 import DateTimeRenderer, {
     DateTimeTester,
@@ -51,10 +53,13 @@ import DateTimeRenderer, {
 import MarkdownRenderer, {
     MarkdownTester,
 } from "./jsonforms/renderers/Markdown";
+import TableRenderer, { TableTester } from "./jsonforms/renderers/Table";
+import TabsRenderer, { TabsTester } from "./jsonforms/renderers/Tabs";
 import VegaRenderer, { VegaTester } from "./jsonforms/renderers/Vega";
 export const ENTITY_TYPE_LOOKUP = {
         agent: { icon: faCircleA, key: "agent" },
         data: { icon: faServer, key: "source" },
+        agent_group: { icon: faUsersViewfinder, backtrackCrumb: "agent" },
         input: { icon: faArrowRightToArc },
         output: { icon: faArrowRightFromArc },
         source: { icon: faServer },
@@ -65,6 +70,7 @@ export const ENTITY_TYPE_LOOKUP = {
         model: { icon: faCube, key: "model" },
         operator: { icon: faFunction, key: "operator" },
     },
+    END_OF_SSE_SIGNAL = "END_OF_EVENT_SIGNAL",
     JSONFORMS_RENDERERS = [
         ...vanillaRenderers,
         { tester: GroupTester, renderer: GroupRenderer },
@@ -81,10 +87,14 @@ export const ENTITY_TYPE_LOOKUP = {
         { tester: VegaTester, renderer: VegaRenderer },
         { tester: ArrayTester, renderer: ArrayRenderer },
         { tester: MarkdownTester, renderer: MarkdownRenderer },
+        { tester: CalloutTester, renderer: CalloutRenderer },
+        { tester: TabsTester, renderer: TabsRenderer },
+        { tester: TableTester, renderer: TableRenderer },
         { tester: UnknownTester, renderer: UnknownRenderer },
     ],
     CARD_LIST_CLASS_NAMES = `${Classes.CARD} ${Classes.CARD_LIST} ${Classes.CARD_LIST_BORDERED}`,
     NAVIGATION_MENU_WIDTH = 203,
+    WORKSAPCE_DRAGGABLE_SYMBOL = Symbol("workspaceDraggable"),
     CONTAINER_STATUS_INDICATOR = {
         created: { style: { color: Colors.ORANGE5 }, intent: Intent.WARNING },
         running: { style: { color: Colors.GREEN3 }, intent: Intent.SUCCESS },
@@ -126,6 +136,7 @@ export const ENTITY_TYPE_LOOKUP = {
         developer: { text: "Developer" },
         demo: { text: "Demo", icon: faKeynote },
     },
+    REGISTRY_NESTING_SEPARATOR = "___",
     COLOR_OPTIONS = [
         "#979B9D",
         "#FFA8A8",

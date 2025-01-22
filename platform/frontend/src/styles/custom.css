@@ -1,5 +1,11 @@
 :root {
-    --separator-border: rgba(17, 20, 24, 0.15);
+    --separator-border: rgba(17, 20, 24, 0.15) !important;
+    --focus-border: #2d72d2 !important;
+}
+.no-text-selection {
+    -webkit-user-select: none; /* Safari */
+    -ms-user-select: none; /* IE 10 and IE 11 */
+    user-select: none; /* Standard syntax */
 }
 a.no-link-decoration {
     color: inherit !important;
@@ -11,10 +17,25 @@ a.no-link-decoration {
 .full-parent-width {
     width: 100%;
 }
-.multiline-ellipsis {
+.session-search-result-row .session-search-result-row-actions,
+.agent-group-row .agent-group-row-actions {
+    display: none;
+}
+.session-search-result-row:hover .session-search-result-row-actions,
+.agent-group-row:hover .agent-group-row-actions {
+    display: inline-flex;
+}
+.multiline-ellipsis-2 {
     display: -webkit-box;
     -webkit-line-clamp: 2;
     line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+.multiline-ellipsis-5 {
+    display: -webkit-box;
+    -webkit-line-clamp: 5;
+    line-clamp: 5;
     -webkit-box-orient: vertical;
     overflow: hidden;
 }
@@ -36,13 +57,13 @@ table.entity-section-card-table tr td {
 .height-0 {
     height: 0px !important;
 }
-.bp-border-top {
+.border-top {
     border-top: 1px solid rgba(17, 20, 24, 0.15);
 }
-.bp-border-bottom {
+.border-bottom {
     border-bottom: 1px solid rgba(17, 20, 24, 0.15);
 }
-.bp-border-right {
+.border-right {
     border-right: 1px solid rgba(17, 20, 24, 0.15);
 }
 .z-index-36 {
@@ -90,4 +111,24 @@ table.entity-section-card-table tr td {
 .settings-menus a[class^="bp"][class*="-menu-item"] {
     cursor: initial;
 }
-/* react markdown content */
+.cm-overscroll-behavior-contain .cm-scroller {
+    overscroll-behavior: contain;
+}
+.message-bubble-callout {
+    max-width: 100%;
+    min-width: 50px;
+    white-space: pre-wrap;
+    word-break: break-word;
+    width: fit-content;
+    min-height: 21px;
+    overflow: hidden;
+    padding: 1px;
+}
+.portal-overlay-z-index-36 div[class^="bp"][class*="-overlay"] {
+    z-index: 36;
+}
+/* remember to add "&lrm;" at the end of the string */
+.reverse-ellipsis {
+    direction: rtl;
+    text-overflow: ellipsis;
+}

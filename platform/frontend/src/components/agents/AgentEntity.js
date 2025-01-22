@@ -2,13 +2,15 @@ import EntityDescription from "@/components/entity/EntityDescription";
 import EntityMain from "@/components/entity/EntityMain";
 import EntityProperties from "@/components/entity/EntityProperties";
 import {
+    axiosErrorToast,
     constructSavePropertyRequests,
     settlePromises,
+    shallowDiff,
 } from "@/components/helper";
 import { faIcon } from "@/components/icon";
-import { AppToaster } from "@/components/toaster";
 import {
     Button,
+    Classes,
     HTMLTable,
     Intent,
     Section,
@@ -17,13 +19,13 @@ import {
 } from "@blueprintjs/core";
 import { faPlus } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import axios from "axios";
-import { diff } from "deep-diff";
 import _ from "lodash";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useContext, useEffect, useState } from "react";
 import { AppContext } from "../contexts/app-context";
 import { AuthContext } from "../contexts/auth-context";
+import EntityGeneral from "./EntityGeneral";
 export default function AgentEntity() {
     const BLANK_ENTITY = { type: "agent" };
     const router = useRouter();
@@ -31,6 +33,7 @@ export default function AgentEntity() {
     const [entity, setEntity] = useState(BLANK_ENTITY);
     const [editEntity, setEditEntity] = useState(BLANK_ENTITY);
     const [edit, setEdit] = useState(false);
+    const [general, setGeneral] = useState({});
     const [loading, setLoading] = useState(true);
     const [jsonError, setJsonError] = useState(false);
     const discard = () => {
@@ -51,6 +54,9 @@ export default function AgentEntity() {
             setEntity(result);
             setEditEntity(result);
             setLoading(false);
+            setGeneral({
+                system_agent: _.get(result, "properties.system_agent", false),
+            });
         });
     }, [router]);
     const updateEntity = ({ path, value }) => {
@@ -65,48 +71,43 @@ export default function AgentEntity() {
         if (!_.isEmpty(icon) && !_.startsWith(icon, "data:image/")) {
             icon = _.join(icon, ":");
         }
-        let tasks = [
-            new Promise((resolve, reject) => {
-                axios
-                    .put(`${urlPrefix}/${entity.name}`, {
-                        name: entity.name,
-                        description: editEntity.description,
-                        icon: icon,
-                    })
-                    .then(() => {
-                        resolve(true);
-                    })
-                    .catch((error) => {
-                        AppToaster.show({
-                            intent: Intent.DANGER,
-                            message: `${error.name}: ${error.message}`,
-                        });
-                        reject(false);
-                    });
-            }),
-        ];
-        const difference = diff(entity.properties, editEntity.properties);
-        tasks.concat(
-            constructSavePropertyRequests({
-                axios,
-                url: `${urlPrefix}/${entity.name}/property`,
-                difference,
-                editEntity,
+        axios
+            .put(`${urlPrefix}/${entity.name}`, {
+                name: entity.name,
+                description: editEntity.description,
+                icon: icon,
             })
-        );
-        settlePromises(tasks, (error) => {
-            if (!error) {
-                setEdit(false);
-                appActions.agent.setIcon({
-                    key: entity.name,
-                    value: _.get(editEntity, "icon", null),
+            .then(() => {
+                const changes = {
+                    ...editEntity.properties,
+                    ...general,
+                };
+                const tasks = constructSavePropertyRequests({
+                    axios,
+                    url: `${urlPrefix}/${entity.name}/property`,
+                    difference: shallowDiff(entity.properties, changes),
+                    properties: changes,
                 });
-                setEntity(editEntity);
-            }
-            setLoading(false);
-        });
+                settlePromises(tasks, ({ error }) => {
+                    if (!error) {
+                        setEdit(false);
+                        appActions.agent.setIcon({
+                            key: entity.name,
+                            value: _.get(editEntity, "icon", null),
+                        });
+                        const newEntity = {
+                            ...editEntity,
+                            properties: changes,
+                        };
+                        setEntity(newEntity);
+                        setEditEntity(newEntity);
+                    }
+                    setLoading(false);
+                });
+            })
+            .catch((error) => axiosErrorToast(error));
     };
-    const addInputOutput = (type) => {
+    const addEntityRouterPush = (type) => {
         if (!router.isReady) return;
         router.push(`${routerQueryPath}/${type}/new`);
     };
@@ -137,10 +138,19 @@ export default function AgentEntity() {
                 loading={loading}
                 jsonError={jsonError}
             />
+            <EntityGeneral
+                edit={edit}
+                setEdit={setEdit}
+                entity={editEntity}
+                loading={loading}
+                general={general}
+                setGeneral={setGeneral}
+            />
             <EntityDescription
                 edit={edit}
                 setEdit={setEdit}
                 entity={editEntity}
+                loading={loading}
                 updateEntity={updateEntity}
             />
             <EntityProperties
@@ -148,9 +158,9 @@ export default function AgentEntity() {
                 setEdit={setEdit}
                 entity={editEntity}
                 jsonError={jsonError}
+                loading={loading}
                 setJsonError={setJsonError}
                 updateEntity={updateEntity}
-                setLoading={setLoading}
             />
             <Section
                 compact
@@ -160,9 +170,8 @@ export default function AgentEntity() {
             >
                 <SectionCard padded={false}>
                     <HTMLTable
-                        className="entity-section-card-table"
+                        className="entity-section-card-table full-parent-width"
                         bordered
-                        style={{ width: "100%" }}
                     >
                         <thead>
                             <tr>
@@ -198,20 +207,25 @@ export default function AgentEntity() {
                                     </tr>
                                 );
                             })}
-                            {canEditEntity ? (
+                            {canEditEntity && !edit && (
                                 <tr>
                                     <td colSpan={2}>
                                         <Button
+                                            className={
+                                                loading
+                                                    ? Classes.SKELETON
+                                                    : null
+                                            }
                                             icon={faIcon({ icon: faPlus })}
                                             outlined
                                             text="Add input"
                                             onClick={() => {
-                                                addInputOutput("input");
+                                                addEntityRouterPush("input");
                                             }}
                                         />
                                     </td>
                                 </tr>
-                            ) : null}
+                            )}
                         </tbody>
                     </HTMLTable>
                 </SectionCard>
@@ -224,9 +238,8 @@ export default function AgentEntity() {
             >
                 <SectionCard padded={false}>
                     <HTMLTable
-                        className="entity-section-card-table"
+                        className="entity-section-card-table full-parent-width"
                         bordered
-                        style={{ width: "100%" }}
                     >
                         <thead>
                             <tr>
@@ -262,20 +275,92 @@ export default function AgentEntity() {
                                     </tr>
                                 );
                             })}
-                            {canEditEntity ? (
+                            {canEditEntity && !edit && (
                                 <tr>
                                     <td colSpan={2}>
                                         <Button
+                                            className={
+                                                loading
+                                                    ? Classes.SKELETON
+                                                    : null
+                                            }
                                             icon={faIcon({ icon: faPlus })}
                                             outlined
                                             text="Add output"
                                             onClick={() => {
-                                                addInputOutput("output");
+                                                addEntityRouterPush("output");
                                             }}
                                         />
                                     </td>
                                 </tr>
-                            ) : null}
+                            )}
+                        </tbody>
+                    </HTMLTable>
+                </SectionCard>
+            </Section>
+            <Section
+                compact
+                collapsible
+                title="Agents"
+                style={{ marginTop: 20 }}
+            >
+                <SectionCard padded={false}>
+                    <HTMLTable
+                        className="entity-section-card-table full-parent-width"
+                        bordered
+                    >
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {_.values(entity.contents).map((element, index) => {
+                                if (!_.isEqual(element.type, "agent"))
+                                    return null;
+                                return (
+                                    <tr key={index}>
+                                        <td>
+                                            <Link
+                                                href={`${routerQueryPath}/agent/${element.name}`}
+                                            >
+                                                <Tag
+                                                    style={{
+                                                        pointerEvents: "none",
+                                                    }}
+                                                    minimal
+                                                    interactive
+                                                    large
+                                                    intent={Intent.PRIMARY}
+                                                >
+                                                    {element.name}
+                                                </Tag>
+                                            </Link>
+                                        </td>
+                                        <td>{element.description}</td>
+                                    </tr>
+                                );
+                            })}
+                            {canEditEntity && !edit && (
+                                <tr>
+                                    <td colSpan={2}>
+                                        <Button
+                                            className={
+                                                loading
+                                                    ? Classes.SKELETON
+                                                    : null
+                                            }
+                                            icon={faIcon({ icon: faPlus })}
+                                            outlined
+                                            text="Add agent"
+                                            onClick={() => {
+                                                addEntityRouterPush("agent");
+                                            }}
+                                        />
+                                    </td>
+                                </tr>
+                            )}
                         </tbody>
                     </HTMLTable>
                 </SectionCard>

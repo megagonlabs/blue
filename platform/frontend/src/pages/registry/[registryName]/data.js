@@ -27,14 +27,13 @@ import _ from "lodash";
 import { useCallback, useContext, useEffect, useState } from "react";
 export default function Data() {
     const { appState, appActions } = useContext(AppContext);
-    const [hybrid, setHybrid] = useState(appState.data.filter.hybrid);
-    const [approximate, setApproximate] = useState(
-        appState.data.filter.approximate
-    );
-    const [type, setType] = useState(appState.data.filter.type);
-    const [keywords, setKeywords] = useState(appState.data.filter.keywords);
-    const [page, setPage] = useState(appState.data.filter.page);
-    const [pageSize, setPageSize] = useState(appState.data.filter.page_size);
+    const { filter } = appState.data;
+    const [hybrid, setHybrid] = useState(filter.hybrid);
+    const [approximate, setApproximate] = useState(filter.approximate);
+    const [type, setType] = useState(filter.type);
+    const [keywords, setKeywords] = useState(filter.keywords);
+    const [page, setPage] = useState(filter.page);
+    const [pageSize, setPageSize] = useState(filter.page_size);
     const dataRegistryName = process.env.NEXT_PUBLIC_DATA_REGISTRY_NAME;
     const debounceOnKeywordsChange = useCallback(
         _.debounce(
@@ -76,7 +75,7 @@ export default function Data() {
             page,
             pageSize,
         });
-    }, [hybrid, approximate, type, page, pageSize]);
+    }, [hybrid, approximate, type, page, pageSize]); // eslint-disable-line react-hooks/exhaustive-deps
     const { permissions } = useContext(AuthContext);
     if (!permissions.canReadDataRegistry) {
         return <AccessDeniedNonIdealState />;
@@ -101,11 +100,12 @@ export default function Data() {
                 <div
                     style={{
                         maxWidth: 690,
-                        width: "calc(100% - 250px - 40px)",
+                        width: "calc(100% - 224px - 40px)",
                     }}
                 >
                     <ControlGroup fill>
                         <InputGroup
+                            id="data-registry-search-input"
                             placeholder="Search data"
                             large
                             fill
@@ -118,7 +118,7 @@ export default function Data() {
                                 setKeywords(event.target.value);
                             }}
                             rightElement={
-                                !_.isEmpty(keywords) && appState.data.search ? (
+                                !_.isEmpty(keywords) || appState.data.search ? (
                                     <Button
                                         minimal
                                         onClick={() => {
@@ -157,7 +157,7 @@ export default function Data() {
                             content={
                                 <div
                                     style={{
-                                        padding: "20px 20px 10px",
+                                        padding: "15px 15px 5px",
                                         maxWidth: 500,
                                     }}
                                 >
@@ -225,21 +225,19 @@ export default function Data() {
                                                 value: "relation",
                                                 text: "Relation",
                                             },
-                                        ].map(({ value, text }, index) => {
-                                            return (
-                                                <Radio
-                                                    key={index}
-                                                    className={
-                                                        appState.data.loading
-                                                            ? Classes.SKELETON
-                                                            : null
-                                                    }
-                                                    large
-                                                    value={value}
-                                                    label={text}
-                                                />
-                                            );
-                                        })}
+                                        ].map(({ value, text }, index) => (
+                                            <Radio
+                                                key={index}
+                                                className={
+                                                    appState.data.loading
+                                                        ? Classes.SKELETON
+                                                        : null
+                                                }
+                                                large
+                                                value={value}
+                                                label={text}
+                                            />
+                                        ))}
                                     </RadioGroup>
                                 </div>
                             }

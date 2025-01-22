@@ -22,8 +22,8 @@ from fastapi.responses import JSONResponse
 import firebase_admin
 from firebase_admin import auth, credentials, exceptions
 
-from constant import EMAIL_DOMAIN_ADDRESS_REGEXP, acl_enforce
-from fastapi import Request
+from constant import EMAIL_DOMAIN_ADDRESS_REGEXP, account_id_header, acl_enforce
+from fastapi import Depends, Request
 from APIRouter import APIRouter
 from fastapi.responses import JSONResponse
 
@@ -40,7 +40,7 @@ p = Platform(id=platform_id, properties=PROPERTIES)
 
 
 ##### ROUTER
-router = APIRouter(prefix=f"{PLATFORM_PREFIX}/accounts")
+router = APIRouter(prefix=f"{PLATFORM_PREFIX}/accounts", dependencies=[Depends(account_id_header)])
 
 FIREBASE_SERVICE_CRED = os.getenv("FIREBASE_SERVICE_CRED", "{}")
 cert = json.loads(base64.b64decode(FIREBASE_SERVICE_CRED))
@@ -168,7 +168,7 @@ async def signin_cli(request: Request):
         return ERROR_RESPONSE
 
 
-@router.post('/profile/settings/{name}')
+@router.put('/profile/settings/{name}')
 async def set_settings(request: Request, name):
     payload = await request.json()
     p.set_metadata(f'users.{request.state.user["uid"]}.settings.{name}', payload.get('value'))
@@ -198,6 +198,8 @@ def get_profile_by_uid(request: Request, uid):
         if uid is not None:
             user_record = auth.get_user(uid)
             user.update({'uid': user_record.uid, 'email': user_record.email, 'picture': user_record.photo_url, 'name': user_record.display_name})
+    except auth.UserNotFoundError as ex:
+        print(ex)
     except ValueError as ex:
         print(ex)
     return JSONResponse(content={"user": user})

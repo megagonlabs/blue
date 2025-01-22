@@ -35,6 +35,7 @@ from redis.commands.search.query import Query
 
 
 ###### Blue
+from connection import PooledConnectionFactory
 
 
 class DataPlanner():
@@ -95,10 +96,8 @@ class DataPlanner():
 
     ######
     def _start_connection(self):
-        host = self.properties['db.host']
-        port = self.properties['db.port']
-
-        self.connection = redis.Redis(host=host, port=port, decode_responses=True)
+        self.connection_factory = PooledConnectionFactory(properties=self.properties)
+        self.connection = self.connection_factory.get_connection()
         
     def _start(self):
         self._start_connection()

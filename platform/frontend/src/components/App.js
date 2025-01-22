@@ -13,6 +13,8 @@ import {
     ButtonGroup,
     Card,
     Classes,
+    Colors,
+    Divider,
     H3,
     Intent,
     MenuDivider,
@@ -21,41 +23,56 @@ import {
     Tag,
     Tooltip,
 } from "@blueprintjs/core";
+import { faCircleSmall as faCircleSmallSolid } from "@fortawesome/pro-solid-svg-icons";
 import {
+    fa1,
+    fa2,
+    fa3,
+    fa4,
+    fa5,
+    faCircleSmall,
     faGear,
+    faHashtag,
     faInboxArrowUp,
+    faInboxFull,
     faLayerGroup,
     faPencilRuler,
     faRectangleTerminal,
-    faUser,
     faUserGroup,
+    faWavePulse,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import _ from "lodash";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useContext, useEffect, useMemo, useState } from "react";
+import { useContext, useMemo, useState } from "react";
 import DebugPanel from "./debugger/DebugPanel";
-import { hasTrue } from "./helper";
+import { hasTrue, populateRouterPathname } from "./helper";
 import Settings from "./navigation/Settings";
 import UserAccountPanel from "./navigation/UserAccountPanel";
 export default function App({ children }) {
     const router = useRouter();
     const { appState, appActions } = useContext(AppContext);
-    const sessionDetails = appState.session.sessionDetails;
-    const sessionIdFocus = appState.session.sessionIdFocus;
+    const { sessionDetails, creatingSession, sessionIds, unreadSessionIds } =
+        appState.session;
     const { socket, isSocketOpen } = useSocket();
     const recentSessions = useMemo(
         () =>
-            Object.values(sessionDetails)
-                .filter((session) => _.get(session, "group_by.owner", false))
-                .sort((a, b) => b.created_date - a.created_date)
-                .slice(0, 5)
-                .map((session) => session.id),
-        [sessionDetails]
+            _.intersection(
+                Object.values(sessionDetails)
+                    .filter((session) =>
+                        _.get(session, "group_by.owner", false)
+                    )
+                    .sort((a, b) => b.created_date - a.created_date)
+                    .map((session) => session.id),
+                sessionIds
+            ).slice(0, 5),
+        [sessionDetails, sessionIds]
     );
-    const { user, permissions } = useContext(AuthContext);
-    const userRole = _.get(user, "role", "guest");
+    const { user, permissions, settings } = useContext(AuthContext);
+    const userRole = _.get(user, "role", null);
+    const compactSidebar = _.get(settings, "compact_sidebar", false);
+    const sidebarWidth = compactSidebar ? 80 : NAVIGATION_MENU_WIDTH;
     const {
         canWritePlatformUsers,
         canReadPlatformServices,
@@ -64,41 +81,19 @@ export default function App({ children }) {
         canReadPlatformAgents,
         canReadSessions,
         canReadDataRegistry,
-        canWriteSessions,
         canReadAgentRegistry,
         canReadOperatorRegistry,
         canReadModelRegistry,
+        showRegistryList,
+        launchScreen,
     } = permissions;
-    const [isCreatingSession, setIsCreatingSession] = useState(false);
+    const launchScreenMode = launchScreen && _.isEqual(router.pathname, "/");
     const MENU_ITEMS = {
-        my_sessions: {
-            href: `/sessions`,
-            text: "My Sessions",
-            icon: faUser,
+        all_sessions: {
+            href: "/sessions",
+            text: "Sessions",
+            icon: faInboxFull,
             visible: canReadSessions,
-            onClick: () => {
-                appActions.session.setState({
-                    key: "sessionGroupBy",
-                    value: "owner",
-                });
-                appActions.session.setState({
-                    key: "sessionListPanelCollapsed",
-                    value: false,
-                });
-            },
-        },
-        new_session: {
-            href: `/sessions`,
-            text: "New Session",
-            icon: faInboxArrowUp,
-            visible: canWriteSessions,
-            disabled: isCreatingSession || !isSocketOpen,
-            intent: Intent.PRIMARY,
-            onClick: () => {
-                if (!isSocketOpen) return;
-                setIsCreatingSession(true);
-                appActions.session.createSession(socket);
-            },
         },
         data_registry: {
             href: `/registry/${process.env.NEXT_PUBLIC_DATA_REGISTRY_NAME}/data`,
@@ -154,13 +149,28 @@ export default function App({ children }) {
             icon: ENTITY_TYPE_LOOKUP.agent.icon,
             visible: canReadPlatformAgents,
         },
+        admin_status: {
+            href: "/admin/status",
+            text: "Status",
+            icon: faWavePulse,
+            visible: _.isEqual(userRole, "admin"),
+        },
+    };
+    const NUMBER_TO_ICON = {
+        1: fa1,
+        2: fa2,
+        3: fa3,
+        4: fa4,
+        5: fa5,
     };
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-    useEffect(() => {
-        if (appState.session.openAgentsDialogTrigger) {
-            setIsCreatingSession(false);
-        }
-    }, [appState.session.openAgentsDialogTrigger]);
+    const RIGHT_HAND_ACTIONS = [
+        {
+            content: "Settings",
+            icon: faGear,
+            onClick: () => setIsSettingsOpen(true),
+        },
+    ];
     return (
         <div>
             <Navbar style={{ paddingLeft: 20, paddingRight: 20 }}>
@@ -181,21 +191,22 @@ export default function App({ children }) {
                     </Link>
                 </Navbar.Group>
                 <Navbar.Group align={Alignment.RIGHT}>
-                    <Tooltip
-                        placement="bottom"
-                        minimal
-                        content="Settings"
-                        openOnTargetFocus={false}
-                    >
-                        <Button
-                            onClick={() => {
-                                setIsSettingsOpen(true);
-                            }}
-                            large
+                    {RIGHT_HAND_ACTIONS.map((action, index) => (
+                        <Tooltip
+                            placement="bottom"
                             minimal
-                            icon={faIcon({ icon: faGear })}
-                        />
-                    </Tooltip>
+                            key={index}
+                            content={action.content}
+                            openOnTargetFocus={false}
+                        >
+                            <Button
+                                large
+                                minimal
+                                onClick={action.onClick}
+                                icon={faIcon({ icon: action.icon })}
+                            />
+                        </Tooltip>
+                    ))}
                     <UserAccountPanel />
                 </Navbar.Group>
             </Navbar>
@@ -203,82 +214,119 @@ export default function App({ children }) {
                 isOpen={isSettingsOpen}
                 setIsSettingsOpen={setIsSettingsOpen}
             />
-            <Card
-                interactive
-                style={{
-                    position: "absolute",
-                    top: 50,
-                    left: 0,
-                    height: "calc(100vh - 50px)",
-                    width: NAVIGATION_MENU_WIDTH,
-                    borderRadius: 0,
-                    display: "flex",
-                    flexDirection: "column",
-                    zIndex: 1,
-                    padding: 20,
-                    overflowY: "auto",
-                }}
-            >
-                {hasTrue([canReadSessions]) ? (
-                    <>
-                        <MenuDivider title="Sessions" />
-                        <ButtonGroup
-                            alignText={Alignment.LEFT}
-                            vertical
-                            minimal
-                            className="full-parent-width"
-                        >
-                            {canReadSessions &&
-                                recentSessions.map((sessionId) => {
-                                    const active =
-                                        _.isEqual(sessionIdFocus, sessionId) &&
-                                        _.startsWith(
-                                            router.asPath,
-                                            "/sessions"
+            {launchScreenMode || _.isEmpty(user) ? null : (
+                <Card
+                    interactive
+                    style={{
+                        position: "absolute",
+                        top: 50,
+                        left: 0,
+                        height: "calc(100vh - 50px)",
+                        width: sidebarWidth,
+                        borderRadius: 0,
+                        display: "flex",
+                        flexDirection: "column",
+                        zIndex: 2,
+                        padding: 20,
+                        overflowY: "auto",
+                    }}
+                >
+                    {hasTrue([canReadSessions]) ? (
+                        <>
+                            {!compactSidebar && (
+                                <MenuDivider title="Sessions" />
+                            )}
+                            <ButtonGroup
+                                alignText={Alignment.LEFT}
+                                vertical
+                                minimal
+                                className="full-parent-width"
+                            >
+                                {canReadSessions &&
+                                    recentSessions.map((sessionId, index) => {
+                                        let sessionDisplayName = _.get(
+                                            sessionDetails,
+                                            [sessionId, "name"],
+                                            sessionId
                                         );
-                                    return (
-                                        <Button
-                                            key={sessionId}
-                                            active={active}
-                                            style={{
-                                                padding: "5px 15px",
-                                                backgroundColor: !active
-                                                    ? "transparent"
-                                                    : null,
-                                            }}
-                                            onClick={() => {
-                                                appActions.session.setSessionIdFocus(
-                                                    sessionId
-                                                );
-                                                appActions.session.observeSession(
-                                                    {
-                                                        sessionId,
-                                                        socket,
+                                        if (
+                                            _.isEqual(
+                                                sessionDisplayName,
+                                                sessionId
+                                            )
+                                        ) {
+                                            const utcSeconds = _.get(
+                                                sessionDetails,
+                                                [sessionId, "created_date"],
+                                                0
+                                            );
+                                            let date = new Date(0); // The 0 here sets the date to the epoch
+                                            date.setUTCSeconds(utcSeconds);
+                                            sessionDisplayName =
+                                                date.toLocaleString();
+                                        }
+                                        const buttonText = (
+                                            <div
+                                                style={{
+                                                    maxWidth: compactSidebar
+                                                        ? 200
+                                                        : 133,
+                                                }}
+                                                className={
+                                                    Classes.TEXT_OVERFLOW_ELLIPSIS
+                                                }
+                                            >
+                                                #&nbsp;
+                                                {sessionDisplayName}
+                                            </div>
+                                        );
+                                        return (
+                                            <Tooltip
+                                                key={sessionId}
+                                                minimal
+                                                placement="right"
+                                                content={
+                                                    compactSidebar
+                                                        ? buttonText
+                                                        : null
+                                                }
+                                            >
+                                                <Button
+                                                    icon={
+                                                        compactSidebar &&
+                                                        faIcon({
+                                                            icon: _.get(
+                                                                NUMBER_TO_ICON,
+                                                                index + 1,
+                                                                faHashtag
+                                                            ),
+                                                        })
                                                     }
-                                                );
-                                                if (!router.isReady) return;
-                                                router.push("/sessions");
-                                            }}
-                                            text={
-                                                <div
-                                                    style={{ width: 133 }}
-                                                    className={
-                                                        Classes.TEXT_OVERFLOW_ELLIPSIS
+                                                    style={{
+                                                        padding: "5px 15px",
+                                                    }}
+                                                    onClick={() => {
+                                                        if (!router.isReady)
+                                                            return;
+                                                        router.push(
+                                                            `/sessions/${sessionId}`
+                                                        );
+                                                        appActions.session.observeSession(
+                                                            {
+                                                                sessionId,
+                                                                socket,
+                                                            }
+                                                        );
+                                                    }}
+                                                    text={
+                                                        !compactSidebar &&
+                                                        buttonText
                                                     }
-                                                >
-                                                    #{" "}
-                                                    {_.get(
-                                                        sessionDetails,
-                                                        [sessionId, "name"],
-                                                        sessionId
-                                                    )}
-                                                </div>
-                                            }
-                                        />
-                                    );
-                                })}
-                            {["my_sessions", "new_session"].map(
-                                (key, index) => {
+                                                />
+                                            </Tooltip>
+                                        );
+                                    })}
+                                {["all_sessions"].map((key, index) => {
                                     const {
                                         href,
                                         icon,
@@ -291,97 +339,139 @@ export default function App({ children }) {
                                     if (!visible) {
                                         return null;
                                     }
+                                    const active = _.startsWith(
+                                            router.pathname,
+                                            href
+                                        ),
+                                        showUnreadIndicator =
+                                            _.isEqual(key, "all_sessions") &&
+                                            !_.isEmpty(unreadSessionIds);
                                     return (
-                                        <Link href={href} key={index}>
-                                            <Button
-                                                intent={intent}
-                                                large
-                                                style={{
-                                                    backgroundColor:
-                                                        "transparent",
-                                                }}
-                                                text={text}
-                                                disabled={disabled}
-                                                icon={faIcon({ icon: icon })}
-                                                onClick={onClick}
-                                            />
+                                        <Link
+                                            className="no-link-decoration"
+                                            href={href}
+                                            key={index}
+                                            style={{ position: "relative" }}
+                                        >
+                                            <Tooltip
+                                                minimal
+                                                placement="right"
+                                                content={
+                                                    compactSidebar ? text : null
+                                                }
+                                            >
+                                                <Button
+                                                    intent={intent}
+                                                    large
+                                                    style={
+                                                        !active
+                                                            ? {
+                                                                  backgroundColor:
+                                                                      "transparent",
+                                                              }
+                                                            : null
+                                                    }
+                                                    active={active}
+                                                    text={
+                                                        !compactSidebar && text
+                                                    }
+                                                    disabled={disabled}
+                                                    icon={faIcon({
+                                                        icon: icon,
+                                                    })}
+                                                    onClick={onClick}
+                                                    rightIcon={
+                                                        !compactSidebar &&
+                                                        showUnreadIndicator &&
+                                                        faIcon({
+                                                            icon: faCircleSmall,
+                                                            style: {
+                                                                color: Colors.RED3,
+                                                            },
+                                                        })
+                                                    }
+                                                />
+                                            </Tooltip>
+                                            {compactSidebar &&
+                                                showUnreadIndicator && (
+                                                    <div
+                                                        style={{
+                                                            position:
+                                                                "absolute",
+                                                            right: 5,
+                                                            top: 5,
+                                                            zIndex: 7,
+                                                        }}
+                                                    >
+                                                        {faIcon({
+                                                            icon: faCircleSmallSolid,
+                                                            style: {
+                                                                color: Colors.RED3,
+                                                            },
+                                                        })}
+                                                    </div>
+                                                )}
                                         </Link>
                                     );
-                                }
+                                })}
+                                <Tooltip
+                                    minimal
+                                    placement="right"
+                                    content={
+                                        compactSidebar ? "New Session" : null
+                                    }
+                                >
+                                    <Button
+                                        intent={Intent.PRIMARY}
+                                        large
+                                        text={!compactSidebar && "New Session"}
+                                        disabled={
+                                            creatingSession || !isSocketOpen
+                                        }
+                                        icon={faIcon({ icon: faInboxArrowUp })}
+                                        onClick={() => {
+                                            if (
+                                                !isSocketOpen ||
+                                                !router.isReady
+                                            )
+                                                return;
+                                            appActions.session.createSession({
+                                                router,
+                                            });
+                                        }}
+                                    />
+                                </Tooltip>
+                            </ButtonGroup>
+                        </>
+                    ) : null}
+                    {hasTrue([
+                        canReadAgentRegistry,
+                        canReadDataRegistry,
+                        canReadOperatorRegistry,
+                        canReadModelRegistry,
+                    ]) && showRegistryList ? (
+                        <>
+                            <div>&nbsp;</div>
+                            {compactSidebar ? (
+                                <Divider
+                                    style={{ marginBottom: 18, marginTop: 0 }}
+                                />
+                            ) : (
+                                <MenuDivider title="Registries" />
                             )}
-                        </ButtonGroup>
-                    </>
-                ) : null}
-                {hasTrue([
-                    canReadAgentRegistry,
-                    canReadDataRegistry,
-                    canReadOperatorRegistry,
-                    canReadModelRegistry,
-                ]) && !_.isEqual(userRole, "demo") ? (
-                    <>
-                        <div>&nbsp;</div>
-                        <MenuDivider title="Registries" />
-                        <ButtonGroup
-                            alignText={Alignment.LEFT}
-                            vertical
-                            minimal
-                            large
-                            className="full-parent-width"
-                        >
-                            {[
-                                "agent_registry",
-                                "data_registry",
-                                "operator_registry",
-                                "model_registry",
-                            ].map((key, index) => {
-                                const { href, icon, text, visible } = _.get(
-                                    MENU_ITEMS,
-                                    key,
-                                    {}
-                                );
-                                if (!visible) {
-                                    return null;
-                                }
-                                const active = _.startsWith(
-                                    router.asPath,
-                                    href
-                                );
-                                return (
-                                    <Link href={href} key={index}>
-                                        <Button
-                                            style={
-                                                !active
-                                                    ? {
-                                                          backgroundColor:
-                                                              "transparent",
-                                                      }
-                                                    : null
-                                            }
-                                            active={active}
-                                            text={text}
-                                            icon={faIcon({
-                                                icon: icon,
-                                            })}
-                                        />
-                                    </Link>
-                                );
-                            })}
-                        </ButtonGroup>
-                    </>
-                ) : null}
-                {hasTrue([showFormDesigner, showPromptDesigner]) ? (
-                    <>
-                        <div>&nbsp;</div>
-                        <MenuDivider title="Dev. Tools" />
-                        <ButtonGroup
-                            alignText={Alignment.LEFT}
-                            vertical
-                            minimal
-                            large
-                            className="full-parent-width"
-                        >
-                            {["form_designer", "prompt_designer"].map(
-                                (key, index) => {
+                            <ButtonGroup
+                                alignText={Alignment.LEFT}
+                                vertical
+                                minimal
+                                large
+                                className="full-parent-width"
+                            >
+                                {[
+                                    "agent_registry",
+                                    "data_registry",
+                                    "operator_registry",
+                                    "model_registry",
+                                ].map((key, index) => {
                                     const { href, icon, text, visible } = _.get(
                                         MENU_ITEMS,
                                         key,
@@ -391,99 +481,206 @@ export default function App({ children }) {
                                         return null;
                                     }
                                     const active = _.startsWith(
-                                        router.asPath,
+                                        populateRouterPathname(router),
                                         href
                                     );
                                     return (
-                                        <Link href={href} key={index}>
-                                            <Button
-                                                style={
-                                                    !active
-                                                        ? {
-                                                              backgroundColor:
-                                                                  "transparent",
-                                                          }
-                                                        : null
+                                        <Link
+                                            className="no-link-decoration"
+                                            href={href}
+                                            key={index}
+                                        >
+                                            <Tooltip
+                                                minimal
+                                                placement="right"
+                                                content={
+                                                    compactSidebar ? text : null
                                                 }
-                                                active={active}
-                                                text={text}
-                                                icon={faIcon({
-                                                    icon: icon,
-                                                })}
-                                            />
+                                            >
+                                                <Button
+                                                    style={
+                                                        !active
+                                                            ? {
+                                                                  backgroundColor:
+                                                                      "transparent",
+                                                              }
+                                                            : null
+                                                    }
+                                                    active={active}
+                                                    text={
+                                                        !compactSidebar && text
+                                                    }
+                                                    icon={faIcon({
+                                                        icon: icon,
+                                                    })}
+                                                />
+                                            </Tooltip>
                                         </Link>
                                     );
-                                }
+                                })}
+                            </ButtonGroup>
+                        </>
+                    ) : null}
+                    {hasTrue([showFormDesigner, showPromptDesigner]) ? (
+                        <>
+                            <div>&nbsp;</div>
+                            {compactSidebar ? (
+                                <Divider
+                                    style={{ marginBottom: 18, marginTop: 0 }}
+                                />
+                            ) : (
+                                <MenuDivider title="Dev. Tools" />
                             )}
-                        </ButtonGroup>
-                    </>
-                ) : null}
-                {hasTrue([
-                    canReadPlatformAgents,
-                    canWritePlatformUsers,
-                    canReadPlatformServices,
-                ]) ? (
-                    <>
-                        <div>&nbsp;</div>
-                        <MenuDivider title="Admin. Tools" />
-                        <ButtonGroup
-                            alignText={Alignment.LEFT}
-                            vertical
-                            minimal
-                            large
-                            className="full-parent-width"
-                        >
-                            {[
-                                "admin_services",
-                                "admin_agents",
-                                "admin_users",
-                            ].map((key, index) => {
-                                const { href, icon, text, visible } = _.get(
-                                    MENU_ITEMS,
-                                    key,
-                                    {}
-                                );
-                                if (!visible) {
-                                    return null;
-                                }
-                                const active = _.startsWith(
-                                    router.asPath,
-                                    href
-                                );
-                                return (
-                                    <Link href={href} key={index}>
-                                        <Button
-                                            style={
-                                                !active
-                                                    ? {
-                                                          backgroundColor:
-                                                              "transparent",
-                                                      }
-                                                    : null
-                                            }
-                                            active={active}
-                                            text={text}
-                                            icon={faIcon({
-                                                icon: icon,
-                                            })}
-                                        />
-                                    </Link>
-                                );
-                            })}
-                        </ButtonGroup>
-                    </>
-                ) : null}
-            </Card>
+                            <ButtonGroup
+                                alignText={Alignment.LEFT}
+                                vertical
+                                minimal
+                                large
+                                className="full-parent-width"
+                            >
+                                {["form_designer"].map((key, index) => {
+                                    const { href, icon, text, visible } = _.get(
+                                        MENU_ITEMS,
+                                        key,
+                                        {}
+                                    );
+                                    if (!visible) {
+                                        return null;
+                                    }
+                                    const active = _.startsWith(
+                                        router.pathname,
+                                        href
+                                    );
+                                    return (
+                                        <Link
+                                            className="no-link-decoration"
+                                            href={href}
+                                            key={index}
+                                        >
+                                            <Tooltip
+                                                minimal
+                                                placement="right"
+                                                content={
+                                                    compactSidebar ? text : null
+                                                }
+                                            >
+                                                <Button
+                                                    style={
+                                                        !active
+                                                            ? {
+                                                                  backgroundColor:
+                                                                      "transparent",
+                                                              }
+                                                            : null
+                                                    }
+                                                    active={active}
+                                                    text={
+                                                        !compactSidebar && text
+                                                    }
+                                                    icon={faIcon({
+                                                        icon: icon,
+                                                    })}
+                                                />
+                                            </Tooltip>
+                                        </Link>
+                                    );
+                                })}
+                            </ButtonGroup>
+                        </>
+                    ) : null}
+                    {hasTrue([
+                        canReadPlatformAgents,
+                        canWritePlatformUsers,
+                        canReadPlatformServices,
+                    ]) ? (
+                        <>
+                            <div>&nbsp;</div>
+                            {compactSidebar ? (
+                                <Divider
+                                    style={{ marginBottom: 18, marginTop: 0 }}
+                                />
+                            ) : (
+                                <MenuDivider title="Admin. Tools" />
+                            )}
+                            <ButtonGroup
+                                alignText={Alignment.LEFT}
+                                vertical
+                                minimal
+                                large
+                                className="full-parent-width"
+                            >
+                                {[
+                                    "admin_status",
+                                    "admin_services",
+                                    "admin_agents",
+                                    "admin_users",
+                                ].map((key, index) => {
+                                    const { href, icon, text, visible } = _.get(
+                                        MENU_ITEMS,
+                                        key,
+                                        {}
+                                    );
+                                    if (!visible) {
+                                        return null;
+                                    }
+                                    const active = _.startsWith(
+                                        router.pathname,
+                                        href
+                                    );
+                                    return (
+                                        <Link
+                                            className="no-link-decoration"
+                                            href={href}
+                                            key={index}
+                                        >
+                                            <Tooltip
+                                                minimal
+                                                placement="right"
+                                                content={
+                                                    compactSidebar ? text : null
+                                                }
+                                            >
+                                                <Button
+                                                    style={
+                                                        !active
+                                                            ? {
+                                                                  backgroundColor:
+                                                                      "transparent",
+                                                              }
+                                                            : null
+                                                    }
+                                                    active={active}
+                                                    text={
+                                                        !compactSidebar && text
+                                                    }
+                                                    icon={faIcon({
+                                                        icon: icon,
+                                                    })}
+                                                />
+                                            </Tooltip>
+                                        </Link>
+                                    );
+                                })}
+                            </ButtonGroup>
+                        </>
+                    ) : null}
+                </Card>
+            )}
             <div
                 style={{
-                    marginLeft: NAVIGATION_MENU_WIDTH,
+                    marginLeft:
+                        !launchScreenMode && !_.isEmpty(user)
+                            ? sidebarWidth
+                            : null,
                     height: "calc(100vh - 50px)",
                     position: "relative",
                 }}
             >
                 {_.isEmpty(user) ? <AccessDeniedNonIdealState /> : children}
             </div>
-            <DebugPanel />
+            {!_.isEmpty(user) && _.isEmpty(_.get(user, "role", null)) ? null : (
+                <DebugPanel />
+            )}
         </div>
     );
 }

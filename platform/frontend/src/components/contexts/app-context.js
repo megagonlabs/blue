@@ -15,7 +15,9 @@ import { defaultState as debugDS } from "@/components/reducers/debug-reducer";
 import { defaultState as modelDS } from "@/components/reducers/model-reducer";
 import { defaultState as operatorDS } from "@/components/reducers/operator-reducer";
 import { defaultState as sessionDS } from "@/components/reducers/session-reducer";
+import { defaultState as trackerDS } from "@/components/reducers/tracker-reducer";
 import { createContext, useMemo, useReducer } from "react";
+import { trackerAction } from "../actions/tracker-action";
 const AppContext = createContext();
 const AppProvider = ({ children }) => {
     const [appState, dispatch] = useReducer(rootReducer, {
@@ -27,6 +29,7 @@ const AppProvider = ({ children }) => {
         debug: debugDS,
         operator: operatorDS,
         model: modelDS,
+        tracker: trackerDS,
     });
     const actions = {
         app: { ...appAction(dispatch) },
@@ -37,6 +40,7 @@ const AppProvider = ({ children }) => {
         debug: { ...debugAction(dispatch) },
         operator: { ...operatorAction(dispatch) },
         model: { ...modelAction(dispatch) },
+        tracker: { ...trackerAction(dispatch) },
     };
     const store = useMemo(
         () => ({ appState, appActions: actions }),

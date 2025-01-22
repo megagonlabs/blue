@@ -24,6 +24,7 @@ const ButtonRenderer = ({ uischema, path }) => {
     };
     return (
         <Button
+            ellipsizeText
             onClick={onClickHandler}
             outlined={_.get(uischema, "props.outlined", false)}
             style={convertCss(_.get(uischema, "props.style", {}))}

@@ -1,5 +1,5 @@
 import JsonEditor from "@/components/codemirror/JsonEditor";
-import { Intent, Section, SectionCard, Tag } from "@blueprintjs/core";
+import { Classes, Intent, Section, SectionCard, Tag } from "@blueprintjs/core";
 import _ from "lodash";
 import JsonViewer from "../sessions/message/renderers/JsonViewer";
 export default function EntityProperties({
@@ -9,7 +9,8 @@ export default function EntityProperties({
     jsonError,
     setJsonError,
     updateEntity,
-    setLoading,
+    loading,
+    allowPopulateOnce = false,
 }) {
     const setProperties = (value) => {
         updateEntity({ path: "properties", value: JSON.parse(value) });
@@ -37,19 +38,22 @@ export default function EntityProperties({
                     event.stopPropagation();
                 }}
             >
-                {!edit ? (
+                {loading ? (
+                    <div style={{ margin: 15 }} className={Classes.SKELETON}>
+                        &nbsp;
+                    </div>
+                ) : !edit ? (
                     <div style={{ padding: 15 }}>
-                        <JsonViewer
-                            displaySize={true}
-                            json={entity.properties}
-                        />
+                        <JsonViewer json={entity.properties} />
                     </div>
                 ) : (
                     <JsonEditor
+                        allowPopulateOnce={allowPopulateOnce}
                         code={JSON.stringify(entity.properties, null, 4)}
                         setCode={setProperties}
-                        setLoading={setLoading}
                         setError={setJsonError}
+                        useMinimap={false}
+                        containOverscrollBehavior={false}
                     />
                 )}
             </SectionCard>
