@@ -47,6 +47,7 @@ from neo4j_source import NEO4JSource
 from postgres_source import PostgresDBSource
 from mysql_source import MySQLDBSource
 
+
 class DataRegistry(Registry):
     def __init__(self, name="DATA_REGISTRY", id=None, sid=None, cid=None, prefix=None, suffix=None, properties={}):
         super().__init__(name=name, id=id, sid=sid, cid=cid, prefix=prefix, suffix=suffix, properties=properties)
@@ -70,7 +71,7 @@ class DataRegistry(Registry):
         return super().list_records(type="source", scope="/")
 
     def get_source(self, source):
-        return super().get_record(source, '/')
+        return super().get_record(source, 'source')
 
     # description
     def get_source_description(self, source):
@@ -402,7 +403,7 @@ class DataRegistry(Registry):
 
             #### fetch collection schema
             schema = source_connection.fetch_database_collection_schema(database, collection)
-            
+
             entities = schema['entities']
             relations = schema['relations']
 

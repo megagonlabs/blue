@@ -61,7 +61,7 @@ class ModelRegistry(Registry):
         super().deregister(record, rebuild=rebuild)
 
     def get_model(self, model):
-        return super().get_record(model, '/')
+        return super().get_record(model, 'model')
 
     def get_model_description(self, model):
         return super().get_record_description(model, '/')
@@ -122,7 +122,7 @@ class ModelRegistry(Registry):
     def get_model_performance(self, model, metric=None, task=None, dataset=None, details=False):
         performance = self.get_model_property(model, 'performance')
         results = {}
-        if metric is None:  
+        if metric is None:
             if "macro" in performance:
                 if details:
                     return performance
@@ -167,7 +167,6 @@ class ModelRegistry(Registry):
             else:
                 return None
 
-
     def set_model_performance(self, model, value, metric=None, task=None, dataset=None):
         performance = self.get_model_property(model, 'performance')
         self._set_model_performance(model, value, performance, metric=metric, task=task, dataset=dataset)
@@ -195,7 +194,7 @@ class ModelRegistry(Registry):
 
             # metric performance data
             metric_performance = metrics[metric]
-                        
+
             if task is None:
                 # set macro value for metric
                 self.set_model_property(model, 'performance._metrics.' + metric + '.macro', value)
@@ -244,8 +243,6 @@ class ModelRegistry(Registry):
                         p_count = p_count + 1
                     p_macro = p_sum / p_count
                     self.set_model_performance(model, p_macro, metric=metric, task=task, dataset=None)
-
-
 
 
 #######################
