@@ -271,7 +271,7 @@ export default function GroupAgentSelector({
                 setIsGroupAgentSelectorDialogOpen(false);
             }}
             title="Agents"
-            style={{ width: 913 }}
+            style={{ width: 900 }}
         >
             <DialogBody>
                 <div style={{ display: "flex", gap: 15, alignItems: "center" }}>

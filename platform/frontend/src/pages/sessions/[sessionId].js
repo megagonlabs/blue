@@ -20,6 +20,7 @@ import {
     Button,
     Card,
     Classes,
+    Colors,
     ControlGroup,
     H4,
     Intent,
@@ -312,6 +313,7 @@ export default function SessionMessagePage() {
                         paddingTop: 1,
                         position: "relative",
                         paddingBottom: !_.isEmpty(progress) ? 31 : null,
+                        backgroundColor: Colors.WHITE,
                     }}
                 >
                     <Allotment separator={appState.session.showWorkspacePanel}>
@@ -390,6 +392,7 @@ export default function SessionMessagePage() {
                         padding: 20,
                         position: "relative",
                         height: 131,
+                        backgroundColor: Colors.WHITE,
                     }}
                 >
                     <ControlGroup fill style={{ height: "100%" }}>

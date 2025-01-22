@@ -162,12 +162,7 @@ export default function AgentEntity() {
                 setJsonError={setJsonError}
                 updateEntity={updateEntity}
             />
-            <Section
-                compact
-                collapsible
-                title="Inputs"
-                style={{ marginTop: 20 }}
-            >
+            <Section compact title="Inputs" style={{ marginTop: 20 }}>
                 <SectionCard padded={false}>
                     <HTMLTable
                         className="entity-section-card-table full-parent-width"
@@ -230,12 +225,7 @@ export default function AgentEntity() {
                     </HTMLTable>
                 </SectionCard>
             </Section>
-            <Section
-                compact
-                collapsible
-                title="Outputs"
-                style={{ marginTop: 20 }}
-            >
+            <Section compact title="Outputs" style={{ marginTop: 20 }}>
                 <SectionCard padded={false}>
                     <HTMLTable
                         className="entity-section-card-table full-parent-width"
@@ -298,12 +288,7 @@ export default function AgentEntity() {
                     </HTMLTable>
                 </SectionCard>
             </Section>
-            <Section
-                compact
-                collapsible
-                title="Agents"
-                style={{ marginTop: 20 }}
-            >
+            <Section compact title="Agents" style={{ marginTop: 20 }}>
                 <SectionCard padded={false}>
                     <HTMLTable
                         className="entity-section-card-table full-parent-width"
@@ -324,6 +309,7 @@ export default function AgentEntity() {
                                         <td>
                                             <Link
                                                 href={`${routerQueryPath}/agent/${element.name}`}
+                                                onClick={() => setEdit(false)}
                                             >
                                                 <Tag
                                                     style={{

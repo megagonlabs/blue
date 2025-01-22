@@ -129,12 +129,7 @@ export default function AgentGroupEntity() {
                 loading={loading}
                 updateEntity={updateEntity}
             />
-            <Section
-                compact
-                collapsible
-                title="Agents"
-                style={{ marginTop: 20 }}
-            >
+            <Section compact title="Agents" style={{ marginTop: 20 }}>
                 <SectionCard padded={false}>
                     <HTMLTable
                         className="entity-section-card-table full-parent-width"

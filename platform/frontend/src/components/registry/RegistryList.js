@@ -7,7 +7,6 @@ import {
     Button,
     Card,
     Classes,
-    Colors,
     Intent,
     NonIdealState,
 } from "@blueprintjs/core";
@@ -152,7 +151,6 @@ export default function RegistryList({ type }) {
                                     padding: 0,
                                     height: "100%",
                                     position: "relative",
-                                    backgroundColor: Colors.LIGHT_GRAY5,
                                     cursor: "pointer",
                                 }}
                             >
