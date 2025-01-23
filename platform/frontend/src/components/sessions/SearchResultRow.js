@@ -21,24 +21,22 @@ import axios from "axios";
 import copy from "copy-to-clipboard";
 import _ from "lodash";
 import { useRouter } from "next/router";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useMemo, useState } from "react";
 import { AppContext } from "../contexts/app-context";
 export default function SearchResultRow({ sessionId, style = {} }) {
     const { appState, appActions } = useContext(AppContext);
     const { pinnedSessionIds, sessionDetails, unreadSessionIds } =
         appState.session;
     const sessionName = _.get(sessionDetails, [sessionId, "name"], sessionId);
-    const [sessionDisplayName, setSessionDisplayName] = useState(sessionName);
-    useEffect(() => {
+    const sessionDisplayName = useMemo(() => {
         if (_.isEqual(sessionId, sessionName)) {
             const utcSeconds = sessionDetails[sessionId].created_date;
             let date = new Date(0); // The 0 here sets the date to the epoch
             date.setUTCSeconds(utcSeconds);
-            setSessionDisplayName(date.toLocaleString());
-        } else {
-            setSessionDisplayName(sessionName);
+            return date.toLocaleString();
         }
-    }, [sessionName, sessionDetails, sessionId]);
+        return sessionName;
+    }, [sessionDetails]);
     const sessionDescription = _.get(
         sessionDetails,
         [sessionId, "description"],

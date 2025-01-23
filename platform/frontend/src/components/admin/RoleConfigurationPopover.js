@@ -59,7 +59,7 @@ const ROLE_PERMISSIONS = {
                 <li>
                     {READ_TAG}
                     {WRITE_TAG}
-                    any sessions
+                    any session
                 </li>
             </ul>
         </>
@@ -102,7 +102,7 @@ const ROLE_PERMISSIONS = {
                 <li>
                     {WRITE_TAG}
                     operations in agent / data registries for any agent / data
-                    they created
+                    they own
                     <ul className={Classes.LIST}>
                         <li>deploy and stop agents</li>
                     </ul>
@@ -257,8 +257,6 @@ export default function RoleConfigurationPopover({
                                         null
                                     ),
                                 })}
-                                collapsible
-                                collapseProps={{ defaultIsOpen: false }}
                             >
                                 <SectionCard
                                     className="role-configuration-permission-list"

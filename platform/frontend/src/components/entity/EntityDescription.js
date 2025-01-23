@@ -7,12 +7,7 @@ export default function EntityDescription({
     loading = false,
 }) {
     return (
-        <Section
-            compact
-            collapsible={!edit}
-            title="Description"
-            style={{ marginTop: 20 }}
-        >
+        <Section compact title="Description" style={{ marginTop: 20 }}>
             <SectionCard
                 style={{ whiteSpace: !edit ? "pre-wrap" : null }}
                 onDoubleClick={(event) => {
