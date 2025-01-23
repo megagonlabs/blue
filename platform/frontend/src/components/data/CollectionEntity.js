@@ -31,12 +31,7 @@ export default function CollectionEntity() {
             <EntityMain entity={entity} loading={loading} />
             <EntityDescription entity={entity} loading={loading} />
             <EntityProperties entity={entity} loading={loading} />
-            <Section
-                collapsible
-                compact
-                title="Entities"
-                style={{ marginTop: 20 }}
-            >
+            <Section compact title="Entities" style={{ marginTop: 20 }}>
                 <SectionCard padded={false}>
                     <HTMLTable
                         className="entity-section-card-table"
@@ -81,12 +76,7 @@ export default function CollectionEntity() {
                     </HTMLTable>
                 </SectionCard>
             </Section>
-            <Section
-                compact
-                collapsible
-                title="Relations"
-                style={{ marginTop: 20 }}
-            >
+            <Section compact title="Relations" style={{ marginTop: 20 }}>
                 <SectionCard padded={false}>
                     <HTMLTable
                         className="entity-section-card-table"

@@ -120,12 +120,7 @@ export default function SourceEntity() {
                 setJsonError={setJsonError}
                 updateEntity={updateEntity}
             />
-            <Section
-                compact
-                collapsible
-                title="Databases"
-                style={{ marginTop: 20 }}
-            >
+            <Section compact title="Databases" style={{ marginTop: 20 }}>
                 <SectionCard padded={false}>
                     <HTMLTable
                         className="entity-section-card-table"
