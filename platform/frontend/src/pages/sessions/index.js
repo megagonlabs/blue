@@ -8,6 +8,7 @@ import {
     H4,
     H5,
     InputGroup,
+    Intent,
     NonIdealState,
     Popover,
     Radio,
@@ -21,7 +22,7 @@ import {
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import axios from "axios";
 import _ from "lodash";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useMemo, useState } from "react";
 import AutoSizer from "react-virtualized-auto-sizer";
 import { FixedSizeList } from "react-window";
 export default function AllSessions() {
@@ -34,14 +35,8 @@ export default function AllSessions() {
         sessionGroupBy,
     } = appState.session;
     const [loading, setLoading] = useState(false);
-    const [allSessions, setAllSessions] = useState([]);
     const [keywords, setKeywords] = useState(filter.keywords);
-    const [search, setSearch] = useState(false);
-    const searchSessions = (searchTerm) => {
-        appActions.session.setState({
-            key: "filter",
-            value: { keywords: searchTerm },
-        });
+    const allSessions = useMemo(() => {
         let result = sessionIds
             .filter((id) => {
                 const groupByFlag = _.get(
@@ -52,15 +47,15 @@ export default function AllSessions() {
                 return _.isEqual(sessionGroupBy, "all") || groupByFlag;
             })
             .filter((id) => {
-                if (_.includes(id, searchTerm)) return true;
+                if (_.includes(id, filter.keywords)) return true;
                 const name = _.get(sessionDetails, [id, "name"], id);
-                if (_.includes(name, searchTerm)) return true;
+                if (_.includes(name, filter.keywords)) return true;
                 const description = _.get(
                     sessionDetails,
                     [id, "description"],
                     id
                 );
-                if (_.includes(description, searchTerm)) return true;
+                if (_.includes(description, filter.keywords)) return true;
                 return false;
             })
             .sort((a, b) => {
@@ -86,12 +81,14 @@ export default function AllSessions() {
                 break;
             }
         }
-        setAllSessions(result);
-        setSearch(!_.isEmpty(searchTerm));
-    };
-    useEffect(() => {
-        searchSessions(keywords);
-    }, [sessionIds, pinnedSessionIds, sessionGroupBy, sessionDetails]); // eslint-disable-line react-hooks/exhaustive-deps
+        return result;
+    }, [
+        sessionIds,
+        pinnedSessionIds,
+        sessionGroupBy,
+        sessionDetails,
+        filter.keywords,
+    ]);
     useEffect(() => {
         // automatically fetch all existing sessions onload
         setLoading(true);
@@ -177,21 +174,26 @@ export default function AllSessions() {
                             leftIcon={faIcon({ icon: faSearch })}
                             onKeyDown={(event) => {
                                 if (_.isEqual(event.key, "Enter")) {
-                                    searchSessions(event.target.value);
+                                    appActions.session.setState({
+                                        key: "filter",
+                                        value: { keywords },
+                                    });
                                 }
                             }}
                             rightElement={
-                                !_.isEmpty(keywords) || search ? (
+                                !_.isEmpty(filter.keywords) && (
                                     <Button
                                         minimal
                                         onClick={() => {
                                             setKeywords("");
-                                            setSearch(false);
-                                            searchSessions("");
+                                            appActions.session.setState({
+                                                key: "filter",
+                                                value: { keywords: "" },
+                                            });
                                         }}
                                         icon={faIcon({ icon: faTimes })}
                                     />
-                                ) : null
+                                )
                             }
                         />
                         <Popover
@@ -218,7 +220,10 @@ export default function AllSessions() {
                                         {[
                                             { value: "all", text: "All" },
                                             { value: "owner", text: "My" },
-                                            { value: "member", text: "Shared" },
+                                            {
+                                                value: "member",
+                                                text: "Shared",
+                                            },
                                         ].map(({ value, text }, index) => (
                                             <Radio
                                                 className={
@@ -237,8 +242,9 @@ export default function AllSessions() {
                             }
                         >
                             <Button
-                                large
+                                intent={Intent.PRIMARY}
                                 outlined
+                                large
                                 text="Filter"
                                 rightIcon={faIcon({ icon: faBarsFilter })}
                             />
@@ -248,7 +254,7 @@ export default function AllSessions() {
             </div>
             <div style={{ height: "calc(100% - 101px)" }}>
                 <H4 style={{ margin: "0px 0px 10px 20px" }}>
-                    {search ? "Search Results" : "Contents"}
+                    {filter.keywords ? "Search Results" : "Contents"}
                 </H4>
                 <div
                     style={{

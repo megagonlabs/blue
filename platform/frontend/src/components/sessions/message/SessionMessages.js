@@ -470,6 +470,7 @@ export default function SessionMessages() {
                     >
                         <ButtonGroup large minimal>
                             <Button
+                                intent={Intent.PRIMARY}
                                 alignText={Alignment.LEFT}
                                 icon={faIcon({ icon: faBarsFilter })}
                                 text={_.size(sessionMessageFilterTags)}

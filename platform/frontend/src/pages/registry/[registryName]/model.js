@@ -235,6 +235,7 @@ export default function Model() {
                                 }
                                 large
                                 outlined
+                                intent={Intent.PRIMARY}
                                 text="Filter"
                                 rightIcon={faIcon({ icon: faBarsFilter })}
                             />
