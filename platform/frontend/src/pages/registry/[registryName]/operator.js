@@ -242,6 +242,7 @@ export default function Operator() {
                                 }
                                 large
                                 outlined
+                                intent={Intent.PRIMARY}
                                 text="Filter"
                                 rightIcon={faIcon({ icon: faBarsFilter })}
                             />

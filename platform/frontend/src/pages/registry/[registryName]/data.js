@@ -250,6 +250,7 @@ export default function Data() {
                                 }
                                 large
                                 outlined
+                                intent={Intent.PRIMARY}
                                 text="Filter"
                                 rightIcon={faIcon({ icon: faBarsFilter })}
                             />
