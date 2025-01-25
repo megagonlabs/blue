@@ -44,7 +44,6 @@ class PlatformPerformanceTracker(PerformanceTracker):
         platform_group = MetricGroup(id="platform", label="Platform Info", visibility=False)
         self.data.add(platform_group)
 
-
         # platform info
         name_metric = Metric(id="name", label="Name", value=self.platform.name, visibility=False)
         platform_group.add(name_metric)
@@ -67,7 +66,9 @@ class PlatformPerformanceTracker(PerformanceTracker):
         db_connections_group.add(num_created_connections_metric)
         num_in_use_connections_metric = Metric(id="num_in_use_connections", label="Num In Use Connections", type="series", value=self.platform.connection_factory.count_in_use_connections())
         db_connections_group.add(num_in_use_connections_metric)
-        num_available_connections_metric = Metric(id="num_available_connections", label="Num Available Connections", type="series", value=self.platform.connection_factory.count_available_connections())
+        num_available_connections_metric = Metric(
+            id="num_available_connections", label="Num Available Connections", type="series", value=self.platform.connection_factory.count_available_connections()
+        )
         db_connections_group.add(num_available_connections_metric)
 
         return self.data.toDict()
@@ -199,10 +200,10 @@ class Platform:
     ###### METADATA RELATED
     def create_update_user(self, user):
         uid = user['uid']
-        default_user_role = self.get_metadata(f'settings.default_user_role')
+        default_user_role = self.get_metadata('settings.default_user_role')
         if pydash.is_empty(default_user_role):
             default_user_role = 'guest'
-        default_user_settings = self.get_metadata(f'settings.default_user_settings')
+        default_user_settings = self.get_metadata('settings.default_user_settings')
         if pydash.is_empty(default_user_settings):
             default_user_settings = {}
         # create user profile with guest role if does not exist
