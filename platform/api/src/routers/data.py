@@ -276,6 +276,20 @@ def delete_source_database_collection(request: Request, source_name, database_na
     return JSONResponse(content={"message": "Success"})
 
 
+@router.get("/{source_name}/database/{database_name}/collection/{collection_name}/entity/{entity_name}")
+def get_data_source_database_collection_entity(request: Request, source_name, database_name, collection_name, entity_name):
+    acl_enforce(request.state.user['role'], 'data_registry', 'read_all')
+    result = data_registry.get_source_database_collection_entity(source_name, database_name, collection_name, entity_name)
+    return JSONResponse(content={"result": result})
+
+
+@router.get("/{source_name}/database/{database_name}/collection/{collection_name}/relation/{relation_name}")
+def get_data_source_database_collection_relation(request: Request, source_name, database_name, collection_name, relation_name):
+    acl_enforce(request.state.user['role'], 'data_registry', 'read_all')
+    result = data_registry.get_source_database_collection_relation(source_name, database_name, collection_name, relation_name)
+    return JSONResponse(content={"result": result})
+
+
 ### sync entities
 @router.put('/{source_name}/sync')
 def sync_source(request: Request, source_name, recursive: bool = False):
