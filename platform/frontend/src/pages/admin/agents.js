@@ -278,6 +278,7 @@ export default function Agents() {
                             icon={faIcon({ icon: faArrowDownToLine })}
                         />
                     </Tooltip>
+                    <Divider />
                     <Popover
                         placement="bottom"
                         content={

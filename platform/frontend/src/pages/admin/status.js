@@ -20,6 +20,7 @@ import {
     Menu,
     MenuDivider,
     MenuItem,
+    NonIdealState,
     Popover,
     Tooltip,
 } from "@blueprintjs/core";
@@ -28,6 +29,7 @@ import {
     faForward,
     faSearch,
     faTimes,
+    faWavePulse,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import _ from "lodash";
 import { useContext, useEffect, useMemo, useRef, useState } from "react";
@@ -320,18 +322,25 @@ export default function Status() {
                     height: "calc(100% - 50px)",
                 }}
             >
-                {trackerList.map((tracker, index) => (
-                    <div
-                        className={`tracker-card-${tracker}`}
-                        key={index}
-                        style={{
-                            marginTop: index > 0 ? 21 : 0,
-                            scrollMargin: 20,
-                        }}
-                    >
-                        <TrackerCard tracker={tracker} />
-                    </div>
-                ))}
+                {_.isEmpty(trackerList) ? (
+                    <NonIdealState
+                        title="No Status"
+                        icon={faIcon({ icon: faWavePulse, size: 50 })}
+                    />
+                ) : (
+                    trackerList.map((tracker, index) => (
+                        <div
+                            className={`tracker-card-${tracker}`}
+                            key={index}
+                            style={{
+                                marginTop: index > 0 ? 21 : 0,
+                                scrollMargin: 20,
+                            }}
+                        >
+                            <TrackerCard tracker={tracker} />
+                        </div>
+                    ))
+                )}
             </div>
         </>
     );
