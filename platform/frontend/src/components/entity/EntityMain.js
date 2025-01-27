@@ -438,45 +438,47 @@ export default function EntityMain({
                                                         />
                                                     </Popover>
                                                 )}
-                                                <MenuDivider />
                                                 {canEditEntity && (
-                                                    <Popover
-                                                        placement="left"
-                                                        className="full-parent-width"
-                                                        content={
-                                                            <div
-                                                                style={{
-                                                                    padding: 15,
-                                                                }}
-                                                            >
-                                                                <Button
-                                                                    onClick={
-                                                                        deleteEntity
-                                                                    }
-                                                                    className={
-                                                                        Classes.POPOVER_DISMISS
-                                                                    }
-                                                                    text="Confirm"
-                                                                    intent={
-                                                                        Intent.DANGER
-                                                                    }
-                                                                />
-                                                            </div>
-                                                        }
-                                                    >
-                                                        <MenuItem
-                                                            shouldDismissPopover={
-                                                                false
+                                                    <>
+                                                        <MenuDivider />
+                                                        <Popover
+                                                            placement="left"
+                                                            className="full-parent-width"
+                                                            content={
+                                                                <div
+                                                                    style={{
+                                                                        padding: 15,
+                                                                    }}
+                                                                >
+                                                                    <Button
+                                                                        onClick={
+                                                                            deleteEntity
+                                                                        }
+                                                                        className={
+                                                                            Classes.POPOVER_DISMISS
+                                                                        }
+                                                                        text="Confirm"
+                                                                        intent={
+                                                                            Intent.DANGER
+                                                                        }
+                                                                    />
+                                                                </div>
                                                             }
-                                                            intent={
-                                                                Intent.DANGER
-                                                            }
-                                                            icon={faIcon({
-                                                                icon: faTrash,
-                                                            })}
-                                                            text="Delete"
-                                                        />
-                                                    </Popover>
+                                                        >
+                                                            <MenuItem
+                                                                shouldDismissPopover={
+                                                                    false
+                                                                }
+                                                                intent={
+                                                                    Intent.DANGER
+                                                                }
+                                                                icon={faIcon({
+                                                                    icon: faTrash,
+                                                                })}
+                                                                text="Delete"
+                                                            />
+                                                        </Popover>
+                                                    </>
                                                 )}
                                             </Menu>
                                         }
