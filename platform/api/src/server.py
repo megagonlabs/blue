@@ -120,7 +120,7 @@ async def lifespan(app: FastAPI):
     def session_cleanup(sessions):
         connection_manager: ConnectionManager = app.connection_manager
         print('session cleanup', time.time())
-        print(sessions, connection_manager.active_connections)
+        print(sessions)
 
     p._init_session_cleanup_scheduler(callback=session_cleanup)
     p._start_session_cleanup_job()
