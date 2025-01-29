@@ -1,4 +1,6 @@
 import { AppContext } from "@/components/contexts/app-context";
+import { SocketContext } from "@/components/contexts/socket-context";
+import { useSocket } from "@/components/hooks/useSocket";
 import { faIcon } from "@/components/icon";
 import SearchResultRow from "@/components/sessions/SearchResultRow";
 import {
@@ -17,6 +19,7 @@ import {
 import {
     faBarsFilter,
     faInboxes,
+    faSatelliteDish,
     faSearch,
     faTimes,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
@@ -27,6 +30,8 @@ import AutoSizer from "react-virtualized-auto-sizer";
 import { FixedSizeList } from "react-window";
 export default function AllSessions() {
     const { appState, appActions } = useContext(AppContext);
+    const { socket, reconnectWs, isSocketOpen } = useSocket();
+    const { authenticating } = useContext(SocketContext);
     const {
         sessionIds,
         sessionDetails,
@@ -270,6 +275,27 @@ export default function AllSessions() {
                                 className={loading ? Classes.SKELETON : null}
                                 icon={faIcon({ icon: faInboxes, size: 50 })}
                                 title={`No Session`}
+                                action={
+                                    !isSocketOpen && (
+                                        <Button
+                                            icon={faIcon({
+                                                icon: faSatelliteDish,
+                                            })}
+                                            onClick={reconnectWs}
+                                            intent={Intent.PRIMARY}
+                                            large
+                                            loading={
+                                                (!_.isNil(socket) &&
+                                                    _.isEqual(
+                                                        socket.readyState,
+                                                        WebSocket.CONNECTING
+                                                    )) ||
+                                                authenticating
+                                            }
+                                            text="Connect"
+                                        />
+                                    )
+                                }
                             />
                         </div>
                     ) : (
