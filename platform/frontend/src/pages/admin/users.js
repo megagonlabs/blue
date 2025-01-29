@@ -171,6 +171,7 @@ export default function Users() {
                             icon={faIcon({ icon: faRefresh })}
                         />
                     </Tooltip>
+                    <Divider />
                     <Tooltip
                         openOnTargetFocus={false}
                         placement="bottom"
@@ -183,7 +184,6 @@ export default function Users() {
                             icon={faIcon({ icon: faCog })}
                         />
                     </Tooltip>
-                    <Divider />
                     <Tooltip
                         openOnTargetFocus={false}
                         placement="bottom"
