@@ -12,7 +12,7 @@ export const adminAction = (dispatch) => ({
     removeSelectedService: (payload) =>
         dispatch({ type: "admin/selectedServices/remove", payload }),
     setUserList: (payload) => dispatch({ type: "admin/users/set", payload }),
-    setAgentsList: (payload) => dispatch({ type: "admin/agents/set", payload }),
+    setAgentList: (payload) => dispatch({ type: "admin/agents/set", payload }),
     setServiceList: (payload) =>
         dispatch({ type: "admin/services/set", payload }),
     setState: (payload) => dispatch({ type: "admin/state/set", payload }),
