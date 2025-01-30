@@ -38,7 +38,6 @@ import {
     faCircleA,
     faClipboard,
     faPlusLarge,
-    faSatelliteDish,
     faSignalStreamSlash,
     faTableColumns,
     faTableLayout,
@@ -53,7 +52,7 @@ import { useRouter } from "next/router";
 import { useContext, useEffect, useMemo, useRef, useState } from "react";
 export default function SessionMessagePage() {
     const router = useRouter();
-    const { socket, reconnectWs, isSocketOpen } = useSocket();
+    const { socket, isSocketOpen } = useSocket();
     const { appState, appActions } = useContext(AppContext);
     const { sessionId } = router.query;
     const sessionDetails = _.get(
@@ -149,23 +148,6 @@ export default function SessionMessagePage() {
                     _.isEqual(socket.readyState, WebSocket.CONNECTING)
                         ? "Connecting"
                         : "No connection"
-                }
-                action={
-                    <Button
-                        icon={faIcon({ icon: faSatelliteDish })}
-                        onClick={reconnectWs}
-                        intent={Intent.PRIMARY}
-                        large
-                        loading={
-                            (!_.isNil(socket) &&
-                                _.isEqual(
-                                    socket.readyState,
-                                    WebSocket.CONNECTING
-                                )) ||
-                            authenticating
-                        }
-                        text="Connect"
-                    />
                 }
             />
         );
