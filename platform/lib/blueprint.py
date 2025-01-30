@@ -80,26 +80,27 @@ class PlatformPerformanceTracker(PerformanceTracker):
 class SessionCleanupScheduler(Scheduler):
     def __init__(self, platform, callback):
         super().__init__(task=self.__session_cleanup)
-        self.platform = platform
+        self.platform: Platform = platform
         self.callback = callback
 
     def __session_cleanup(self):
         sessions = self.platform.get_sessions()
         deleted_sessions = []
-        # TODO: fetch user defined duration under platform metadata session_expiration_duration
-        duration = 2
+        session_expiration_duration = self.platform.get_metadata('settings.session_expiration_duration')
+        # default 3 days
+        if pydash.is_empty(session_expiration_duration):
+            session_expiration_duration = 3
         for session in sessions:
             epoch = pydash.objects.get(session, 'last_activity_date', session['created_date'])
             elapsed = datetime.datetime.now() - datetime.datetime.fromtimestamp(epoch)
-            # if no activity for 2 days
-            if elapsed.days >= duration:
+            if elapsed.days >= session_expiration_duration:
                 self.platform.delete_session(session['id'])
                 deleted_sessions.append(session['id'])
         if pydash.is_function(self.callback):
             self.callback(deleted_sessions)
 
     def set_job(self):
-        self.job = self.scheduler.every(10).seconds
+        self.job = self.scheduler.every().day.at('00:00')
 
 
 class Platform:
