@@ -1,6 +1,5 @@
 ###### OS / Systems
 import asyncio
-import time
 
 should_stop = asyncio.Event()
 import signal
@@ -74,7 +73,7 @@ print("blue-platform-api: " + version)
 logging.getLogger().setLevel("INFO")
 
 ###### Initialization
-p = Platform(id=platform_id, properties=PROPERTIES)
+p = Platform(id=platform_id, properties={**PROPERTIES, 'settings.session_expiration_duration': 2})
 
 ## Create Registries, Load
 agent_registry = AgentRegistry(id=agent_registry_id, prefix=prefix, properties=PROPERTIES)
