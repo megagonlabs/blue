@@ -301,10 +301,9 @@ class Platform:
         self._tracker = PlatformPerformanceTracker(self, properties=self.properties, callback=lambda *args, **kwargs: self.perf_tracker_callback(*args, **kwargs))
 
     def _init_session_cleanup_scheduler(self, callback=None):
-        keys = ['default_session_expiration_duration']
-        for key in keys:
-            if key in self.properties:
-                self.set_metadata(key, self.properties[key], nx=True)
+        key = 'default_session_expiration_duration'
+        if key in self.properties:
+            self.set_metadata('settings.session_expiration_duration', self.properties[key], nx=True)
         self.session_cleanup_scheduler = SessionCleanupScheduler(platform=self, callback=callback)
 
     def _start_session_cleanup_job(self):
