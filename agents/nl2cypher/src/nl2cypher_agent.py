@@ -1,45 +1,19 @@
-###### OS / Systems
-import os
-import sys
-
-###### Add lib path
-sys.path.append("./lib/")
-sys.path.append("./lib/agent/")
-sys.path.append('./lib/openai/')
-sys.path.append("./lib/platform/")
-sys.path.append("./lib/utils/")
-sys.path.append('./lib/data_registry/')
-
-######
-import time
+###### Parsers, Formats, Utils
 import argparse
 import logging
-import time
-import uuid
-import random
-
-###### Parsers, Formats, Utils
-import re
-import csv
 import json
 
-import itertools
-from tqdm import tqdm
-
 ###### Blue
-from agent import Agent, AgentFactory
-from openai_agent import OpenAIAgent
-from data_registry import DataRegistry
-from session import Session
-from message import Message, MessageType, ContentType, ControlCode
+from blue.agent import Agent, AgentFactory
+from blue.agents.openai import OpenAIAgent
+from blue.session import Session
+from blue.data.registry import DataRegistry
+
 
 # set log level
 logging.getLogger().setLevel(logging.INFO)
-logging.basicConfig(
-    format="%(asctime)s [%(levelname)s] [%(process)d:%(threadName)s:%(thread)d](%(filename)s:%(lineno)d) %(name)s -  %(message)s",
-    level=logging.ERROR,
-    datefmt="%Y-%m-%d %H:%M:%S",
-)
+logging.basicConfig(format="%(asctime)s [%(levelname)s] [%(process)d:%(threadName)s:%(thread)d](%(filename)s:%(lineno)d) %(name)s -  %(message)s", level=logging.ERROR, datefmt="%Y-%m-%d %H:%M:%S")
+
 
 NL2CYPHER_PROMPT = """Your task is to translate a natural language question into a Cypher query based on the schema of a Neo4j knowledge graph.
 
@@ -84,7 +58,9 @@ nl2cypher_properties = {
 }
 
 
-#######################
+############################
+### OpenAIAgent.Nl2CypherAgent
+#
 class Nl2CypherAgent(OpenAIAgent):
     def __init__(self, **kwargs):
         if 'name' not in kwargs:
@@ -122,7 +98,7 @@ class Nl2CypherAgent(OpenAIAgent):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--name', default="SQLFORGE", type=str)
+    parser.add_argument('--name', default="NL2CYPHER", type=str)
     parser.add_argument('--session', type=str)
     parser.add_argument('--properties', type=str)
     parser.add_argument('--loglevel', default="INFO", type=str)

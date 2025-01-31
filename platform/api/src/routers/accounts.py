@@ -1,12 +1,5 @@
 ###### OS / Systems
 import os
-import sys
-
-###### Add lib path
-sys.path.append("./lib/")
-sys.path.append("./lib/agent_registry/")
-sys.path.append("./lib/data_registry/")
-sys.path.append("./lib/platform/")
 
 ###### Parsers, Formats, Utils
 import re
@@ -31,7 +24,7 @@ from fastapi.responses import JSONResponse
 from settings import EMAIL_DOMAIN_WHITE_LIST, PROPERTIES, ROLE_PERMISSIONS, SECURE_COOKIE
 
 ### Assign from platform properties
-from blueprint import Platform
+from blue.platform import Platform
 
 platform_id = PROPERTIES["platform.name"]
 PLATFORM_PREFIX = f'/blue/platform/{platform_id}'

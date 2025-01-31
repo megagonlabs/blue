@@ -1,16 +1,10 @@
 ###### OS / Systems
 from curses import noecho
-import sys
 
 from fastapi import Depends, Request
 import pydash
 
 from constant import BANNED_ENTITY_NAMES, PermissionDenied, account_id_header, acl_enforce
-
-###### Add lib path
-sys.path.append("./lib/")
-sys.path.append("./lib/agent_registry/")
-sys.path.append("./lib/platform/")
 
 
 ###### Parsers, Formats, Utils
@@ -53,9 +47,8 @@ JSONStructure = Union[JSONArray, JSONObject, Any]
 
 
 ###### Blue
-from session import Session
-from blueprint import Platform
-from agent_registry import AgentRegistry
+from blue.platform import Platform
+from blue.agent import AgentRegistry
 
 
 ###### Properties

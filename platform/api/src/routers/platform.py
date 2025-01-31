@@ -15,7 +15,6 @@ sys.path.append("./lib/platform/")
 ###### Parsers, Formats, Utils
 import json
 import logging
-from utils import json_utils
 import copy
 
 ###### Docker
@@ -35,10 +34,9 @@ JSONArray = List[Any]
 JSONStructure = Union[JSONArray, JSONObject, Any]
 ######
 
-
 ###### Blue
-from blueprint import Platform
-from agent_registry import AgentRegistry
+from blue.platform import Platform
+from blue.agent import AgentRegistry
 
 
 ###### Properties

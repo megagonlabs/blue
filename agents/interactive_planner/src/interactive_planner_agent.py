@@ -1,58 +1,19 @@
-###### OS / Systems
-import os
-import sys
-
-###### Add lib path
-sys.path.append('./lib/')
-sys.path.append('./lib/agent/')
-sys.path.append('./lib/apicaller/')
-sys.path.append('./lib/openai/')
-sys.path.append('./lib/platform/')
-sys.path.append('./lib/agent_registry')
-sys.path.append('./lib/utils/')
-
-######
-import time
+###### Parsers, Formats, Utils
 import argparse
 import logging
-import time
-import uuid
-import random
-
-###### Parsers, Formats, Utils
-import re
-import csv
 import json
-from utils import json_utils
-from string import Template
-import copy
-
-import itertools
-from tqdm import tqdm
-
-###### Communication
-import asyncio
-from websockets.sync.client import connect
-
 
 ###### Blue
-from agent import Agent, AgentFactory
-from api_agent import APIAgent
-from session import Session
-from producer import Producer
-from consumer import Consumer
-
-from openai_agent import OpenAIAgent
-from agent_registry import AgentRegistry
-from message import Message, MessageType, ContentType, ControlCode
+from blue.agent import AgentFactory, AgentRegistry
+from blue.agents.openai import OpenAIAgent
+from blue.session import Session
+from blue.stream import ControlCode
+from blue.utils import string_utils, json_utils, uuid_utils
 
 # set log level
 logging.getLogger().setLevel(logging.INFO)
 logging.basicConfig(format="%(asctime)s [%(levelname)s] [%(process)d:%(threadName)s:%(thread)d](%(filename)s:%(lineno)d) %(name)s -  %(message)s", level=logging.ERROR, datefmt="%Y-%m-%d %H:%M:%S")
 
-
-def create_uuid():
-    return str(hex(uuid.uuid4().fields[0]))[2:]
 
 ## --properties '{"openai.api":"ChatCompletion","openai.model":"gpt-4","output_path":"$.choices[0].message.content","listens":{"includes":["USER"],"excludes":[]},"tags": ["TRIPLE"], "input_json":"[{\"role\":\"user\"}]","input_context":"$[0]","input_context_field":"content","input_field":"messages","input_template":"Examine the text below and identify a task plan  thatcan be fulfilled by various agents. Specify plan in JSON format, where each agent has attributes of name, description, input and output parameters with names and descriptions:\n{input}",  "openai.temperature":0,"openai.max_tokens":256,"openai.top_p":1,"openai.frequency_penalty":0,"openai.presence_penalty":0}'
 interactive_planner_properties = {
@@ -179,7 +140,7 @@ PLAN:",
 class InteractivePlannerAgent(OpenAIAgent):
     def __init__(self, **kwargs):
         if 'name' not in kwargs:
-            kwargs['name'] = "PLANNER"
+            kwargs['name'] = "INTERACTIVE_PLANNER"
         super().__init__(**kwargs)
 
     def _initialize(self, properties=None):
@@ -424,8 +385,7 @@ class InteractivePlannerAgent(OpenAIAgent):
         to_agent_params = params
 
 
-        plan_schema_t = Template(plan_schema_template)
-        plan_schema = plan_schema_t.substitute(from_agent_list=from_agent_list, from_agent_params=from_agent_params, to_agent_list=to_agent_list, to_agent_params=to_agent_params)
+        plan_schema = string_utils.safe_substitute(plan_schema_template, from_agent_list=from_agent_list, from_agent_params=from_agent_params, to_agent_list=to_agent_list, to_agent_params=to_agent_params)
         logging.info(plan_schema)
         plan_schema = json.loads(plan_schema)
 
@@ -444,8 +404,7 @@ class InteractivePlannerAgent(OpenAIAgent):
             to_agent_description = ""
             to_agent_param = to_split[1]
 
-            step_data_t = Template(step_data_template)
-            step_data = step_data_t.substitute(index=index, from_agent=from_agent, from_agent_param=from_agent_param, to_agent=to_agent, to_agent_param=to_agent_param)
+            step_data = string_utils.safe_substitute(step_data_template, index=index, from_agent=from_agent, from_agent_param=from_agent_param, to_agent=to_agent, to_agent_param=to_agent_param)
             logging.info(step_data)
             step_data = json.loads(step_data)
 
@@ -555,7 +514,7 @@ class InteractivePlannerAgent(OpenAIAgent):
                 interactive_plan = self.handle_api_call(stream_data)
 
                 # plan id and context 
-                plan_id = create_uuid()
+                plan_id = uuid_utils.create_uuid()
                 plan_context = {
                     "scope": stream[:-7], # omit ":STREAM"
                     "streams": {
@@ -574,7 +533,7 @@ class InteractivePlannerAgent(OpenAIAgent):
                 # plan_data = interactive_plan['data']['steps']
                 # plan_dag = self.standardize_plan(plan_data)
                 # plan = {
-                #     "id": create_uuid(),
+                #     "id": uuid_utils.create_uuid(),
                 #     "steps": plan_dag,
                 #     "context": plan_context
                 # }

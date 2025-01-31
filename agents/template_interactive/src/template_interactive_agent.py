@@ -1,48 +1,21 @@
-###### OS / Systems
-import os
-import sys
-
-import pydash
-
-###### Add lib path
-sys.path.append("./lib/")
-sys.path.append("./lib/agent/")
-sys.path.append("./lib/platform/")
-sys.path.append("./lib/utils/")
-
-######
-import time
+###### Parsers, Formats, Utils
 import argparse
 import logging
-import time
-import uuid
-import random
-
-###### Parsers, Formats, Utils
-import re
-import csv
 import json
-
-import itertools
-from tqdm import tqdm
+import pydash
 
 ###### Blue
-from agent import Agent, AgentFactory
-from session import Session
-from producer import Producer
-from consumer import Consumer
-from message import Message, MessageType, ContentType, ControlCode
+from blue.agent import Agent, AgentFactory
+from blue.session import Session
+from blue.stream import ControlCode, Message
 
 # set log level
 logging.getLogger().setLevel(logging.INFO)
-logging.basicConfig(
-    format="%(asctime)s [%(levelname)s] [%(process)d:%(threadName)s:%(thread)d](%(filename)s:%(lineno)d) %(name)s -  %(message)s",
-    level=logging.ERROR,
-    datefmt="%Y-%m-%d %H:%M:%S",
-)
+logging.basicConfig(format="%(asctime)s [%(levelname)s] [%(process)d:%(threadName)s:%(thread)d](%(filename)s:%(lineno)d) %(name)s -  %(message)s", level=logging.ERROR, datefmt="%Y-%m-%d %H:%M:%S")
 
-
-#######################
+############################
+### Agent.TemplateInteractiveAgent
+#
 class TemplateInteractiveAgent(Agent):
     def __init__(self, **kwargs):
         if 'name' not in kwargs:

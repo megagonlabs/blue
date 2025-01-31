@@ -1,3 +1,4 @@
+blue-py==0.9
 jsonmerge==1.9.2
 jsonpath_ng==1.5.3
 neo4j==5.12.0

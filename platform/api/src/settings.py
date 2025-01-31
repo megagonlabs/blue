@@ -33,7 +33,7 @@ DISABLE_AUTHENTICATION = os.getenv('DISABLE_AUTHENTICATION', 'False').lower() ==
 import casbin
 
 ##### Blue
-from blueprint import Platform
+from blue.platform import Platform
 
 ACL = casbin.Enforcer(os.path.join(PROPERTIES["rbac.config.folder"], "model.conf"), os.path.join(PROPERTIES["rbac.config.folder"], "policy.csv"))
 

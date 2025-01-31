@@ -6,7 +6,7 @@ from redis import Redis
 from APIRouter import APIRouter
 from constant import END_OF_SSE_SIGNAL, account_id_header
 from settings import PROPERTIES
-from connection import PooledConnectionFactory
+from blue.connection import PooledConnectionFactory
 import asyncio
 from server import should_stop
 

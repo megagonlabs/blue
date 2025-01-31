@@ -14,16 +14,10 @@ import pydash
 from constant import END_OF_SSE_SIGNAL, PermissionDenied, account_id_header, acl_enforce
 from server import should_stop
 
-###### Add lib path
-sys.path.append("./lib/")
-sys.path.append("./lib/agent_registry/")
-sys.path.append("./lib/platform/")
-
 
 ###### Parsers, Formats, Utils
 import json
 import logging
-from utils import json_utils
 
 ###### Docker
 import docker
@@ -44,8 +38,9 @@ JSONStructure = Union[JSONArray, JSONObject, Any]
 
 
 ###### Blue
-from blueprint import Platform
-from agent_registry import AgentRegistry
+from blue.platform import Platform
+from blue.agent import AgentRegistry
+from blue.utils import json_utils
 
 
 ###### Properties

@@ -1,66 +1,35 @@
-###### OS / Systems
-from ctypes import util
-import os
-import sys
-
-###### Add lib path
-sys.path.append("./lib/")
-sys.path.append("./lib/agent/")
-sys.path.append("./lib/platform/")
-sys.path.append("./lib/utils/")
-
-######
-import time
+###### Parsers, Formats, Utils
 import argparse
 import logging
-import time
-
-import random
-
-###### Parsers, Formats, Utils
-import csv
 import json
-from utils import json_utils
-from string import Template
-import copy
 import re
-import itertools
-from tqdm import tqdm
 
 ##### Clustering
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
 from sklearn.cluster import KMeans
-from sklearn.manifold import TSNE
 from sentence_transformers import SentenceTransformer
 from sklearn.metrics import silhouette_score
 import umap
 
-###### Communication
-import asyncio
-from websockets.sync.client import connect
-
 
 ###### Blue
-from agent import Agent, AgentFactory
-from session import Session
-from producer import Producer
-from consumer import Consumer
+from blue.agent import Agent, AgentFactory
+from blue.session import Session
+from blue.utils import string_utils, uuid_utils
+from blue.stream import ControlCode
 
-from message import Message, MessageType, ContentType, ControlCode
-import util_functions
+###### Agent Specific
 import ui_builders
 
 # set log level
 logging.getLogger().setLevel(logging.INFO)
-logging.basicConfig(
-    format="%(asctime)s [%(levelname)s] [%(process)d:%(threadName)s:%(thread)d](%(filename)s:%(lineno)d) %(name)s -  %(message)s",
-    level=logging.ERROR,
-    datefmt="%Y-%m-%d %H:%M:%S",
-)
+logging.basicConfig(format="%(asctime)s [%(levelname)s] [%(process)d:%(threadName)s:%(thread)d](%(filename)s:%(lineno)d) %(name)s -  %(message)s", level=logging.ERROR, datefmt="%Y-%m-%d %H:%M:%S")
 
 
+#########################
+### Agent.ClustererAgent
+#
 class ClustererAgent(Agent):
     def __init__(self, **kwargs):
         if "name" not in kwargs:
@@ -74,7 +43,7 @@ class ClustererAgent(Agent):
         
         # create a plan id
         if id is None:
-            id = util_functions.create_uuid()
+            id = uuid_utils.create_uuid()
         
         # plan context, initial streams, scope
         plan_context = {"scope": stream[:-7], "streams": {plan_dag[0][0]: stream}}
@@ -87,7 +56,7 @@ class ClustererAgent(Agent):
     def write_to_new_stream(self, worker, content, output, id=None, tags=None, scope="worker"):
         # create a unique id
         if id is None:
-            id = util_functions.create_uuid()
+            id = uuid_utils.create_uuid()
 
         if worker:
             output_stream = worker.write_data(
@@ -287,7 +256,7 @@ class ClustererAgent(Agent):
         increment = 10
         data = df[self.properties['embeddings_config']['embeding_cols']].values
         doc_embeddings = encoder.encode(data[:increment])
-        for i in tqdm(range(increment, len(data)+increment-1, increment)):
+        for i in range(increment, len(data)+increment-1, increment):
             new_emb = encoder.encode(data[i:i+increment])
             if len(new_emb.shape) == 2:
                 doc_embeddings = np.append(doc_embeddings, new_emb, axis=0)
@@ -408,8 +377,7 @@ class ClustererAgent(Agent):
 
                     if 'query' in self.properties['data']:
                         q = json.dumps(self.properties['data']['query'])
-                        query_template = Template(q)
-                        query = query_template.safe_substitute(**self.properties, **session_data)
+                        query = string_utils.safe_substitute(q, **self.properties, **session_data)
                         self.issue_sql_query(query, worker, id="CLUSTERER_QUERY")
                     else:
                         self.results = self.properties['data']['data']

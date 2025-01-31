@@ -1,68 +1,31 @@
-###### OS / Systems
-from ctypes import util
-import os
-import sys
-
-###### Add lib path
-sys.path.append("./lib/")
-sys.path.append("./lib/agent/")
-sys.path.append("./lib/apicaller/")
-sys.path.append("./lib/openai/")
-sys.path.append("./lib/platform/")
-sys.path.append("./lib/agent_registry")
-sys.path.append("./lib/utils/")
-
-######
-import time
+###### Parsers, Formats, Utils
 import argparse
 import logging
-import time
-
-import random
-
-###### Parsers, Formats, Utils
-import csv
 import json
-from utils import json_utils
-from utils import string_utils
 import copy
 import re
-import itertools
-from tqdm import tqdm
-
-###### Communication
-import asyncio
-from websockets.sync.client import connect
-
 
 ###### Blue
-from agent import Agent, AgentFactory
-from api_agent import APIAgent
-from session import Session
-from producer import Producer
-from consumer import Consumer
+from blue.agent import Agent, AgentFactory
+from blue.agents.coordinator import CoordinatorAgent
+from blue.session import Session
+from blue.stream import ControlCode
+from blue.utils import json_utils, string_utils, uuid_utils
 
-from openai_agent import OpenAIAgent
-from agent_registry import AgentRegistry
-from message import Message, MessageType, ContentType, ControlCode
-import util_functions
+##### Agent Specific
 import ui_builders
 
 # set log level
 logging.getLogger().setLevel(logging.INFO)
-logging.basicConfig(
-    format="%(asctime)s [%(levelname)s] [%(process)d:%(threadName)s:%(thread)d](%(filename)s:%(lineno)d) %(name)s -  %(message)s",
-    level=logging.ERROR,
-    datefmt="%Y-%m-%d %H:%M:%S",
-)
+logging.basicConfig(format="%(asctime)s [%(levelname)s] [%(process)d:%(threadName)s:%(thread)d](%(filename)s:%(lineno)d) %(name)s -  %(message)s", level=logging.ERROR, datefmt="%Y-%m-%d %H:%M:%S")
 
-from enum import Enum, auto
-
-
+##############################
+### Agent.AgenticEmployerAgent
+#
 class AgenticEmployerAgent(Agent):
     def __init__(self, **kwargs):
         if "name" not in kwargs:
-            kwargs["name"] = "AGENTICEMPLOYER"
+            kwargs["name"] = "AGENTIC_EMPLOYER"
         super().__init__(**kwargs)
         
     def _initialize(self, properties=None):
@@ -121,7 +84,7 @@ class AgenticEmployerAgent(Agent):
         
         # create a plan id
         if id is None:
-            id = util_functions.create_uuid()
+            id = uuid_utils.create_uuid()
         
         # plan context, initial streams, scope
         plan_context = {"scope": stream[:-7], "streams": {plan_dag[0][0]: stream}}
@@ -135,7 +98,7 @@ class AgenticEmployerAgent(Agent):
         
         # create a unique id
         if id is None:
-            id = util_functions.create_uuid()
+            id = uuid_utils.create_uuid()
 
         if worker:
             output_stream = worker.write_data(
@@ -149,7 +112,7 @@ class AgenticEmployerAgent(Agent):
 
         # create a unique id
         if id is None:
-            id = util_functions.create_uuid()
+            id = uuid_utils.create_uuid()
 
         if name is None:
             name = "unspecified"
@@ -179,7 +142,7 @@ class AgenticEmployerAgent(Agent):
 
         # create a unique id
         if id is None:
-            id = util_functions.create_uuid()
+            id = uuid_utils.create_uuid()
 
         if name is None:
             name = "unspecified"
@@ -320,7 +283,7 @@ class AgenticEmployerAgent(Agent):
             worker = self.create_worker(None)
     
         # create a unique id
-        id = util_functions.create_uuid()
+        id = uuid_utils.create_uuid()
 
         # view plan
         view_plan = [
@@ -344,7 +307,7 @@ class AgenticEmployerAgent(Agent):
             worker = self.create_worker(None)
 
         # create a unique id
-        id = util_functions.create_uuid()
+        id = uuid_utils.create_uuid()
 
         # view plan
         view_plan = [
@@ -373,7 +336,7 @@ class AgenticEmployerAgent(Agent):
         session_data = worker.get_all_session_data()
 
         # create a unique id
-        id = util_functions.create_uuid()
+        id = uuid_utils.create_uuid()
 
         # get code from id
         list_id = self.list_id_by_code[list_code]
@@ -423,7 +386,7 @@ class AgenticEmployerAgent(Agent):
         if cluster_label in self.cluster_id_by_label:
             return self.cluster_id_by_label[cluster_label]
         else:
-            cluster_id = util_functions.create_uuid()
+            cluster_id = uuid_utils.create_uuid()
             self.cluster_id_by_label[cluster_label] = cluster_id
             return cluster_id
         
@@ -438,7 +401,7 @@ class AgenticEmployerAgent(Agent):
         session_data = worker.get_all_session_data()
 
         # create a unique id
-        id = util_functions.create_uuid()
+        id = uuid_utils.create_uuid()
 
         # get code from id
         list_id = self.list_id_by_code[list_code]
@@ -577,7 +540,7 @@ class AgenticEmployerAgent(Agent):
                             action_plan.append([f,t])
 
                         # create a unique id
-                        id = util_functions.create_uuid()
+                        id = uuid_utils.create_uuid()
 
                        
 
@@ -601,7 +564,7 @@ class AgenticEmployerAgent(Agent):
             properties = self.properties
 
         # create a unique id
-        id = util_functions.create_uuid()
+        id = uuid_utils.create_uuid()
 
         # intent plan
         intent_plan = [
@@ -695,7 +658,7 @@ class AgenticEmployerAgent(Agent):
         logging.info("ISSUE NL QUERY:" + expanded_question)
 
         # create a unique id
-        id = util_functions.create_uuid()
+        id = uuid_utils.create_uuid()
 
         # question plan
         question_plan = [
@@ -958,7 +921,7 @@ class AgenticEmployerAgent(Agent):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--name", default="AGENTICEMPLOYER", type=str)
+    parser.add_argument("--name", default="AGENTIC_EMPLOYER", type=str)
     parser.add_argument("--session", type=str)
     parser.add_argument("--properties", type=str)
     parser.add_argument("--loglevel", default="INFO", type=str)

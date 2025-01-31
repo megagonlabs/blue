@@ -2,11 +2,6 @@
 import os
 import sys
 
-###### Add lib path
-sys.path.append("./lib/")
-sys.path.append("./lib/agents")
-sys.path.append("./lib/platform/")
-
 
 ###### Parsers, Formats, Utils
 import json
@@ -20,14 +15,12 @@ from fastapi import WebSocket
 from dataclasses import dataclass
 
 ###### Blue
-from session import Session
-from blueprint import Platform
-from observer import ObserverAgent
-from session import Session
-from agent import Agent
-from producer import Producer
-
-from message import Message, MessageType, ContentType, ControlCode
+from blue.session import Session
+from blue.platform import Platform
+from blue.agent import Agent
+from blue.agents.observer import ObserverAgent
+from blue.pubsub import Producer
+from blue.utils import uuid_utils
 
 
 ###### Settings
@@ -93,7 +86,7 @@ class ConnectionManager:
         set_on = pydash.objects.get(self.tickets, [ticket, 'set_on'], None)
         single_use = pydash.objects.get(self.tickets, [ticket, 'single_use'], True)
         if (not pydash.is_none(set_on) and time.time() - set_on < 5 * 60) or (not single_use) or (DEVELOPMENT):
-            connection_id = str(hex(uuid.uuid4().fields[0]))[2:]
+            connection_id = uuid_utils.create_uuid()
             pydash.objects.set_(self.active_connections, connection_id, {'websocket': websocket, 'debug_mode': debug_mode, 'user': pydash.objects.get(self.tickets, ticket, {})})
             await self.send_message_to(
                 websocket,

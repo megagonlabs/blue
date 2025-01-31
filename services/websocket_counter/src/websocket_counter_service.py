@@ -1,42 +1,14 @@
-###### OS / Systems
-import os
-import sys
-
-###### Add lib path
-sys.path.append('./lib/')
-sys.path.append('./lib/service/')
-sys.path.append('./lib/platform/')
-sys.path.append('./lib/utils/')
-
-###### 
-import time
+####### Parsers, Formats, Utils
 import argparse
 import logging
-import time
-import uuid
-import random
-
-###### Parsers, Formats, Utils
-import re
-import csv
 import json
-from utils import json_utils
-from utils import string_utils
-import copy
 
-import itertools
-from tqdm import tqdm
 
 ###### Communication
 import asyncio
-from websockets.sync.client import connect
-
 
 ###### Blue
-from service import Service
-
-##### Agent specifc
-from openai import OpenAI
+from blue.service import Service
 
 # set log level
 logging.getLogger().setLevel(logging.INFO)

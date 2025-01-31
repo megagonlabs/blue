@@ -3,15 +3,9 @@ from curses import noecho
 import sys
 import pydash
 
-###### Add lib path
-sys.path.append("./lib/")
-sys.path.append("./lib/agent_registry/")
-sys.path.append("./lib/platform/")
-
 ###### Parsers, Formats, Utils
 import json
 import logging
-from utils import json_utils
 from constant import PermissionDenied, account_id_header, acl_enforce, d7validate
 from validations.base import BaseValidation
 
@@ -31,9 +25,9 @@ JSONStructure = Union[JSONArray, JSONObject, Any]
 
 
 ###### Blue
-from blueprint import Platform
-from agent_registry import AgentRegistry
-from session import Session
+from blue.platform import Platform
+from blue.agent import AgentRegistry
+from blue.utils import json_utils
 
 ###### Properties
 from settings import ACL, PROPERTIES

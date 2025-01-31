@@ -9,7 +9,7 @@ if [ -z "$fa_token" ]
 fi
 
 # build docker
-docker build -t blue-platform-frontend:latest -f Dockerfile.frontend \
+docker build --no-cache -t blue-platform-frontend:latest -f Dockerfile.frontend \
     --build-arg git_short=$(git rev-parse --short HEAD) \
     --build-arg git_long=$(git rev-parse HEAD) \
     --build-arg git_branch=$(git rev-parse --abbrev-ref HEAD) \

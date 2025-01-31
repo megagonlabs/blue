@@ -1,3 +1,4 @@
+blue-py==0.9
 Flask-SocketIO==5.3.4
 Flask==2.3.2
 Jinja2==3.1.2
@@ -32,6 +33,8 @@ psutil==6.1.0
 pydash==7.0.6
 redis==5.2.0
 requests==2.31.0
+numpy==1.25.2
+huggingface-hub==0.25.1
 sentence-transformers==2.2.2
 six==1.16.0
 tqdm==4.65.0

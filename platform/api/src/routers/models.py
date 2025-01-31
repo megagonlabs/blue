@@ -6,18 +6,12 @@ from fastapi import Depends, Request
 import pydash
 from constant import BANNED_ENTITY_NAMES, PermissionDenied, account_id_header, acl_enforce
 
-###### Add lib path
-sys.path.append("./lib/")
-sys.path.append("./lib/model_registry/")
-sys.path.append("./lib/platform/")
-
 ###### Parsers, Formats, Utils
 import re
 import csv
 import json
 import time
 import logging
-from utils import json_utils
 
 
 ##### Typing
@@ -48,8 +42,8 @@ JSONStructure = Union[JSONArray, JSONObject, Any]
 
 
 ###### Blue
-from blueprint import Platform
-from model_registry import ModelRegistry
+from blue.platform import Platform
+from blue.model import ModelRegistry
 
 ###### Properties
 from settings import ACL, PROPERTIES

@@ -1,62 +1,22 @@
-###### OS / Systems
-from ctypes import util
-import os
-import sys
-
-###### Add lib path
-sys.path.append("./lib/")
-sys.path.append("./lib/agent/")
-sys.path.append("./lib/apicaller/")
-sys.path.append("./lib/openai/")
-sys.path.append("./lib/platform/")
-sys.path.append("./lib/agent_registry")
-sys.path.append("./lib/utils/")
-
-######
-import time
+###### Parsers, Formats, Utils
 import argparse
 import logging
-import time
-
-import random
-
-###### Parsers, Formats, Utils
-import csv
 import json
-from utils import json_utils
-from string import Template
-import copy
-import re
-import itertools
-from tqdm import tqdm
-
-###### Communication
-import asyncio
-from websockets.sync.client import connect
+from enum import Enum, auto
 
 
 ###### Blue
-from agent import Agent, AgentFactory
-from api_agent import APIAgent
-from session import Session
-from producer import Producer
-from consumer import Consumer
+from blue.agent import Agent, AgentFactory
+from blue.session import Session
+from blue.stream import ControlCode
+from blue.utils import string_utils, uuid_utils
 
-from openai_agent import OpenAIAgent
-from agent_registry import AgentRegistry
-from message import Message, MessageType, ContentType, ControlCode
-import util_functions
+###### Agent Specific
 import ui_builders
 
 # set log level
 logging.getLogger().setLevel(logging.INFO)
-logging.basicConfig(
-    format="%(asctime)s [%(levelname)s] [%(process)d:%(threadName)s:%(thread)d](%(filename)s:%(lineno)d) %(name)s -  %(message)s",
-    level=logging.ERROR,
-    datefmt="%Y-%m-%d %H:%M:%S",
-)
-
-from enum import Enum, auto
+logging.basicConfig(format="%(asctime)s [%(levelname)s] [%(process)d:%(threadName)s:%(thread)d](%(filename)s:%(lineno)d) %(name)s -  %(message)s", level=logging.ERROR, datefmt="%Y-%m-%d %H:%M:%S")
 
 
 class InputType(Enum):
@@ -67,10 +27,48 @@ class InputType(Enum):
     NONE = auto()
 
 
-class JobSearchPlannerAgent(Agent):
+## Helper functions
+def parse_result(result):
+    columns = result["result"]["columns"]
+    data = result["result"]["data"]
+    job_list = []
+    for item in data:
+        job = {key: value for key, value in zip(columns, item)}
+        job_list.append(job)
+    return {"Results": job_list}
+
+def extract_json(text):
+    """
+    Helper function to deal with markdown returned by extractor
+    """
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError:
+        # Regular expression pattern to match JSON-like structures
+        json_pattern = r"```json\s*({.*?})\s*```"
+
+        # Find all matches in the markdown text
+        matches = re.findall(json_pattern, text, re.DOTALL)
+        if len(matches) > 1:
+            logging.warning(
+                "More than one JSON object returned. loading only the first one"
+            )
+        # Parse the matches as JSON
+        try:
+            json_object = json.loads(matches[0])
+            return json_object
+        except json.JSONDecodeError:
+            logging.warning("Invalid JSON object found, skipping...")
+            return {}
+
+
+############################
+### Agent.JobSearch_PlannerAgent
+#
+class JobSearch_PlannerAgent(Agent):
     def __init__(self, **kwargs):
         if "name" not in kwargs:
-            kwargs["name"] = "JOBSEARCHPLANNER"
+            kwargs["name"] = "JOBSEARCH_PLANNER"
         super().__init__(**kwargs)
         self.search_predicates = {
             "job title": "",
@@ -121,13 +119,13 @@ class JobSearchPlannerAgent(Agent):
             self.interact(welcome_message)
 
     def build_plan(self, plan_dag, stream):
-        plan_id = util_functions.create_uuid()
+        plan_id = uuid_utils.create_uuid()
         plan_context = {"scope": stream[:-7], "streams": {plan_dag[0][0]: stream}}
         plan = {"id": plan_id, "steps": plan_dag, "context": plan_context}
         return plan
 
     def write_to_new_stream(self, worker, content, stream_name, tags=None):
-        id = util_functions.create_uuid()
+        id = uuid_utils.create_uuid()
         if worker:
             output_stream = worker.write_data(
                 content, output=stream_name, id=id, tags=tags
@@ -142,12 +140,12 @@ class JobSearchPlannerAgent(Agent):
 
         # TODO: hard-coded plan and agent names
         plan_query_planner = [
-            ["JOBSEARCHPLANNER.QUERYPLANNER", "NL2SQL-E2E___INPLAN.DEFAULT"],
-            ["NL2SQL-E2E___INPLAN.DEFAULT", "JOBSEARCHPLANNER.ANSWERPLANNER"],
+            ["JOBSEARCH_PLANNER.QUERYPLANNER", "NL2SQL-E2E___INPLAN.DEFAULT"],
+            ["NL2SQL-E2E___INPLAN.DEFAULT", "JOBSEARCH_PLANNER.ANSWERPLANNER"],
         ]
         plan_query_final = [
-            ["JOBSEARCHPLANNER.QUERYFINAL", "NL2SQL-E2E___INPLAN.DEFAULT"],
-            ["NL2SQL-E2E___INPLAN.DEFAULT", "JOBSEARCHPLANNER.ANSWERFINAL"],
+            ["JOBSEARCH_PLANNER.QUERYFINAL", "NL2SQL-E2E___INPLAN.DEFAULT"],
+            ["NL2SQL-E2E___INPLAN.DEFAULT", "JOBSEARCH_PLANNER.ANSWERFINAL"],
         ]
         if final:
             plan_query = plan_query_final
@@ -284,11 +282,11 @@ class JobSearchPlannerAgent(Agent):
         # TODO: hard-coded agent name
         plan_extraction = [
             ["USER.TEXT", "OPENAI___EXTRACTOR2.DEFAULT"],
-            ["OPENAI___EXTRACTOR2.DEFAULT", "JOBSEARCHPLANNER.EXTRACTIONS"],
+            ["OPENAI___EXTRACTOR2.DEFAULT", "JOBSEARCH_PLANNER.EXTRACTIONS"],
         ]
         plan_query_user = [
             ["USER.TEXT", "NL2SQL-E2E___INPLAN.DEFAULT"],
-            ["NL2SQL-E2E___INPLAN.DEFAULT", "JOBSEARCHPLANNER.ANSWERUSER"],
+            ["NL2SQL-E2E___INPLAN.DEFAULT", "JOBSEARCH_PLANNER.ANSWERUSER"],
         ]
 
         # user asking exploration questions, call NL2Q
@@ -301,7 +299,7 @@ class JobSearchPlannerAgent(Agent):
 
             self.write_to_new_stream(
                 worker=worker,
-                content=util_functions.parse_result(input_content),
+                content=parse_result(input_content),
                 stream_name="PRESENT",
             )
             return
@@ -361,7 +359,7 @@ class JobSearchPlannerAgent(Agent):
             if message.isData():
                 # process and update
                 extractions = message.getData()
-                extracted = util_functions.extract_json(extractions)
+                extracted = extract_json(extractions)
                 # convert to lowercase
                 extracted = {
                     key.lower(): value
@@ -464,7 +462,7 @@ class JobSearchPlannerAgent(Agent):
                 input_type = InputType.EXTRACTED.name
                 input_content = {
                     "suggested_skills": [
-                        util_functions.remove_non_alphanumeric(item[0])
+                        string_utils.remove_non_alphanumeric(item[0])
                         for item in data["result"]["data"]
                     ]
                 }
@@ -491,7 +489,7 @@ class JobSearchPlannerAgent(Agent):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--name", default="JOBSEARCHPLANNER", type=str)
+    parser.add_argument("--name", default="JOBSEARCH_PLANNER", type=str)
     parser.add_argument("--session", type=str)
     parser.add_argument("--properties", type=str)
     parser.add_argument("--loglevel", default="INFO", type=str)
@@ -515,7 +513,7 @@ if __name__ == "__main__":
         platform = args.platform
 
         af = AgentFactory(
-            _class=JobSearchPlannerAgent,
+            _class=JobSearch_PlannerAgent,
             _name=args.serve,
             _registry=args.registry,
             platform=platform,
@@ -528,13 +526,13 @@ if __name__ == "__main__":
         if args.session:
             # join an existing session
             session = Session(cid=args.session)
-            a = JobSearchPlannerAgent(
+            a = JobSearch_PlannerAgent(
                 name=args.name, session=session, properties=properties
             )
         else:
             # create a new session
             session = Session()
-            a = JobSearchPlannerAgent(
+            a = JobSearch_PlannerAgent(
                 name=args.name, session=session, properties=properties
             )
 

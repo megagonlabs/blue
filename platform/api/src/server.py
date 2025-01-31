@@ -11,14 +11,6 @@ import logging
 import pydash
 import redis
 
-###### Add lib path
-sys.path.append("./lib/")
-sys.path.append("./lib/agent_registry/")
-sys.path.append("./lib/data_registry/")
-sys.path.append("./lib/model_registry/")
-sys.path.append("./lib/operator_registry/")
-sys.path.append("./lib/platform/")
-
 
 ###### Parsers, Formats, Utils
 import json
@@ -46,13 +38,13 @@ from routers import agents, data, models, operators, sessions, containers, platf
 from ConnectionManager import ConnectionManager
 
 ###### Blue
-from session import Session
-from blueprint import Platform
-from agent_registry import AgentRegistry
-from data_registry import DataRegistry
-from model_registry import ModelRegistry
-from operator_registry import OperatorRegistry
-from tracker import SystemPerformanceTracker
+
+from blue.platform import Platform
+from blue.agent import AgentRegistry
+from blue.data.registry import DataRegistry
+from blue.model import ModelRegistry
+from blue.operator import OperatorRegistry
+from blue.tracker import SystemPerformanceTracker
 
 ### Assign from platform properties
 platform_id = PROPERTIES["platform.name"]

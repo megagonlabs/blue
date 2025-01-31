@@ -1,3 +1,4 @@
+blue-py==0.9
 Flask-SocketIO==5.3.4
 Flask==2.3.2
 Jinja2==3.1.2
@@ -26,6 +27,9 @@ multidict==6.0.4
 openai==0.27.8
 python-engineio==4.4.1
 python-socketio==5.8.0
+numpy==1.25.2
+huggingface-hub==0.25.1
+sentence-transformers==2.2.2
 pydash==7.0.6
 redis==5.2.0
 psutil==6.1.0
