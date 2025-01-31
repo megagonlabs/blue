@@ -1,7 +1,10 @@
 ###### OS / Systems
+import datetime
 import sys
 
 import pydash
+
+from scheduler import Scheduler
 
 ###### Add lib path
 sys.path.append("./lib/")
@@ -72,6 +75,32 @@ class PlatformPerformanceTracker(PerformanceTracker):
         db_connections_group.add(num_available_connections_metric)
 
         return self.data.toDict()
+
+
+class SessionCleanupScheduler(Scheduler):
+    def __init__(self, platform, callback):
+        super().__init__(task=self.__session_cleanup)
+        self.platform: Platform = platform
+        self.callback = callback
+
+    def __session_cleanup(self):
+        sessions = self.platform.get_sessions()
+        deleted_sessions = []
+        session_expiration_duration = self.platform.get_metadata('settings.session_expiration_duration')
+        # default 3 days
+        if pydash.is_empty(session_expiration_duration):
+            session_expiration_duration = 3
+        for session in sessions:
+            epoch = pydash.objects.get(session, 'last_activity_date', session['created_date'])
+            elapsed = datetime.datetime.now() - datetime.datetime.fromtimestamp(epoch)
+            if elapsed.days >= session_expiration_duration:
+                self.platform.delete_session(session['id'])
+                deleted_sessions.append(session['id'])
+        if pydash.is_function(self.callback):
+            self.callback(deleted_sessions)
+
+    def set_job(self):
+        self.job = self.scheduler.every().day.at('00:00')
 
 
 class Platform:
@@ -270,6 +299,19 @@ class Platform:
 
     def _init_tracker(self):
         self._tracker = PlatformPerformanceTracker(self, properties=self.properties, callback=lambda *args, **kwargs: self.perf_tracker_callback(*args, **kwargs))
+
+    def _init_session_cleanup_scheduler(self, callback=None):
+        keys = ['default_session_expiration_duration']
+        for key in keys:
+            if key in self.properties:
+                self.set_metadata(key, self.properties[key], nx=True)
+        self.session_cleanup_scheduler = SessionCleanupScheduler(platform=self, callback=callback)
+
+    def _start_session_cleanup_job(self):
+        self.session_cleanup_scheduler.start()
+
+    def _stop_session_cleanup_job(self):
+        self.session_cleanup_scheduler.stop()
 
     def _start_tracker(self):
         # start tracker

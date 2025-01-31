@@ -25,3 +25,4 @@ firebase-admin==6.5.0
 jsonschema==4.21.1
 casbin==1.36.3
 psutil==6.1.0
+schedule==1.2.2
