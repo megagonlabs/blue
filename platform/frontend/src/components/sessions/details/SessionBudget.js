@@ -165,8 +165,8 @@ export default function SessionBudget({
                                 className={loading ? Classes.SKELETON : null}
                                 intent={costError ? Intent.DANGER : null}
                                 value={cost}
-                                onValueChange={(_valueAsNumber) => {
-                                    setCost(_valueAsNumber);
+                                onChange={(event) => {
+                                    setCost(event.target.value);
                                     setAllowQuickClose(false);
                                 }}
                                 leftIcon={faIcon({
@@ -209,8 +209,8 @@ export default function SessionBudget({
                                 className={loading ? Classes.SKELETON : null}
                                 intent={accuracyError ? Intent.DANGER : null}
                                 value={accuracy}
-                                onValueChange={(_valueAsNumber) => {
-                                    setAccuracy(_valueAsNumber);
+                                onChange={(event) => {
+                                    setAccuracy(event.target.value);
                                     setAllowQuickClose(false);
                                 }}
                                 leftIcon={faIcon({ icon: faBullseyeArrow })}
@@ -244,8 +244,8 @@ export default function SessionBudget({
                                 className={loading ? Classes.SKELETON : null}
                                 intent={latencyError ? Intent.DANGER : null}
                                 value={latency}
-                                onValueChange={(_valueAsNumber) => {
-                                    setLatency(_valueAsNumber);
+                                onChange={(event) => {
+                                    setLatency(event.target.value);
                                     setAllowQuickClose(false);
                                 }}
                                 leftIcon={faIcon({ icon: faStopwatch })}

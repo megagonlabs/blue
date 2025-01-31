@@ -1,4 +1,5 @@
 import { faIcon } from "@/components/icon";
+import { AppToaster } from "@/components/toaster";
 import {
     Button,
     ButtonGroup,
@@ -7,6 +8,7 @@ import {
     Code,
     ControlGroup,
     H4,
+    Intent,
     NumericInput,
     Section,
     SectionCard,
@@ -21,6 +23,13 @@ export default function Configs() {
     const [loading, setLoading] = useState(false);
     const [sessionExpirationDuration, setSessionExpirationDuration] =
         useState(3);
+    const sessionExpirationDurationNumber = _.toNumber(
+        sessionExpirationDuration
+    );
+    const sessionExpirationDurationError =
+        !_.isNumber(sessionExpirationDurationNumber) ||
+        _.isNaN(sessionExpirationDurationNumber) ||
+        sessionExpirationDurationNumber < 3;
     useEffect(() => {
         setLoading(true);
         axios.get("/platform/settings").then((response) => {
@@ -84,26 +93,34 @@ export default function Configs() {
                             <Code>DATA</Code>
                             &nbsp;and&nbsp;
                             <Code>METADATA</Code> will be removed from each
-                            session&#41;.
+                            session&#41;. The default and minimum value is 3
+                            days.
                         </div>
                         <ControlGroup>
                             <NumericInput
+                                intent={
+                                    sessionExpirationDurationError
+                                        ? Intent.DANGER
+                                        : null
+                                }
                                 className={loading ? Classes.SKELETON : null}
                                 buttonPosition="none"
                                 clampValueOnBlur
                                 value={sessionExpirationDuration}
                                 style={{ width: 120 }}
                                 large
-                                onValueChange={(_valueAsNumber) =>
-                                    setSessionExpirationDuration(_valueAsNumber)
-                                }
-                                min={3}
+                                onChange={(event) => {
+                                    setSessionExpirationDuration(
+                                        event.target.value
+                                    );
+                                }}
                                 rightElement={<Tag minimal>days</Tag>}
                             />
                             <Button
                                 large
                                 text="Save"
                                 loading={loading}
+                                disabled={sessionExpirationDurationError}
                                 onClick={() => {
                                     setLoading(true);
                                     axios
@@ -111,7 +128,13 @@ export default function Configs() {
                                             "/platform/settings/session_expiration_duration",
                                             { value: sessionExpirationDuration }
                                         )
-                                        .then(() => {})
+                                        .then(() =>
+                                            AppToaster.show({
+                                                message:
+                                                    "Expiration duration has been updated",
+                                                intent: Intent.SUCCESS,
+                                            })
+                                        )
                                         .catch((error) => {
                                             axiosErrorToast(error);
                                             reject(false);
