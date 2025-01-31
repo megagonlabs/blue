@@ -73,7 +73,7 @@ print("blue-platform-api: " + version)
 logging.getLogger().setLevel("INFO")
 
 ###### Initialization
-p = Platform(id=platform_id, properties={**PROPERTIES, 'settings.session_expiration_duration': 2})
+p = Platform(id=platform_id, properties={**PROPERTIES, 'default_session_expiration_duration': 3})
 
 ## Create Registries, Load
 agent_registry = AgentRegistry(id=agent_registry_id, prefix=prefix, properties=PROPERTIES)
