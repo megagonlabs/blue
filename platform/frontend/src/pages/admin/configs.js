@@ -42,7 +42,6 @@ export default function Configs() {
     return (
         <>
             <Card
-                interactive
                 style={{
                     padding: 5,
                     borderRadius: 0,
@@ -74,7 +73,11 @@ export default function Configs() {
             </Card>
             <div
                 className="full-parent-width"
-                style={{ padding: "20px 20px 20px 170.55px" }}
+                style={{
+                    overflowY: "auto",
+                    height: "calc(100% - 50px)",
+                    padding: "20px 20px 20px 170.55px",
+                }}
             >
                 <Section compact title="Sessions">
                     <SectionCard>
