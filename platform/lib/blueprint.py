@@ -90,6 +90,7 @@ class SessionCleanupScheduler(Scheduler):
         # default 3 days
         if pydash.is_empty(session_expiration_duration):
             session_expiration_duration = 3
+        session_expiration_duration = max(3, session_expiration_duration)
         for session in sessions:
             epoch = pydash.objects.get(session, 'last_activity_date', session['created_date'])
             elapsed = datetime.datetime.now() - datetime.datetime.fromtimestamp(epoch)
