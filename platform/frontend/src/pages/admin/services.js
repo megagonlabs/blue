@@ -36,10 +36,10 @@ import _ from "lodash";
 import { useContext, useEffect, useState } from "react";
 import ReactTimeAgo from "react-time-ago";
 export default function Services() {
-    const { appState } = useContext(AppContext);
+    const { appState, appActions } = useContext(AppContext);
     const [tableKey, setTableKey] = useState(Date.now());
     const [loading, setLoading] = useState(true);
-    const [data, setData] = useState([]);
+    const data = _.get(appState, "admin.services", []);
     const stopSelectedServices = async () => {
         const selectedServices = _.toArray(appState.admin.selectedServices);
         let tasks = [];
@@ -79,7 +79,9 @@ export default function Services() {
     const fetchServiceList = () => {
         setLoading(true);
         axios.get("/containers/services").then((response) => {
-            setData(_.get(response, "data.results", []));
+            appActions.admin.setServiceList(
+                _.get(response, "data.results", [])
+            );
             setLoading(false);
         });
     };

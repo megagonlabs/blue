@@ -51,7 +51,6 @@ export default function Users() {
         });
     };
     useEffect(() => {
-        appActions.admin.setState({ key: "selectedUsers", value: new Set() });
         fetchUserList();
     }, []); // eslint-disable-line react-hooks/exhaustive-deps
     const TABLE_CELL_HEIGHT = 40;
@@ -172,6 +171,7 @@ export default function Users() {
                             icon={faIcon({ icon: faRefresh })}
                         />
                     </Tooltip>
+                    <Divider />
                     <Tooltip
                         openOnTargetFocus={false}
                         placement="bottom"
@@ -184,7 +184,6 @@ export default function Users() {
                             icon={faIcon({ icon: faCog })}
                         />
                     </Tooltip>
-                    <Divider />
                     <Tooltip
                         openOnTargetFocus={false}
                         placement="bottom"

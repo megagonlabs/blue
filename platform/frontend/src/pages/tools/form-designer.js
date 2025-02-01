@@ -16,6 +16,7 @@ import {
     Card,
     Checkbox,
     Classes,
+    Colors,
     Divider,
     Intent,
     Menu,
@@ -205,7 +206,10 @@ function FormDesigner() {
                 isOpen={isDocOpen}
                 setIsDocOpen={setIsDocOpen}
             />
-            <Card interactive style={{ padding: 5, borderRadius: 0 }}>
+            <Card
+                interactive
+                style={{ padding: 5, borderRadius: 0, position: "relative" }}
+            >
                 <ButtonGroup large minimal>
                     <Tooltip
                         usePortal={false}
@@ -287,7 +291,12 @@ function FormDesigner() {
                     />
                 </ButtonGroup>
             </Card>
-            <div style={{ height: "calc(100% - 50px)" }}>
+            <div
+                style={{
+                    height: "calc(100% - 50px)",
+                    backgroundColor: Colors.WHITE,
+                }}
+            >
                 <Allotment>
                     <Allotment.Pane minSize={MIN_ALLOTMENT_PANE}>
                         <Allotment vertical ref={leftPaneRef}>

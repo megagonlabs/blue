@@ -31,12 +31,7 @@ export default function DatabaseEntity() {
             <EntityMain entity={entity} loading={loading} />
             <EntityDescription entity={entity} loading={loading} />
             <EntityProperties entity={entity} loading={loading} />
-            <Section
-                collapsible
-                compact
-                title="Collections"
-                style={{ marginTop: 20 }}
-            >
+            <Section compact title="Collections" style={{ marginTop: 20 }}>
                 <SectionCard padded={false}>
                     <HTMLTable
                         className="entity-section-card-table"

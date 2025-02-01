@@ -358,15 +358,7 @@ class Session:
         )
 
     def to_dict(self):
-        metadata = self.get_metadata()
-        return {
-            "id": self.sid,
-            "name": pydash.objects.get(metadata, "name", self.sid),
-            "description": pydash.objects.get(metadata, "description", ""),
-            "created_date": pydash.objects.get(metadata, "created_date", None),
-            "created_by": pydash.objects.get(metadata, "created_by", None),
-            "members": pydash.objects.get(metadata, "members", {}),
-        }
+        return {**self.get_metadata(), "id": self.sid}
 
 
     ###### OPERATIONS

@@ -45,7 +45,7 @@ export default function Agents() {
     const { appState, appActions } = useContext(AppContext);
     const [tableKey, setTableKey] = useState(Date.now());
     const [loading, setLoading] = useState(true);
-    const [data, setData] = useState([]);
+    const data = _.get(appState, "admin.agents", []);
     const [showLogs, setShowLogs] = useState(false);
     const [containerId, setContainerId] = useState(null);
     const selectedAgents = _.toArray(appState.admin.selectedAgents);
@@ -120,7 +120,7 @@ export default function Agents() {
     const fetchContainerList = () => {
         setLoading(true);
         axios.get("/containers/agents").then((response) => {
-            setData(_.get(response, "data.results", []));
+            appActions.admin.setAgentList(_.get(response, "data.results", []));
             setLoading(false);
         });
     };
@@ -278,6 +278,7 @@ export default function Agents() {
                             icon={faIcon({ icon: faArrowDownToLine })}
                         />
                     </Tooltip>
+                    <Divider />
                     <Popover
                         placement="bottom"
                         content={

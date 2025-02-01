@@ -674,6 +674,7 @@ export default function App({ children }) {
                             : null,
                     height: "calc(100vh - 50px)",
                     position: "relative",
+                    backgroundColor: Colors.LIGHT_GRAY5,
                 }}
             >
                 {_.isEmpty(user) ? <AccessDeniedNonIdealState /> : children}

@@ -163,8 +163,13 @@ class ConnectionManager:
         except Exception as ex:
             print(ex)
 
+    def clear_session(self, session_id):
+        pydash.objects.unset(self.session_to_client, session_id)
+
     def disconnect(self, websocket: WebSocket):
         connection_id = self.find_connection_id(websocket)
+        if connection_id is None:
+            return None
         del self.active_connections[connection_id]
         session_id_list = list(self.session_to_client.keys())
         for session_id in session_id_list:
@@ -195,7 +200,10 @@ class ConnectionManager:
     def find_connection_id(self, websocket: WebSocket):
         key_list = list(self.active_connections.keys())
         val_list = [value['websocket'] for value in self.active_connections.values()]
-        return key_list[val_list.index(websocket)]
+        try:
+            return key_list[val_list.index(websocket)]
+        except ValueError:
+            return None
 
     async def send_message_to(self, ws: WebSocket, message: str):
         await ws.send_text(message)

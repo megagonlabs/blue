@@ -1,14 +1,6 @@
 import { CONTAINER_STATUS_INDICATOR } from "@/components/constant";
 import { faIcon } from "@/components/icon";
-import {
-    Card,
-    Classes,
-    Colors,
-    H5,
-    Intent,
-    Tag,
-    Tooltip,
-} from "@blueprintjs/core";
+import { Card, Classes, H5, Intent, Tag, Tooltip } from "@blueprintjs/core";
 import { faCircleDot } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import _ from "lodash";
 import Link from "next/link";
@@ -36,7 +28,6 @@ export default function RegistryCard({
             <Card
                 style={{
                     height: "100%",
-                    backgroundColor: Colors.LIGHT_GRAY5,
                     position: "relative",
                 }}
             >

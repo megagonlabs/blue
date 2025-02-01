@@ -1,7 +1,6 @@
 import { ENTITY_ICON_40 } from "@/components/constant";
 import { AppContext } from "@/components/contexts/app-context";
 import { AuthContext } from "@/components/contexts/auth-context";
-import { SocketContext } from "@/components/contexts/socket-context";
 import EntityIcon from "@/components/entity/EntityIcon";
 import { useSocket } from "@/components/hooks/useSocket";
 import { faIcon } from "@/components/icon";
@@ -20,7 +19,6 @@ import {
     faHourglassStart,
     faPen,
     faPlus,
-    faSatelliteDish,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import axios from "axios";
 import _ from "lodash";
@@ -36,7 +34,6 @@ export default function LaunchScreen() {
     const name = _.get(user, "name", null);
     const [agentGroups, setAgentGroups] = useState([]);
     const [loading, setLoading] = useState(true);
-    const { authenticating } = useContext(SocketContext);
     const LOADING_PLACEMENT = (
         <Card className={Classes.SKELETON} style={{ marginBottom: 20 }}>
             &nbsp;
@@ -63,7 +60,7 @@ export default function LaunchScreen() {
             })
             .finally(() => setLoading(false));
     }, []);
-    const { socket, reconnectWs, isSocketOpen } = useSocket();
+    const { socket, isSocketOpen } = useSocket();
     const [launchGroup, setLaunchGroup] = useState(null);
     const { creatingSession } = appState.session;
     const joinAgentGroupSession = (groupName) => {
@@ -110,25 +107,6 @@ export default function LaunchScreen() {
                 >
                     How can I help you today?
                 </H1>
-                {!isSocketOpen ? (
-                    <Button
-                        loading={
-                            (!_.isNil(socket) &&
-                                _.isEqual(
-                                    socket.readyState,
-                                    WebSocket.CONNECTING
-                                )) ||
-                            authenticating
-                        }
-                        style={{ marginBottom: 20 }}
-                        text="Connect"
-                        alignText="left"
-                        onClick={reconnectWs}
-                        large
-                        intent={Intent.PRIMARY}
-                        icon={faIcon({ icon: faSatelliteDish })}
-                    />
-                ) : null}
                 {loading ? (
                     <>
                         {LOADING_PLACEMENT}

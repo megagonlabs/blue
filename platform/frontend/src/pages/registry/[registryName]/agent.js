@@ -237,6 +237,7 @@ export default function Agent() {
                                 }
                                 large
                                 outlined
+                                intent={Intent.PRIMARY}
                                 text="Filter"
                                 rightIcon={faIcon({ icon: faBarsFilter })}
                             />

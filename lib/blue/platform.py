@@ -2,6 +2,7 @@
 import re
 import pydash
 import logging
+import datetime
 
 ###### Backend, Databases
 from redis.commands.json.path import Path
@@ -13,6 +14,7 @@ from blue.pubsub import Producer
 from blue.session import Session
 from blue.tracker import PerformanceTracker, Metric, MetricGroup
 from blue.utils import uuid_utils
+from blue.scheduler import Scheduler
 
 
 
@@ -76,7 +78,22 @@ class Platform:
         for p in properties:
             self.properties[p] = properties[p]
 
+
+
     ###### SESSION
+    def _init_session_cleanup_scheduler(self, callback=None):
+        key = 'default_session_expiration_duration'
+        if key in self.properties:
+            self.set_metadata('settings.session_expiration_duration', self.properties[key], nx=True)
+        self.session_cleanup_scheduler = SessionCleanupScheduler(platform=self, callback=callback)
+
+    def _start_session_cleanup_job(self):
+        self.session_cleanup_scheduler.start()
+
+    def _stop_session_cleanup_job(self):
+        self.session_cleanup_scheduler.stop()
+
+
     def get_session_sids(self):
         keys = self.connection.keys(pattern=self.cid + ":SESSION:*:DATA")
         keys = "\n".join(keys)
@@ -145,10 +162,10 @@ class Platform:
     ###### METADATA RELATED
     def create_update_user(self, user):
         uid = user['uid']
-        default_user_role = self.get_metadata(f'settings.default_user_role')
+        default_user_role = self.get_metadata('settings.default_user_role')
         if pydash.is_empty(default_user_role):
             default_user_role = 'guest'
-        default_user_settings = self.get_metadata(f'settings.default_user_settings')
+        default_user_settings = self.get_metadata('settings.default_user_settings')
         if pydash.is_empty(default_user_settings):
             default_user_settings = {}
         # create user profile with guest role if does not exist
@@ -293,3 +310,32 @@ class PlatformPerformanceTracker(PerformanceTracker):
 
         return self.data.toDict()
     
+
+###############
+### SessionCleanupScheduler
+#
+class SessionCleanupScheduler(Scheduler):
+    def __init__(self, platform, callback):
+        super().__init__(task=self.__session_cleanup)
+        self.platform: Platform = platform
+        self.callback = callback
+
+    def __session_cleanup(self):
+        sessions = self.platform.get_sessions()
+        deleted_sessions = []
+        session_expiration_duration = self.platform.get_metadata('settings.session_expiration_duration')
+        # default 3 days
+        if pydash.is_empty(session_expiration_duration):
+            session_expiration_duration = 3
+        session_expiration_duration = max(3, session_expiration_duration)
+        for session in sessions:
+            epoch = pydash.objects.get(session, 'last_activity_date', session['created_date'])
+            elapsed = datetime.datetime.now() - datetime.datetime.fromtimestamp(epoch)
+            if elapsed.days >= session_expiration_duration:
+                self.platform.delete_session(session['id'])
+                deleted_sessions.append(session['id'])
+        if pydash.is_function(self.callback):
+            self.callback(deleted_sessions)
+
+    def set_job(self):
+        self.job = self.scheduler.every().day.at('00:00')

@@ -27,6 +27,7 @@ from producer import Producer
 from message import Message, MessageType, ContentType, ControlCode
 from connection import PooledConnectionFactory
 
+
 class Session:
     def __init__(self, name="SESSION", id=None, sid=None, cid=None, prefix=None, suffix=None, properties={}):
         self.connection = None
@@ -52,7 +53,7 @@ class Session:
                 self.cid = self.prefix + ":" + self.cid
             if self.suffix:
                 self.cid = self.cid + ":" + self.suffix
-        
+
         # session stream
         self.producer = None
 
@@ -150,6 +151,9 @@ class Session:
             args["stream"] = output_stream
             args["tags"] = tags
             self.producer.write_control(ControlCode.ADD_STREAM, args)
+
+            # update session metadata last_activity_date
+            self.set_metadata("last_activity_date", int(time.time()))
 
     ###### DATA/METADATA RELATED
     def __get_json_value(self, value):
@@ -367,15 +371,7 @@ class Session:
         )
 
     def to_dict(self):
-        metadata = self.get_metadata()
-        return {
-            "id": self.sid,
-            "name": pydash.objects.get(metadata, "name", self.sid),
-            "description": pydash.objects.get(metadata, "description", ""),
-            "created_date": pydash.objects.get(metadata, "created_date", None),
-            "created_by": pydash.objects.get(metadata, "created_by", None),
-            "members": pydash.objects.get(metadata, "members", {}),
-        }
+        return {**self.get_metadata(), "id": self.sid}
 
     # ## session stream worker data
     # def _init_stream_agent_data_namespace(self, stream, agent):

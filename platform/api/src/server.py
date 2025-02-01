@@ -65,7 +65,7 @@ print("blue-platform-api: " + version)
 logging.getLogger().setLevel("INFO")
 
 ###### Initialization
-p = Platform(id=platform_id, properties=PROPERTIES)
+p = Platform(id=platform_id, properties={**PROPERTIES, 'default_session_expiration_duration': 3})
 
 ## Create Registries, Load
 agent_registry = AgentRegistry(id=agent_registry_id, prefix=prefix, properties=PROPERTIES)
@@ -107,11 +107,20 @@ system_tracker = SystemPerformanceTracker(properties=system_tracker_properties)
 async def lifespan(app: FastAPI):
     # start platform performance tracker
     p._start_tracker()
+
+    def session_cleanup(sessions):
+        connection_manager: ConnectionManager = app.connection_manager
+        for session in sessions:
+            connection_manager.clear_session(session)
+
+    p._init_session_cleanup_scheduler(callback=session_cleanup)
+    p._start_session_cleanup_job()
     signal.signal(signal.SIGINT, handle_signal)
     signal.signal(signal.SIGTERM, handle_signal)
     yield
     # stop platform performance tracker
     p._terminate_tracker()
+    p._stop_session_cleanup_job()
     system_tracker._terminate_tracker()
     signal.signal(signal.SIGINT, signal.SIG_DFL)
     signal.signal(signal.SIGTERM, signal.SIG_DFL)

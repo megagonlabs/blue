@@ -20,6 +20,7 @@ import {
     Button,
     Card,
     Classes,
+    Colors,
     ControlGroup,
     H4,
     Intent,
@@ -37,7 +38,6 @@ import {
     faCircleA,
     faClipboard,
     faPlusLarge,
-    faSatelliteDish,
     faSignalStreamSlash,
     faTableColumns,
     faTableLayout,
@@ -49,10 +49,10 @@ import classNames from "classnames";
 import copy from "copy-to-clipboard";
 import _ from "lodash";
 import { useRouter } from "next/router";
-import { useContext, useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useMemo, useRef, useState } from "react";
 export default function SessionMessagePage() {
     const router = useRouter();
-    const { socket, reconnectWs, isSocketOpen } = useSocket();
+    const { socket, isSocketOpen } = useSocket();
     const { appState, appActions } = useContext(AppContext);
     const { sessionId } = router.query;
     const sessionDetails = _.get(
@@ -118,17 +118,15 @@ export default function SessionMessagePage() {
     const [isAddAgentsOpen, setIsAddAgentsOpen] = useState(false);
     const [skippable, setSkippable] = useState(false);
     const sessionName = _.get(sessionDetails, "name", sessionId);
-    const [sessionDisplayName, setSessionDisplayName] = useState(sessionName);
-    useEffect(() => {
+    const sessionDisplayName = useMemo(() => {
         if (_.isEqual(sessionId, sessionName)) {
             const utcSeconds = sessionDetails.created_date;
             let date = new Date(0); // The 0 here sets the date to the epoch
             date.setUTCSeconds(utcSeconds);
-            setSessionDisplayName(date.toLocaleString());
-        } else {
-            setSessionDisplayName(sessionName);
+            return date.toLocaleString();
         }
-    }, [sessionName, sessionDetails, sessionId]);
+        return sessionName;
+    }, [sessionDetails]);
     const sessionDescription = _.get(sessionDetails, "description", "");
     useEffect(() => {
         if (openAgentsDialogTrigger) {
@@ -150,23 +148,6 @@ export default function SessionMessagePage() {
                     _.isEqual(socket.readyState, WebSocket.CONNECTING)
                         ? "Connecting"
                         : "No connection"
-                }
-                action={
-                    <Button
-                        icon={faIcon({ icon: faSatelliteDish })}
-                        onClick={reconnectWs}
-                        intent={Intent.PRIMARY}
-                        large
-                        loading={
-                            (!_.isNil(socket) &&
-                                _.isEqual(
-                                    socket.readyState,
-                                    WebSocket.CONNECTING
-                                )) ||
-                            authenticating
-                        }
-                        text="Connect"
-                    />
                 }
             />
         );
@@ -314,6 +295,7 @@ export default function SessionMessagePage() {
                         paddingTop: 1,
                         position: "relative",
                         paddingBottom: !_.isEmpty(progress) ? 31 : null,
+                        backgroundColor: Colors.WHITE,
                     }}
                 >
                     <Allotment separator={appState.session.showWorkspacePanel}>
@@ -392,6 +374,7 @@ export default function SessionMessagePage() {
                         padding: 20,
                         position: "relative",
                         height: 131,
+                        backgroundColor: Colors.WHITE,
                     }}
                 >
                     <ControlGroup fill style={{ height: "100%" }}>

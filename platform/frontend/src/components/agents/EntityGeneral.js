@@ -16,7 +16,7 @@ export default function EntityGeneral({ general, setGeneral, edit, loading }) {
     const { user } = useContext(AuthContext);
     const userRole = _.get(user, "role", null);
     return (
-        <Section compact collapsible title="General" style={{ marginTop: 20 }}>
+        <Section compact title="General" style={{ marginTop: 20 }}>
             <SectionCard>
                 <div style={{ display: "flex", alignItems: "center" }}>
                     {edit && _.isEqual(userRole, "admin") ? (

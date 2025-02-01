@@ -185,7 +185,10 @@ export const AuthProvider = ({ children }) => {
                         );
                     }
                 }
-                setSettings(profileSettings);
+                setSettings({
+                    ...profileSettings,
+                    debug_mode: _.get(profileSettings, "debug_mode", false),
+                });
                 appActions.session.setState({
                     key: "showWorkspacePanel",
                     value: _.get(profileSettings, "show_workspace", false),
