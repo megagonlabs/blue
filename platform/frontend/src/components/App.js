@@ -31,13 +31,14 @@ import {
     fa4,
     fa5,
     faCircleSmall,
-    faGear,
     faHashtag,
     faInboxArrowUp,
     faInboxFull,
     faLayerGroup,
     faPencilRuler,
     faRectangleTerminal,
+    faScrewdriverWrench,
+    faSlidersSimple,
     faUserGroup,
     faWavePulse,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
@@ -155,6 +156,12 @@ export default function App({ children }) {
             icon: faWavePulse,
             visible: _.isEqual(userRole, "admin"),
         },
+        admin_configurations: {
+            href: "/admin/configs",
+            text: "Configs",
+            icon: faScrewdriverWrench,
+            visible: _.isEqual(userRole, "admin"),
+        },
     };
     const NUMBER_TO_ICON = {
         1: fa1,
@@ -167,7 +174,7 @@ export default function App({ children }) {
     const RIGHT_HAND_ACTIONS = [
         {
             content: "Settings",
-            icon: faGear,
+            icon: faSlidersSimple,
             onClick: () => setIsSettingsOpen(true),
         },
     ];
@@ -611,18 +618,17 @@ export default function App({ children }) {
                             >
                                 {[
                                     "admin_status",
-                                    "admin_services",
                                     "admin_agents",
+                                    "admin_services",
                                     "admin_users",
+                                    "admin_configurations",
                                 ].map((key, index) => {
                                     const { href, icon, text, visible } = _.get(
                                         MENU_ITEMS,
                                         key,
                                         {}
                                     );
-                                    if (!visible) {
-                                        return null;
-                                    }
+                                    if (!visible) return null;
                                     const active = _.startsWith(
                                         router.pathname,
                                         href

@@ -1,6 +1,5 @@
 import {
     Button,
-    Card,
     Classes,
     Dialog,
     DialogBody,
@@ -9,6 +8,8 @@ import {
     Intent,
     Menu,
     MenuItem,
+    Section,
+    SectionCard,
     Switch,
 } from "@blueprintjs/core";
 import {
@@ -31,7 +32,7 @@ const EXPLANATION_TEXT = {
     },
     className: classNames(Classes.TEXT_SMALL, Classes.TEXT_MUTED),
 };
-const SECTION_LABEL_STYLE = { fontWeight: 600, marginBottom: 5 };
+const SECTION_LABEL_STYLE = { marginBottom: 5 };
 const DEFAULT_SETTINGS = {
     compact_sidebar: {
         title: "Compact sidebar",
@@ -130,110 +131,122 @@ export default function AuthConfigurationPopover({
             isOpen={isAuthConfigOpen}
         >
             <DialogBody>
-                <Card compact>
-                    <div
-                        style={{
-                            display: "flex",
-                            gap: 15,
-                            alignItems: "center",
-                            justifyContent: "space-between",
-                        }}
-                    >
+                <Section compact>
+                    <SectionCard>
                         <div
                             style={{
-                                maxWidth: "calc(100% - 134px)",
+                                display: "flex",
+                                gap: 15,
+                                alignItems: "center",
+                                justifyContent: "space-between",
                             }}
                         >
-                            <div style={SECTION_LABEL_STYLE}>
-                                Default User Role
+                            <div
+                                style={{
+                                    maxWidth: "calc(100% - 134px)",
+                                }}
+                            >
+                                <div style={SECTION_LABEL_STYLE}>
+                                    Default User Role
+                                </div>
+                                <div
+                                    className={classNames(
+                                        Classes.TEXT_SMALL,
+                                        Classes.TEXT_MUTED
+                                    )}
+                                >
+                                    This role will be assigned to those
+                                    first-time users signning in on the
+                                    platform.
+                                </div>
                             </div>
-                            <div>
-                                This role will be assigned to those first-time
-                                users signning in on the platform.
-                            </div>
+                            <HTMLSelect
+                                className={loading ? Classes.SKELETON : null}
+                                large
+                                value={defaultRole}
+                                onChange={(event) =>
+                                    setDefaultRole(event.target.value)
+                                }
+                            >
+                                {[
+                                    "admin",
+                                    "developer",
+                                    "member",
+                                    "demo",
+                                    "guest",
+                                ].map((role) => (
+                                    <option
+                                        key={role}
+                                        label={_.capitalize(role)}
+                                        value={role}
+                                    />
+                                ))}
+                            </HTMLSelect>
                         </div>
-                        <HTMLSelect
-                            className={loading ? Classes.SKELETON : null}
-                            large
-                            value={defaultRole}
-                            onChange={(event) =>
-                                setDefaultRole(event.target.value)
-                            }
-                        >
+                    </SectionCard>
+                    <SectionCard>
+                        <div style={SECTION_LABEL_STYLE}>
+                            Default User Settings
+                        </div>
+                        <Menu large style={{ padding: 0 }}>
                             {[
-                                "admin",
-                                "developer",
-                                "member",
-                                "demo",
-                                "guest",
-                            ].map((role) => (
-                                <option
-                                    key={role}
-                                    label={_.capitalize(role)}
-                                    value={role}
+                                "compact_sidebar",
+                                "show_workspace",
+                                "conversation_view",
+                            ].map((key) => (
+                                <MenuItem
+                                    key={key}
+                                    text={
+                                        <div style={{ marginLeft: 3 }}>
+                                            <div>
+                                                {_.get(
+                                                    DEFAULT_SETTINGS,
+                                                    [key, "title"],
+                                                    "-"
+                                                )}
+                                            </div>
+                                            <div {...EXPLANATION_TEXT}>
+                                                {_.get(
+                                                    DEFAULT_SETTINGS,
+                                                    [key, "description"],
+                                                    "-"
+                                                )}
+                                            </div>
+                                        </div>
+                                    }
+                                    icon={faIcon({
+                                        icon: _.get(
+                                            DEFAULT_SETTINGS,
+                                            [key, "icon"],
+                                            null
+                                        ),
+                                    })}
+                                    labelElement={
+                                        <Switch
+                                            checked={_.get(
+                                                defaultSettings,
+                                                key,
+                                                false
+                                            )}
+                                            className={
+                                                loading
+                                                    ? Classes.SKELETON
+                                                    : null
+                                            }
+                                            onChange={(event) =>
+                                                updateDefaultSettings(
+                                                    key,
+                                                    event.target.checked
+                                                )
+                                            }
+                                            large
+                                        />
+                                    }
                                 />
                             ))}
-                        </HTMLSelect>
-                    </div>
-                </Card>
-                <Card compact style={{ marginTop: 15 }}>
-                    <div style={SECTION_LABEL_STYLE}>Default User Settings</div>
-                    <Menu large style={{ padding: 0 }}>
-                        {[
-                            "compact_sidebar",
-                            "show_workspace",
-                            "conversation_view",
-                        ].map((key) => (
-                            <MenuItem
-                                key={key}
-                                text={
-                                    <div style={{ marginLeft: 3 }}>
-                                        <div>
-                                            {_.get(
-                                                DEFAULT_SETTINGS,
-                                                [key, "title"],
-                                                "-"
-                                            )}
-                                        </div>
-                                        <div {...EXPLANATION_TEXT}>
-                                            {_.get(
-                                                DEFAULT_SETTINGS,
-                                                [key, "description"],
-                                                "-"
-                                            )}
-                                        </div>
-                                    </div>
-                                }
-                                icon={faIcon({
-                                    icon: _.get(
-                                        DEFAULT_SETTINGS,
-                                        [key, "icon"],
-                                        null
-                                    ),
-                                })}
-                                labelElement={
-                                    <Switch
-                                        checked={_.get(
-                                            defaultSettings,
-                                            key,
-                                            false
-                                        )}
-                                        className={
-                                            loading ? Classes.SKELETON : null
-                                        }
-                                        onChange={(event) =>
-                                            updateDefaultSettings(
-                                                key,
-                                                event.target.checked
-                                            )
-                                        }
-                                        large
-                                    />
-                                }
-                            />
-                        ))}
-                    </Menu>
-                </Card>
+                        </Menu>
+                    </SectionCard>
+                </Section>
             </DialogBody>
             <DialogFooter>
                 <Button

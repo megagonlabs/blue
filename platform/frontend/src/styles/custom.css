@@ -105,8 +105,7 @@ table.entity-section-card-table tr td {
     margin-right: 5px;
 }
 .settings-menus {
-    padding-left: 8px !important;
-    padding-right: 8px !important;
+    padding: 8px !important;
 }
 .settings-menus a[class^="bp"][class*="-menu-item"] {
     cursor: initial;
