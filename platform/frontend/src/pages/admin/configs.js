@@ -1,3 +1,4 @@
+import { axiosErrorToast } from "@/components/helper";
 import { faIcon } from "@/components/icon";
 import { AppToaster } from "@/components/toaster";
 import {
@@ -140,7 +141,6 @@ export default function Configs() {
                                         )
                                         .catch((error) => {
                                             axiosErrorToast(error);
-                                            reject(false);
                                         })
                                         .finally(() => {
                                             setLoading(false);
