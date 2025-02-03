@@ -2,13 +2,12 @@ from pathlib import Path
 
 from setuptools import find_packages, setup
 
-version = Path("./blue/version").read_text().strip()
 package = {
-    "name": "blue",
-    "version": version,
+    "name": "blue-cli",
+    "version": "0.9",
     "description": "Blue CLI",
     "packages": find_packages(),
-    "entry_points": {"console_scripts": ["blue = blue.blue:cli"]},
+    "entry_points": {"console_scripts": ["blue = blue_cli.blue:cli"]},
     "install_requires": [
         "python-dotenv==1.0.0",
         "click==8.1.7",
