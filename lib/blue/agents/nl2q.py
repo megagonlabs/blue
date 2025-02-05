@@ -66,9 +66,9 @@ agent_properties = {
 
 
 ##########################
-### OpenAIAgent.NL2SQL
+### OpenAIAgent.NL2SQLAgent
 #
-class NL2SQL(OpenAIAgent):
+class NL2SQLAgent(OpenAIAgent):
     def __init__(self, **kwargs):
         if 'name' not in kwargs:
             kwargs['name'] = "NL2SQL"

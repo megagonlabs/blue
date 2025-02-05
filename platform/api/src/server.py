@@ -40,7 +40,7 @@ from ConnectionManager import ConnectionManager
 ###### Blue
 
 from blue.platform import Platform
-from blue.agent import AgentRegistry
+from blue.agents.registry import AgentRegistry
 from blue.data.registry import DataRegistry
 from blue.model import ModelRegistry
 from blue.operator import OperatorRegistry

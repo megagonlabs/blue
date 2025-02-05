@@ -39,7 +39,7 @@ JSONStructure = Union[JSONArray, JSONObject, Any]
 
 ###### Blue
 from blue.platform import Platform
-from blue.agent import AgentRegistry
+from blue.agents.registry import AgentRegistry
 from blue.utils import json_utils
 
 

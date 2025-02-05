@@ -1,5 +1,0 @@
-blue-py==0.9
-pandas==2.2.3
-numpy==1.25.2
-huggingface-hub==0.25.1
-sentence-transformers==2.2.2
