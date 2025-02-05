@@ -15,6 +15,7 @@ import { GoogleAuthProvider, getAuth, signInWithPopup } from "firebase/auth";
 import _ from "lodash";
 import { createContext, useContext, useEffect, useState } from "react";
 import { axiosErrorToast, hasIntersection } from "../helper";
+import { AppToaster } from "../toaster";
 import { AppContext } from "./app-context";
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
@@ -198,7 +199,12 @@ export const AuthProvider = ({ children }) => {
     };
     const updateSettings = (key, value) => {
         setSettings({ ...settings, [key]: value });
-        axios.put(`/accounts/profile/settings/${key}`, { value });
+        axios.put(`/accounts/profile/settings/${key}`, { value }).then(() => {
+            AppToaster.show({
+                message: "Settings saved successfully",
+                intent: Intent.SUCCESS,
+            });
+        });
     };
     const signInWithGoogle = () => {
         setPopupOpen(true);

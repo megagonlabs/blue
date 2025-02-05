@@ -84,7 +84,7 @@ export default function Settings({ isOpen, setIsSettingsOpen }) {
             isOpen={isOpen}
             onClose={() => setIsSettingsOpen(false)}
         >
-            <div style={{ padding: 20 }}>
+            <div style={{ padding: 20, overflowY: "auto" }}>
                 <div
                     style={{
                         marginBottom: 20,
