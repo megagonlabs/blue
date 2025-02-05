@@ -2,9 +2,9 @@
 echo 'Building docker image...'
 
 # build docker
-docker build -t blue-agent-apicaller:latest -f Dockerfile.agent .
+docker build -t blue-agent-requestor:latest -f Dockerfile.agent .
 
 # tag image
-docker tag blue-agent-apicaller:latest blue-agent-apicaller:$(git rev-parse --abbrev-ref HEAD)-$(git rev-parse --short HEAD)
+docker tag blue-agent-requestor:latest blue-agent-requestor:$(git rev-parse --abbrev-ref HEAD)-$(git rev-parse --short HEAD)
 
 echo 'Done...'
