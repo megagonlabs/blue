@@ -1,1 +1,1 @@
-docker exec -it blue_platform_default-redis-1 redis-cli FLUSHALL
+docker exec -it blue_platform_default-redis-1 sh -c 'redis-cli --scan --pattern "$1" | xargs -I {} redis-cli unlink {} > /dev/null 2>&1' -- "$1"

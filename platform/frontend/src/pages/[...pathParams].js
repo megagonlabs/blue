@@ -11,6 +11,7 @@ import SourceEntity from "@/components/data/SourceEntity";
 import Breadcrumbs from "@/components/entity/Breadcrumbs";
 import ModelEntity from "@/components/model/ModelEntity";
 import OperatorEntity from "@/components/operator/OperatorEntity";
+import { Card } from "@blueprintjs/core";
 import _ from "lodash";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
@@ -80,10 +81,21 @@ export default function RegistryEntity() {
     };
     return (
         <div style={{ height: "100%", overflowY: "auto" }}>
-            <div style={{ margin: "20px 20px 10px" }}>
+            <Card
+                className="full-parent-width"
+                style={{
+                    padding: "15px 20px",
+                    top: 0,
+                    left: 0,
+                    position: "absolute",
+                    zIndex: 1,
+                }}
+            >
                 <Breadcrumbs breadcrumbs={breadcrumbs} />
+            </Card>
+            <div style={{ marginTop: 70 }}>
+                {_.get(ENTITY_TYPE_TO_COMPONENT, entityType, null)}
             </div>
-            {_.get(ENTITY_TYPE_TO_COMPONENT, entityType, null)}
         </div>
     );
 }

@@ -1,5 +1,6 @@
 import AccessDeniedNonIdealState from "@/components/AccessDeniedNonIdealState";
 import AdminAgentListCheckbox from "@/components/admin/AdminAgentListCheckbox";
+import DockerContainerLogs from "@/components/admin/DockerContainerLogs";
 import { CONTAINER_STATUS_INDICATOR } from "@/components/constant";
 import { AppContext } from "@/components/contexts/app-context";
 import { AuthContext } from "@/components/contexts/auth-context";
@@ -40,7 +41,6 @@ import axios from "axios";
 import _ from "lodash";
 import { useContext, useEffect, useState } from "react";
 import ReactTimeAgo from "react-time-ago";
-import DockerContainerLogs from "./DockerContainerLogs";
 export default function Agents() {
     const { appState, appActions } = useContext(AppContext);
     const [tableKey, setTableKey] = useState(Date.now());

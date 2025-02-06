@@ -1,11 +1,11 @@
 #/bin/bash
-echo 'Publishing API Agent...'
+echo 'Publishing Requestor Agent...'
 
 # tag and publish
-docker tag blue-agent-apicaller:latest megagonlabs/blue-agent-apicaller:latest
-docker tag blue-agent-apicaller:latest megagonlabs/blue-agent-apicaller:$(git rev-parse --abbrev-ref HEAD)-$(git rev-parse --short HEAD)
+docker tag blue-agent-requestor:latest megagonlabs/blue-agent-requestor:latest
+docker tag blue-agent-requestor:latest megagonlabs/blue-agent-requestor:$(git rev-parse --abbrev-ref HEAD)-$(git rev-parse --short HEAD)
 
-docker push megagonlabs/blue-agent-apicaller:latest
-docker push megagonlabs/blue-agent-apicaller:$(git rev-parse --abbrev-ref HEAD)-$(git rev-parse --short HEAD)
+docker push megagonlabs/blue-agent-requestor:latest
+docker push megagonlabs/blue-agent-requestor:$(git rev-parse --abbrev-ref HEAD)-$(git rev-parse --short HEAD)
 
 echo 'Done...'

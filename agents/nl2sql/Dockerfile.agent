@@ -3,20 +3,27 @@ FROM python:3.9
 # Set workdir
 WORKDIR /app
 
-# This is a hack to avoid huge docker image by installing sentence-transformers with CPU-only pytorch first
-RUN pip install --no-cache-dir torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
-RUN pip install --no-cache-dir transformers tqdm numpy scikit-learn scipy nltk sentencepiece
-RUN pip install --no-cache-dir --no-deps sentence-transformers==2.2.2
-
 # Build requirements first
-ADD src/requirements.txt /app/requirements.txt
-RUN pip install --extra-index-url  http://10.0.160.75:8888/simple/ --trusted-host 10.0.160.75 -r requirements.txt
+ADD src/requirements.core /app/requirements.core
+RUN pip install --no-cache --extra-index-url  http://10.0.160.75:8888/simple/ --trusted-host 10.0.160.75 -r requirements.core
 
-ADD src/requirements.common.txt /app/requirements.common.txt
-RUN pip install --extra-index-url  http://10.0.160.75:8888/simple/ --trusted-host 10.0.160.75 -r requirements.common.txt
+ADD src/requirements.agent /app/requirements.agent
+RUN pip install --no-cache -r requirements.agent
 
-ADD src/requirements.data_registry.txt /app/requirements.data_registry.txt
-RUN pip install --extra-index-url  http://10.0.160.75:8888/simple/ --trusted-host 10.0.160.75 -r requirements.data_registry.txt
+ADD src/requirements.data /app/requirements.data
+RUN pip install --no-cache -r requirements.data
+
+ADD src/requirements.registry /app/requirements.registry
+RUN pip install --no-cache-dir --no-cache --extra-index-url https://download.pytorch.org/whl/cpu -r requirements.registry
+
+ADD src/requirements.requestor /app/requirements.requestor
+RUN pip install --no-cache -r requirements.requestor
+
+ADD src/requirements.openai /app/requirements.openai
+RUN pip install --no-cache -r requirements.openai
+
+ADD src/requirements.nl2sql /app/requirements.nl2sql
+RUN pip install --no-cache -r requirements.nl2sql
 
 
 

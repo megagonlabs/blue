@@ -1,0 +1,2 @@
+psutil==6.1.0
+websockets==11.0.3
