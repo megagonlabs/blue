@@ -1,7 +1,6 @@
 import { faIcon } from "@/components/icon";
 import {
     Button,
-    Card,
     Intent,
     Menu,
     MenuItem,
@@ -30,87 +29,98 @@ export default function Breadcrumbs({ breadcrumbs }) {
         minimal: true,
     };
     return (
-        <Card compact>
-            <OverflowList
-                items={breadcrumbs}
-                overflowRenderer={(items) => (
-                    <Popover
-                        position={Position.BOTTOM_LEFT}
-                        content={
-                            <Menu large>
-                                {_.reverse(items).map(
-                                    ({ href, text, end, icon }, index) => {
-                                        if (end) return null;
-                                        if (_.isNil(href)) {
-                                            return (
-                                                <MenuItem
-                                                    key={index}
-                                                    icon={
-                                                        !_.isEmpty(icon)
-                                                            ? faIcon({
-                                                                  icon: icon,
-                                                              })
-                                                            : null
-                                                    }
-                                                    intent={Intent.PRIMARY}
-                                                    text={text}
-                                                />
-                                            );
-                                        }
+        <OverflowList
+            items={breadcrumbs}
+            overflowRenderer={(items) => (
+                <Popover
+                    position={Position.BOTTOM_LEFT}
+                    content={
+                        <Menu large>
+                            {_.reverse(items).map(
+                                ({ href, text, end, icon }, index) => {
+                                    if (end) return null;
+                                    if (_.isNil(href)) {
                                         return (
-                                            <Link
-                                                href={href}
-                                                className="no-link-decoration"
+                                            <MenuItem
                                                 key={index}
-                                            >
-                                                <MenuItem
-                                                    icon={
-                                                        !_.isEmpty(icon)
-                                                            ? faIcon({
-                                                                  icon: icon,
-                                                              })
-                                                            : null
-                                                    }
-                                                    intent={Intent.PRIMARY}
-                                                    text={text}
-                                                />
-                                            </Link>
+                                                icon={
+                                                    !_.isEmpty(icon)
+                                                        ? faIcon({
+                                                              icon: icon,
+                                                          })
+                                                        : null
+                                                }
+                                                intent={Intent.PRIMARY}
+                                                text={text}
+                                            />
                                         );
                                     }
-                                )}
-                            </Menu>
-                        }
-                    >
-                        <Button
-                            intent={Intent.PRIMARY}
-                            minimal
-                            icon={faIcon({ icon: faBars })}
-                        />
-                    </Popover>
-                )}
-                visibleItemRenderer={(item, index) => {
-                    const { href, text, start, end, icon } = item;
-                    if (end) {
-                        return (
-                            <div style={BREADCRUMB_STYLE} key={index}>
-                                {!start || !end ? HYPHEN_ICON : null}
-                                <Tag
-                                    {...TAG_PROPS}
-                                    icon={
-                                        !_.isEmpty(icon)
-                                            ? faIcon({ icon: icon })
-                                            : null
-                                    }
-                                >
-                                    {text}
-                                </Tag>
-                            </div>
-                        );
+                                    return (
+                                        <Link
+                                            href={href}
+                                            className="no-link-decoration"
+                                            key={index}
+                                        >
+                                            <MenuItem
+                                                icon={
+                                                    !_.isEmpty(icon)
+                                                        ? faIcon({
+                                                              icon: icon,
+                                                          })
+                                                        : null
+                                                }
+                                                intent={Intent.PRIMARY}
+                                                text={text}
+                                            />
+                                        </Link>
+                                    );
+                                }
+                            )}
+                        </Menu>
                     }
+                >
+                    <Button
+                        intent={Intent.PRIMARY}
+                        minimal
+                        icon={faIcon({ icon: faBars })}
+                    />
+                </Popover>
+            )}
+            visibleItemRenderer={(item, index) => {
+                const { href, text, start, end, icon } = item;
+                if (end) {
                     return (
                         <div style={BREADCRUMB_STYLE} key={index}>
-                            {!start ? HYPHEN_ICON : null}
-                            {_.isNil(href) ? (
+                            {!start || !end ? HYPHEN_ICON : null}
+                            <Tag
+                                {...TAG_PROPS}
+                                icon={
+                                    !_.isEmpty(icon)
+                                        ? faIcon({ icon: icon })
+                                        : null
+                                }
+                            >
+                                {text}
+                            </Tag>
+                        </div>
+                    );
+                }
+                return (
+                    <div style={BREADCRUMB_STYLE} key={index}>
+                        {!start ? HYPHEN_ICON : null}
+                        {_.isNil(href) ? (
+                            <Tag
+                                {...TAG_PROPS}
+                                icon={
+                                    !_.isEmpty(icon)
+                                        ? faIcon({ icon: icon })
+                                        : null
+                                }
+                            >
+                                {text}
+                            </Tag>
+                        ) : (
+                            <Link href={href}>
                                 <Tag
                                     {...TAG_PROPS}
                                     icon={
@@ -118,30 +128,17 @@ export default function Breadcrumbs({ breadcrumbs }) {
                                             ? faIcon({ icon: icon })
                                             : null
                                     }
+                                    style={{ pointerEvents: "none" }}
+                                    interactive
+                                    intent={Intent.PRIMARY}
                                 >
                                     {text}
                                 </Tag>
-                            ) : (
-                                <Link href={href}>
-                                    <Tag
-                                        {...TAG_PROPS}
-                                        icon={
-                                            !_.isEmpty(icon)
-                                                ? faIcon({ icon: icon })
-                                                : null
-                                        }
-                                        style={{ pointerEvents: "none" }}
-                                        interactive
-                                        intent={Intent.PRIMARY}
-                                    >
-                                        {text}
-                                    </Tag>
-                                </Link>
-                            )}
-                        </div>
-                    );
-                }}
-            />
-        </Card>
+                            </Link>
+                        )}
+                    </div>
+                );
+            }}
+        />
     );
 }

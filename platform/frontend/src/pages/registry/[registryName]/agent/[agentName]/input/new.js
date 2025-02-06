@@ -11,7 +11,7 @@ import {
     shallowDiff,
 } from "@/components/helper";
 import { AppToaster } from "@/components/toaster";
-import { Intent } from "@blueprintjs/core";
+import { Card, Intent } from "@blueprintjs/core";
 import axios from "axios";
 import _ from "lodash";
 import { useRouter } from "next/router";
@@ -109,21 +109,32 @@ export default function New() {
     }, [router]);
     return (
         <div style={{ height: "100%", overflowY: "auto" }}>
-            <div style={{ margin: "20px 20px 10px" }}>
+            <Card
+                className="full-parent-width"
+                style={{
+                    padding: "15px 20px",
+                    top: 0,
+                    left: 0,
+                    position: "absolute",
+                    zIndex: 1,
+                }}
+            >
                 <Breadcrumbs breadcrumbs={breadcrumbs} />
+            </Card>
+            <div style={{ marginTop: 70 }}>
+                <NewEntity
+                    type="input"
+                    namePrefix={namePrefix}
+                    updateEntity={updateEntity}
+                    saveEntity={saveEntity}
+                    entity={entity}
+                    loading={loading}
+                    jsonError={jsonError}
+                    setJsonError={setJsonError}
+                    urlPrefix={urlPrefix}
+                    setEntity={setEntity}
+                />
             </div>
-            <NewEntity
-                type="input"
-                namePrefix={namePrefix}
-                updateEntity={updateEntity}
-                saveEntity={saveEntity}
-                entity={entity}
-                loading={loading}
-                jsonError={jsonError}
-                setJsonError={setJsonError}
-                urlPrefix={urlPrefix}
-                setEntity={setEntity}
-            />
         </div>
     );
 }
