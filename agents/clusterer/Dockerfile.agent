@@ -11,7 +11,7 @@ ADD src/requirements.agent /app/requirements.agent
 RUN pip install --no-cache -r requirements.agent
 
 ADD src/requirements.clusterer /app/requirements.clusterer
-RUN pip install --no-cache -r requirements.clusterer
+RUN pip install --no-cache-dir --no-cache --extra-index-url https://download.pytorch.org/whl/cpu -r requirements.clusterer
 
 # Copy service files
 ADD /src /app/
