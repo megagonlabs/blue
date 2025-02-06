@@ -11,7 +11,7 @@ ADD src/requirements.agent /app/requirements.agent
 RUN pip install --no-cache -r requirements.agent
 
 ADD src/requirements.registry /app/requirements.registry
-RUN pip install --no-cache -r requirements.registry
+RUN pip install --no-cache-dir --no-cache --extra-index-url https://download.pytorch.org/whl/cpu -r requirements.registry
 
 ADD src/requirements.requestor /app/requirements.requestor
 RUN pip install --no-cache -r requirements.requestor

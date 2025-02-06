@@ -2,5 +2,7 @@ huggingface-hub==0.25.1
 numpy==1.25.2
 pandas==2.2.3
 scikit-learn==1.6.1
+torch==2.6.0+cpu
+torchvision==0.21.0+cpu
 sentence-transformers==2.2.2
 umap-learn==0.5.7
