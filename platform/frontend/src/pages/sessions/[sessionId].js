@@ -114,7 +114,7 @@ export default function SessionMessagePage() {
             sessionId,
             socket,
         });
-    }, [isSocketOpen]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [sessionId, isSocketOpen]); // eslint-disable-line react-hooks/exhaustive-deps
     const [isAddAgentsOpen, setIsAddAgentsOpen] = useState(false);
     const [skippable, setSkippable] = useState(false);
     const sessionName = _.get(sessionDetails, "name", sessionId);
