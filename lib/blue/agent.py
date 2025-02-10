@@ -1004,11 +1004,11 @@ class AgentFactory:
 
         # perf tracker
         self.properties["tracker.perf.platform.agentfactory.autostart"] = True
-        self.properties["tracker.perf.platform.agentfactory.outputs"] = ["log.INFO", "pubsub"]
+        self.properties["tracker.perf.platform.agentfactory.outputs"] = ["pubsub"]
 
         # system perf tracker
         self.properties["tracker.perf.system.autostart"] = True
-        self.properties["tracker.perf.system.outputs"] = ["log.INFO", "pubsub"]
+        self.properties["tracker.perf.system.outputs"] = ["pubsub"]
        
         # no consumer idle tracking
         self.properties['tracker.idle.consumer.autostart'] = False
