@@ -58,7 +58,7 @@ class SummarizerAgent(OpenAIAgent):
         for key in agent_properties:
             self.properties[key] = agent_properties[key]
 
-    def issue_nl_query(self, question, name=None, worker=None):
+    def issue_nl_query(self, question, name=None, worker=None, to_param_prefix="QUESTION_RESULTS_"):
 
         if worker == None:
             worker = self.create_worker(None)
@@ -72,12 +72,12 @@ class SummarizerAgent(OpenAIAgent):
         p.set_input_value(name, question)
         # set plan
         p.add_input_to_agent_step(name, "NL2Q")
-        p.add_agent_to_agent_step("NL2Q", self.name, to_param="QUERY_RESULTS_" + name)
+        p.add_agent_to_agent_step("NL2Q", self.name, to_param=to_param_prefix + name)
         
         # submit plan
         p.submit(worker)
 
-    def issue_sql_query(self, query, name=None, worker=None):
+    def issue_sql_query(self, query, name=None, worker=None, to_param_prefix="QUERY_RESULTS_"):
 
         if worker == None:
             worker = self.create_worker(None)
@@ -91,7 +91,7 @@ class SummarizerAgent(OpenAIAgent):
         p.set_input_value(name, query)
         # set plan
         p.add_input_to_agent_step(name, "QUERYEXECUTOR")
-        p.add_agent_to_agent_step("QUERYEXECUTOR", self.name, to_param="QUERY_RESULTS_" + name)
+        p.add_agent_to_agent_step("QUERYEXECUTOR", self.name, to_param=to_param_prefix + name)
         
         # submit plan
         p.submit(worker)
@@ -216,6 +216,26 @@ class SummarizerAgent(OpenAIAgent):
                     self.results[query] = query_results
                     
                     # all queries received
+                    if len(self.todos) == 0:
+                        self.summarize_doc(properties=properties, worker=worker)
+                else:
+                    logging.info("nothing found")
+        elif input.find("QUESTION_RESULTS_") == 0:
+            if message.isData():
+                stream = message.getStream()
+                
+                # get question 
+                question = input[len("QUESTION_RESULTS_"):]
+
+                data = message.getData()
+            
+                if 'result' in data:
+                    question_results = data['result']
+
+                    self.todos.remove(question)
+                    self.results[question] = question_results
+                    
+                    # all questions received
                     if len(self.todos) == 0:
                         self.summarize_doc(properties=properties, worker=worker)
                 else:
