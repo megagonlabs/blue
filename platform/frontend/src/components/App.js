@@ -318,12 +318,6 @@ export default function App({ children }) {
                                                         router.push(
                                                             `/sessions/${sessionId}`
                                                         );
-                                                        appActions.session.observeSession(
-                                                            {
-                                                                sessionId,
-                                                                socket,
-                                                            }
-                                                        );
                                                     }}
                                                     text={
                                                         !compactSidebar &&

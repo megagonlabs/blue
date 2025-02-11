@@ -39,12 +39,6 @@ export const SocketProvider = ({ children }) => {
                             process.env.NEXT_PUBLIC_PLATFORM_NAME
                         }/sessions/ws?${searchParams.toString()}`
                     );
-                    // re-observe current session
-                    if (!_.isEmpty(appState.session.sessionIdFocus))
-                        appActions.session.observeSession({
-                            sessionId: appState.session.sessionIdFocus,
-                            socket: socketRef.current,
-                        });
                     socketRef.current.onopen = () => {
                         setIsSocketOpen(true);
                         reconnectAttempts.current = 0;
