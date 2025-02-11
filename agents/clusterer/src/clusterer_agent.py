@@ -17,6 +17,7 @@ import umap
 from blue.agent import Agent, AgentFactory
 from blue.session import Session
 from blue.utils import string_utils, uuid_utils
+from blue.plan import Plan
 from blue.stream import ControlCode
 
 ###### Agent Specific
@@ -38,20 +39,6 @@ class ClustererAgent(Agent):
 
     def _initialize_properties(self):
         super()._initialize_properties()
-    
-    def build_plan(self, plan_dag, stream, id=None):
-        
-        # create a plan id
-        if id is None:
-            id = uuid_utils.create_uuid()
-        
-        # plan context, initial streams, scope
-        plan_context = {"scope": stream[:-7], "streams": {plan_dag[0][0]: stream}}
-        
-        # construct plan
-        plan = {"id": id, "steps": plan_dag, "context": plan_context}
-
-        return plan
 
     def write_to_new_stream(self, worker, content, output, id=None, tags=None, scope="worker"):
         # create a unique id
@@ -66,42 +53,34 @@ class ClustererAgent(Agent):
 
         return output_stream
 
-    def issue_sql_query(self, query, worker, id=None):
-        # query plan
+    def issue_sql_query(self, query, name=None, worker=None, to_param_prefix="QUERY_RESULTS_"):
+
+        if worker == None:
+            worker = self.create_worker(None)
+
+        # plan
+        p = Plan(prefix=worker.prefix)
+        # set input
+        p.set_input_value(name, query)
+        # set plan
+        p.add_input_to_agent_step(name, "QUERYEXECUTOR")
+        p.add_agent_to_agent_step("QUERYEXECUTOR", self.name, to_param=to_param_prefix + name)
         
-        query_plan = [
-            [self.name + ".Q", "QUERYEXECUTOR.DEFAULT"],
-            ["QUERYEXECUTOR.DEFAULT", self.name+".QUERY_RESULTS"],
-        ]
-       
-        # write query to stream
-        query_stream = self.write_to_new_stream(worker, query, "Q", tags=["HIDDEN"], id=id)
-
-        # build query plan
-        plan = self.build_plan(query_plan, query_stream, id=id)
-
-        # write plan
-        # TODO: this shouldn't necessarily be into a new stream
-        self.write_to_new_stream(worker, plan, "PLAN", tags=["PLAN","HIDDEN"], id=id)
-
-        return
+        # submit plan
+        p.submit(worker)
     
-    def issue_agent_call(self, query, worker, agent_name, results_name, stream_name, id=None):
-        # query plan
-        query_plan = [
-            [self.name + "." + stream_name, agent_name + ".DEFAULT"],
-            [agent_name + ".DEFAULT", self.name+results_name],
-        ]
+    def issue_agent_call(self, value, worker, agent, output, input, id=None):
 
-        # write query to stream
-        query_stream = self.write_to_new_stream(worker, query, stream_name, tags=["HIDDEN"], id=id)
-
-        # build query plan
-        plan = self.build_plan(query_plan, query_stream, id=id)
-
-        # write plan
-        # TODO: this shouldn't necessarily be into a new stream
-        self.write_to_new_stream(worker, plan, "PLAN", tags=["PLAN","HIDDEN"], id=id)
+        # plan
+        p = Plan(prefix=worker.prefix)
+        # set input
+        p.set_input_value(input, value)
+        # set plan
+        p.add_input_to_agent_step(input, agent)
+        p.add_agent_to_agent_step(agent, self.name, to_param=output)
+        
+        # submit plan
+        p.submit(worker)
     
     # Show table of clusters and distinctive features to user
     def display_cluster_summaries(self, worker, analysis):
@@ -378,7 +357,7 @@ class ClustererAgent(Agent):
                     if 'query' in self.properties['data']:
                         q = json.dumps(self.properties['data']['query'])
                         query = string_utils.safe_substitute(q, **self.properties, **session_data)
-                        self.issue_sql_query(query, worker, id="CLUSTERER_QUERY")
+                        self.issue_sql_query(query, name="CLUSTERER_QUERY", worker=worker)
                     else:
                         self.results = self.properties['data']['data']
                         # Perform clustering on query results
@@ -401,7 +380,7 @@ class ClustererAgent(Agent):
                 if worker:
                     worker.append_data(stream, data)
 
-        elif input == "QUERY_RESULTS":
+        elif input == "QUERY_RESULTS_CLUSTERER_QUERY":
             if message.isData():
                 stream = message.getStream()
                 data = message.getData()
