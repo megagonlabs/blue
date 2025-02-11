@@ -71,14 +71,6 @@ class DocumenterAgent(Agent):
         # submit plan
         p.submit(worker)
 
-
-       # create a unique id
-        if id is None:
-            id = uuid_utils.create_uuid()
-
-        if name is None:
-            name = "unspecified"
-
     def issue_sql_query(self, query, name=None, worker=None):
 
         if worker == None:
