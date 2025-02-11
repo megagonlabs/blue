@@ -105,44 +105,66 @@ class CoordinatorAgent(Agent):
 
         # process steps
         for step in steps:
+
             # get canonical src and dst from plan relations: src -> dst
-            src = step[0]
-            dst = step[1]
+            src_canonical_name = step[0]
+            dst_canonical_name = step[1]
 
-            src_canonical_name = src.split('.')
-            dst_canonical_name = dst.split('.')
+            # split into <agent>.<param>, is possible
+            src_canonical_name_list = src_canonical_name.split('.')
+            dst_canonical_name_list = dst_canonical_name.split('.')
 
-            # parse agent name, id from canonical name
-            src_agent_name = src_canonical_name[0]
-            src_agent_param = src_canonical_name[1]
+            if len(src_canonical_name_list) == 1:
+                input_name = src_canonical_name_list[0]
+            else:
+                # parse agent name, id from canonical name
+                src_agent_name = src_canonical_name_list[0]
+                src_agent_param = src_canonical_name_list[1]
 
-            dst_agent_name = dst_canonical_name[0]
-            dst_agaent_param = dst_canonical_name[1]
+            if len(dst_canonical_name_list) == 1:
+                output_name = dst_canonical_name_list[0]
+            else:
+                dst_agent_name = dst_canonical_name_list[0]
+                dst_agent_param = dst_canonical_name_list[1]
 
-            src_canonical_name = ".".join([src_agent_name, src_agent_param])
-            dst_canonical_name = ".".join([dst_agent_name, dst_agaent_param])
-
+            ### SOURCE
             src_id = None
             src_node = None
+
             if src_canonical_name in canonical2id:
                 src_id = canonical2id[src_canonical_name]
                 src_node = id2node[src_id]
             else:
                 src_id = uuid_utils.create_uuid()
 
-                src_node = {'agent': src_agent_name, 'param': src_agent_param, 'canonical_name': src_canonical_name, 'id': src_id, 'next': [], 'prev': [], 'params': {}, 'status': 'PLANNED'}
+                
+                if len(src_canonical_name_list) == 1:
+                    # create input node
+                    src_node = {'input': input_name, 'canonical_name': src_canonical_name, 'id': src_id, 'next': [], 'prev': [], 'status': 'PLANNED'}
+                else:
+                    # create source agent node
+                    src_node = {'agent': src_agent_name, 'param': src_agent_param, 'canonical_name': src_canonical_name, 'id': src_id, 'next': [], 'prev': [], 'params': {}, 'status': 'PLANNED'}
+                
                 canonical2id[src_canonical_name] = src_id
                 id2node[src_id] = src_node
 
+            ### DESTINATION
             dst_id = None
             dst_node = None
+
             if dst_canonical_name in canonical2id:
                 dst_id = canonical2id[dst_canonical_name]
                 dst_node = id2node[dst_id]
             else:
                 dst_id = uuid_utils.create_uuid()
 
-                dst_node = {'agent': dst_agent_name, 'param': dst_agaent_param, 'canonical_name': dst_canonical_name, 'id': dst_id, 'next': [], 'prev': [], 'params': {}, 'status': 'PLANNED'}
+                if len(dst_canonical_name_list) == 1:
+                    # create output node
+                    dst_node = {'output': output_name, 'canonical_name': dst_canonical_name, 'id': dst_id, 'next': [], 'prev': [], 'params': {}, 'status': 'PLANNED'}
+                else:
+                    # create destination agent node
+                    dst_node = {'agent': dst_agent_name, 'param': dst_agent_param, 'canonical_name': dst_canonical_name, 'id': dst_id, 'next': [], 'prev': [], 'params': {}, 'status': 'PLANNED'}
+                
                 canonical2id[dst_canonical_name] = dst_id
                 id2node[dst_id] = dst_node
 
@@ -216,13 +238,13 @@ class CoordinatorAgent(Agent):
         return super().session_listener(message)
 
     def transform_data(self, input_stream, budget, from_agent, from_agent_param, to_agent, to_agent_param):
-        logging.info("TRANSFORM DATA:")
-        logging.info(from_agent + "." + from_agent_param)
-        logging.info(to_agent + "." + to_agent_param)
-        logging.info("BUDGET:")
-        logging.info(json.dumps(budget, indent=3))
+        # logging.info("TRANSFORM DATA:")
+        # logging.info(from_agent + "." + from_agent_param)
+        # logging.info(to_agent + "." + to_agent_param)
+        # logging.info("BUDGET:")
+        # logging.info(json.dumps(budget, indent=3))
 
-        context = {}
+        # context = {}
         # TODO: get registry info on from_agent, from_agent_param
 
         # TODO: get registry info on to_agent, to_agent_param
@@ -230,24 +252,24 @@ class CoordinatorAgent(Agent):
         # TODO: TEMPORARY
 
         # fetch data from stream
-        input_data = self.fetch_stream_data(input_stream)
+        # input_data = self.fetch_stream_data(input_stream)
 
         # # TODO: call data planner, plan, optimize given budget
-        pid = str(hex(uuid.uuid4().fields[0]))[2:]
-        dp = DataPlanner(id=pid, properties=self.properties)
-        plan = dp.plan(input_data, "TRANSFORM", context)
-        plan = dp.optimize(plan, budget)
+        # pid = str(hex(uuid.uuid4().fields[0]))[2:]
+        # dp = DataPlanner(id=pid, properties=self.properties)
+        # plan = dp.plan(input_data, "TRANSFORM", context)
+        # plan = dp.optimize(plan, budget)
 
         # # TODO: execute plan, update budget
-        pipeline = DataPipeline(id=pid, properties=self.properties)
-        output_data = pipeline.execute(plan, budget)
+        # pipeline = DataPipeline(id=pid, properties=self.properties)
+        # output_data = pipeline.execute(plan, budget)
 
-        # # persist data to stream
-        output_stream = self.persist_stream_data(output_data)
+        # # # persist data to stream
+        # output_stream = self.persist_stream_data(output_data)
 
-        # TODO: update session budget
+        # # TODO: update session budget
 
-        # TODO: OVERRIDE TEMPORARILY
+        # # TODO: OVERRIDE TEMPORARILY
         output_stream = input_stream
 
         return output_stream
@@ -306,7 +328,8 @@ class CoordinatorAgent(Agent):
                 worker.set_data(plan_id + ".id2node." + node_id + ".status", "FINISHED")
 
                 context_scope = worker.get_data(plan_id + ".context.scope")
-                # get from agent
+
+                # get from agent, if possible
                 from_agent = worker.get_data(plan_id + ".id2node." + node_id + ".agent")
                 from_agent_param = worker.get_data(plan_id + ".id2node." + node_id + ".param")
 
@@ -317,9 +340,13 @@ class CoordinatorAgent(Agent):
                     next_agent = worker.get_data(plan_id + ".id2node." + next_node_id + ".agent")
                     next_agent_param = worker.get_data(plan_id + ".id2node." + next_node_id + ".param")
 
-                    # transform data utilizing planner/optimizers, if necessary
-                    budget = worker.session.get_budget()
-                    output_stream = self.transform_data(stream, budget, from_agent, from_agent_param, next_agent, next_agent_param)
+                   
+                    output_stream = stream
+
+                    if from_agent:
+                        # transform data utilizing planner/optimizers, if necessary
+                        budget = worker.session.get_budget()
+                        output_stream = self.transform_data(stream, budget, from_agent, from_agent_param, next_agent, next_agent_param)
 
                     # create an EXECUTE_AGENT instruction
                     if output_stream:
