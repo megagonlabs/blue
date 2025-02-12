@@ -4,7 +4,8 @@ import logging
 import json
 
 ###### Blue
-from blue.agent import AgentFactory, AgentRegistry
+from blue.agent import AgentFactory
+from blue.agents.registry import AgentRegistry
 from blue.agents.openai import OpenAIAgent
 from blue.session import Session
 from blue.stream import ControlCode
