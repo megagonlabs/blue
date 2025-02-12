@@ -62,7 +62,9 @@ export default function AddAgents({
         }
         setLoading(true);
         axios
-            .get(`/registry/${agentRegistryName}/agents`)
+            .get(`/registry/${agentRegistryName}/agents`, {
+                params: { recursive: true },
+            })
             .then((response) => {
                 const list = _.get(response, "data.results", []);
                 let options = [];
