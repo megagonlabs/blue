@@ -27,7 +27,7 @@ Here are the requirements:
 - Always do case-${sensitivity} matching for string comparison.
 - The query should starts with any of the following prefixes: ${force_query_prefixes}
 - Output the JSON directly. Do not generate explanation or other additional output.
-{translation_requirements}
+${translation_requirements}
 
 Protocol:
 ```
@@ -53,16 +53,16 @@ agent_properties = {
     "input_template": NL2SQL_PROMPT,
     "openai.temperature": 0,
     "openai.max_tokens": 512,
-    "nl2q.source": None,
-    "nl2q.source_database": None,
-    "nl2q.discovery": False,
-    "nl2q.discovery_simiarity_threshold": 0.2,
-    "nl2q.discovery_source_protocols": ["postgres","mysql"],
-    "nl2q.execute": True,
-    "nl2q.case_insensitive": True,
-    "nl2q.valid_query_prefixes": ["SELECT"],
-    "nl2q.force_query_prefixes": ["SELECT"],
-    "nl2q.translation_requirements": [],
+    "nl2q_source": None,
+    "nl2q_source_database": None,
+    "nl2q_discovery": False,
+    "nl2q_discovery_similarity_threshold": 0.2,
+    "nl2q_discovery_source_protocols": ["postgres","mysql"],
+    "nl2q_execute": True,
+    "nl2q_case_insensitive": True,
+    "nl2q_valid_query_prefixes": ["SELECT"],
+    "nl2q_force_query_prefixes": ["SELECT"],
+    "nl2q_translation_requirements": [],
     "output_transformations": [
         {
             "transformation": "replace",
@@ -131,10 +131,10 @@ class NL2SQLAgent(OpenAIAgent):
         self.selected_collection = None
 
         # select source, if set
-        if "nl2q.source" in self.properties and self.properties["nl2q.source"]:
-            self.selected_source = self.properties["nl2q.source"]
+        if "nl2q_source" in self.properties and self.properties["nl2q_source"]:
+            self.selected_source = self.properties["nl2q_source"]
 
-            source_properties = self.get_source_properties(self.selected_source)
+            source_properties = self.registry.get_source_properties(self.selected_source)
 
             if source_properties:
                 if 'connection' in source_properties:
@@ -146,13 +146,13 @@ class NL2SQLAgent(OpenAIAgent):
                         
             # select database, if set
             self.selected_database = None
-            if "nl2q.source_database" in self.properties and self.properties["nl2q.source_database"]:
-                self.selected_database = self.properties['nl2q.source_database']
+            if "nl2q_source_database" in self.properties and self.properties["nl2q_source_database"]:
+                self.selected_database = self.properties['nl2q_source_database']
 
             # select collection, if set
             self.selected_collection = None
-            if "nl2q.source_database_collection" in self.properties and self.properties["nl2q.source_database_collection"]:
-                self.selected_collection = self.properties['nl2q.source_database_collection']
+            if "nl2q_source_database_collection" in self.properties and self.properties["nl2q_source_database_collection"]:
+                self.selected_collection = self.properties['nl2q_source_database_collection']
 
             # set protocol, if source specified
             source_properties = self.registry.get_source_properties(self.selected_source)
@@ -170,8 +170,8 @@ class NL2SQLAgent(OpenAIAgent):
             source_protocol = source_properties['connection']['protocol']
 
             # only allow source protocols that are allowed for discovery
-            if "nl2q.discovery_source_protocols" in self.properties and self.properties["nl2q.discovery_source_protocols"]:
-                if source_protocol not in self.properties["nl2q.discovery_source_protocols"]:
+            if "nl2q_discovery_source_protocols" in self.properties and self.properties["nl2q_discovery_source_protocols"]:
+                if source_protocol not in self.properties["nl2q_discovery_source_protocols"]:
                     return
 
             if database:
@@ -208,44 +208,48 @@ class NL2SQLAgent(OpenAIAgent):
         database = None
         collection = None 
 
-        sa = scope.split("/")
-        if len(sa) > 1:
-            source = sa[1]
-            if source == '':
-                source = None
-        if len(sa) > 2:
-            database = sa[2]
-            if database == '':
-                database = None
-        if len(sa) > 3:
-            collection = sa[3]
-            if collection == '':
-                collection = None 
+        if scope:
+            sa = scope.split("/")
+            if len(sa) > 1:
+                source = sa[1]
+                if source == '':
+                    source = None
+            if len(sa) > 2:
+                database = sa[2]
+                if database == '':
+                    database = None
+            if len(sa) > 3:
+                collection = sa[3]
+                if collection == '':
+                    collection = None 
 
         return source, database, collection
 
-    def _search_schemas(self, question):
+    def _search_schemas(self, question, scope=None):
         schemas = {}
 
-        if "nl2q.discovery_simiarity_threshold" in self.properties and self.properties["nl2q.discovery_simiarity_threshold"]:
-            simiarity_threshold = self.properties["nl2q.discovery_simiarity_threshold"]
+        if "nl2q_discovery_similarity_threshold" in self.properties and self.properties["nl2q_discovery_similarity_threshold"]:
+            similarity_threshold = self.properties["nl2q_discovery_similarity_threshold"]
         else:
-            simiarity_threshold = 0.2
+            similarity_threshold = 0.2
 
         # search matches below similarity threshold
         matches = []
-        page = 1
+        page = 0
+
+        # progressively get more pages within similarity threshold
         while True:
-            results = self.registry.search_records(question, approximate=True, page=page, page_size=5, page_limit=10) 
+            results = self.registry.search_records(question, scope=scope, approximate=True, page=page, page_size=5, page_limit=10) 
+            
             if len(results) == 0:
                 break
             for result in results:
-                score = result['score']
-                if score < simiarity_threshold:
+                score = float(result['score'])
+                if score < similarity_threshold:
                     matches.append(result)
                 else:
                     break
-            if score > simiarity_threshold:
+            if score > similarity_threshold:
                 break
             else:
                 page = page + 1
@@ -272,10 +276,10 @@ class NL2SQLAgent(OpenAIAgent):
 
     def _format_schema(self, schema):
         res = []
-        for table_name, record in schema.items():
+        for entity in schema:
             res.append({
-                'table_name': table_name,
-                'columns': record['properties']
+                'table_name': entity['name'],
+                'columns': ", ".join(list(entity['properties']['properties'].keys()))
             })
         return res
 
@@ -288,10 +292,20 @@ class NL2SQLAgent(OpenAIAgent):
 
         schemas = {}
 
-        if "nl2q.discovery" in self.properties:
-            if self.properties["nl2q.discovery"]:
+        if "nl2q_discovery" in self.properties:
+            if self.properties["nl2q_discovery"]:
+                # set scope, if selected 
+                scope = None
+                if self.selected_source:
+                    scope = ""
+                    scope = scope +  "/" + self.selected_source
+                    if self.selected_database:
+                        scope = scope + "/" + self.selected_database
+                        if self.selected_collection:
+                            scope = scope + "/" + self.selected_collection
+                    scope = scope + "*"
                 # search registry to suggest schema
-                schemas = self._search_schemas(question)
+                schemas = self._search_schemas(question, scope=scope)
             else:
                 # set schema from initialization
                 schemas = self.schemas
@@ -304,22 +318,24 @@ class NL2SQLAgent(OpenAIAgent):
 
         sources = json.dumps(sources, indent=2)
 
-        # logging.info(f'<sources>{sources}</sources>')
-        return {
+        params = {
             'sources': sources,
             'question': question,
-            'sensitivity': 'insensitive' if properties['nl2q.case_insensitive'] else 'sensitive',
-            'force_query_prefixes': ', '.join(properties['nl2q.force_query_prefixes']),
+            'sensitivity': 'insensitive' if properties['nl2q_case_insensitive'] else 'sensitive',
+            'force_query_prefixes': ', '.join(properties['nl2q_force_query_prefixes']),
             'protocol': self.selected_source_protocol if self.selected_source_protocol is not None else 'postgres',
-            'translation_requirements': '\n- '.join(properties['nl2q.translation_requirements'])
+            'translation_requirements': '\n- '.join(properties['nl2q_translation_requirements'])
         }
+
+        return params
 
     def process_output(self, output_data, properties=None):
 
         # get properties, overriding with properties provided
         properties = self.get_properties(properties=properties)
 
-        print(output_data)
+        if type(output_data) == str:
+            output_data = json.loads(output_data)
 
         question, key, query, result, error = None, None, None, None, None
 
@@ -329,7 +345,7 @@ class NL2SQLAgent(OpenAIAgent):
             query = output_data['query']
 
             # validate query predicate
-            if not any(query.upper().startswith(prefix.upper()) for prefix in properties['nl2q.valid_query_prefixes']):
+            if not any(query.upper().startswith(prefix.upper()) for prefix in properties['nl2q_valid_query_prefixes']):
                 raise ValueError(f'Invalid query prefix: {query}')
             
             # extract source, database, collection
@@ -338,7 +354,7 @@ class NL2SQLAgent(OpenAIAgent):
             result = None
 
             # execute query, if configured
-            if "nl2q.execute" in self.properties and self.properties['nl2q.execute']:
+            if "nl2q_execute" in self.properties and self.properties['nl2q_execute']:
                  # connect
                 source_connection = self.registry.connect_source(source)
             
