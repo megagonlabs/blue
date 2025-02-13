@@ -18,4 +18,4 @@ RUN pip install --no-cache -r requirements.requestor
 # Copy service files
 ADD /src /app/
 
-ENTRYPOINT ["python", "api_agent.py"]
+ENTRYPOINT ["python", "requestor_agent.py"]
