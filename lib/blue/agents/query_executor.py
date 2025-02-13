@@ -22,17 +22,18 @@ class QueryExecutorAgent(Agent):
             kwargs['name'] = "QUERYEXECUTOR"
         super().__init__(**kwargs)
 
-    def _initialize(self, properties=None):
-        super()._initialize(properties=properties)
+    def _start(self):
+        super()._start()
 
+        self._init_registry()
+
+    def _init_registry(self):
         # create instance of data registry
         platform_id = self.properties["platform.name"]
         prefix = 'PLATFORM:' + platform_id
         self.registry = DataRegistry(id=self.properties['data_registry.name'], prefix=prefix,
                                      properties=self.properties)
-
-    def _start(self):
-        super()._start()
+                       
 
 
     def execute_sql_query(self, path, query):
