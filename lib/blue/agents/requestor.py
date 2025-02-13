@@ -102,7 +102,7 @@ class RequestorAgent(Agent):
             input_object = {}
             if type(properties['input_json']) == str:
                 input_object = json.loads(properties['input_json'])
-            elif  type(properties['input_json']) == dict:
+            else:
                 input_object = copy.deepcopy(properties['input_json'])
                 
             # set input text in object
