@@ -86,7 +86,7 @@ export default function AddAgents({
                         description: description,
                         key: list[i].name,
                     };
-                    if (!_.isEqual(containerStatus, "running")) {
+                    if (!_.isEqual(containerStatus, "running") && false) {
                         unavailable.push(option);
                     } else {
                         options.push(option);
@@ -170,7 +170,7 @@ export default function AddAgents({
                     <FixedSizeList
                         itemCount={_.size(agents)}
                         style={{ paddingBottom: 20, marginTop: 1 }}
-                        itemSize={58.43}
+                        itemSize={63.43}
                         height={350.58}
                     >
                         {({ index, style }) => {
