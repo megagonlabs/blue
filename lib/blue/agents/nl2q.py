@@ -27,6 +27,7 @@ Here are the requirements:
 - Always do case-${sensitivity} matching for string comparison.
 - The query should starts with any of the following prefixes: ${force_query_prefixes}
 - Output the JSON directly. Do not generate explanation or other additional output.
+${translation_requirements}
 
 Protocol:
 ```
@@ -52,10 +53,30 @@ agent_properties = {
     "input_template": NL2SQL_PROMPT,
     "openai.temperature": 0,
     "openai.max_tokens": 512,
-    "nl2q.case_insensitive": True,
-    "nl2q.protocols":["postgres","mysql"],
-    "nl2q.valid_query_prefixes": ["SELECT"],
-    "nl2q.force_query_prefixes": ["SELECT"],
+    "nl2q_source": None,
+    "nl2q_source_database": None,
+    "nl2q_discovery": False,
+    "nl2q_discovery_similarity_threshold": 0.2,
+    "nl2q_discovery_source_protocols": ["postgres","mysql"],
+    "nl2q_execute": True,
+    "nl2q_case_insensitive": True,
+    "nl2q_valid_query_prefixes": ["SELECT"],
+    "nl2q_force_query_prefixes": ["SELECT"],
+    "nl2q_translation_requirements": [],
+    "output_transformations": [
+        {
+            "transformation": "replace",
+            "from": "```",
+            "to": ""
+        },
+        {
+            "transformation": "replace",
+            "from": "json",
+            "to": ""
+        }
+    ],
+    "output_strip": True,
+    "output_cast": "json",
     "listens": {
         "DEFAULT": {
             "includes": ["USER"],
@@ -74,115 +95,276 @@ class NL2SQLAgent(OpenAIAgent):
             kwargs['name'] = "NL2SQL"
         super().__init__(**kwargs)
 
-    def _initialize(self, properties=None):
-        super()._initialize(properties=properties)
-        platform_id = self.properties["platform.name"]
-        prefix = 'PLATFORM:' + platform_id
-        self.registry = DataRegistry(id=self.properties['data_registry.name'], prefix=prefix,
-                                     properties=self.properties)
-        self.schemas = {}
-        self.selected_source = None
-        self.selected_source_protocol = None
-        # register all sources for Data Discovery only if source is not provided in the properties
-        if "nl2q.source" in self.properties:
-            self.selected_source = self.properties["nl2q.source"]
-            self.selected_database = None
-            if "nl2q.source.database" in self.properties:
-                self.selected_database = self.properties['nl2q.source.database']
-
-            source_properties = self.registry.get_source_properties(self.selected_source)
-            self._add_sources_schema(self.selected_source, source_properties, database=self.selected_database)
-            self.selected_source_protocol = source_properties['connection']['protocol']
-        else:
-            for source in self.registry.get_sources():
-                source_properties = self.registry.get_source_properties(self.properties["nl2q.source"])
-                self._add_sources_schema(source, source_properties)
-        
 
     def _initialize_properties(self):
         super()._initialize_properties()
+
+        # intialize defatult properties
         for key in agent_properties:
             self.properties[key] = agent_properties[key]
 
-    def _add_sources_schema(self, source, properties, database=None):
-        if ('connection' not in properties) or (properties['connection']['protocol'] not in self.properties["nl2q.protocols"]):
-            return
-        source_connection = self.registry.connect_source(source)
-        try:
-            databases = self.registry.get_source_databases(source)
+    def _start(self):
+        super()._start()
+
+        # initialize registry
+        self._init_registry()
+
+        # initalize sources, schema
+        self._init_source()
+
+        self._init_schemas()
+
+
+    def _init_registry(self):
+        # create instance of data registry
+        platform_id = self.properties["platform.name"]
+        prefix = 'PLATFORM:' + platform_id
+        self.registry = DataRegistry(id=self.properties['data_registry.name'], prefix=prefix, properties=self.properties)
+
+    def _init_source(self):
+
+        # initialiaze, optional settings
+        self.schemas = {}
+        self.selected_source = None
+        self.selected_source_protocol = None
+        self.selected_database = None
+        self.selected_collection = None
+
+        # select source, if set
+        if "nl2q_source" in self.properties and self.properties["nl2q_source"]:
+            self.selected_source = self.properties["nl2q_source"]
+
+            source_properties = self.registry.get_source_properties(self.selected_source)
+
+            if source_properties:
+                if 'connection' in source_properties:
+                    connection_properties = source_properties["connection"]
+
+                    protocol = connection_properties["protocol"]
+                    if protocol:
+                        self.selected_source_protocol = protocol
+                        
+            # select database, if set
+            self.selected_database = None
+            if "nl2q_source_database" in self.properties and self.properties["nl2q_source_database"]:
+                self.selected_database = self.properties['nl2q_source_database']
+
+            # select collection, if set
+            self.selected_collection = None
+            if "nl2q_source_database_collection" in self.properties and self.properties["nl2q_source_database_collection"]:
+                self.selected_collection = self.properties['nl2q_source_database_collection']
+
+            # set protocol, if source specified
+            source_properties = self.registry.get_source_properties(self.selected_source)
+            self.selected_source_protocol = source_properties['connection']['protocol']
+
+    def _init_schemas(self):
+
+            # preset schema if any selected
+            self._set_schemas(self.schemas, source=self.selected_source, database=self.selected_database, collection=self.selected_collection)
+        
+    def _set_schemas(self, schemas, source=None, database=None, collection=None):
+        if source:
+
+            source_properties = self.registry.get_source_properties(self.selected_source)
+            source_protocol = source_properties['connection']['protocol']
+
+            # only allow source protocols that are allowed for discovery
+            if "nl2q_discovery_source_protocols" in self.properties and self.properties["nl2q_discovery_source_protocols"]:
+                if source_protocol not in self.properties["nl2q_discovery_source_protocols"]:
+                    return
+
+            if database:
+                if collection:
+                    entities = self.registry.get_source_database_collection_entities(source, database, collection)
+                    if entities:
+                        key = f'/{source}/{database}/{collection}'
+                        schemas[key] = entities
+                else:
+                    # get collections
+                    collections = self.registry.get_source_database_collections(source=source, database=database)
+
+                    # set schemas for each collection
+                    for collection in collections:
+                        self._set_schemas(schemas, source=source, database=database, collection=collection['name'])
+            else:
+                # get databases
+                databases = self.registry.get_source_databases(source=source)
+                # set schemas for each database
+                for database in databases:
+                    self._set_schemas(schemas, source=source, database=database['name'])
+        else:
+            # get sources
+            sources = self.registry.get_sources()
+
             
-            for db in databases:  # TODO: remove LLM data discovery
-                if database:
-                    if db['name'] != database:
-                        continue
-                try:
-                    db = db['name']
-                    #note: collection refers to table in mysql
-                    if properties['connection']['protocol'] == 'mysql':
-                        key = f'/{source}/{db}'
-                        schema =  source_connection.fetch_database_collection_schema(db, None)
-                        self.schemas[key] = schema
-                    # Note: collection refers to schema in postgres (the level between database and table)
-                    if properties['connection']['protocol'] == 'postgres':
-                        for collection in self.registry.get_source_database_collections(source, db):
-                            collection = collection['name']
-                            assert all('/' not in s for s in [source, db, collection])
-                            key = f'/{source}/{db}/{collection}'
-                            schema =  source_connection.fetch_database_collection_schema(db, collection)
-                            self.schemas[key] = schema
-                except Exception as e:
-                    logging.error(f'Error fetching schema for database: {db}, {str(e)}')
-        except Exception as e:
-            logging.error(f'Error fetching schema for source: {source}, {str(e)}')
+            # set scheas for each source
+            for source in sources:
+                self._set_schemas(schemas, source=source['name'])
+
+    def _parse_data_scope(self, scope):
+
+        source = None
+        database = None
+        collection = None 
+
+        if scope:
+            sa = scope.split("/")
+            if len(sa) > 1:
+                source = sa[1]
+                if source == '':
+                    source = None
+            if len(sa) > 2:
+                database = sa[2]
+                if database == '':
+                    database = None
+            if len(sa) > 3:
+                collection = sa[3]
+                if collection == '':
+                    collection = None 
+
+        return source, database, collection
+
+    def _search_schemas(self, question, scope=None):
+        schemas = {}
+
+        if "nl2q_discovery_similarity_threshold" in self.properties and self.properties["nl2q_discovery_similarity_threshold"]:
+            similarity_threshold = self.properties["nl2q_discovery_similarity_threshold"]
+        else:
+            similarity_threshold = 0.2
+
+        # search matches below similarity threshold
+        matches = []
+        page = 0
+
+        # progressively get more pages within similarity threshold
+        while True:
+            results = self.registry.search_records(question, scope=scope, approximate=True, page=page, page_size=5, page_limit=10) 
+            
+            if len(results) == 0:
+                break
+            for result in results:
+                score = float(result['score'])
+                if score < similarity_threshold:
+                    matches.append(result)
+                else:
+                    break
+            if score > similarity_threshold:
+                break
+            else:
+                page = page + 1
+            
+        # process matches
+        for match in matches:
+
+            n = match["name"]
+            t = match["type"]
+            s = match["scope"]
+
+            source, database, collection = self._parse_data_scope(s)
+           
+            if t == "source":
+                source = n
+            elif t == "database":
+                database = n
+            elif t == "collection":
+                collection = n
+
+            self._set_schemas(schemas, source=source, database=database, collection=collection)
+
+        return schemas
 
     def _format_schema(self, schema):
         res = []
-        for table_name, record in schema['entities'].items():
+        for entity in schema:
             res.append({
-                'table_name': table_name,
-                'columns': record['properties']
+                'table_name': entity['name'],
+                'columns': ", ".join(list(entity['properties']['properties'].keys()))
             })
         return res
 
     def extract_input_params(self, input_data, properties=None):
+
+        question = input_data
+
         # get properties, overriding with properties provided
         properties = self.get_properties(properties=properties)
 
+        schemas = {}
+
+        if "nl2q_discovery" in self.properties:
+            if self.properties["nl2q_discovery"]:
+                # set scope, if selected 
+                scope = None
+                if self.selected_source:
+                    scope = ""
+                    scope = scope +  "/" + self.selected_source
+                    if self.selected_database:
+                        scope = scope + "/" + self.selected_database
+                        if self.selected_collection:
+                            scope = scope + "/" + self.selected_collection
+                    scope = scope + "*"
+                # search registry to suggest schema
+                schemas = self._search_schemas(question, scope=scope)
+            else:
+                # set schema from initialization
+                schemas = self.schemas
+
+        # source metadata
         sources = [{
             'source': key,
             'schema': self._format_schema(schema)
-        } for key, schema in self.schemas.items()]
+        } for key, schema in schemas.items()]
+
         sources = json.dumps(sources, indent=2)
-        # logging.info(f'<sources>{sources}</sources>')
-        return {
+
+        params = {
             'sources': sources,
-            'question': input_data,
-            'sensitivity': 'insensitive' if properties['nl2q.case_insensitive'] else 'sensitive',
-            'force_query_prefixes': ', '.join(properties['nl2q.force_query_prefixes']),
-            'protocol': self.selected_source_protocol if self.selected_source_protocol is not None else 'postgres'
+            'question': question,
+            'sensitivity': 'insensitive' if properties['nl2q_case_insensitive'] else 'sensitive',
+            'force_query_prefixes': ', '.join(properties['nl2q_force_query_prefixes']),
+            'protocol': self.selected_source_protocol if self.selected_source_protocol is not None else 'postgres',
+            'translation_requirements': '\n- '.join(properties['nl2q_translation_requirements'])
         }
 
+        return params
+
     def process_output(self, output_data, properties=None):
+
         # get properties, overriding with properties provided
         properties = self.get_properties(properties=properties)
 
-        # logging.info(f'output_data: {output_data}')
-        response = output_data.replace('```json', '').replace('```', '').strip()
+        if type(output_data) == str:
+            output_data = json.loads(output_data)
+
         question, key, query, result, error = None, None, None, None, None
+
         try:
-            response = json.loads(response)
-            question = response['question']
-            key = response['source']
-            query = response['query']
-            if not any(query.upper().startswith(prefix.upper()) for prefix in properties['nl2q.valid_query_prefixes']):
+            question = output_data['question']
+            key = output_data['source']
+            query = output_data['query']
+
+            # validate query predicate
+            if not any(query.upper().startswith(prefix.upper()) for prefix in properties['nl2q_valid_query_prefixes']):
                 raise ValueError(f'Invalid query prefix: {query}')
-            _, source, database, collection = key.split('/')
-            # connect
-            source_connection = self.registry.connect_source(source)
-            # execute query
-            result = source_connection.execute_query(query, database=database, collection=collection)
+            
+            # extract source, database, collection
+            source, database, collection = self._parse_data_scope(key)
+            
+            result = None
+
+            # execute query, if configured
+            if "nl2q_execute" in self.properties and self.properties['nl2q_execute']:
+                 # connect
+                source_connection = self.registry.connect_source(source)
+            
+                # execute
+                result = source_connection.execute_query(query, database=database, collection=collection)
+
         except Exception as e:
             error = str(e)
+
+        # return results
         return {
             'question': question,
             'source': key,

@@ -1,10 +1,13 @@
 ###### Blue
+from blue.agent import Agent
 from blue.registry import Registry
 
 ###############
 ### AgentRegistry
 #
 class AgentRegistry(Registry):
+    SEPARATOR = Agent.SEPARATOR
+    
     def __init__(self, name="AGENT_REGISTRY", id=None, sid=None, cid=None, prefix=None, suffix=None, properties={}):
         super().__init__(name=name, id=id, sid=sid, cid=cid, prefix=prefix, suffix=suffix, properties=properties)
 

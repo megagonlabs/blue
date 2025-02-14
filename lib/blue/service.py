@@ -183,7 +183,7 @@ class Service:
 
         # stats tracker
         self.properties["tracker.perf.service.autostart"] = True
-        self.properties["tracker.perf.service.outputs"] = ["log.INFO", "pubsub"]
+        self.properties["tracker.perf.service.outputs"] = ["pubsub"]
 
     def _update_properties(self, properties=None):
         if properties is None:

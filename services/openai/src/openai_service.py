@@ -1,4 +1,5 @@
 ####### Parsers, Formats, Utils
+import os
 import argparse
 import logging
 import json
@@ -38,8 +39,8 @@ class OpenAIService(Service):
 
 
         if api == 'ChatCompletion':
-            response = client.chat.completions.create(**message, extra_headers={"x-indeed-redact-allow": "LOCATION,PERSON,PHONE"})
-            # response = client.chat.completions.create(**message)
+            # response = client.chat.completions.create(**message, extra_headers={"x-indeed-redact-allow": "LOCATION,PERSON,PHONE"})
+            response = client.chat.completions.create(**message)
         else:
             response['error'] = "Unknown API"
         
