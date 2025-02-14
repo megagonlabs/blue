@@ -75,28 +75,31 @@ export default function AddAgents({
                         [i, "container", "status"],
                         null
                     );
-                    const agentName = list[i].name;
+                    const agentName = _.get(
+                        list,
+                        [i, "properties", "display_name"],
+                        list[i].name
+                    );
                     const description = _.get(list, [i, "description"], "");
+                    const option = {
+                        name: agentName,
+                        description: description,
+                        key: list[i].name,
+                    };
                     if (!_.isEqual(containerStatus, "running")) {
-                        unavailable.push({
-                            name: agentName,
-                            description: description,
-                        });
+                        unavailable.push(option);
                     } else {
-                        options.push({
-                            name: agentName,
-                            description: description,
-                        });
+                        options.push(option);
                         if (!_.has(appState, ["agent", "icon", agentName])) {
                             appActions.agent.fetchAttributes(agentName);
                         }
                     }
                 }
                 options.sort(function (a, b) {
-                    return a.name.localeCompare(b.name);
+                    return a.key.localeCompare(b.key);
                 });
                 unavailable.sort(function (a, b) {
-                    return a.name.localeCompare(b.name);
+                    return a.key.localeCompare(b.key);
                 });
                 setAgents(options);
                 setUnavailableAgents(unavailable);
