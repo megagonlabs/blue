@@ -53,7 +53,7 @@ services:
         restart: always
 
     api:
-        image: blue-platform-api:${BLUE_DEPLOY_VERSION}
+        image: megagonlabs/blue-platform-api:${BLUE_DEPLOY_VERSION}
         hostname: blue_platform_api
         deploy:
             placement:
@@ -77,7 +77,7 @@ services:
         restart: always
 
     frontend:
-        image: blue-platform-frontend:${BLUE_DEPLOY_VERSION}
+        image: megagonlabs/blue-platform-frontend:${BLUE_DEPLOY_VERSION}
         hostname: blue_platform_frontend
         deploy:
             placement:

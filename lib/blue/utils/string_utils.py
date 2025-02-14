@@ -13,8 +13,7 @@ def safe_substitute(ts, **mappings):
     r = t.safe_substitute(**mappings)
 
     ## jinha
-    ts = r 
-    e = Environment(loader=BaseLoader()).from_string(ts)
+    e = Environment(loader=BaseLoader()).from_string(r)
     r = e.render(**mappings)
     
     if r == ts:
