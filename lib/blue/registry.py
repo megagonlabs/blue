@@ -13,7 +13,6 @@ from redis.commands.search.query import Query
 
 #######
 import numpy as np
-from sentence_transformers import SentenceTransformer
 
 ###### Blue
 from blue.connection import PooledConnectionFactory
@@ -59,6 +58,9 @@ class Registry:
         self._initialize_properties()
         self._update_properties(properties=properties)
 
+        self.embeddings_model = None
+        self.vector_dimensions = None
+
     def _initialize_properties(self):
         self.properties = {}
 
@@ -66,8 +68,6 @@ class Registry:
         self.properties['db.host'] = 'localhost'
         self.properties['db.port'] = 6379
 
-        # embeddings
-        self.properties['vector_dimensions'] = 4
         # embeddings model
         self.properties['embeddings_model'] = 'paraphrase-MiniLM-L6-v2'
 
@@ -112,6 +112,9 @@ class Registry:
         return self.cid + ':INDEX'
 
     def _init_search_index(self):
+        # defered loading of model
+        global SentenceTransformer
+        from sentence_transformers import SentenceTransformer
 
         # init embeddings model
         self._init_search_embeddings_model()
@@ -139,7 +142,6 @@ class Registry:
             logging.info(self.connection.ft(index_name).info())
 
     def _build_index_schema(self):
-        vector_dimensions = self.properties['vector_dimensions']
 
         schema = (
             # name
@@ -156,7 +158,7 @@ class Registry:
                 "FLAT",
                 {
                     "TYPE": "FLOAT32",
-                    "DIM": vector_dimensions,
+                    "DIM": self.vector_dimensions,
                     "DISTANCE_METRIC": "COSINE",
                 },
             ),
@@ -164,6 +166,10 @@ class Registry:
         return schema
 
     def build_index(self):
+
+        # deferred initialization
+        if self.embeddings_model is None:
+            self._init_search_index()
 
         index_name = self._get_index_name()
         doc_prefix = self._get_doc_prefix()
@@ -258,6 +264,10 @@ class Registry:
 
     def search_records(self, keywords, type=None, scope=None, approximate=False, hybrid=False, page=0, page_size=5, page_limit=10):
 
+        # deferred initialization
+        if self.embeddings_model is None:
+            self._init_search_index()
+
         index_name = self._get_index_name()
         doc_prefix = self._get_doc_prefix()
 
@@ -299,7 +309,6 @@ class Registry:
             results = [{"name": result['name'], "type": result['type'], "id": result['id'], "scope": result['scope']} for result in results]
 
         # do paging
-        print(len(results))
         page_results = results[page * page_size : (page + 1) * page_size]
         return page_results
 
@@ -314,8 +323,7 @@ class Registry:
         embedding = self.embeddings_model.encode(sentence)[0]
 
         # override vector_dimensions
-        vector_dimensions = embedding.shape[0]
-        self.properties['vector_dimensions'] = vector_dimensions
+        self.vector_dimensions = embedding.shape[0]
 
     def _compute_embedding_vector(self, text):
 
@@ -595,8 +603,8 @@ class Registry:
         # initialize registry data
         self._init_registry_namespace()
 
-        # build search index on registry
-        self._init_search_index()
+        # defer building search index on registry until first search
+        # self._init_search_index()
 
         logging.info('Started registry {name}'.format(name=self.name))
 
