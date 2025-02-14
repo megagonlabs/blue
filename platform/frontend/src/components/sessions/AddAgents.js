@@ -86,7 +86,7 @@ export default function AddAgents({
                         description: description,
                         key: list[i].name,
                     };
-                    if (!_.isEqual(containerStatus, "running") && false) {
+                    if (!_.isEqual(containerStatus, "running")) {
                         unavailable.push(option);
                     } else {
                         options.push(option);
