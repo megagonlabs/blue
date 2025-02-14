@@ -536,6 +536,8 @@ class Worker:
 ### Agent
 #
 class Agent:
+    SEPARATOR = '___'
+
     def __init__(
         self,
         name="AGENT",
@@ -1113,7 +1115,7 @@ class AgentFactory:
 
             # check match in canonical name space, i.e.
             # <base_name> or <base_name>___<derivative__name>___<derivative__name>...
-            ca = agent.split("_")
+            ca = agent.split(Agent.SEPARATOR)
             base_name = ca[0]
 
             if self._name == base_name:

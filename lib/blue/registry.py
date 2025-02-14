@@ -23,7 +23,7 @@ from blue.utils import json_utils, uuid_utils
 ### Registry
 #
 class Registry:
-    NESTING___SEPARATOR = "___"
+    SEPARATOR = '___'
 
     def __init__(self, name="REGISTRY", id=None, sid=None, cid=None, prefix=None, suffix=None, properties={}):
 
@@ -416,7 +416,7 @@ class Registry:
 
     def _identify_scope(self, name, full=False):
         # use name to identify scope
-        s = name.split(Registry.NESTING___SEPARATOR)
+        s = name.split(self.SEPARATOR)
         if not full:
             s = s[:-1]
         scope = "/" + "/".join(s)
@@ -424,7 +424,7 @@ class Registry:
 
     def _extract_shortname(self, name):
         # use name to identify scope, short name
-        s = name.split(Registry.NESTING___SEPARATOR)
+        s = name.split(self.SEPARATOR)
         sn = s[-1]
         return sn
     
