@@ -75,31 +75,31 @@ export default function AddAgents({
                         [i, "container", "status"],
                         null
                     );
-                    const agentName = _.get(
+                    const displayName = _.get(
                         list,
                         [i, "properties", "display_name"],
                         list[i].name
                     );
                     const description = _.get(list, [i, "description"], "");
                     const option = {
-                        name: agentName,
+                        displayName: displayName,
                         description: description,
-                        key: list[i].name,
+                        name: list[i].name,
                     };
                     if (!_.isEqual(containerStatus, "running")) {
                         unavailable.push(option);
                     } else {
                         options.push(option);
-                        if (!_.has(appState, ["agent", "icon", agentName])) {
-                            appActions.agent.fetchAttributes(agentName);
+                        if (!_.has(appState, ["agent", "icon", list[i].name])) {
+                            appActions.agent.fetchAttributes(list[i].name);
                         }
                     }
                 }
                 options.sort(function (a, b) {
-                    return a.key.localeCompare(b.key);
+                    return a.name.localeCompare(b.name);
                 });
                 unavailable.sort(function (a, b) {
-                    return a.key.localeCompare(b.key);
+                    return a.name.localeCompare(b.name);
                 });
                 setAgents(options);
                 setUnavailableAgents(unavailable);
@@ -174,7 +174,8 @@ export default function AddAgents({
                         height={350.58}
                     >
                         {({ index, style }) => {
-                            const name = _.get(agents, [index, "name"], "");
+                            const name = agents[index].name,
+                                displayName = agents[index].displayName;
                             return (
                                 <Card
                                     onClick={() => {
@@ -257,7 +258,7 @@ export default function AddAgents({
                                                         "calc(100% - 45px)",
                                                 }}
                                             >
-                                                {name}
+                                                {displayName}
                                                 <div
                                                     className={classNames(
                                                         Classes.TEXT_MUTED,
