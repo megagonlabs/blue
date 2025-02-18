@@ -1,5 +1,6 @@
 import { ENTITY_TYPE_LOOKUP } from "@/components/constant";
 import { AppContext } from "@/components/contexts/app-context";
+import { AuthContext } from "@/components/contexts/auth-context";
 import { faIcon } from "@/components/icon";
 import RegistryCard from "@/components/registry/RegistryCard";
 import SearchList from "@/components/registry/SearchList";
@@ -16,7 +17,6 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { useContext } from "react";
 import { Col, Container, Row } from "react-grid-system";
-import { AuthContext } from "../contexts/auth-context";
 import { populateRouterPathname } from "../helper";
 export default function RegistryList({ type }) {
     const { appState } = useContext(AppContext);

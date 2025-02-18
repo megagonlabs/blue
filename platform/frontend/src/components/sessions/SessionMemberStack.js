@@ -1,11 +1,11 @@
 import { AppContext } from "@/components/contexts/app-context";
+import { faIcon } from "@/components/icon";
 import { Card, Classes, Icon } from "@blueprintjs/core";
 import { faQuestion } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import _ from "lodash";
 import Image from "next/image";
 import { useContext, useEffect, useMemo } from "react";
 import { PROFILE_PICTURE_40 } from "../constant";
-import { faIcon } from "../icon";
 export default function SessionMemberStack({
     sessionId,
     fetchUsers = true,

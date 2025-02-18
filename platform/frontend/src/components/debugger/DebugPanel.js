@@ -1,3 +1,5 @@
+import { AuthContext } from "@/components/contexts/auth-context";
+import { faIcon } from "@/components/icon";
 import {
     Button,
     Classes,
@@ -10,9 +12,7 @@ import { faMinus } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import classNames from "classnames";
 import { useCallback, useContext, useEffect, useRef, useState } from "react";
 import { RESIZE_DIRECTION } from "../constant";
-import { AuthContext } from "../contexts/auth-context";
 import { useFloatingWindow } from "../hooks/useFloatingWindow";
-import { faIcon } from "../icon";
 import Debugger from "./Debugger";
 import Resizer from "./Resizer";
 const BASE_HEIGHT = 300;

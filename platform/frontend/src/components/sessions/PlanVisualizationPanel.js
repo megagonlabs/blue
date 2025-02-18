@@ -1,3 +1,4 @@
+import { faIcon } from "@/components/icon";
 import {
     Button,
     ButtonGroup,
@@ -16,7 +17,6 @@ import dagre from "dagre";
 import _ from "lodash";
 import { useContext, useState } from "react";
 import { AppContext } from "../contexts/app-context";
-import { faIcon } from "../icon";
 import AgentNode from "./visualization/AgentNode";
 import TransitionEdgeNode from "./visualization/TransitionEdgeNode";
 const getNodeDimension = (node) => {

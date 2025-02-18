@@ -1,4 +1,5 @@
 import JsonEditor from "@/components/codemirror/JsonEditor";
+import { faIcon } from "@/components/icon";
 import {
     Classes,
     H5,
@@ -9,7 +10,6 @@ import {
 } from "@blueprintjs/core";
 import { faBracketsCurly } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import _ from "lodash";
-import { faIcon } from "../icon";
 import JsonViewer from "../sessions/message/renderers/JsonViewer";
 export default function EntityProperties({
     entity,

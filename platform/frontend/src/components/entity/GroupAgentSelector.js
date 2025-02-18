@@ -1,3 +1,4 @@
+import { faIcon } from "@/components/icon";
 import {
     Button,
     Card,
@@ -18,7 +19,6 @@ import _ from "lodash";
 import { useContext, useEffect, useState } from "react";
 import { AppContext } from "../contexts/app-context";
 import { axiosErrorToast, settlePromises } from "../helper";
-import { faIcon } from "../icon";
 import EntityIcon from "./EntityIcon";
 import GroupAgentSelectorCheck from "./GroupAgentSelectorCheck";
 const interleave = (list, element) =>

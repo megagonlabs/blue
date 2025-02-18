@@ -1,8 +1,8 @@
+import { AuthContext } from "@/components/contexts/auth-context";
 import { Checkbox } from "@blueprintjs/core";
 import _ from "lodash";
 import { useContext } from "react";
 import { AppContext } from "../contexts/app-context";
-import { AuthContext } from "../contexts/auth-context";
 export default function AdminUserListCheckbox({ data, rowIndex }) {
     const { appState, appActions } = useContext(AppContext);
     const selectedUsers = _.get(appState, "admin.selectedUsers", new Set());

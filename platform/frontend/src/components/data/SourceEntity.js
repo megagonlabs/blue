@@ -1,6 +1,7 @@
 import EntityDescription from "@/components/entity/EntityDescription";
 import EntityMain from "@/components/entity/EntityMain";
 import EntityProperties from "@/components/entity/EntityProperties";
+import { faIcon } from "@/components/icon";
 import {
     H5,
     HTMLTable,
@@ -22,7 +23,6 @@ import {
     settlePromises,
     shallowDiff,
 } from "../helper";
-import { faIcon } from "../icon";
 export default function SourceEntity() {
     const BLANK_ENTITY = { type: "data" };
     const router = useRouter();

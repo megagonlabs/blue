@@ -1,6 +1,7 @@
 import EntityDescription from "@/components/entity/EntityDescription";
 import EntityMain from "@/components/entity/EntityMain";
 import EntityProperties from "@/components/entity/EntityProperties";
+import { faIcon } from "@/components/icon";
 import {
     H5,
     HTMLTable,
@@ -15,7 +16,6 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { ENTITY_TYPE_LOOKUP } from "../constant";
-import { faIcon } from "../icon";
 export default function CollectionEntity() {
     const router = useRouter();
     const [entity, setEntity] = useState({ type: "collection" });

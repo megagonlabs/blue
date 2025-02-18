@@ -1,3 +1,4 @@
+import { ENTITY_TYPE_LOOKUP } from "@/components/constant";
 import { AppContext } from "@/components/contexts/app-context";
 import { AuthContext } from "@/components/contexts/auth-context";
 import EntityDescription from "@/components/entity/EntityDescription";
@@ -8,13 +9,14 @@ import { faIcon } from "@/components/icon";
 import {
     Button,
     Classes,
+    H5,
     HTMLTable,
     Intent,
     Section,
     SectionCard,
     Tag,
 } from "@blueprintjs/core";
-import { faLineColumns } from "@fortawesome/sharp-duotone-solid-svg-icons";
+import { faFolderTree } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import axios from "axios";
 import _ from "lodash";
 import Link from "next/link";
@@ -129,7 +131,12 @@ export default function AgentGroupEntity() {
                 loading={loading}
                 updateEntity={updateEntity}
             />
-            <Section compact title="Agents" style={{ marginTop: 20 }}>
+            <Section
+                compact
+                icon={faIcon({ icon: ENTITY_TYPE_LOOKUP.agent.icon })}
+                title={<H5 className="margin-0">Agents</H5>}
+                style={{ marginTop: 20 }}
+            >
                 <SectionCard padded={false}>
                     <HTMLTable
                         className="entity-section-card-table full-parent-width"
@@ -177,7 +184,7 @@ export default function AgentGroupEntity() {
                                                     : null
                                             }
                                             icon={faIcon({
-                                                icon: faLineColumns,
+                                                icon: faFolderTree,
                                             })}
                                             outlined
                                             text="Update agents"

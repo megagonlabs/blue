@@ -1,8 +1,8 @@
+import { faIcon } from "@/components/icon";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import _ from "lodash";
 import Image from "next/image";
 import { ENTITY_TYPE_LOOKUP } from "../constant";
-import { faIcon } from "../icon";
 export default function EntityIcon({ entity, iconSize = 20 }) {
     const { icon, type } = entity;
     if (_.isEqual(_.get(icon, "type", null), "canvas")) {

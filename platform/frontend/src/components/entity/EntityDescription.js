@@ -1,3 +1,4 @@
+import { faIcon } from "@/components/icon";
 import {
     Classes,
     EditableText,
@@ -6,7 +7,6 @@ import {
     SectionCard,
 } from "@blueprintjs/core";
 import { faQuoteLeft } from "@fortawesome/sharp-duotone-solid-svg-icons";
-import { faIcon } from "../icon";
 export default function EntityDescription({
     entity,
     edit,
