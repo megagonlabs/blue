@@ -11,6 +11,7 @@ const {
     faCube,
     faKeynote,
     faUsersViewfinder,
+    faCircleNodes,
 } = require("@fortawesome/sharp-duotone-solid-svg-icons");
 const { vanillaRenderers } = require("@jsonforms/vanilla-renderers");
 import BooleanRenderer, {
@@ -66,7 +67,7 @@ export const ENTITY_TYPE_LOOKUP = {
         database: { icon: faDatabase },
         collection: { icon: faFolderOpen },
         entity: { icon: faFile },
-        relation: { icon: faProjectDiagram },
+        relation: { icon: faCircleNodes },
         model: { icon: faCube, key: "model" },
         operator: { icon: faFunction, key: "operator" },
     },

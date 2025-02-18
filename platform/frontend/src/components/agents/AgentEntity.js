@@ -11,6 +11,7 @@ import { faIcon } from "@/components/icon";
 import {
     Button,
     Classes,
+    H5,
     HTMLTable,
     Intent,
     Section,
@@ -23,6 +24,7 @@ import _ from "lodash";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useContext, useEffect, useState } from "react";
+import { ENTITY_TYPE_LOOKUP } from "../constant";
 import { AppContext } from "../contexts/app-context";
 import { AuthContext } from "../contexts/auth-context";
 import EntityGeneral from "./EntityGeneral";
@@ -56,6 +58,8 @@ export default function AgentEntity() {
             setLoading(false);
             setGeneral({
                 system_agent: _.get(result, "properties.system_agent", false),
+                image: _.get(result, "properties.image", ""),
+                display_name: _.get(result, "properties.display_name", ""),
             });
         });
     }, [router]);
@@ -162,7 +166,12 @@ export default function AgentEntity() {
                 setJsonError={setJsonError}
                 updateEntity={updateEntity}
             />
-            <Section compact title="Inputs" style={{ marginTop: 20 }}>
+            <Section
+                compact
+                icon={faIcon({ icon: ENTITY_TYPE_LOOKUP.input.icon })}
+                title={<H5 className="margin-0">Inputs</H5>}
+                style={{ marginTop: 20 }}
+            >
                 <SectionCard padded={false}>
                     <HTMLTable
                         className="entity-section-card-table full-parent-width"
@@ -225,7 +234,12 @@ export default function AgentEntity() {
                     </HTMLTable>
                 </SectionCard>
             </Section>
-            <Section compact title="Outputs" style={{ marginTop: 20 }}>
+            <Section
+                compact
+                icon={faIcon({ icon: ENTITY_TYPE_LOOKUP.output.icon })}
+                title={<H5 className="margin-0">Outputs</H5>}
+                style={{ marginTop: 20 }}
+            >
                 <SectionCard padded={false}>
                     <HTMLTable
                         className="entity-section-card-table full-parent-width"
@@ -288,7 +302,12 @@ export default function AgentEntity() {
                     </HTMLTable>
                 </SectionCard>
             </Section>
-            <Section compact title="Agents" style={{ marginTop: 20 }}>
+            <Section
+                compact
+                icon={faIcon({ icon: ENTITY_TYPE_LOOKUP.agent.icon })}
+                title={<H5 className="margin-0">Agents</H5>}
+                style={{ marginTop: 20 }}
+            >
                 <SectionCard padded={false}>
                     <HTMLTable
                         className="entity-section-card-table full-parent-width"

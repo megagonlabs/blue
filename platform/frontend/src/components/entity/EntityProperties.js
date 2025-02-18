@@ -1,6 +1,15 @@
 import JsonEditor from "@/components/codemirror/JsonEditor";
-import { Classes, Intent, Section, SectionCard, Tag } from "@blueprintjs/core";
+import {
+    Classes,
+    H5,
+    Intent,
+    Section,
+    SectionCard,
+    Tag,
+} from "@blueprintjs/core";
+import { faBracketsCurly } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import _ from "lodash";
+import { faIcon } from "../icon";
 import JsonViewer from "../sessions/message/renderers/JsonViewer";
 export default function EntityProperties({
     entity,
@@ -18,7 +27,8 @@ export default function EntityProperties({
     return (
         <Section
             compact
-            title="Properties"
+            icon={faIcon({ icon: faBracketsCurly })}
+            title={<H5 className="margin-0">Properties</H5>}
             style={{ marginTop: 20 }}
             rightElement={
                 jsonError && edit ? (

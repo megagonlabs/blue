@@ -17,7 +17,7 @@ import {
 import {
     faArrowDown,
     faArrowUp,
-    faCircleNodes,
+    faDiagramNext,
     faPlus,
     faTrash,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
@@ -339,7 +339,7 @@ const ArrayRenderer = ({
                         outlined
                         text="Visualize"
                         onClick={setVisualization}
-                        icon={faIcon({ icon: faCircleNodes })}
+                        icon={faIcon({ icon: faDiagramNext })}
                     />
                 ) : null}
             </ButtonGroup>

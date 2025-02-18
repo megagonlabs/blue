@@ -1,4 +1,12 @@
-import { Classes, EditableText, Section, SectionCard } from "@blueprintjs/core";
+import {
+    Classes,
+    EditableText,
+    H5,
+    Section,
+    SectionCard,
+} from "@blueprintjs/core";
+import { faQuoteLeft } from "@fortawesome/sharp-duotone-solid-svg-icons";
+import { faIcon } from "../icon";
 export default function EntityDescription({
     entity,
     edit,
@@ -7,7 +15,12 @@ export default function EntityDescription({
     loading = false,
 }) {
     return (
-        <Section compact title="Description" style={{ marginTop: 20 }}>
+        <Section
+            compact
+            icon={faIcon({ icon: faQuoteLeft })}
+            title={<H5 className="margin-0">Description</H5>}
+            style={{ marginTop: 20 }}
+        >
             <SectionCard
                 style={{ whiteSpace: !edit ? "pre-wrap" : null }}
                 onDoubleClick={(event) => {
