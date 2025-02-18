@@ -189,6 +189,10 @@ class Registry:
 
     def _set_index_record(self, record, recursive=False, pipe=None):
 
+        # deferred initialization
+        if self.embeddings_model is None:
+            self._init_search_index()
+
         if 'name' not in record:
             return
 
@@ -208,6 +212,10 @@ class Registry:
                 self._set_index_record(r, recursive=recursive, pipe=pipe)
 
     def _create_index_doc(self, name, type, scope, description, pipe=None):
+
+        # deferred initialization
+        if self.embeddings_model is None:
+            self._init_search_index()
 
         # TODO: Identify the best way to compute embedding vector, for now name + description
         vector = self._compute_embedding_vector(name + " " + description)
@@ -248,6 +256,10 @@ class Registry:
             self._delete_index_record(r, pipe=pipe)
 
     def _delete_index_doc(self, name, type, scope, pipe=None):
+
+        # deferred initialization
+        if self.embeddings_model is None:
+            self._init_search_index()
 
         # define key
         doc_key = self.__doc_key(name, type, scope)
