@@ -234,152 +234,140 @@ export default function EntityIconEditor({
             isOpen={isOpen}
             style={{ minWidth: 550 }}
         >
-            <DialogBody className="dialog-body">
-                <Card style={{ padding: "5px 15px", borderRadius: 0 }}>
-                    <Button
-                        icon={faIcon({ icon: faIcons })}
-                        minimal
-                        large
-                        text="Icon"
-                        onClick={() => {
-                            setTab("icon");
-                        }}
-                        active={_.isEqual(tab, "icon")}
-                    />
-                    <Button
-                        icon={faIcon({ icon: faImage })}
-                        minimal
-                        large
-                        text="Image"
-                        onClick={() => {
-                            setTab("image");
-                        }}
-                        active={_.isEqual(tab, "image")}
-                    />
-                </Card>
+            <Card style={{ padding: "5px 15px", borderRadius: 0 }}>
+                <Button
+                    icon={faIcon({ icon: faIcons })}
+                    minimal
+                    large
+                    text="Icon"
+                    onClick={() => {
+                        setTab("icon");
+                    }}
+                    active={_.isEqual(tab, "icon")}
+                />
+                <Button
+                    icon={faIcon({ icon: faImage })}
+                    minimal
+                    large
+                    text="Image"
+                    onClick={() => {
+                        setTab("image");
+                    }}
+                    active={_.isEqual(tab, "image")}
+                />
+            </Card>
+            <DialogBody>
                 <div
                     style={{
-                        padding: 15,
-                        maxHeight: _.isEqual(tab, "icon") ? 591 : null,
+                        display: _.isEqual(tab, "image") ? null : "none",
                     }}
                 >
-                    <div
-                        style={{
-                            display: _.isEqual(tab, "image") ? null : "none",
-                        }}
-                    >
-                        <ControlGroup fill>
-                            <FileInput
-                                large
-                                inputProps={{ accept: "image/*" }}
-                                style={{ maxWidth: 216.57 }}
-                                text={fileName}
-                                onInputChange={onSelectFile}
-                            />
-                            {!!imgSrc && (
-                                <>
-                                    <Button
-                                        text="Preview"
-                                        fill
-                                        minimal
-                                        onClick={() =>
-                                            setShowPreview(!showPreview)
-                                        }
-                                        icon={faIcon({
-                                            icon: faFaceViewfinder,
-                                        })}
-                                        rightIcon={faIcon({
-                                            icon: showPreview
-                                                ? faCaretUp
-                                                : faCaretDown,
-                                        })}
-                                    />
-
-                                    <Button
-                                        text="Center crop"
-                                        fill
-                                        minimal
-                                        icon={faIcon({
-                                            icon: faArrowsToCircle,
-                                        })}
-                                        onClick={centerCropManually}
-                                    />
-                                </>
-                            )}
-                        </ControlGroup>
+                    <ControlGroup fill>
+                        <FileInput
+                            large
+                            inputProps={{ accept: "image/*" }}
+                            style={{ maxWidth: 216.57 }}
+                            text={fileName}
+                            onInputChange={onSelectFile}
+                        />
                         {!!imgSrc && (
                             <>
-                                <Collapse
-                                    keepChildrenMounted
-                                    isOpen={showPreview}
-                                >
-                                    <Card
-                                        style={{
-                                            boxShadow: "none",
-                                            padding: 20,
-                                            width: 350,
-                                            marginTop: 15,
-                                        }}
-                                    >
-                                        <RegistryCard
-                                            title={entity.name}
-                                            description={entity.description}
-                                            extra={extra}
-                                            container={entity.container}
-                                            icon={
-                                                <canvas
-                                                    ref={previewCanvasRef}
-                                                    style={{
-                                                        objectFit: "contain",
-                                                        width: 40,
-                                                        height: 40,
-                                                    }}
-                                                />
-                                            }
-                                        />
-                                    </Card>
-                                </Collapse>
-                                <ReactCrop
-                                    style={{ marginTop: 15 }}
-                                    keepSelection
-                                    crop={crop}
-                                    onChange={(_, percentCrop) => {
-                                        setCrop(percentCrop);
-                                    }}
-                                    onComplete={(crop, percentCrop) => {
-                                        setCompletedCrop(
-                                            convertToPixelCrop(
-                                                percentCrop,
-                                                imgRef.current.width,
-                                                imgRef.current.height
-                                            )
-                                        );
-                                    }}
-                                    aspect={1}
-                                    minWidth={80}
-                                    minHeight={80}
-                                >
-                                    <img
-                                        ref={imgRef}
-                                        alt="Crop me"
-                                        src={imgSrc}
-                                        onLoad={onImageLoad}
-                                    />
-                                </ReactCrop>
+                                <Button
+                                    text="Preview"
+                                    fill
+                                    minimal
+                                    onClick={() => setShowPreview(!showPreview)}
+                                    icon={faIcon({
+                                        icon: faFaceViewfinder,
+                                    })}
+                                    rightIcon={faIcon({
+                                        icon: showPreview
+                                            ? faCaretUp
+                                            : faCaretDown,
+                                    })}
+                                />
+
+                                <Button
+                                    text="Center crop"
+                                    fill
+                                    minimal
+                                    icon={faIcon({
+                                        icon: faArrowsToCircle,
+                                    })}
+                                    onClick={centerCropManually}
+                                />
                             </>
                         )}
-                    </div>
-                    {_.isEqual(tab, "icon") ? (
-                        <IconPicker
-                            icon={icon}
-                            setIcon={setIcon}
-                            color={color}
-                            setColor={setColor}
-                            entity={entity}
-                            extra={extra}
-                        />
-                    ) : null}
+                    </ControlGroup>
+                    {!!imgSrc && (
+                        <>
+                            <Collapse keepChildrenMounted isOpen={showPreview}>
+                                <Card
+                                    style={{
+                                        boxShadow: "none",
+                                        padding: 20,
+                                        width: 350,
+                                        marginTop: 15,
+                                    }}
+                                >
+                                    <RegistryCard
+                                        title={entity.name}
+                                        description={entity.description}
+                                        extra={extra}
+                                        container={entity.container}
+                                        icon={
+                                            <canvas
+                                                ref={previewCanvasRef}
+                                                style={{
+                                                    objectFit: "contain",
+                                                    width: 40,
+                                                    height: 40,
+                                                }}
+                                            />
+                                        }
+                                    />
+                                </Card>
+                            </Collapse>
+                            <ReactCrop
+                                style={{ marginTop: 15 }}
+                                keepSelection
+                                crop={crop}
+                                onChange={(_, percentCrop) => {
+                                    setCrop(percentCrop);
+                                }}
+                                onComplete={(crop, percentCrop) => {
+                                    setCompletedCrop(
+                                        convertToPixelCrop(
+                                            percentCrop,
+                                            imgRef.current.width,
+                                            imgRef.current.height
+                                        )
+                                    );
+                                }}
+                                aspect={1}
+                                minWidth={80}
+                                minHeight={80}
+                            >
+                                <img
+                                    ref={imgRef}
+                                    alt="Crop me"
+                                    src={imgSrc}
+                                    onLoad={onImageLoad}
+                                />
+                            </ReactCrop>
+                        </>
+                    )}
                 </div>
+                {_.isEqual(tab, "icon") ? (
+                    <IconPicker
+                        icon={icon}
+                        setIcon={setIcon}
+                        color={color}
+                        setColor={setColor}
+                        entity={entity}
+                        extra={extra}
+                    />
+                ) : null}
             </DialogBody>
             <DialogFooter>
                 <ButtonGroup>

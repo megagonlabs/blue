@@ -86,7 +86,7 @@ export default function AddAgents({
                         description: description,
                         name: list[i].name,
                     };
-                    if (!_.isEqual(containerStatus, "running")) {
+                    if (!_.isEqual(containerStatus, "running") && false) {
                         unavailable.push(option);
                     } else {
                         options.push(option);
@@ -157,9 +157,9 @@ export default function AddAgents({
                 setSkippable(false);
             }}
         >
-            <DialogBody className="dialog-body">
+            <DialogBody className="margin-0">
                 {_.isEmpty(agents) ? (
-                    <div style={{ padding: 15, height: 141 }}>
+                    <div style={{ height: 141 }}>
                         <NonIdealState
                             className={loading ? Classes.SKELETON : null}
                             title="No Agent"

@@ -62,10 +62,9 @@ export default function SessionAgentsList({ loading, setLoading }) {
         </div>
     );
     return (
-        <DialogBody className="dialog-body">
+        <DialogBody>
             <div
                 style={{
-                    padding: 15,
                     minHeight: 202,
                     height: _.isEmpty(agents) ? 202 : null,
                     maxHeight: 463,

@@ -290,7 +290,7 @@ def get_agent_property(request: Request, agent_name, property_name):
 def set_agent_property(request: Request, agent_name, property_name, property: JSONStructure):
     agent_db = agent_registry.get_agent(agent_name)
     agent_acl_enforce(request, agent_db, write=True)
-    agent_registry.set_agent_property(agent_name, property_name, property, rebuild=True)
+    agent_registry.set_agent_property(agent_name, property_name, pydash.objects.get(property, property_name, None), rebuild=True)
     # save
     agent_registry.dump("/blue_data/config/" + agent_registry_id + ".agents.json")
     return JSONResponse(content={"message": "Success"})

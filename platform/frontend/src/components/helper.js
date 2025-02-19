@@ -174,15 +174,9 @@ module.exports = {
                 tasks.push(
                     new Promise((resolve, reject) =>
                         axios
-                            .post(
-                                `${url}/${key}`,
-                                _.get(properties, key, null),
-                                {
-                                    headers: {
-                                        "Content-type": "application/json",
-                                    },
-                                }
-                            )
+                            .post(`${url}/${key}`, {
+                                [key]: _.get(properties, key, null),
+                            })
                             .then(() => resolve(true))
                             .catch((error) => {
                                 axiosErrorToast(error);

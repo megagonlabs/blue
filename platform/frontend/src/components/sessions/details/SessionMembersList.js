@@ -172,10 +172,9 @@ export default function SessionMembersList({ loading, setLoading }) {
             });
     };
     return (
-        <DialogBody className="dialog-body">
+        <DialogBody>
             <div
                 style={{
-                    padding: 15,
                     minHeight: 202,
                     height: _.isEmpty(members) ? 202 : null,
                     maxHeight: 463,

@@ -107,8 +107,8 @@ export default function PlanVisualizationPanel() {
             isOpen={!_.isEmpty(initialNodes)}
             style={{ width: "100%", maxWidth: 795, height: "70vh" }}
         >
-            <DialogBody className="dialog-body">
-                <div style={{ height: "100%", width: "100%", padding: 15 }}>
+            <DialogBody>
+                <div style={{ height: "100%", width: "100%" }}>
                     <ReactFlow
                         nodeTypes={nodeTypes}
                         nodesDraggable={false}

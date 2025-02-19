@@ -146,10 +146,9 @@ export default function SessionBudget({
     };
     return (
         <>
-            <DialogBody className="dialog-body">
+            <DialogBody>
                 <div
                     style={{
-                        padding: 15,
                         display: "flex",
                         gap: 15,
                         flexWrap: "wrap",
