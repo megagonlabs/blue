@@ -5,6 +5,7 @@ import {
     Colors,
     EditableText,
     FormGroup,
+    Intent,
     Tag,
     Tooltip,
 } from "@blueprintjs/core";
@@ -69,13 +70,14 @@ export default function Listens({ edit, general, setGeneral }) {
             className="margin-0"
             label={<div className={Classes.TEXT_MUTED}>Listens</div>}
         >
+            {_.isEmpty(entries) && !edit && "-"}
             {entries.map((entry, index) => {
                 return (
                     <div
                         style={{
                             position: "relative",
                             marginTop: index > 0 ? 7.5 : 0,
-                            padding: 15,
+                            padding: "15px 70px 15px 15px",
                             borderRadius: 2,
                             backgroundColor: Colors.LIGHT_GRAY5,
                         }}
@@ -88,6 +90,7 @@ export default function Listens({ edit, general, setGeneral }) {
                                     minimal
                                 >
                                     <Button
+                                        intent={Intent.DANGER}
                                         large
                                         minimal
                                         onClick={() =>
@@ -112,15 +115,9 @@ export default function Listens({ edit, general, setGeneral }) {
                                 entry.key
                             )}
                         </div>
-                        <div
-                            style={{
-                                marginBottom: 7.5,
-                                display: "flex",
-                                gap: 7.5,
-                            }}
-                        >
+                        <div style={{ marginBottom: 7.5, display: "flex" }}>
                             <div
-                                style={{ lineHeight: "20px" }}
+                                style={{ minWidth: 70, lineHeight: "20px" }}
                                 className={Classes.TEXT_MUTED}
                             >
                                 Includes
@@ -191,9 +188,9 @@ export default function Listens({ edit, general, setGeneral }) {
                                 )}
                             </div>
                         </div>
-                        <div style={{ display: "flex", gap: 7.5 }}>
+                        <div style={{ display: "flex" }}>
                             <div
-                                style={{ lineHeight: "20px" }}
+                                style={{ minWidth: 70, lineHeight: "20px" }}
                                 className={Classes.TEXT_MUTED}
                             >
                                 Excludes
@@ -270,7 +267,7 @@ export default function Listens({ edit, general, setGeneral }) {
             {edit && (
                 <Button
                     onClick={() => updateEntry("add")}
-                    style={{ marginTop: 7.5 }}
+                    style={{ marginTop: !_.isEmpty(entries) > 0 ? 7.5 : 0 }}
                     outlined
                     icon={faIcon({ icon: faPlus })}
                     text="Add tag"
