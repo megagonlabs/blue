@@ -184,14 +184,13 @@ export default function MessageSnapshot({ content, index }) {
                         </Tag>
                         {!dragging && (
                             <div onClick={(event) => event.stopPropagation()}>
-                                <ButtonGroup minimal>
+                                <ButtonGroup minimal large>
                                     <Tooltip
                                         placement="bottom"
                                         minimal
                                         content="Remove"
                                     >
                                         <Button
-                                            intent={Intent.DANGER}
                                             onClick={() =>
                                                 appActions.session.removeWorkspaceContent(
                                                     index

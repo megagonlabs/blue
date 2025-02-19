@@ -1,3 +1,6 @@
+import Listens from "@/components/agents/general/Listens";
+import { AuthContext } from "@/components/contexts/auth-context";
+import { faIcon } from "@/components/icon";
 import {
     Classes,
     Colors,
@@ -13,8 +16,6 @@ import { faInfo } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import classNames from "classnames";
 import _ from "lodash";
 import { useContext } from "react";
-import { AuthContext } from "../contexts/auth-context";
-import { faIcon } from "../icon";
 export default function EntityGeneral({
     general,
     setGeneral,
@@ -23,8 +24,8 @@ export default function EntityGeneral({
     loading,
 }) {
     const systemAgent = _.get(general, "system_agent", false);
-    const image = _.get(general, "image", "");
-    const displayName = _.get(general, "display_name", "");
+    const image = _.toString(_.get(general, "image", ""));
+    const displayName = _.toString(_.get(general, "display_name", ""));
     const { user } = useContext(AuthContext);
     const userRole = _.get(user, "role", null);
     return (
@@ -35,13 +36,14 @@ export default function EntityGeneral({
             style={{ marginTop: 20 }}
         >
             <SectionCard>
-                <div style={{ marginBottom: 11, display: "flex", gap: 11 }}>
+                <div style={{ marginBottom: 15, display: "flex", gap: 15 }}>
                     <FormGroup
                         className="margin-0"
                         label={<div className={Classes.TEXT_MUTED}>Image</div>}
                         style={{ width: "50%" }}
                     >
                         <div
+                            className={loading && Classes.SKELETON}
                             onDoubleClick={(event) => {
                                 setEdit(true);
                                 event.stopPropagation();
@@ -50,12 +52,13 @@ export default function EntityGeneral({
                             {edit ? (
                                 <EditableText
                                     className="full-parent-width"
-                                    alwaysRenderInput
                                     onChange={(value) =>
                                         setGeneral({ ...general, image: value })
                                     }
                                     value={image}
                                 />
+                            ) : _.isEmpty(image) ? (
+                                "-"
                             ) : (
                                 image
                             )}
@@ -75,6 +78,7 @@ export default function EntityGeneral({
                         }}
                     >
                         <div
+                            className={loading && Classes.SKELETON}
                             onDoubleClick={(event) => {
                                 setEdit(true);
                                 event.stopPropagation();
@@ -83,7 +87,6 @@ export default function EntityGeneral({
                             {edit ? (
                                 <EditableText
                                     className="full-parent-width"
-                                    alwaysRenderInput
                                     onChange={(value) =>
                                         setGeneral({
                                             ...general,
@@ -92,11 +95,20 @@ export default function EntityGeneral({
                                     }
                                     value={displayName}
                                 />
+                            ) : _.isEmpty(displayName) ? (
+                                "-"
                             ) : (
                                 displayName
                             )}
                         </div>
                     </FormGroup>
+                </div>
+                <div style={{ marginBottom: 15 }}>
+                    <Listens
+                        edit={edit}
+                        general={general}
+                        setGeneral={setGeneral}
+                    />
                 </div>
                 <div style={{ display: "flex", alignItems: "center" }}>
                     {edit && _.isEqual(userRole, "admin") ? (

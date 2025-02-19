@@ -10,6 +10,7 @@ import {
 } from "@blueprintjs/core";
 import { faBracketsCurly } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import _ from "lodash";
+import { GENERAL_KEYS } from "../constant";
 import JsonViewer from "../sessions/message/renderers/JsonViewer";
 export default function EntityProperties({
     entity,
@@ -24,6 +25,7 @@ export default function EntityProperties({
     const setProperties = (value) => {
         updateEntity({ path: "properties", value: JSON.parse(value) });
     };
+    const properties = _.omit(entity.properties, GENERAL_KEYS);
     return (
         <Section
             compact
@@ -53,12 +55,12 @@ export default function EntityProperties({
                     </div>
                 ) : !edit ? (
                     <div style={{ padding: 15 }}>
-                        <JsonViewer json={entity.properties} />
+                        <JsonViewer json={properties} />
                     </div>
                 ) : (
                     <JsonEditor
                         allowPopulateOnce={allowPopulateOnce}
-                        code={JSON.stringify(entity.properties, null, 4)}
+                        code={JSON.stringify(properties, null, 4)}
                         setCode={setProperties}
                         setError={setJsonError}
                         useMinimap={false}

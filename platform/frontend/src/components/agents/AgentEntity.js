@@ -1,3 +1,4 @@
+import { AuthContext } from "@/components/contexts/auth-context";
 import EntityDescription from "@/components/entity/EntityDescription";
 import EntityMain from "@/components/entity/EntityMain";
 import EntityProperties from "@/components/entity/EntityProperties";
@@ -24,9 +25,8 @@ import _ from "lodash";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useContext, useEffect, useState } from "react";
-import { ENTITY_TYPE_LOOKUP } from "../constant";
+import { ENTITY_TYPE_LOOKUP, GENERAL_KEYS } from "../constant";
 import { AppContext } from "../contexts/app-context";
-import { AuthContext } from "../contexts/auth-context";
 import EntityGeneral from "./EntityGeneral";
 export default function AgentEntity() {
     const BLANK_ENTITY = { type: "agent" };
@@ -41,9 +41,32 @@ export default function AgentEntity() {
     const discard = () => {
         setEdit(false);
         setEditEntity(entity);
+        setGeneral(getGeneralProperties(entity.properties));
     };
     const routerQueryPath =
         "/" + _.get(router, "query.pathParams", []).join("/");
+    const getGeneralProperties = (properties) => {
+        let tempGeneral = {};
+        for (let i = 0; i < _.size(GENERAL_KEYS); i++) {
+            const key = GENERAL_KEYS[i];
+            if (_.has(properties, key)) {
+                if (_.isEqual(key, "listens")) {
+                    _.set(
+                        tempGeneral,
+                        key,
+                        _.entries(properties[key]).map((entry) => ({
+                            key: entry[0],
+                            includes: _.get(entry, "1.includes", []),
+                            excludes: _.get(entry, "1.excludes", []),
+                        }))
+                    );
+                } else {
+                    _.set(tempGeneral, key, properties[key]);
+                }
+            }
+        }
+        return tempGeneral;
+    };
     useEffect(() => {
         if (!router.isReady) return;
         axios.get(routerQueryPath).then((response) => {
@@ -56,11 +79,7 @@ export default function AgentEntity() {
             setEntity(result);
             setEditEntity(result);
             setLoading(false);
-            setGeneral({
-                system_agent: _.get(result, "properties.system_agent", false),
-                image: _.get(result, "properties.image", ""),
-                display_name: _.get(result, "properties.display_name", ""),
-            });
+            setGeneral(getGeneralProperties(result.properties));
         });
     }, [router]);
     const updateEntity = ({ path, value }) => {
@@ -82,9 +101,28 @@ export default function AgentEntity() {
                 icon: icon,
             })
             .then(() => {
+                let updatedGeneral = { ...general };
+                if (_.has(general, "listens")) {
+                    let result = {};
+                    for (let i = 0; i < _.size(general.listens); i++) {
+                        _.set(result, general.listens[i].key, {
+                            includes: _.get(
+                                general.listens,
+                                [i, "includes"],
+                                []
+                            ),
+                            excludes: _.get(
+                                general.listens,
+                                [i, "excludes"],
+                                []
+                            ),
+                        });
+                    }
+                    _.set(updatedGeneral, "listens", result);
+                }
                 const changes = {
                     ...editEntity.properties,
-                    ...general,
+                    ...updatedGeneral,
                 };
                 const tasks = constructSavePropertyRequests({
                     axios,

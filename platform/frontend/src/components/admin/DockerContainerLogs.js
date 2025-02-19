@@ -82,7 +82,7 @@ export default function DockerContainerLogs({ containerId }) {
                         <Tooltip
                             content="Clear logs"
                             minimal
-                            placement="bottom"
+                            placement="bottom-start"
                         >
                             <Button
                                 onClick={() => setLines([])}
