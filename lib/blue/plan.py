@@ -6,6 +6,7 @@ import json
 from redis.commands.json.path import Path
 
 ###### Blue
+from blue.session import Session
 from blue.stream import ControlCode
 from blue.pubsub import Producer
 from blue.connection import PooledConnectionFactory
@@ -15,22 +16,21 @@ from blue.utils import uuid_utils
 ### Plan
 #
 class Plan:
-    def __init__(self, name="PLAN", id=None, sid=None, cid=None, prefix=None, suffix=None, properties={}):
-        self.connection = None
-        self.name = name
-        if id:
-            self.id = id
-        else:
-            self.id = uuid_utils.create_uuid()
+    def __init__(self, scope=None, properties={}):
+        
+        self.name = "PLAN"
+        
+        self.id = uuid_utils.create_uuid()
 
-        if sid:
-            self.sid = sid
-        else:
-            self.sid = self.name + ":" + self.id
+        self.sid = self.name + ":" + self.id
 
-        self.prefix = prefix
-        self.suffix = suffix
-        self.cid = cid
+        if type(scope) == str:
+            self.prefix = scope
+        elif type(scope) == Session:
+            self.prefix = scope.cid
+            
+        self.suffix = None
+        self.cid = None
 
         if self.cid == None:
             self.cid = self.sid
