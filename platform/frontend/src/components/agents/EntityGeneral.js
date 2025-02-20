@@ -107,6 +107,7 @@ export default function EntityGeneral({
                     <Listens
                         edit={edit}
                         general={general}
+                        loading={loading}
                         setGeneral={setGeneral}
                     />
                 </div>

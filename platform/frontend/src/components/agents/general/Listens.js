@@ -16,7 +16,7 @@ import {
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import _ from "lodash";
 import { useEffect, useState } from "react";
-export default function Listens({ edit, general, setGeneral }) {
+export default function Listens({ edit, general, loading, setGeneral }) {
     const [entries, setEntries] = useState([]);
     useEffect(() => {
         if (_.isArray(general.listens)) setEntries(general.listens);
@@ -70,7 +70,9 @@ export default function Listens({ edit, general, setGeneral }) {
             className="margin-0"
             label={<div className={Classes.TEXT_MUTED}>Listens</div>}
         >
-            {_.isEmpty(entries) && !edit && "-"}
+            {_.isEmpty(entries) && !edit && (
+                <div className={loading ? Classes.SKELETON : null}>-</div>
+            )}
             {entries.map((entry, index) => {
                 return (
                     <div
@@ -84,7 +86,10 @@ export default function Listens({ edit, general, setGeneral }) {
                         }}
                     >
                         {edit && (
-                            <div style={{ position: "absolute", right: 15 }}>
+                            <div
+                                className={loading ? Classes.SKELETON : null}
+                                style={{ position: "absolute", right: 15 }}
+                            >
                                 <Tooltip
                                     placement="bottom-end"
                                     content="Remove"
@@ -105,6 +110,9 @@ export default function Listens({ edit, general, setGeneral }) {
                         <div style={{ marginBottom: 7.5 }}>
                             {edit ? (
                                 <EditableText
+                                    className={
+                                        loading ? Classes.SKELETON : null
+                                    }
                                     value={entry.key}
                                     onChange={(value) =>
                                         updateKey(index, value)
@@ -134,6 +142,9 @@ export default function Listens({ edit, general, setGeneral }) {
                                 {_.isEmpty(entry.includes) && !edit && "-"}
                                 {entry.includes.map((tag, index) => (
                                     <Tag
+                                        className={
+                                            loading ? Classes.SKELETON : null
+                                        }
                                         key={index}
                                         minimal
                                         rightIcon={
@@ -160,7 +171,7 @@ export default function Listens({ edit, general, setGeneral }) {
                                         {tag}
                                     </Tag>
                                 ))}
-                                {edit && (
+                                {edit && !loading && (
                                     <EditableText
                                         placeholder="Add"
                                         value={_.get(
@@ -208,6 +219,9 @@ export default function Listens({ edit, general, setGeneral }) {
                                 {_.isEmpty(entry.excludes) && !edit && "-"}
                                 {entry.excludes.map((tag, index) => (
                                     <Tag
+                                        className={
+                                            loading ? Classes.SKELETON : null
+                                        }
                                         key={index}
                                         minimal
                                         rightIcon={
@@ -234,7 +248,7 @@ export default function Listens({ edit, general, setGeneral }) {
                                         {tag}
                                     </Tag>
                                 ))}
-                                {edit && (
+                                {edit && !loading && (
                                     <EditableText
                                         placeholder="Add"
                                         value={_.get(
@@ -267,7 +281,7 @@ export default function Listens({ edit, general, setGeneral }) {
                     </div>
                 );
             })}
-            {edit && (
+            {edit && !loading && (
                 <Button
                     onClick={() => updateEntry("add")}
                     style={{ marginTop: !_.isEmpty(entries) > 0 ? 7.5 : 0 }}
