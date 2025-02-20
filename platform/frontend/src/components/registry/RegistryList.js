@@ -83,22 +83,16 @@ export default function RegistryList({ type }) {
                     const properties = element.properties;
                     let extra = null;
                     if (_.includes(["agent", "operator"], type)) {
-                        extra = properties.image;
+                        extra = _.toString(properties.image);
                     } else if (_.isEqual(type, "data")) {
                         let protocol = _.get(properties, "connection.protocol");
                         let host = _.get(properties, "connection.host");
                         let port = _.get(properties, "connection.port");
-                        if (!_.isEmpty(protocol)) {
-                            extra = String(protocol);
-                        }
-                        if (!_.isEmpty(host)) {
-                            extra += `://${host}`;
-                        }
-                        if (!_.isEmpty(port)) {
-                            extra += `:${port}`;
-                        }
+                        if (!_.isEmpty(protocol)) extra = String(protocol);
+                        if (!_.isEmpty(host)) extra += `://${host}`;
+                        if (!_.isEmpty(port)) extra += `:${port}`;
                     }
-                    let icon = element.icon;
+                    let { icon } = element;
                     if (
                         !_.isEmpty(icon) &&
                         !_.startsWith(icon, "data:image/")
