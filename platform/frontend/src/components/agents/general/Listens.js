@@ -74,6 +74,7 @@ export default function Listens({ edit, general, setGeneral }) {
             {entries.map((entry, index) => {
                 return (
                     <div
+                        key={index}
                         style={{
                             position: "relative",
                             marginTop: index > 0 ? 7.5 : 0,
@@ -131,8 +132,9 @@ export default function Listens({ edit, general, setGeneral }) {
                                 }}
                             >
                                 {_.isEmpty(entry.includes) && !edit && "-"}
-                                {entry.includes.map((tag) => (
+                                {entry.includes.map((tag, index) => (
                                     <Tag
+                                        key={index}
                                         minimal
                                         rightIcon={
                                             edit && (
@@ -204,8 +206,9 @@ export default function Listens({ edit, general, setGeneral }) {
                                 }}
                             >
                                 {_.isEmpty(entry.excludes) && !edit && "-"}
-                                {entry.excludes.map((tag) => (
+                                {entry.excludes.map((tag, index) => (
                                     <Tag
+                                        key={index}
                                         minimal
                                         rightIcon={
                                             edit && (
