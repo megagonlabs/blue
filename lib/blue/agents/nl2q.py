@@ -22,12 +22,13 @@ Here are the requirements:
   - "question": the original natural language question
   - "source": the name of the data source that the query will be executed on
   - "query": the SQL query that is translated from the natural language question
+- When interpreting the "question" use additional context provided, if available. Ignore information in the context if the question overrides it.
 - The SQL query should be compatible with the schema of the datasource.
 - The SQL query should be compatible with the syntax of the corresponding database's protocol. Examples of protocol include "mysql" and "postgres".
 - Always do case-${sensitivity} matching for string comparison.
 - The query should starts with any of the following prefixes: ${force_query_prefixes}
 - Output the JSON directly. Do not generate explanation or other additional output.
-${translation_requirements}
+${additional_requirements}
 
 Protocol:
 ```
@@ -38,6 +39,10 @@ Data sources:
 ```
 ${sources}
 ```
+
+Context:
+${context}
+
 Question: ${question}
 Output:
 """
@@ -62,7 +67,8 @@ agent_properties = {
     "nl2q_case_insensitive": True,
     "nl2q_valid_query_prefixes": ["SELECT"],
     "nl2q_force_query_prefixes": ["SELECT"],
-    "nl2q_translation_requirements": [],
+    "nl2q_additional_requirements": [],
+    "nl2q_context": [],
     "output_transformations": [
         {
             "transformation": "replace",
@@ -324,7 +330,8 @@ class NL2SQLAgent(OpenAIAgent):
             'sensitivity': 'insensitive' if properties['nl2q_case_insensitive'] else 'sensitive',
             'force_query_prefixes': ', '.join(properties['nl2q_force_query_prefixes']),
             'protocol': self.selected_source_protocol if self.selected_source_protocol is not None else 'postgres',
-            'translation_requirements': '\n- '.join(properties['nl2q_translation_requirements'])
+            'additional_requirements': '\n- '.join(properties['nl2q_additional_requirements']),
+            'context': '\n- '.join(properties['nl2q_context'])
         }
 
         return params
