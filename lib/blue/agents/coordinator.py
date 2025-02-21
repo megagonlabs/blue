@@ -94,14 +94,14 @@ class CoordinatorAgent(Agent):
         plan["id2node"] = id2node
 
         # # plan status
-        # status = {}
-        # planned = {}
-        # running = {}
-        # finished = {}
-        # plan['status'] = status
-        # status['planned'] = planned
-        # status['running'] = running
-        # status['finished'] = finished
+        status = {}
+        planned = {}
+        running = {}
+        finished = {}
+        plan['status'] = status
+        status['planned'] = planned
+        status['running'] = running
+        status['finished'] = finished
 
         # process steps
         for step in steps:
@@ -313,18 +313,18 @@ class CoordinatorAgent(Agent):
             # if stream is of output variable, store value/stream if desired 
             if message.isBOS():
                 # # set planned to False
-                # worker.set_data(plan_id + ".status.planned." + stream, False)
-                # # set runnning to True
-                # worker.set_data(plan_id + ".status.running." + stream, True)
+                worker.set_data(plan_id + ".status.planned." + stream, False)
+                # set runnning to True
+                worker.set_data(plan_id + ".status.running." + stream, True)
 
                 # update node status
                 node_id = worker.get_data(plan_id + ".stream2id." + stream)
                 worker.set_data(plan_id + ".id2node." + node_id + ".status", "RUNNING")
             elif message.isEOS():
                 # # set running to False
-                # worker.set_data(plan_id + ".status.running." + stream, False)
-                # # set finished to True
-                # worker.set_data(plan_id + ".status.finished." + stream, True)
+                worker.set_data(plan_id + ".status.running." + stream, False)
+                # set finished to True
+                worker.set_data(plan_id + ".status.finished." + stream, True)
 
                 # update node status
                 node_id = worker.get_data(plan_id + ".stream2id." + stream)
