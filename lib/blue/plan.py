@@ -114,14 +114,6 @@ class Plan:
         streams = self._plan_spec["context"]["streams"]
         streams[input] = stream
 
-    def set_agent_input_stream(self, agent, stream, param=None):
-        if param is None:
-            param = "DEFAULT"
-
-        # get canonical 
-        c = self._get_canonical(agent, param)
-        self.set_input_stream(c, stream)
-        
     def _add_step(self, f, t):
         steps = self._plan_spec['steps']
         steps.append([f, t])

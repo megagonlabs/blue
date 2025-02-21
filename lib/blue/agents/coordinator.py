@@ -228,6 +228,8 @@ class CoordinatorAgent(Agent):
                         agent = ss[0]
                         param = ss[3]
                         canonical_name = agent + "." + param
+                        # TODO: outputs will also be included in canonical2id
+                        # TODO: when all outputs are completed, plan status is FINISHED
                         if canonical_name in canonical2id:
                             id = canonical2id[canonical_name]
                             self.set_data(plan_id + ".stream2id." + stream, id)
@@ -308,6 +310,7 @@ class CoordinatorAgent(Agent):
             plan_id = input
             stream = message.getStream()
 
+            # if stream is of output variable, store value/stream if desired 
             if message.isBOS():
                 # # set planned to False
                 # worker.set_data(plan_id + ".status.planned." + stream, False)
@@ -337,6 +340,10 @@ class CoordinatorAgent(Agent):
                 next_node_ids = worker.get_data(plan_id + ".id2node." + node_id + ".next")
   
                 for next_node_id in next_node_ids:
+
+                    # if next node is output
+                    # store value, set status to FINISHED
+                    # else if agent, start 
                     next_agent = worker.get_data(plan_id + ".id2node." + next_node_id + ".agent")
                     next_agent_param = worker.get_data(plan_id + ".id2node." + next_node_id + ".param")
 
@@ -350,8 +357,8 @@ class CoordinatorAgent(Agent):
 
                     # create an EXECUTE_AGENT instruction
                     if output_stream:
-                        context_cid = context_scope + ":PLAN:" + plan_id
-                        worker.write_control(ControlCode.EXECUTE_AGENT, {"agent": next_agent, "context": context_cid, "params": {next_agent_param: output_stream}})
+                        context = context_scope + ":PLAN:" + plan_id
+                        worker.write_control(ControlCode.EXECUTE_AGENT, {"agent": next_agent, "context": context, "properties": {}, "inputs": {next_agent_param: output_stream}})
 
             else:
                 pass

@@ -263,7 +263,6 @@ class Registry:
 
         # define key
         doc_key = self.__doc_key(name, type, scope)
-        print('delete: ' + doc_key)
 
         if pipe:
             pipe.hdel(doc_key, 1)
@@ -272,7 +271,6 @@ class Registry:
             for field in ["name", "type", "scope", "description", "vector"]:
                 pipe.hdel(doc_key, field)
             res = pipe.execute()
-            print(res)
 
     def search_records(self, keywords, type=None, scope=None, approximate=False, hybrid=False, page=0, page_size=5, page_limit=10):
 
@@ -644,7 +642,6 @@ class Registry:
         self._load_records(records)
 
     def _load_records(self, records):
-        print(records)
         for record in records:
             self.register_record_json(record)
 
