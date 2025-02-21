@@ -46,8 +46,7 @@ export default function Listens({ edit, general, loading, setGeneral }) {
         if (_.isEqual(operation, "remove")) {
             tags = _.without(tags, tag);
         } else if (_.isEqual(operation, "add")) {
-            tags.push(tag);
-            tags = _.uniq(tags);
+            if (!_.includes(tags, tag)) tags.push(tag);
         }
         _.set(newEntries, [index, type], tags);
         setEntries(newEntries);
@@ -140,12 +139,12 @@ export default function Listens({ edit, general, loading, setGeneral }) {
                                 }}
                             >
                                 {_.isEmpty(entry.includes) && !edit && "-"}
-                                {entry.includes.map((tag, index) => (
+                                {entry.includes.map((tag, tagIndex) => (
                                     <Tag
                                         className={
                                             loading ? Classes.SKELETON : null
                                         }
-                                        key={index}
+                                        key={tagIndex}
                                         minimal
                                         rightIcon={
                                             edit && (
@@ -217,12 +216,12 @@ export default function Listens({ edit, general, loading, setGeneral }) {
                                 }}
                             >
                                 {_.isEmpty(entry.excludes) && !edit && "-"}
-                                {entry.excludes.map((tag, index) => (
+                                {entry.excludes.map((tag, tagIndex) => (
                                     <Tag
                                         className={
                                             loading ? Classes.SKELETON : null
                                         }
-                                        key={index}
+                                        key={tagIndex}
                                         minimal
                                         rightIcon={
                                             edit && (
