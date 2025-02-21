@@ -653,7 +653,7 @@ class Agent:
 
     ###### worker
     # input_stream is data stream for input param, default 'DEFAULT'
-    def create_worker(self, input_stream, input="DEFAULT", context=None, processor=None):
+    def create_worker(self, input_stream, input="DEFAULT", context=None, processor=None, properties=None):
         # listen
         logging.info("Creating worker for stream {stream} for param {param}...".format(stream=input_stream, param=input))
 
@@ -662,20 +662,24 @@ class Agent:
 
         # set prefix if context provided
         if context:
-            p = context + ":" + self.sid
+            prefix = context + ":" + self.sid
         else:
             # default agent's cid is prefix
-            p = self.cid
+            prefix = self.cid
+
+        # set properties
+        if properties is None:
+            properties = self.properties
 
         worker = Worker(
             input_stream,
             input=input,
             name=self.name + "-WORKER",
-            prefix=p,
+            prefix=prefix,
             agent=self,
             processor=processor,
             session=self.session,
-            properties=self.properties,
+            properties=properties,
             on_stop=lambda sid: self.on_worker_stop_handler(sid)
         )
 
@@ -718,10 +722,18 @@ class Agent:
         if message.getCode() == ControlCode.EXECUTE_AGENT:
             agent = message.getArg("agent")
             if agent == self.name:
-                context = message.getArg("context")
-                input_streams = message.getArg("params")
-                for input_param in input_streams:
-                    self.create_worker(input_streams[input_param], input=input_param, context=context)
+                context = message.getAgentContext()
+
+                # get additional properties
+                properties_from_instruction = message.getAgentProperies()
+
+                worker_properties = {}
+                worker_properties = json_utils.merge_json(worker_properties, self.properties)
+                worker_properties = json_utils.merge_json(worker_properties, properties_from_instruction)
+
+                input_params = message.getInputParams()
+                for input_param in input_params:
+                    self.create_worker(input_params[input_param], input=input_param, context=context)
 
     ###### session
     def join_session(self, session):

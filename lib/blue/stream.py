@@ -165,28 +165,70 @@ class Message:
             return self.contents['args']
         return None
 
-    def getParam(self, param):
-        if self.isControl():
-            if self.getCode() == ControlCode.EXECUTE_AGENT:
-                if param in self.contents['params']:
-                    return self.contents['params'][param]
-        return None
-
-    def getParams(self):
-        if self.isControl():
-            if self.getCode() == ControlCode.EXECUTE_AGENT:
-                return self.contents['args']['params']
-        return None
-
     def getArg(self, arg):
         if self.isControl():
-            if arg in self.contents['args']:
-                return self.contents['args'][arg]
+            args = self.getArgs()
+            if arg in args:
+                return args[arg]
         return None
 
     def setArg(self, arg, value):
         if self.isControl():
             self.contents['args'][arg] = value
+
+
+    # special for EXECUTE_AGENT
+    def getAgent(self):
+        if self.isControl():
+            if self.getCode() == ControlCode.EXECUTE_AGENT:
+                args = self.getArgs()
+                if "agent" in args:
+                    return args['agent']
+                
+        return None
+
+    def getAgentContext(self):
+        if self.isControl():
+            if self.getCode() == ControlCode.EXECUTE_AGENT:
+                args = self.getArgs()
+                if  "context" in args:
+                    return args['context']
+        return None
+
+    def getAgentProperties(self):
+        if self.isControl():
+            if self.getCode() == ControlCode.EXECUTE_AGENT:
+                args = self.getArgs()
+                if  "properties" in args:
+                    return args['properties']
+        return {}
+    
+    def getAgentProperty(self, property):
+        if self.isControl():
+            if self.getCode() == ControlCode.EXECUTE_AGENT:
+                properties = self.getAgentProperties()
+                if property in properties:
+                    return properties[property]
+        return None
+     
+    def getInputParams(self):
+        if self.isControl():
+            if self.getCode() == ControlCode.EXECUTE_AGENT:
+                args = self.getArgs()
+                if  "inputs" in args:
+                    return args['inputs']
+        return {}
+    
+    def getInputParam(self, param):
+        if self.isControl():
+            if self.getCode() == ControlCode.EXECUTE_AGENT:
+                params = self.getInputParams()
+                if param in params:
+                    return params[param]
+        return None
+
+
+
 
     def fromJSON(message_json):
         d = json.loads(message_json)
