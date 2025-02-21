@@ -12,10 +12,11 @@ import {
     Switch,
 } from "@blueprintjs/core";
 import { faCheck, faXmarkLarge } from "@fortawesome/pro-solid-svg-icons";
-import { faInfo } from "@fortawesome/sharp-duotone-solid-svg-icons";
+import { faInfo, faXmark } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import classNames from "classnames";
 import _ from "lodash";
 import { useContext } from "react";
+import Tags from "./general/Tags";
 export default function EntityGeneral({
     general,
     setGeneral,
@@ -28,6 +29,10 @@ export default function EntityGeneral({
     const displayName = _.toString(_.get(general, "display_name", ""));
     const { user } = useContext(AuthContext);
     const userRole = _.get(user, "role", null);
+    const X_MARK_ICON = faIcon({
+        icon: faXmark,
+        style: { position: "absolute", top: 7 },
+    });
     return (
         <Section
             compact
@@ -105,6 +110,16 @@ export default function EntityGeneral({
                 </div>
                 <div style={{ marginBottom: 15 }}>
                     <Listens
+                        X_MARK_ICON={X_MARK_ICON}
+                        edit={edit}
+                        general={general}
+                        loading={loading}
+                        setGeneral={setGeneral}
+                    />
+                </div>
+                <div style={{ marginBottom: 15 }}>
+                    <Tags
+                        X_MARK_ICON={X_MARK_ICON}
                         edit={edit}
                         general={general}
                         loading={loading}

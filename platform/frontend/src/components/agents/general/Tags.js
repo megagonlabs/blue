@@ -10,9 +10,8 @@ import {
     Tooltip,
 } from "@blueprintjs/core";
 import { faPlus, faTrash } from "@fortawesome/sharp-duotone-solid-svg-icons";
-import _ from "lodash";
 import { useEffect, useState } from "react";
-export default function Listens({
+export default function Tags({
     edit,
     general,
     loading,
@@ -21,11 +20,11 @@ export default function Listens({
 }) {
     const [entries, setEntries] = useState([]);
     useEffect(() => {
-        if (_.isArray(general.listens)) setEntries(general.listens);
-    }, [general.listens]);
+        if (_.isArray(general.tags)) setEntries(general.tags);
+    }, [general.tags]);
     useEffect(() => {
-        if (!_.isEqual(entries, general.listens)) {
-            setGeneral({ ...general, listens: entries });
+        if (!_.isEqual(entries, general.tags)) {
+            setGeneral({ ...general, tags: entries });
         }
     }, [entries]);
     const updateKey = (index, key) => {
@@ -38,7 +37,7 @@ export default function Listens({
         if (_.isEqual(operation, "remove")) {
             _.pullAt(newEntries, index);
         } else if (_.isEqual(operation, "add")) {
-            newEntries.push({ key: "", includes: [], excludes: [] });
+            newEntries.push({ key: "", tags: [] });
         }
         setEntries(newEntries);
     };
@@ -54,18 +53,18 @@ export default function Listens({
         setEntries(newEntries);
     };
     const [addTags, setAddTags] = useState({});
-    const updateAddTag = (index, tag, type) => {
+    const updateAddTag = (index, tag) => {
         let newAddTags = _.cloneDeep(addTags);
-        _.set(newAddTags, [index, type], tag);
+        _.set(newAddTags, index, tag);
         setAddTags(newAddTags);
     };
     return (
         <FormGroup
             className="margin-0"
-            label={<div className={Classes.TEXT_MUTED}>Listens</div>}
+            label={<div className={Classes.TEXT_MUTED}>Tags</div>}
         >
             {_.isEmpty(entries) && !edit && (
-                <div className={loading ? Classes.SKELETON : null}>-</div>
+                <div className={loading ? Classes.SKELETONL : null}>-</div>
             )}
             {entries.map((entry, index) => {
                 return (
@@ -118,90 +117,12 @@ export default function Listens({
                                 entry.key
                             )}
                         </div>
-                        <div style={{ marginBottom: 7.5, display: "flex" }}>
-                            <div
-                                style={{ minWidth: 70, lineHeight: "30px" }}
-                                className={Classes.TEXT_MUTED}
-                            >
-                                Includes
-                            </div>
-                            <div
-                                style={{
-                                    flexWrap: "wrap",
-                                    display: "flex",
-                                    alignItems: "center",
-                                    gap: 7.5,
-                                }}
-                            >
-                                {_.isEmpty(entry.includes) && !edit && "-"}
-                                {entry.includes.map((tag, tagIndex) => (
-                                    <Tag
-                                        large
-                                        className={
-                                            loading ? Classes.SKELETON : null
-                                        }
-                                        key={tagIndex}
-                                        minimal
-                                        rightIcon={
-                                            edit && (
-                                                <div
-                                                    style={{
-                                                        width: 16,
-                                                        cursor: "pointer",
-                                                    }}
-                                                    onClick={() =>
-                                                        updateTag(
-                                                            index,
-                                                            tag,
-                                                            "includes",
-                                                            "remove"
-                                                        )
-                                                    }
-                                                >
-                                                    {X_MARK_ICON}
-                                                </div>
-                                            )
-                                        }
-                                    >
-                                        {tag}
-                                    </Tag>
-                                ))}
-                                {edit && !loading && (
-                                    <EditableText
-                                        placeholder="Add"
-                                        value={_.get(
-                                            addTags,
-                                            [index, "includes"],
-                                            ""
-                                        )}
-                                        onConfirm={(value) => {
-                                            if (_.isEmpty(value)) return;
-                                            updateTag(
-                                                index,
-                                                value,
-                                                "includes",
-                                                "add"
-                                            );
-                                            updateAddTag(index, "", "includes");
-                                        }}
-                                        onChange={(value) =>
-                                            updateAddTag(
-                                                index,
-                                                value,
-                                                "includes"
-                                            )
-                                        }
-                                        selectAllOnFocus
-                                    />
-                                )}
-                            </div>
-                        </div>
                         <div style={{ display: "flex" }}>
                             <div
                                 style={{ minWidth: 70, lineHeight: "30px" }}
                                 className={Classes.TEXT_MUTED}
                             >
-                                Excludes
+                                Tags
                             </div>
                             <div
                                 style={{
@@ -211,8 +132,8 @@ export default function Listens({
                                     gap: 7.5,
                                 }}
                             >
-                                {_.isEmpty(entry.excludes) && !edit && "-"}
-                                {entry.excludes.map((tag, tagIndex) => (
+                                {_.isEmpty(entry.tags) && !edit && "-"}
+                                {entry.tags.map((tag, tagIndex) => (
                                     <Tag
                                         large
                                         className={
@@ -231,7 +152,7 @@ export default function Listens({
                                                         updateTag(
                                                             index,
                                                             tag,
-                                                            "excludes",
+                                                            "tags",
                                                             "remove"
                                                         )
                                                     }
@@ -247,27 +168,19 @@ export default function Listens({
                                 {edit && !loading && (
                                     <EditableText
                                         placeholder="Add"
-                                        value={_.get(
-                                            addTags,
-                                            [index, "excludes"],
-                                            ""
-                                        )}
+                                        value={_.get(addTags, index, "")}
                                         onConfirm={(value) => {
                                             if (_.isEmpty(value)) return;
                                             updateTag(
                                                 index,
                                                 value,
-                                                "excludes",
+                                                "tags",
                                                 "add"
                                             );
-                                            updateAddTag(index, "", "excludes");
+                                            updateAddTag(index, "");
                                         }}
                                         onChange={(value) =>
-                                            updateAddTag(
-                                                index,
-                                                value,
-                                                "excludes"
-                                            )
+                                            updateAddTag(index, value)
                                         }
                                         selectAllOnFocus
                                     />

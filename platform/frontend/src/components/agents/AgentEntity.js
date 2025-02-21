@@ -60,6 +60,15 @@ export default function AgentEntity() {
                             excludes: _.get(entry, "1.excludes", []),
                         }))
                     );
+                } else if (_.isEqual(key, "tags")) {
+                    _.set(
+                        tempGeneral,
+                        key,
+                        _.entries(properties[key]).map((entry) => ({
+                            key: entry[0],
+                            tags: _.get(entry, "1", []),
+                        }))
+                    );
                 } else {
                     _.set(tempGeneral, key, properties[key]);
                 }
@@ -119,6 +128,17 @@ export default function AgentEntity() {
                         });
                     }
                     _.set(updatedGeneral, "listens", result);
+                }
+                if (_.has(general, "tags")) {
+                    let result = {};
+                    for (let i = 0; i < _.size(general.tags); i++) {
+                        _.set(
+                            result,
+                            general.tags[i].key,
+                            _.get(general.tags, [i, "tags"], [])
+                        );
+                    }
+                    _.set(updatedGeneral, "tags", result);
                 }
                 const changes = {
                     ...editEntity.properties,
@@ -183,7 +203,6 @@ export default function AgentEntity() {
             <EntityGeneral
                 edit={edit}
                 setEdit={setEdit}
-                entity={editEntity}
                 loading={loading}
                 general={general}
                 setGeneral={setGeneral}

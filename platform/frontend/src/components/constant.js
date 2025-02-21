@@ -108,7 +108,7 @@ export const ENTITY_TYPE_LOOKUP = {
         removing: { style: { color: Colors.RED3 }, intent: Intent.DANGER },
         dead: { style: { color: Colors.RED3 }, intent: Intent.DANGER },
     },
-    GENERAL_KEYS = ["system_agent", "image", "display_name", "listens"],
+    GENERAL_KEYS = ["system_agent", "image", "display_name", "listens", "tags"],
     PROFILE_PICTURE_40 = {
         borderRadius: "50%",
         padding: 0,
