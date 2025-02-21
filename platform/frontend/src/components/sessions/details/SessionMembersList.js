@@ -240,6 +240,7 @@ export default function SessionMembersList({ loading, setLoading }) {
                                                 onClick={() => {
                                                     addMember(user);
                                                 }}
+                                                large
                                                 className={
                                                     isTyping
                                                         ? Classes.SKELETON
@@ -248,6 +249,7 @@ export default function SessionMembersList({ loading, setLoading }) {
                                                 style={{
                                                     position: "absolute",
                                                     right: 15,
+                                                    top: 7.5,
                                                 }}
                                                 icon={faIcon({
                                                     icon: faUserPlus,
@@ -331,11 +333,13 @@ export default function SessionMembersList({ loading, setLoading }) {
                                 <UserInfo user={user} />
                                 {member.owner ? (
                                     <Tag
+                                        large
                                         minimal
                                         intent={Intent.PRIMARY}
                                         style={{
                                             position: "absolute",
                                             right: 15,
+                                            top: 12.5,
                                         }}
                                     >
                                         Owner
@@ -345,6 +349,7 @@ export default function SessionMembersList({ loading, setLoading }) {
                                         style={{
                                             position: "absolute",
                                             right: 15,
+                                            top: 7.5,
                                         }}
                                     >
                                         <Popover
@@ -356,6 +361,7 @@ export default function SessionMembersList({ loading, setLoading }) {
                                                         className={
                                                             Classes.POPOVER_DISMISS
                                                         }
+                                                        large
                                                         text="Confirm"
                                                         onClick={() => {
                                                             removeMember(user);
@@ -371,6 +377,7 @@ export default function SessionMembersList({ loading, setLoading }) {
                                                 placement="left"
                                             >
                                                 <Button
+                                                    large
                                                     minimal
                                                     icon={faIcon({
                                                         icon: faTrash,

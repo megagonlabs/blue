@@ -111,6 +111,7 @@ export default function SessionData() {
                             content={
                                 <div style={{ padding: 15 }}>
                                     <Button
+                                        large
                                         className={Classes.POPOVER_DISMISS}
                                         text="Confirm"
                                         onClick={discard}

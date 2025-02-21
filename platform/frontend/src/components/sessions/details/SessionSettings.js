@@ -45,7 +45,7 @@ export default function SessionSettings() {
                     >
                         <div
                             style={{
-                                maxWidth: "calc(100% - 156.57px)",
+                                maxWidth: "calc(100% - 181.26px)",
                             }}
                         >
                             <label style={{ fontWeight: 600 }}>
@@ -65,6 +65,7 @@ export default function SessionSettings() {
                                 content={
                                     <div style={{ padding: 15 }}>
                                         <Button
+                                            large
                                             className={Classes.POPOVER_DISMISS}
                                             text="Confirm"
                                             onClick={deleteSession}
@@ -74,6 +75,7 @@ export default function SessionSettings() {
                                 }
                             >
                                 <Button
+                                    large
                                     loading={deleting}
                                     intent={Intent.DANGER}
                                     text="Delete this session"

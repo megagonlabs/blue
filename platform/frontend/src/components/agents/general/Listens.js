@@ -53,10 +53,7 @@ export default function Listens({ edit, general, loading, setGeneral }) {
     };
     const X_MARK_ICON = faIcon({
         icon: faXmark,
-        style: {
-            position: "absolute",
-            top: 2,
-        },
+        style: { position: "absolute", top: 7 },
     });
     const [addTags, setAddTags] = useState({});
     const updateAddTag = (index, tag, type) => {
@@ -125,7 +122,7 @@ export default function Listens({ edit, general, loading, setGeneral }) {
                         </div>
                         <div style={{ marginBottom: 7.5, display: "flex" }}>
                             <div
-                                style={{ minWidth: 70, lineHeight: "20px" }}
+                                style={{ minWidth: 70, lineHeight: "30px" }}
                                 className={Classes.TEXT_MUTED}
                             >
                                 Includes
@@ -141,6 +138,7 @@ export default function Listens({ edit, general, loading, setGeneral }) {
                                 {_.isEmpty(entry.includes) && !edit && "-"}
                                 {entry.includes.map((tag, tagIndex) => (
                                     <Tag
+                                        large
                                         className={
                                             loading ? Classes.SKELETON : null
                                         }
@@ -202,7 +200,7 @@ export default function Listens({ edit, general, loading, setGeneral }) {
                         </div>
                         <div style={{ display: "flex" }}>
                             <div
-                                style={{ minWidth: 70, lineHeight: "20px" }}
+                                style={{ minWidth: 70, lineHeight: "30px" }}
                                 className={Classes.TEXT_MUTED}
                             >
                                 Excludes
@@ -218,6 +216,7 @@ export default function Listens({ edit, general, loading, setGeneral }) {
                                 {_.isEmpty(entry.excludes) && !edit && "-"}
                                 {entry.excludes.map((tag, tagIndex) => (
                                     <Tag
+                                        large
                                         className={
                                             loading ? Classes.SKELETON : null
                                         }

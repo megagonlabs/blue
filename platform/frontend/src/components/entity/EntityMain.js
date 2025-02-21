@@ -303,6 +303,7 @@ export default function EntityMain({
                                         content={
                                             <div style={{ padding: 15 }}>
                                                 <Button
+                                                    large
                                                     className={
                                                         Classes.POPOVER_DISMISS
                                                     }
@@ -410,6 +411,7 @@ export default function EntityMain({
                                                                 }}
                                                             >
                                                                 <Button
+                                                                    large
                                                                     onClick={
                                                                         deployAgent
                                                                     }
@@ -451,6 +453,7 @@ export default function EntityMain({
                                                                     }}
                                                                 >
                                                                     <Button
+                                                                        large
                                                                         onClick={
                                                                             deleteEntity
                                                                         }

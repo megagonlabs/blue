@@ -268,6 +268,7 @@ const ArrayRenderer = ({
                                         content={
                                             <div style={{ padding: 15 }}>
                                                 <Button
+                                                    large
                                                     intent={Intent.DANGER}
                                                     className={
                                                         Classes.POPOVER_DISMISS
