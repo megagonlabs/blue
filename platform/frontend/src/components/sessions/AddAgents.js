@@ -82,11 +82,11 @@ export default function AddAgents({
                     );
                     const description = _.get(list, [i, "description"], "");
                     const option = {
-                        displayName: displayName,
+                        displayName: _.toString(displayName),
                         description: description,
                         name: list[i].name,
                     };
-                    if (!_.isEqual(containerStatus, "running")) {
+                    if (!_.isEqual(containerStatus, "running") && false) {
                         unavailable.push(option);
                     } else {
                         options.push(option);
