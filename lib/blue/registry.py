@@ -286,9 +286,9 @@ class Registry:
         qs = ""
 
         if type:
-            qs = "(@type: " + type + " )" + " " + qs
+            qs = "(@type: \"" + type + "\" )" + " " + qs
         if scope:
-            qs = "(@scope: " + scope + " )" + " " + qs
+            qs = "(@scope: \"" + scope + "\" )" + " " + qs
 
         if hybrid:
             q = "( " + qs + " " + " $kw " + " )" + " => [KNN " + str((page_limit) * page_size) + " @vector $v as score]"
@@ -311,6 +311,7 @@ class Registry:
         logging.info('searching: ' + keywords + ', ' + 'approximate=' + str(approximate) + ', ' + 'hybrid=' + str(hybrid))
         logging.info('using search query: ' + q)
         results = self.connection.ft(index_name).search(query, query_params).docs
+        
 
         # field', 'id', 'name', 'payload', 'score', 'type
         if approximate or hybrid:
@@ -320,6 +321,7 @@ class Registry:
 
         # do paging
         page_results = results[page * page_size : (page + 1) * page_size]
+        logging.info('results: ' + str(page_results))
         return page_results
 
     ###### embeddings

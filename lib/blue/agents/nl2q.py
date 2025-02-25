@@ -366,6 +366,10 @@ class NL2SQLAgent(OpenAIAgent):
                 source_connection = self.registry.connect_source(source)
             
                 # execute
+                logging.info("source: " + source)
+                logging.info("database: " + database)
+                logging.info("collection: " + collection)
+                logging.info("executing query: " + query)
                 result = source_connection.execute_query(query, database=database, collection=collection)
 
         except Exception as e:
