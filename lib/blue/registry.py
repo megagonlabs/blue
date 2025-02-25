@@ -286,9 +286,9 @@ class Registry:
         qs = ""
 
         if type:
-            qs = "(@type: " + type + " )" + " " + qs
+            qs = "(@type: \"" + type + "\" )" + " " + qs
         if scope:
-            qs = "(@scope: " + scope + " )" + " " + qs
+            qs = "(@scope: \"" + scope + "\" )" + " " + qs
 
         if hybrid:
             q = "( " + qs + " " + " $kw " + " )" + " => [KNN " + str((page_limit) * page_size) + " @vector $v as score]"
