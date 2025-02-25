@@ -11,7 +11,10 @@ export default function EntityIcon({ entity, iconSize = 20 }) {
     } else if (_.startsWith(icon, "data:image/")) {
         return <Image width={40} height={40} src={icon} alt="" />;
     } else if (_.isEmpty(icon) || _.isEmpty(icon[0])) {
-        return faIcon({ icon: ENTITY_TYPE_LOOKUP[type].icon, size: iconSize });
+        return faIcon({
+            icon: _.get(ENTITY_TYPE_LOOKUP, [type, "icon"], null),
+            size: iconSize,
+        });
     }
     return (
         <FontAwesomeIcon
