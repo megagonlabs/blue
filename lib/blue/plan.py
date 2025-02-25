@@ -472,8 +472,11 @@ class Plan:
         else:
             return None
 
-    # TODO
-    def stream_in_plan(self, stream):
+
+    # stream discovery 
+    def match_stream(self, stream):
+        node = None
+
         stream_prefix = self.get_scope() + ":" + self.sid
         if stream.find(stream_prefix) == 0:
             s = stream[len(stream_prefix) :]
@@ -481,27 +484,18 @@ class Plan:
             agent = ss[0]
             param = ss[3]
 
-            # TODO: assigned labels are problematic, 
-            # Need to maintain agent.param to label
-            label = agent + "." + param
+            default_label = self._get_default_label(agent, output=param)
 
-            # TODO: if label is in plan
-            node = None 
-            if canonical_name in canonical2id:
-                id = canonical2id[canonical_name]
-                self.set_data(plan_id + ".stream2id." + stream, id)
-                return True
+            node = self.get_node(default_label)
 
-        return False 
+        return node
     
-    def parse_stream(self, stream):
-        if self.match_stream(stream):
-        else
-            return None
-        stream_prefix = self.get_scope() + ":" + self.sid
 
 
 
+
+
+    ## connections
     def _get_default_edge_label(self, from_label, to_label):
         return from_label + ">" + to_label
     

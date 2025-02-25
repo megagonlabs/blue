@@ -78,7 +78,7 @@ class CoordinatorAgent(Agent):
         streams = plan.get_streams()
 
         for stream in streams:
-            # plan existing streams
+            # plan existing streams for inputs/outputs
             plan.set_stream_status(stream, Status.PLANNED)
 
             # process nodes with streams 
@@ -92,7 +92,10 @@ class CoordinatorAgent(Agent):
             # check if stream is part of a plan being tracked
             for plan_id in self.plans:
                 plan  = self.plans[plan_id]
-                if plan.match_stream(stream):
+                node = plan.match_stream(stream)
+                if node:
+                    node_id = node['id']
+                    plan.set_node_stream(node_id, stream, status=Status.PLANNED)
                     self.create_worker(stream, input=plan_id)
 
         ### do regular session listening
