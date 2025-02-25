@@ -725,7 +725,7 @@ class Agent:
                 context = message.getAgentContext()
 
                 # get additional properties
-                properties_from_instruction = message.getAgentProperies()
+                properties_from_instruction = message.getAgentProperties()
 
                 worker_properties = {}
                 worker_properties = json_utils.merge_json(worker_properties, self.properties)
