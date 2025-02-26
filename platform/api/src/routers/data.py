@@ -24,7 +24,7 @@ from fastapi.responses import JSONResponse
 
 
 ###### Schema
-class Data(BaseModel):
+class DataSchema(BaseModel):
     name: str
     description: Union[str, None] = None
     icon: Union[str, dict, None] = None
@@ -101,7 +101,7 @@ def get_data_source(request: Request, source_name):
 
 
 @router.post("/{source_name}")
-def add_source(request: Request, source_name, data: Data):
+def add_source(request: Request, source_name, data: DataSchema):
     source_db = data_registry.get_source(source_name)
     if source_name in BANNED_ENTITY_NAMES:
         return JSONResponse(content={"message": "The name cannot be used."}, status_code=403)
@@ -117,7 +117,7 @@ def add_source(request: Request, source_name, data: Data):
 
 
 @router.put("/{source_name}")
-def update_source(request: Request, source_name, data: Data, sync: bool = False, recursive: bool = False):
+def update_source(request: Request, source_name, data: DataSchema, sync: bool = False, recursive: bool = False):
     source = data_registry.get_source(source_name)
     source_acl_enforce(request, source, write=True)
     # TODO: properties
@@ -189,7 +189,7 @@ def get_data_source_database(request: Request, source_name, database_name):
 
 
 @router.post("/{source_name}/database/{database_name}")
-def add_data_source_database(request: Request, source_name, database_name, data: Data):
+def add_data_source_database(request: Request, source_name, database_name, data: DataSchema):
     source = data_registry.get_source(source_name)
     source_acl_enforce(request, source, write=True)
     # TODO: properties
@@ -200,7 +200,7 @@ def add_data_source_database(request: Request, source_name, database_name, data:
 
 
 @router.put("/{source_name}/database/{database_name}")
-def update_source_database(request: Request, source_name, database_name, data: Data, sync: bool = False, recursive: bool = False):
+def update_source_database(request: Request, source_name, database_name, data: DataSchema, sync: bool = False, recursive: bool = False):
     source = data_registry.get_source(source_name)
     source_acl_enforce(request, source, write=True)
     # TODO: properties
@@ -237,7 +237,7 @@ def get_data_source_database_collection(request: Request, source_name, database_
 
 
 @router.post("/{source_name}/database/{database_name}/collection/{collection_name}")
-def add_data_source_database_collection(request: Request, source_name, database_name, collection_name, data: Data):
+def add_data_source_database_collection(request: Request, source_name, database_name, collection_name, data: DataSchema):
     source = data_registry.get_source(source_name)
     source_acl_enforce(request, source, write=True)
     # TODO: properties
@@ -248,7 +248,7 @@ def add_data_source_database_collection(request: Request, source_name, database_
 
 
 @router.put("/{source_name}/database/{database_name}/collection/{collection_name}")
-def update_source_database_collection(request: Request, source_name, database_name, collection_name, data: Data, sync: bool = False, recursive: bool = False):
+def update_source_database_collection(request: Request, source_name, database_name, collection_name, data: DataSchema, sync: bool = False, recursive: bool = False):
     source = data_registry.get_source(source_name)
     source_acl_enforce(request, source, write=True)
     # TODO: properties
