@@ -9,6 +9,7 @@ import subprocess
 import sys
 import time
 import webbrowser
+import pydash
 
 
 class Authentication:
@@ -55,11 +56,11 @@ class Authentication:
                     try:
                         data = await websocket.recv()
                         json_data = json.loads(data)
-                        if json_data == "REQUEST_CONNECTION_INFO":
+                        if pydash.is_equal(json_data, "REQUEST_CONNECTION_INFO"):
                             current_profile = ProfileManager().get_selected_profile()
                             await websocket.send(json.dumps({"type": "REQUEST_CONNECTION_INFO", "message": dict(current_profile)}))
                         else:
-                            await websocket.send(json.dumps("done"))
+                            await websocket.send(json.dumps("DONE"))
                     except ws_exceptions.ConnectionClosedOK:
                         break
                     except ws_exceptions.ConnectionClosedError:
@@ -70,7 +71,9 @@ class Authentication:
 
             async def main():
                 async with websockets.serve(handler, "", self.__SOCKET_PORT):
-                    self.__set_cookie(await self.stop)
+                    result = await self.stop
+                    self.__set_cookie(result['cookie'])
+                    print(result['uid'])
                     if self.process is not None:
                         self.process.terminate()
 

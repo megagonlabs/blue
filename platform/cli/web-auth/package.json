@@ -3,7 +3,7 @@
     "version": "0.1.0",
     "private": true,
     "scripts": {
-        "serve": "serve ../blue/web/auth/out",
+        "serve": "serve ../blue_cli/web/auth/out",
         "build": "next build",
         "lint": "next lint",
         "watch": "npm-watch"
