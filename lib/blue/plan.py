@@ -24,6 +24,16 @@ Status.PLANNED = Status("PLANNED")
 Status.RUNNING = Status("RUNNING")
 Status.FINISHED = Status("FINISHED")
 
+class NodeType(Constant):
+    def __init__(self, c):
+        super().__init__(c)
+
+NodeType.INPUT = Status("INPUT")
+NodeType.OUTPUT = Status("OUTPUT")
+NodeType.AGENT = Status("AGENT")
+NodeType.AGENT_INPUT = Status("AGENT_INPUT")
+NodeType.AGENT_OUTPUT = Status("AGENT_OUTPUT")
+
 ###############
 ### Plan
 #
@@ -59,7 +69,7 @@ class Plan:
         self._initialize(properties=properties)
 
         # plan spec details
-        self._plan_spec = {"id": self.id, "nodes": {}, "edges": {}, "streams": {}, "context": { "scope": self.prefix }, "properties": self.properties, "label2id": {} }
+        self._plan_spec = {"id": self.id, "nodes": {}, "streams": {}, "context": { "scope": self.prefix }, "properties": self.properties, "label2id": {} }
 
         # start
         self._start()
@@ -104,8 +114,6 @@ class Plan:
             if 'id' not in plan_spec:
                 return None
             if 'nodes' not in plan_spec:
-                return None
-            if 'edges' not in plan_spec:
                 return None
             if 'streams' not in plan_spec:
                 return None
@@ -174,7 +182,7 @@ class Plan:
         if label is None:
             label = name
         node['label'] = label
-        node['type'] = "INPUT"
+        node['type'] = NodeType.INPUT
         node['value'] = value
         node['stream'] = stream
         node['properties'] = properties
@@ -216,7 +224,7 @@ class Plan:
         if label is None:
             label = name
         node['label'] = label
-        node['type'] = "OUTPUT"
+        node['type'] = NodeType.OUTPUT
         node['value'] = value
         node['stream'] = stream
         node['properties'] = properties
@@ -257,7 +265,7 @@ class Plan:
         if label is None:
             label = name
         node['label'] = label
-        node['type'] = "AGENT"
+        node['type'] = NodeType.AGENT
         node['value'] = None
         node['stream'] = None
         node['properties'] = properties
@@ -295,7 +303,7 @@ class Plan:
         if label is None:
             label = default_label
         node['label'] = label
-        node['type'] = "AGENT.INPUT"
+        node['type'] = NodeType.AGENT_INPUT
         node['value'] = None
         node['stream'] = None
         node['properties'] = properties
@@ -349,7 +357,7 @@ class Plan:
         if label is None:
             label = default_label
         node['label'] = label
-        node['type'] = "AGENT.OUTPUT"
+        node['type'] = NodeType.AGENT_OUTPUT
         node['value'] = None
         node['stream'] = None
         node['properties'] = properties
@@ -382,6 +390,7 @@ class Plan:
             self.save(path="$.label2id." + default_label)    
             self.save(path="$.nodes." + agent_id + ".children")
 
+    # node functions
     def get_node_by_id(self, id):
         if id in self._plan_spec['nodes']:
             return self._plan_spec['nodes'][id]
@@ -404,9 +413,19 @@ class Plan:
             node = self.get_node_by_label(n)
         return node
 
+    def get_nodes(self):
+        return self._plan_spec['nodes']
+
     def get_streams(self):
         return self._plan_spec['streams']
     
+    def get_node_value(self, n):
+        node = self.get_node(n)
+        if node is None:
+            raise Exception("Value for non-existing node cannot be get")
+        
+        return node['value']
+        
     def set_node_value(self, n, value, save=False):
         node = self.get_node(n)
         if node is None:
@@ -459,6 +478,45 @@ class Plan:
         if save:
             self.save(path="$.nodes." + id + ".properties." + property)
 
+    def get_node_type(self, n):
+        node = self.get_node(n)
+
+        return node['type']
+    
+    def get_parent_node(self, n):
+        node = self.get_node(n)
+
+        parent_id = node['parent']
+        parent_node = self.get_node_by_id(parent_id)
+        
+        return parent_node
+    
+    def get_prev_nodes(self, n):
+        node = self.get_node(n)
+        prev_nodes = []
+        if node:
+            prev_ids = node['prev']
+            for prev_id in prev_ids:
+                prev_node = self.get_node_by_id(prev_id)
+                if prev_node:
+                    prev_nodes.append(prev_node)
+
+        return prev_nodes
+    
+    def get_next_nodes(self, n):
+        node = self.get_node(n)
+        next_nodes = []
+        if node:
+            next_ids = node['next']
+            for next_id in next_ids:
+                next_node = self.get_node_by_id(next_id)
+                if next_node:
+                    next_nodes.append(next_node)
+
+        return next_nodes
+
+
+    # stream functions
     def set_stream_status(self, stream, status, save=False):
         if stream in self._plan_spec['streams']:
              self._plan_spec['streams'][stream]['status'] = status
@@ -496,136 +554,93 @@ class Plan:
 
 
     ## connections
-    def _get_default_edge_label(self, from_label, to_label):
-        return from_label + ">" + to_label
-    
-    def _extract_nodes_from_edge_label(self, edge_label):
-        return tuple(edge_label.split(">"))
 
-    def _connect(self, from_label, to_label):
-        edges = self._plan_spec['edges']
-        nodes = self._plan_spec['nodes']
 
-        if from_label not in nodes:
+    def _connect(self, f, t):
+        from_node = self.get_node(f)
+        to_node = self.get_node(t)
+
+        if from_node is None:
             raise Exception("Non-existing node cannot be connected")
-        if to_label not in nodes:
+        if to_node is None:
             raise Exception("Non-existing node cannot be connected")
 
-        edge_label = self._get_default_edge_label(from_label, to_label)
-        if edge_label in edges:
-            raise Exception("Connection already exists")
+        from_id = from_node['id']
+        to_id = to_node['id']
         
-        edge_node = {
-            'from': from_label,
-            'to': to_label
-        }
+        from_node['next'].append(to_id)
+        to_node['prev'].append(from_id)
 
-        edges[edge_label] = edge_node
-
-        from_node = nodes[from_label]
-        to_node = nodes[to_label]
-
-        from_node['next'].append(to_label)
-        to_node['prev'].append(from_label)
-
-    def connect_input_to_agent(self, from_input_label=None, to_agent_input_label=None, to_agent=None, to_agent_input=None):
-        nodes = self._plan_spec['nodes']
-
-        if from_input_label:
-            if from_input_label not in nodes:
-                raise Exception("Non-existing input cannot be connected")
+    def _resolve_input_output_node_id(self, input=None, output=None):
+        n = None
+        if input:
+            n = input
+        elif output:
+            n = output
         else:
-            raise Exception("Input should be specified")
+            raise Exception("Input/Output should be specified")
         
-        if to_agent_input_label:
-            if to_agent_input_label not in nodes:
-                raise Exception("Non-existing agent input cannot be connected")
+        node = self.get_node(n)
+
+        if node is None:
+            raise Exception("Non-existing input/output cannot be connected")
         else:
-            if to_agent:
-                if to_agent not in nodes:
-                    raise Exception("Non-existing agent cannot be connected")
-            else:
-                raise Exception("Agent should be specified")
+            return node['id']
+
+    def _resolve_agent_param_node_id(self, agent=None, agent_param=None, node_type=None):
+        node_id = None
+        if agent:
+            if agent_param is None:
+                agent_param = "DEFAULT"
             
-            if to_agent_input is None:
-                to_agent_input = "DEFAULT"
-
-            to_agent_input_label = self._get_default_label(to_agent, input=to_agent_input)
-            if to_agent_input_label not in nodes:
-                raise Exception("Non-existing agent input cannot be connected")
-
-        from_label = from_input_label
-        to_label = to_agent_input_label
-
-        self._connect(from_label, to_label)
-
-
-    def connect_agent_to_output(self, from_agent_output_label=None, from_agent=None, from_agent_output=None, to_output_label=None):
-        nodes = self._plan_spec['nodes']
-
-        if to_output_label not in nodes:
-            raise Exception("Non-existing output cannot be connected")
+            agent_node = self.get_node(agent)
+            if agent_node:
+                agent_name = agent_node['name']
+                label = None
+                if node_type == NodeType.AGENT_INPUT:
+                    label = self._get_default_label(agent_name, input=agent_param)
+                elif node_type == NodeType.AGENT_OUTPUT:
+                    label = self._get_default_label(agent_name, output=agent_param)
+                agent_param_node = self.get_node(label)
+                if agent_param_node is None:
+                    raise Exception("Non-existing agent input/output cannot be connected")
+                else:
+                    node_id = agent_param_node['id']
+            else:
+                raise Exception("Non-existing agent input/output cannot be connected")
+        elif agent_param:
+            agent_param_node = self.get_node(agent_param)
+            node_id = agent_param_node['id']
+        else:
+            raise Exception("Non-existing agent input/output cannot be connected")
         
-        if from_agent_output_label:
-            if from_agent_output_label not in nodes:
-                raise Exception("Non-existing agent output cannot be connected")
-        else:
-            if from_agent:
-                if from_agent not in nodes:
-                    raise Exception("Non-existing agent cannot be connected")
-            else:
-                raise Exception("Agent should be specified")
-            
-            if from_agent_output is None:
-                from_agent_output = "DEFAULT"
+        return node_id
 
-            from_agent_output_label = self._get_default_label(from_agent, output=from_agent_output)
-            if from_agent_output_label not in nodes:
-                raise Exception("Non-existing agent output cannot be connected")
-     
-        from_label = from_agent_output_label
-        to_label = to_output_label
+    def connect_input_to_agent(self, from_input=None, to_agent=None, to_agent_input=None):
 
-        self._connect(from_label, to_label)
+        from_id = self._resolve_input_output_node_id(self, input=from_input)
+        to_id = self._resolve_agent_param_node_id(agent=to_agent, agent_param=to_agent_input, node_type=NodeType.AGENT_INPUT)
+        self._connect(from_id, to_id)
 
-    def connect_agent_to_agent(self, from_agent_output_label=None, from_agent=None, from_agent_output=None, to_agent_input_label=None, to_agent=None, to_agent_input=None):
-        nodes = self._plan_spec['nodes']
 
-        if from_agent_output_label:
-            if from_agent_output_label not in nodes:
-                raise Exception("Non-existing agent output cannot be connected")
-        else:
-            if from_agent:
-                if from_agent not in nodes:
-                    raise Exception("Non-existing agent cannot be connected")
-            else:
-                raise Exception("Agent should be specified")
-            
-            if from_agent_output is None:
-                from_agent_output = "DEFAULT"
+    def connect_agent_to_agent(self, from_agent=None, from_agent_output=None, to_agent=None, to_agent_input=None):
 
-            from_agent_output_label = self._get_default_label(from_agent, output=from_agent_output)
-            if from_agent_output_label not in nodes:
-                raise Exception("Non-existing agent output cannot be connected")
-            
-            if to_agent:
-                if to_agent not in nodes:
-                    raise Exception("Non-existing agent cannot be connected")
-            else:
-                raise Exception("Agent should be specified")
-            
-            if to_agent_input is None:
-                to_agent_input = "DEFAULT"
+        from_id = self._resolve_agent_param_node_id(agent=from_agent, agent_param=from_agent_output, node_type=NodeType.AGENT_OUTPUT)
+        to_id = self._resolve_agent_param_node_id(agent=to_agent, agent_param=to_agent_input, node_type=NodeType.AGENT_INPUT)
+        self._connect(from_id, to_id)
 
-            to_agent_input_label = self._get_default_label(to_agent, input=to_agent_input)
-            if to_agent_input_label not in nodes:
-                raise Exception("Non-existing agent input cannot be connected")
-     
-        from_label = from_agent_output_label
-        to_label = to_agent_input_label
 
-        self._connect(from_label, to_label)       
+    def connect_agent_to_output(self, from_agent=None, from_agent_output=None, to_output=None):
 
+        from_id = self._resolve_agent_param_node_id(agent=from_agent, agent_param=from_agent_output, node_type=NodeType.AGENT_OUTPUT)
+        to_id = self._resolve_input_output_node_id(self, output=to_output)
+        self._connect(from_id, to_id)
+
+    def connect_input_to_output(self, from_input=None, to_output=None):
+
+        from_id = self._resolve_input_output_node_id(self, input=from_input)
+        to_id = self._resolve_input_output_node_id(self, output=to_output)
+        self._connect(from_id, to_id)
 
     ## Stream I/O 
     def _write_to_stream(self, worker, data, output, tags=None, eos=True):
@@ -653,27 +668,27 @@ class Plan:
     def submit(self, worker):
         # process inputs with initialized values, if any
         nodes = self._plan_spec['nodes']
-        for node_label in nodes:
-            node = nodes[node_label]
-            # inputs
-            if node['type'] == "INPUT":
-                input_label = node_label
-                if node['value']:
-                    data = node['value']
-                    # write data for input
-                    input_stream = self._write_data(worker, data, input_label)
-                    # set stream for input
-                    self.set_node_stream(input_label, input_stream)
-            # outputs
-            if node['type'] == "OUTPUT":
-                output_label = node_label
-                if node['value']:
-                    data = node['value']
-                    # write data for output
-                    output_stream = self._write_data(worker, data, output_label)
-                    # set stream for input
-                    self.set_node_stream(output_label, output_stream)
+        for node_id in nodes:
+            node = nodes[node_id]
 
+            # inputs
+            if node['type'] == NodeType.INPUT:
+                if node['value']:
+                    data = node['value']
+                    label = node['label']
+                    # write data for input
+                    stream = self._write_data(worker, data, label)
+                    # set stream for node
+                    self.set_node_stream(node_id, stream)
+            # outputs
+            if node['type'] == NodeType.OUTPUT:
+                if node['value']:
+                    data = node['value']
+                    label = node['label']
+                    # write data for output
+                    stream = self._write_data(worker, data, label)
+                    # set stream for node
+                    self.set_node_stream(node_id, stream)
 
         # write plan
         self._write_plan_spec(worker)

@@ -6,7 +6,7 @@ import json
 
 ###### Blue
 from blue.agent import Agent
-from blue.plan import Plan, Status
+from blue.plan import Plan, Status, NodeType
 from blue.stream import ControlCode
 from blue.data.planner import DataPlanner
 from blue.data.pipeline import DataPipeline
@@ -78,8 +78,8 @@ class CoordinatorAgent(Agent):
         streams = plan.get_streams()
 
         for stream in streams:
-            # plan existing streams for inputs/outputs
-            plan.set_stream_status(stream, Status.PLANNED)
+            # plan existing streams for inputs/outputs processing
+            plan.set_stream_status(stream, Status.PLANNED, save=True)
 
             # process nodes with streams 
             self.create_worker(stream, input=plan_id)
@@ -92,10 +92,13 @@ class CoordinatorAgent(Agent):
             # check if stream is part of a plan being tracked
             for plan_id in self.plans:
                 plan  = self.plans[plan_id]
+                # check if there is a matching node for stream
                 node = plan.match_stream(stream)
                 if node:
                     node_id = node['id']
-                    plan.set_node_stream(node_id, stream, status=Status.PLANNED)
+                    # assign stream to node
+                    plan.set_node_stream(node_id, stream, status=Status.PLANNED, save=True)
+                    # process stream
                     self.create_worker(stream, input=plan_id)
 
         ### do regular session listening
@@ -182,47 +185,67 @@ class CoordinatorAgent(Agent):
             if plan_id in self.plans:
                 plan = self.plans[plan_id]
 
+                # identify node
+                node = plan.get_node_by_stream(stream)
+                node_id = node['id']
+
                 # if stream is of output variable, store value/stream if desired 
                 if message.isBOS():
-                    plan.set_stream_status(stream, Status.RUNNING)
+                    plan.set_stream_status(stream, Status.RUNNING, save=True)
+
+                    if plan.get_node_type(node_id) == NodeType.AGENT_OUTPUT:
+                        plan.set_node_value(node_id, [], save=True)
                 elif message.isData():
-                    # TODO: optionally fetch stream value and store in node
-                    pass
+                    v = message.getData()
+
+                    if plan.get_node_type(node_id) == NodeType.AGENT_OUTPUT:
+                        o = plan.get_node_value(node_id)
+                        o.append(v)
+                        plan.set_node_value(node_id, o, save=True)
+
                 elif message.isEOS():
                     # TODO: when all outputs are completed, plan status is FINISHED
 
-                    plan.set_stream_status(stream, Status.FINISHED)
+                    plan.set_stream_status(stream, Status.FINISHED, save=True)
 
-                    node = plan.get_stream_node(stream)
-
-                    next = plan.get_next(node)
+                    next_nodes = plan.get_next_nodes(node_id)
 
                     from_agent = None
                     from_agent_param = None
 
-                    if plan.is_agent(node):
-                        from_agent = plan.get_agent(node)
-                        from_agent_param = plan.get_agent_param(node)
+                    if plan.get_node_type(node_id) == NodeType.AGENT_OUTPUT:
+                        from_agent_node = plan.get_parent_node(node_id)
+                        from_agent = from_agent_node['name']
+                        from_agent_param = node['name']
     
-                    for n in next:
+                        for next_node in next_nodes:
 
-                        if plan.is_agent(n):
-                            next_agent = plan.get_agent(n)
-                            next_agent_param = plan.get_agent_param(n)
+                            next_node_id = next_node['id']
+                            if plan.get_node_type(next_node_id) == NodeType.AGENT_INPUT:
+                                next_agent_node = plan.get_parent_node(next_node_id)
+                                next_agent = next_agent_node['name']
+                                next_agent_param = next_node['name']
 
-                        output_stream = stream
+                                output_stream = stream
 
-                        if from_agent:
-                            # transform data utilizing planner/optimizers, if necessary
-                            budget = worker.session.get_budget()
-                            # override output stream with stream from data transformation
-                            output_stream = self.transform_data(stream, budget, from_agent, from_agent_param, next_agent, next_agent_param)
+                                if from_agent:
+                                    # transform data utilizing planner/optimizers, if necessary
+                                    budget = worker.session.get_budget()
+                                    # override output stream with stream from data transformation
+                                    output_stream = self.transform_data(stream, budget, from_agent, from_agent_param, next_agent, next_agent_param)
 
-                        # create an EXECUTE_AGENT instruction
-                        if output_stream:
-                            context = plan.get_scope() + ":PLAN:" + plan_id
-                            properties = n.get_node_properties()
+                                # write an EXECUTE_AGENT instruction
+                                if output_stream:
+                                    context = plan.get_scope() + ":PLAN:" + plan_id
+                                    properties = plan.get_node_properties(next_node_id)
 
-                            worker.write_control(ControlCode.EXECUTE_AGENT, {"agent": next_agent, "context": context, "properties": properties, "inputs": {next_agent_param: output_stream}})
+                                    # TODO: workers should be write to plan specific streams
+                                    worker.write_control(ControlCode.EXECUTE_AGENT, {"agent": next_agent, "context": context, "properties": properties, "inputs": {next_agent_param: output_stream}})
+                    elif plan.get_node_type(node_id) == NodeType.OUTPUT:
+                        pass
+
+                    # check if plan is complete
+                    # TODO: 
+                    # mark plan completed
 
         return None
