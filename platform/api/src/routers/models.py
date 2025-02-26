@@ -24,13 +24,13 @@ from fastapi.responses import JSONResponse
 
 
 ###### Schema
-class Model(BaseModel):
+class ModelSchema(BaseModel):
     name: str
     description: Union[str, None] = None
     icon: Union[str, dict, None] = None
 
 
-class Parameter(BaseModel):
+class ParameterSchema(BaseModel):
     name: str
     description: Union[str, None] = None
 
@@ -99,7 +99,7 @@ def get_model(request: Request, model_name):
 
 
 @router.post("/model/{model_name}")
-def add_model(request: Request, model_name, model: Model):
+def add_model(request: Request, model_name, model: ModelSchema):
     model_db = model_registry.get_model(model_name)
     if model_name in BANNED_ENTITY_NAMES:
         return JSONResponse(content={"message": "The name cannot be used."}, status_code=403)
@@ -115,7 +115,7 @@ def add_model(request: Request, model_name, model: Model):
 
 
 @router.put("/model/{model_name}")
-def update_model(request: Request, model_name, model: Model):
+def update_model(request: Request, model_name, model: ModelSchema):
     model_db = model_registry.get_model(model_name)
     model_acl_enforce(request, model_db, write=True)
     # TODO: properties

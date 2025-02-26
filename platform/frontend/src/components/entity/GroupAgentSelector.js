@@ -52,7 +52,6 @@ export default function GroupAgentSelector({
                 (content) => _.isEqual(_.get(content, "type", null), "agent")
             ),
             path = `${prevPath}${_.isEmpty(prevPath) ? "" : "."}${agent.name}`;
-
         let icon = _.get(agent, "icon", null);
         if (!_.isEmpty(icon) && !_.startsWith(icon, "data:image/")) {
             icon = _.split(icon, ":");
@@ -66,7 +65,9 @@ export default function GroupAgentSelector({
                     className={Classes.TEXT_OVERFLOW_ELLIPSIS}
                     style={{ paddingLeft: 8 }}
                 >
-                    {_.get(agent, "properties.display_name", agent.name)}
+                    {_.toString(
+                        _.get(agent, "properties.display_name", agent.name)
+                    )}
                 </div>
             ),
             childNodes: [],

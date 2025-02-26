@@ -153,7 +153,12 @@ export default function EntityGeneral({
                             },
                         })
                     )}
-                    <div style={{ marginLeft: edit ? 5 : 15 }}>
+                    <div
+                        style={{
+                            marginLeft:
+                                edit && _.isEqual(userRole, "admin") ? 5 : 15,
+                        }}
+                    >
                         <div>System agent</div>
                         <div
                             className={classNames(
