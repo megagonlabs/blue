@@ -19,15 +19,24 @@ class Authentication:
         self.stop = None
         self.__SOCKET_PORT = 25831
         self.cookie = None
+        self.uid = None
         self.__start_servers()
 
     def get_cookie(self):
         return self.cookie
 
+    def get_uid(self):
+        return self.uid
+
     def __set_cookie(self, cookie):
         if cookie == "":
             cookie = None
         self.cookie = cookie
+
+    def __set_uid(self, uid):
+        if uid == "":
+            uid = None
+        self.uid = uid
 
     def __start_servers(self):
         path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -73,7 +82,7 @@ class Authentication:
                 async with websockets.serve(handler, "", self.__SOCKET_PORT):
                     result = await self.stop
                     self.__set_cookie(result['cookie'])
-                    print(result['uid'])
+                    self.__set_uid(result['uid'])
                     if self.process is not None:
                         self.process.terminate()
 
