@@ -44,7 +44,7 @@ export default function EntityGeneral({
                 <div style={{ marginBottom: 15, display: "flex", gap: 15 }}>
                     <FormGroup
                         className="margin-0"
-                        label={<div className={Classes.TEXT_MUTED}>Image</div>}
+                        label={<div style={{ fontWeight: 600 }}>Image</div>}
                         style={{ width: "50%" }}
                     >
                         <div
@@ -72,9 +72,7 @@ export default function EntityGeneral({
                     <FormGroup
                         className="margin-0"
                         label={
-                            <div className={Classes.TEXT_MUTED}>
-                                Display name
-                            </div>
+                            <div style={{ fontWeight: 600 }}>Display name</div>
                         }
                         style={{ width: "50%" }}
                         onDoubleClick={(event) => {
@@ -119,6 +117,7 @@ export default function EntityGeneral({
                 </div>
                 <div style={{ marginBottom: 15 }}>
                     <Tags
+                        setEdit={setEdit}
                         X_MARK_ICON={X_MARK_ICON}
                         edit={edit}
                         general={general}

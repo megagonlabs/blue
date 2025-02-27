@@ -2,6 +2,6 @@
 const nextConfig = {
     reactStrictMode: true,
     output: "export",
-    distDir: "../blue/web/auth/out",
+    distDir: "../blue_cli/web/auth/out",
 };
 export default nextConfig;

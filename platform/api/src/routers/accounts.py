@@ -153,7 +153,7 @@ async def signin_cli(request: Request):
             expires_in = datetime.timedelta(hours=10)
             session_cookie = auth.create_session_cookie(id_token, expires_in=expires_in)
             p.create_update_user(decoded_claims)
-            return JSONResponse(content={"cookie": session_cookie})
+            return JSONResponse(content={"cookie": session_cookie, "uid": decoded_claims['uid']})
         return ERROR_RESPONSE
     except auth.InvalidIdTokenError:
         return JSONResponse(content={"message": "The provided ID token is not a valid Firebase ID token."}, status_code=401)

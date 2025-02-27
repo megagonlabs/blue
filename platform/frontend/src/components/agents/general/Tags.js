@@ -17,6 +17,7 @@ export default function Tags({
     loading,
     setGeneral,
     X_MARK_ICON,
+    setEdit,
 }) {
     const [entries, setEntries] = useState([]);
     useEffect(() => {
@@ -61,7 +62,7 @@ export default function Tags({
     return (
         <FormGroup
             className="margin-0"
-            label={<div className={Classes.TEXT_MUTED}>Tags</div>}
+            label={<div style={{ fontWeight: 600 }}>Tags</div>}
         >
             {_.isEmpty(entries) && !edit && (
                 <div className={loading ? Classes.SKELETONL : null}>-</div>
@@ -70,6 +71,7 @@ export default function Tags({
                 return (
                     <div
                         key={index}
+                        onDoubleClick={() => setEdit(true)}
                         style={{
                             position: "relative",
                             marginTop: index > 0 ? 7.5 : 0,

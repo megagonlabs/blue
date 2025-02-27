@@ -3,6 +3,7 @@ import os
 import string
 
 import click
+import pydash
 import tabulate
 from click import Context
 
@@ -305,10 +306,16 @@ def show():
     else:
         data = {}
     for key in profile:
+        value = profile[key]
+        if pydash.is_equal(key, "BLUE_COOKIE"):
+            if not pydash.is_empty(value):
+                value = u'\033[32m\u2714\033[0m'
+            else:
+                value = u'\033[31m\u274C\033[0m'
         if output == "table":
-            data.append([key, profile[key]])
+            data.append([key, value])
         else:
-            data[key] = profile[key]
+            data[key] = value
 
     if output == "table":
         print(f"{bcolors.OKBLUE}{profile_name}{bcolors.ENDC}")

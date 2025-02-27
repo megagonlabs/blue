@@ -9,6 +9,7 @@ import subprocess
 import sys
 import time
 import webbrowser
+import pydash
 
 
 class Authentication:
@@ -18,15 +19,24 @@ class Authentication:
         self.stop = None
         self.__SOCKET_PORT = 25831
         self.cookie = None
+        self.uid = None
         self.__start_servers()
 
     def get_cookie(self):
         return self.cookie
 
+    def get_uid(self):
+        return self.uid
+
     def __set_cookie(self, cookie):
         if cookie == "":
             cookie = None
         self.cookie = cookie
+
+    def __set_uid(self, uid):
+        if uid == "":
+            uid = None
+        self.uid = uid
 
     def __start_servers(self):
         path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -55,11 +65,11 @@ class Authentication:
                     try:
                         data = await websocket.recv()
                         json_data = json.loads(data)
-                        if json_data == "REQUEST_CONNECTION_INFO":
+                        if pydash.is_equal(json_data, "REQUEST_CONNECTION_INFO"):
                             current_profile = ProfileManager().get_selected_profile()
                             await websocket.send(json.dumps({"type": "REQUEST_CONNECTION_INFO", "message": dict(current_profile)}))
                         else:
-                            await websocket.send(json.dumps("done"))
+                            await websocket.send(json.dumps("DONE"))
                     except ws_exceptions.ConnectionClosedOK:
                         break
                     except ws_exceptions.ConnectionClosedError:
@@ -70,7 +80,9 @@ class Authentication:
 
             async def main():
                 async with websockets.serve(handler, "", self.__SOCKET_PORT):
-                    self.__set_cookie(await self.stop)
+                    result = await self.stop
+                    self.__set_cookie(result['cookie'])
+                    self.__set_uid(result['uid'])
                     if self.process is not None:
                         self.process.terminate()
 

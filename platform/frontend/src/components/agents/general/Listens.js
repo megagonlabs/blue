@@ -62,7 +62,7 @@ export default function Listens({
     return (
         <FormGroup
             className="margin-0"
-            label={<div className={Classes.TEXT_MUTED}>Listens</div>}
+            label={<div style={{ fontWeight: 600 }}>Listens</div>}
         >
             {_.isEmpty(entries) && !edit && (
                 <div className={loading ? Classes.SKELETON : null}>-</div>
