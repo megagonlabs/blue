@@ -66,7 +66,7 @@ class CoordinatorAgent(Agent):
     def initialize_plan(self, plan, worker=None):
 
         # get plan id
-        plan_id = plan["id"]
+        plan_id = plan.id
 
         # set plan to track
         self.plans[plan_id] = plan
@@ -104,7 +104,24 @@ class CoordinatorAgent(Agent):
         ### do regular session listening
         return super().session_listener(message)
 
-    def transform_data(self, input_stream, budget, from_agent, from_agent_param, to_agent, to_agent_param):
+    def transform_data(self, input_stream, budget, f, t):
+        # from_input = None
+        # from_agent = None
+        # from_agent_param = None
+        # to_agent = None
+        # to_agent_param = None
+        # to_output = None
+
+        # if type(f) == tuple: 
+        #     from_agent, from_agent_param = f
+        # else:
+        #     from_input = f
+
+        # if type(t) == tuple:
+        #     to_agent, to_agent_param = t
+        # else:
+        #     to_output = t
+
         # logging.info("TRANSFORM DATA:")
         # logging.info(from_agent + "." + from_agent_param)
         # logging.info(to_agent + "." + to_agent_param)
@@ -182,6 +199,8 @@ class CoordinatorAgent(Agent):
             # process a plan
             plan_id = input
 
+            
+
             if plan_id in self.plans:
                 plan = self.plans[plan_id]
 
@@ -192,60 +211,84 @@ class CoordinatorAgent(Agent):
                 # if stream is of output variable, store value/stream if desired 
                 if message.isBOS():
                     plan.set_stream_status(stream, Status.RUNNING, save=True)
-
                     if plan.get_node_type(node_id) == NodeType.AGENT_OUTPUT:
                         plan.set_node_value(node_id, [], save=True)
+
+                    #### next
+                    next_nodes = plan.get_next_nodes(node_id)
+
+                    # from
+                    f = None
+                    from_input = None
+                    from_agent = None
+                    from_agent_param = None
+
+                    # if from an agent output capture 
+                    if plan.get_node_type(node_id) == NodeType.AGENT_OUTPUT:
+                        from_agent_node = plan.get_parent_node(node_id)
+                        from_agent = from_agent_node['name']
+                        from_agent_param = node['name']
+                        f = (from_agent, from_agent_param)
+                    elif plan.get_node_type(node_id) == NodeType.INPUT:
+                        from_input = node['name']
+                        f = from_input
+    
+                    for next_node in next_nodes:
+
+                        next_node_id = next_node['id']
+
+                        # to
+                        t = None
+                        to_output = None
+                        to_agent = None
+                        to_agent_node = None
+                        to_agent_id = None
+                        to_agent_param = None
+
+                        if plan.get_node_type(next_node_id) == NodeType.AGENT_INPUT:
+                            to_agent_node = plan.get_parent_node(next_node_id)
+                            to_agent = to_agent_node['name']
+                            to_agent_id = to_agent_node['id']
+                            to_agent_param = next_node['name']
+                            t = (to_agent, to_agent_param)
+                        elif plan.get_node_type(next_node_id) == NodeType.OUTPUT:
+                            to_output = next_node['name']
+                            t = to_output
+
+                        output_stream = stream
+
+                        # transform data utilizing planner/optimizers, if necessary
+                        budget = worker.session.get_budget()
+
+                        # override output stream with stream from data transformation
+                        output_stream = self.transform_data(stream, budget, f, t)
+
+                        # set next node stream
+                        plan.set_node_stream(next_node_id, output_stream, save=True)
+                       
+                        # write an EXECUTE_AGENT instruction
+                        if output_stream:
+                            # execute agent
+                            if to_agent:
+                                context = plan.get_scope() + ":PLAN:" + plan_id
+                                to_agent_properties = plan.get_node_properties(to_agent_id)
+                                worker.write_control(ControlCode.EXECUTE_AGENT, {"agent": to_agent, "context": context, "properties": to_agent_properties, "inputs": {to_agent_param: output_stream}})
+                            elif to_output:
+                               pass
+
                 elif message.isData():
                     v = message.getData()
-
                     if plan.get_node_type(node_id) == NodeType.AGENT_OUTPUT:
                         o = plan.get_node_value(node_id)
                         o.append(v)
                         plan.set_node_value(node_id, o, save=True)
 
                 elif message.isEOS():
-                    # TODO: when all outputs are completed, plan status is FINISHED
-
                     plan.set_stream_status(stream, Status.FINISHED, save=True)
 
-                    next_nodes = plan.get_next_nodes(node_id)
+                    # TODO: Copy value to node
 
-                    from_agent = None
-                    from_agent_param = None
-
-                    if plan.get_node_type(node_id) == NodeType.AGENT_OUTPUT:
-                        from_agent_node = plan.get_parent_node(node_id)
-                        from_agent = from_agent_node['name']
-                        from_agent_param = node['name']
-    
-                        for next_node in next_nodes:
-
-                            next_node_id = next_node['id']
-                            if plan.get_node_type(next_node_id) == NodeType.AGENT_INPUT:
-                                next_agent_node = plan.get_parent_node(next_node_id)
-                                next_agent = next_agent_node['name']
-                                next_agent_param = next_node['name']
-
-                                output_stream = stream
-
-                                if from_agent:
-                                    # transform data utilizing planner/optimizers, if necessary
-                                    budget = worker.session.get_budget()
-                                    # override output stream with stream from data transformation
-                                    output_stream = self.transform_data(stream, budget, from_agent, from_agent_param, next_agent, next_agent_param)
-
-                                # write an EXECUTE_AGENT instruction
-                                if output_stream:
-                                    context = plan.get_scope() + ":PLAN:" + plan_id
-                                    properties = plan.get_node_properties(next_node_id)
-
-                                    # TODO: workers should be write to plan specific streams
-                                    worker.write_control(ControlCode.EXECUTE_AGENT, {"agent": next_agent, "context": context, "properties": properties, "inputs": {next_agent_param: output_stream}})
-                    elif plan.get_node_type(node_id) == NodeType.OUTPUT:
-                        pass
-
-                    # check if plan is complete
-                    # TODO: 
-                    # mark plan completed
+                    # TODO: check if plan is complete
+                    # set plan status, if completed
 
         return None
