@@ -38,6 +38,15 @@ class Constant:
     def __str__(self):
         return self.c
 
+###############
+### ConstantEncoder
+#
+class ConstantEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, Constant):
+            return str(obj)
+        else:
+            return json.JSONEncoder.default(self, obj)
 
 ###############
 ### MessageType
@@ -252,15 +261,15 @@ class Message:
         if self.label == MessageType.CONTROL:
             contents = d['contents']
             contents['code'] = str(contents['code'])
-            d['contents'] = json.dumps(contents)
+            d['contents'] = json.dumps(contents, cls=ConstantEncoder)
         else:
             if self.content_type == ContentType.JSON:
-                d['contents'] = json.dumps(self.contents)
+                d['contents'] = json.dumps(self.contents, cls=ConstantEncoder)
             else:
                 d['contents'] = self.contents
 
         # convert to JSON
-        return json.dumps(d)
+        return json.dumps(d, cls=ConstantEncoder)
 
     def __str__(self):
         return self.toJSON()

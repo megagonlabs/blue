@@ -5,6 +5,7 @@ import json
 ###### Blue
 from blue.agent import Agent
 from blue.stream import ControlCode
+from blue.plan import Plan
 from blue.utils import string_utils, uuid_utils
 
 
@@ -77,10 +78,10 @@ class VisualizerAgent(Agent):
         # plan
         p = Plan(prefix=worker.prefix)
         # set input
-        p.set_input_value(name, question)
+        p.define_input(name, value=question)
         # set plan
-        p.add_input_to_agent_step(name, "NL2Q")
-        p.add_agent_to_agent_step("NL2Q", self.name, to_param=to_param_prefix + name)
+        p.connect_input_to_agent(from_input=name, to_agent="NL2Q")
+        p.connect_agent_to_agent(from_agent="NL2Q", to_agent=self.name, to_agent_input=to_param_prefix + name)
         
         # submit plan
         p.submit(worker)
@@ -96,10 +97,10 @@ class VisualizerAgent(Agent):
         # plan
         p = Plan(prefix=worker.prefix)
         # set input
-        p.set_input_value(name, query)
+        p.define_input(name, value=query)
         # set plan
-        p.add_input_to_agent_step(name, "QUERYEXECUTOR")
-        p.add_agent_to_agent_step("QUERYEXECUTOR", self.name, to_param=to_param_prefix + name)
+        p.connect_input_to_agent(from_input=name, to_agent="QUERYEXECUTOR")
+        p.connect_agent_to_agent(from_agent="QUERYEXECUTOR", to_agent=self.name, to_agent_input=to_param_prefix + name)
         
         # submit plan
         p.submit(worker)
