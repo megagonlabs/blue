@@ -69,7 +69,7 @@ export default function CollectionEntity() {
                                                     }}
                                                     minimal
                                                     interactive
-                                                    large
+                                                    size="large"
                                                     intent={Intent.PRIMARY}
                                                 >
                                                     {element.name}
@@ -119,7 +119,7 @@ export default function CollectionEntity() {
                                                     }}
                                                     minimal
                                                     interactive
-                                                    large
+                                                    size="large"
                                                     intent={Intent.PRIMARY}
                                                 >
                                                     {element.name}

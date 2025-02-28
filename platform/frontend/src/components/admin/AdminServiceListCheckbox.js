@@ -21,7 +21,7 @@ export default function AdminServiceListCheckbox({ data, rowIndex }) {
         <Checkbox
             onChange={onChange}
             checked={selectedServices.has(service)}
-            large
+            size="large"
             className="margin-0"
         />
     );

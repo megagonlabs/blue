@@ -240,7 +240,7 @@ export default function SessionMembersList({ loading, setLoading }) {
                                                 onClick={() => {
                                                     addMember(user);
                                                 }}
-                                                large
+                                                size="large"
                                                 className={
                                                     isTyping
                                                         ? Classes.SKELETON
@@ -282,7 +282,7 @@ export default function SessionMembersList({ loading, setLoading }) {
                         autoFocus
                         leftIcon={faIcon({ icon: faSearch })}
                         placeholder="Search members"
-                        large
+                        size="large"
                         value={keyword}
                         onChange={(event) => {
                             setIsTyping(true);
@@ -333,7 +333,7 @@ export default function SessionMembersList({ loading, setLoading }) {
                                 <UserInfo user={user} />
                                 {member.owner ? (
                                     <Tag
-                                        large
+                                        size="large"
                                         minimal
                                         intent={Intent.PRIMARY}
                                         style={{
@@ -361,7 +361,7 @@ export default function SessionMembersList({ loading, setLoading }) {
                                                         className={
                                                             Classes.POPOVER_DISMISS
                                                         }
-                                                        large
+                                                        size="large"
                                                         text="Confirm"
                                                         onClick={() => {
                                                             removeMember(user);
@@ -377,7 +377,7 @@ export default function SessionMembersList({ loading, setLoading }) {
                                                 placement="left"
                                             >
                                                 <Button
-                                                    large
+                                                    size="large"
                                                     minimal
                                                     icon={faIcon({
                                                         icon: faTrash,

@@ -111,7 +111,7 @@ export default function SessionData() {
                             content={
                                 <div style={{ padding: 15 }}>
                                     <Button
-                                        large
+                                        size="large"
                                         className={Classes.POPOVER_DISMISS}
                                         text="Confirm"
                                         onClick={discard}
@@ -127,7 +127,7 @@ export default function SessionData() {
                                 content="Discard"
                             >
                                 <Button
-                                    large
+                                    size="large"
                                     minimal
                                     icon={faIcon({ icon: faXmarkLarge })}
                                 />
@@ -135,7 +135,7 @@ export default function SessionData() {
                         </Popover>
                     )}
                     <Button
-                        large
+                        size="large"
                         className={loading ? Classes.SKELETON : null}
                         text={edit ? "Save" : "Edit"}
                         onClick={() => {
@@ -149,7 +149,7 @@ export default function SessionData() {
                 </ButtonGroup>
                 {jsonError && edit && (
                     <div style={{ position: "absolute", right: 15, top: 15 }}>
-                        <Tag intent={Intent.DANGER} minimal large>
+                        <Tag intent={Intent.DANGER} minimal size="large">
                             Invalid JSON
                         </Tag>
                     </div>

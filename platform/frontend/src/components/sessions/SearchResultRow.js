@@ -97,7 +97,7 @@ export default function SearchResultRow({ sessionId, style = {} }) {
                             "linear-gradient(to right,  rgba(255,255,255,1) 0%,rgba(255,255,255,1) 100px,rgba(255,255,255,0) 99%,rgba(255,255,255,0) 100%)",
                     }}
                 >
-                    <ButtonGroup large minimal>
+                    <ButtonGroup size="large" variant="minimal">
                         <Tooltip
                             content={isPinned ? "Unpin" : "Pin"}
                             minimal

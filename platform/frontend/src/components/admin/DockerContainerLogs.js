@@ -65,7 +65,7 @@ export default function DockerContainerLogs({ containerId }) {
         <>
             <Card style={{ padding: 0 }} className="full-parent-height">
                 <div className="border-bottom" style={{ padding: 5 }}>
-                    <ButtonGroup minimal large>
+                    <ButtonGroup variant="minimal" size="large">
                         {isLive && (
                             <Button
                                 style={{ pointerEvents: "none" }}

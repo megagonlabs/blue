@@ -158,7 +158,7 @@ export default function SourceEntity() {
                                                     }}
                                                     minimal
                                                     interactive
-                                                    large
+                                                    size="large"
                                                     intent={Intent.PRIMARY}
                                                 >
                                                     {element.name}

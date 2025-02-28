@@ -171,7 +171,7 @@ export default function SessionBudget({
                                 leftIcon={faIcon({
                                     icon: faMoneySimpleFromBracket,
                                 })}
-                                large
+                                size="large"
                                 fill
                                 min={0}
                                 buttonPosition="none"
@@ -213,7 +213,7 @@ export default function SessionBudget({
                                     setAllowQuickClose(false);
                                 }}
                                 leftIcon={faIcon({ icon: faBullseyeArrow })}
-                                large
+                                size="large"
                                 fill
                                 min={0}
                                 max={1}
@@ -248,7 +248,7 @@ export default function SessionBudget({
                                     setAllowQuickClose(false);
                                 }}
                                 leftIcon={faIcon({ icon: faStopwatch })}
-                                large
+                                size="large"
                                 fill
                                 min={0}
                                 rightElement={<Tag minimal>ms</Tag>}
@@ -274,7 +274,7 @@ export default function SessionBudget({
                     disabled={costError || accuracyError || latencyError}
                     loading={loading}
                     text="Save"
-                    large
+                    size="large"
                     onClick={handleSaveBudget}
                     intent={Intent.SUCCESS}
                     icon={faIcon({ icon: faCheck })}

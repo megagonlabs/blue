@@ -158,7 +158,7 @@ export default function Users() {
                     cursor: "default",
                 }}
             >
-                <ButtonGroup large minimal>
+                <ButtonGroup size="large" variant="minimal">
                     <Button
                         disabled
                         style={{ cursor: "default" }}

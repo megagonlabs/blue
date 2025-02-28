@@ -92,8 +92,8 @@ export default function Tags({
                                 >
                                     <Button
                                         intent={Intent.DANGER}
-                                        large
-                                        minimal
+                                        size="large"
+                                        variant="minimal"
                                         onClick={() =>
                                             updateEntry("remove", index)
                                         }
@@ -137,13 +137,13 @@ export default function Tags({
                                 {_.isEmpty(entry.tags) && !edit && "-"}
                                 {entry.tags.map((tag, tagIndex) => (
                                     <Tag
-                                        large
+                                        size="large"
                                         className={
                                             loading ? Classes.SKELETON : null
                                         }
                                         key={tagIndex}
                                         minimal
-                                        rightIcon={
+                                        endIcon={
                                             edit && (
                                                 <div
                                                     style={{
@@ -196,7 +196,7 @@ export default function Tags({
                 <Button
                     onClick={() => updateEntry("add")}
                     style={{ marginTop: !_.isEmpty(entries) > 0 ? 7.5 : 0 }}
-                    outlined
+                    variant="outlined"
                     icon={faIcon({ icon: faPlus })}
                     text="Add tag"
                 />

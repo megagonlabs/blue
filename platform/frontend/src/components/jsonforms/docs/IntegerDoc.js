@@ -49,7 +49,7 @@ export default function IntegerDoc({ closePanel }) {
                 >
                     <H1 style={{ margin: 0 }}>Integer</H1>
                     <Tag
-                        large
+                        size="large"
                         style={{ marginLeft: 10 }}
                         minimal
                         intent={Intent.PRIMARY}

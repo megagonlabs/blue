@@ -207,8 +207,8 @@ export default function App({ children }) {
                             openOnTargetFocus={false}
                         >
                             <Button
-                                large
-                                minimal
+                                size="large"
+                                variant="minimal"
                                 onClick={action.onClick}
                                 icon={faIcon({ icon: action.icon })}
                             />
@@ -363,7 +363,7 @@ export default function App({ children }) {
                                             >
                                                 <Button
                                                     intent={intent}
-                                                    large
+                                                    size="large"
                                                     style={
                                                         !active
                                                             ? {
@@ -381,7 +381,7 @@ export default function App({ children }) {
                                                         icon: icon,
                                                     })}
                                                     onClick={onClick}
-                                                    rightIcon={
+                                                    endIcon={
                                                         !compactSidebar &&
                                                         showUnreadIndicator &&
                                                         faIcon({
@@ -424,7 +424,7 @@ export default function App({ children }) {
                                 >
                                     <Button
                                         intent={Intent.PRIMARY}
-                                        large
+                                        size="large"
                                         text={!compactSidebar && "New Session"}
                                         disabled={
                                             creatingSession || !isSocketOpen
@@ -463,8 +463,8 @@ export default function App({ children }) {
                             <ButtonGroup
                                 alignText={Alignment.LEFT}
                                 vertical
-                                minimal
-                                large
+                                variant="minimal"
+                                size="large"
                                 className="full-parent-width"
                             >
                                 {[
@@ -535,8 +535,8 @@ export default function App({ children }) {
                             <ButtonGroup
                                 alignText={Alignment.LEFT}
                                 vertical
-                                minimal
-                                large
+                                variant="minimal"
+                                size="large"
                                 className="full-parent-width"
                             >
                                 {["form_designer"].map((key, index) => {
@@ -606,8 +606,8 @@ export default function App({ children }) {
                             <ButtonGroup
                                 alignText={Alignment.LEFT}
                                 vertical
-                                minimal
-                                large
+                                variant="minimal"
+                                size="large"
                                 className="full-parent-width"
                             >
                                 {[

@@ -237,8 +237,8 @@ export default function EntityIconEditor({
             <Card style={{ padding: "5px 15px", borderRadius: 0 }}>
                 <Button
                     icon={faIcon({ icon: faIcons })}
-                    minimal
-                    large
+                    variant="minimal"
+                    size="large"
                     text="Icon"
                     onClick={() => {
                         setTab("icon");
@@ -247,8 +247,8 @@ export default function EntityIconEditor({
                 />
                 <Button
                     icon={faIcon({ icon: faImage })}
-                    minimal
-                    large
+                    variant="minimal"
+                    size="large"
                     text="Image"
                     onClick={() => {
                         setTab("image");
@@ -264,7 +264,7 @@ export default function EntityIconEditor({
                 >
                     <ControlGroup fill>
                         <FileInput
-                            large
+                            size="large"
                             inputProps={{ accept: "image/*" }}
                             style={{ maxWidth: 216.57 }}
                             text={fileName}
@@ -280,7 +280,7 @@ export default function EntityIconEditor({
                                     icon={faIcon({
                                         icon: faFaceViewfinder,
                                     })}
-                                    rightIcon={faIcon({
+                                    endIcon={faIcon({
                                         icon: showPreview
                                             ? faCaretUp
                                             : faCaretDown,
@@ -382,7 +382,7 @@ export default function EntityIconEditor({
                         intent={Intent.SUCCESS}
                         onClick={applyIcon}
                         text={`Apply ${tab}`}
-                        large
+                        size="large"
                         icon={faIcon({ icon: faCheck })}
                     />
                     <Tooltip
@@ -395,7 +395,7 @@ export default function EntityIconEditor({
                                 updateEntity({ path: "icon", value: null });
                                 closeEditor();
                             }}
-                            large
+                            size="large"
                             intent={Intent.DANGER}
                             minimal
                             icon={faIcon({ icon: faTrash })}

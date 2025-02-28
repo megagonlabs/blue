@@ -125,7 +125,7 @@ export default function LayoutDoc({ closePanel }) {
                                     Whether to have elements with equal width.
                                 </div>
                                 <Tag
-                                    large
+                                    size="large"
                                     intent={Intent.PRIMARY}
                                     minimal
                                     style={{ marginTop: 5 }}

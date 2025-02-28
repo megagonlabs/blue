@@ -182,7 +182,7 @@ export default function SessionMessagePage() {
                         >
                             <Tag
                                 minimal
-                                large
+                                size="large"
                                 interactive
                                 onClick={() => {
                                     copy(appState.session.connectionId);
@@ -206,9 +206,8 @@ export default function SessionMessagePage() {
                         placement="bottom-start"
                     >
                         <Button
-                            large
-                            minimal
-                            outlined
+                            size="large"
+                            variant="outlined"
                             icon={faIcon({
                                 icon: !appState.session.showWorkspacePanel
                                     ? faTableColumns
@@ -247,15 +246,19 @@ export default function SessionMessagePage() {
                                     placement="bottom-start"
                                 >
                                     <Button
-                                        large={_.isEmpty(sessionDescription)}
+                                        size={
+                                            _.isEmpty(sessionDescription)
+                                                ? "large"
+                                                : "medium"
+                                        }
                                         style={{ maxWidth: "100%" }}
                                         ellipsizeText
-                                        minimal
+                                        variant="minimal"
                                         alignText={Alignment.LEFT}
                                         onClick={() =>
                                             setIsSessionDetailOpen(true)
                                         }
-                                        rightIcon={faIcon({
+                                        endIcon={faIcon({
                                             icon: faCaretDown,
                                         })}
                                         text={
@@ -341,7 +344,7 @@ export default function SessionMessagePage() {
                                         }}
                                         minimal
                                         id={progress_id}
-                                        rightIcon={
+                                        endIcon={
                                             <div
                                                 style={{
                                                     width: 40,
@@ -383,7 +386,7 @@ export default function SessionMessagePage() {
                             placement="top-start"
                             targetProps={{ style: { maxWidth: 40 } }}
                             content={
-                                <Menu large>
+                                <Menu size="large">
                                     <MenuItem
                                         onClick={() => {
                                             setIsAddAgentsOpen(true);

@@ -166,7 +166,7 @@ export default function AllSessions() {
                             className={loading ? Classes.SKELETON : null}
                             id="all-sessions-search-input"
                             placeholder="Search sessions"
-                            large
+                            size="large"
                             fill
                             onChange={(event) =>
                                 setKeywords(event.target.value)
@@ -232,7 +232,7 @@ export default function AllSessions() {
                                                         : null
                                                 }
                                                 key={index}
-                                                large
+                                                size="large"
                                                 value={value}
                                                 label={text}
                                             />
@@ -243,10 +243,10 @@ export default function AllSessions() {
                         >
                             <Button
                                 intent={Intent.PRIMARY}
-                                outlined
-                                large
+                                variant="outlined"
+                                size="large"
                                 text="Filter"
-                                rightIcon={faIcon({ icon: faBarsFilter })}
+                                endIcon={faIcon({ icon: faBarsFilter })}
                             />
                         </Popover>
                     </ControlGroup>

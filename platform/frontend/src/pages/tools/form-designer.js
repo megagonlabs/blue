@@ -139,10 +139,10 @@ function FormDesigner() {
     }, [jsonSchema]);
     const [resultPanel, setResultPanel] = useState(true);
     const BUTTON_PROPS = {
-        large: true,
-        alignText: Alignment.LEFT,
+        size: "large",
+        alignText: Alignment.START,
         fill: true,
-        minimal: true,
+        variant: "minimal",
         style: { fontWeight: 600 },
     };
     const handleFormattingCode = () => {
@@ -210,7 +210,7 @@ function FormDesigner() {
                 interactive
                 style={{ padding: 5, borderRadius: 0, position: "relative" }}
             >
-                <ButtonGroup large minimal>
+                <ButtonGroup size="large" variant="minimal">
                     <Tooltip
                         usePortal={false}
                         placement="bottom-start"
@@ -336,7 +336,7 @@ function FormDesigner() {
                                                     187.5,
                                                 ]);
                                             }}
-                                            rightIcon={faIcon({
+                                            endIcon={faIcon({
                                                 icon: faArrowsFromLine,
                                             })}
                                         />
@@ -400,7 +400,7 @@ function FormDesigner() {
                                                     window.innerHeight,
                                                 ]);
                                             }}
-                                            rightIcon={faIcon({
+                                            endIcon={faIcon({
                                                 icon: faArrowsFromLine,
                                             })}
                                         />
@@ -449,7 +449,7 @@ function FormDesigner() {
                             />
                             <Checkbox
                                 className="margin-0 no-text-selection"
-                                large
+                                size="large"
                                 label="Show Data"
                                 checked={!resultPanel}
                                 onChange={(event) =>
@@ -521,7 +521,7 @@ function FormDesigner() {
                                             <>
                                                 <div>{String(error)}</div>
                                                 <Tag
-                                                    large
+                                                    size="large"
                                                     minimal
                                                     style={{ marginTop: 5 }}
                                                 >

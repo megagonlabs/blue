@@ -185,7 +185,7 @@ const Row = ({ index, data, style }) => {
                         display: showActions.current ? null : "none",
                     }}
                 >
-                    <ButtonGroup large>
+                    <ButtonGroup size="large">
                         <Tooltip
                             content="Add to workspace"
                             minimal
@@ -409,7 +409,7 @@ export default function SessionMessages() {
                 <Popover
                     minimal
                     content={
-                        <Menu large>
+                        <Menu size="large">
                             <MenuItem
                                 text="Clear all"
                                 onClick={() =>
@@ -468,7 +468,7 @@ export default function SessionMessages() {
                         placement="bottom-start"
                         content="Filter"
                     >
-                        <ButtonGroup large minimal>
+                        <ButtonGroup size="large" variant="minimal">
                             <Button
                                 intent={Intent.PRIMARY}
                                 alignText={Alignment.LEFT}

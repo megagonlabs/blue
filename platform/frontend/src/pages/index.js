@@ -168,8 +168,8 @@ export default function LaunchScreen() {
                                                     `/registry/${agentRegistryName}/agent_group/${agentGroup.name}`
                                                 );
                                             }}
-                                            large
-                                            minimal
+                                            size="large"
+                                            variant="minimal"
                                             disabled={creatingSession}
                                         />
                                     </Tooltip>
@@ -177,9 +177,9 @@ export default function LaunchScreen() {
                                 {creatingSession &&
                                     _.isEqual(launchGroup, agentGroup.name) && (
                                         <Button
-                                            large
+                                            size="large"
                                             style={ROW_ACTION_STYLE}
-                                            minimal
+                                            variant="minimal"
                                             loading={creatingSession}
                                         />
                                     )}
@@ -195,10 +195,10 @@ export default function LaunchScreen() {
                         <Button
                             disabled={creatingSession}
                             className={loading ? Classes.SKELETON : null}
-                            minimal
-                            alignText={Alignment.LEFT}
+                            variant="minimal"
+                            alignText={Alignment.START}
                             fill
-                            large
+                            size="large"
                             icon={faIcon({ icon: faPlus })}
                             text="Add"
                         />

@@ -18,9 +18,9 @@ export default function CopyDocJsonButton({
             content="Copy JSON"
         >
             <Button
-                minimal
+                variant="minimal"
                 icon={faIcon({ icon: faCopy })}
-                large
+                size="large"
                 onClick={() => {
                     copy(docJson);
                     AppToaster.show({

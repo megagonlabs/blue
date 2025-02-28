@@ -175,7 +175,7 @@ export default function MessageSnapshot({ content, index }) {
                     >
                         <Tag
                             intent={Intent.PRIMARY}
-                            large
+                            size="large"
                             minimal
                             style={{ backgroundColor: "transparent" }}
                             icon={faIcon({ icon: faMessage })}
@@ -184,7 +184,7 @@ export default function MessageSnapshot({ content, index }) {
                         </Tag>
                         {!dragging && (
                             <div onClick={(event) => event.stopPropagation()}>
-                                <ButtonGroup minimal large>
+                                <ButtonGroup variant="minimal" size="large">
                                     <Tooltip
                                         placement="bottom"
                                         minimal

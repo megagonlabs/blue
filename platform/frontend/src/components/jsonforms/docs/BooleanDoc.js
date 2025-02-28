@@ -54,7 +54,7 @@ export default function BooleanDoc({ closePanel }) {
                 >
                     <H1 style={{ margin: 0 }}>Boolean</H1>
                     <Tag
-                        large
+                        size="large"
                         style={{ marginLeft: 10 }}
                         minimal
                         intent={Intent.PRIMARY}

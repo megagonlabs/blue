@@ -19,7 +19,7 @@ export default function Debugger() {
     return (
         <>
             <Card style={{ borderRadius: 0, padding: "5px 15px" }}>
-                <ButtonGroup minimal large>
+                <ButtonGroup variant="minimal" size="large">
                     <Tooltip
                         minimal
                         content="Clear debugger"

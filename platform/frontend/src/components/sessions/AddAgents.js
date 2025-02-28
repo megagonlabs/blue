@@ -218,7 +218,7 @@ export default function AddAgents({
                                     ) : (
                                         <Checkbox
                                             checked={selected.has(name)}
-                                            large
+                                            size="large"
                                             className="margin-0"
                                         />
                                     )}
@@ -294,7 +294,7 @@ export default function AddAgents({
                                 : Intent.PRIMARY
                         }
                         loading={selectionSize > 0 && loading}
-                        large
+                        size="large"
                         icon={faIcon({
                             icon:
                                 skippable && _.isEqual(selectionSize, 0)
@@ -327,7 +327,7 @@ export default function AddAgents({
                 </div>
                 {!_.isEmpty(unavailableAgents) && (
                     <div style={{ position: "absolute", right: 15, top: 15 }}>
-                        <Tag intent={Intent.WARNING} minimal large>
+                        <Tag intent={Intent.WARNING} minimal size="large">
                             {_.size(unavailableAgents)} unavailable
                         </Tag>
                     </div>

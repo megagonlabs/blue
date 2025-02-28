@@ -258,9 +258,9 @@ export const AuthProvider = ({ children }) => {
                     <div>Sign in to your account to continue.</div>
                     <Button
                         loading={!authInitialized || popupOpen}
-                        large
+                        size="large"
                         style={{ marginTop: 20 }}
-                        outlined
+                        variant="outlined"
                         onClick={signInWithGoogle}
                         text="Sign in with Google"
                         icon={GOOGLE_LOGO_SVG}

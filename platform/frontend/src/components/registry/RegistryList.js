@@ -62,8 +62,8 @@ export default function RegistryList({ type }) {
                             >
                                 <Button
                                     intent={Intent.PRIMARY}
-                                    large
-                                    outlined
+                                    size="large"
+                                    variant="outlined"
                                     icon={faIcon({ icon: faPlusLarge })}
                                     text={`Add ${ENTITY_TYPE_LOOKUP[type].key}`}
                                 />

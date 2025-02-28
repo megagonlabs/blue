@@ -268,7 +268,7 @@ const ArrayRenderer = ({
                                         content={
                                             <div style={{ padding: 15 }}>
                                                 <Button
-                                                    large
+                                                    size="large"
                                                     intent={Intent.DANGER}
                                                     className={
                                                         Classes.POPOVER_DISMISS
@@ -290,7 +290,7 @@ const ArrayRenderer = ({
                                             content={translations.removeTooltip}
                                         >
                                             <Button
-                                                minimal
+                                                variant="minimal"
                                                 intent={Intent.DANGER}
                                                 icon={faIcon({ icon: faTrash })}
                                             />

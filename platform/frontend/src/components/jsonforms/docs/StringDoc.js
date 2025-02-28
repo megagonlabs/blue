@@ -53,7 +53,7 @@ export default function StringDoc({ closePanel }) {
                 >
                     <H1 style={{ margin: 0 }}>String</H1>
                     <Tag
-                        large
+                        size="large"
                         style={{ marginLeft: 10 }}
                         minimal
                         intent={Intent.PRIMARY}

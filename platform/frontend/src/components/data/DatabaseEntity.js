@@ -69,7 +69,7 @@ export default function DatabaseEntity() {
                                                     }}
                                                     minimal
                                                     interactive
-                                                    large
+                                                    size="large"
                                                     intent={Intent.PRIMARY}
                                                 >
                                                     {element.name}

@@ -155,7 +155,7 @@ export default function NewEntity({
                     >
                         <Button
                             className={loading ? Classes.SKELETON : null}
-                            large
+                            size="large"
                             disabled={jsonError || !isEntityNameValid}
                             intent={Intent.SUCCESS}
                             text="Save"

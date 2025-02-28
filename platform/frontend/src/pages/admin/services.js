@@ -185,7 +185,7 @@ export default function Services() {
                     cursor: "default",
                 }}
             >
-                <ButtonGroup large minimal>
+                <ButtonGroup size="large" variant="minimal">
                     <Button
                         disabled
                         style={{ cursor: "default" }}

@@ -114,7 +114,7 @@ export default function Operator() {
                                     ? Classes.SKELETON
                                     : null
                             }
-                            large
+                            size="large"
                             fill
                             value={keywords}
                             leftIcon={faIcon({ icon: faSearch })}
@@ -173,7 +173,7 @@ export default function Operator() {
                                                 : null
                                         }
                                         inline
-                                        large
+                                        size="large"
                                         checked={hybrid}
                                         label="Hybrid"
                                         onChange={(event) => {
@@ -190,7 +190,7 @@ export default function Operator() {
                                                 : null
                                         }
                                         inline
-                                        large
+                                        size="large"
                                         checked={approximate}
                                         label="Approximate"
                                         onChange={(event) => {
@@ -225,7 +225,7 @@ export default function Operator() {
                                                         ? Classes.SKELETON
                                                         : null
                                                 }
-                                                large
+                                                size="large"
                                                 value={value}
                                                 label={text}
                                             />
@@ -240,11 +240,11 @@ export default function Operator() {
                                         ? Classes.SKELETON
                                         : null
                                 }
-                                large
-                                outlined
+                                size="large"
+                                variant="outlined"
                                 intent={Intent.PRIMARY}
                                 text="Filter"
-                                rightIcon={faIcon({ icon: faBarsFilter })}
+                                endIcon={faIcon({ icon: faBarsFilter })}
                             />
                         </Popover>
                     </ControlGroup>

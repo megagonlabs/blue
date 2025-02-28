@@ -188,7 +188,7 @@ export default function AuthConfigurationPopover({
                         <div style={SECTION_LABEL_STYLE}>
                             Default User Settings
                         </div>
-                        <Menu large style={{ padding: 0 }}>
+                        <Menu size="large" style={{ padding: 0 }}>
                             {[
                                 "compact_sidebar",
                                 "show_workspace",
@@ -239,7 +239,7 @@ export default function AuthConfigurationPopover({
                                                     event.target.checked
                                                 )
                                             }
-                                            large
+                                            size="large"
                                         />
                                     }
                                 />
@@ -252,7 +252,7 @@ export default function AuthConfigurationPopover({
                 <Button
                     loading={loading}
                     text="Save"
-                    large
+                    size="large"
                     onClick={savePlatformDefaultUserRole}
                     intent={Intent.SUCCESS}
                     icon={faIcon({ icon: faCheck })}

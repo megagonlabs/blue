@@ -151,8 +151,8 @@ const MainMenuPanel = ({
                     content="Close"
                 >
                     <Button
-                        large
-                        minimal
+                        size="large"
+                        variant="minimal"
                         icon={faIcon({ icon: faTimes })}
                         onClick={() => {
                             setIsDocOpen(false);
@@ -161,7 +161,7 @@ const MainMenuPanel = ({
                     />
                 </Tooltip>
             </div>
-            <Menu large style={{ padding: 0 }}>
+            <Menu size="large" style={{ padding: 0 }}>
                 <MenuDivider title="UI Schema" />
                 {TYPES.map((type, index) => (
                     <MenuItem
@@ -270,7 +270,7 @@ const MainMenuPanel = ({
                 </HTMLTable>
                 <MenuDivider title="Examples" />
                 <div style={{ marginBottom: 15 }}>
-                    <Menu large style={{ padding: 0 }}>
+                    <Menu size="large" style={{ padding: 0 }}>
                         {EXAMPLE_LIST.map((example, index) => (
                             <MenuItem
                                 key={index}

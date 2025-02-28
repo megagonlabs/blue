@@ -25,7 +25,7 @@ export default function Breadcrumbs({ breadcrumbs }) {
         alignItems: "center",
     };
     const TAG_PROPS = {
-        large: true,
+        size: "large",
         minimal: true,
     };
     return (
@@ -35,7 +35,7 @@ export default function Breadcrumbs({ breadcrumbs }) {
                 <Popover
                     position={Position.BOTTOM_LEFT}
                     content={
-                        <Menu large>
+                        <Menu size="large">
                             {_.reverse(items).map(
                                 ({ href, text, end, icon }, index) => {
                                     if (end) return null;

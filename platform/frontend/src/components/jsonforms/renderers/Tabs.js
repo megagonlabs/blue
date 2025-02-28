@@ -69,7 +69,11 @@ const TabsRenderer = ({
             }}
         >
             <Card style={{ ...TAB_STYLE }}>
-                <ButtonGroup vertical={vertical} minimal large={large}>
+                <ButtonGroup
+                    vertical={vertical}
+                    variant="minimal"
+                    size={large ? "large" : "medium"}
+                >
                     {tabs.map((tab, index) => (
                         <Button
                             key={index}

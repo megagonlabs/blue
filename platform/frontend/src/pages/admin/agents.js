@@ -253,7 +253,7 @@ export default function Agents() {
                     cursor: "default",
                 }}
             >
-                <ButtonGroup large minimal>
+                <ButtonGroup size="large" variant="minimal">
                     <Button
                         disabled
                         style={{ cursor: "default" }}
@@ -284,7 +284,7 @@ export default function Agents() {
                         content={
                             <div style={{ padding: 15 }}>
                                 <Button
-                                    large
+                                    size="large"
                                     onClick={stopSelectedAgents}
                                     className={Classes.POPOVER_DISMISS}
                                     text="Confirm"

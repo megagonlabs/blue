@@ -30,7 +30,7 @@ export default function ButtonDoc({ closePanel }) {
         <>
             <div className="border-bottom" style={{ padding: "10px 20px" }}>
                 <Button
-                    outlined
+                    variant="outlined"
                     text="Back"
                     onClick={closePanel}
                     icon={faIcon({ icon: faArrowLeft })}
@@ -94,7 +94,7 @@ export default function ButtonDoc({ closePanel }) {
                                         alignItems: "flex-start",
                                     }}
                                 >
-                                    <Button large text="large: true" />
+                                    <Button size="large" text="large: true" />
                                     <Button text="large: false" />
                                 </Callout>
                             </td>

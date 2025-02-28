@@ -298,9 +298,7 @@ export default function GroupAgentSelector({
                                 loading={addingAgent}
                                 disabled={loading || _.isEmpty(agentsToAdd)}
                                 onClick={onAddSelectedAgents}
-                                rightIcon={faIcon({
-                                    icon: faArrowRight,
-                                })}
+                                endIcon={faIcon({ icon: faArrowRight })}
                             />
                             <Divider style={{ opacity: 0 }} />
                             <Button

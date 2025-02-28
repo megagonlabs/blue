@@ -34,7 +34,7 @@ export default function EntityProperties({
             style={{ marginTop: 20 }}
             rightElement={
                 jsonError && edit ? (
-                    <Tag large minimal intent={Intent.DANGER}>
+                    <Tag size="large" minimal intent={Intent.DANGER}>
                         Invalid JSON
                     </Tag>
                 ) : null

@@ -72,7 +72,7 @@ export default function SessionMetadata({
                     <InputGroup
                         id="session-detail-name"
                         className={loading ? Classes.SKELETON : null}
-                        large
+                        size="large"
                         value={name}
                         onChange={(event) => {
                             setName(event.target.value);
@@ -88,7 +88,7 @@ export default function SessionMetadata({
                     <InputGroup
                         id="session-detail-description"
                         className={loading ? Classes.SKELETON : null}
-                        large
+                        size="large"
                         value={description}
                         onChange={(event) => {
                             setDescription(event.target.value);
@@ -102,7 +102,7 @@ export default function SessionMetadata({
                     disabled={_.isEmpty(_.trim(name))}
                     loading={loading}
                     text="Save"
-                    large
+                    size="large"
                     onClick={handleSaveMetadata}
                     intent={Intent.SUCCESS}
                     icon={faIcon({ icon: faCheck })}

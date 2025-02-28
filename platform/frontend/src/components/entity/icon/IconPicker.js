@@ -54,7 +54,7 @@ export default function IconPicker({
                 autoFocus
                 leftIcon={faIcon({ icon: faSearch })}
                 placeholder="Search icons"
-                large
+                size="large"
                 value={keyword}
                 onChange={(event) => {
                     setKeyword(event.target.value);
@@ -73,8 +73,8 @@ export default function IconPicker({
                         <Button
                             icon={faIcon({ icon: faTelescope })}
                             intent={Intent.PRIMARY}
-                            minimal
-                            rightIcon={faIcon({
+                            variant="minimal"
+                            endIcon={faIcon({
                                 icon: faArrowUpRightFromSquare,
                             })}
                             text="Advanced"
@@ -170,7 +170,7 @@ export default function IconPicker({
                                             ? Intent.DANGER
                                             : null
                                     }
-                                    large
+                                    size="large"
                                     onChange={(event) => {
                                         const value = _.toUpper(
                                             event.target.value

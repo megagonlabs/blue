@@ -117,7 +117,7 @@ export default function TableDoc({ closePanel }) {
                             onChange={(event) =>
                                 setCompact(event.target.checked)
                             }
-                            large
+                            size="large"
                         >
                             Compact
                         </Checkbox>
@@ -125,7 +125,7 @@ export default function TableDoc({ closePanel }) {
                             onChange={(event) =>
                                 setBordered(event.target.checked)
                             }
-                            large
+                            size="large"
                         >
                             Bordered
                         </Checkbox>
@@ -133,7 +133,7 @@ export default function TableDoc({ closePanel }) {
                             onChange={(event) =>
                                 setStriped(event.target.checked)
                             }
-                            large
+                            size="large"
                         >
                             Striped
                         </Checkbox>

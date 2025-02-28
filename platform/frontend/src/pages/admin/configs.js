@@ -33,7 +33,7 @@ export default function Configs() {
                     cursor: "default",
                 }}
             >
-                <ButtonGroup large minimal>
+                <ButtonGroup size="large" variant="minimal">
                     <Button
                         disabled
                         style={{ cursor: "default" }}
@@ -44,7 +44,7 @@ export default function Configs() {
             <Card
                 style={{ padding: 5, position: "absolute", top: 70, left: 20 }}
             >
-                <ButtonGroup vertical large minimal>
+                <ButtonGroup vertical size="large" variant="minimal">
                     {INDEXES.map(({ key, text, icon }) => (
                         <Button
                             icon={faIcon({

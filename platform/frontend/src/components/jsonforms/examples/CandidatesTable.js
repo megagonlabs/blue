@@ -127,7 +127,7 @@ export default function CandidatesTable({
                         }, 0);
                     }}
                     icon={faIcon({ icon: faSparkles })}
-                    large
+                    size="large"
                     intent={Intent.SUCCESS}
                     text="Try"
                 />

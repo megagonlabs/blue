@@ -78,7 +78,7 @@ export default function SessionDetail({ isOpen, setIsSessionDetailOpen }) {
                     overscrollBehavior: "contain",
                 }}
             >
-                <ButtonGroup minimal large>
+                <ButtonGroup variant="minimal" size="large">
                     {TAB_BUTTONS.map((tabButton) => (
                         <Button
                             key={tabButton.key}

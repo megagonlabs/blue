@@ -22,7 +22,7 @@ export default function Pagination({
 }) {
     const { appState } = useContext(AppContext);
     return (
-        <ButtonGroup style={{ width: 224 }} fill large>
+        <ButtonGroup style={{ width: 224 }} fill size="large">
             <Tooltip content="Previous" placement="bottom" minimal>
                 <Button
                     className={appState[type].loading ? Classes.SKELETON : null}

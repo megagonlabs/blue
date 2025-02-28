@@ -297,13 +297,13 @@ export default function EntityMain({
                             }}
                         >
                             {edit ? (
-                                <ButtonGroup large>
+                                <ButtonGroup size="large">
                                     <Popover
                                         placement="left"
                                         content={
                                             <div style={{ padding: 15 }}>
                                                 <Button
-                                                    large
+                                                    size="large"
                                                     className={
                                                         Classes.POPOVER_DISMISS
                                                     }
@@ -331,7 +331,7 @@ export default function EntityMain({
                                         className={
                                             loading ? Classes.SKELETON : null
                                         }
-                                        large
+                                        size="large"
                                         disabled={jsonError}
                                         intent={Intent.SUCCESS}
                                         text="Save"
@@ -341,8 +341,8 @@ export default function EntityMain({
                                 </ButtonGroup>
                             ) : (
                                 <ButtonGroup
-                                    large
-                                    minimal
+                                    size="large"
+                                    variant="minimal"
                                     className={
                                         loading ? Classes.SKELETON : null
                                     }
@@ -351,7 +351,7 @@ export default function EntityMain({
                                         minimal
                                         placement="bottom-end"
                                         content={
-                                            <Menu large>
+                                            <Menu size="large">
                                                 {_.isFunction(setEdit) &&
                                                 canEditEntity ? (
                                                     <MenuItem
@@ -411,7 +411,7 @@ export default function EntityMain({
                                                                 }}
                                                             >
                                                                 <Button
-                                                                    large
+                                                                    size="large"
                                                                     onClick={
                                                                         deployAgent
                                                                     }
@@ -453,7 +453,7 @@ export default function EntityMain({
                                                                     }}
                                                                 >
                                                                     <Button
-                                                                        large
+                                                                        size="large"
                                                                         onClick={
                                                                             deleteEntity
                                                                         }
@@ -489,7 +489,7 @@ export default function EntityMain({
                                         <Button
                                             outlined
                                             text="Actions"
-                                            rightIcon={faIcon({
+                                            endIcon={faIcon({
                                                 icon: faListDropdown,
                                             })}
                                         />

@@ -222,7 +222,7 @@ export default function Status() {
                     cursor: "default",
                 }}
             >
-                <ButtonGroup large minimal>
+                <ButtonGroup size="large" variant="minimal">
                     <Button
                         disabled
                         style={{ cursor: "default" }}
@@ -250,7 +250,7 @@ export default function Status() {
                         minimal
                         content={
                             <Menu
-                                large
+                                size="large"
                                 style={{
                                     maxWidth: 400,
                                     maxHeight: 400,
@@ -258,7 +258,7 @@ export default function Status() {
                                 }}
                             >
                                 <InputGroup
-                                    large
+                                    size="large"
                                     autoFocus
                                     value={keyword}
                                     onChange={(event) =>

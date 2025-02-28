@@ -24,7 +24,7 @@ export default function AdminUserListCheckbox({ data, rowIndex }) {
         <Checkbox
             onChange={onChange}
             checked={selectedUsers.has(uid)}
-            large
+            size="large"
             className="margin-0"
         />
     );

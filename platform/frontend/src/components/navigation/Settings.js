@@ -124,7 +124,7 @@ export default function Settings({ isOpen, setIsSettingsOpen }) {
                     style={{ marginBottom: 20 }}
                 >
                     <SectionCard padded={false}>
-                        <Menu className="settings-menus" large>
+                        <Menu className="settings-menus" size="large">
                             {["compact_sidebar"].map((key) => (
                                 <MenuItem
                                     key={key}
@@ -160,7 +160,7 @@ export default function Settings({ isOpen, setIsSettingsOpen }) {
                                                 key,
                                                 false
                                             )}
-                                            large
+                                            size="large"
                                             onChange={(event) =>
                                                 updateSettings(
                                                     key,
@@ -181,7 +181,7 @@ export default function Settings({ isOpen, setIsSettingsOpen }) {
                     style={{ marginBottom: 20 }}
                 >
                     <SectionCard padded={false}>
-                        <Menu className="settings-menus" large>
+                        <Menu className="settings-menus" size="large">
                             {[
                                 "show_workspace",
                                 "expand_message",
@@ -222,7 +222,7 @@ export default function Settings({ isOpen, setIsSettingsOpen }) {
                                                 false
                                             )}
                                             style={{ marginBottom: 0 }}
-                                            large
+                                            size="large"
                                             onChange={(event) => {
                                                 updateSettings(
                                                     key,
@@ -242,7 +242,7 @@ export default function Settings({ isOpen, setIsSettingsOpen }) {
                     title="Developer"
                 >
                     <SectionCard padded={false}>
-                        <Menu className="settings-menus" large>
+                        <Menu className="settings-menus" size="large">
                             {["debug_mode"].map((key) => (
                                 <MenuItem
                                     key={key}
@@ -279,7 +279,7 @@ export default function Settings({ isOpen, setIsSettingsOpen }) {
                                                 false
                                             )}
                                             style={{ marginBottom: 0 }}
-                                            large
+                                            size="large"
                                             onChange={(event) => {
                                                 updateSettings(
                                                     key,

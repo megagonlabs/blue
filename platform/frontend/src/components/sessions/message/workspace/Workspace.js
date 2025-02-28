@@ -60,7 +60,7 @@ export default function Workspace() {
     return (
         <div className="full-parent-height">
             <div className="border-bottom" style={{ padding: "5px 20px" }}>
-                <ButtonGroup large minimal>
+                <ButtonGroup size="large" variant="minimal">
                     <Tooltip
                         minimal
                         content="Clear workspace"

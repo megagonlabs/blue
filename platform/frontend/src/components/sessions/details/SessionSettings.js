@@ -65,7 +65,7 @@ export default function SessionSettings() {
                                 content={
                                     <div style={{ padding: 15 }}>
                                         <Button
-                                            large
+                                            size="large"
                                             className={Classes.POPOVER_DISMISS}
                                             text="Confirm"
                                             onClick={deleteSession}
@@ -75,7 +75,7 @@ export default function SessionSettings() {
                                 }
                             >
                                 <Button
-                                    large
+                                    size="large"
                                     loading={deleting}
                                     intent={Intent.DANGER}
                                     text="Delete this session"

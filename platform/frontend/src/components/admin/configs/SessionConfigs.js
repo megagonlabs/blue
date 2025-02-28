@@ -61,14 +61,14 @@ export default function SessionConfigs({ loading, configs, setLoading }) {
                         clampValueOnBlur
                         value={sessionExpirationDuration}
                         style={{ width: 120 }}
-                        large
+                        size="large"
                         onChange={(event) => {
                             setSessionExpirationDuration(event.target.value);
                         }}
                         rightElement={<Tag minimal>days</Tag>}
                     />
                     <Button
-                        large
+                        size="large"
                         minimal
                         intent={Intent.SUCCESS}
                         text="Save"

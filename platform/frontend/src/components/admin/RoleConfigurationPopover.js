@@ -239,7 +239,7 @@ export default function RoleConfigurationPopover({
                                 onChange={handleRadioChange}
                                 value={role}
                                 style={{ marginTop: 10 }}
-                                large
+                                size="large"
                                 checked={_.isEqual(role, selectedRole)}
                             />
                             <Section
@@ -312,14 +312,14 @@ export default function RoleConfigurationPopover({
                     disabled={_.isEmpty(selectedRole)}
                     loading={loading}
                     text="Assign"
-                    large
+                    size="large"
                     onClick={handleUpdateUserRole}
                     intent={Intent.SUCCESS}
                     icon={faIcon({ icon: faCheck })}
                 />
                 {saved && _.size(updated) < _.size(selectedUsers) ? (
                     <Tag
-                        large
+                        size="large"
                         style={{ position: "absolute", right: 15, top: 15 }}
                         minimal
                         intent={Intent.DANGER}

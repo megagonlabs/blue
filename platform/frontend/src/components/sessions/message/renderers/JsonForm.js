@@ -34,7 +34,7 @@ export default function JsonForm({ content, hasError }) {
                 <>
                     <Tag
                         fill
-                        large
+                        size="large"
                         style={{
                             position: "absolute",
                             left: 0,

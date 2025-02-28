@@ -189,8 +189,8 @@ export default function Index() {
                         <Button
                             loading={popupOpen}
                             disabled={_.isNil(ws)}
-                            large
-                            outlined
+                            size="large"
+                            variant="outlined"
                             className={loading ? Classes.SKELETON : null}
                             text="Sign in with Google"
                             onClick={signInWithGoogle}

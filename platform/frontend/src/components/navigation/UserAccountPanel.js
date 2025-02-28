@@ -82,8 +82,8 @@ export default function UserAccountPanel() {
                                 icon: faArrowRightFromBracket,
                             })}
                             text="Sign out"
-                            outlined
-                            large
+                            variant="outlined"
+                            size="large"
                         />
                     </div>
                 </div>

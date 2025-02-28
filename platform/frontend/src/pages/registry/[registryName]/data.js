@@ -107,7 +107,7 @@ export default function Data() {
                         <InputGroup
                             id="data-registry-search-input"
                             placeholder="Search data"
-                            large
+                            size="large"
                             fill
                             className={
                                 appState.data.loading ? Classes.SKELETON : null
@@ -168,7 +168,7 @@ export default function Data() {
                                                 : null
                                         }
                                         inline
-                                        large
+                                        size="large"
                                         checked={hybrid}
                                         label="Hybrid"
                                         onChange={(event) => {
@@ -185,7 +185,7 @@ export default function Data() {
                                                 : null
                                         }
                                         inline
-                                        large
+                                        size="large"
                                         checked={approximate}
                                         label="Approximate"
                                         onChange={(event) => {
@@ -233,7 +233,7 @@ export default function Data() {
                                                         ? Classes.SKELETON
                                                         : null
                                                 }
-                                                large
+                                                size="large"
                                                 value={value}
                                                 label={text}
                                             />
@@ -248,11 +248,11 @@ export default function Data() {
                                         ? Classes.SKELETON
                                         : null
                                 }
-                                large
-                                outlined
+                                size="large"
+                                variant="outlined"
                                 intent={Intent.PRIMARY}
                                 text="Filter"
-                                rightIcon={faIcon({ icon: faBarsFilter })}
+                                endIcon={faIcon({ icon: faBarsFilter })}
                             />
                         </Popover>
                     </ControlGroup>
