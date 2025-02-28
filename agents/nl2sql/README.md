@@ -89,7 +89,9 @@ graph LR;
 
 ---
 
-## Code Structure
+## Code Structure of Base NL2SQL Agent
+
+The base `NL2SQL` agent is defined [here](https://github.com/rit-git/blue/blob/dev/lib/blue/agents/nl2q.py)
 
 - **Initialization:**
   - The agent class `NL2SQLAgent` extends `OpenAIAgent` and initializes by setting default properties and establishing the data registry.
@@ -107,15 +109,11 @@ graph LR;
 
 ## Usage
 
-### Configuration
+### Configuration (UI)
 
 Modify the `agent_properties` dictionary to suit your OpenAI API keys, discovery settings, and execution preferences. 
 
-TODO: INSERT UI Diagram
-
-### Deployment
-
-TODO: INSERT UI Diagram
+![Agent properties overview](/docs/images/nl2sql-agent-properties.gif)
 
 
 ### Optional Execution
@@ -124,7 +122,9 @@ If `nl2q_execute` is enabled, the agent will attempt to execute the generated qu
 
 ## NL2SQL Agent in Action
 
-TODO: INSERT GIF
+The following animation displays the user asking a natural language question over a database of job posting data in Singapore. 
+
+![Demo of NL-to-SQL agent](/docs/images/blue-zero-nl2sql.gif)
 
 ## Try it out
 

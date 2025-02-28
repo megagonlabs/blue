@@ -191,11 +191,16 @@ class NL2SQLAgent(OpenAIAgent):
                     collections = self.registry.get_source_database_collections(source=source, database=database)
 
                     # set schemas for each collection
+                    if collections is None:
+                        collections = []
                     for collection in collections:
                         self._set_schemas(schemas, source=source, database=database, collection=collection['name'])
             else:
                 # get databases
                 databases = self.registry.get_source_databases(source=source)
+                
+                if databases is None:
+                    database = []
                 # set schemas for each database
                 for database in databases:
                     self._set_schemas(schemas, source=source, database=database['name'])
@@ -203,7 +208,8 @@ class NL2SQLAgent(OpenAIAgent):
             # get sources
             sources = self.registry.get_sources()
 
-            
+            if source is None:
+                sources = []
             # set scheas for each source
             for source in sources:
                 self._set_schemas(schemas, source=source['name'])
