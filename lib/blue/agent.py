@@ -20,6 +20,8 @@ from blue.utils import json_utils, uuid_utils
 # system tracker
 system_tracker = None
 
+
+
 ###############
 ### AgentPerformanceTracker
 #
@@ -54,7 +56,7 @@ class AgentPerformanceTracker(PerformanceTracker):
         workers_list_group = MetricGroup(id="workers_list", label="Workers List", type="list")
         workers_group.add(workers_list_group)
 
-
+ 
         for worker_id in self.agent.workers:
             worker = self.agent.workers[worker_id]
             stream = None
@@ -536,6 +538,8 @@ class Worker:
 ### Agent
 #
 class Agent:
+    SEPARATOR = '___'
+
     def __init__(
         self,
         name="AGENT",
@@ -649,31 +653,48 @@ class Agent:
         self.connection_factory = PooledConnectionFactory(properties=self.properties)
         self.connection = self.connection_factory.get_connection()
 
+    # # override kwargs
+    # def __override_kwargs(self, kwargs, properties=None):
+    #     if kwargs is None:
+    #         kwargs = {}
+    #     if properties:
+    #         if 'properties' in kwargs:
+    #             del kwargs['properties']
+    #         kwargs['properties'] = properties
+    #     return kwargs
+
     ###### worker
     # input_stream is data stream for input param, default 'DEFAULT'
-    def create_worker(self, input_stream, input="DEFAULT", context=None, processor=None):
+    def create_worker(self, input_stream, input="DEFAULT", context=None, processor=None, properties=None):
         # listen
         logging.info("Creating worker for stream {stream} for param {param}...".format(stream=input_stream, param=input))
 
         if processor == None:
             processor = lambda *args, **kwargs: self.processor(*args, **kwargs)
+            # processor = lambda *args, **kwargs: self.processor(*args, **self.__override_kwargs(kwargs, properties=properties))
 
+        
         # set prefix if context provided
         if context:
-            p = context + ":" + self.sid
+            prefix = context + ":" + self.sid
         else:
             # default agent's cid is prefix
-            p = self.cid
+            prefix = self.cid
 
+        # set properties
+        if properties is None:
+            properties = self.properties
+
+        logging.info(json.dumps(properties))
         worker = Worker(
             input_stream,
             input=input,
             name=self.name + "-WORKER",
-            prefix=p,
+            prefix=prefix,
             agent=self,
             processor=processor,
             session=self.session,
-            properties=self.properties,
+            properties=properties,
             on_stop=lambda sid: self.on_worker_stop_handler(sid)
         )
 
@@ -716,10 +737,17 @@ class Agent:
         if message.getCode() == ControlCode.EXECUTE_AGENT:
             agent = message.getArg("agent")
             if agent == self.name:
-                context = message.getArg("context")
-                input_streams = message.getArg("params")
-                for input_param in input_streams:
-                    self.create_worker(input_streams[input_param], input=input_param, context=context)
+                context = message.getAgentContext()
+
+                # get additional properties
+                properties_from_instruction = message.getAgentProperties()
+                worker_properties = {}
+                worker_properties = json_utils.merge_json(worker_properties, self.properties)
+                worker_properties = json_utils.merge_json(worker_properties, properties_from_instruction)
+
+                input_params = message.getInputParams()
+                for input_param in input_params:
+                    self.create_worker(input_params[input_param], input=input_param, context=context, properties=worker_properties)
 
     ###### session
     def join_session(self, session):
@@ -1004,11 +1032,11 @@ class AgentFactory:
 
         # perf tracker
         self.properties["tracker.perf.platform.agentfactory.autostart"] = True
-        self.properties["tracker.perf.platform.agentfactory.outputs"] = ["log.INFO", "pubsub"]
+        self.properties["tracker.perf.platform.agentfactory.outputs"] = ["pubsub"]
 
         # system perf tracker
         self.properties["tracker.perf.system.autostart"] = True
-        self.properties["tracker.perf.system.outputs"] = ["log.INFO", "pubsub"]
+        self.properties["tracker.perf.system.outputs"] = ["pubsub"]
        
         # no consumer idle tracking
         self.properties['tracker.idle.consumer.autostart'] = False
@@ -1113,7 +1141,7 @@ class AgentFactory:
 
             # check match in canonical name space, i.e.
             # <base_name> or <base_name>___<derivative__name>___<derivative__name>...
-            ca = agent.split("_")
+            ca = agent.split(Agent.SEPARATOR)
             base_name = ca[0]
 
             if self._name == base_name:

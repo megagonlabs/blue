@@ -13,7 +13,6 @@ from redis.commands.search.query import Query
 
 #######
 import numpy as np
-from sentence_transformers import SentenceTransformer
 
 ###### Blue
 from blue.connection import PooledConnectionFactory
@@ -23,7 +22,7 @@ from blue.utils import json_utils, uuid_utils
 ### Registry
 #
 class Registry:
-    NESTING___SEPARATOR = "___"
+    SEPARATOR = '___'
 
     def __init__(self, name="REGISTRY", id=None, sid=None, cid=None, prefix=None, suffix=None, properties={}):
 
@@ -59,6 +58,9 @@ class Registry:
         self._initialize_properties()
         self._update_properties(properties=properties)
 
+        self.embeddings_model = None
+        self.vector_dimensions = None
+
     def _initialize_properties(self):
         self.properties = {}
 
@@ -66,8 +68,6 @@ class Registry:
         self.properties['db.host'] = 'localhost'
         self.properties['db.port'] = 6379
 
-        # embeddings
-        self.properties['vector_dimensions'] = 4
         # embeddings model
         self.properties['embeddings_model'] = 'paraphrase-MiniLM-L6-v2'
 
@@ -112,6 +112,9 @@ class Registry:
         return self.cid + ':INDEX'
 
     def _init_search_index(self):
+        # defered loading of model
+        global SentenceTransformer
+        from sentence_transformers import SentenceTransformer
 
         # init embeddings model
         self._init_search_embeddings_model()
@@ -139,7 +142,6 @@ class Registry:
             logging.info(self.connection.ft(index_name).info())
 
     def _build_index_schema(self):
-        vector_dimensions = self.properties['vector_dimensions']
 
         schema = (
             # name
@@ -156,7 +158,7 @@ class Registry:
                 "FLAT",
                 {
                     "TYPE": "FLOAT32",
-                    "DIM": vector_dimensions,
+                    "DIM": self.vector_dimensions,
                     "DISTANCE_METRIC": "COSINE",
                 },
             ),
@@ -164,6 +166,10 @@ class Registry:
         return schema
 
     def build_index(self):
+
+        # deferred initialization
+        if self.embeddings_model is None:
+            self._init_search_index()
 
         index_name = self._get_index_name()
         doc_prefix = self._get_doc_prefix()
@@ -182,6 +188,10 @@ class Registry:
         logging.info(self.connection.ft(index_name).info())
 
     def _set_index_record(self, record, recursive=False, pipe=None):
+
+        # deferred initialization
+        if self.embeddings_model is None:
+            self._init_search_index()
 
         if 'name' not in record:
             return
@@ -202,6 +212,10 @@ class Registry:
                 self._set_index_record(r, recursive=recursive, pipe=pipe)
 
     def _create_index_doc(self, name, type, scope, description, pipe=None):
+
+        # deferred initialization
+        if self.embeddings_model is None:
+            self._init_search_index()
 
         # TODO: Identify the best way to compute embedding vector, for now name + description
         vector = self._compute_embedding_vector(name + " " + description)
@@ -243,9 +257,12 @@ class Registry:
 
     def _delete_index_doc(self, name, type, scope, pipe=None):
 
+        # deferred initialization
+        if self.embeddings_model is None:
+            self._init_search_index()
+
         # define key
         doc_key = self.__doc_key(name, type, scope)
-        print('delete: ' + doc_key)
 
         if pipe:
             pipe.hdel(doc_key, 1)
@@ -254,9 +271,12 @@ class Registry:
             for field in ["name", "type", "scope", "description", "vector"]:
                 pipe.hdel(doc_key, field)
             res = pipe.execute()
-            print(res)
 
     def search_records(self, keywords, type=None, scope=None, approximate=False, hybrid=False, page=0, page_size=5, page_limit=10):
+
+        # deferred initialization
+        if self.embeddings_model is None:
+            self._init_search_index()
 
         index_name = self._get_index_name()
         doc_prefix = self._get_doc_prefix()
@@ -266,9 +286,9 @@ class Registry:
         qs = ""
 
         if type:
-            qs = "(@type: " + type + " )" + " " + qs
+            qs = "(@type: \"" + type + "\" )" + " " + qs
         if scope:
-            qs = "(@scope: " + scope + " )" + " " + qs
+            qs = "(@scope: \"" + scope + "\" )" + " " + qs
 
         if hybrid:
             q = "( " + qs + " " + " $kw " + " )" + " => [KNN " + str((page_limit) * page_size) + " @vector $v as score]"
@@ -291,6 +311,7 @@ class Registry:
         logging.info('searching: ' + keywords + ', ' + 'approximate=' + str(approximate) + ', ' + 'hybrid=' + str(hybrid))
         logging.info('using search query: ' + q)
         results = self.connection.ft(index_name).search(query, query_params).docs
+        
 
         # field', 'id', 'name', 'payload', 'score', 'type
         if approximate or hybrid:
@@ -299,8 +320,8 @@ class Registry:
             results = [{"name": result['name'], "type": result['type'], "id": result['id'], "scope": result['scope']} for result in results]
 
         # do paging
-        print(len(results))
         page_results = results[page * page_size : (page + 1) * page_size]
+        logging.info('results: ' + str(page_results))
         return page_results
 
     ###### embeddings
@@ -314,8 +335,7 @@ class Registry:
         embedding = self.embeddings_model.encode(sentence)[0]
 
         # override vector_dimensions
-        vector_dimensions = embedding.shape[0]
-        self.properties['vector_dimensions'] = vector_dimensions
+        self.vector_dimensions = embedding.shape[0]
 
     def _compute_embedding_vector(self, text):
 
@@ -416,7 +436,7 @@ class Registry:
 
     def _identify_scope(self, name, full=False):
         # use name to identify scope
-        s = name.split(Registry.NESTING___SEPARATOR)
+        s = name.split(self.SEPARATOR)
         if not full:
             s = s[:-1]
         scope = "/" + "/".join(s)
@@ -424,7 +444,7 @@ class Registry:
 
     def _extract_shortname(self, name):
         # use name to identify scope, short name
-        s = name.split(Registry.NESTING___SEPARATOR)
+        s = name.split(self.SEPARATOR)
         sn = s[-1]
         return sn
     
@@ -595,8 +615,8 @@ class Registry:
         # initialize registry data
         self._init_registry_namespace()
 
-        # build search index on registry
-        self._init_search_index()
+        # defer building search index on registry until first search
+        # self._init_search_index()
 
         logging.info('Started registry {name}'.format(name=self.name))
 
@@ -624,7 +644,6 @@ class Registry:
         self._load_records(records)
 
     def _load_records(self, records):
-        print(records)
         for record in records:
             self.register_record_json(record)
 

@@ -1,3 +1,4 @@
+import { AuthContext } from "@/components/contexts/auth-context";
 import EntityDescription from "@/components/entity/EntityDescription";
 import EntityMain from "@/components/entity/EntityMain";
 import EntityProperties from "@/components/entity/EntityProperties";
@@ -11,6 +12,7 @@ import { faIcon } from "@/components/icon";
 import {
     Button,
     Classes,
+    H5,
     HTMLTable,
     Intent,
     Section,
@@ -23,8 +25,8 @@ import _ from "lodash";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useContext, useEffect, useState } from "react";
+import { ENTITY_TYPE_LOOKUP, GENERAL_KEYS } from "../constant";
 import { AppContext } from "../contexts/app-context";
-import { AuthContext } from "../contexts/auth-context";
 import EntityGeneral from "./EntityGeneral";
 export default function AgentEntity() {
     const BLANK_ENTITY = { type: "agent" };
@@ -39,9 +41,41 @@ export default function AgentEntity() {
     const discard = () => {
         setEdit(false);
         setEditEntity(entity);
+        setGeneral(getGeneralProperties(entity.properties));
     };
     const routerQueryPath =
         "/" + _.get(router, "query.pathParams", []).join("/");
+    const getGeneralProperties = (properties) => {
+        let tempGeneral = {};
+        for (let i = 0; i < _.size(GENERAL_KEYS); i++) {
+            const key = GENERAL_KEYS[i];
+            if (_.has(properties, key)) {
+                if (_.isEqual(key, "listens")) {
+                    _.set(
+                        tempGeneral,
+                        key,
+                        _.entries(properties[key]).map((entry) => ({
+                            key: entry[0],
+                            includes: _.get(entry, "1.includes", []),
+                            excludes: _.get(entry, "1.excludes", []),
+                        }))
+                    );
+                } else if (_.isEqual(key, "tags")) {
+                    _.set(
+                        tempGeneral,
+                        key,
+                        _.entries(properties[key]).map((entry) => ({
+                            key: entry[0],
+                            tags: _.get(entry, "1", []),
+                        }))
+                    );
+                } else {
+                    _.set(tempGeneral, key, properties[key]);
+                }
+            }
+        }
+        return tempGeneral;
+    };
     useEffect(() => {
         if (!router.isReady) return;
         axios.get(routerQueryPath).then((response) => {
@@ -54,9 +88,7 @@ export default function AgentEntity() {
             setEntity(result);
             setEditEntity(result);
             setLoading(false);
-            setGeneral({
-                system_agent: _.get(result, "properties.system_agent", false),
-            });
+            setGeneral(getGeneralProperties(result.properties));
         });
     }, [router]);
     const updateEntity = ({ path, value }) => {
@@ -78,9 +110,39 @@ export default function AgentEntity() {
                 icon: icon,
             })
             .then(() => {
+                let updatedGeneral = { ...general };
+                if (_.has(general, "listens")) {
+                    let result = {};
+                    for (let i = 0; i < _.size(general.listens); i++) {
+                        _.set(result, general.listens[i].key, {
+                            includes: _.get(
+                                general.listens,
+                                [i, "includes"],
+                                []
+                            ),
+                            excludes: _.get(
+                                general.listens,
+                                [i, "excludes"],
+                                []
+                            ),
+                        });
+                    }
+                    _.set(updatedGeneral, "listens", result);
+                }
+                if (_.has(general, "tags")) {
+                    let result = {};
+                    for (let i = 0; i < _.size(general.tags); i++) {
+                        _.set(
+                            result,
+                            general.tags[i].key,
+                            _.get(general.tags, [i, "tags"], [])
+                        );
+                    }
+                    _.set(updatedGeneral, "tags", result);
+                }
                 const changes = {
                     ...editEntity.properties,
-                    ...general,
+                    ...updatedGeneral,
                 };
                 const tasks = constructSavePropertyRequests({
                     axios,
@@ -141,7 +203,6 @@ export default function AgentEntity() {
             <EntityGeneral
                 edit={edit}
                 setEdit={setEdit}
-                entity={editEntity}
                 loading={loading}
                 general={general}
                 setGeneral={setGeneral}
@@ -162,7 +223,12 @@ export default function AgentEntity() {
                 setJsonError={setJsonError}
                 updateEntity={updateEntity}
             />
-            <Section compact title="Inputs" style={{ marginTop: 20 }}>
+            <Section
+                compact
+                icon={faIcon({ icon: ENTITY_TYPE_LOOKUP.input.icon })}
+                title={<H5 className="margin-0">Inputs</H5>}
+                style={{ marginTop: 20 }}
+            >
                 <SectionCard padded={false}>
                     <HTMLTable
                         className="entity-section-card-table full-parent-width"
@@ -225,7 +291,12 @@ export default function AgentEntity() {
                     </HTMLTable>
                 </SectionCard>
             </Section>
-            <Section compact title="Outputs" style={{ marginTop: 20 }}>
+            <Section
+                compact
+                icon={faIcon({ icon: ENTITY_TYPE_LOOKUP.output.icon })}
+                title={<H5 className="margin-0">Outputs</H5>}
+                style={{ marginTop: 20 }}
+            >
                 <SectionCard padded={false}>
                     <HTMLTable
                         className="entity-section-card-table full-parent-width"
@@ -288,7 +359,12 @@ export default function AgentEntity() {
                     </HTMLTable>
                 </SectionCard>
             </Section>
-            <Section compact title="Agents" style={{ marginTop: 20 }}>
+            <Section
+                compact
+                icon={faIcon({ icon: ENTITY_TYPE_LOOKUP.agent.icon })}
+                title={<H5 className="margin-0">Agents</H5>}
+                style={{ marginTop: 20 }}
+            >
                 <SectionCard padded={false}>
                     <HTMLTable
                         className="entity-section-card-table full-parent-width"

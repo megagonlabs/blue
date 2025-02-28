@@ -1,3 +1,4 @@
+import { faIcon } from "@/components/icon";
 import {
     Button,
     ButtonGroup,
@@ -10,7 +11,6 @@ import { faBan } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import _ from "lodash";
 import { useContext, useState } from "react";
 import { AppContext } from "../contexts/app-context";
-import { faIcon } from "../icon";
 import JsonViewer from "../sessions/message/renderers/JsonViewer";
 export default function Debugger() {
     const { appState, appActions } = useContext(AppContext);

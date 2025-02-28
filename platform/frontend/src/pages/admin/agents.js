@@ -284,6 +284,7 @@ export default function Agents() {
                         content={
                             <div style={{ padding: 15 }}>
                                 <Button
+                                    large
                                     onClick={stopSelectedAgents}
                                     className={Classes.POPOVER_DISMISS}
                                     text="Confirm"

@@ -1,7 +1,9 @@
 import EntityDescription from "@/components/entity/EntityDescription";
 import EntityMain from "@/components/entity/EntityMain";
 import EntityProperties from "@/components/entity/EntityProperties";
+import { faIcon } from "@/components/icon";
 import {
+    H5,
     HTMLTable,
     Intent,
     Section,
@@ -13,6 +15,7 @@ import _ from "lodash";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
+import { ENTITY_TYPE_LOOKUP } from "../constant";
 export default function DatabaseEntity() {
     const router = useRouter();
     const [entity, setEntity] = useState({ type: "database" });
@@ -31,7 +34,12 @@ export default function DatabaseEntity() {
             <EntityMain entity={entity} loading={loading} />
             <EntityDescription entity={entity} loading={loading} />
             <EntityProperties entity={entity} loading={loading} />
-            <Section compact title="Collections" style={{ marginTop: 20 }}>
+            <Section
+                compact
+                icon={faIcon({ icon: ENTITY_TYPE_LOOKUP.collection.icon })}
+                title={<H5 className="margin-0">Collections</H5>}
+                style={{ marginTop: 20 }}
+            >
                 <SectionCard padded={false}>
                     <HTMLTable
                         className="entity-section-card-table"

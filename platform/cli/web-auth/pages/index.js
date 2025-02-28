@@ -93,7 +93,7 @@ export default function Index() {
                         intent: Intent.DANGER,
                         message: data.error,
                     });
-                } else if (_.isEqual(data, "done")) {
+                } else if (_.isEqual(data, "DONE")) {
                     setDone(true);
                     socket.close();
                 }
@@ -130,11 +130,9 @@ export default function Index() {
                             { id_token: idToken }
                         )
                         .then((response) => {
-                            ws.send(
-                                JSON.stringify(
-                                    _.get(response, "data.cookie", null)
-                                )
-                            );
+                            const cookie = _.get(response, "data.cookie", null),
+                                uid = _.get(response, "data.uid", null);
+                            ws.send(JSON.stringify({ cookie, uid }));
                             setPopupOpen(false);
                         })
                         .catch(() => {

@@ -1,3 +1,4 @@
+import { faIcon } from "@/components/icon";
 import {
     Button,
     Classes,
@@ -23,7 +24,6 @@ import classNames from "classnames";
 import _ from "lodash";
 import { useEffect, useState } from "react";
 import { axiosErrorToast, settlePromises } from "../helper";
-import { faIcon } from "../icon";
 const EXPLANATION_TEXT = {
     style: {
         marginTop: 5,

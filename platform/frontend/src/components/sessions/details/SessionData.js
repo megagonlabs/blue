@@ -72,7 +72,7 @@ export default function SessionData() {
     };
     return (
         <>
-            <DialogBody className="dialog-body">
+            <DialogBody style={{ margin: "1px 0px 0px 0px" }}>
                 <div style={{ maxHeight: 463, minHeight: 141 }}>
                     {!edit ? (
                         _.isEmpty(data) ? (
@@ -86,10 +86,7 @@ export default function SessionData() {
                                 />
                             </div>
                         ) : (
-                            <div
-                                style={{ padding: 15 }}
-                                onDoubleClick={() => setEdit(true)}
-                            >
+                            <div onDoubleClick={() => setEdit(true)}>
                                 <JsonViewer json={data} />
                             </div>
                         )
@@ -114,6 +111,7 @@ export default function SessionData() {
                             content={
                                 <div style={{ padding: 15 }}>
                                     <Button
+                                        large
                                         className={Classes.POPOVER_DISMISS}
                                         text="Confirm"
                                         onClick={discard}

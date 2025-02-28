@@ -1,3 +1,5 @@
+import { AuthContext } from "@/components/contexts/auth-context";
+import { faIcon } from "@/components/icon";
 import {
     Classes,
     Drawer,
@@ -27,8 +29,6 @@ import classNames from "classnames";
 import copy from "copy-to-clipboard";
 import _ from "lodash";
 import { useContext } from "react";
-import { AuthContext } from "../contexts/auth-context";
-import { faIcon } from "../icon";
 import { AppToaster } from "../toaster";
 const EXPLANATION_TEXT = {
     style: {

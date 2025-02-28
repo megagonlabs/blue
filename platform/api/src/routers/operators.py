@@ -24,13 +24,13 @@ from fastapi.responses import JSONResponse
 
 
 ###### Schema
-class Operator(BaseModel):
+class OperatorSchema(BaseModel):
     name: str
     description: Union[str, None] = None
     icon: Union[str, dict, None] = None
 
 
-class Parameter(BaseModel):
+class ParameterSchema(BaseModel):
     name: str
     description: Union[str, None] = None
 
@@ -99,7 +99,7 @@ def get_operator(request: Request, operator_name):
 
 
 @router.post("/operator/{operator_name}")
-def add_operator(request: Request, operator_name, operator: Operator):
+def add_operator(request: Request, operator_name, operator: OperatorSchema):
     operator_db = operator_registry.get_operator(operator_name)
     if operator_name in BANNED_ENTITY_NAMES:
         return JSONResponse(content={"message": "The name cannot be used."}, status_code=403)
@@ -115,7 +115,7 @@ def add_operator(request: Request, operator_name, operator: Operator):
 
 
 @router.put("/operator/{operator_name}")
-def update_operator(request: Request, operator_name, operator: Operator):
+def update_operator(request: Request, operator_name, operator: OperatorSchema):
     operator_db = operator_registry.get_operator(operator_name)
     operator_acl_enforce(request, operator_db, write=True)
     # TODO: properties

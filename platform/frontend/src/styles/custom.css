@@ -69,10 +69,6 @@ table.entity-section-card-table tr td {
 .z-index-36 {
     z-index: 36;
 }
-.dialog-body {
-    padding: 0px !important;
-    margin-top: 1px !important;
-}
 .glassmorphism-5 {
     /* From https://css.glass */
     background: rgba(255, 255, 255, 0.2);

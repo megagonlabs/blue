@@ -1,7 +1,9 @@
 import EntityDescription from "@/components/entity/EntityDescription";
 import EntityMain from "@/components/entity/EntityMain";
 import EntityProperties from "@/components/entity/EntityProperties";
+import { faIcon } from "@/components/icon";
 import {
+    H5,
     HTMLTable,
     Intent,
     Section,
@@ -13,6 +15,7 @@ import _ from "lodash";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useContext, useEffect, useState } from "react";
+import { ENTITY_TYPE_LOOKUP } from "../constant";
 import { AppContext } from "../contexts/app-context";
 import {
     axiosErrorToast,
@@ -120,7 +123,12 @@ export default function SourceEntity() {
                 setJsonError={setJsonError}
                 updateEntity={updateEntity}
             />
-            <Section compact title="Databases" style={{ marginTop: 20 }}>
+            <Section
+                compact
+                icon={faIcon({ icon: ENTITY_TYPE_LOOKUP.database.icon })}
+                title={<H5 className="margin-0">Databases</H5>}
+                style={{ marginTop: 20 }}
+            >
                 <SectionCard padded={false}>
                     <HTMLTable
                         className="entity-section-card-table"

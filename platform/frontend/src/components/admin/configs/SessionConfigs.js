@@ -69,6 +69,8 @@ export default function SessionConfigs({ loading, configs, setLoading }) {
                     />
                     <Button
                         large
+                        minimal
+                        intent={Intent.SUCCESS}
                         text="Save"
                         loading={loading}
                         disabled={sessionExpirationDurationError}

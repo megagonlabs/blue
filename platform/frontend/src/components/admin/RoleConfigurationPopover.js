@@ -1,4 +1,5 @@
 import { USER_ROLES_LOOKUP } from "@/components/constant";
+import { faIcon } from "@/components/icon";
 import {
     Button,
     Classes,
@@ -18,7 +19,6 @@ import _ from "lodash";
 import { useContext, useState } from "react";
 import { AppContext } from "../contexts/app-context";
 import { axiosErrorToast } from "../helper";
-import { faIcon } from "../icon";
 const READ_TAG = (
     <Tag minimal intent={Intent.SUCCESS}>
         Read

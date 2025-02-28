@@ -1,6 +1,16 @@
 import JsonEditor from "@/components/codemirror/JsonEditor";
-import { Classes, Intent, Section, SectionCard, Tag } from "@blueprintjs/core";
+import { faIcon } from "@/components/icon";
+import {
+    Classes,
+    H5,
+    Intent,
+    Section,
+    SectionCard,
+    Tag,
+} from "@blueprintjs/core";
+import { faBracketsCurly } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import _ from "lodash";
+import { GENERAL_KEYS } from "../constant";
 import JsonViewer from "../sessions/message/renderers/JsonViewer";
 export default function EntityProperties({
     entity,
@@ -15,10 +25,12 @@ export default function EntityProperties({
     const setProperties = (value) => {
         updateEntity({ path: "properties", value: JSON.parse(value) });
     };
+    const properties = _.omit(entity.properties, GENERAL_KEYS);
     return (
         <Section
             compact
-            title="Properties"
+            icon={faIcon({ icon: faBracketsCurly })}
+            title={<H5 className="margin-0">Properties</H5>}
             style={{ marginTop: 20 }}
             rightElement={
                 jsonError && edit ? (
@@ -43,12 +55,12 @@ export default function EntityProperties({
                     </div>
                 ) : !edit ? (
                     <div style={{ padding: 15 }}>
-                        <JsonViewer json={entity.properties} />
+                        <JsonViewer json={properties} />
                     </div>
                 ) : (
                     <JsonEditor
                         allowPopulateOnce={allowPopulateOnce}
-                        code={JSON.stringify(entity.properties, null, 4)}
+                        code={JSON.stringify(properties, null, 4)}
                         setCode={setProperties}
                         setError={setJsonError}
                         useMinimap={false}

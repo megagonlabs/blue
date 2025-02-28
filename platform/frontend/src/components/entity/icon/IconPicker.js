@@ -83,20 +83,15 @@ export default function IconPicker({
                 }
             />
             {!_.isEmpty(searchResults) || !_.isEmpty(icon) ? (
-                <div
-                    style={{
-                        position: "relative",
-                        display: "flex",
-                        gap: 15,
-                        paddingBottom: 15,
-                    }}
-                >
+                <div style={{ position: "relative", display: "flex", gap: 15 }}>
                     <Card
                         style={{
                             boxShadow: "none",
                             padding: 7.5,
                             display: "grid",
                             width: 155,
+                            maxHeight: 476,
+                            overflowY: "auto",
                             gap: 10,
                             gridAutoRows: 40,
                             gridTemplateColumns: "40px 40px 40px",
@@ -117,9 +112,7 @@ export default function IconPicker({
                                         borderRadius: 2,
                                         cursor: "pointer",
                                     }}
-                                    onClick={() => {
-                                        setIcon(iconName);
-                                    }}
+                                    onClick={() => setIcon(iconName)}
                                 >
                                     <FontAwesomeIcon
                                         style={{ height: 20, width: 20 }}

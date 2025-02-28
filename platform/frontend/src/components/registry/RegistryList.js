@@ -1,5 +1,6 @@
 import { ENTITY_TYPE_LOOKUP } from "@/components/constant";
 import { AppContext } from "@/components/contexts/app-context";
+import { AuthContext } from "@/components/contexts/auth-context";
 import { faIcon } from "@/components/icon";
 import RegistryCard from "@/components/registry/RegistryCard";
 import SearchList from "@/components/registry/SearchList";
@@ -16,7 +17,6 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { useContext } from "react";
 import { Col, Container, Row } from "react-grid-system";
-import { AuthContext } from "../contexts/auth-context";
 import { populateRouterPathname } from "../helper";
 export default function RegistryList({ type }) {
     const { appState } = useContext(AppContext);
@@ -83,22 +83,16 @@ export default function RegistryList({ type }) {
                     const properties = element.properties;
                     let extra = null;
                     if (_.includes(["agent", "operator"], type)) {
-                        extra = properties.image;
+                        extra = _.toString(properties.image);
                     } else if (_.isEqual(type, "data")) {
                         let protocol = _.get(properties, "connection.protocol");
                         let host = _.get(properties, "connection.host");
                         let port = _.get(properties, "connection.port");
-                        if (!_.isEmpty(protocol)) {
-                            extra = String(protocol);
-                        }
-                        if (!_.isEmpty(host)) {
-                            extra += `://${host}`;
-                        }
-                        if (!_.isEmpty(port)) {
-                            extra += `:${port}`;
-                        }
+                        if (!_.isEmpty(protocol)) extra = String(protocol);
+                        if (!_.isEmpty(host)) extra += `://${host}`;
+                        if (!_.isEmpty(port)) extra += `:${port}`;
                     }
-                    let icon = element.icon;
+                    let { icon } = element;
                     if (
                         !_.isEmpty(icon) &&
                         !_.startsWith(icon, "data:image/")

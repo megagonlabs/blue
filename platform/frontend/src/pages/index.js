@@ -60,7 +60,7 @@ export default function LaunchScreen() {
             })
             .finally(() => setLoading(false));
     }, []);
-    const { socket, isSocketOpen } = useSocket();
+    const { isSocketOpen } = useSocket();
     const [launchGroup, setLaunchGroup] = useState(null);
     const { creatingSession } = appState.session;
     const joinAgentGroupSession = (groupName) => {

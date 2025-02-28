@@ -1,3 +1,4 @@
+import { faIcon } from "@/components/icon";
 import {
     Button,
     ButtonGroup,
@@ -16,7 +17,6 @@ import dagre from "dagre";
 import _ from "lodash";
 import { useContext, useState } from "react";
 import { AppContext } from "../contexts/app-context";
-import { faIcon } from "../icon";
 import AgentNode from "./visualization/AgentNode";
 import TransitionEdgeNode from "./visualization/TransitionEdgeNode";
 const getNodeDimension = (node) => {
@@ -107,8 +107,8 @@ export default function PlanVisualizationPanel() {
             isOpen={!_.isEmpty(initialNodes)}
             style={{ width: "100%", maxWidth: 795, height: "70vh" }}
         >
-            <DialogBody className="dialog-body">
-                <div style={{ height: "100%", width: "100%", padding: 15 }}>
+            <DialogBody>
+                <div style={{ height: "100%", width: "100%" }}>
                     <ReactFlow
                         nodeTypes={nodeTypes}
                         nodesDraggable={false}

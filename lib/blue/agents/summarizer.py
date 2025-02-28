@@ -5,6 +5,7 @@ import json
 ###### Blue
 from blue.agent import Agent
 from blue.agents.openai import OpenAIAgent
+from blue.plan import Plan
 from blue.utils import string_utils, uuid_utils
 
 # set log level
@@ -56,92 +57,44 @@ class SummarizerAgent(OpenAIAgent):
 
         for key in agent_properties:
             self.properties[key] = agent_properties[key]
-    
-    def build_plan(self, plan_dag, stream, id=None):
-        
-        # create a plan id
-        if id is None:
-            id = uuid_utils.create_uuid()
-        
-        # plan context, initial streams, scope
-        plan_context = {"scope": stream[:-7], "streams": {plan_dag[0][0]: stream}}
-        
-        # construct plan
-        plan = {"id": id, "steps": plan_dag, "context": plan_context}
 
-        return plan
+    def issue_nl_query(self, question, name=None, worker=None, to_param_prefix="QUESTION_RESULTS_"):
 
-    def write_to_new_stream(self, worker, content, output, id=None, tags=None):
-        
-        # create a unique id
-        if id is None:
-            id = uuid_utils.create_uuid()
-
-        if worker:
-            output_stream = worker.write_data(
-                content, output=output, id=id, tags=tags
-            )
-            worker.write_eos(output=output, id=id)
-
-        return output_stream
-
-    def issue_nl_query(self, question, worker, name=None, id=None):
-
-       # create a unique id
-        if id is None:
-            id = uuid_utils.create_uuid()
-
-        if name is None:
-            name = "unspecified"
+        if worker == None:
+            worker = self.create_worker(None)
 
         # progress
         worker.write_progress(progress_id=worker.sid, label='Issuing question:' + question, value=self.current_step/self.num_steps)
 
-  
-        # query plan
-        query_plan = [
-            [self.name + ".Q", "NL2SQL-E2E___INPLAN.DEFAULT"],
-            ["NL2SQL-E2E___INPLAN.DEFAULT", self.name+".QUESTION_RESULTS_" + name],
-        ]
+        # plan
+        p = Plan(prefix=worker.prefix)
+        # set input
+        p.define_input(name, value=question)
+        # set plan
+        p.connect_input_to_agent(from_input=name, to_agent="NL2Q")
+        p.connect_agent_to_agent(from_agent="NL2Q", to_agent=self.name, to_agent_input=to_param_prefix + name)
+        
+        # submit plan
+        p.submit(worker)
+
+    def issue_sql_query(self, query, name=None, worker=None, to_param_prefix="QUERY_RESULTS_"):
+
+        if worker == None:
+            worker = self.create_worker(None)
+
+        # progress
+        worker.write_progress(progress_id=worker.sid, label='Issuing query:' + query, value=self.current_step/self.num_steps)
+
+        # plan
+        p = Plan(prefix=worker.prefix)
+        # set input
+        p.define_input(name, value=query)
+        # set plan
+        p.connect_input_to_agent(from_input=name, to_agent="QUERYEXECUTOR")
+        p.connect_agent_to_agent(from_agent="QUERYEXECUTOR", to_agent=self.name, to_agent_input=to_param_prefix + name)
        
-        # write query to stream
-        query_stream = self.write_to_new_stream(worker, question, "Q", tags=["HIDDEN"], id=id)
-
-        # build query plan
-        plan = self.build_plan(query_plan, query_stream, id=id)
-
-        # write plan
-        # TODO: this shouldn't necessarily be into a new stream
-        self.write_to_new_stream(worker, plan, "PLAN", tags=["PLAN","HIDDEN"], id=id)
-
-        return
-
-    def issue_sql_query(self, query, worker, name=None, id=None):
-
-        # create a unique id
-        if id is None:
-            id = uuid_utils.create_uuid()
-
-        if name is None:
-            name = "unspecified"
-
-        # query plan
-        query_plan = [
-            [self.name + ".Q", "QUERYEXECUTOR.DEFAULT"],
-            ["QUERYEXECUTOR.DEFAULT", self.name+".QUERY_RESULTS_" + name],
-        ]
-       
-        # write query to stream
-        query_stream = self.write_to_new_stream(worker, query, "Q", tags=["HIDDEN"], id=id)
-
-        # build query plan
-        plan = self.build_plan(query_plan, query_stream, id=id)
-
-        # write plan
-        # TODO: this shouldn't necessarily be into a new stream
-        self.write_to_new_stream(worker, plan, "PLAN", tags=["PLAN","HIDDEN"], id=id)
-
-        return
+        # submit plan
+        p.submit(worker)
 
     def summarize_doc(self, properties=None, worker=None):
 
@@ -215,7 +168,7 @@ class SummarizerAgent(OpenAIAgent):
                             q = questions[question_name]
                             question = string_utils.safe_substitute(q, **self.properties, **session_data, input=input_data)
                             self.todos.add(question_name)
-                            self.issue_nl_query(question, worker, name=query_name)
+                            self.issue_nl_query(question, name=query_name, worker=worker)
 
                     # db queries
                     if 'queries' in self.properties:
@@ -228,7 +181,7 @@ class SummarizerAgent(OpenAIAgent):
                                 q = str(q)
                             query = string_utils.safe_substitute(q, **self.properties, **session_data, input=input_data)
                             self.todos.add(query_name)
-                            self.issue_sql_query(query, worker, name=query_name)
+                            self.issue_sql_query(query, name=query_name, worker=worker)
                     return
 
             elif message.isBOS():
@@ -263,6 +216,26 @@ class SummarizerAgent(OpenAIAgent):
                     self.results[query] = query_results
                     
                     # all queries received
+                    if len(self.todos) == 0:
+                        self.summarize_doc(properties=properties, worker=worker)
+                else:
+                    logging.info("nothing found")
+        elif input.find("QUESTION_RESULTS_") == 0:
+            if message.isData():
+                stream = message.getStream()
+                
+                # get question 
+                question = input[len("QUESTION_RESULTS_"):]
+
+                data = message.getData()
+            
+                if 'result' in data:
+                    question_results = data['result']
+
+                    self.todos.remove(question)
+                    self.results[question] = question_results
+                    
+                    # all questions received
                     if len(self.todos) == 0:
                         self.summarize_doc(properties=properties, worker=worker)
                 else:

@@ -25,6 +25,7 @@ JSONStructure = Union[JSONArray, JSONObject, Any]
 
 
 ###### Blue
+from blue.agent import Agent
 from blue.platform import Platform
 from blue.agents.registry import AgentRegistry
 from blue.utils import json_utils
@@ -85,7 +86,7 @@ def agent_join_session(registry_name, agent_name, properties, session_id):
     agent_properties = json_utils.merge_json(agent_properties, PROPERTIES)
     # check if derivate agent, if so merge
     # <_name> or <_name>_<derivative__name>
-    ca = agent_name.split("_")
+    ca = agent_name.split(Agent.SEPARATOR)
     if len(ca) > 1:
         parent_agent_name = ca[0]
 

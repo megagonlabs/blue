@@ -4,10 +4,23 @@ FROM python:3.9
 WORKDIR /app
 
 # Build requirements first
-ADD src/requirements.txt /app/requirements.txt
-RUN pip install --extra-index-url  http://10.0.160.75:8888/simple/ --trusted-host 10.0.160.75 -r requirements.txt
+ADD src/requirements.core /app/requirements.core
+RUN pip install --no-cache --extra-index-url  http://10.0.160.75:8888/simple/ --trusted-host 10.0.160.75 -r requirements.core
 
+ADD src/requirements.agent /app/requirements.agent
+RUN pip install --no-cache -r requirements.agent
 
+ADD src/requirements.registry /app/requirements.registry
+RUN pip install --no-cache-dir --no-cache --extra-index-url https://download.pytorch.org/whl/cpu -r requirements.registry
+
+ADD src/requirements.requestor /app/requirements.requestor
+RUN pip install --no-cache -r requirements.requestor
+
+ADD src/requirements.openai /app/requirements.openai
+RUN pip install --no-cache -r requirements.openai
+
+ADD src/requirements.intent_classifier /app/requirements.intent_classifier
+RUN pip install --no-cache -r requirements.intent_classifier
 
 # Copy service files
 ADD /src /app/

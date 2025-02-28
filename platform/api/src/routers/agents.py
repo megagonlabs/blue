@@ -23,19 +23,19 @@ from fastapi.responses import JSONResponse
 
 
 ###### Schema
-class AgentGroup(BaseModel):
+class AgentGroupSchema(BaseModel):
     name: str
     description: Union[str, None] = None
     icon: Union[str, dict, None] = None
 
 
-class Agent(BaseModel):
+class AgentSchema(BaseModel):
     name: str
     description: Union[str, None] = None
     icon: Union[str, dict, None] = None
 
 
-class Parameter(BaseModel):
+class ParameterSchema(BaseModel):
     name: str
     description: Union[str, None] = None
 
@@ -47,6 +47,7 @@ JSONStructure = Union[JSONArray, JSONObject, Any]
 
 
 ###### Blue
+from blue.agent import Agent
 from blue.platform import Platform
 from blue.agents.registry import AgentRegistry
 
@@ -161,7 +162,7 @@ def merge_container_results(registry_results):
             else:
                 # check if parent has a container running
                 # TODO: REVISIT AFTER #186
-                name = name.split("_")[0]
+                name = name.split(Agent.SEPARATOR)[0]
                 if name in containers:
                     registry_result['container'] = containers[name]
                 else:
@@ -231,7 +232,7 @@ def get_agent(request: Request, agent_name):
 
 
 @router.post("/agent/{agent_name}")
-def add_agent(request: Request, agent_name, agent: Agent):
+def add_agent(request: Request, agent_name, agent: AgentSchema):
     agent_db = agent_registry.get_agent(agent_name)
     if agent_registry._extract_shortname(agent_name) in BANNED_ENTITY_NAMES:
         return JSONResponse(content={"message": "The name cannot be used."}, status_code=403)
@@ -247,7 +248,7 @@ def add_agent(request: Request, agent_name, agent: Agent):
 
 
 @router.put("/agent/{agent_name}")
-def update_agent(request: Request, agent_name, agent: Agent):
+def update_agent(request: Request, agent_name, agent: AgentSchema):
     agent_db = agent_registry.get_agent(agent_name)
     agent_acl_enforce(request, agent_db, write=True)
     # TODO: properties
@@ -290,7 +291,7 @@ def get_agent_property(request: Request, agent_name, property_name):
 def set_agent_property(request: Request, agent_name, property_name, property: JSONStructure):
     agent_db = agent_registry.get_agent(agent_name)
     agent_acl_enforce(request, agent_db, write=True)
-    agent_registry.set_agent_property(agent_name, property_name, property, rebuild=True)
+    agent_registry.set_agent_property(agent_name, property_name, pydash.objects.get(property, [property_name], None), rebuild=True)
     # save
     agent_registry.dump("/blue_data/config/" + agent_registry_id + ".agents.json")
     return JSONResponse(content={"message": "Success"})
@@ -325,7 +326,7 @@ def get_agent_input(request: Request, agent_name, param_name):
 
 
 @router.post("/agent/{agent_name}/input/{param_name}")
-def add_agent_input(request: Request, agent_name, param_name, parameter: Parameter):
+def add_agent_input(request: Request, agent_name, param_name, parameter: ParameterSchema):
     input = agent_registry.get_agent_input(agent_name, param_name)
     output = agent_registry.get_agent_output(agent_name, param_name)
     if agent_registry._extract_shortname(param_name) in BANNED_ENTITY_NAMES:
@@ -343,7 +344,7 @@ def add_agent_input(request: Request, agent_name, param_name, parameter: Paramet
 
 
 @router.put("/agent/{agent_name}/input/{param_name}")
-def update_agent_input(request: Request, agent_name, param_name, parameter: Parameter):
+def update_agent_input(request: Request, agent_name, param_name, parameter: ParameterSchema):
     agent_db = agent_registry.get_agent(agent_name)
     agent_acl_enforce(request, agent_db, write=True)
     # TODO: properties
@@ -419,7 +420,7 @@ def get_agent_output(request: Request, agent_name, param_name):
 
 
 @router.post("/agent/{agent_name}/output/{param_name}")
-def add_agent_output(request: Request, agent_name, param_name, parameter: Parameter):
+def add_agent_output(request: Request, agent_name, param_name, parameter: ParameterSchema):
     input = agent_registry.get_agent_input(agent_name, param_name)
     output = agent_registry.get_agent_output(agent_name, param_name)
     if agent_registry._extract_shortname(param_name) in BANNED_ENTITY_NAMES:
@@ -435,7 +436,7 @@ def add_agent_output(request: Request, agent_name, param_name, parameter: Parame
 
 
 @router.put("/agent/{agent_name}/output/{param_name}")
-def update_agent_output(request: Request, agent_name, param_name, parameter: Parameter):
+def update_agent_output(request: Request, agent_name, param_name, parameter: ParameterSchema):
     agent_db = agent_registry.get_agent(agent_name)
     agent_acl_enforce(request, agent_db, write=True)
     # TODO: properties
@@ -526,7 +527,7 @@ def get_agent_group(request: Request, group_name):
 
 
 @router.put("/agent_group/{group_name}")
-def update_agent_group(request: Request, group_name, group: AgentGroup):
+def update_agent_group(request: Request, group_name, group: AgentGroupSchema):
     agent_group_db = agent_registry.get_agent_group(group_name)
     agent_group_acl_enforce(request, agent_group_db, write=True)
     # TODO: properties
@@ -547,7 +548,7 @@ def delete_agent_group(request: Request, group_name):
 
 
 @router.post("/agent_group/{group_name}")
-def add_agent_group(request: Request, group_name, group: AgentGroup):
+def add_agent_group(request: Request, group_name, group: AgentGroupSchema):
     agent_group_db = agent_registry.get_agent_group(group_name)
     if agent_registry._extract_shortname(group_name) in BANNED_ENTITY_NAMES:
         return JSONResponse(content={"message": "The name cannot be used."}, status_code=403)
@@ -572,7 +573,7 @@ def get_agent_group_agents(request: Request, group_name):
 
 
 @router.post("/agent_group/{group_name}/agent/{agent_name}")
-def add_agent_to_agent_group(request: Request, group_name, agent_name, agent: Agent):
+def add_agent_to_agent_group(request: Request, group_name, agent_name, agent: AgentSchema):
     agent_existing = agent_registry.get_agent_group_agent(group_name, agent_name)
     if agent_registry._extract_shortname(agent_name) in BANNED_ENTITY_NAMES:
         return JSONResponse(content={"message": f"\"{agent_name}\" cannot be used."}, status_code=403)
@@ -589,7 +590,7 @@ def add_agent_to_agent_group(request: Request, group_name, agent_name, agent: Ag
 
 
 @router.put("/agent_group/{group_name}/agent/{agent_name}")
-def update_agent_in_agent_group(request: Request, group_name, agent_name, agent: Agent):
+def update_agent_in_agent_group(request: Request, group_name, agent_name, agent: AgentSchema):
     agent_group_db = agent_registry.get_agent_group(group_name)
     agent_group_acl_enforce(request, agent_group_db, write=True)
     # TODO: properties

@@ -62,7 +62,9 @@ export default function AddAgents({
         }
         setLoading(true);
         axios
-            .get(`/registry/${agentRegistryName}/agents`)
+            .get(`/registry/${agentRegistryName}/agents`, {
+                params: { recursive: true },
+            })
             .then((response) => {
                 const list = _.get(response, "data.results", []);
                 let options = [];
@@ -73,20 +75,23 @@ export default function AddAgents({
                         [i, "container", "status"],
                         null
                     );
-                    const agentName = list[i].name;
+                    const displayName = _.get(
+                        list,
+                        [i, "properties", "display_name"],
+                        list[i].name
+                    );
                     const description = _.get(list, [i, "description"], "");
+                    const option = {
+                        displayName: _.toString(displayName),
+                        description: description,
+                        name: list[i].name,
+                    };
                     if (!_.isEqual(containerStatus, "running")) {
-                        unavailable.push({
-                            name: agentName,
-                            description: description,
-                        });
+                        unavailable.push(option);
                     } else {
-                        options.push({
-                            name: agentName,
-                            description: description,
-                        });
-                        if (!_.has(appState, ["agent", "icon", agentName])) {
-                            appActions.agent.fetchAttributes(agentName);
+                        options.push(option);
+                        if (!_.has(appState, ["agent", "icon", list[i].name])) {
+                            appActions.agent.fetchAttributes(list[i].name);
                         }
                     }
                 }
@@ -152,9 +157,9 @@ export default function AddAgents({
                 setSkippable(false);
             }}
         >
-            <DialogBody className="dialog-body">
+            <DialogBody className="margin-0">
                 {_.isEmpty(agents) ? (
-                    <div style={{ padding: 15, height: 141 }}>
+                    <div style={{ height: 141 }}>
                         <NonIdealState
                             className={loading ? Classes.SKELETON : null}
                             title="No Agent"
@@ -165,11 +170,12 @@ export default function AddAgents({
                     <FixedSizeList
                         itemCount={_.size(agents)}
                         style={{ paddingBottom: 20, marginTop: 1 }}
-                        itemSize={58.43}
+                        itemSize={63.43}
                         height={350.58}
                     >
                         {({ index, style }) => {
-                            const name = _.get(agents, [index, "name"], "");
+                            const name = agents[index].name,
+                                displayName = agents[index].displayName;
                             return (
                                 <Card
                                     onClick={() => {
@@ -252,7 +258,7 @@ export default function AddAgents({
                                                         "calc(100% - 45px)",
                                                 }}
                                             >
-                                                {name}
+                                                {displayName}
                                                 <div
                                                     className={classNames(
                                                         Classes.TEXT_MUTED,

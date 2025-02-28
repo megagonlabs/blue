@@ -55,7 +55,7 @@ export default function RegistryCard({
                         marginBottom: 0,
                     }}
                 >
-                    {title}
+                    {_.toString(title)}
                 </H5>
                 <div
                     className="multiline-ellipsis-2"
