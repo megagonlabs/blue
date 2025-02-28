@@ -20,6 +20,8 @@ from blue.utils import json_utils, uuid_utils
 # system tracker
 system_tracker = None
 
+
+
 ###############
 ### AgentPerformanceTracker
 #
@@ -54,7 +56,7 @@ class AgentPerformanceTracker(PerformanceTracker):
         workers_list_group = MetricGroup(id="workers_list", label="Workers List", type="list")
         workers_group.add(workers_list_group)
 
-
+ 
         for worker_id in self.agent.workers:
             worker = self.agent.workers[worker_id]
             stream = None
@@ -651,6 +653,16 @@ class Agent:
         self.connection_factory = PooledConnectionFactory(properties=self.properties)
         self.connection = self.connection_factory.get_connection()
 
+    # # override kwargs
+    # def __override_kwargs(self, kwargs, properties=None):
+    #     if kwargs is None:
+    #         kwargs = {}
+    #     if properties:
+    #         if 'properties' in kwargs:
+    #             del kwargs['properties']
+    #         kwargs['properties'] = properties
+    #     return kwargs
+
     ###### worker
     # input_stream is data stream for input param, default 'DEFAULT'
     def create_worker(self, input_stream, input="DEFAULT", context=None, processor=None, properties=None):
@@ -659,7 +671,9 @@ class Agent:
 
         if processor == None:
             processor = lambda *args, **kwargs: self.processor(*args, **kwargs)
+            # processor = lambda *args, **kwargs: self.processor(*args, **self.__override_kwargs(kwargs, properties=properties))
 
+        
         # set prefix if context provided
         if context:
             prefix = context + ":" + self.sid
@@ -671,6 +685,7 @@ class Agent:
         if properties is None:
             properties = self.properties
 
+        logging.info(json.dumps(properties))
         worker = Worker(
             input_stream,
             input=input,
@@ -726,14 +741,13 @@ class Agent:
 
                 # get additional properties
                 properties_from_instruction = message.getAgentProperties()
-
                 worker_properties = {}
                 worker_properties = json_utils.merge_json(worker_properties, self.properties)
                 worker_properties = json_utils.merge_json(worker_properties, properties_from_instruction)
 
                 input_params = message.getInputParams()
                 for input_param in input_params:
-                    self.create_worker(input_params[input_param], input=input_param, context=context)
+                    self.create_worker(input_params[input_param], input=input_param, context=context, properties=worker_properties)
 
     ###### session
     def join_session(self, session):
