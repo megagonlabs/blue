@@ -217,7 +217,7 @@ def update_agent_container(request: Request, agent_name):
             pulled = client.images.pull(image)
         elif PROPERTIES["platform.deploy.target"] == "swarm":
             # TODO: pull image on all nodes where label.target==agent
-            pass
+            return JSONResponse(status_code=501, content={"message": "The server lacks the ability to fulfill the request"})
 
         # close connection
         client.close()
@@ -227,7 +227,7 @@ def update_agent_container(request: Request, agent_name):
         else:
             pulled_message = pulled.tags[0]
         return JSONResponse(content={"message": f"Pulled {pulled_message}"})
-    return JSONResponse(content={"message": f"image is not defined in the properties"}, status_code=400)
+    return JSONResponse(content={"message": "image is not defined in the properties"}, status_code=400)
 
 
 @router.delete("/agents/agent/{agent_name}")
