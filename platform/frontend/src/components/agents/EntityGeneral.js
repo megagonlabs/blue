@@ -16,6 +16,7 @@ import { faInfo, faXmark } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import classNames from "classnames";
 import _ from "lodash";
 import { useContext } from "react";
+import Categories from "./general/Categories";
 import Tags from "./general/Tags";
 export default function EntityGeneral({
     general,
@@ -117,6 +118,16 @@ export default function EntityGeneral({
                 </div>
                 <div style={{ marginBottom: 15 }}>
                     <Tags
+                        setEdit={setEdit}
+                        X_MARK_ICON={X_MARK_ICON}
+                        edit={edit}
+                        general={general}
+                        loading={loading}
+                        setGeneral={setGeneral}
+                    />
+                </div>
+                <div style={{ marginBottom: 15 }}>
+                    <Categories
                         setEdit={setEdit}
                         X_MARK_ICON={X_MARK_ICON}
                         edit={edit}
