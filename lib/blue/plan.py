@@ -25,6 +25,8 @@ class Status(Constant):
     def __init__(self, c):
         super().__init__(c)
 
+Status.INACTIVE = Status("INACTIVE")
+Status.SUBMITTED = Status("SUBMITTED")
 Status.INITED = Status("INITED")
 Status.PLANNED = Status("PLANNED")
 Status.RUNNING = Status("RUNNING")
@@ -75,7 +77,7 @@ class Plan:
         self._initialize(properties=properties)
 
         # plan spec details
-        self._plan_spec = {"id": self.id, "nodes": {}, "streams": {}, "context": { "scope": self.prefix }, "properties": self.properties, "label2id": {} }
+        self._plan_spec = {"id": self.id, "nodes": {}, "streams": {}, "context": { "scope": self.prefix }, "status": Status.INACTIVE, "properties": self.properties, "label2id": {} }
 
         # start
         self._start()
@@ -105,6 +107,8 @@ class Plan:
 
     def _start(self):
         self._start_connection()
+
+        self.leaves = None
 
 
     def _start_connection(self):
@@ -179,6 +183,20 @@ class Plan:
 
         return label
     
+    def set_status(self, status, save=False):
+        self._plan_spec['status'] = status
+
+        # save
+        if save:
+            self.save(path="$.status")
+
+    def get_status(self):
+        return self._plan_spec['status'] 
+    
+
+
+        
+
     def define_input(self, name, label=None, value=None, stream=None, properties={}, save=False):
         # checks
         if name is None:
@@ -426,10 +444,22 @@ class Plan:
             id = self._plan_spec['label2id'][label]
             return self.get_node_by_id(id)
         
-    def get_node_by_stream(self, stream):
+    def get_nodes_by_stream(self, stream, node_type=None):
+        nodes = []
         if stream in self._plan_spec['streams']:
-            id = self._plan_spec['streams'][stream]['node']
-            return self.get_node_by_id(id)
+            ids = self._plan_spec['streams'][stream]['nodes']
+            for id in ids:
+                node = self.get_node(id)
+                if node_type:
+                    if type(node_type) == list:
+                        if node['type'] in node_type:
+                            nodes.append(node)
+                    else:
+                        if node['type'] == node_type:
+                            nodes.append(node)
+                else:
+                    nodes.append(node)
+        return nodes
         
     def get_node(self, n):
         node = None
@@ -442,6 +472,16 @@ class Plan:
     def get_nodes(self):
         return self._plan_spec['nodes']
 
+    def is_node_leaf(self, n):
+        node = self.get_node(n)
+        prev = node['prev']
+        next = node['next']
+
+        if len(prev) > 0 and len(next) == 0:
+            return True
+        else:
+            return False
+
     def get_streams(self):
         return self._plan_spec['streams']
     
@@ -450,7 +490,34 @@ class Plan:
         if node is None:
             raise Exception("Value for non-existing node cannot be get")
         
-        return node['value']
+        value = node['value']
+
+        if value is None:
+            return fetch_node_value_from_stream(n)
+
+    def set_node_value_from_stream(self, n, save=False):
+        node = self.get_node(n)
+        if node is None:
+            raise Exception("Value for non-existing node cannot be get")
+
+        node['value'] = self.fetch_node_value_from_stream(n)
+
+        if save:
+            id = node['id']
+            self.save(path="$.nodes['" + id + "'].value")
+    
+    def fetch_node_value_from_stream(self, n):
+        node = self.get_node(n)
+        if node is None:
+            raise Exception("Value for non-existing node cannot be get")
+
+        # get from stream
+        stream = node['stream']
+        stream_status = self.get_stream_status(stream)
+        if stream_status == Status.FINISHED:
+            return self.get_stream_value(stream)
+        
+        return None
         
     def set_node_value(self, n, value, save=False):
         node = self.get_node(n)
@@ -464,7 +531,7 @@ class Plan:
             self.save(path="$.nodes['" + id + "'].value")
 
 
-    def set_node_stream(self, n, stream, status=None, save=False):
+    def set_node_stream(self, n, stream, save=False):
         node = self.get_node(n)
         if node is None:
             raise Exception("Stream for non-existing node cannot be set")
@@ -472,15 +539,22 @@ class Plan:
         node['stream'] = stream
         id = node['id']
 
-        if status is None:
-            status = Status.INITED
-
-        self._plan_spec['streams'][stream] = { "node": id, "status": status }
+        if stream in self._plan_spec['streams']:
+            # add node
+            self._plan_spec['streams'][stream]['nodes'].append(id)
+        else:            
+            self._plan_spec['streams'][stream] = { "nodes": [id], "status": Status.INITED, "value": None }
 
         if save:
             self.save(path="$.nodes['" + id + "'].stream")
             self.save(path="$.streams['" + stream + "']")
         
+    def get_node_stream(self, n):
+        node = self.get_node(n)
+        if node is None:
+            raise Exception("Stream for non-existing node cannot be get")
+
+        return node['stream']
 
     def get_node_properties(self, n):
         node = self.get_node(n)
@@ -562,10 +636,10 @@ class Plan:
     # stream functions
     def set_stream_status(self, stream, status, save=False):
         if stream in self._plan_spec['streams']:
-             self._plan_spec['streams'][stream]['status'] = status
+            self._plan_spec['streams'][stream]['status'] = status
 
-        if save:
-            self.save(path="$.streams['" + stream + "'].status")
+            if save:
+                self.save(path="$.streams['" + stream + "'].status")
 
     def get_stream_status(self, stream):
         if stream in self._plan_spec['streams']:
@@ -573,7 +647,31 @@ class Plan:
         else:
             return None
 
+    def set_stream_value(self, stream, value, save=False):
+        if stream in self._plan_spec['streams']:
+            self._plan_spec['streams'][stream]['value'] = value
 
+            if save:
+                self.save(path="$.streams['" + stream + "'].value")
+
+    def append_stream_value(self, stream, value, save=False):
+        if stream in self._plan_spec['streams']:
+            va = self._plan_spec['streams'][stream]['value']
+            if va is None:
+                va = []
+                self._plan_spec['streams'][stream]['value'] = va
+            
+            va.append(value)
+
+            if save:
+                self.save(path="$.streams['" + stream + "'].value")
+
+    def get_stream_value(self, stream):
+        if stream in self._plan_spec['streams']:
+            return self._plan_spec['streams'][stream]['value']
+        else:
+            return None
+        
     # stream discovery 
     def match_stream(self, stream):
         node = None
@@ -727,6 +825,34 @@ class Plan:
     def _write_plan_spec(self, worker, eos=True):
         return self._write_to_stream(worker, self._plan_spec, "PLAN", tags=["PLAN"], eos=eos)
 
+    def _detect_leaves(self):
+        self.leaves = []
+
+        nodes = self.get_nodes()
+        for node_id in nodes:
+            if self.is_node_leaf(node_id):
+                self.leaves.append(node_id)
+
+    def check_status(self, save=False):
+        if self.leaves is None:
+            self._detect_leaves()
+
+        status = Status.FINISHED
+
+        for leaf_id in self.leaves:
+            leaf_node = self.get_node(leaf_id)
+            leaf_stream = leaf_node['stream']
+            if leaf_stream is None:
+                status = Status.RUNNING
+                break
+            leaf_stream_status = self.get_stream_status(leaf_stream)
+            if leaf_stream_status != Status.FINISHED:
+                status = Status.RUNNING
+                break
+
+        self.set_status(status, save=save)
+
+
     def submit(self, worker):
         # process inputs with initialized values, if any
         nodes = self._plan_spec['nodes']
@@ -751,6 +877,9 @@ class Plan:
                     stream = self._write_data(worker, data, label)
                     # set stream for node
                     self.set_node_stream(node_id, stream)
+
+        # set status
+        self.set_status(Status.SUBMITTED)
 
         # write plan
         self._write_plan_spec(worker)

@@ -71,6 +71,9 @@ class CoordinatorAgent(Agent):
         # set plan to track
         self.plans[plan_id] = plan
 
+        # update status
+        plan.set_status(Status.INITED)
+
         # save plan 
         plan.save()
 
@@ -97,7 +100,7 @@ class CoordinatorAgent(Agent):
                 if node:
                     node_id = node['id']
                     # assign stream to node
-                    plan.set_node_stream(node_id, stream, status=Status.PLANNED, save=True)
+                    plan.set_node_stream(node_id, stream, save=True)
                     # process stream
                     self.create_worker(stream, input=plan_id)
 
@@ -198,26 +201,42 @@ class CoordinatorAgent(Agent):
 
             # process a plan
             plan_id = input
-
             
-
             if plan_id in self.plans:
                 plan = self.plans[plan_id]
 
-                # identify node
-                node = plan.get_node_by_stream(stream)
-                node_id = node['id']
+                # set plan status
+                plan.set_status(Status.RUNNING, save=True)
 
-                # if stream is of output variable, store value/stream if desired 
+                ### set stream status, capture value
                 if message.isBOS():
                     plan.set_stream_status(stream, Status.RUNNING, save=True)
-                    if plan.get_node_type(node_id) == NodeType.AGENT_OUTPUT:
-                        plan.set_node_value(node_id, [], save=True)
+                    plan.set_stream_value(stream, [], save=True)
+                elif message.isData():
+                    v = message.getData()
+                    plan.append_stream_value(stream, v, save=True)
+                elif message.isEOS():
+                    plan.set_stream_status(stream, Status.FINISHED, save=True)
 
-                    #### next
-                    next_nodes = plan.get_next_nodes(node_id)
+                    # check, update plan status
+                    plan.check_status(save=True)
+            
+                ###  trigger next 
+                # identify node
+                if message.isBOS():
+                    # determine stream output from the agent
+                    nodes = plan.get_nodes_by_stream(stream, node_type=[NodeType.AGENT_OUTPUT,NodeType.INPUT])
+       
+                    node = None
+                    if len(nodes) == 1:
+                        node = nodes[0]
+                    
+                    if node is None:
+                        return 
 
-                    # from
+                    node_id = node['id']
+
+                    #### from
                     f = None
                     from_input = None
                     from_agent = None
@@ -232,9 +251,11 @@ class CoordinatorAgent(Agent):
                     elif plan.get_node_type(node_id) == NodeType.INPUT:
                         from_input = node['name']
                         f = from_input
+
+                    #### next
+                    next_nodes = plan.get_next_nodes(node_id)
     
                     for next_node in next_nodes:
-
                         next_node_id = next_node['id']
 
                         # to
@@ -255,40 +276,42 @@ class CoordinatorAgent(Agent):
                             to_output = next_node['name']
                             t = to_output
 
-                        output_stream = stream
+                        if t is None:
+                            continue
+
+                        input_stream = stream
 
                         # transform data utilizing planner/optimizers, if necessary
                         budget = worker.session.get_budget()
 
-                        # override output stream with stream from data transformation
-                        output_stream = self.transform_data(stream, budget, f, t)
+                        # override output stream if data is transformed
+                        input_stream = self.transform_data(stream, budget, f, t)
 
                         # set next node stream
-                        plan.set_node_stream(next_node_id, output_stream, save=True)
+                        plan.set_node_stream(next_node_id, input_stream, save=True)
                        
                         # write an EXECUTE_AGENT instruction
-                        if output_stream:
+                        if input_stream:
                             # execute agent
                             if to_agent:
                                 context = plan.get_scope() + ":PLAN:" + plan_id
                                 to_agent_properties = plan.get_node_properties(to_agent_id)
-                                worker.write_control(ControlCode.EXECUTE_AGENT, {"agent": to_agent, "context": context, "properties": to_agent_properties, "inputs": {to_agent_param: output_stream}})
+                                # issue instruction
+                                worker.write_control(ControlCode.EXECUTE_AGENT, {"agent": to_agent, "context": context, "properties": to_agent_properties, "inputs": {to_agent_param: input_stream}})
                             elif to_output:
-                               pass
-
-                elif message.isData():
-                    v = message.getData()
-                    if plan.get_node_type(node_id) == NodeType.AGENT_OUTPUT:
-                        o = plan.get_node_value(node_id)
-                        o.append(v)
-                        plan.set_node_value(node_id, o, save=True)
+                                # nothing to do
+                                pass
 
                 elif message.isEOS():
-                    plan.set_stream_status(stream, Status.FINISHED, save=True)
+                    # set node values from finished stream 
+                    nodes = plan.get_nodes_by_stream(stream, node_type=NodeType.OUTPUT)
 
-                    # TODO: Copy value to node
+                    for node in nodes:
+                        node_id = node['id']
+                        plan.set_node_value_from_stream(node_id, save=True)
 
-                    # TODO: check if plan is complete
-                    # set plan status, if completed
+                    # check, update plan status
+                    plan.check_status(save=True)
+                    
 
         return None

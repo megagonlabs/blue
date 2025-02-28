@@ -61,10 +61,10 @@ class ClustererAgent(Agent):
         # plan
         p = Plan(prefix=worker.prefix)
         # set input
-        p.set_input_value(name, query)
+        p.define_input(name, value=query)
         # set plan
-        p.add_input_to_agent_step(name, "QUERYEXECUTOR")
-        p.add_agent_to_agent_step("QUERYEXECUTOR", self.name, to_param=to_param_prefix + name)
+        p.connect_input_to_agent(from_input=name, to_agent="QUERYEXECUTOR")
+        p.connect_agent_to_agent(from_agent="QUERYEXECUTOR", to_agent=self.name, to_agent_input=to_param_prefix + name)  
         
         # submit plan
         p.submit(worker)
@@ -74,10 +74,10 @@ class ClustererAgent(Agent):
         # plan
         p = Plan(prefix=worker.prefix)
         # set input
-        p.set_input_value(input, value)
+        p.define_input(input, value=value)
         # set plan
-        p.add_input_to_agent_step(input, agent)
-        p.add_agent_to_agent_step(agent, self.name, to_param=output)
+        p.connect_input_to_agent(from_input=input, to_agent=agent)
+        p.connect_agent_to_agent(from_agent=agent, to_agent=self.name, to_agent_input=output)
         
         # submit plan
         p.submit(worker)
