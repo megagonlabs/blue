@@ -1,14 +1,3 @@
-# How to get started?
-
-There are 2 ways to get started with Blue:
-
-1. Demo System Access - TBD
-2. Install your own Blue environment
-    * [Local Installation](LOCAL-INSTALLATION.md)
-    * [SWARM Deployment](SWARM-DEPLOYMENT.md)
-
-</br>
-
 # What is Blue
 
 Blue is an agent orchestration platform to coordinate data and work in an enterprise AI system, comprised of agents and other components to perform complex tasks with workflows, accessing data, models, and APIs in the enterprise.
@@ -53,12 +42,12 @@ Sounds interesting? Want to learn more?
 
 # Outline of the documentation on this repo:
 
-* [Orchestration Concepts](ORCHESTRATION-CONCEPTS.md)
+* [Orchestration Concepts](ORCHESTRATION-CONCEPTS.md) to learn more about Blue concepts
 * Install your own Blue environment
-  * [Local Installation](LOCAL-INSTALLATION.md)
-  * [SWARM Deployment](SWARM-DEPLOYMENT.md)
-* [Development](DEVELOPMENT.md)
-* [Access Control](ACCESS-CONTROL.md)
+  * [Local Installation](LOCAL-INSTALLATION.md) more suited for development 
+  * [SWARM Deployment](SWARM-DEPLOYMENT.md) more suited for staging and production deployment 
+* [Development](DEVELOPMENT.md) to learn more about how to develop with Blue
+* [Access Control](ACCESS-CONTROL.md) to learn more about access control with roles
 
 </br>
 </br>
