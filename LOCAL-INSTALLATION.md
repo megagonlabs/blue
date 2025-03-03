@@ -10,6 +10,8 @@ https://docs.docker.com/engine/install/
 
 Most of blue scripts require a number of parameters. While you can use the defaults, configuring your setup can be more easy, if you set environment variables for your choices. Below is the list of environment varibles:
 
+- `BLUE_CORE_DOCKER_ORG`, docker org to push/pull core blue components, often, `megagonlabs`
+- `BLUE_DEV_DOCKER_ORG`, docker org to push/pull blue agents and services, your own org or `megagonlabs`
 - `BLUE_INSTALL_DIR`, directory containing blue source code, for example, `/Users/me/blue`
 - `BLUE_DEPLOY_TARGET`, deployment target, `localhost` (default) or `swarm`
 - `BLUE_DEPLOY_PLATFORM`, platform name, `default` (default)
