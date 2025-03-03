@@ -2,10 +2,10 @@
 echo 'Publishing Intent Classifier Agent...'
 
 # tag and publish
-docker tag blue-agent-intent_classifier:latest megagonlabs/blue-agent-intent_classifier:latest
-docker tag blue-agent-intent_classifier:latest megagonlabs/blue-agent-intent_classifier:$(git rev-parse --abbrev-ref HEAD)-$(git rev-parse --short HEAD)
+docker tag blue-agent-intent_classifier:latest ${BLUE_DEV_DOCKER_ORG}/blue-agent-intent_classifier:latest
+docker tag blue-agent-intent_classifier:latest ${BLUE_DEV_DOCKER_ORG}/blue-agent-intent_classifier:$(git rev-parse --abbrev-ref HEAD)-$(git rev-parse --short HEAD)
 
-docker push megagonlabs/blue-agent-intent_classifier:latest
-docker push megagonlabs/blue-agent-intent_classifier:$(git rev-parse --abbrev-ref HEAD)-$(git rev-parse --short HEAD)
+docker push ${BLUE_DEV_DOCKER_ORG}/blue-agent-intent_classifier:latest
+docker push ${BLUE_DEV_DOCKER_ORG}/blue-agent-intent_classifier:$(git rev-parse --abbrev-ref HEAD)-$(git rev-parse --short HEAD)
 
 echo 'Done...'
