@@ -8,8 +8,7 @@ import { AuthContext } from "./auth-context";
 export const SocketContext = createContext();
 export const SocketProvider = ({ children }) => {
     const { settings } = useContext(AuthContext);
-    const { appState, appActions } = useContext(AppContext);
-    const [authenticating, setAuthenticating] = useState(false);
+    const { appActions } = useContext(AppContext);
     const [isSocketOpen, setIsSocketOpen] = useState(false);
     const socketRef = useRef(null);
     const reconnectAttempts = useRef(0);
@@ -25,7 +24,6 @@ export const SocketProvider = ({ children }) => {
                 console.log(error);
             }
             // get WS auth ticket
-            setAuthenticating(true);
             axios.get("/accounts/websocket-ticket").then((response) => {
                 try {
                     const searchParams = new URLSearchParams({
@@ -118,8 +116,6 @@ export const SocketProvider = ({ children }) => {
                         intent: Intent.DANGER,
                         message: `Failed to initialize websocket: ${error}`,
                     });
-                } finally {
-                    setAuthenticating(false);
                 }
             });
         };
@@ -131,7 +127,7 @@ export const SocketProvider = ({ children }) => {
     }, [settings.debug_mode]);
     return (
         <SocketContext.Provider
-            value={{ authenticating, socket: socketRef.current, isSocketOpen }}
+            value={{ socket: socketRef.current, isSocketOpen }}
         >
             {children}
         </SocketContext.Provider>

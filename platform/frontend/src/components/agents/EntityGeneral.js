@@ -76,10 +76,6 @@ export default function EntityGeneral({
                             <div style={{ fontWeight: 600 }}>Display name</div>
                         }
                         style={{ width: "50%" }}
-                        onDoubleClick={(event) => {
-                            setEdit(true);
-                            event.stopPropagation();
-                        }}
                     >
                         <div
                             className={loading && Classes.SKELETON}

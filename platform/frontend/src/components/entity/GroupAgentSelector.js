@@ -293,7 +293,7 @@ export default function GroupAgentSelector({
                         <ControlGroup vertical>
                             <Button
                                 intent={Intent.SUCCESS}
-                                outlined
+                                variant="outlined"
                                 text="Add"
                                 loading={addingAgent}
                                 disabled={loading || _.isEmpty(agentsToAdd)}
@@ -302,14 +302,14 @@ export default function GroupAgentSelector({
                             />
                             <Divider style={{ opacity: 0 }} />
                             <Button
-                                minimal
+                                variant="minimal"
                                 text="Deselect all"
                                 onClick={onDeselectAll}
                             />
                             <Divider style={{ opacity: 0 }} />
                             <Button
                                 intent={Intent.DANGER}
-                                outlined
+                                variant="outlined"
                                 loading={removingAgent}
                                 disabled={loading || _.isEmpty(agentsToRemove)}
                                 onClick={onRemoveSelectedAgents}

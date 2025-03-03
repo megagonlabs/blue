@@ -81,7 +81,7 @@ export default function Workspace() {
                     <Tooltip content="Collapse all" minimal placement="bottom">
                         <Button
                             icon={faIcon({ icon: faArrowsToLine })}
-                            minimal
+                            variant="minimal"
                             onClick={() =>
                                 appActions.session.collapseAllWorkspace(
                                     sessionIdFocus

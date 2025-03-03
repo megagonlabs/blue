@@ -4,7 +4,6 @@ const {
     faDatabase,
     faFolderOpen,
     faFile,
-    faProjectDiagram,
     faArrowRightToArc,
     faArrowRightFromArc,
     faFunction,

@@ -81,7 +81,7 @@ export default function Breadcrumbs({ breadcrumbs }) {
                 >
                     <Button
                         intent={Intent.PRIMARY}
-                        minimal
+                        variant="minimal"
                         icon={faIcon({ icon: faBars })}
                     />
                 </Popover>

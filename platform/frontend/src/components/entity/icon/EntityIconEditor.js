@@ -275,7 +275,7 @@ export default function EntityIconEditor({
                                 <Button
                                     text="Preview"
                                     fill
-                                    minimal
+                                    variant="minimal"
                                     onClick={() => setShowPreview(!showPreview)}
                                     icon={faIcon({
                                         icon: faFaceViewfinder,
@@ -286,11 +286,10 @@ export default function EntityIconEditor({
                                             : faCaretDown,
                                     })}
                                 />
-
                                 <Button
                                     text="Center crop"
                                     fill
-                                    minimal
+                                    variant="minimal"
                                     icon={faIcon({
                                         icon: faArrowsToCircle,
                                     })}
@@ -397,7 +396,7 @@ export default function EntityIconEditor({
                             }}
                             size="large"
                             intent={Intent.DANGER}
-                            minimal
+                            variant="minimal"
                             icon={faIcon({ icon: faTrash })}
                         />
                     </Tooltip>

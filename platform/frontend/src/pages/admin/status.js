@@ -269,7 +269,7 @@ export default function Status() {
                                         !_.isEmpty(keyword) && (
                                             <Button
                                                 onClick={() => setKeyword("")}
-                                                minimal
+                                                variant="minimal"
                                                 icon={faIcon({ icon: faTimes })}
                                             />
                                         )

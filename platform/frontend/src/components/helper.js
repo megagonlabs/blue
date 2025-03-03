@@ -4,7 +4,7 @@ const {
     faExclamation,
 } = require("@fortawesome/sharp-duotone-solid-svg-icons");
 const { faIcon } = require("@/components/icon");
-const { ProgressBar, Classes, Intent, Button } = require("@blueprintjs/core");
+const { ProgressBar, Classes, Intent } = require("@blueprintjs/core");
 const classNames = require("classnames");
 const _ = require("lodash");
 const { AppToaster, ProgressToaster } = require("@/components/toaster");
@@ -162,7 +162,10 @@ module.exports = {
                         axios
                             .delete(`${url}/${deleted[i]}`)
                             .then(() => resolve(true))
-                            .catch((error) => axiosErrorToast(error))
+                            .catch((error) => {
+                                axiosErrorToast(error);
+                                reject(false);
+                            })
                     )
                 );
             }

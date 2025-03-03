@@ -127,7 +127,10 @@ export default function ButtonDoc({ closePanel }) {
                                     }}
                                 >
                                     <Button text="outlined: false" />
-                                    <Button outlined text="outlined: true" />
+                                    <Button
+                                        variant="outlined"
+                                        text="outlined: true"
+                                    />
                                 </Callout>
                             </td>
                         </tr>

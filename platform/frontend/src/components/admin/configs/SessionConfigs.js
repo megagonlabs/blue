@@ -69,7 +69,7 @@ export default function SessionConfigs({ loading, configs, setLoading }) {
                     />
                     <Button
                         size="large"
-                        minimal
+                        variant="minimal"
                         intent={Intent.SUCCESS}
                         text="Save"
                         loading={loading}

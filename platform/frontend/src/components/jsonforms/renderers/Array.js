@@ -240,7 +240,7 @@ const ArrayRenderer = ({
                                                 onClick={() => {
                                                     moveUp(path, index)();
                                                 }}
-                                                minimal
+                                                variant="minimal"
                                                 icon={faIcon({
                                                     icon: faArrowUp,
                                                 })}
@@ -257,7 +257,7 @@ const ArrayRenderer = ({
                                                 onClick={() => {
                                                     moveDown(path, index)();
                                                 }}
-                                                minimal
+                                                variant="minimal"
                                                 icon={faIcon({
                                                     icon: faArrowDown,
                                                 })}
@@ -326,7 +326,7 @@ const ArrayRenderer = ({
                         icon={faIcon({ icon: faPlus })}
                         text="Add"
                         ellipsizeText
-                        outlined
+                        variant="outlined"
                         onClick={addItem(
                             path,
                             createDefaultValue(schema, rootSchema)
@@ -337,7 +337,7 @@ const ArrayRenderer = ({
                     <Button
                         ellipsizeText
                         disabled={_.isEmpty(data)}
-                        outlined
+                        variant="outlined"
                         text="Visualize"
                         onClick={setVisualization}
                         icon={faIcon({ icon: faDiagramNext })}

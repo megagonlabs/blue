@@ -48,7 +48,7 @@ export default function TabsDoc({ closePanel }) {
         <>
             <div className="border-bottom" style={{ padding: "10px 20px" }}>
                 <Button
-                    outlined
+                    variant="outlined"
                     text="Back"
                     onClick={closePanel}
                     icon={faIcon({ icon: faArrowLeft })}
@@ -94,7 +94,7 @@ export default function TabsDoc({ closePanel }) {
                             overscrollBehavior: "contain",
                         }}
                     >
-                        <ButtonGroup minimal>
+                        <ButtonGroup variant="minimal">
                             <Button
                                 active={_.isEqual(tab, "tab1")}
                                 text="Tab 1"
@@ -121,7 +121,7 @@ export default function TabsDoc({ closePanel }) {
                     }}
                 >
                     <Card style={{ padding: 5 }}>
-                        <ButtonGroup vertical minimal>
+                        <ButtonGroup vertical variant="minimal">
                             <Button
                                 ellipsizeText
                                 active={_.isEqual(tab, "tab1")}

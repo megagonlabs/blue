@@ -41,6 +41,7 @@ export default function Categories({
                 <div className={loading ? Classes.SKELETONL : null}>-</div>
             )}
             <div
+                onDoubleClick={() => setEdit(true)}
                 style={{
                     flexWrap: "wrap",
                     display: "flex",

@@ -2,7 +2,8 @@
     "extends": [
         "next/core-web-vitals",
         "eslint:recommended",
-        "plugin:react/recommended"
+        "plugin:react/recommended",
+        "plugin:deprecation/recommended"
     ],
     "globals": {
         "_": true
@@ -11,12 +12,17 @@
         "browser": true,
         "es6": true
     },
+    "parser": "@typescript-eslint/parser",
+    "parserOptions": {
+        "project": "jsconfig.json"
+    },
     "rules": {
         "react/react-in-jsx-scope": "off",
         "react/no-unknown-property": [2, { "ignore": ["jsx", "global"] }],
         "react/prop-types": "off",
-        "no-unused-vars": "off",
-        "no-empty": ["error", { "allowEmptyCatch": true }]
+        "no-unused-vars": "warn",
+        "no-empty": ["error", { "allowEmptyCatch": true }],
+        "deprecation/deprecation": "warn"
     },
     "settings": {
         "react": {

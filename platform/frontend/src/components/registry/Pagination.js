@@ -28,17 +28,17 @@ export default function Pagination({
                     className={appState[type].loading ? Classes.SKELETON : null}
                     onClick={() => setPage(page - 1)}
                     disabled={page < 1}
-                    outlined
+                    variant="outlined"
                     icon={faIcon({ icon: faArrowLeft })}
                 />
             </Tooltip>
-            <Button minimal disabled text={page + 1} />
+            <Button variant="minimal" disabled text={page + 1} />
             <Tooltip content="Next" placement="bottom" minimal>
                 <Button
                     className={appState[type].loading ? Classes.SKELETON : null}
                     disabled={_.isEmpty(appState[type].list)}
                     onClick={() => setPage(page + 1)}
-                    outlined
+                    variant="outlined"
                     icon={faIcon({ icon: faArrowRight })}
                 />
             </Tooltip>
@@ -51,7 +51,7 @@ export default function Pagination({
                             return (
                                 <Button
                                     fill
-                                    minimal
+                                    variant="minimal"
                                     text={size}
                                     key={size}
                                     disabled={_.isEqual(pageSize, size)}
@@ -66,7 +66,7 @@ export default function Pagination({
                     className={appState[type].loading ? Classes.SKELETON : null}
                     alignText="right"
                     style={{ width: 100 }}
-                    outlined
+                    variant="outlined"
                     text={`${pageSize} / page`}
                 />
             </Popover>

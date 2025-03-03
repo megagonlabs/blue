@@ -115,7 +115,7 @@ export default function DebugPanel() {
                             minimal
                         >
                             <Button
-                                minimal
+                                variant="minimal"
                                 intent={Intent.WARNING}
                                 icon={faIcon({ icon: faMinus })}
                                 onClick={() => setIsMinimized(true)}

@@ -56,7 +56,7 @@ export default function App({ children }) {
     const { appState, appActions } = useContext(AppContext);
     const { sessionDetails, creatingSession, sessionIds, unreadSessionIds } =
         appState.session;
-    const { socket, isSocketOpen } = useSocket();
+    const { isSocketOpen } = useSocket();
     const recentSessions = useMemo(
         () =>
             _.intersection(
@@ -181,7 +181,7 @@ export default function App({ children }) {
     return (
         <div>
             <Navbar style={{ paddingLeft: 20, paddingRight: 20 }}>
-                <Navbar.Group align={Alignment.LEFT}>
+                <Navbar.Group align={Alignment.START}>
                     <Image
                         width={25}
                         height={25}
@@ -197,7 +197,7 @@ export default function App({ children }) {
                         </NavbarHeading>
                     </Link>
                 </Navbar.Group>
-                <Navbar.Group align={Alignment.RIGHT}>
+                <Navbar.Group align={Alignment.END}>
                     {RIGHT_HAND_ACTIONS.map((action, index) => (
                         <Tooltip
                             placement="bottom"
@@ -244,9 +244,9 @@ export default function App({ children }) {
                                 <MenuDivider title="Sessions" />
                             )}
                             <ButtonGroup
-                                alignText={Alignment.LEFT}
+                                alignText={Alignment.START}
                                 vertical
-                                minimal
+                                variant="minimal"
                                 className="full-parent-width"
                             >
                                 {canReadSessions &&
@@ -461,7 +461,7 @@ export default function App({ children }) {
                                 <MenuDivider title="Registries" />
                             )}
                             <ButtonGroup
-                                alignText={Alignment.LEFT}
+                                alignText={Alignment.START}
                                 vertical
                                 variant="minimal"
                                 size="large"
@@ -533,7 +533,7 @@ export default function App({ children }) {
                                 <MenuDivider title="Dev. Tools" />
                             )}
                             <ButtonGroup
-                                alignText={Alignment.LEFT}
+                                alignText={Alignment.START}
                                 vertical
                                 variant="minimal"
                                 size="large"
@@ -604,7 +604,7 @@ export default function App({ children }) {
                                 <MenuDivider title="Admin. Tools" />
                             )}
                             <ButtonGroup
-                                alignText={Alignment.LEFT}
+                                alignText={Alignment.START}
                                 vertical
                                 variant="minimal"
                                 size="large"

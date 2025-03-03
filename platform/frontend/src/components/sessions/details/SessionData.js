@@ -128,7 +128,7 @@ export default function SessionData() {
                             >
                                 <Button
                                     size="large"
-                                    minimal
+                                    variant="minimal"
                                     icon={faIcon({ icon: faXmarkLarge })}
                                 />
                             </Tooltip>

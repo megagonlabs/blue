@@ -129,7 +129,7 @@ export default function PlanVisualizationPanel() {
                                 })
                             ) : (
                                 <Card style={{ padding: 5 }}>
-                                    <ButtonGroup vertical minimal>
+                                    <ButtonGroup vertical variant="minimal">
                                         <Tooltip
                                             content="Fit view"
                                             minimal

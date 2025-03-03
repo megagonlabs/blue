@@ -320,7 +320,7 @@ export default function EntityMain({
                                             content="Discard"
                                         >
                                             <Button
-                                                minimal
+                                                variant="minimal"
                                                 icon={faIcon({
                                                     icon: faXmarkLarge,
                                                 })}
@@ -487,7 +487,7 @@ export default function EntityMain({
                                         }
                                     >
                                         <Button
-                                            outlined
+                                            variant="outlined"
                                             text="Actions"
                                             endIcon={faIcon({
                                                 icon: faListDropdown,
