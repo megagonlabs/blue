@@ -158,7 +158,7 @@ def get_source_property(request: Request, source_name, property_name):
 def set_source_property(request: Request, source_name, property_name, property: JSONStructure):
     source_db = data_registry.get_source(source_name)
     source_acl_enforce(request, source_db, write=True)
-    data_registry.set_source_property(source_name, property_name, property, rebuild=True)
+    data_registry.set_source_property(source_name, property_name, pydash.objects.get(property, [property_name], None), rebuild=True)
     # save
     data_registry.dump("/blue_data/config/" + data_registry_id + ".data.json")
     return JSONResponse(content={"message": "Success"})

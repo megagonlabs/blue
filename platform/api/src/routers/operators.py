@@ -154,7 +154,7 @@ def get_operator_property(request: Request, operator_name, property_name):
 def set_operator_property(request: Request, operator_name, property_name, property: JSONStructure):
     operator_db = operator_registry.get_operator(operator_name)
     operator_acl_enforce(request, operator_db, write=True)
-    operator_registry.set_operator_property(operator_name, property_name, property, rebuild=True)
+    operator_registry.set_operator_property(operator_name, property_name, pydash.objects.get(property, [property_name], None), rebuild=True)
     # save
     operator_registry.dump("/blue_data/config/" + operator_registry_id + ".operators.json")
     return JSONResponse(content={"message": "Success"})

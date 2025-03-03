@@ -154,7 +154,7 @@ def get_model_property(request: Request, model_name, property_name):
 def set_model_property(request: Request, model_name, property_name, property: JSONStructure):
     model_db = model_registry.get_model(model_name)
     model_acl_enforce(request, model_db, write=True)
-    model_registry.set_model_property(model_name, property_name, property, rebuild=True)
+    model_registry.set_model_property(model_name, property_name, pydash.objects.get(property, [property_name], None), rebuild=True)
     # save
     model_registry.dump("/blue_data/config/" + model_registry_id + ".models.json")
     return JSONResponse(content={"message": "Success"})
