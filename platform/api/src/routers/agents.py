@@ -385,7 +385,7 @@ def get_agent_input_property(request: Request, agent_name, param_name, property_
 def set_agent_input_property(request: Request, agent_name, param_name, property_name, property: JSONStructure):
     agent_db = agent_registry.get_agent(agent_name)
     agent_acl_enforce(request, agent_db, write=True)
-    agent_registry.set_agent_input_property(agent_name, param_name, property_name, property, rebuild=True)
+    agent_registry.set_agent_input_property(agent_name, param_name, property_name, pydash.objects.get(property, [property_name], None), rebuild=True)
     # save
     agent_registry.dump("/blue_data/config/" + agent_registry_id + ".agents.json")
     return JSONResponse(content={"message": "Success"})
@@ -477,7 +477,7 @@ def get_agent_output_property(request: Request, agent_name, param_name, property
 def set_agent_output_property(request: Request, agent_name, param_name, property_name, property: JSONStructure):
     agent_db = agent_registry.get_agent(agent_name)
     agent_acl_enforce(request, agent_db, write=True)
-    agent_registry.set_agent_output_property(agent_name, param_name, property_name, property, rebuild=True)
+    agent_registry.set_agent_output_property(agent_name, param_name, property_name, pydash.objects.get(property, [property_name], None), rebuild=True)
     # save
     agent_registry.dump("/blue_data/config/" + agent_registry_id + ".agents.json")
     return JSONResponse(content={"message": "Success"})
@@ -628,7 +628,7 @@ def get_agent_property_in_agent_group(request: Request, group_name, agent_name, 
 def set_agent_property_in_agent_group(request: Request, group_name, agent_name, property_name, property: JSONStructure):
     agent_group_db = agent_registry.get_agent_group(group_name)
     agent_group_acl_enforce(request, agent_group_db, write=True)
-    agent_registry.set_agent_property_in_agent_group(group_name, agent_name, property_name, property, rebuild=True)
+    agent_registry.set_agent_property_in_agent_group(group_name, agent_name, property_name, pydash.objects.get(property, [property_name], None), rebuild=True)
     # save
     agent_registry.dump("/blue_data/config/" + agent_registry_id + ".agents.json")
     return JSONResponse(content={"message": "Success"})
