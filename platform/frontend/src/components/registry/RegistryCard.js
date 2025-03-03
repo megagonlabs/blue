@@ -71,8 +71,12 @@ export default function RegistryCard({
                             overscrollBehavior: "contain",
                         }}
                     >
-                        {categories.map((category) => (
-                            <Tag style={{ display: "inline-table" }} minimal>
+                        {categories.map((category, index) => (
+                            <Tag
+                                key={index}
+                                style={{ display: "inline-table" }}
+                                minimal
+                            >
                                 {category}
                             </Tag>
                         ))}
