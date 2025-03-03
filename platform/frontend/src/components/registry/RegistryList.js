@@ -118,6 +118,7 @@ export default function RegistryList({ type }) {
                                 icon={icon}
                                 title={displayName}
                                 description={element.description}
+                                properties={element.properties}
                                 extra={extra}
                                 href={`${populateRouterPathname(router)}/${
                                     element.name

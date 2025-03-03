@@ -109,6 +109,14 @@ table.entity-section-card-table tr td {
 .cm-overscroll-behavior-contain .cm-scroller {
     overscroll-behavior: contain;
 }
+.scrollbar-none {
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* Internet Explorer 10+ */
+}
+.scrollbar-none::-webkit-scrollbar {
+    /* WebKit */
+    display: none;
+}
 .message-bubble-callout {
     max-width: 100%;
     min-width: 50px;

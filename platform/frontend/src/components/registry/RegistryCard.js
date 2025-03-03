@@ -10,11 +10,13 @@ export default function RegistryCard({
     title,
     icon,
     description,
+    properties,
     href = "",
     extra,
     container,
 }) {
     const containerStatus = _.get(container, "status", "not exist");
+    const categories = _.get(properties, "categories", []);
     return (
         <Link
             style={
@@ -25,12 +27,7 @@ export default function RegistryCard({
             className="no-link-decoration"
             href={href}
         >
-            <Card
-                style={{
-                    height: "100%",
-                    position: "relative",
-                }}
-            >
+            <Card style={{ height: "100%", position: "relative" }}>
                 <Card
                     style={{
                         position: "absolute",
@@ -63,8 +60,27 @@ export default function RegistryCard({
                 >
                     {description}
                 </div>
+                {!_.isEmpty(categories) && (
+                    <div
+                        className="full-parent-width scrollbar-none"
+                        style={{
+                            display: "inline-flex",
+                            gap: 10,
+                            marginTop: 10,
+                            overflowX: "auto",
+                            overscrollBehavior: "contain",
+                        }}
+                    >
+                        {categories.map((category) => (
+                            <Tag style={{ display: "inline-table" }} minimal>
+                                {category}
+                            </Tag>
+                        ))}
+                    </div>
+                )}
                 {!_.isEmpty(extra) ? (
                     <Tag
+                        size="large"
                         style={{
                             marginTop: 10,
                             maxWidth: `calc(100% - ${
