@@ -37,9 +37,9 @@ export default function Status() {
     const { appState, appActions } = useContext(AppContext);
     const [isLive, setIsLive] = useState(false);
     const { list: trackerList } = appState.tracker;
-    const appStateRef = useRef();
+    const appStateTrackerRef = useRef();
     useEffect(() => {
-        appStateRef.current = appState;
+        appStateTrackerRef.current = appState.tracker;
     }, [appState.tracker]);
     const render = (
         time,
@@ -168,7 +168,7 @@ export default function Status() {
                 if (_.isNumber(time)) time *= 1000;
                 const trackerGraph = _.cloneDeep(
                     _.get(
-                        appStateRef.current.tracker.data,
+                        appStateTrackerRef.current.data,
                         [channel, "graph"],
                         {}
                     )

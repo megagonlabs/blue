@@ -47,7 +47,7 @@ import classNames from "classnames";
 import copy from "copy-to-clipboard";
 import jsonFormatter from "json-string-formatter";
 import _ from "lodash";
-import { createRef, useCallback, useEffect, useState } from "react";
+import { createRef, useEffect, useMemo, useState } from "react";
 import { useErrorBoundary, withErrorBoundary } from "react-use-error-boundary";
 const DEFAULT_SCHEMA = JSON.stringify(
     { type: "object", properties: {} },
@@ -110,13 +110,14 @@ function FormDesigner() {
         } catch (error) {}
         sessionStorage.setItem("data", jsonData);
     }, [jsonData]);
-    const debounced = useCallback(
-        _.debounce((value) => {
-            try {
-                if (!_.isEqual(value, JSON.parse(jsonData)))
-                    setJsonData(JSON.stringify(value, null, 4));
-            } catch (error) {}
-        }, 300),
+    const debounced = useMemo(
+        () =>
+            _.debounce((value) => {
+                try {
+                    if (!_.isEqual(value, JSON.parse(jsonData)))
+                        setJsonData(JSON.stringify(value, null, 4));
+                } catch (error) {}
+            }, 300),
         [jsonData]
     );
     useEffect(() => debounced(data), [data]);

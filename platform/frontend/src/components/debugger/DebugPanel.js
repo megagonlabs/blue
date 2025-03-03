@@ -133,7 +133,7 @@ export default function DebugPanel() {
                         borderBottomLeftRadius: 0,
                         borderBottomRightRadius: 0,
                         width: 250,
-                        right: 40,
+                        right: 20,
                         display:
                             _.get(settings, "debug_mode", false) && isMinimized
                                 ? null

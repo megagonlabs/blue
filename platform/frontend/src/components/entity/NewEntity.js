@@ -45,7 +45,7 @@ export default function NewEntity({
                 setEntity(_.get(response, "data.result", {}));
             }
         });
-    }, [router]);
+    }, [router, searchParams, urlPrefix]); // eslint-disable-line react-hooks/exhaustive-deps
     const namePrefixRef = createRef();
     const namePrefixDimensions = useRefDimensions(namePrefixRef);
     const allowProperties = [

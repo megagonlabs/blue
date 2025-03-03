@@ -21,7 +21,7 @@ import axios from "axios";
 import _ from "lodash";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useContext, useEffect, useState } from "react";
+import { useCallback, useContext, useEffect, useState } from "react";
 const agentRegistryName = process.env.NEXT_PUBLIC_AGENT_REGISTRY_NAME;
 export default function AgentGroupEntity() {
     const BLANK_ENTITY = { type: "agent_group" };
@@ -51,7 +51,7 @@ export default function AgentGroupEntity() {
     })();
     const routerQueryPath =
         "/" + _.get(router, "query.pathParams", []).join("/");
-    const fetchAgentGroup = () => {
+    const fetchAgentGroup = useCallback(() => {
         setLoading(true);
         axios.get(routerQueryPath).then((response) => {
             const result = _.get(response, "data.result", {});
@@ -64,7 +64,7 @@ export default function AgentGroupEntity() {
             setEditEntity(result);
             setLoading(false);
         });
-    };
+    }, [routerQueryPath]);
     useEffect(() => {
         if (!router.isReady) return;
         fetchAgentGroup();

@@ -38,7 +38,7 @@ export default function Tags({
         if (_.isEqual(operation, "remove")) {
             _.pullAt(newEntries, index);
         } else if (_.isEqual(operation, "add")) {
-            newEntries.push({ key: "", tags: [] });
+            newEntries.push({ key: "DEFAULT", tags: [] });
         }
         setEntries(newEntries);
     };
@@ -102,7 +102,19 @@ export default function Tags({
                                 </Tooltip>
                             </div>
                         )}
-                        <div style={{ marginBottom: 7.5 }}>
+                        <div
+                            style={{
+                                marginBottom: 7.5,
+                                display: "flex",
+                                alignItems: "center",
+                            }}
+                        >
+                            <div
+                                style={{ minWidth: 70 }}
+                                className={Classes.TEXT_MUTED}
+                            >
+                                Output
+                            </div>
                             {edit ? (
                                 <EditableText
                                     className={

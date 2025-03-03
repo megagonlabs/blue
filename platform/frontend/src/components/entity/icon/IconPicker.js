@@ -19,7 +19,7 @@ import {
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import _ from "lodash";
 import Link from "next/link";
-import { useCallback, useContext, useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useMemo, useRef, useState } from "react";
 export default function IconPicker({
     icon,
     color,
@@ -37,16 +37,18 @@ export default function IconPicker({
         setColorHex(_.isEmpty(color) ? "" : color);
         invalidColor.current = false;
     }, [color]);
-    const handleSearchQuery = useCallback(
-        _.debounce((keyword) => {
-            if (!_.isEmpty(keyword)) {
-                const results = appState.app.iconPickerIndex.search(keyword);
-                setSearchResults(results);
-            } else {
-                setSearchResults([]);
-            }
-        }, 800),
-        []
+    const handleSearchQuery = useMemo(
+        () =>
+            _.debounce((keyword) => {
+                if (!_.isEmpty(keyword)) {
+                    const results =
+                        appState.app.iconPickerIndex.search(keyword);
+                    setSearchResults(results);
+                } else {
+                    setSearchResults([]);
+                }
+            }, 800),
+        [appState.app.iconPickerIndex]
     );
     return (
         <>
