@@ -362,7 +362,7 @@ export default function AgentEntity() {
             <Section
                 compact
                 icon={faIcon({ icon: ENTITY_TYPE_LOOKUP.agent.icon })}
-                title={<H5 className="margin-0">Agents</H5>}
+                title={<H5 className="margin-0">Derived Agents</H5>}
                 style={{ marginTop: 20 }}
             >
                 <SectionCard padded={false}>
