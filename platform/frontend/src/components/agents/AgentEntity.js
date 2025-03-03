@@ -90,7 +90,7 @@ export default function AgentEntity() {
             setLoading(false);
             setGeneral(getGeneralProperties(result.properties));
         });
-    }, [router]);
+    }, [router, routerQueryPath]);
     const updateEntity = ({ path, value }) => {
         let newEntity = _.cloneDeep(editEntity);
         _.set(newEntity, path, value);

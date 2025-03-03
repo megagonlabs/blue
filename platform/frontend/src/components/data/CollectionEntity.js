@@ -28,7 +28,7 @@ export default function CollectionEntity() {
             setEntity(_.get(response, "data.result", {}));
             setLoading(false);
         });
-    }, [router]);
+    }, [router, routerQueryPath]);
     return (
         <div style={{ padding: "10px 20px 20px" }}>
             <EntityMain entity={entity} loading={loading} />

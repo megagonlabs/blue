@@ -68,7 +68,7 @@ export default function AgentGroupEntity() {
     useEffect(() => {
         if (!router.isReady) return;
         fetchAgentGroup();
-    }, [router]);
+    }, [router, fetchAgentGroup]);
     const updateEntity = ({ path, value }) => {
         let newEntity = _.cloneDeep(editEntity);
         _.set(newEntity, path, value);

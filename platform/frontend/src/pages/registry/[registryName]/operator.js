@@ -24,7 +24,7 @@ import {
     faTimes,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import _ from "lodash";
-import { useCallback, useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useMemo, useState } from "react";
 export default function Operator() {
     const { appState, appActions } = useContext(AppContext);
     const { filter } = appState.operator;
@@ -35,35 +35,39 @@ export default function Operator() {
     const [page, setPage] = useState(filter.page);
     const [pageSize, setPageSize] = useState(filter.page_size);
     const operatorRegistryName = process.env.NEXT_PUBLIC_OPERATOR_REGISTRY_NAME;
-    const debounceOnKeywordsChange = useCallback(
-        _.debounce(
-            ({
-                registryName,
-                hybrid,
-                approximate,
-                keywords,
-                type,
-                page,
-                pageSize,
-            }) => {
-                appActions.operator.setState({ key: "loading", value: true });
-                if (_.isEmpty(keywords)) {
-                    appActions.operator.getList(operatorRegistryName);
-                } else {
-                    appActions.operator.searchList({
-                        registryName: registryName,
-                        hybrid: hybrid,
-                        approximate: approximate,
-                        keywords: keywords,
-                        type: type,
-                        page: page,
-                        pageSize: pageSize,
+    const debounceOnKeywordsChange = useMemo(
+        () =>
+            _.debounce(
+                ({
+                    registryName,
+                    hybrid,
+                    approximate,
+                    keywords,
+                    type,
+                    page,
+                    pageSize,
+                }) => {
+                    appActions.operator.setState({
+                        key: "loading",
+                        value: true,
                     });
-                }
-            },
-            300
-        ),
-        []
+                    if (_.isEmpty(keywords)) {
+                        appActions.operator.getList(operatorRegistryName);
+                    } else {
+                        appActions.operator.searchList({
+                            registryName: registryName,
+                            hybrid: hybrid,
+                            approximate: approximate,
+                            keywords: keywords,
+                            type: type,
+                            page: page,
+                            pageSize: pageSize,
+                        });
+                    }
+                },
+                300
+            ),
+        [] // eslint-disable-line react-hooks/exhaustive-deps
     );
     useEffect(() => {
         debounceOnKeywordsChange({
@@ -125,7 +129,7 @@ export default function Operator() {
                                 !_.isEmpty(keywords) ||
                                 appState.operator.search ? (
                                     <Button
-                                        minimal
+                                        variant="minimal"
                                         onClick={() => {
                                             setKeywords("");
                                             setPage(0);

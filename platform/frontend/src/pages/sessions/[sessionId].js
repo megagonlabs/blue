@@ -4,7 +4,6 @@ import {
 } from "@/components/constant";
 import { AppContext } from "@/components/contexts/app-context";
 import { AuthContext } from "@/components/contexts/auth-context";
-import { SocketContext } from "@/components/contexts/socket-context";
 import { sendSocketMessage } from "@/components/helper";
 import { useSocket } from "@/components/hooks/useSocket";
 import { faIcon } from "@/components/icon";
@@ -74,14 +73,13 @@ export default function SessionMessagePage() {
         return () => {
             appActions.session.setSessionIdFocus(null);
         };
-    }, [router]);
+    }, [router, sessionId]); // eslint-disable-line react-hooks/exhaustive-deps
     const { sessionAgentProgress, openAgentsDialogTrigger } = appState.session;
     const [message, setMessage] = useState("");
     const sessionMessageTextArea = useRef(null);
     const [isSessionDetailOpen, setIsSessionDetailOpen] = useState(false);
     const { settings } = useContext(AuthContext);
     const compactSidebar = _.get(settings, "compact_sidebar", false);
-    const { authenticating } = useContext(SocketContext);
     const sendSessionMessage = (message) => {
         if (!isSocketOpen) return;
         setMessage("");
@@ -126,7 +124,7 @@ export default function SessionMessagePage() {
             return date.toLocaleString();
         }
         return sessionName;
-    }, [sessionDetails]);
+    }, [sessionDetails, sessionId, sessionName]);
     const sessionDescription = _.get(sessionDetails, "description", "");
     useEffect(() => {
         if (openAgentsDialogTrigger) {
@@ -254,7 +252,7 @@ export default function SessionMessagePage() {
                                         style={{ maxWidth: "100%" }}
                                         ellipsizeText
                                         variant="minimal"
-                                        alignText={Alignment.LEFT}
+                                        alignText={Alignment.START}
                                         onClick={() =>
                                             setIsSessionDetailOpen(true)
                                         }
@@ -401,8 +399,8 @@ export default function SessionMessagePage() {
                         >
                             <Button
                                 disabled={!isSocketOpen}
-                                large
-                                minimal
+                                size="large"
+                                variant="minimal"
                                 style={{ maxWidth: 40, height: 91 }}
                                 icon={faIcon({ icon: faPlusLarge })}
                             />

@@ -25,7 +25,7 @@ import axios from "axios";
 import classNames from "classnames";
 import _ from "lodash";
 import Image from "next/image";
-import { useCallback, useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useMemo, useState } from "react";
 const UserAvatar = ({ user, loading = false }) => {
     const picture = _.get(user, "picture", "");
     return (
@@ -102,21 +102,24 @@ export default function SessionMembersList({ loading, setLoading }) {
     useEffect(() => {
         fetchMemberList();
     }, []); // eslint-disable-line react-hooks/exhaustive-deps
-    const handleSearchQuery = useCallback(
-        _.debounce((keyword) => {
-            if (!_.isEmpty(keyword)) {
-                axios
-                    .get("/accounts/users", { params: { keyword: keyword } })
-                    .then((response) => {
-                        setSearchResult(_.get(response, "data.users", []));
-                    })
-                    .finally(() => setIsTyping(false));
-            } else {
-                setSearchResult([]);
-                setIsTyping(false);
-            }
-        }, 800),
-        [members]
+    const handleSearchQuery = useMemo(
+        () =>
+            _.debounce((keyword) => {
+                if (!_.isEmpty(keyword)) {
+                    axios
+                        .get("/accounts/users", {
+                            params: { keyword: keyword },
+                        })
+                        .then((response) => {
+                            setSearchResult(_.get(response, "data.users", []));
+                        })
+                        .finally(() => setIsTyping(false));
+                } else {
+                    setSearchResult([]);
+                    setIsTyping(false);
+                }
+            }, 800),
+        []
     );
     const LOADING_PLACEHOLDER = (
         <div
@@ -236,7 +239,7 @@ export default function SessionMembersList({ loading, setLoading }) {
                                         !memberIds.has(user.uid) ? (
                                             <Button
                                                 intent={Intent.PRIMARY}
-                                                minimal
+                                                variant="minimal"
                                                 onClick={() => {
                                                     addMember(user);
                                                 }}
@@ -378,7 +381,7 @@ export default function SessionMembersList({ loading, setLoading }) {
                                             >
                                                 <Button
                                                     size="large"
-                                                    minimal
+                                                    variant="minimal"
                                                     icon={faIcon({
                                                         icon: faTrash,
                                                     })}

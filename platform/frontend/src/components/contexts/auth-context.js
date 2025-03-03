@@ -13,7 +13,13 @@ import axios from "axios";
 import { initializeApp } from "firebase/app";
 import { GoogleAuthProvider, getAuth, signInWithPopup } from "firebase/auth";
 import _ from "lodash";
-import { createContext, useContext, useEffect, useState } from "react";
+import {
+    createContext,
+    useCallback,
+    useContext,
+    useEffect,
+    useState,
+} from "react";
 import { axiosErrorToast, hasIntersection } from "../helper";
 import { AppToaster } from "../toaster";
 import { AppContext } from "./app-context";
@@ -161,7 +167,7 @@ export const AuthProvider = ({ children }) => {
             ),
         };
     };
-    const fetchAccountProfile = () => {
+    const fetchAccountProfile = useCallback(() => {
         axios
             .get("/accounts/profile")
             .then((response) => {
@@ -196,7 +202,7 @@ export const AuthProvider = ({ children }) => {
                 });
             })
             .finally(() => setAuthInitialized(true));
-    };
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
     const updateSettings = (key, value) => {
         setSettings({ ...settings, [key]: value });
         axios.put(`/accounts/profile/settings/${key}`, { value }).then(() => {
@@ -230,7 +236,7 @@ export const AuthProvider = ({ children }) => {
     };
     useEffect(() => {
         fetchAccountProfile();
-    }, []);
+    }, [fetchAccountProfile]);
     return (
         <AuthContext.Provider
             value={{ user, permissions, settings, updateSettings, signOut }}

@@ -80,9 +80,7 @@ export default function New() {
             key = pathParams[i];
             value = pathParams[i + 1];
             basePath += `/${key}/${value}`;
-            if (i > 0) {
-                type += `/${key}`;
-            }
+            if (i > 0) type += `/${key}`; // eslint-disable-line no-unused-vars
             crumbs.push({
                 href: basePath,
                 text: `${key}/ ${value}`,

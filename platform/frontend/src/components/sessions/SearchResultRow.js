@@ -36,7 +36,7 @@ export default function SearchResultRow({ sessionId, style = {} }) {
             return date.toLocaleString();
         }
         return sessionName;
-    }, [sessionDetails]);
+    }, [sessionDetails, sessionId, sessionName]);
     const sessionDescription = _.get(
         sessionDetails,
         [sessionId, "description"],

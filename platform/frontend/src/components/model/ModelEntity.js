@@ -37,7 +37,7 @@ export default function ModelEntity() {
             setEditEntity(result);
             setLoading(false);
         });
-    }, [router]);
+    }, [router, routerQueryPath]);
     const updateEntity = ({ path, value }) => {
         let newEntity = _.cloneDeep(editEntity);
         _.set(newEntity, path, value);

@@ -24,7 +24,7 @@ import {
     faTimes,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import _ from "lodash";
-import { useCallback, useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useMemo, useState } from "react";
 export default function Agent() {
     const { appState, appActions } = useContext(AppContext);
     const { filter } = appState.agent;
@@ -35,35 +35,36 @@ export default function Agent() {
     const [page, setPage] = useState(filter.page);
     const [pageSize, setPageSize] = useState(filter.page_size);
     const agentRegistryName = process.env.NEXT_PUBLIC_AGENT_REGISTRY_NAME;
-    const debounceOnKeywordsChange = useCallback(
-        _.debounce(
-            ({
-                registryName,
-                hybrid,
-                approximate,
-                keywords,
-                type,
-                page,
-                pageSize,
-            }) => {
-                appActions.agent.setState({ key: "loading", value: true });
-                if (_.isEmpty(keywords)) {
-                    appActions.agent.getList(agentRegistryName);
-                } else {
-                    appActions.agent.searchList({
-                        registryName: registryName,
-                        hybrid: hybrid,
-                        approximate: approximate,
-                        keywords: keywords,
-                        type: type,
-                        page: page,
-                        pageSize: pageSize,
-                    });
-                }
-            },
-            300
-        ),
-        []
+    const debounceOnKeywordsChange = useMemo(
+        () =>
+            _.debounce(
+                ({
+                    registryName,
+                    hybrid,
+                    approximate,
+                    keywords,
+                    type,
+                    page,
+                    pageSize,
+                }) => {
+                    appActions.agent.setState({ key: "loading", value: true });
+                    if (_.isEmpty(keywords)) {
+                        appActions.agent.getList(agentRegistryName);
+                    } else {
+                        appActions.agent.searchList({
+                            registryName: registryName,
+                            hybrid: hybrid,
+                            approximate: approximate,
+                            keywords: keywords,
+                            type: type,
+                            page: page,
+                            pageSize: pageSize,
+                        });
+                    }
+                },
+                300
+            ),
+        [] // eslint-disable-line react-hooks/exhaustive-deps
     );
     useEffect(() => {
         debounceOnKeywordsChange({
@@ -121,7 +122,7 @@ export default function Agent() {
                                 !_.isEmpty(keywords) ||
                                 appState.agent.search ? (
                                     <Button
-                                        minimal
+                                        variant="minimal"
                                         onClick={() => {
                                             setKeywords("");
                                             setPage(0);

@@ -83,6 +83,7 @@ export default function AllSessions() {
         }
         return result;
     }, [
+        appState,
         sessionIds,
         pinnedSessionIds,
         sessionGroupBy,
@@ -183,7 +184,7 @@ export default function AllSessions() {
                             rightElement={
                                 !_.isEmpty(filter.keywords) && (
                                     <Button
-                                        minimal
+                                        variant="minimal"
                                         onClick={() => {
                                             setKeywords("");
                                             appActions.session.setState({

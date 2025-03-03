@@ -33,7 +33,7 @@ import {
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import axios from "axios";
 import _ from "lodash";
-import { useContext, useEffect, useState } from "react";
+import { useCallback, useContext, useEffect, useState } from "react";
 import ReactTimeAgo from "react-time-ago";
 export default function Services() {
     const { appState, appActions } = useContext(AppContext);
@@ -76,7 +76,7 @@ export default function Services() {
             AppToaster.show({ intent: Intent.SUCCESS, message });
         }
     };
-    const fetchServiceList = () => {
+    const fetchServiceList = useCallback(() => {
         setLoading(true);
         axios.get("/containers/services").then((response) => {
             appActions.admin.setServiceList(
@@ -84,10 +84,10 @@ export default function Services() {
             );
             setLoading(false);
         });
-    };
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
     useEffect(() => {
         fetchServiceList();
-    }, []);
+    }, [fetchServiceList]);
     const TABLE_CELL_HEIGHT = 40;
     const INIT_COLUMNS = [
         {

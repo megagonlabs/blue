@@ -39,7 +39,7 @@ import {
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import axios from "axios";
 import _ from "lodash";
-import { useContext, useEffect, useState } from "react";
+import { useCallback, useContext, useEffect, useState } from "react";
 import ReactTimeAgo from "react-time-ago";
 export default function Agents() {
     const { appState, appActions } = useContext(AppContext);
@@ -117,16 +117,16 @@ export default function Agents() {
             AppToaster.show({ intent: Intent.SUCCESS, message });
         }
     };
-    const fetchContainerList = () => {
+    const fetchContainerList = useCallback(() => {
         setLoading(true);
         axios.get("/containers/agents").then((response) => {
             appActions.admin.setAgentList(_.get(response, "data.results", []));
             setLoading(false);
         });
-    };
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
     useEffect(() => {
         fetchContainerList();
-    }, []);
+    }, [fetchContainerList]);
     const TABLE_CELL_HEIGHT = 40;
     const CELL_STYLE = {
         lineHeight: `${TABLE_CELL_HEIGHT - 1}px`,
@@ -146,7 +146,7 @@ export default function Agents() {
             key: "actions",
             cellRenderer: ({ rowIndex, data }) => (
                 <Cell style={CELL_STYLE}>
-                    <ButtonGroup minimal style={{ marginTop: 4.5 }}>
+                    <ButtonGroup variant="minimal" style={{ marginTop: 4.5 }}>
                         <Tooltip
                             openOnTargetFocus={false}
                             content="Logs"
