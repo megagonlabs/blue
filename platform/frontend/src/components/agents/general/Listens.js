@@ -38,7 +38,7 @@ export default function Listens({
         if (_.isEqual(operation, "remove")) {
             _.pullAt(newEntries, index);
         } else if (_.isEqual(operation, "add")) {
-            newEntries.push({ key: "", includes: [], excludes: [] });
+            newEntries.push({ key: "DEFAULT", includes: [], excludes: [] });
         }
         setEntries(newEntries);
     };
@@ -91,8 +91,8 @@ export default function Listens({
                                 >
                                     <Button
                                         intent={Intent.DANGER}
-                                        large
-                                        minimal
+                                        size="large"
+                                        variant="minimal"
                                         onClick={() =>
                                             updateEntry("remove", index)
                                         }
@@ -101,7 +101,19 @@ export default function Listens({
                                 </Tooltip>
                             </div>
                         )}
-                        <div style={{ marginBottom: 7.5 }}>
+                        <div
+                            style={{
+                                marginBottom: 7.5,
+                                display: "flex",
+                                alignItems: "center",
+                            }}
+                        >
+                            <div
+                                style={{ minWidth: 70 }}
+                                className={Classes.TEXT_MUTED}
+                            >
+                                Input
+                            </div>
                             {edit ? (
                                 <EditableText
                                     className={
@@ -136,13 +148,13 @@ export default function Listens({
                                 {_.isEmpty(entry.includes) && !edit && "-"}
                                 {entry.includes.map((tag, tagIndex) => (
                                     <Tag
-                                        large
+                                        size="large"
                                         className={
                                             loading ? Classes.SKELETON : null
                                         }
                                         key={tagIndex}
                                         minimal
-                                        rightIcon={
+                                        endIcon={
                                             edit && (
                                                 <div
                                                     style={{
@@ -168,7 +180,7 @@ export default function Listens({
                                 ))}
                                 {edit && !loading && (
                                     <EditableText
-                                        placeholder="Add"
+                                        placeholder="Add tag"
                                         value={_.get(
                                             addTags,
                                             [index, "includes"],
@@ -214,13 +226,13 @@ export default function Listens({
                                 {_.isEmpty(entry.excludes) && !edit && "-"}
                                 {entry.excludes.map((tag, tagIndex) => (
                                     <Tag
-                                        large
+                                        size="large"
                                         className={
                                             loading ? Classes.SKELETON : null
                                         }
                                         key={tagIndex}
                                         minimal
-                                        rightIcon={
+                                        endIcon={
                                             edit && (
                                                 <div
                                                     style={{
@@ -246,7 +258,7 @@ export default function Listens({
                                 ))}
                                 {edit && !loading && (
                                     <EditableText
-                                        placeholder="Add"
+                                        placeholder="Add tag"
                                         value={_.get(
                                             addTags,
                                             [index, "excludes"],
@@ -281,9 +293,9 @@ export default function Listens({
                 <Button
                     onClick={() => updateEntry("add")}
                     style={{ marginTop: !_.isEmpty(entries) > 0 ? 7.5 : 0 }}
-                    outlined
+                    variant="outlined"
                     icon={faIcon({ icon: faPlus })}
-                    text="Add tag"
+                    text="Add input listener"
                 />
             )}
         </FormGroup>
