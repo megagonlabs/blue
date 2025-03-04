@@ -41,7 +41,52 @@ def show_output(data, ctx, **options):
     else:
         print('Unknown output format: ' + output)
 
+def inquire_user_input(prompt, default=None, required=False, cast=None):
 
+    if default:
+        user_input = input(f"{prompt} [default: {default}]: ")
+    else:
+        user_input = input(f"{prompt}: ")
+   
+    
+    if required:
+        if user_input == "":
+            return inquire_user_input(prompt, default=default, required=required, cast=cast)
+        else:
+            user_input = convert(user_input, cast=cast)
+            if type(user_input) == Exception:
+                print(str(user_input))
+                return inquire_user_input(prompt, default=default, required=required, cast=cast)
+            return user_input
+    else:
+        if user_input:
+            if type(user_input) == Exception:
+                print(str(user_input))
+                return inquire_user_input(prompt, default=default, required=required, cast=cast)
+            return user_input
+        else:
+            return default
+
+def convert(value, cast=None):
+    if cast:
+        if cast == 'int':
+            try:
+                value = int(value)
+            except Exception as e:
+                value = Exception("value mist be: int")
+
+        elif cast == 'bool':
+            if value.upper() == "FALSE":
+                value = False 
+            elif value.upper() == "TRUE":
+                value = True 
+            else:
+                value = Exception("value must be: bool")
+        elif cast == 'str':
+            value = str(value)
+   
+    return value
+        
 class ProfileManager:
     def __init__(self):
         self.__initialize()
@@ -53,6 +98,9 @@ class ProfileManager:
 
         # set profiles path
         self.profiles_path = os.path.expanduser("~/.blue/profiles")
+
+        # load profile attribute config
+        self.__load_profile_attributes_config()
 
         # read profiles
         self.__read_profiles()
@@ -66,6 +114,39 @@ class ProfileManager:
         # activate selected profiile
         self.__activate_selected_profile()
 
+    def __load_profile_attributes_config(self):
+        self._profile_attributes_config = {}
+        path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        with open(f"{path}/configs/profile.json") as cfp:
+            self._profile_attributes_config = json.load(cfp)
+
+    def inquire_profile_attributes(self, profile_name=None):
+        if profile_name is None:
+            profile_name = self.get_default_profile_name()
+
+        profile  = self.get_profile(profile_name)
+        profile_attributes = dict(profile)
+        print(profile_attributes)
+
+        if profile_attributes is None:
+            profile_attributes = {}
+
+        for profile_attribute in self._profile_attributes_config:
+            profile_attribute_config = self._profile_attributes_config[profile_attribute]
+            prompt = profile_attribute_config['prompt']
+            default = profile_attribute_config['default']
+            cast = profile_attribute_config['cast']
+            value = default
+            current = None
+            if profile_attribute in profile_attributes:
+                current = profile_attributes[profile_attribute]
+            if current:
+                value = current
+            required = profile_attribute_config['required']
+            profile_attribute_value = inquire_user_input(prompt, default=value, cast=cast, required=required)
+
+            self.set_profile_attribute(profile_name, profile_attribute, profile_attribute_value)
+    
     def __read_profiles(self):
         # read profiles file
         self.profiles = configparser.ConfigParser()
@@ -97,13 +178,12 @@ class ProfileManager:
     def __initialize_default_profile(self):
         default_profile_name = self.get_default_profile_name()
         if not self.has_profile(default_profile_name):
-            self.create_profile(default_profile_name, AWS_PROFILE="default")
+            self.create_profile(default_profile_name)
 
     def __activate_selected_profile(self):
         for key in self.profiles[self.selected_profile]:
             value = self.profiles[self.selected_profile][key]
             os.environ[key] = value
-        # os.system("bash -c $BLUE_INSTALL_DIR/platform/scripts/show_vars.sh")
 
     def get_default_profile(self):
         default_profile_name = self.get_default_profile_name()
@@ -166,24 +246,12 @@ class ProfileManager:
     def create_profile(
         self,
         profile_name,
-        AWS_PROFILE='default',
-        BLUE_INSTALL_DIR="~/blue",
-        BLUE_DEPLOY_TARGET="localhost",
-        BLUE_DEPLOY_PLATFORM="default",
-        BLUE_PUBLIC_API_SERVER="localhost:5050",
-        BLUE_DATA_DIR="~/.blue/data",
+        **profile_attributes
     ):
         # read profiles file
         self.__read_profiles()
 
-        profile = {
-            "AWS_PROFILE": AWS_PROFILE,
-            "BLUE_INSTALL_DIR": BLUE_INSTALL_DIR,
-            "BLUE_DEPLOY_TARGET": BLUE_DEPLOY_TARGET,
-            "BLUE_DEPLOY_PLATFORM": BLUE_DEPLOY_PLATFORM,
-            "BLUE_PUBLIC_API_SERVER": BLUE_PUBLIC_API_SERVER,
-            "BLUE_DATA_DIR": BLUE_DATA_DIR,
-        }
+        profile = profile_attributes
 
         # update profiles
         self.profiles[profile_name] = profile
@@ -235,6 +303,10 @@ class ProfileManager:
             return None
 
     def set_profile_attribute(self, profile_name, attribute_name, attribute_value):
+        if attribute_name not in self._profile_attributes_config:
+            print("Unknown profile attribute")
+            return
+        
         self.update_profile(profile_name, **{attribute_name: attribute_value})
 
     def get_selected_profile_cookie(self):
@@ -255,7 +327,7 @@ class ProfileName(click.Group):
 
 
 @click.group(help="command group to interact with blue profiles")
-@click.option("--profile-name", default=None, required=False, help="name of the profile, default is selected profile")
+@click.option("--profile_name", default=None, required=False, help="name of the profile, default is selected profile")
 @click.option("--output", default='table', required=False, type=str, help="output format (table|json|csv)")
 @click.option("--query", default="$", required=False, type=str, help="query on output results")
 @click.pass_context
@@ -324,43 +396,7 @@ def show():
 
 
 @profile.command(short_help="create a blue profile")
-@click.option(
-    "--AWS_PROFILE",
-    required=False,
-    default="default",
-    help="profile name for AWS, reference ~/.aws/credentials",
-)
-@click.option(
-    "--BLUE_INSTALL_DIR",
-    required=False,
-    default="`~/blue",
-    help="blue installation directory, `~/blue` (default)",
-)
-@click.option(
-    "--BLUE_DEPLOY_TARGET",
-    required=False,
-    default="localhost",
-    help="blue deployment target, `localhost` (default), `swarm` ",
-)
-@click.option(
-    "--BLUE_DEPLOY_PLATFORM",
-    required=False,
-    default="default",
-    help="blue platform name, `default` (default)",
-)
-@click.option(
-    "--BLUE_PUBLIC_API_SERVER",
-    required=False,
-    default="localhost:5050",
-    help="blue api server address, `localhost:5050` (default)",
-)
-@click.option(
-    "--BLUE_DATA_DIR",
-    required=False,
-    default="~/.blue/data",
-    help="directory to host blue data, `~/.blue/data` (default)",
-)
-def create(aws_profile, blue_install_dir, blue_deploy_target, blue_deploy_platform, blue_public_api_server, blue_data_dir):
+def create():
     ctx = click.get_current_context()
     profile_name = ctx.obj["profile_name"]
     output = ctx.obj["output"]
@@ -370,17 +406,12 @@ def create(aws_profile, blue_install_dir, blue_deploy_target, blue_deploy_platfo
 
     if profile_name in profile_mgr.get_profile_list():
         raise Exception(f"profile {profile_name} exists")
+    
+    # create profile
+    profile_mgr.create_profile(profile_name)
 
-    profile_mgr.create_profile(
-        profile_name,
-        AWS_PROFILE=aws_profile,
-        BLUE_INSTALL_DIR=blue_install_dir,
-        BLUE_DEPLOY_TARGET=blue_deploy_target,
-        BLUE_DEPLOY_PLATFORM=blue_deploy_platform,
-        BLUE_PUBLIC_API_SERVER=blue_public_api_server,
-        BLUE_DATA_DIR=blue_data_dir,
-    )
-
+    # inquire profile attributes from user, update
+    profile_mgr.inquire_profile_attributes(profile_name=profile_name)
 
 @profile.command(short_help="select a blue profile")
 def select():
@@ -394,7 +425,7 @@ def select():
 
 @profile.command(
     short_help="remove a blue profile",
-    help="profile-name: name of blue profile to remove, use blue profile ls to see a list of profiles",
+    help="profile_name: name of blue profile to remove, use blue profile ls to see a list of profiles",
 )
 def delete():
     ctx = click.get_current_context()
@@ -424,7 +455,10 @@ def config(key: str, value):
             attribute_name=key,
             attribute_value=value,
         )
+    else:
+        profile_mgr.inquire_profile_attributes(profile_name=profile_name)
 
 
 if __name__ == "__main__":
     profile()
+
