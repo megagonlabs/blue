@@ -17,7 +17,7 @@ import pydash
 from click import Context
 
 from blue_cli.commands.helper import RESERVED_KEYS, bcolors, show_output, inquire_user_input
-
+from blue_cli.commands.platform import PlatformManager
 
 
 class Authentication:
@@ -75,7 +75,9 @@ class Authentication:
                         json_data = json.loads(data)
                         if pydash.is_equal(json_data, "REQUEST_CONNECTION_INFO"):
                             current_profile = ProfileManager().get_selected_profile()
-                            await websocket.send(json.dumps({"type": "REQUEST_CONNECTION_INFO", "message": dict(current_profile)}))
+                            current_platform = PlatformManager().get_selected_platform()
+                            message = dict(current_profile) | dict(current_platform)
+                            await websocket.send(json.dumps({"type": "REQUEST_CONNECTION_INFO", "message": message}))
                         else:
                             await websocket.send(json.dumps("DONE"))
                     except ws_exceptions.ConnectionClosedOK:
