@@ -370,10 +370,13 @@ def shutdown_service_container(request: Request, service_name):
 async def stream_log(container_id):
     client = docker.from_env()
     try:
-        container = client.containers.get(container_id)
+        if pydash.is_equal(PROPERTIES["platform.deploy.target"], "localhost"):
+            instance = client.containers.get(container_id)
+        elif pydash.is_equal(PROPERTIES["platform.deploy.target"], "swarm"):
+            instance = client.services.get(container_id)
     except docker.errors.NotFound:
         client.close()
-        return StreamingResponse(f"event: error\ndata: No such container: {container_id}\n\n", media_type="text/event-stream")
+        return StreamingResponse(f"event: error\ndata: No such instance: {container_id}\n\n", media_type="text/event-stream")
 
     # async def generate():
     #     process = subprocess.Popen(["docker", "logs", "--follow", container_id], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
@@ -453,11 +456,11 @@ async def stream_log(container_id):
         # calculate the timestamp for 1 week ago
         one_week_ago = datetime.datetime.now() - datetime.timedelta(weeks=1)
 
-        def get_logs(container, queue, epoch):
-            for line in container.logs(stream=True, follow=True, timestamps=True, since=epoch):
+        def get_logs(instance, queue, epoch):
+            for line in instance.logs(stream=True, follow=True, timestamps=True, since=epoch):
                 queue.put_nowait(line.decode().strip())
 
-        log_thread = threading.Thread(target=get_logs, args=(container, queue, int(one_week_ago.timestamp())))
+        log_thread = threading.Thread(target=get_logs, args=(instance, queue, int(one_week_ago.timestamp())))
         log_thread.daemon = True
         log_thread.start()
 
