@@ -43,7 +43,7 @@ class AgentPerformanceTracker(PerformanceTracker):
         agent_group.add(name_metric)
         cid_metric = Metric(id="id", label="ID", value=self.agent.cid, visibility=False)
         agent_group.add(cid_metric)
-        session_metric = Metric(id="sessuib", label="Session", value=self.agent.session.cid, visibility=False)
+        session_metric = Metric(id="session", label="Session", value=self.agent.session.cid, visibility=False)
         agent_group.add(session_metric)
 
         ### workers group
@@ -73,7 +73,7 @@ class AgentPerformanceTracker(PerformanceTracker):
             worker_cid_metric = Metric(id="cid", label="ID", value=worker.cid, type="text", visibility=False)
             worker_group.add(worker_cid_metric)
 
-            worker_stream_metric =  Metric(id="strean", label="Stream", value=stream, type="text")
+            worker_stream_metric =  Metric(id="stream", label="Stream", value=stream, type="text")
             worker_group.add(worker_stream_metric)
            
 
