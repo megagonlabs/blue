@@ -7,6 +7,7 @@ import pydash
 import tabulate
 from click import Context
 
+from blue_cli.commands.authentication import Authentication
 from blue_cli.commands.helper import RESERVED_KEYS, bcolors
 import blue_cli.commands.json_utils as json_utils
 
@@ -49,23 +50,21 @@ def inquire_user_input(prompt, default=None, required=False, cast=None):
         user_input = input(f"{prompt}: ")
    
     
-    if required:
-        if user_input == "":
+    if user_input:
+        user_input = convert(user_input, cast=cast)
+        if type(user_input) == Exception:
+            print(str(user_input))
             return inquire_user_input(prompt, default=default, required=required, cast=cast)
-        else:
-            user_input = convert(user_input, cast=cast)
-            if type(user_input) == Exception:
-                print(str(user_input))
-                return inquire_user_input(prompt, default=default, required=required, cast=cast)
-            return user_input
+        return user_input
     else:
-        if user_input:
-            if type(user_input) == Exception:
-                print(str(user_input))
-                return inquire_user_input(prompt, default=default, required=required, cast=cast)
-            return user_input
-        else:
+        if default:
             return default
+        else:
+            if required:
+                print("Required attribute, please enter a valid value.")
+                return inquire_user_input(prompt, default=default, required=required, cast=cast)
+            else:
+                return None
 
 def convert(value, cast=None):
     if cast:
@@ -143,7 +142,10 @@ class ProfileManager:
             if current:
                 value = current
             required = profile_attribute_config['required']
-            profile_attribute_value = inquire_user_input(prompt, default=value, cast=cast, required=required)
+            if required:
+                profile_attribute_value = inquire_user_input(prompt, default=value, cast=cast, required=required)
+            else:
+                profile_attribute_value = value
 
             self.set_profile_attribute(profile_name, profile_attribute, profile_attribute_value)
     
@@ -433,6 +435,25 @@ def delete():
     if profile_name is None:
         raise Exception(f"profile name cannot be empty")
     profile_mgr.delete_profile(profile_name)
+
+
+@profile.command("authenticate")
+@click.option('--show_uid', is_flag=True, default=False, required=False, help="show user ID")
+def login(uid, show_uid):
+    ctx = click.get_current_context()
+    profile_name = ctx.obj["profile_name"]
+    if profile_name is None:
+        raise Exception(f"profile name cannot be empty")
+    
+    auth = Authentication()
+    cookie = auth.get_cookie()
+    uid = auth.get_uid()
+
+    # save cookie under current blue user profile
+    profile_mgr.set_profile_attribute(profile_name, 'BLUE_COOKIE', cookie)
+    profile_mgr.set_profile_attribute(profile_name, 'BLUE_UID', uid)
+    if show_uid:
+        print(uid)
 
 
 @click.pass_context

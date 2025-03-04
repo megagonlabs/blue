@@ -3,7 +3,7 @@ from traitlets import default
 
 from .commands.profile import ProfileManager, profile
 from .commands.session import session
-from .commands.authentication import Authentication
+from .commands.platform import platform
 import nest_asyncio
 
 nest_asyncio.apply()
@@ -13,17 +13,6 @@ nest_asyncio.apply()
 def cli():
     pass
 
-
-@cli.command("login")
-@click.option('--uid', is_flag=True, default=False, required=False, help="show user ID")
-def login(uid):
-    auth = Authentication()
-    cookie = auth.get_cookie()
-    # save cookie under current blue user profile
-    ProfileManager().set_selected_profile_attribute('BLUE_COOKIE', cookie)
-    if uid:
-        print(auth.get_uid())
-
-
 cli.add_command(profile)
-cli.add_command(session)
+cli.add_command(platform)
+# cli.add_command(session)

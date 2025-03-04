@@ -1,0 +1,140 @@
+{
+    "BLUE_DEPLOY_PLATFORM": { 
+        "default": "dev",
+        "prompt": "Blue Platform Name",
+        "required": true,
+        "cast": "str"
+    },
+    "BLUE_DEPLOY_VERSION": { 
+        "default": "latest",
+        "prompt": "Blue Deployment Version",
+        "required": true,
+        "cast": "str"
+    },
+    "BLUE_DEPLOY_TARGET": { 
+        "default": "localhost",
+        "prompt": "Blue Deployment Target",
+        "required": true,
+        "cast": "str"
+    },
+    "BLUE_DEPLOY_SECURE": { 
+        "default": true,
+        "prompt": "Secure Deployment",
+        "required": true,
+        "cast": "bool"
+    },
+    "BLUE_DEPLOY_DEVELOPMENT": { 
+        "default": true,
+        "prompt": "Development Mode",
+        "required": true,
+        "cast": "bool"
+    },
+    "BLUE_AGENT_REGISTRY": { 
+        "default": "defaut",
+        "prompt": "Agent Registry Name",
+        "required": true,
+        "cast": "str"
+    },
+    "BLUE_AGENT_REGISTRY_MODEL": { 
+        "default": "/blue_data/models/paraphrase-MiniLM-L6-2",
+        "prompt": "Agent Registry Model",
+        "required": false,
+        "cast": "str"
+    },
+    "BLUE_DATA_REGISTRY": { 
+        "default": "default",
+        "prompt": "Data Registry Name",
+        "required": true,
+        "cast": "str"
+    },
+    "BLUE_DATA_REGISTRY_MODEL": { 
+        "default": "/blue_data/models/paraphrase-MiniLM-L6-2",
+        "prompt": "Data Registry Model",
+        "required": false,
+        "cast": "str"
+    },
+    "BLUE_MODEL_REGISTRY": { 
+        "default": "defaut",
+        "prompt": "Model Registry Name",
+        "required": true,
+        "cast": "str"
+    },
+    "BLUE_MODEL_REGISTRY_MODEL": { 
+        "default": "/blue_data/models/paraphrase-MiniLM-L6-2",
+        "prompt": "Model Regsitry Model",
+        "required": false,
+        "cast": "str"
+    },
+    "BLUE_OPERATOR_REGISTRY": { 
+        "default": "default",
+        "prompt": "Operator Registry Name",
+        "required": true,
+        "cast": "str"
+    },
+    "BLUE_OPERATOR_REGISTRY_MODEL": { 
+        "default": "/blue_data/models/paraphrase-MiniLM-L6-v2",
+        "prompt": "Operator Registry Model",
+        "required": false,
+        "cast": "str"
+    },
+    "BLUE_PUBLIC_API_SERVER": { 
+        "default": "localhost",
+        "prompt": "Public IP/Name of API Server",
+        "required": true,
+        "cast": "str"
+    },
+    "BLUE_PUBLIC_API_SERVER_PORT": { 
+        "default": 5050,
+        "prompt": "Public Port of API Server",
+        "required": true,
+        "cast": "int"
+    },
+    "BLUE_PUBLIC_API_SERVER_PORT_MAPPED": { 
+        "default": 5050,
+        "prompt": "Public Exposed Port of API Server",
+        "required": true,
+        "cast": "int"
+    },
+    "BLUE_PUBLIC_DB_SERVER": { 
+        "default": "localhost",
+        "prompt": "Public IP/Name of DB Server",
+        "required": true,
+        "cast": "str"
+    },
+    "BLUE_PUBLIC_DB_SERVER_PORT": { 
+        "default": 6379,
+        "prompt": "Port Address of Redis DB",
+        "required": true,
+        "cast": "int"
+    },
+    "BLUE_PUBLIC_DB_SERVER_PORT_MAPPED": { 
+        "default": 6379,
+        "prompt": "Public IP/Name of Redis DB Server",
+        "required": true,
+        "cast": "int"
+    },
+    "BLUE_PUBLIC_WEB_SERVER": { 
+        "default": "localhost",
+        "prompt": "Public IP/Name of Web Application Server",
+        "required": true,
+        "cast": "str"
+    },
+    "BLUE_PUBLIC_WEB_SERVER_PORT": { 
+        "default": 3000,
+        "prompt": "Public Port of Web Application Server",
+        "required": true,
+        "cast": "int"
+    },
+    "BLUE_PUBLIC_WEB_SERVER_PORT_MAPPED": { 
+        "default": 3000,
+        "prompt": "Public Exposed Port of Web Application Server",
+        "required": true,
+        "cast": "int"
+    },
+    "BLUE_RBAC_CONFIG_FOLDER": {
+        "default":"blue_data/config/rbac",
+        "prompt": "Access Control Config Directory",
+        "required": false,
+        "cast": "str"
+    }
+}
