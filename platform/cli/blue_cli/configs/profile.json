@@ -45,7 +45,7 @@
         "default": null,
         "prompt": "Docker Organization for Publishing Agent Images",
         "required": true,
-        "cast": "bool"
+        "cast": "str"
     },
     "BLUE_CORE_DOCKER_ORG": { 
         "default": "megagonlabs",
