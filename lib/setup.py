@@ -8,7 +8,7 @@ setuptools.setup(
     version="0.9",
     author="megagon labs",
     author_email="contact@megagon.ai",
-    description="blue - streaming framework for agentic orchestration",
+    description="blue py - python library for blue streaming framework for agentic orchestration",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/megagonlabs/blue",
