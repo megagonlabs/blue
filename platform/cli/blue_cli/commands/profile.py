@@ -41,25 +41,51 @@ def show_output(data, ctx, **options):
     else:
         print('Unknown output format: ' + output)
 
-def inquire_user_input(prompt, default=None, required=False):
-    if required:
-        user_input = input(f"{prompt}: ")
+def inquire_user_input(prompt, default=None, required=False, cast=None):
+
+    if default:
+        user_input = input(f"{prompt} [default: {default}]: ")
     else:
-        if default:
-            user_input = input(f"{prompt} [default: {default}]: ")
-        else:
-            user_input = input(f"{prompt}: ")
+        user_input = input(f"{prompt}: ")
    
+    
     if required:
         if user_input == "":
-            return inquire_user_input(prompt, default=default, required=required)
+            return inquire_user_input(prompt, default=default, required=required, cast=cast)
         else:
+            user_input = convert(user_input, cast=cast)
+            if type(user_input) == Exception:
+                print(str(user_input))
+                return inquire_user_input(prompt, default=default, required=required, cast=cast)
             return user_input
     else:
         if user_input:
+            if type(user_input) == Exception:
+                print(str(user_input))
+                return inquire_user_input(prompt, default=default, required=required, cast=cast)
             return user_input
         else:
             return default
+
+def convert(value, cast=None):
+    if cast:
+        if cast == 'int':
+            try:
+                value = int(value)
+            except Exception as e:
+                value = Exception("value mist be: int")
+
+        elif cast == 'bool':
+            if value.upper() == "FALSE":
+                value = False 
+            elif value.upper() == "TRUE":
+                value = True 
+            else:
+                value = Exception("value must be: bool")
+        elif cast == 'str':
+            value = str(value)
+   
+    return value
         
 class ProfileManager:
     def __init__(self):
@@ -93,22 +119,33 @@ class ProfileManager:
         path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         with open(f"{path}/configs/profile.json") as cfp:
             self._profile_attributes_config = json.load(cfp)
-        
-        print(json.dumps(self._profile_attributes_config))
 
-    def inquire_profile_attributes(self):
-        profile_attributes = {}
+    def inquire_profile_attributes(self, profile_name=None):
+        if profile_name is None:
+            profile_name = self.get_default_profile_name()
+
+        profile  = self.get_profile(profile_name)
+        profile_attributes = dict(profile)
+        print(profile_attributes)
+
+        if profile_attributes is None:
+            profile_attributes = {}
 
         for profile_attribute in self._profile_attributes_config:
             profile_attribute_config = self._profile_attributes_config[profile_attribute]
             prompt = profile_attribute_config['prompt']
             default = profile_attribute_config['default']
+            cast = profile_attribute_config['cast']
+            value = default
+            current = None
+            if profile_attribute in profile_attributes:
+                current = profile_attributes[profile_attribute]
+            if current:
+                value = current
             required = profile_attribute_config['required']
-            profile_attribute_value = inquire_user_input(prompt, default=default, required=required)
+            profile_attribute_value = inquire_user_input(prompt, default=value, cast=cast, required=required)
 
-            profile_attributes[profile_attribute] = profile_attribute_value
-
-        return profile_attributes
+            self.set_profile_attribute(profile_name, profile_attribute, profile_attribute_value)
     
     def __read_profiles(self):
         # read profiles file
@@ -266,6 +303,10 @@ class ProfileManager:
             return None
 
     def set_profile_attribute(self, profile_name, attribute_name, attribute_value):
+        if attribute_name not in self._profile_attributes_config:
+            print("Unknown profile attribute")
+            return
+        
         self.update_profile(profile_name, **{attribute_name: attribute_value})
 
     def get_selected_profile_cookie(self):
@@ -365,12 +406,12 @@ def create():
 
     if profile_name in profile_mgr.get_profile_list():
         raise Exception(f"profile {profile_name} exists")
-
-    # inquire profile attributes from user
-    profile_attributes = profile_mgr.inquire_profile_attributes()
-
+    
     # create profile
-    profile_mgr.create_profile(profile_name, **profile_attributes)
+    profile_mgr.create_profile(profile_name)
+
+    # inquire profile attributes from user, update
+    profile_mgr.inquire_profile_attributes(profile_name=profile_name)
 
 @profile.command(short_help="select a blue profile")
 def select():
@@ -404,8 +445,6 @@ def delete():
 def config(key: str, value):
     if key is not None and key.lower() in RESERVED_KEYS:
         key = key.upper()
-    if key not in profile_mgr._profile_attributes_config:
-        print("Unknown profile configuration key")
     ctx = click.get_current_context()
     profile_name = ctx.obj["profile_name"]
     if profile_name is None:
@@ -416,6 +455,8 @@ def config(key: str, value):
             attribute_name=key,
             attribute_value=value,
         )
+    else:
+        profile_mgr.inquire_profile_attributes(profile_name=profile_name)
 
 
 if __name__ == "__main__":
