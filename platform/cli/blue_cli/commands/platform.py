@@ -1,89 +1,14 @@
-import configparser
 import os
 import string
+import json
 
+import configparser
 import click
 import pydash
-import tabulate
 from click import Context
 
-from blue_cli.commands.helper import RESERVED_KEYS, bcolors
-import blue_cli.commands.json_utils as json_utils
+from blue_cli.commands.helper import RESERVED_KEYS, bcolors, show_output, inquire_user_input
 
-from io import StringIO
-import json
-import pandas as pd
-
-tabulate.PRESERVE_WHITESPACE = True
-
-
-def show_output(data, ctx, **options):
-    output = ctx.obj["output"]
-    query = ctx.obj["query"]
-
-    single = True
-    if 'single' in options:
-        single = options['single']
-        del options['single']
-
-    results = json_utils.json_query(data, query, single=single)
-
-    if output == "table":
-        print(tabulate.tabulate(results, **options))
-    elif output == "json":
-        print(json.dumps(results, indent=3))
-    elif output == "csv":
-        if type(results) == dict:
-            results = [results]
-
-        df = pd.DataFrame(results)
-        print(df.to_csv())
-    else:
-        print('Unknown output format: ' + output)
-
-def inquire_user_input(prompt, default=None, required=False, cast=None):
-
-    if default:
-        user_input = input(f"{prompt} [default: {default}]: ")
-    else:
-        user_input = input(f"{prompt}: ")
-   
-    
-    if user_input:
-        user_input = convert(user_input, cast=cast)
-        if type(user_input) == Exception:
-            print(str(user_input))
-            return inquire_user_input(prompt, default=default, required=required, cast=cast)
-        return user_input
-    else:
-        if default:
-            return default
-        else:
-            if required:
-                print("Required attribute, please enter a valid value.")
-                return inquire_user_input(prompt, default=default, required=required, cast=cast)
-            else:
-                return None
-
-def convert(value, cast=None):
-    if cast:
-        if cast == 'int':
-            try:
-                value = int(value)
-            except Exception as e:
-                value = Exception("value mist be: int")
-
-        elif cast == 'bool':
-            if value.upper() == "FALSE":
-                value = False 
-            elif value.upper() == "TRUE":
-                value = True 
-            else:
-                value = Exception("value must be: bool")
-        elif cast == 'str':
-            value = str(value)
-   
-    return value
         
 class PlatformManager:
     def __init__(self):
@@ -124,7 +49,6 @@ class PlatformManager:
 
         platform  = self.get_platform(platform_name)
         platform_attributes = dict(platform)
-        print(platform_attributes)
 
         if platform_attributes is None:
             platform_attributes = {}
@@ -254,8 +178,12 @@ class PlatformManager:
 
         platform = platform_attributes
 
+        # deploy platform atttribute
+        platform['BLUE_DEPLOY_PLATFORM'] = platform_name
+
         # update platforms
         self.platforms[platform_name] = platform
+
 
         # write platforms file
         self.__write_platforms()

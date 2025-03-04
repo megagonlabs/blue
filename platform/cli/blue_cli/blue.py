@@ -1,7 +1,7 @@
 import click
 from traitlets import default
 
-from .commands.profile import ProfileManager, profile
+from .commands.profile import  profile
 from .commands.session import session
 from .commands.platform import platform
 import nest_asyncio

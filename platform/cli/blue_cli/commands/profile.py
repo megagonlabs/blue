@@ -1,90 +1,115 @@
-import configparser
+
 import os
 import string
+import asyncio
+import subprocess
+import sys
+import time
+import json
 
+import webbrowser
+import websockets
+from websockets import exceptions as ws_exceptions
+
+import configparser
 import click
 import pydash
-import tabulate
 from click import Context
 
-from blue_cli.commands.authentication import Authentication
-from blue_cli.commands.helper import RESERVED_KEYS, bcolors
-import blue_cli.commands.json_utils as json_utils
-
-from io import StringIO
-import json
-import pandas as pd
-
-tabulate.PRESERVE_WHITESPACE = True
+from blue_cli.commands.helper import RESERVED_KEYS, bcolors, show_output, inquire_user_input
 
 
-def show_output(data, ctx, **options):
-    output = ctx.obj["output"]
-    query = ctx.obj["query"]
 
-    single = True
-    if 'single' in options:
-        single = options['single']
-        del options['single']
+class Authentication:
+    def __init__(self) -> None:
+        self.__WEB_PORT = 25830
+        self.process = None
+        self.stop = None
+        self.__SOCKET_PORT = 25831
+        self.cookie = None
+        self.uid = None
+        self.__start_servers()
 
-    results = json_utils.json_query(data, query, single=single)
+    def get_cookie(self):
+        return self.cookie
 
-    if output == "table":
-        print(tabulate.tabulate(results, **options))
-    elif output == "json":
-        print(json.dumps(results, indent=3))
-    elif output == "csv":
-        if type(results) == dict:
-            results = [results]
+    def get_uid(self):
+        return self.uid
 
-        df = pd.DataFrame(results)
-        print(df.to_csv())
-    else:
-        print('Unknown output format: ' + output)
+    def __set_cookie(self, cookie):
+        if cookie == "":
+            cookie = None
+        self.cookie = cookie
 
-def inquire_user_input(prompt, default=None, required=False, cast=None):
+    def __set_uid(self, uid):
+        if uid == "":
+            uid = None
+        self.uid = uid
 
-    if default:
-        user_input = input(f"{prompt} [default: {default}]: ")
-    else:
-        user_input = input(f"{prompt}: ")
-   
-    
-    if user_input:
-        user_input = convert(user_input, cast=cast)
-        if type(user_input) == Exception:
-            print(str(user_input))
-            return inquire_user_input(prompt, default=default, required=required, cast=cast)
-        return user_input
-    else:
-        if default:
-            return default
-        else:
-            if required:
-                print("Required attribute, please enter a valid value.")
-                return inquire_user_input(prompt, default=default, required=required, cast=cast)
-            else:
-                return None
+    def __start_servers(self):
+        path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        try:
+            self.process = subprocess.Popen(
+                [
+                    sys.executable,
+                    "-m",
+                    "http.server",
+                    str(self.__WEB_PORT),
+                    "-b",
+                    "localhost",
+                    "-d",
+                    f"{path}/web/auth/out",
+                ],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.STDOUT,
+            )
+            time.sleep(2)
+            webbrowser.open(f"http://localhost:{self.__WEB_PORT}")
+            self.stop = asyncio.Future()
 
-def convert(value, cast=None):
-    if cast:
-        if cast == 'int':
-            try:
-                value = int(value)
-            except Exception as e:
-                value = Exception("value mist be: int")
+            async def handler(websocket):
+                data = None
+                while True:
+                    try:
+                        data = await websocket.recv()
+                        json_data = json.loads(data)
+                        if pydash.is_equal(json_data, "REQUEST_CONNECTION_INFO"):
+                            current_profile = ProfileManager().get_selected_profile()
+                            await websocket.send(json.dumps({"type": "REQUEST_CONNECTION_INFO", "message": dict(current_profile)}))
+                        else:
+                            await websocket.send(json.dumps("DONE"))
+                    except ws_exceptions.ConnectionClosedOK:
+                        break
+                    except ws_exceptions.ConnectionClosedError:
+                        break
+                    except Exception as ex:
+                        await websocket.send(json.dumps({"error": str(ex)}))
+                self.stop.set_result(json_data)
 
-        elif cast == 'bool':
-            if value.upper() == "FALSE":
-                value = False 
-            elif value.upper() == "TRUE":
-                value = True 
-            else:
-                value = Exception("value must be: bool")
-        elif cast == 'str':
-            value = str(value)
-   
-    return value
+            async def main():
+                async with websockets.serve(handler, "", self.__SOCKET_PORT):
+                    result = await self.stop
+                    self.__set_cookie(result['cookie'])
+                    self.__set_uid(result['uid'])
+                    if self.process is not None:
+                        self.process.terminate()
+
+            asyncio.run(main())
+        except OSError as ex:
+            if self.process is not None:
+                self.process.terminate()
+            raise Exception(ex)
+        except KeyboardInterrupt as ex:
+            self.stop.set_result(None)
+
+    def __del__(self):
+        if self.process is not None:
+            self.process.terminate()
+        if self.stop is not None and not self.stop.done():
+            self.stop.set_result(None)
+
+
+
         
 class ProfileManager:
     def __init__(self):
@@ -125,7 +150,6 @@ class ProfileManager:
 
         profile  = self.get_profile(profile_name)
         profile_attributes = dict(profile)
-        print(profile_attributes)
 
         if profile_attributes is None:
             profile_attributes = {}
@@ -439,11 +463,14 @@ def delete():
 
 @profile.command("authenticate")
 @click.option('--show_uid', is_flag=True, default=False, required=False, help="show user ID")
-def login(uid, show_uid):
+def authenticate(show_uid):
     ctx = click.get_current_context()
     profile_name = ctx.obj["profile_name"]
     if profile_name is None:
-        raise Exception(f"profile name cannot be empty")
+        profile_name = profile_mgr.get_selected_profile_name()
+
+        if profile_name is None:
+            raise Exception(f"profile name cannot be empty")
     
     auth = Authentication()
     cookie = auth.get_cookie()
@@ -452,6 +479,8 @@ def login(uid, show_uid):
     # save cookie under current blue user profile
     profile_mgr.set_profile_attribute(profile_name, 'BLUE_COOKIE', cookie)
     profile_mgr.set_profile_attribute(profile_name, 'BLUE_UID', uid)
+
+    # show, optional
     if show_uid:
         print(uid)
 

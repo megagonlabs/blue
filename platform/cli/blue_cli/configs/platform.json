@@ -1,10 +1,4 @@
 {
-    "BLUE_DEPLOY_PLATFORM": { 
-        "default": "dev",
-        "prompt": "Blue Platform Name",
-        "required": true,
-        "cast": "str"
-    },
     "BLUE_DEPLOY_VERSION": { 
         "default": "latest",
         "prompt": "Blue Deployment Version",
