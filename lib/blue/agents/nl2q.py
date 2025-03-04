@@ -172,7 +172,7 @@ class NL2SQLAgent(OpenAIAgent):
     def _set_schemas(self, schemas, source=None, database=None, collection=None):
         if source:
 
-            source_properties = self.registry.get_source_properties(self.selected_source)
+            source_properties = self.registry.get_source_properties(source)
             source_protocol = source_properties['connection']['protocol']
 
             # only allow source protocols that are allowed for discovery
