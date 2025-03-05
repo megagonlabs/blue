@@ -369,6 +369,9 @@ class PlatformManager:
         # load platform attribute config
         self.__load_platform_attributes_config()
 
+        # load platform image list
+        self.__load_platform_image_config()
+
         # read platforms
         self.__read_platforms()
 
@@ -381,10 +384,18 @@ class PlatformManager:
         # activate selected profiile
         self.__activate_selected_platform()
 
+
+    def __load_platform_image_config(self):
+        self._platform_images = {}
+        path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+     
+        with open(f"{path}/blue_cli/configs/images.json") as cfp:
+            self._platform_images = json.load(cfp)
+
     def __load_platform_attributes_config(self):
         self._platform_attributes_config = {}
         path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        print(path)
+     
         with open(f"{path}/blue_cli/configs/platform.json") as cfp:
             self._platform_attributes_config = json.load(cfp)
 
@@ -576,28 +587,58 @@ class PlatformManager:
         platform = platform if platform else {}
         platform = dict(platform)
 
-        
-        BLUE_DATA_DIR = profile["BLUE_DATA_DIR"]
-        BLUE_DEPLOY_PLATFORM = platform_name
+        config = profile | platform
 
         ### connect to docker
         client = docker.from_env()
+
+        # create docker volume
+        self._create_docker_volume(client, config)
+        
+        #### pull images
+        self._pull_docker_images(client, config)
+        
+        #### copy config to docker volume
+        self._copy_config_to_docker_volume(client, config)
+
+    def _create_docker_volume(self, client, config):
+        BLUE_DATA_DIR = config["BLUE_DATA_DIR"]
+        BLUE_DEPLOY_PLATFORM = config["BLUE_DEPLOY_PLATFORM"]
+
+        ### make dir if not exists
+        os.makedirs(f"{BLUE_DATA_DIR}/{BLUE_DEPLOY_PLATFORM}", exist_ok=True)
 
         ### create docker volume
         # docker volume create --driver local  --opt type=none --opt device=${BLUE_DATA_DIR}/${BLUE_DEPLOY_PLATFORM} --opt o=bind blue_${BLUE_DEPLOY_PLATFORM}_data
         client.volumes.create(name=f"blue_{BLUE_DEPLOY_PLATFORM}_data", driver='local', driver_opts={'type': 'none', 'o': 'bind', 'device': f"{BLUE_DATA_DIR}/{BLUE_DEPLOY_PLATFORM}"})
 
-        #### pull images
+    def _pull_docker_images(self, client, config):
+        BLUE_DEPLOY_VERSION = config["BLUE_DEPLOY_VERSION"]
+        BLUE_CORE_DOCKER_ORG = config["BLUE_CORE_DOCKER_ORG"]
+        BLUE_DEV_DOCKER_ORG = config["BLUE_DEV_DOCKER_ORG"]
 
-        #### docker volume content
+        for group in self._platform_images:
+            for entry in group:
+                image = entry["image"]
+                canonical_image = BLUE_CORE_DOCKER_ORG + "/" + image
+                client.images.pull(canonical_image, tag=BLUE_DEPLOY_VERSION)
 
-        ## registries
+    def _copy_config_to_docker_volume(self, client, config):
+        BLUE_DEPLOY_VERSION = config["BLUE_DEPLOY_VERSION"]
+        BLUE_CORE_DOCKER_ORG = config["BLUE_CORE_DOCKER_ORG"]
 
-        ## registry models
+        BLUE_DEPLOY_PLATFORM = config["BLUE_DEPLOY_PLATFORM"]
 
-        ## rbac
-
-
+        blue_config_data_image =  BLUE_CORE_DOCKER_ORG + "/" + "blue-config-data" + ":" + BLUE_DEPLOY_VERSION
+        
+        # Create container to copy files from to the docker volume
+        # docker run -d --rm --name blue-config-data -v <docker_volume>:/root alpine 
+        client.containers.run(blue_config_data_image, 'cp -r /config_data /blue_data; ls -laR /blue_data',
+            name="blue_config_data",
+            volumes=["blue_" + BLUE_DEPLOY_PLATFORM + "_data:/blue_data"],
+            stdout=True,
+            stderr=True,
+        )
 
     def select_platform(self, platform_name):
         self.set_selected_platform_name(platform_name)
