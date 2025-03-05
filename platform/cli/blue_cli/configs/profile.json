@@ -3,13 +3,13 @@
         "default": "~/blue",
         "prompt": "Blue Installation Directory",
         "required": true,
-        "cast": "str"
+        "cast": "file"
     },
     "BLUE_DATA_DIR": { 
         "default": "~/blue/data",
         "prompt": "Blue Shared Data Directory",
         "required": true,
-        "cast": "str"
+        "cast": "file"
     },
     "BLUE_DEV_DOCKER_ORG": { 
         "default": null,

@@ -33,7 +33,7 @@
         "default": "/blue_data/models/paraphrase-MiniLM-L6-2",
         "prompt": "Agent Registry Model",
         "required": false,
-        "cast": "str"
+        "cast": "file"
     },
     "BLUE_DATA_REGISTRY": { 
         "default": "default",
@@ -45,7 +45,7 @@
         "default": "/blue_data/models/paraphrase-MiniLM-L6-2",
         "prompt": "Data Registry Model",
         "required": false,
-        "cast": "str"
+        "cast": "file"
     },
     "BLUE_MODEL_REGISTRY": { 
         "default": "defaut",
@@ -57,7 +57,7 @@
         "default": "/blue_data/models/paraphrase-MiniLM-L6-2",
         "prompt": "Model Regsitry Model",
         "required": false,
-        "cast": "str"
+        "cast": "file"
     },
     "BLUE_OPERATOR_REGISTRY": { 
         "default": "default",
@@ -69,7 +69,7 @@
         "default": "/blue_data/models/paraphrase-MiniLM-L6-v2",
         "prompt": "Operator Registry Model",
         "required": false,
-        "cast": "str"
+        "cast": "file"
     },
     "BLUE_PUBLIC_API_SERVER": { 
         "default": "localhost",
@@ -129,6 +129,6 @@
         "default":"blue_data/config/rbac",
         "prompt": "Access Control Config Directory",
         "required": false,
-        "cast": "str"
+        "cast": "file"
     }
 }

@@ -73,7 +73,7 @@ def inquire_user_input(prompt, default=None, required=False, cast=None):
         return user_input
     else:
         if default:
-            return default
+            return convert(default, cast=cast)
         else:
             if required:
                 print("Required attribute, please enter a valid value.")
@@ -90,13 +90,20 @@ def convert(value, cast=None):
                 value = Exception("value mist be: int")
 
         elif cast == 'bool':
-            if value.upper() == "FALSE":
-                value = False 
-            elif value.upper() == "TRUE":
-                value = True 
+            if type(value) == bool:
+                return value
+            elif type(value) == str:
+                if value.upper() == "FALSE":
+                    value = False 
+                elif value.upper() == "TRUE":
+                    value = True 
+                else:
+                    value = Exception("value must be: bool")
             else:
                 value = Exception("value must be: bool")
         elif cast == 'str':
             value = str(value)
+        elif cast == 'file':
+            value = os.path.expanduser(value)
    
     return value
