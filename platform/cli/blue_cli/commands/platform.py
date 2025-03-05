@@ -110,6 +110,35 @@ def install():
     # install platform
     platform_mgr.install_platform(platform_name)
 
+@platform.command(short_help="starts a blue platform")
+def start():
+    ctx = click.get_current_context()
+    platform_name = ctx.obj["platform_name"]
+    output = ctx.obj["output"]
+    allowed_characters = set(string.ascii_lowercase + string.ascii_uppercase + string.digits + "_")
+    if platform_name is None:
+        platform_name = 'default'
+
+    if platform_name not in platform_mgr.get_platform_list():
+        raise Exception(f"platform {platform_name} does not exists")
+    
+    # start platform
+    platform_mgr.start_platform(platform_name)
+
+@platform.command(short_help="stop a blue platform")
+def stop():
+    ctx = click.get_current_context()
+    platform_name = ctx.obj["platform_name"]
+    output = ctx.obj["output"]
+    allowed_characters = set(string.ascii_lowercase + string.ascii_uppercase + string.digits + "_")
+    if platform_name is None:
+        platform_name = 'default'
+
+    if platform_name not in platform_mgr.get_platform_list():
+        raise Exception(f"platform {platform_name} does not exists")
+    
+    # stop platform
+    platform_mgr.stop_platform(platform_name)
 
 @platform.command(short_help="select a blue platform")
 def select():

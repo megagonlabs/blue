@@ -589,6 +589,12 @@ class PlatformManager:
 
         config = profile | platform
 
+        # check deployment mode
+        BLUE_DEPLOY_TARGET = config['BLUE_DEPLOY_TARGET']
+        if BLUE_DEPLOY_TARGET != "localhost":
+            print("Only localhost mode is supported. See README for swarm mode deployment instructions...")
+            return
+        
         ### connect to docker
         client = docker.from_env()
 
@@ -617,10 +623,13 @@ class PlatformManager:
         BLUE_CORE_DOCKER_ORG = config["BLUE_CORE_DOCKER_ORG"]
         BLUE_DEV_DOCKER_ORG = config["BLUE_DEV_DOCKER_ORG"]
 
-        for group in self._platform_images:
-            for entry in group:
+        for group_key in self._platform_images:
+            group = self._platform_images[group_key]
+            for image_key in group:
+                entry = group[image_key]
                 image = entry["image"]
                 canonical_image = BLUE_CORE_DOCKER_ORG + "/" + image
+                print("Pulling image: " + canonical_image)
                 client.images.pull(canonical_image, tag=BLUE_DEPLOY_VERSION)
 
     def _copy_config_to_docker_volume(self, client, config):
@@ -633,12 +642,70 @@ class PlatformManager:
         
         # Create container to copy files from to the docker volume
         # docker run -d --rm --name blue-config-data -v <docker_volume>:/root alpine 
-        client.containers.run(blue_config_data_image, 'cp -r /config_data /blue_data; ls -laR /blue_data',
+        client.containers.run(blue_config_data_image, 'cp -r /mnt/. /blue_data',
             name="blue_config_data",
             volumes=["blue_" + BLUE_DEPLOY_PLATFORM + "_data:/blue_data"],
             stdout=True,
             stderr=True,
         )
+
+    def start_platform(
+        self,
+        platform_name):
+        
+        ### get profile
+        # get profile
+        profile = ProfileManager().get_selected_profile()
+        profile = profile if profile else {}
+        profile = dict(profile)
+
+        ### get platform 
+        # get platform
+        platform = self.get_platform(platform_name)
+        platform = platform if platform else {}
+        platform = dict(platform)
+
+        config = profile | platform
+
+        # check deployment mode
+        BLUE_DEPLOY_TARGET = config['BLUE_DEPLOY_TARGET']
+        if BLUE_DEPLOY_TARGET != "localhost":
+            print("Only localhost mode is supported. See README for swarm mode instructions...")
+            return
+        
+        ### connect to docker
+        client = docker.from_env()
+
+        ### create network
+        
+        ### run redis, api, and frontend
+
+    def stop_platform(
+        self,
+        platform_name):
+        
+        ### get profile
+        # get profile
+        profile = ProfileManager().get_selected_profile()
+        profile = profile if profile else {}
+        profile = dict(profile)
+
+        ### get platform 
+        # get platform
+        platform = self.get_platform(platform_name)
+        platform = platform if platform else {}
+        platform = dict(platform)
+
+        config = profile | platform
+
+        # check deployment mode
+        BLUE_DEPLOY_TARGET = config['BLUE_DEPLOY_TARGET']
+        if BLUE_DEPLOY_TARGET != "localhost":
+            print("Only localhost mode is supported. See README for swarm mode instructions...")
+            return
+        
+        ### connect to docker
+        client = docker.from_env()
 
     def select_platform(self, platform_name):
         self.set_selected_platform_name(platform_name)
