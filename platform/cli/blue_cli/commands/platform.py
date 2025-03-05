@@ -7,8 +7,10 @@ import click
 import pydash
 from click import Context
 
-from blue_cli.commands.helper import RESERVED_KEYS, bcolors, show_output, inquire_user_input
+import docker
 
+from blue_cli.commands.helper import RESERVED_KEYS, bcolors, show_output, inquire_user_input
+from blue_cli.commands.profile import ProfileManager
         
 class PlatformManager:
     def __init__(self):
@@ -215,6 +217,45 @@ class PlatformManager:
             self.platforms.pop(platform_name)
             self.__write_platforms()
 
+    def install_platform(
+        self,
+        platform_name):
+        
+        ### get profile
+        # get profile
+        profile = ProfileManager.get_selected_profile()
+        profile = profile if profile else {}
+        profile = dict(profile)
+
+        ### get platform 
+        # get platform
+        platform = self.get_platform(platform_name)
+        platform = platform if platform else {}
+        platform = dict(platform)
+
+        
+        BLUE_DATA_DIR = profile["BLUE_DATA_DIR"]
+        BLUE_DEPLOY_PLATFORM = platform_name
+
+        ### connect to docker
+        client = docker.from_env()
+
+        ### create docker volume
+        # docker volume create --driver local  --opt type=none --opt device=${BLUE_DATA_DIR}/${BLUE_DEPLOY_PLATFORM} --opt o=bind blue_${BLUE_DEPLOY_PLATFORM}_data
+        client.volumes.create(name=f"blue_{BLUE_DEPLOY_PLATFORM}_data", driver='local', driver_opts={'type': None, 'o': 'bind', 'device': f"{BLUE_DATA_DIR}/{BLUE_DEPLOY_PLATFORM}"})
+
+        #### pull images
+
+        #### docker volume content
+
+        ## registries
+
+        ## registry models
+
+        ## rbac
+
+
+
     def select_platform(self, platform_name):
         self.set_selected_platform_name(platform_name)
 
@@ -341,6 +382,23 @@ def create():
 
     # inquire platform attributes from user, update
     platform_mgr.inquire_platform_attributes(platform_name=platform_name)
+
+
+@platform.command(short_help="install a blue platform")
+def install():
+    ctx = click.get_current_context()
+    platform_name = ctx.obj["platform_name"]
+    output = ctx.obj["output"]
+    allowed_characters = set(string.ascii_lowercase + string.ascii_uppercase + string.digits + "_")
+    if platform_name is None:
+        platform_name = 'default'
+
+    if platform_name not in platform_mgr.get_platform_list():
+        raise Exception(f"platform {platform_name} does not exists")
+    
+    # install platform
+    platform_mgr.install_platform(platform_name)
+
 
 @platform.command(short_help="select a blue platform")
 def select():
