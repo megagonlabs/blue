@@ -74,7 +74,21 @@ class Nl2CypherAgent(NL2SQLAgent):
             self.properties[key] = agent_properties[key]
 
     def _format_schema(self, schema):
+        logging.info(f"Formatting schema: {schema}")
         return schema
+
+    def _set_schemas(self, schemas, source=None, database=None, collection=None):
+        if source and database and collection:
+            entities = self.registry.get_source_database_collection_entities(source, database, collection)
+            relations = self.registry.get_source_database_collection_relations(source, database, collection)
+            if entities:
+                key = f'/{source}/{database}/{collection}'
+                schemas[key] = {
+                    'entities': entities,
+                    'relations': relations
+                }
+        else:
+            super()._set_schemas(schemas, source, database, collection)
 
 
 if __name__ == "__main__":
