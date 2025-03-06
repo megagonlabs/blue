@@ -126,7 +126,7 @@
         "cast": "int"
     },
     "BLUE_RBAC_CONFIG_FOLDER": {
-        "default":"blue_data/config/rbac",
+        "default":"/blue_data/config/rbac",
         "prompt": "Access Control Config Directory",
         "required": false,
         "cast": "file"
