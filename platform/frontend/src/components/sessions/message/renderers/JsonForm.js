@@ -56,7 +56,9 @@ export default function JsonForm({ content, hasError }) {
                             left: 0,
                             zIndex: 5,
                             backgroundColor: `${
-                                darkMode ? Colors.GRAY1 : Colors.LIGHT_GRAY1
+                                darkMode
+                                    ? Colors.DARK_GRAY5
+                                    : Colors.LIGHT_GRAY1
                             }${HEX_TRANSPARENCY[50]}`,
                         }}
                         className={classNames(
