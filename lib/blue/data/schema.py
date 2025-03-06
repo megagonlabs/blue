@@ -66,11 +66,11 @@ class DataSchema():
 
         self.relations[unique_key] = relation_obj
 
-        return key  
+        return unique_key
 
     def add_relation_property(self, key, property, type):
         if key in self.relations:
-            relation_obj = self.entities[key]
+            relation_obj = self.relations[key]
             properties_obj = relation_obj['properties']
             properties_obj[property] = type
 
