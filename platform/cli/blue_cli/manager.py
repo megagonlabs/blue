@@ -667,6 +667,10 @@ class PlatformManager:
 
         config = profile | platform
 
+        BLUE_DEPLOY_PLATFORM = config["BLUE_DEPLOY_PLATFORM"]
+        BLUE_CORE_DOCKER_ORG = config["BLUE_CORE_DOCKER_ORG"]
+        BLUE_DEPLOY_VERSION = config["BLUE_DEPLOY_VERSION"]
+
         # check deployment mode
         BLUE_DEPLOY_TARGET = config['BLUE_DEPLOY_TARGET']
         if BLUE_DEPLOY_TARGET != "localhost":
@@ -677,8 +681,65 @@ class PlatformManager:
         client = docker.from_env()
 
         ### create network
-        
+        client.networks.create(
+            name="blue_platform_" + BLUE_DEPLOY_PLATFORM + "_network_bridge",
+            driver="bridge",
+            attachable=True,
+            internal=False,
+            scope="local"
+        )
+
         ### run redis, api, and frontend
+        BLUE_PUBLIC_DB_SERVER_PORT_MAPPED = config["BLUE_PUBLIC_DB_SERVER_PORT_MAPPED"]
+        # redis
+        image = "redis/redis-stack:latest"
+        client.containers.run(
+            image,
+            network="blue_platform_" + BLUE_DEPLOY_PLATFORM + "_network_bridge",
+            hostname="blue_db_redis",
+            ports={str(BLUE_PUBLIC_DB_SERVER_PORT_MAPPED):6379},
+            volumes=["blue_" + BLUE_DEPLOY_PLATFORM + "_data:/blue_data"],
+            labels={"blue.platform": BLUE_DEPLOY_PLATFORM + "." + "redis"},
+            environment=config,
+            restart_policy={"Name": "always"},
+            detach=True,
+            stdout=True,
+            stderr=True,
+        )
+
+        # api
+        ### TODO: FIREBASE_SERVICE_CRED
+        BLUE_PUBLIC_API_SERVER_PORT_MAPPED = config["BLUE_PUBLIC_API_SERVER_PORT_MAPPED"]
+        image = BLUE_CORE_DOCKER_ORG + "/" + "blue_platform_api" + ":" + BLUE_DEPLOY_VERSION
+        client.containers.run(
+            image,
+            network="blue_platform_" + BLUE_DEPLOY_PLATFORM + "_network_bridge",
+            hostname="blue_platform_api",
+            ports={str(BLUE_PUBLIC_API_SERVER_PORT_MAPPED):5050},
+            volumes=["blue_" + BLUE_DEPLOY_PLATFORM + "_data:/blue_data"],
+            labels={"blue.platform": BLUE_DEPLOY_PLATFORM + "." + "api"},
+            environment=config,
+            detach=True,
+            stdout=True,
+            stderr=True,
+        )
+
+        # frontend
+        ### TODO: FA_TOKEN
+        BLUE_PUBLIC_WEB_SERVER_PORT_MAPPED = config["BLUE_PUBLIC_WEB_SERVER_PORT_MAPPED"]
+        image = BLUE_CORE_DOCKER_ORG + "/" + "blue_platform_frontend" + ":" + BLUE_DEPLOY_VERSION
+        client.containers.run(
+            image,
+            network="blue_platform_" + BLUE_DEPLOY_PLATFORM + "_network_bridge",
+            hostname="blue_platform_frontend",
+            ports={str(BLUE_PUBLIC_WEB_SERVER_PORT_MAPPED):3000},
+            volumes=["blue_" + BLUE_DEPLOY_PLATFORM + "_data:/blue_data"],
+            labels={"blue.platform": BLUE_DEPLOY_PLATFORM + "." + "frontend"},
+            environment=config,
+            detach=True,
+            stdout=True,
+            stderr=True,
+        )
 
     def stop_platform(
         self,
