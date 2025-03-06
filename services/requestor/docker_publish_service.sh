@@ -1,8 +1,5 @@
 #/bin/bash
-echo 'Building Requestor Service...'
-
-# build docker
-docker build --no-cache -t blue-service-requestor:latest -f Dockerfile.service .
+echo 'Publishing Requestor Service...'
 
 # tag and publish
 docker tag blue-service-requestor:latest ${BLUE_DEV_DOCKER_ORG}/blue-service-requestor:latest

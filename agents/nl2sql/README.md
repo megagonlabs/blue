@@ -2,6 +2,12 @@
 
 NL2SQL is an agent designed to convert natural language questions into SQL queries. The agent leverages a data registry to discover relevant data sources using embedding-based methods. It then uses a prompt-driven approach via an OpenAI API agent to generate SQL queries that are both syntactically and semantically aligned with the underlying data source.
 
+## NL2SQL Agent in Action
+
+The following animation displays the user asking a natural language question over a database of job posting data in Singapore. 
+
+![Demo of NL-to-SQL agent](/docs/images/blue-zero-nl2sql.gif)
+
 ---
 
 ## Features
@@ -74,6 +80,12 @@ The agent uses a set of properties to control its behavior. Key properties inclu
 
 These properties are initialized in the `agent_properties` dictionary and then loaded into the agent during its initialization phase.
 
+### Configuration (UI)
+
+Users can also modify the `agent_properties` dictionary to suit your OpenAI API keys, discovery settings, and execution preferences from the UI. 
+
+![Agent properties overview](/docs/images/nl2sql-agent-properties.gif)
+
 ---
 
 ## Flow Diagram
@@ -107,26 +119,9 @@ The base `NL2SQL` agent is defined [here](https://github.com/rit-git/blue/blob/d
 
 ---
 
-## Usage
-
-### Configuration (UI)
-
-Modify the `agent_properties` dictionary to suit your OpenAI API keys, discovery settings, and execution preferences. 
-
-![Agent properties overview](/docs/images/nl2sql-agent-properties.gif)
-
-
-### Optional Execution
-
-If `nl2q_execute` is enabled, the agent will attempt to execute the generated query against the target database and return the query results along with any execution errors.
-
-## NL2SQL Agent in Action
-
-The following animation displays the user asking a natural language question over a database of job posting data in Singapore. 
-
-![Demo of NL-to-SQL agent](/docs/images/blue-zero-nl2sql.gif)
-
 ## Try it out
+
+To try out the agent, first follow the quickstart guide to install the Blue platform and example datasets.
 
 | **Natural Language Utterance** | **SQL** |
 |--------------------------------|---------|

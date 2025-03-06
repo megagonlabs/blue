@@ -1,329 +1,23 @@
-import configparser
+
 import os
 import string
+import asyncio
+import subprocess
+import sys
+import time
+import json
 
+import webbrowser
+import websockets
+from websockets import exceptions as ws_exceptions
+
+import configparser
 import click
 import pydash
-import tabulate
 from click import Context
 
-from blue_cli.commands.helper import RESERVED_KEYS, bcolors
-import blue_cli.commands.json_utils as json_utils
-
-from io import StringIO
-import json
-import pandas as pd
-
-tabulate.PRESERVE_WHITESPACE = True
-
-
-def show_output(data, ctx, **options):
-    output = ctx.obj["output"]
-    query = ctx.obj["query"]
-
-    single = True
-    if 'single' in options:
-        single = options['single']
-        del options['single']
-
-    results = json_utils.json_query(data, query, single=single)
-
-    if output == "table":
-        print(tabulate.tabulate(results, **options))
-    elif output == "json":
-        print(json.dumps(results, indent=3))
-    elif output == "csv":
-        if type(results) == dict:
-            results = [results]
-
-        df = pd.DataFrame(results)
-        print(df.to_csv())
-    else:
-        print('Unknown output format: ' + output)
-
-def inquire_user_input(prompt, default=None, required=False, cast=None):
-
-    if default:
-        user_input = input(f"{prompt} [default: {default}]: ")
-    else:
-        user_input = input(f"{prompt}: ")
-   
-    
-    if required:
-        if user_input == "":
-            return inquire_user_input(prompt, default=default, required=required, cast=cast)
-        else:
-            user_input = convert(user_input, cast=cast)
-            if type(user_input) == Exception:
-                print(str(user_input))
-                return inquire_user_input(prompt, default=default, required=required, cast=cast)
-            return user_input
-    else:
-        if user_input:
-            if type(user_input) == Exception:
-                print(str(user_input))
-                return inquire_user_input(prompt, default=default, required=required, cast=cast)
-            return user_input
-        else:
-            return default
-
-def convert(value, cast=None):
-    if cast:
-        if cast == 'int':
-            try:
-                value = int(value)
-            except Exception as e:
-                value = Exception("value mist be: int")
-
-        elif cast == 'bool':
-            if value.upper() == "FALSE":
-                value = False 
-            elif value.upper() == "TRUE":
-                value = True 
-            else:
-                value = Exception("value must be: bool")
-        elif cast == 'str':
-            value = str(value)
-   
-    return value
-        
-class ProfileManager:
-    def __init__(self):
-        self.__initialize()
-
-    def __initialize(self):
-        # create .blue directory, if not existing
-        if not os.path.exists(os.path.expanduser("~/.blue")):
-            os.makedirs(os.path.expanduser("~/.blue"))
-
-        # set profiles path
-        self.profiles_path = os.path.expanduser("~/.blue/profiles")
-
-        # load profile attribute config
-        self.__load_profile_attributes_config()
-
-        # read profiles
-        self.__read_profiles()
-
-        # read selected profile
-        self.selected_profile = self.__get_selected_profile_name()
-
-        # initialize default profile
-        self.__initialize_default_profile()
-
-        # activate selected profiile
-        self.__activate_selected_profile()
-
-    def __load_profile_attributes_config(self):
-        self._profile_attributes_config = {}
-        path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        with open(f"{path}/configs/profile.json") as cfp:
-            self._profile_attributes_config = json.load(cfp)
-
-    def inquire_profile_attributes(self, profile_name=None):
-        if profile_name is None:
-            profile_name = self.get_default_profile_name()
-
-        profile  = self.get_profile(profile_name)
-        profile_attributes = dict(profile)
-        print(profile_attributes)
-
-        if profile_attributes is None:
-            profile_attributes = {}
-
-        for profile_attribute in self._profile_attributes_config:
-            profile_attribute_config = self._profile_attributes_config[profile_attribute]
-            prompt = profile_attribute_config['prompt']
-            default = profile_attribute_config['default']
-            cast = profile_attribute_config['cast']
-            value = default
-            current = None
-            if profile_attribute in profile_attributes:
-                current = profile_attributes[profile_attribute]
-            if current:
-                value = current
-            required = profile_attribute_config['required']
-            profile_attribute_value = inquire_user_input(prompt, default=value, cast=cast, required=required)
-
-            self.set_profile_attribute(profile_name, profile_attribute, profile_attribute_value)
-    
-    def __read_profiles(self):
-        # read profiles file
-        self.profiles = configparser.ConfigParser()
-        self.profiles.optionxform = str
-        self.profiles.read(self.profiles_path)
-
-    def __write_profiles(self):
-        # write profiles file
-        with open(self.profiles_path, "w") as profilesfile:
-            self.profiles.write(profilesfile, space_around_delimiters=False)
-
-    def __get_selected_profile_name(self):
-        selected_profile_path = os.path.expanduser("~/.blue/.selected_profile")
-        selected_profile = "default"
-        try:
-            with open(selected_profile_path, "r") as profilefile:
-                selected_profile = profilefile.read()
-        except Exception:
-            pass
-        return selected_profile.strip()
-
-    def __set_selected_profile_name(self, selected_profile_name):
-        selected_profile_path = os.path.expanduser("~/.blue/.selected_profile")
-        with open(selected_profile_path, "w") as profilefile:
-            profilefile.write(selected_profile_name)
-
-        self.selected_profile = selected_profile_name
-
-    def __initialize_default_profile(self):
-        default_profile_name = self.get_default_profile_name()
-        if not self.has_profile(default_profile_name):
-            self.create_profile(default_profile_name)
-
-    def __activate_selected_profile(self):
-        for key in self.profiles[self.selected_profile]:
-            value = self.profiles[self.selected_profile][key]
-            os.environ[key] = value
-
-    def get_default_profile(self):
-        default_profile_name = self.get_default_profile_name()
-        return self.get_profile(default_profile_name)
-
-    def get_default_profile_name(self):
-        return "default"
-
-    def get_selected_profile_name(self):
-        return self.__get_selected_profile_name()
-
-    def set_selected_profile_name(self, selected_profile_name):
-        self.__set_selected_profile_name(selected_profile_name)
-
-    def get_selected_profile(self):
-        select_profile_name = self.get_selected_profile_name()
-        return self.get_profile(select_profile_name)
-
-    def update_selected_profile(self, **profile_attributes):
-        # get selected profile name
-        select_profile_name = self.get_selected_profile_name()
-        self.update_selected_profile(select_profile_name, **profile_attributes)
-
-        # activate selected profiile
-        self.__activate_selected_profile()
-
-    def get_selected_profile_attribute(self, attribute_name):
-        # get selected profile name
-        select_profile_name = self.get_selected_profile_name()
-        return self.get_profile_attribute(select_profile_name, attribute_name)
-
-    def set_selected_profile_attribute(self, attribute_name, attribute_value):
-        # get selected profile name
-        select_profile_name = self.get_selected_profile_name()
-        self.set_profile_attribute(select_profile_name, attribute_name, attribute_value)
-
-    def get_profile_list(self):
-        # read profiles
-        self.__read_profiles()
-
-        # list sections (i.e. profile names)
-        profiles = []
-        for section in self.profiles.sections():
-            profiles.append(section)
-        return profiles
-
-    def has_profile(self, profile_name):
-        # read profiles file
-        self.__read_profiles()
-
-        # check profile
-        return profile_name in self.profiles
-
-    def get_profile(self, profile_name):
-        if self.has_profile(profile_name):
-            return self.profiles[profile_name]
-        else:
-            return None
-
-    def create_profile(
-        self,
-        profile_name,
-        **profile_attributes
-    ):
-        # read profiles file
-        self.__read_profiles()
-
-        profile = profile_attributes
-
-        # update profiles
-        self.profiles[profile_name] = profile
-
-        # write profiles file
-        self.__write_profiles()
-
-    def update_profile(self, profile_name, **profile_attributes):
-        # get profile
-        profile = self.get_profile(profile_name)
-        profile = profile if profile else {}
-
-        # update profile
-        profile = dict(profile) | profile_attributes
-        profile = {k: v for k, v in profile.items() if v is not None}
-        # update profiles
-        self.profiles[profile_name] = profile
-        # write profiles file
-        self.__write_profiles()
-
-        # activate selected profiile
-        self.__activate_selected_profile()
-
-    def delete_profile(self, profile_name):
-        # read profiles
-        self.__read_profiles()
-
-        # delete section under profile_name
-        if not self.has_profile(profile_name):
-            raise Exception(f"no profile named {profile_name}")
-        else:
-            self.profiles.pop(profile_name)
-            self.__write_profiles()
-
-    def select_profile(self, profile_name):
-        self.set_selected_profile_name(profile_name)
-
-        # activate selected profiile
-        self.__activate_selected_profile()
-
-    def get_profile_attribute(self, profile_name, attribute_name):
-        # get profile
-        profile = self.get_profile(profile_name)
-        if profile is None:
-            return None
-        if attribute_name in profile:
-            return profile[attribute_name]
-        else:
-            return None
-
-    def set_profile_attribute(self, profile_name, attribute_name, attribute_value):
-        if attribute_name not in self._profile_attributes_config:
-            print("Unknown profile attribute")
-            return
-        
-        self.update_profile(profile_name, **{attribute_name: attribute_value})
-
-    def get_selected_profile_cookie(self):
-        return {'session': self.get_selected_profile_attribute('BLUE_COOKIE')}
-
-    def get_selected_profile_base_api_path(self):
-        api_server = self.get_selected_profile_attribute('BLUE_PUBLIC_API_SERVER')
-        platform_name = self.get_selected_profile_attribute('BLUE_DEPLOY_PLATFORM')
-        return f'{api_server}/blue/platform/{platform_name}'
-
-
-class ProfileName(click.Group):
-    def parse_args(self, ctx, args):
-        if len(args) > 0 and args[0] in self.commands:
-            if len(args) == 1 or args[1] not in self.commands:
-                args.insert(0, "")
-        super(ProfileName, self).parse_args(ctx, args)
+from blue_cli.helper import RESERVED_KEYS, bcolors, show_output
+from blue_cli.manager import Authentication, ProfileManager, PlatformManager
 
 
 @click.group(help="command group to interact with blue profiles")
@@ -433,6 +127,30 @@ def delete():
     if profile_name is None:
         raise Exception(f"profile name cannot be empty")
     profile_mgr.delete_profile(profile_name)
+
+
+@profile.command("authenticate")
+@click.option('--show_uid', is_flag=True, default=False, required=False, help="show user ID")
+def authenticate(show_uid):
+    ctx = click.get_current_context()
+    profile_name = ctx.obj["profile_name"]
+    if profile_name is None:
+        profile_name = profile_mgr.get_selected_profile_name()
+
+        if profile_name is None:
+            raise Exception(f"profile name cannot be empty")
+    
+    auth = Authentication()
+    cookie = auth.get_cookie()
+    uid = auth.get_uid()
+
+    # save cookie under current blue user profile
+    profile_mgr.set_profile_attribute(profile_name, 'BLUE_COOKIE', cookie)
+    profile_mgr.set_profile_attribute(profile_name, 'BLUE_UID', uid)
+
+    # show, optional
+    if show_uid:
+        print(uid)
 
 
 @click.pass_context
