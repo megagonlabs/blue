@@ -130,5 +130,11 @@
         "prompt": "Access Control Config Directory",
         "required": false,
         "cast": "file"
+    },
+    "FIREBASE_SERVICE_CRED": {
+        "default": "",
+	"prompt": "FireBase Service Credentialls",
+        "required": false,
+        "cast": "str"
     }
 }
