@@ -643,7 +643,6 @@ class PlatformManager:
         # Create container to copy files from to the docker volume
         # docker run -d --rm --name blue-config-data -v <docker_volume>:/root alpine 
         client.containers.run(blue_config_data_image, 'cp -r /mnt/. /blue_data',
-            name="blue_config_data",
             volumes=["blue_" + BLUE_DEPLOY_PLATFORM + "_data:/blue_data"],
             stdout=True,
             stderr=True,
@@ -716,7 +715,7 @@ class PlatformManager:
             network="blue_platform_" + BLUE_DEPLOY_PLATFORM + "_network_bridge",
             hostname="blue_platform_api",
             ports={str(BLUE_PUBLIC_API_SERVER_PORT_MAPPED):5050},
-            volumes=["blue_" + BLUE_DEPLOY_PLATFORM + "_data:/blue_data"],
+            volumes=["blue_" + BLUE_DEPLOY_PLATFORM + "_data:/blue_data", "/var/run/docker.sock:/var/run/docker.sock"],
             labels={"blue.platform": BLUE_DEPLOY_PLATFORM + "." + "api"},
             environment=config,
             detach=True,
