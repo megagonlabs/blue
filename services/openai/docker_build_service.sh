@@ -2,7 +2,7 @@
 echo 'Building OpenAI Service...'
 
 # build docker
-docker build --no-cache -t blue-service-openai:latest -f Dockerfile.service .
+docker buildx build --platform ${BLUE_BUILD_PLATFORM} --no-cache -t blue-service-openai:latest -f Dockerfile.service .
 
 # tag image
 docker tag blue-service-openai:latest blue-service-openai:$(git rev-parse --abbrev-ref HEAD)-$(git rev-parse --short HEAD)
