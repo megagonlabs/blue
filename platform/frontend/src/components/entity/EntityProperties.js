@@ -41,11 +41,9 @@ export default function EntityProperties({
             }
         >
             <SectionCard
-                padded={false}
+                style={{ padding: "0px 1px 1px" }}
                 onDoubleClick={(event) => {
-                    if (_.isFunction(setEdit)) {
-                        setEdit(true);
-                    }
+                    if (_.isFunction(setEdit)) setEdit(true);
                     event.stopPropagation();
                 }}
             >

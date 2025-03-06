@@ -1,3 +1,4 @@
+import { AuthContext } from "@/components/contexts/auth-context";
 import { faIcon } from "@/components/icon";
 import {
     Button,
@@ -10,7 +11,7 @@ import {
     Tooltip,
 } from "@blueprintjs/core";
 import { faPlus, faTrash } from "@fortawesome/sharp-duotone-solid-svg-icons";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 export default function Tags({
     edit,
     general,
@@ -21,8 +22,8 @@ export default function Tags({
 }) {
     const [entries, setEntries] = useState([]);
     useEffect(() => {
-        if (_.isArray(general.tags)) setEntries(general.tags);
-    }, [general.tags]);
+        setEntries(_.get(general, "tags", []));
+    }, [general]);
     useEffect(() => {
         if (!_.isEqual(entries, general.tags)) {
             setGeneral({ ...general, tags: entries });
@@ -59,6 +60,8 @@ export default function Tags({
         _.set(newAddTags, index, tag);
         setAddTags(newAddTags);
     };
+    const { settings } = useContext(AuthContext);
+    const darkMode = _.get(settings, "dark_mode", false);
     return (
         <FormGroup
             className="margin-0"
@@ -77,7 +80,9 @@ export default function Tags({
                             marginTop: index > 0 ? 7.5 : 0,
                             padding: "15px 70px 15px 15px",
                             borderRadius: 2,
-                            backgroundColor: Colors.LIGHT_GRAY5,
+                            backgroundColor: darkMode
+                                ? Colors.DARK_GRAY3
+                                : Colors.LIGHT_GRAY5,
                         }}
                     >
                         {edit && (

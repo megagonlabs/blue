@@ -3,6 +3,7 @@ import {
     Button,
     ButtonGroup,
     Card,
+    Classes,
     Dialog,
     DialogBody,
     Tooltip,
@@ -17,6 +18,7 @@ import dagre from "dagre";
 import _ from "lodash";
 import { useContext, useState } from "react";
 import { AppContext } from "../contexts/app-context";
+import { AuthContext } from "../contexts/auth-context";
 import AgentNode from "./visualization/AgentNode";
 import TransitionEdgeNode from "./visualization/TransitionEdgeNode";
 const getNodeDimension = (node) => {
@@ -75,6 +77,8 @@ const TRANSITION_OPTION = { duration: 300 };
 export default function PlanVisualizationPanel() {
     const { fitView } = useReactFlow();
     const { appState, appActions } = useContext(AppContext);
+    const { settings } = useContext(AuthContext);
+    const darkMode = _.get(settings, "dark_mode", false);
     const initialNodes = _.get(appState, "session.visualization.nodes", []);
     const initialEdges = _.get(appState, "session.visualization.edges", []);
     const [loading, setLoading] = useState(false);
@@ -86,6 +90,7 @@ export default function PlanVisualizationPanel() {
     };
     return (
         <Dialog
+            className={darkMode ? Classes.DARK : null}
             onOpening={() => {
                 setLoading(true);
             }}

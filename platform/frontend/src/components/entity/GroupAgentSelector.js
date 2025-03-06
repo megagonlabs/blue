@@ -18,6 +18,7 @@ import axios from "axios";
 import _ from "lodash";
 import { useContext, useEffect, useState } from "react";
 import { AppContext } from "../contexts/app-context";
+import { AuthContext } from "../contexts/auth-context";
 import { axiosErrorToast, settlePromises } from "../helper";
 import EntityIcon from "./EntityIcon";
 import GroupAgentSelectorCheck from "./GroupAgentSelectorCheck";
@@ -45,6 +46,8 @@ export default function GroupAgentSelector({
     const [addingAgent, setAddingAgent] = useState(false);
     const [removingAgent, setRemovingAgent] = useState(false);
     const { appState, appActions } = useContext(AppContext);
+    const { settings } = useContext(AuthContext);
+    const darkMode = _.get(settings, "dark_mode", false);
     const { agentGroupSelection } = appState.agent;
     const [edited, setEdited] = useState(false);
     const constructTree = (agent, prevPath, type) => {
@@ -264,6 +267,7 @@ export default function GroupAgentSelector({
     }, [isOpen]);
     return (
         <Dialog
+            className={darkMode ? Classes.DARK : null}
             isOpen={isOpen}
             onClose={() => {
                 if (edited) fetchAgentGroup();

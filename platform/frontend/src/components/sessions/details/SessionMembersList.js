@@ -217,7 +217,7 @@ export default function SessionMembersList({ loading, setLoading }) {
                                 return (
                                     <div
                                         key={user.uid}
-                                        className="on-hover-background-color-bp-gray-3"
+                                        className="background-color-on-hover"
                                         style={{
                                             display: "flex",
                                             alignItems: "center",
@@ -322,7 +322,7 @@ export default function SessionMembersList({ loading, setLoading }) {
                         return (
                             <div
                                 key={member.uid}
-                                className="on-hover-background-color-bp-gray-3"
+                                className="background-color-on-hover"
                                 style={{
                                     display: "flex",
                                     alignItems: "center",

@@ -1,10 +1,10 @@
 import TrackerCard from "@/components/admin/TrackerCard";
 import List from "@/components/admin/trackers/List";
 import Series from "@/components/admin/trackers/Series";
+import Tile from "@/components/admin/trackers/Tile";
 import { END_OF_SSE_SIGNAL } from "@/components/constant";
 import { AppContext } from "@/components/contexts/app-context";
 import { faIcon } from "@/components/icon";
-import Timestamp from "@/components/Timestamp";
 import {
     Blockquote,
     Button,
@@ -106,30 +106,7 @@ export default function Status() {
                         );
                 }
             } else if (["time", "number", "status", "text"].includes(type)) {
-                let { value } = object;
-                result.push(
-                    <Card style={{ padding: 0, overflow: "hidden" }}>
-                        <div
-                            style={{ padding: "10px 10px 5px" }}
-                            className={Classes.TEXT_MUTED}
-                        >
-                            {label}
-                        </div>
-                        <div
-                            style={{
-                                height: "50%",
-                                padding: "5px 10px 10px",
-                                backgroundColor: Colors.LIGHT_GRAY5,
-                            }}
-                        >
-                            {_.isEqual(type, "time") ? (
-                                <Timestamp timestamp={value * 1000} />
-                            ) : (
-                                value
-                            )}
-                        </div>
-                    </Card>
-                );
+                result.push(<Tile type={type} label={label} object={object} />);
             } else if (_.isEqual(type, "list")) {
                 result.push(<List label={label} object={object} />);
             } else if (_.isEqual(type, "series")) {

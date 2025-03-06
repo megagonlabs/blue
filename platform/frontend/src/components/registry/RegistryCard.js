@@ -1,6 +1,14 @@
 import { CONTAINER_STATUS_INDICATOR } from "@/components/constant";
 import { faIcon } from "@/components/icon";
-import { Card, Classes, H5, Intent, Tag, Tooltip } from "@blueprintjs/core";
+import {
+    Card,
+    Classes,
+    Colors,
+    H5,
+    Intent,
+    Tag,
+    Tooltip,
+} from "@blueprintjs/core";
 import { faCircleDot } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import _ from "lodash";
 import Link from "next/link";
@@ -40,6 +48,7 @@ export default function RegistryCard({
                         display: "flex",
                         justifyContent: "center",
                         alignItems: "center",
+                        backgroundColor: Colors.WHITE,
                     }}
                 >
                     <EntityIcon entity={{ icon, type }} />

@@ -1,5 +1,6 @@
 import { HEX_TRANSPARENCY, JSONFORMS_RENDERERS } from "@/components/constant";
 import { AppContext } from "@/components/contexts/app-context";
+import { AuthContext } from "@/components/contexts/auth-context";
 import { Colors, Tag } from "@blueprintjs/core";
 import { JsonForms } from "@jsonforms/react";
 import { vanillaCells } from "@jsonforms/vanilla-renderers";
@@ -14,6 +15,8 @@ export default function JsonForm({ content, hasError }) {
     const formId = _.get(content, "form_id", null);
     const formSpec = _.get(jsonformSpecs, formId, {});
     const isFormClosed = closedJsonforms.has(formId);
+    const { settings } = useContext(AuthContext);
+    const darkMode = _.get(settings, "dark_mode", false);
     useEffect(() => {
         hasError.current = Boolean(error);
     }, [error]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -38,7 +41,6 @@ export default function JsonForm({ content, hasError }) {
                         style={{
                             position: "absolute",
                             left: 0,
-                            backgroundColor: Colors.GRAY2,
                             bottom: 0,
                             borderTopLeftRadius: 0,
                             borderTopRightRadius: 0,
@@ -53,7 +55,9 @@ export default function JsonForm({ content, hasError }) {
                             top: 0,
                             left: 0,
                             zIndex: 5,
-                            backgroundColor: `${Colors.LIGHT_GRAY3}${HEX_TRANSPARENCY[50]}`,
+                            backgroundColor: `${
+                                darkMode ? Colors.GRAY1 : Colors.LIGHT_GRAY1
+                            }${HEX_TRANSPARENCY[50]}`,
                         }}
                         className={classNames(
                             "full-parent-width",

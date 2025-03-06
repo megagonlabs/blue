@@ -1,3 +1,4 @@
+import { AuthContext } from "@/components/contexts/auth-context";
 import { faIcon } from "@/components/icon";
 import {
     Card,
@@ -10,7 +11,10 @@ import {
 } from "@blueprintjs/core";
 import { faList } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import _ from "lodash";
+import { useContext } from "react";
 export default function List({ label, object }) {
+    const { settings } = useContext(AuthContext);
+    const darkMode = _.get(settings, "dark_mode", false);
     const render = (object) => {
         let result = [];
         let { type, label, visibility, data } = object;
@@ -82,7 +86,13 @@ export default function List({ label, object }) {
                 </div>
             }
         >
-            <Card style={{ cursor: "pointer", padding: 0, overflow: "hidden" }}>
+            <Card
+                style={{
+                    cursor: "pointer",
+                    padding: darkMode ? 1 : 0,
+                    overflow: "hidden",
+                }}
+            >
                 <div
                     style={{ padding: "10px 10px 5px" }}
                     className={Classes.TEXT_MUTED}
@@ -93,7 +103,9 @@ export default function List({ label, object }) {
                     style={{
                         height: "50%",
                         padding: "5px 10px 10px",
-                        backgroundColor: Colors.LIGHT_GRAY5,
+                        backgroundColor: darkMode
+                            ? Colors.DARK_GRAY3
+                            : Colors.LIGHT_GRAY5,
                     }}
                 >
                     {faIcon({ icon: faList })}

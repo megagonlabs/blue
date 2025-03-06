@@ -107,7 +107,7 @@ export default function IconPicker({
                             );
                             return (
                                 <div
-                                    className="on-hover-background-color-bp-gray-3"
+                                    className="background-color-on-hover"
                                     key={index}
                                     style={{
                                         ...ENTITY_ICON_40,

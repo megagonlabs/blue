@@ -18,6 +18,7 @@ import axios from "axios";
 import _ from "lodash";
 import { useContext, useState } from "react";
 import { AppContext } from "../contexts/app-context";
+import { AuthContext } from "../contexts/auth-context";
 import { axiosErrorToast } from "../helper";
 const READ_TAG = (
     <Tag minimal intent={Intent.SUCCESS}>
@@ -175,6 +176,8 @@ export default function RoleConfigurationPopover({
     const selectedUsers = appState.admin.selectedUsers;
     const [saved, setSaved] = useState(false);
     const usersMap = appState.admin.usersMap;
+    const { settings } = useContext(AuthContext);
+    const darkMode = _.get(settings, "dark_mode", false);
     const handleUpdateUserRole = () => {
         setLoading(true);
         let promises = [];
@@ -226,6 +229,7 @@ export default function RoleConfigurationPopover({
     };
     return (
         <Dialog
+            className={darkMode ? Classes.DARK : null}
             onClose={onClose}
             title="Role Configuration"
             isOpen={isRoleConfigOpen}

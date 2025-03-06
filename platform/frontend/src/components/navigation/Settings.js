@@ -17,6 +17,7 @@ import {
 import {
     faArrowsFromLine,
     faBug,
+    faCircleHalfStroke,
     faClipboard,
     faCode,
     faComments,
@@ -62,6 +63,11 @@ const SESSION_MESSAGE_SETTINGS = {
     },
 };
 const APPEARANCE_SETTINGS = {
+    dark_mode: {
+        title: "Dark mode",
+        description: "Change the color scheme from light to dark",
+        icon: faCircleHalfStroke,
+    },
     compact_sidebar: {
         title: "Compact sidebar",
         description: "Use minimal style for navigation menu",
@@ -78,8 +84,10 @@ const DEVELOPER_SETTINGS = {
 };
 export default function Settings({ isOpen, setIsSettingsOpen }) {
     const { settings, updateSettings } = useContext(AuthContext);
+    const darkMode = _.get(settings, "dark_mode", false);
     return (
         <Drawer
+            className={darkMode ? Classes.DARK : null}
             size={DrawerSize.SMALL}
             isOpen={isOpen}
             onClose={() => setIsSettingsOpen(false)}
@@ -124,8 +132,12 @@ export default function Settings({ isOpen, setIsSettingsOpen }) {
                     style={{ marginBottom: 20 }}
                 >
                     <SectionCard padded={false}>
-                        <Menu className="settings-menus" size="large">
-                            {["compact_sidebar"].map((key) => (
+                        <Menu
+                            style={{ backgroundColor: "transparent" }}
+                            className="settings-menus"
+                            size="large"
+                        >
+                            {["dark_mode", "compact_sidebar"].map((key) => (
                                 <MenuItem
                                     key={key}
                                     text={
@@ -181,7 +193,11 @@ export default function Settings({ isOpen, setIsSettingsOpen }) {
                     style={{ marginBottom: 20 }}
                 >
                     <SectionCard padded={false}>
-                        <Menu className="settings-menus" size="large">
+                        <Menu
+                            style={{ backgroundColor: "transparent" }}
+                            className="settings-menus"
+                            size="large"
+                        >
                             {[
                                 "show_workspace",
                                 "expand_message",
@@ -242,7 +258,11 @@ export default function Settings({ isOpen, setIsSettingsOpen }) {
                     title="Developer"
                 >
                     <SectionCard padded={false}>
-                        <Menu className="settings-menus" size="large">
+                        <Menu
+                            style={{ backgroundColor: "transparent" }}
+                            className="settings-menus"
+                            size="large"
+                        >
                             {["debug_mode"].map((key) => (
                                 <MenuItem
                                     key={key}

@@ -67,6 +67,7 @@ const Row = ({ index, data, style }) => {
     const conversationView = _.get(settings, "conversation_view", false);
     const rowRef = useRef({});
     const debugMode = _.get(settings, "debug_mode", false);
+    const darkMode = _.get(settings, "dark_mode", false);
     const expandMessage = _.get(settings, "expand_message", false);
     const own = useMemo(() => {
         const uid = _.get(messages, [index, "metadata", "id"], null);
@@ -162,7 +163,9 @@ const Row = ({ index, data, style }) => {
                 padding: "10px 20px",
                 marginTop: 10,
                 backgroundColor: showActions.current
-                    ? Colors.LIGHT_GRAY5
+                    ? darkMode
+                        ? Colors.DARK_GRAY2
+                        : Colors.LIGHT_GRAY5
                     : null,
             }}
         >
@@ -189,11 +192,7 @@ const Row = ({ index, data, style }) => {
                         <Tooltip
                             content="Add to workspace"
                             minimal
-                            placement={`bottom${
-                                _.get(settings, "debug_mode", false)
-                                    ? ""
-                                    : "-end"
-                            }`}
+                            placement={`bottom${debugMode ? "" : "-end"}`}
                         >
                             <Button
                                 icon={faIcon({ icon: faSidebar })}
@@ -213,7 +212,7 @@ const Row = ({ index, data, style }) => {
                                 }}
                             />
                         </Tooltip>
-                        {_.get(settings, "debug_mode", false) ? (
+                        {debugMode ? (
                             <Tooltip
                                 content="Raw"
                                 minimal

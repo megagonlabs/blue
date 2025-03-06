@@ -8,6 +8,7 @@ import {
     ButtonGroup,
     Card,
     Classes,
+    Colors,
     Intent,
     Menu,
     MenuDivider,
@@ -219,6 +220,7 @@ export default function EntityMain({
                                 style={{
                                     cursor: edit ? "pointer" : null,
                                     ...ENTITY_ICON_40,
+                                    backgroundColor: Colors.WHITE,
                                 }}
                             >
                                 <EntityIcon entity={entity} />

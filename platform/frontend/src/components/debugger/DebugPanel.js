@@ -59,6 +59,8 @@ export default function DebugPanel() {
         return () => window.removeEventListener("resize", handleWindowResize);
     }, []);
     const { settings } = useContext(AuthContext);
+    const debugMode = _.get(settings, "debug_mode", false);
+    const darkMode = _.get(settings, "dark_mode", false);
     const [isMinimized, setIsMinimized] = useState(false);
     return (
         <OverlaysProvider>
@@ -72,15 +74,16 @@ export default function DebugPanel() {
             >
                 <div
                     key="debugger"
-                    className={classNames(Classes.DIALOG, "margin-0")}
+                    className={classNames(
+                        Classes.DIALOG,
+                        "margin-0",
+                        darkMode ? Classes.DARK : null
+                    )}
                     ref={resizeRef}
                     style={{
                         transform: "translate(40px, 40px)",
                         position: "relative",
-                        display:
-                            _.get(settings, "debug_mode", false) && !isMinimized
-                                ? null
-                                : "none",
+                        display: debugMode && !isMinimized ? null : "none",
                         height: BASE_HEIGHT,
                         width: BASE_HEIGHT * 1.5,
                         paddingBottom: 0,
@@ -125,7 +128,11 @@ export default function DebugPanel() {
                 </div>
                 <div
                     key="debugger-minimized"
-                    className={`${Classes.DIALOG} margin-0`}
+                    className={classNames(
+                        Classes.DIALOG,
+                        "margin-0",
+                        darkMode ? Classes.DARK : null
+                    )}
                     style={{
                         position: "absolute",
                         top: "calc(100vh - 40px)",
@@ -134,10 +141,7 @@ export default function DebugPanel() {
                         borderBottomRightRadius: 0,
                         width: 250,
                         right: 20,
-                        display:
-                            _.get(settings, "debug_mode", false) && isMinimized
-                                ? null
-                                : "none",
+                        display: debugMode && isMinimized ? null : "none",
                         cursor: "pointer",
                     }}
                     onClick={() => setIsMinimized(false)}

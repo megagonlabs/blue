@@ -1,5 +1,6 @@
 import JsonEditor from "@/components/codemirror/JsonEditor";
 import { AppContext } from "@/components/contexts/app-context";
+import { AuthContext } from "@/components/contexts/auth-context";
 import {
     constructSavePropertyRequests,
     settlePromises,
@@ -29,6 +30,8 @@ import { useContext, useEffect, useState } from "react";
 import JsonViewer from "../message/renderers/JsonViewer";
 export default function SessionData() {
     const { appState } = useContext(AppContext);
+    const { settings } = useContext(AuthContext);
+    const darkMode = _.get(settings, "dark_mode", false);
     const { sessionIdFocus } = appState.session;
     const [data, setData] = useState(null);
     const [editData, setEditData] = useState(null);
@@ -72,7 +75,10 @@ export default function SessionData() {
     };
     return (
         <>
-            <DialogBody style={{ margin: "1px 0px 0px 0px" }}>
+            <DialogBody
+                className="margin-0"
+                style={{ padding: `0px ${darkMode ? 1 : 0}px` }}
+            >
                 <div style={{ maxHeight: 463, minHeight: 141 }}>
                     {!edit ? (
                         _.isEmpty(data) ? (
@@ -86,7 +92,10 @@ export default function SessionData() {
                                 />
                             </div>
                         ) : (
-                            <div onDoubleClick={() => setEdit(true)}>
+                            <div
+                                style={{ padding: 15 }}
+                                onDoubleClick={() => setEdit(true)}
+                            >
                                 <JsonViewer json={data} />
                             </div>
                         )

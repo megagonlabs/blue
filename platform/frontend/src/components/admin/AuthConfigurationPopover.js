@@ -2,6 +2,7 @@ import { faIcon } from "@/components/icon";
 import {
     Button,
     Classes,
+    Colors,
     Dialog,
     DialogBody,
     DialogFooter,
@@ -22,7 +23,8 @@ import {
 import axios from "axios";
 import classNames from "classnames";
 import _ from "lodash";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
+import { AuthContext } from "../contexts/auth-context";
 import { axiosErrorToast, settlePromises } from "../helper";
 const EXPLANATION_TEXT = {
     style: {
@@ -61,6 +63,8 @@ export default function AuthConfigurationPopover({
         show_workspace: false,
         conversation_view: false,
     });
+    const { settings } = useContext(AuthContext);
+    const darkMode = _.get(settings, "dark_mode", false);
     const getPlatformSettings = () => {
         setLoading(true);
         axios.get("/platform/settings").then((response) => {
@@ -126,6 +130,7 @@ export default function AuthConfigurationPopover({
         setDefaultSettings({ ...defaultSettings, [key]: value });
     return (
         <Dialog
+            className={darkMode ? Classes.DARK : null}
             onClose={onClose}
             title="Auth. Configuration"
             isOpen={isAuthConfigOpen}
@@ -188,7 +193,15 @@ export default function AuthConfigurationPopover({
                         <div style={SECTION_LABEL_STYLE}>
                             Default User Settings
                         </div>
-                        <Menu size="large" style={{ padding: 0 }}>
+                        <Menu
+                            size="large"
+                            style={{
+                                padding: 0,
+                                backgroundColor: darkMode
+                                    ? Colors.DARK_GRAY2
+                                    : null,
+                            }}
+                        >
                             {[
                                 "compact_sidebar",
                                 "show_workspace",

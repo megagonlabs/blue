@@ -1,6 +1,6 @@
 import { AppContext } from "@/components/contexts/app-context";
 import { faIcon } from "@/components/icon";
-import { Button, ButtonGroup, Card, Classes, Dialog } from "@blueprintjs/core";
+import { Button, ButtonGroup, Classes, Dialog } from "@blueprintjs/core";
 import {
     faCircleA,
     faFolderTree,
@@ -11,6 +11,7 @@ import {
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import _ from "lodash";
 import { useContext, useEffect, useState } from "react";
+import { AuthContext } from "../contexts/auth-context";
 import SessionAgentsList from "./details/SessionAgentsList";
 import SessionBudget from "./details/SessionBudget";
 import SessionData from "./details/SessionData";
@@ -48,6 +49,8 @@ export default function SessionDetail({ isOpen, setIsSessionDetailOpen }) {
         { text: "Data", icon: faFolderTree, key: "data" },
         { text: "Settings", icon: faGear, key: "settings" },
     ];
+    const { settings } = useContext(AuthContext);
+    const darkMode = _.get(settings, "dark_mode", false);
     useEffect(() => {
         if (_.isNil(sessionIdFocus)) {
             setIsSessionDetailOpen(false);
@@ -56,6 +59,7 @@ export default function SessionDetail({ isOpen, setIsSessionDetailOpen }) {
     }, [sessionIdFocus]); // eslint-disable-line react-hooks/exhaustive-deps
     return (
         <Dialog
+            className={darkMode ? Classes.DARK : null}
             portalClassName="portal-overlay-z-index-36"
             title={
                 <div className={Classes.TEXT_OVERFLOW_ELLIPSIS}>
@@ -70,7 +74,8 @@ export default function SessionDetail({ isOpen, setIsSessionDetailOpen }) {
             }}
             isOpen={isOpen}
         >
-            <Card
+            <div
+                className="border-bottom scrollbar-none"
                 style={{
                     padding: "5px 15px",
                     borderRadius: 0,
@@ -89,7 +94,7 @@ export default function SessionDetail({ isOpen, setIsSessionDetailOpen }) {
                         />
                     ))}
                 </ButtonGroup>
-            </Card>
+            </div>
             {_.isEqual(tab, "about") && (
                 <SessionMetadata
                     setAllowQuickClose={setAllowQuickClose}

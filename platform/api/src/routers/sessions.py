@@ -310,7 +310,7 @@ def get_session_data(request: Request, session_id):
 def set_session_data(request: Request, session_id, property_name, property: JSONStructure):
     session = p.get_session(session_id)
     session_acl_enforce(request, session.to_dict(), write=True)
-    session.set_data(property_name, property)
+    session.set_data(property_name, pydash.objects.get(property, [property_name], None))
     return JSONResponse(content={"message": "Success"})
 
 

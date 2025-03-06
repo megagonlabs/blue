@@ -60,11 +60,26 @@ table.entity-section-card-table tr td {
 .border-top {
     border-top: 1px solid rgba(17, 20, 24, 0.15);
 }
+.bp5-dark .border-top {
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
 .border-bottom {
     border-bottom: 1px solid rgba(17, 20, 24, 0.15);
 }
+.bp5-dark .border-bottom {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
 .border-right {
     border-right: 1px solid rgba(17, 20, 24, 0.15);
+}
+.bp5-dark .border-right {
+    border-right: 1px solid rgba(255, 255, 255, 0.2);
+}
+.border-left {
+    border-left: 1px solid rgba(17, 20, 24, 0.15);
+}
+.bp5-dark .border-left {
+    border-left: 1px solid rgba(255, 255, 255, 0.2);
 }
 .z-index-36 {
     z-index: 36;
@@ -85,8 +100,11 @@ table.entity-section-card-table tr td {
 .padding-0 {
     padding: 0px !important;
 }
-.on-hover-background-color-bp-gray-3:hover {
+.background-color-on-hover:hover {
     background-color: #e5e8eb;
+}
+.bp5-dark .background-color-on-hover:hover {
+    background-color: #252a31;
 }
 .position-relative {
     position: relative;
@@ -99,6 +117,9 @@ table.entity-section-card-table tr td {
 }
 .role-configuration-permission-list li span[class^="bp"][class*="-tag"] {
     margin-right: 5px;
+}
+:root .bp5-dark {
+    --separator-border: rgba(255, 255, 255, 0.2);
 }
 .settings-menus {
     padding: 8px !important;

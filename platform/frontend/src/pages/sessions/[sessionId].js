@@ -17,7 +17,6 @@ import { AppToaster } from "@/components/toaster";
 import {
     Alignment,
     Button,
-    Card,
     Classes,
     Colors,
     ControlGroup,
@@ -80,6 +79,7 @@ export default function SessionMessagePage() {
     const [isSessionDetailOpen, setIsSessionDetailOpen] = useState(false);
     const { settings } = useContext(AuthContext);
     const compactSidebar = _.get(settings, "compact_sidebar", false);
+    const darkMode = _.get(settings, "dark_mode", false);
     const sendSessionMessage = (message) => {
         if (!isSocketOpen) return;
         setMessage("");
@@ -159,7 +159,8 @@ export default function SessionMessagePage() {
                     }px)`,
                 }}
             >
-                <Card
+                <div
+                    className="border-bottom"
                     style={{
                         borderRadius: 0,
                         display: "flex",
@@ -170,6 +171,9 @@ export default function SessionMessagePage() {
                         padding: "0px 20px",
                         zIndex: 1,
                         gap: 10,
+                        backgroundColor: darkMode
+                            ? Colors.DARK_GRAY1
+                            : Colors.WHITE,
                     }}
                 >
                     {debugMode && (
@@ -289,14 +293,15 @@ export default function SessionMessagePage() {
                         ) : null}
                         <SessionMemberStack sessionId={sessionId} />
                     </div>
-                </Card>
+                </div>
                 <div
                     style={{
                         height: "calc(100% - 131px)",
-                        paddingTop: 1,
                         position: "relative",
                         paddingBottom: !_.isEmpty(progress) ? 31 : null,
-                        backgroundColor: Colors.WHITE,
+                        backgroundColor: darkMode
+                            ? Colors.DARK_GRAY1
+                            : Colors.WHITE,
                     }}
                 >
                     <Allotment separator={appState.session.showWorkspacePanel}>
@@ -375,7 +380,9 @@ export default function SessionMessagePage() {
                         padding: 20,
                         position: "relative",
                         height: 131,
-                        backgroundColor: Colors.WHITE,
+                        backgroundColor: darkMode
+                            ? Colors.DARK_GRAY1
+                            : Colors.WHITE,
                     }}
                 >
                     <ControlGroup fill style={{ height: "100%" }}>

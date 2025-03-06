@@ -1,7 +1,7 @@
 import { ENTITY_ICON_40 } from "@/components/constant";
 import { AppContext } from "@/components/contexts/app-context";
 import EntityIcon from "@/components/entity/EntityIcon";
-import { Card } from "@blueprintjs/core";
+import { Card, Colors } from "@blueprintjs/core";
 import { Handle, Position } from "@xyflow/react";
 import _ from "lodash";
 import { useContext } from "react";
@@ -10,7 +10,9 @@ export default function AgentNode({ data }) {
     return (
         <Card style={{ padding: 10, fontFamily: "monospace, monospace" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <Card style={ENTITY_ICON_40}>
+                <Card
+                    style={{ ...ENTITY_ICON_40, backgroundColor: Colors.WHITE }}
+                >
                     <EntityIcon
                         entity={{
                             type: "agent",

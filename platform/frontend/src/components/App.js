@@ -73,6 +73,7 @@ export default function App({ children }) {
     const { user, permissions, settings } = useContext(AuthContext);
     const userRole = _.get(user, "role", null);
     const compactSidebar = _.get(settings, "compact_sidebar", false);
+    const darkMode = _.get(settings, "dark_mode", false);
     const sidebarWidth = compactSidebar ? 80 : NAVIGATION_MENU_WIDTH;
     const {
         canWritePlatformUsers,
@@ -179,7 +180,7 @@ export default function App({ children }) {
         },
     ];
     return (
-        <div>
+        <div className={darkMode ? Classes.DARK : null}>
             <Navbar style={{ paddingLeft: 20, paddingRight: 20 }}>
                 <Navbar.Group align={Alignment.START}>
                     <Image
@@ -674,7 +675,9 @@ export default function App({ children }) {
                             : null,
                     height: "calc(100vh - 50px)",
                     position: "relative",
-                    backgroundColor: Colors.LIGHT_GRAY5,
+                    backgroundColor: darkMode
+                        ? Colors.DARK_GRAY1
+                        : Colors.LIGHT_GRAY5,
                 }}
             >
                 {_.isEmpty(user) ? <AccessDeniedNonIdealState /> : children}

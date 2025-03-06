@@ -3,6 +3,7 @@ import AgentEntity from "@/components/agents/AgentEntity";
 import InputEntity from "@/components/agents/InputEntity";
 import OutputEntity from "@/components/agents/OutputEntity";
 import { ENTITY_TYPE_LOOKUP } from "@/components/constant";
+import { AuthContext } from "@/components/contexts/auth-context";
 import CollectionEntity from "@/components/data/CollectionEntity";
 import DatabaseEntity from "@/components/data/DatabaseEntity";
 import EntityEntity from "@/components/data/EntityEntity";
@@ -11,10 +12,10 @@ import SourceEntity from "@/components/data/SourceEntity";
 import Breadcrumbs from "@/components/entity/Breadcrumbs";
 import ModelEntity from "@/components/model/ModelEntity";
 import OperatorEntity from "@/components/operator/OperatorEntity";
-import { Card } from "@blueprintjs/core";
+import { Colors } from "@blueprintjs/core";
 import _ from "lodash";
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 export default function RegistryEntity() {
     const router = useRouter();
     const [breadcrumbs, setBreadcrumbs] = useState([]);
@@ -63,6 +64,8 @@ export default function RegistryEntity() {
         });
         setBreadcrumbs(crumbs);
     }, [router]);
+    const { settings } = useContext(AuthContext);
+    const darkMode = _.get(settings, "dark_mode", false);
     const ENTITY_TYPE_TO_COMPONENT = {
         "/agent": <AgentEntity />,
         "/agent_group/agent": <AgentEntity />,
@@ -81,18 +84,21 @@ export default function RegistryEntity() {
     };
     return (
         <div style={{ height: "100%", overflowY: "auto" }}>
-            <Card
-                className="full-parent-width"
+            <div
+                className="full-parent-width border-bottom"
                 style={{
                     padding: "15px 20px",
                     top: 0,
                     left: 0,
                     position: "absolute",
                     zIndex: 1,
+                    backgroundColor: darkMode
+                        ? Colors.DARK_GRAY2
+                        : Colors.WHITE,
                 }}
             >
                 <Breadcrumbs breadcrumbs={breadcrumbs} />
-            </Card>
+            </div>
             <div style={{ marginTop: 70 }}>
                 {_.get(ENTITY_TYPE_TO_COMPONENT, entityType, null)}
             </div>

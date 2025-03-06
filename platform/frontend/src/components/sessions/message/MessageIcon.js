@@ -1,7 +1,7 @@
 import { ENTITY_ICON_40, PROFILE_PICTURE_40 } from "@/components/constant";
 import { AppContext } from "@/components/contexts/app-context";
 import { faIcon } from "@/components/icon";
-import { Card, Classes, Icon } from "@blueprintjs/core";
+import { Card, Classes, Colors, Icon } from "@blueprintjs/core";
 import { faQuestion } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import _ from "lodash";
 import Image from "next/image";
@@ -25,7 +25,7 @@ function MessageIcon({ message }) {
             )}
         </Card>
     ) : (
-        <Card style={ENTITY_ICON_40}>
+        <Card style={{ ...ENTITY_ICON_40, backgroundColor: Colors.WHITE }}>
             <EntityIcon
                 entity={{
                     type: "agent",

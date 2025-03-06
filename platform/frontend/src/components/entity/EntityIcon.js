@@ -1,4 +1,5 @@
 import { faIcon } from "@/components/icon";
+import { Colors } from "@blueprintjs/core";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import _ from "lodash";
 import Image from "next/image";
@@ -14,6 +15,7 @@ export default function EntityIcon({ entity, iconSize = 20 }) {
         return faIcon({
             icon: _.get(ENTITY_TYPE_LOOKUP, [type, "icon"], null),
             size: iconSize,
+            style: { color: Colors.BLACK },
         });
     }
     return (

@@ -142,7 +142,7 @@ export default function AllSessions() {
             .catch(() => {});
     }, [sessionGroupBy]); // eslint-disable-line react-hooks/exhaustive-deps
     return (
-        <>
+        <div className="full-parent-height">
             <div style={{ padding: "20px 20px 10px 20px", display: "flex" }}>
                 <H4 style={{ margin: "0px 10px 0px 0px" }}>Sessions</H4>
             </div>
@@ -308,6 +308,6 @@ export default function AllSessions() {
                     )}
                 </div>
             </div>
-        </>
+        </div>
     );
 }

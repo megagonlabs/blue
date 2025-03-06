@@ -23,6 +23,7 @@ import _ from "lodash";
 import { useRouter } from "next/router";
 import { useContext, useMemo, useState } from "react";
 import { AppContext } from "../contexts/app-context";
+import { AuthContext } from "../contexts/auth-context";
 export default function SearchResultRow({ sessionId, style = {} }) {
     const { appState, appActions } = useContext(AppContext);
     const { pinnedSessionIds, sessionDetails, unreadSessionIds } =
@@ -43,6 +44,8 @@ export default function SearchResultRow({ sessionId, style = {} }) {
         ""
     );
     const router = useRouter();
+    const { settings } = useContext(AuthContext);
+    const darkMode = _.get(settings, "dark_mode", false);
     const [updatingPin, setUpdatingPin] = useState(false);
     const isPinned = pinnedSessionIds.has(sessionId);
     const handlePinSession = () => {
@@ -93,8 +96,9 @@ export default function SearchResultRow({ sessionId, style = {} }) {
                         position: "absolute",
                         left: 20,
                         width: 300,
-                        background:
-                            "linear-gradient(to right,  rgba(255,255,255,1) 0%,rgba(255,255,255,1) 100px,rgba(255,255,255,0) 99%,rgba(255,255,255,0) 100%)",
+                        background: darkMode
+                            ? "linear-gradient(to right,  rgba(37,42,49,1) 0%,rgba(37,42,49,1) 100px,rgba(255,255,255,0) 99%,rgba(255,255,255,0) 100%)"
+                            : "linear-gradient(to right,  rgba(255,255,255,1) 0%,rgba(255,255,255,1) 100px,rgba(255,255,255,0) 99%,rgba(255,255,255,0) 100%)",
                     }}
                 >
                     <ButtonGroup size="large" variant="minimal">

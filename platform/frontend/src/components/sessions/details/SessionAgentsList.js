@@ -5,6 +5,7 @@ import { faIcon } from "@/components/icon";
 import {
     Card,
     Classes,
+    Colors,
     DialogBody,
     FormGroup,
     NonIdealState,
@@ -77,7 +78,10 @@ export default function SessionAgentsList({ loading, setLoading }) {
                         title="No Agent"
                     />
                 ) : (
-                    <FormGroup label="Currently in the session">
+                    <FormGroup
+                        label="Currently in the session"
+                        style={{ paddingBottom: 15 }}
+                    >
                         {loading ? (
                             <>
                                 {LOADING_PLACEHOLDER}
@@ -95,7 +99,7 @@ export default function SessionAgentsList({ loading, setLoading }) {
                                 return (
                                     <div
                                         key={index}
-                                        className="on-hover-background-color-bp-gray-3"
+                                        className="background-color-on-hover"
                                         style={{
                                             display: "flex",
                                             alignItems: "center",
@@ -104,7 +108,12 @@ export default function SessionAgentsList({ loading, setLoading }) {
                                             borderRadius: 2,
                                         }}
                                     >
-                                        <Card style={ENTITY_ICON_40}>
+                                        <Card
+                                            style={{
+                                                ...ENTITY_ICON_40,
+                                                backgroundColor: Colors.WHITE,
+                                            }}
+                                        >
                                             <EntityIcon
                                                 entity={{
                                                     type: "agent",

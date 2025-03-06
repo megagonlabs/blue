@@ -4,6 +4,7 @@ import {
     UI_JSON_SCHEMA,
 } from "@/components/codemirror/constant";
 import { JSONFORMS_RENDERERS, MIN_ALLOTMENT_PANE } from "@/components/constant";
+import { AuthContext } from "@/components/contexts/auth-context";
 import { safeJsonParse } from "@/components/helper";
 import { faIcon } from "@/components/icon";
 import DocDrawer from "@/components/jsonforms/docs/DocDrawer";
@@ -47,7 +48,7 @@ import classNames from "classnames";
 import copy from "copy-to-clipboard";
 import jsonFormatter from "json-string-formatter";
 import _ from "lodash";
-import { createRef, useEffect, useMemo, useState } from "react";
+import { createRef, useContext, useEffect, useMemo, useState } from "react";
 import { useErrorBoundary, withErrorBoundary } from "react-use-error-boundary";
 const DEFAULT_SCHEMA = JSON.stringify(
     { type: "object", properties: {} },
@@ -77,6 +78,8 @@ function FormDesigner() {
     const [uiSchemaInitialized, setUiSchemaInitialized] = useState(false);
     const [schemaLoading, setSchemaLoading] = useState(true);
     const [schemaInitialized, setSchemaInitialized] = useState(false);
+    const { settings } = useContext(AuthContext);
+    const darkMode = _.get(settings, "dark_mode", false);
     useEffect(() => {
         if (error) {
             setIsDocOpen(false);
@@ -295,7 +298,9 @@ function FormDesigner() {
             <div
                 style={{
                     height: "calc(100% - 50px)",
-                    backgroundColor: Colors.WHITE,
+                    backgroundColor: darkMode
+                        ? Colors.DARK_GRAY1
+                        : Colors.WHITE,
                 }}
             >
                 <Allotment>
@@ -466,11 +471,12 @@ function FormDesigner() {
                                 height: "calc(100% - 51px)",
                             }}
                         >
-                            <Card
+                            <div
+                                className="border-top border-right border-bottom border-left"
                                 style={{
+                                    borderRadius: 2,
                                     overflow: "hidden",
                                     marginBottom: 20,
-                                    padding: 0,
                                     display: resultPanel ? "none" : null,
                                     height: 200,
                                 }}
@@ -481,7 +487,7 @@ function FormDesigner() {
                                     alwaysAllowPopulate
                                     setCode={setJsonData}
                                 />
-                            </Card>
+                            </div>
                             {!_.isEmpty(uischema) ? (
                                 <Callout
                                     icon={null}

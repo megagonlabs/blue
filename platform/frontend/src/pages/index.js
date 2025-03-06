@@ -139,7 +139,13 @@ export default function LaunchScreen() {
                                     joinAgentGroupSession(agentGroup.name)
                                 }
                             >
-                                <Card style={{ ...ENTITY_ICON_40, opacity }}>
+                                <Card
+                                    style={{
+                                        ...ENTITY_ICON_40,
+                                        opacity,
+                                        backgroundColor: Colors.WHITE,
+                                    }}
+                                >
                                     <EntityIcon entity={agentGroup} />
                                 </Card>
                                 <div

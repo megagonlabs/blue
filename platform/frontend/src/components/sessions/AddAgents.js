@@ -5,6 +5,7 @@ import {
     Card,
     Checkbox,
     Classes,
+    Colors,
     Dialog,
     DialogBody,
     DialogFooter,
@@ -25,6 +26,7 @@ import _ from "lodash";
 import { useContext, useEffect, useState } from "react";
 import { FixedSizeList } from "react-window";
 import { ENTITY_ICON_40 } from "../constant";
+import { AuthContext } from "../contexts/auth-context";
 import EntityIcon from "../entity/EntityIcon";
 import { axiosErrorToast } from "../helper";
 const agentRegistryName = process.env.NEXT_PUBLIC_AGENT_REGISTRY_NAME;
@@ -41,6 +43,8 @@ export default function AddAgents({
     const [unavailableAgents, setUnavailableAgents] = useState(null);
     const [selected, setSelected] = useState(new Set());
     const [added, setAdded] = useState(new Set());
+    const { settings } = useContext(AuthContext);
+    const darkMode = _.get(settings, "dark_mode", false);
     const selectionSize =
         _.size(selected) -
         _.size(_.intersection(Array.from(selected), Array.from(added)));
@@ -147,6 +151,7 @@ export default function AddAgents({
     };
     return (
         <Dialog
+            className={darkMode ? Classes.DARK : null}
             portalClassName="portal-overlay-z-index-36"
             title="Add Agents"
             canOutsideClickClose={_.isEqual(selectionSize, 0)}
@@ -157,7 +162,7 @@ export default function AddAgents({
                 setSkippable(false);
             }}
         >
-            <DialogBody className="margin-0">
+            <DialogBody className="margin-0" style={{ padding: 0 }}>
                 {_.isEmpty(agents) ? (
                     <div style={{ height: 141 }}>
                         <NonIdealState
@@ -239,7 +244,13 @@ export default function AddAgents({
                                                 alignItems: "center",
                                             }}
                                         >
-                                            <div style={ENTITY_ICON_40}>
+                                            <div
+                                                style={{
+                                                    ...ENTITY_ICON_40,
+                                                    backgroundColor:
+                                                        Colors.WHITE,
+                                                }}
+                                            >
                                                 <EntityIcon
                                                     entity={{
                                                         type: "agent",

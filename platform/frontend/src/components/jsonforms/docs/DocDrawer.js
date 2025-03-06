@@ -1,3 +1,4 @@
+import { AuthContext } from "@/components/contexts/auth-context";
 import { faIcon } from "@/components/icon";
 import BooleanDoc from "@/components/jsonforms/docs/BooleanDoc";
 import ButtonDoc from "@/components/jsonforms/docs/ButtonDoc";
@@ -14,6 +15,7 @@ import {
     Callout,
     Classes,
     Code,
+    Colors,
     Drawer,
     HTMLTable,
     Intent,
@@ -45,7 +47,7 @@ import {
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import classNames from "classnames";
 import _ from "lodash";
-import { useCallback, useState } from "react";
+import { useCallback, useContext, useState } from "react";
 import CandidatesTable from "../examples/CandidatesTable";
 import ArrayDoc from "./ArrayDoc";
 import BasicsDoc from "./BasicsDoc";
@@ -141,8 +143,15 @@ const MainMenuPanel = ({
         },
     ];
     const [openingPanel, setOpeningPanel] = useState(false);
+    const { settings } = useContext(AuthContext);
+    const darkMode = _.get(settings, "dark_mode", false);
     return (
-        <div style={{ padding: 20 }}>
+        <div
+            style={{
+                padding: 20,
+                backgroundColor: darkMode ? Colors.DARK_GRAY2 : Colors.WHITE,
+            }}
+        >
             <div style={{ position: "absolute", top: 13.25, right: 20 }}>
                 <Tooltip
                     usePortal={false}
@@ -161,7 +170,13 @@ const MainMenuPanel = ({
                     />
                 </Tooltip>
             </div>
-            <Menu size="large" style={{ padding: 0 }}>
+            <Menu
+                size="large"
+                style={{
+                    padding: 0,
+                    backgroundColor: darkMode ? Colors.DARK_GRAY2 : null,
+                }}
+            >
                 <MenuDivider title="UI Schema" />
                 {TYPES.map((type, index) => (
                     <MenuItem
@@ -350,8 +365,11 @@ export default function DocDrawer({
     const removeFromPanelStack = useCallback(() => {
         setCurrentPanelStack((stack) => stack.slice(0, -1));
     }, []);
+    const { settings } = useContext(AuthContext);
+    const darkMode = _.get(settings, "dark_mode", false);
     return (
         <Drawer
+            className={darkMode ? Classes.DARK : null}
             isOpen={isOpen}
             hasBackdrop={false}
             enforceFocus={false}
@@ -363,7 +381,7 @@ export default function DocDrawer({
                 setIsDocOpen(false);
                 sessionStorage.setItem("isDocOpen", "false");
             }}
-            style={{ zIndex: 36 }}
+            style={{ zIndex: 36, padding: 1 }}
             size={"min(40%, 716.8px)"}
         >
             <PanelStack2

@@ -2,7 +2,6 @@ import { faIcon } from "@/components/icon";
 import {
     Button,
     ButtonGroup,
-    Card,
     Divider,
     HTMLSelect,
     Tooltip,
@@ -18,7 +17,10 @@ export default function Debugger() {
     const messages = _.get(appState, "debug.messages", []);
     return (
         <>
-            <Card style={{ borderRadius: 0, padding: "5px 15px" }}>
+            <div
+                className="border-bottom"
+                style={{ borderRadius: 0, padding: "5px 15px" }}
+            >
                 <ButtonGroup variant="minimal" size="large">
                     <Tooltip
                         minimal
@@ -39,7 +41,7 @@ export default function Debugger() {
                         <option value="all">All</option>
                     </HTMLSelect>
                 </ButtonGroup>
-            </Card>
+            </div>
             <div
                 style={{
                     height: "calc(100% - 50px)",
