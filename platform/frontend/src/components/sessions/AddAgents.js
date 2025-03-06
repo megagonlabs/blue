@@ -5,7 +5,6 @@ import {
     Card,
     Checkbox,
     Classes,
-    Colors,
     Dialog,
     DialogBody,
     DialogFooter,
@@ -244,13 +243,7 @@ export default function AddAgents({
                                                 alignItems: "center",
                                             }}
                                         >
-                                            <div
-                                                style={{
-                                                    ...ENTITY_ICON_40,
-                                                    backgroundColor:
-                                                        Colors.WHITE,
-                                                }}
-                                            >
+                                            <div style={ENTITY_ICON_40}>
                                                 <EntityIcon
                                                     entity={{
                                                         type: "agent",
