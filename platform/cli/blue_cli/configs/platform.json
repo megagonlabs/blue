@@ -30,7 +30,7 @@
         "cast": "str"
     },
     "BLUE_AGENT_REGISTRY_MODEL": { 
-        "default": "/blue_data/models/paraphrase-MiniLM-L6-2",
+        "default": "/blue_data/models/paraphrase-MiniLM-L6-v2",
         "prompt": "Agent Registry Model",
         "required": false,
         "cast": "file"
@@ -42,7 +42,7 @@
         "cast": "str"
     },
     "BLUE_DATA_REGISTRY_MODEL": { 
-        "default": "/blue_data/models/paraphrase-MiniLM-L6-2",
+        "default": "/blue_data/models/paraphrase-MiniLM-L6-v2",
         "prompt": "Data Registry Model",
         "required": false,
         "cast": "file"
@@ -54,7 +54,7 @@
         "cast": "str"
     },
     "BLUE_MODEL_REGISTRY_MODEL": { 
-        "default": "/blue_data/models/paraphrase-MiniLM-L6-2",
+        "default": "/blue_data/models/paraphrase-MiniLM-L6-v2",
         "prompt": "Model Regsitry Model",
         "required": false,
         "cast": "file"
