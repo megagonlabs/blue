@@ -50,6 +50,8 @@ docker cp ${BLUE_INSTALL_DIR}/platform/api/src/casbin/policy.csv dummy:/mnt/conf
 mkdir -p ${BLUE_INSTALL_DIR}/models/
 
 # clone models
+sudo apt-get install git-lfs
+git lfs install
 git clone https://huggingface.co/sentence-transformers/paraphrase-MiniLM-L6-v2 ${BLUE_INSTALL_DIR}/models/paraphrase-MiniLM-L6-v2
 docker cp ${BLUE_INSTALL_DIR}/models/ dummy:/mnt/
 
