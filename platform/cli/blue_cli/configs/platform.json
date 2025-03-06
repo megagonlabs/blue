@@ -24,7 +24,7 @@
         "cast": "bool"
     },
     "BLUE_AGENT_REGISTRY": { 
-        "default": "defaut",
+        "default": "default",
         "prompt": "Agent Registry Name",
         "required": true,
         "cast": "str"
@@ -48,7 +48,7 @@
         "cast": "file"
     },
     "BLUE_MODEL_REGISTRY": { 
-        "default": "defaut",
+        "default": "default",
         "prompt": "Model Registry Name",
         "required": true,
         "cast": "str"
