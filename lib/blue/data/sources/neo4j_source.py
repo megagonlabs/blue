@@ -5,6 +5,28 @@ from blue.utils import neo4j_connection
 from blue.data.source import DataSource
 from blue.data.schema import DataSchema
 
+APOC_META_NODE_PROPERTIES_QUERY = """
+CALL apoc.meta.data()
+YIELD label, other, elementType, type, property
+WHERE NOT type = "RELATIONSHIP" AND elementType = "node"
+WITH label AS label, apoc.coll.sortMaps(collect({property:property, type:type}), 'property') AS properties
+RETURN label, properties ORDER BY label
+""".strip()
+
+APOC_META_REL_QUERY = """
+CALL apoc.meta.data()
+YIELD label, other, elementType, type, property
+WHERE type = "RELATIONSHIP" AND elementType = "node"
+UNWIND other AS other_node
+RETURN label as start, property as type, other_node as end ORDER BY type, start, end
+""".strip()
+
+APOC_META_REL_PROPERTIES_QUERY = """
+CALL apoc.meta.data()
+YIELD label, other, elementType, type, property
+WHERE NOT type = "RELATIONSHIP" AND elementType = "relationship"
+RETURN label AS type, apoc.coll.sortMaps(collect({property:property, type:type}), 'property') AS properties ORDER BY type
+""".strip()
 
 
 ###############
@@ -13,7 +35,6 @@ from blue.data.schema import DataSchema
 class NEO4JSource(DataSource):
     def __init__(self, name, properties={}):
         super().__init__(name, properties=properties)
-        
 
     ###### initialization
     def _initialize_properties(self):
@@ -27,16 +48,16 @@ class NEO4JSource(DataSource):
         host = connection['host']
         port = connection['port']
 
-        user = connection['user'] 
-        pwd = connection['password'] 
-        connection_url = self.properties['protocol'] + "://" + host + ":" + str(port)    
-       
+        user = connection['user']
+        pwd = connection['password']
+        connection_url = self.properties['protocol'] + "://" + host + ":" + str(port)
+
         return neo4j_connection.NEO4J_Connection(connection_url, user, pwd)
 
     def _disconnect(self):
         # TODO:
         return None
-    
+
     ######### source
     def fetch_metadata(self):
         return {}
@@ -68,23 +89,28 @@ class NEO4JSource(DataSource):
         return {}
 
     def fetch_database_collection_schema(self, database, collection):
-        
-        result = self.connection.run_query("CALL db.schema.visualization",single=True, single_transaction=False)
+        nodes_result = self.connection.run_query(APOC_META_NODE_PROPERTIES_QUERY)
+        relationships_result = self.connection.run_query(APOC_META_REL_QUERY)
+        rel_properties_result = self.connection.run_query(APOC_META_REL_PROPERTIES_QUERY)
 
-        schema = self.extract_schema(result[0])
+        schema = self.extract_schema(nodes_result, relationships_result, rel_properties_result)
         return schema.to_json()
 
-    def extract_schema(self, result):
+    def extract_schema(self, nodes_result, relationships_result, rel_properties_result):
         schema = DataSchema()
 
-        nodes = result['nodes']
-        relationships = result['relationships']
+        for node in nodes_result:
+            schema.add_entity(node['label'])
+            for prop in node['properties']:
+                schema.add_entity_property(node['label'], prop['property'], prop['type'])
 
-        for node in nodes:
-            schema.add_entity(node['type'])
+        rlabel2properties = {r['type']: r['properties'] for r in rel_properties_result}
 
-        for relation in relationships:
-            schema.add_relation(relation['from']['type'],relation['type'],relation['to']['type'])
+        for relation in relationships_result:
+            key = schema.add_relation(relation['start'], relation['type'], relation['end'])
+            for prop in rlabel2properties.get(relation['type'], []):
+                schema.add_relation_property(key, prop['property'], prop['type'])
+
         return schema
 
     ######### execute query

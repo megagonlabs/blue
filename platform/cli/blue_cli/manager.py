@@ -710,7 +710,7 @@ class PlatformManager:
         # api
         ### TODO: FIREBASE_SERVICE_CRED
         BLUE_PUBLIC_API_SERVER_PORT_MAPPED = config["BLUE_PUBLIC_API_SERVER_PORT_MAPPED"]
-        image = BLUE_CORE_DOCKER_ORG + "/" + "blue_platform_api" + ":" + BLUE_DEPLOY_VERSION
+        image = BLUE_CORE_DOCKER_ORG + "/" + "blue-platform-api" + ":" + BLUE_DEPLOY_VERSION
         client.containers.run(
             image,
             network="blue_platform_" + BLUE_DEPLOY_PLATFORM + "_network_bridge",
@@ -727,7 +727,7 @@ class PlatformManager:
         # frontend
         ### TODO: FA_TOKEN
         BLUE_PUBLIC_WEB_SERVER_PORT_MAPPED = config["BLUE_PUBLIC_WEB_SERVER_PORT_MAPPED"]
-        image = BLUE_CORE_DOCKER_ORG + "/" + "blue_platform_frontend" + ":" + BLUE_DEPLOY_VERSION
+        image = BLUE_CORE_DOCKER_ORG + "/" + "blue-platform-frontend" + ":" + BLUE_DEPLOY_VERSION
         client.containers.run(
             image,
             network="blue_platform_" + BLUE_DEPLOY_PLATFORM + "_network_bridge",

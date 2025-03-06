@@ -1,3 +1,4 @@
+import { AuthContext } from "@/components/contexts/auth-context";
 import { canvasPreview } from "@/components/entity/icon/canvasPreview";
 import IconPicker from "@/components/entity/icon/IconPicker";
 import { useDebounceEffect } from "@/components/hooks/useDebounceEffect";
@@ -7,6 +8,7 @@ import {
     Button,
     ButtonGroup,
     Card,
+    Classes,
     Collapse,
     ControlGroup,
     Dialog,
@@ -27,7 +29,7 @@ import {
     faTrash,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import _ from "lodash";
-import { useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import ReactCrop, {
     centerCrop,
     convertToPixelCrop,
@@ -225,8 +227,11 @@ export default function EntityIconEditor({
         setCrop(centerAspectCrop(width, height));
     };
     const [showPreview, setShowPreview] = useState(false);
+    const { settings } = useContext(AuthContext);
+    const darkMode = _.get(settings, "dark_mode", false);
     return (
         <Dialog
+            className={darkMode ? Classes.DARK : null}
             canEscapeKeyClose={false}
             canOutsideClickClose={false}
             onClose={closeEditor}

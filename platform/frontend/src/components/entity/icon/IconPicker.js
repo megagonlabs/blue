@@ -70,7 +70,7 @@ export default function IconPicker({
                     <Link
                         rel="noopener noreferrer"
                         target="_blank"
-                        href="https://fontawesome.com/search?o=r&s=solid&f=sharp-duotone"
+                        href="https://fontawesome.com/search?o=r&ic=pro-collection&s=solid&ip=sharp-duotone"
                     >
                         <Button
                             icon={faIcon({ icon: faTelescope })}
