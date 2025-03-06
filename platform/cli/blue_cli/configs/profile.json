@@ -22,5 +22,11 @@
         "prompt": "Docker Organization for Publishing Blue Core Images",
         "required": true,
         "cast": "str"
+    },
+    "OPENAI_API_KEY": {
+        "default": null,
+        "prompt": "OPENAI API Key",
+        "required": true,
+        "cast": "str"
     }
 }
