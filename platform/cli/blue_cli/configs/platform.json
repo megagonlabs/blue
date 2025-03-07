@@ -133,7 +133,13 @@
     },
     "FIREBASE_SERVICE_CRED": {
         "default": "",
-	"prompt": "FireBase Service Credentialls",
+	    "prompt": "FireBase Service Credentialls",
+        "required": false,
+        "cast": "str"
+    },
+    "BLUE_USER_ROLE": {
+        "default": "guest",
+        "prompt": "User Role",
         "required": false,
         "cast": "str"
     }

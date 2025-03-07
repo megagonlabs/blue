@@ -28,5 +28,17 @@
         "prompt": "OPENAI API Key",
         "required": true,
         "cast": "str"
+    },
+    "BLUE_COOKIE": {
+        "default": null,
+        "prompt": "Authentication Cookie",
+        "required": false,
+        "cast": "str"
+    },
+    "BLUE_UID": {
+        "default": null,
+        "prompt": "Profile UID",
+        "required": false,
+        "cast": "str"
     }
 }

@@ -5,7 +5,7 @@ import pydash
 from click import Context
 
 from blue_cli.helper import RESERVED_KEYS, bcolors, show_output
-from blue_cli.manager import PlatformManager
+from blue_cli.manager import Authentication, PlatformManager
         
 @click.group(help="command group to interact with blue platforms")
 @click.option("--platform_name", default=None, required=False, help="name of the platform, default is selected platform")
@@ -177,6 +177,20 @@ def config(key: str, value):
     if platform_name is None:
         platform_name = platform_mgr.get_selected_platform_name()
     if key is not None:
+        if key == "BLUE_USER_ROLE":
+            # authenticate first
+            auth = Authentication()
+            cookie = auth.get_cookie()
+            uid = auth.get_uid()
+
+            platform_mgr.set_user_role(
+                platform_name=platform_name,
+                cookie=cookie,
+                uid=uid,
+                role=value
+            )
+            
+        # save to platform attrs
         platform_mgr.set_platform_attribute(
             platform_name=platform_name,
             attribute_name=key,

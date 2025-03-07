@@ -130,8 +130,7 @@ def delete():
 
 
 @profile.command("authenticate")
-@click.option('--show_uid', is_flag=True, default=False, required=False, help="show user ID")
-def authenticate(show_uid):
+def authenticate():
     ctx = click.get_current_context()
     profile_name = ctx.obj["profile_name"]
     if profile_name is None:
@@ -144,14 +143,16 @@ def authenticate(show_uid):
     cookie = auth.get_cookie()
     uid = auth.get_uid()
 
-    # save cookie under current blue user profile
-    profile_mgr.set_profile_attribute(profile_name, 'BLUE_COOKIE', cookie)
-    profile_mgr.set_profile_attribute(profile_name, 'BLUE_UID', uid)
-
-    # show, optional
-    if show_uid:
-        print(uid)
-
+    profile_mgr.set_profile_attribute(
+            profile_name=profile_name,
+            attribute_name="BLUE_COOKIE",
+            attribute_value=cookie,
+    )
+    profile_mgr.set_profile_attribute(
+            profile_name=profile_name,
+            attribute_name="BLUE_UID",
+            attribute_value=uid,
+    )
 
 @click.pass_context
 @click.argument("value", required=False)
@@ -168,11 +169,16 @@ def config(key: str, value):
     if profile_name is None:
         profile_name = profile_mgr.get_selected_profile_name()
     if key is not None:
-        profile_mgr.set_profile_attribute(
-            profile_name=profile_name,
-            attribute_name=key,
-            attribute_value=value,
-        )
+        if key == "BLUE_UID" or key == "BLUE_COOKIE":
+            authenticate()
+            return
+        else:
+            # set in profile
+            profile_mgr.set_profile_attribute(
+                profile_name=profile_name,
+                attribute_name=key,
+                attribute_value=value,
+            )
     else:
         profile_mgr.inquire_profile_attributes(profile_name=profile_name)
 
