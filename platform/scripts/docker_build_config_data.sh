@@ -37,10 +37,10 @@ docker run -d --rm --name dummy alpine tail -f /dev/null
 docker exec dummy mkdir /mnt/config
 docker exec dummy mkdir /mnt/data
 docker exec dummy mkdir /mnt/models
-docker cp ${BLUE_INSTALL_DIR}/platform/cli/blue_cli/configs/agents.json dummy:/mnt/config/${BLUE_DEPLOY_PLATFORM}.agents.json
-docker cp ${BLUE_INSTALL_DIR}/platform/cli/blue_cli/configs/data.json dummy:/mnt/config/${BLUE_DEPLOY_PLATFORM}.data.json
-docker cp ${BLUE_INSTALL_DIR}/platform/cli/blue_cli/configs/models.json dummy:/mnt/config/${BLUE_DEPLOY_PLATFORM}.models.json
-docker cp ${BLUE_INSTALL_DIR}/platform/cli/blue_cli/configs/operators.json dummy:/mnt/config/${BLUE_DEPLOY_PLATFORM}.operators.json
+docker cp ${BLUE_INSTALL_DIR}/platform/cli/blue_cli/configs/agents.json dummy:/mnt/config/
+docker cp ${BLUE_INSTALL_DIR}/platform/cli/blue_cli/configs/data.json dummy:/mnt/config/
+docker cp ${BLUE_INSTALL_DIR}/platform/cli/blue_cli/configs/models.json dummy:/mnt/config/
+docker cp ${BLUE_INSTALL_DIR}/platform/cli/blue_cli/configs/operators.json dummy:/mnt/config/
 # copy rbac
 docker exec dummy mkdir /mnt/config/rbac
 docker cp ${BLUE_INSTALL_DIR}/platform/api/src/casbin/model.conf dummy:/mnt/config/rbac/
