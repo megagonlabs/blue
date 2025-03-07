@@ -12,6 +12,7 @@ import pydash
 from click import Context
 
 import docker
+from blue.connection import PooledConnectionFactory
 
 import webbrowser
 import websockets
@@ -354,6 +355,9 @@ class ProfileName(click.Group):
                 args.insert(0, "")
         super(ProfileName, self).parse_args(ctx, args)
 
+
+
+
 class PlatformManager:
     def __init__(self):
         self.__initialize()
@@ -523,6 +527,33 @@ class PlatformManager:
             return self.platforms[platform_name]
         else:
             return None
+
+    def set_user_role(self, platform_name=None, cookie=None, uid=None, role=None):
+        ### get profile
+        # get profile
+        profile = ProfileManager().get_selected_profile()
+        profile = profile if profile else {}
+        profile = dict(profile)
+
+        ### get platform 
+        # get platform
+        platform = self.get_platform(platform_name)
+        platform = platform if platform else {}
+        platform = dict(platform)
+
+        config = profile | platform
+
+        ### write to db
+        BLUE_DEPLOY_PLATFORM = config["BLUE_DEPLOY_PLATFORM"]
+        metadata = "PLATFORM:" + BLUE_DEPLOY_PLATFORM + ":METADATA"
+        path = "$.users." + uid + ".role"
+        value = "\"" + role + "\""
+
+        # redis connection
+        connection_factory = PooledConnectionFactory(properties=self.properties)
+        connection = self.connection_factory.get_connection()
+        # write
+        connection.json().set(metadata, path, value)
 
     def create_platform(
         self,
@@ -799,9 +830,385 @@ class PlatformManager:
         return f'{api_server}/blue/platform/{platform_name}'
 
 
-class platformName(click.Group):
+class PlatformName(click.Group):
     def parse_args(self, ctx, args):
         if len(args) > 0 and args[0] in self.commands:
             if len(args) == 1 or args[1] not in self.commands:
                 args.insert(0, "")
-        super(platformName, self).parse_args(ctx, args)
+        super(PlatformName, self).parse_args(ctx, args)
+
+
+
+
+
+class ServiceManager:
+    def __init__(self):
+        self.__initialize()
+
+    def __initialize(self):
+        # create .blue directory, if not existing
+        if not os.path.exists(os.path.expanduser("~/.blue")):
+            os.makedirs(os.path.expanduser("~/.blue"))
+
+        # set services path
+        self.services_path = os.path.expanduser("~/.blue/services")
+
+        # load service attribute config
+        self.__load_service_attributes_config()
+
+        # read services
+        self.__read_services()
+
+        # read selected service
+        self.selected_service = self.__get_selected_service_name()
+
+        # initialize default service
+        self.__initialize_default_service()
+
+        # activate selected service
+        self.__activate_selected_service()
+
+    def __load_service_attributes_config(self):
+        self._service_attributes_config = {}
+        path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+     
+        with open(f"{path}/blue_cli/configs/service.json") as cfp:
+            self._service_attributes_config = json.load(cfp)
+
+    def inquire_service_attributes(self, service_name=None):
+        if service_name is None:
+            service_name = self.get_default_service_name()
+
+        service  = self.get_service(service_name)
+        service_attributes = dict(service)
+
+        if service_attributes is None:
+            service_attributes = {}
+
+        for service_attribute in self._service_attributes_config:
+            service_attribute_config = self._service_attributes_config[service_attribute]
+            prompt = service_attribute_config['prompt']
+            default = service_attribute_config['default']
+            cast = service_attribute_config['cast']
+            value = default
+            current = None
+            if service_attribute in service_attributes:
+                current = service_attributes[service_attribute]
+            if current:
+                value = current
+            required = service_attribute_config['required']
+            if required:
+                service_attribute_value = inquire_user_input(prompt, default=value, cast=cast, required=required)
+            else:
+                service_attribute_value = value
+
+            self.set_service_attribute(service_name, service_attribute, service_attribute_value)
+    
+    def __read_services(self):
+        # read services file
+        self.services = configparser.ConfigParser()
+        self.services.optionxform = str
+        self.services.read(self.services_path)
+
+    def __write_services(self):
+        # write services file
+        with open(self.services_path, "w") as servicesfile:
+            self.services.write(servicesfile, space_around_delimiters=False)
+
+    def __get_selected_service_name(self):
+        selected_service_path = os.path.expanduser("~/.blue/.selected_service")
+        selected_service = "default"
+        try:
+            with open(selected_service_path, "r") as servicefile:
+                selected_service = servicefile.read()
+        except Exception:
+            pass
+        return selected_service.strip()
+
+    def __set_selected_service_name(self, selected_service_name):
+        selected_service_path = os.path.expanduser("~/.blue/.selected_service")
+        with open(selected_service_path, "w") as servicefile:
+            servicefile.write(selected_service_name)
+
+        self.selected_service = selected_service_name
+
+    def __initialize_default_service(self):
+        default_service_name = self.get_default_service_name()
+        if not self.has_service(default_service_name):
+            self.create_service(default_service_name)
+
+    def __activate_selected_service(self):
+        for key in self.services[self.selected_service]:
+            value = self.services[self.selected_service][key]
+            os.environ[key] = value
+
+    def get_default_service(self):
+        default_service_name = self.get_default_service_name()
+        return self.get_service(default_service_name)
+
+    def get_default_service_name(self):
+        return "default"
+
+    def get_selected_service_name(self):
+        return self.__get_selected_service_name()
+
+    def set_selected_service_name(self, selected_service_name):
+        self.__set_selected_service_name(selected_service_name)
+
+    def get_selected_service(self):
+        select_service_name = self.get_selected_service_name()
+        return self.get_service(select_service_name)
+
+    def update_selected_service(self, **service_attributes):
+        # get selected service name
+        select_service_name = self.get_selected_service_name()
+        self.update_selected_service(select_service_name, **service_attributes)
+
+        # activate selected profiile
+        self.__activate_selected_service()
+
+    def get_selected_service_attribute(self, attribute_name):
+        # get selected service name
+        select_service_name = self.get_selected_service_name()
+        return self.get_service_attribute(select_service_name, attribute_name)
+
+    def set_selected_service_attribute(self, attribute_name, attribute_value):
+        # get selected service name
+        select_service_name = self.get_selected_service_name()
+        self.set_service_attribute(select_service_name, attribute_name, attribute_value)
+
+    def get_service_list(self):
+        # read services
+        self.__read_services()
+
+        # list sections (i.e. service names)
+        services = []
+        for section in self.services.sections():
+            services.append(section)
+        return services
+
+    def has_service(self, service_name):
+        # read services file
+        self.__read_services()
+
+        # check service
+        return service_name in self.services
+
+    def get_service(self, service_name):
+        if self.has_service(service_name):
+            return self.services[service_name]
+        else:
+            return None
+
+
+    def create_service(
+        self,
+        service_name,
+        **service_attributes
+    ):
+        # read services file
+        self.__read_services()
+
+        service = service_attributes
+
+        # deploy service atttribute
+        service['BLUE_DEPLOY_PLATFORM'] = service_name
+
+        # update services
+        self.services[service_name] = service
+
+
+        # write services file
+        self.__write_services()
+
+    def update_service(self, service_name, **service_attributes):
+        # get service
+        service = self.get_service(service_name)
+        service = service if service else {}
+
+        # update service
+        service = dict(service) | service_attributes
+        service = {k: v for k, v in service.items() if v is not None}
+        # update services
+        self.services[service_name] = service
+        # write services file
+        self.__write_services()
+
+        # activate selected profiile
+        self.__activate_selected_service()
+
+    def delete_service(self, service_name):
+        # read services
+        self.__read_services()
+
+        # delete section under service_name
+        if not self.has_service(service_name):
+            raise Exception(f"no service named {service_name}")
+        else:
+            self.services.pop(service_name)
+            self.__write_services()
+
+    def install_service(
+        self,
+        service_name):
+        
+        ### get profile
+        # get profile
+        profile = ProfileManager().get_selected_profile()
+        profile = profile if profile else {}
+        profile = dict(profile)
+
+        ### get platform
+        # get platform
+        platform = PlatformManager().get_selected_profile()
+        platform = platform if platform else {}
+        platform = dict(platform)
+
+        config = profile | platform
+
+        # check deployment mode
+        BLUE_DEPLOY_TARGET = config['BLUE_DEPLOY_TARGET']
+        if BLUE_DEPLOY_TARGET != "localhost":
+            print("Only localhost mode is supported. See README for swarm mode deployment instructions...")
+            return
+        
+        ### connect to docker
+        client = docker.from_env()
+
+        #### pull image
+        self._pull_docker_image(client, config, service_name)
+
+    def _pull_docker_image(self, client, config, service_name):
+        BLUE_DEPLOY_VERSION = config["BLUE_DEPLOY_VERSION"]
+        BLUE_CORE_DOCKER_ORG = config["BLUE_CORE_DOCKER_ORG"]
+        BLUE_DEV_DOCKER_ORG = config["BLUE_DEV_DOCKER_ORG"]
+
+        ### get service 
+        # get service
+        service = self.get_service(service_name)
+        service = service if service else {}
+        service = dict(service)
+
+
+        image = service["IMAGE"]
+        print("Pulling image: " + image)
+        client.images.pull(image)
+
+
+    def start_service(
+        self,
+        service_name):
+        
+        ### get profile
+        # get profile
+        profile = ProfileManager().get_selected_profile()
+        profile = profile if profile else {}
+        profile = dict(profile)
+
+        ### get platform
+        # get platform
+        platform = PlatformManager().get_selected_profile()
+        platform = platform if platform else {}
+        platform = dict(platform)
+
+        config = profile | platform
+
+        BLUE_DEPLOY_PLATFORM = config["BLUE_DEPLOY_PLATFORM"]
+        BLUE_CORE_DOCKER_ORG = config["BLUE_CORE_DOCKER_ORG"]
+        BLUE_DEPLOY_VERSION = config["BLUE_DEPLOY_VERSION"]
+
+        ### get service 
+        # get service
+        service = self.get_service(service_name)
+        service = service if service else {}
+        service = dict(service)
+
+        image = service["IMAGE"]
+
+        # check deployment mode
+        BLUE_DEPLOY_TARGET = config['BLUE_DEPLOY_TARGET']
+        if BLUE_DEPLOY_TARGET != "localhost":
+            print("Only localhost mode is supported. See README for swarm mode instructions...")
+            return
+        
+        ### connect to docker
+        client = docker.from_env()
+
+        # service
+        client.containers.run(
+            image,
+            network="blue_platform_" + BLUE_DEPLOY_PLATFORM + "_network_bridge",
+            hostname="blue_service_" + service_name.lower(),
+            ports={str(service["PORT_SRC"]):service["PORT_DST"]},
+            volumes=["blue_" + BLUE_DEPLOY_PLATFORM + "_data:/blue_data", "/var/run/docker.sock:/var/run/docker.sock"],
+            labels={"blue.service": BLUE_DEPLOY_PLATFORM + "." + service_name.lower()},
+            environment=config | service,
+            detach=True,
+            stdout=True,
+            stderr=True,
+        )
+
+    def stop_service(
+        self,
+        service_name):
+        
+        ### get profile
+        # get profile
+        profile = ProfileManager().get_selected_profile()
+        profile = profile if profile else {}
+        profile = dict(profile)
+
+        ### get platform
+        # get platform
+        platform = PlatformManager().get_selected_profile()
+        platform = platform if platform else {}
+        platform = dict(platform)
+
+        config = profile | platform
+
+        # check deployment mode
+        BLUE_DEPLOY_TARGET = config['BLUE_DEPLOY_TARGET']
+        if BLUE_DEPLOY_TARGET != "localhost":
+            print("Only localhost mode is supported. See README for swarm mode instructions...")
+            return
+        
+        
+
+    def select_service(self, service_name):
+        self.set_selected_service_name(service_name)
+
+        # activate selected profiile
+        self.__activate_selected_service()
+
+    def get_service_attribute(self, service_name, attribute_name):
+        # get service
+        service = self.get_service(service_name)
+        if service is None:
+            return None
+        if attribute_name in service:
+            return service[attribute_name]
+        else:
+            return None
+
+    def set_service_attribute(self, service_name, attribute_name, attribute_value):
+        if attribute_name not in self._service_attributes_config:
+            print("Unknown service attribute")
+            return
+        
+        self.update_service(service_name, **{attribute_name: attribute_value})
+
+    def get_selected_service_cookie(self):
+        return {'session': self.get_selected_service_attribute('BLUE_COOKIE')}
+
+    def get_selected_service_base_api_path(self):
+        api_server = self.get_selected_service_attribute('BLUE_PUBLIC_API_SERVER')
+        service_name = self.get_selected_service_attribute('BLUE_DEPLOY_PLATFORM')
+        return f'{api_server}/blue/service/{service_name}'
+
+
+class ServiceName(click.Group):
+    def parse_args(self, ctx, args):
+        if len(args) > 0 and args[0] in self.commands:
+            if len(args) == 1 or args[1] not in self.commands:
+                args.insert(0, "")
+        super(ServiceName, self).parse_args(ctx, args)
