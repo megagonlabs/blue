@@ -38,7 +38,7 @@ export default function Categories({
             label={<div style={{ fontWeight: 600 }}>Categories</div>}
         >
             {_.isEmpty(entries) && !edit && (
-                <div className={loading ? Classes.SKELETONL : null}>-</div>
+                <div className={loading ? Classes.SKELETON : null}>-</div>
             )}
             <div
                 onDoubleClick={() => setEdit(true)}

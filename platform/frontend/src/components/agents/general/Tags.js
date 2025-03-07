@@ -68,7 +68,7 @@ export default function Tags({
             label={<div style={{ fontWeight: 600 }}>Tags</div>}
         >
             {_.isEmpty(entries) && !edit && (
-                <div className={loading ? Classes.SKELETONL : null}>-</div>
+                <div className={loading ? Classes.SKELETON : null}>-</div>
             )}
             {entries.map((entry, index) => {
                 return (
