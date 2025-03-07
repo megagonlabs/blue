@@ -48,6 +48,7 @@ Output:
 
 agent_properties = {
     "input_template": NL2CYPHER_PROMPT,
+    "nl2q_prompt": NL2CYPHER_PROMPT,
     "nl2q_source": None,
     "nl2q_source_database": None,
     "nl2q_discovery": True,
