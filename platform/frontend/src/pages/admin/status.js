@@ -32,7 +32,9 @@ import {
     faWavePulse,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import _ from "lodash";
+import { allEnv } from "next-runtime-env";
 import { useContext, useEffect, useMemo, useRef, useState } from "react";
+const { NEXT_PUBLIC_REST_API_SERVER, NEXT_PUBLIC_PLATFORM_NAME } = allEnv();
 export default function Status() {
     const { appState, appActions } = useContext(AppContext);
     const [isLive, setIsLive] = useState(false);
@@ -128,7 +130,7 @@ export default function Status() {
     useEffect(() => {
         // opening a connection to the server to begin receiving events from it
         const eventSource = new EventSource(
-            `${process.env.NEXT_PUBLIC_REST_API_SERVER}/blue/platform/${process.env.NEXT_PUBLIC_PLATFORM_NAME}/status`,
+            `${NEXT_PUBLIC_REST_API_SERVER}/blue/platform/${NEXT_PUBLIC_PLATFORM_NAME}/status`,
             { withCredentials: true }
         );
         eventSource.addEventListener("open", () => setIsLive(true));

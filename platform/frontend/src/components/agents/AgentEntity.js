@@ -31,7 +31,8 @@ import EntityGeneral from "./EntityGeneral";
 export default function AgentEntity() {
     const BLANK_ENTITY = { type: "agent" };
     const router = useRouter();
-    const { appActions } = useContext(AppContext);
+    const { appState, appActions } = useContext(AppContext);
+    const urlPrefix = `/registry/${appState.agent.registryName}/agent`;
     const [entity, setEntity] = useState(BLANK_ENTITY);
     const [editEntity, setEditEntity] = useState(BLANK_ENTITY);
     const [edit, setEdit] = useState(false);
@@ -97,7 +98,6 @@ export default function AgentEntity() {
         setEditEntity(newEntity);
     };
     const saveEntity = () => {
-        const urlPrefix = `/registry/${process.env.NEXT_PUBLIC_AGENT_REGISTRY_NAME}/agent`;
         setLoading(true);
         let icon = _.get(editEntity, "icon", null);
         if (!_.isEmpty(icon) && !_.startsWith(icon, "data:image/")) {

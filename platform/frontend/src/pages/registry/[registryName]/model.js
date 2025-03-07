@@ -34,7 +34,7 @@ export default function Model() {
     const [keywords, setKeywords] = useState(filter.keywords);
     const [page, setPage] = useState(filter.page);
     const [pageSize, setPageSize] = useState(filter.page_size);
-    const modelRegistryName = process.env.NEXT_PUBLIC_MODEL_REGISTRY_NAME;
+    const modelRegistryName = appState.model.registryName;
     const debounceOnKeywordsChange = useMemo(
         () =>
             _.debounce(

@@ -28,7 +28,6 @@ import { ENTITY_ICON_40 } from "../constant";
 import { AuthContext } from "../contexts/auth-context";
 import EntityIcon from "../entity/EntityIcon";
 import { axiosErrorToast } from "../helper";
-const agentRegistryName = process.env.NEXT_PUBLIC_AGENT_REGISTRY_NAME;
 export default function AddAgents({
     isOpen,
     setIsAddAgentsOpen,
@@ -65,7 +64,7 @@ export default function AddAgents({
         }
         setLoading(true);
         axios
-            .get(`/registry/${agentRegistryName}/agents`, {
+            .get(`/registry/${appState.agent.registryName}/agents`, {
                 params: { recursive: true },
             })
             .then((response) => {

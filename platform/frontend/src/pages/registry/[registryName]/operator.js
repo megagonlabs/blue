@@ -34,7 +34,7 @@ export default function Operator() {
     const [keywords, setKeywords] = useState(filter.keywords);
     const [page, setPage] = useState(filter.page);
     const [pageSize, setPageSize] = useState(filter.page_size);
-    const operatorRegistryName = process.env.NEXT_PUBLIC_OPERATOR_REGISTRY_NAME;
+    const operatorRegistryName = appState.operator.registryName;
     const debounceOnKeywordsChange = useMemo(
         () =>
             _.debounce(

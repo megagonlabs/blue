@@ -2,6 +2,7 @@ import {
     ENTITY_TYPE_LOOKUP,
     REGISTRY_NESTING_SEPARATOR,
 } from "@/components/constant";
+import { AppContext } from "@/components/contexts/app-context";
 import Breadcrumbs from "@/components/entity/Breadcrumbs";
 import NewEntity from "@/components/entity/NewEntity";
 import {
@@ -15,7 +16,7 @@ import { Card, Intent } from "@blueprintjs/core";
 import axios from "axios";
 import _ from "lodash";
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 export default function New() {
     const router = useRouter();
     const [breadcrumbs, setBreadcrumbs] = useState([]);
@@ -28,7 +29,8 @@ export default function New() {
     const [loading, setLoading] = useState(false);
     const [jsonError, setJsonError] = useState(false);
     const agentName = _.get(router, "query.agentName", null);
-    const urlPrefix = `/registry/${process.env.NEXT_PUBLIC_AGENT_REGISTRY_NAME}/agent/${agentName}/output`;
+    const { appState } = useContext(AppContext);
+    const urlPrefix = `/registry/${appState.agent.registryName}/agent/${agentName}/output`;
     const [namePrefix, setNamePrefix] = useState("");
     const updateEntity = ({ path, value }) => {
         let newEntity = _.cloneDeep(entity);

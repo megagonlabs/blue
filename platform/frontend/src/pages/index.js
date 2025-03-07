@@ -26,10 +26,10 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { useContext, useEffect, useState } from "react";
 const ROW_ACTION_STYLE = { position: "absolute", right: 15 };
-const agentRegistryName = process.env.NEXT_PUBLIC_AGENT_REGISTRY_NAME;
 export default function LaunchScreen() {
     const { user, permissions } = useContext(AuthContext);
     const { appState, appActions } = useContext(AppContext);
+    const agentRegistryName = appState.agent.registryName;
     const router = useRouter();
     const name = _.get(user, "name", null);
     const [agentGroups, setAgentGroups] = useState([]);

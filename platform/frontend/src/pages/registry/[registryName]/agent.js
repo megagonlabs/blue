@@ -34,7 +34,7 @@ export default function Agent() {
     const [keywords, setKeywords] = useState(filter.keywords);
     const [page, setPage] = useState(filter.page);
     const [pageSize, setPageSize] = useState(filter.page_size);
-    const agentRegistryName = process.env.NEXT_PUBLIC_AGENT_REGISTRY_NAME;
+    const agentRegistryName = appState.agent.registryName;
     const debounceOnKeywordsChange = useMemo(
         () =>
             _.debounce(

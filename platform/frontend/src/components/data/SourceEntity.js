@@ -26,7 +26,8 @@ import {
 export default function SourceEntity() {
     const BLANK_ENTITY = { type: "data" };
     const router = useRouter();
-    const { appActions } = useContext(AppContext);
+    const { appState, appActions } = useContext(AppContext);
+    const urlPrefix = `/registry/${appState.data.registryName}/data`;
     const [entity, setEntity] = useState(BLANK_ENTITY);
     const [editEntity, setEditEntity] = useState(BLANK_ENTITY);
     const [edit, setEdit] = useState(false);
@@ -58,7 +59,6 @@ export default function SourceEntity() {
         setEditEntity(newEntity);
     };
     const saveEntity = () => {
-        const urlPrefix = `/registry/${process.env.NEXT_PUBLIC_DATA_REGISTRY_NAME}/data`;
         setLoading(true);
         let icon = _.get(editEntity, "icon", null);
         if (!_.isEmpty(icon) && !_.startsWith(icon, "data:image/")) {

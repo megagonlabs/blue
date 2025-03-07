@@ -29,8 +29,7 @@ const interleave = (list, element) =>
         padding: "5px 0px",
         height: 300,
         overflow: "auto",
-    },
-    agentRegistryName = process.env.NEXT_PUBLIC_AGENT_REGISTRY_NAME;
+    };
 export default function GroupAgentSelector({
     isOpen,
     setIsGroupAgentSelectorDialogOpen,
@@ -46,6 +45,7 @@ export default function GroupAgentSelector({
     const [addingAgent, setAddingAgent] = useState(false);
     const [removingAgent, setRemovingAgent] = useState(false);
     const { appState, appActions } = useContext(AppContext);
+    const agentRegistryName = appState.agent.registryName;
     const { settings } = useContext(AuthContext);
     const darkMode = _.get(settings, "dark_mode", false);
     const { agentGroupSelection } = appState.agent;

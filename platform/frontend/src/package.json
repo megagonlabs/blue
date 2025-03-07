@@ -46,6 +46,7 @@
         "json-string-formatter": "^1.0.1",
         "lodash": "^4.17.21",
         "next": "^14.0.3",
+        "next-runtime-env": "^1.7.4",
         "normalize.css": "^8.0.1",
         "react": "^18.2.0",
         "react-dom": "^18.2.0",

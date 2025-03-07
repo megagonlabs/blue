@@ -2,10 +2,12 @@ import { AppToaster } from "@/components/toaster";
 import { Intent } from "@blueprintjs/core";
 import axios from "axios";
 import _ from "lodash";
+import { allEnv } from "next-runtime-env";
 import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { AppContext } from "./app-context";
 import { AuthContext } from "./auth-context";
 export const SocketContext = createContext();
+const { NEXT_PUBLIC_WS_API_SERVER, NEXT_PUBLIC_PLATFORM_NAME } = allEnv();
 export const SocketProvider = ({ children }) => {
     const { settings } = useContext(AuthContext);
     const { appActions } = useContext(AppContext);
@@ -31,11 +33,7 @@ export const SocketProvider = ({ children }) => {
                         debug_mode: _.get(settings, "debug_mode", false),
                     });
                     socketRef.current = new WebSocket(
-                        `${
-                            process.env.NEXT_PUBLIC_WS_API_SERVER
-                        }/blue/platform/${
-                            process.env.NEXT_PUBLIC_PLATFORM_NAME
-                        }/sessions/ws?${searchParams.toString()}`
+                        `${NEXT_PUBLIC_WS_API_SERVER}/blue/platform/${NEXT_PUBLIC_PLATFORM_NAME}/sessions/ws?${searchParams.toString()}`
                     );
                     socketRef.current.onopen = () => {
                         setIsSocketOpen(true);

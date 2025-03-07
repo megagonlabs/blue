@@ -3,7 +3,9 @@ import { faIcon } from "@/components/icon";
 import { Button, ButtonGroup, Card, Colors, Tooltip } from "@blueprintjs/core";
 import { faBan, faCircleDot } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import _ from "lodash";
+import { allEnv } from "next-runtime-env";
 import { useEffect, useRef, useState } from "react";
+const { NEXT_PUBLIC_REST_API_SERVER, NEXT_PUBLIC_PLATFORM_NAME } = allEnv();
 export default function DockerContainerLogs({ containerId }) {
     const [isLive, setIsLive] = useState(false);
     const [lines, setLines] = useState([]);
@@ -14,7 +16,7 @@ export default function DockerContainerLogs({ containerId }) {
     useEffect(() => {
         if (_.isEmpty(containerId)) return;
         const eventSource = new EventSource(
-            `${process.env.NEXT_PUBLIC_REST_API_SERVER}/blue/platform/${process.env.NEXT_PUBLIC_PLATFORM_NAME}/containers/agents/container/${containerId}`,
+            `${NEXT_PUBLIC_REST_API_SERVER}/blue/platform/${NEXT_PUBLIC_PLATFORM_NAME}/containers/agents/container/${containerId}`,
             { withCredentials: true }
         );
         eventSource.addEventListener("open", () => setIsLive(true));

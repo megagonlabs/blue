@@ -1,5 +1,7 @@
 import axios from "axios";
 import _ from "lodash";
+import { allEnv } from "next-runtime-env";
+const { NEXT_PUBLIC_AGENT_REGISTRY_NAME } = allEnv();
 export const agentAction = (dispatch) => ({
     setState: (payload) => {
         dispatch({
@@ -16,7 +18,7 @@ export const agentAction = (dispatch) => ({
         });
         axios
             .get(
-                `/registry/${process.env.NEXT_PUBLIC_AGENT_REGISTRY_NAME}/agent/${payload}`
+                `/registry/${NEXT_PUBLIC_AGENT_REGISTRY_NAME}/agent/${payload}`
             )
             .then((response) => {
                 let icon = _.get(response, "data.result.icon", null);

@@ -1,3 +1,5 @@
+const { configureRuntimeEnv } = require("next-runtime-env/build/configure");
+configureRuntimeEnv();
 module.exports = {
     async rewrites() {
         const agentRegistryName = process.env.NEXT_PUBLIC_AGENT_REGISTRY_NAME;
@@ -14,7 +16,5 @@ module.exports = {
     },
     reactStrictMode: true,
     transpilePackages: ["codemirror-json-schema", "json-schema-library"],
-    images: {
-        remotePatterns: [{ hostname: "lh3.googleusercontent.com" }],
-    },
+    images: { remotePatterns: [{ hostname: "lh3.googleusercontent.com" }] },
 };
