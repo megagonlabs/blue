@@ -333,10 +333,6 @@ class ProfileManager:
             return None
 
     def set_profile_attribute(self, profile_name, attribute_name, attribute_value):
-        if attribute_name not in self._profile_attributes_config:
-            print("Unknown profile attribute")
-            return
-        
         self.update_profile(profile_name, **{attribute_name: attribute_value})
 
     def get_selected_profile_cookie(self):
@@ -673,11 +669,12 @@ class PlatformManager:
         
         # Create container to copy files from to the docker volume
         # docker run -d --rm --name blue-config-data -v <docker_volume>:/root alpine 
-        client.containers.run(blue_config_data_image, 'cp -r /mnt/. /blue_data',
+        container = client.containers.run(blue_config_data_image, 'cp -r /mnt/. /blue_data',
             volumes=["blue_" + BLUE_DEPLOY_PLATFORM + "_data:/blue_data"],
             stdout=True,
             stderr=True,
         )
+        print(container)
 
     def start_platform(
         self,
@@ -815,10 +812,6 @@ class PlatformManager:
             return None
 
     def set_platform_attribute(self, platform_name, attribute_name, attribute_value):
-        if attribute_name not in self._platform_attributes_config:
-            print("Unknown platform attribute")
-            return
-        
         self.update_platform(platform_name, **{attribute_name: attribute_value})
 
     def get_selected_platform_cookie(self):
@@ -1060,7 +1053,7 @@ class ServiceManager:
 
         ### get platform
         # get platform
-        platform = PlatformManager().get_selected_profile()
+        platform = PlatformManager().get_selected_platform()
         platform = platform if platform else {}
         platform = dict(platform)
 
@@ -1107,7 +1100,7 @@ class ServiceManager:
 
         ### get platform
         # get platform
-        platform = PlatformManager().get_selected_profile()
+        platform = PlatformManager().get_selected_platform()
         platform = platform if platform else {}
         platform = dict(platform)
 
@@ -1123,6 +1116,9 @@ class ServiceManager:
         service = service if service else {}
         service = dict(service)
 
+        print(service_name)
+        print(service)
+
         image = service["IMAGE"]
 
         # check deployment mode
@@ -1134,9 +1130,15 @@ class ServiceManager:
         ### connect to docker
         client = docker.from_env()
 
+        # service properties
+        service_properties = {
+            "db.host" : "blue_db_redis"
+        }
+
         # service
         client.containers.run(
             image,
+            ["--name", service_name.upper(), "--platform", BLUE_DEPLOY_PLATFORM, "--properties", json.dumps(service_properties)],
             network="blue_platform_" + BLUE_DEPLOY_PLATFORM + "_network_bridge",
             hostname="blue_service_" + service_name.lower(),
             ports={str(service["PORT_SRC"]):service["PORT_DST"]},
@@ -1160,7 +1162,7 @@ class ServiceManager:
 
         ### get platform
         # get platform
-        platform = PlatformManager().get_selected_profile()
+        platform = PlatformManager().get_selected_platform()
         platform = platform if platform else {}
         platform = dict(platform)
 
@@ -1191,10 +1193,6 @@ class ServiceManager:
             return None
 
     def set_service_attribute(self, service_name, attribute_name, attribute_value):
-        if attribute_name not in self._service_attributes_config:
-            print("Unknown service attribute")
-            return
-        
         self.update_service(service_name, **{attribute_name: attribute_value})
 
     def get_selected_service_cookie(self):

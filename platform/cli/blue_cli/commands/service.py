@@ -43,7 +43,7 @@ def ls():
 
     show_output(data, ctx, single=True, headers=["name", "selected"], tablefmt="plain")
 
-
+@click.pass_context
 @service.command(help="show service values")
 def show():
     ctx = click.get_current_context()
@@ -75,7 +75,7 @@ def show():
 
     show_output(data, ctx, tablefmt="plain")
 
-
+@click.pass_context
 @service.command(short_help="create a blue service")
 def create():
     ctx = click.get_current_context()
@@ -94,7 +94,7 @@ def create():
     # inquire service attributes from user, update
     service_mgr.inquire_service_attributes(service_name=service_name)
 
-
+@click.pass_context
 @service.command(short_help="install a blue service")
 def install():
     ctx = click.get_current_context()
@@ -110,6 +110,7 @@ def install():
     # install service
     service_mgr.install_service(service_name)
 
+@click.pass_context
 @service.command(short_help="starts a blue service")
 def start():
     ctx = click.get_current_context()
@@ -125,6 +126,7 @@ def start():
     # start service
     service_mgr.start_service(service_name)
 
+@click.pass_context
 @service.command(short_help="stop a blue service")
 def stop():
     ctx = click.get_current_context()
@@ -140,6 +142,7 @@ def stop():
     # stop service
     service_mgr.stop_service(service_name)
 
+@click.pass_context
 @service.command(short_help="select a blue service")
 def select():
     ctx = click.get_current_context()
@@ -149,7 +152,7 @@ def select():
 
     service_mgr.select_service(service_name)
 
-
+@click.pass_context
 @service.command(
     short_help="remove a blue service",
     help="service_name: name of blue service to remove, use blue service ls to see a list of services",
