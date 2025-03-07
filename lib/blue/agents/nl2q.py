@@ -69,6 +69,7 @@ agent_properties = {
     "nl2q_force_query_prefixes": ["SELECT"],
     "nl2q_additional_requirements": [],
     "nl2q_context": [],
+    "nl2q_max_results": None,
     "output_transformations": [
         {
             "transformation": "replace",
@@ -377,6 +378,10 @@ class NL2SQLAgent(OpenAIAgent):
                 logging.info("collection: " + collection)
                 logging.info("executing query: " + query)
                 result = source_connection.execute_query(query, database=database, collection=collection)
+
+                if "nl2q_max_results" in self.properties and self.properties['nl2q_max_results']:
+                    if isinstance(result, list):
+                        result = result[:self.properties['nl2q_max_results']]
 
         except Exception as e:
             error = str(e)
