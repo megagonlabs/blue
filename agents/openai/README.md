@@ -23,3 +23,97 @@ $ cd services/openai
 $ ./docker_build_service.sh 
 ```
 
+---
+# Text Processing Agents
+
+---
+
+Text processing is a fundamental step in the workflows of NLP applications. To facilitate this, two agents have been designed: `SemFilter` that filters documents based on a user-defined natural language expression, and  `SemExtract` that extracts values for pre-defined attributes from the documents.
+
+## Text Processing Agents in Action
+
+The following animation displays filtering and extraction over job posting data in Singapore. 
+
+![sem_filter](/docs/images/sem_filter.gif)
+
+![sem_extract](/docs/images/sem_extract.gif)
+
+## Input & Output
+
+### Input
+
+- **Filter Condition:** A natural language expression to filter the document.
+- **Context:** The document to filter. Can be plain text, json or in any semi-structured format.
+
+### Output
+The agent outputs a JSON object containing the following fields:
+
+```json
+{
+  "filter_condition": bool
+}
+```
+
+### Input
+
+- **Columns to Extract:** A dictionary of attribute names optionally with their descriptions to be extracted. 
+- **Context:** The document to extract information from. Can be plain text, json or in any semi-structured format.
+
+### Output
+The agent outputs a JSON object containing the attribute names as fields:
+
+```json
+{
+"attribute A": "<Value A>"
+"attribute B": "<Value B>"
+}
+```
+
+---
+
+## Base Properties
+
+The agent uses a set of properties to control its behavior. Key properties include:
+
+- **OpenAI API Configuration:**
+  - `openai.api`: Specifies the API to use (e.g., "ChatCompletion").
+  - `openai.model`: Model selection such as `"gpt-4o-mini"`.
+  - `openai.max_tokens`: Limits the number of tokens (e.g., `300`).
+ 
+- **Input/Output Settings:**
+  - `output_path`: Can be set to stream or file
+  - `input_json`, `input_context`, `input_context_field`, `input_field`: Define how input data is structured.
+  - `input_template`: Uses a prompt that inclues any context, input document and filter/extraction specifications.
+ 
+### Configuration (UI)
+
+Users can also modify the `agent_properties` dictionary to suit your OpenAI API keys, input template and execution preferences from the UI. 
+
+---
+
+## Try it out
+
+To try out the agent, first follow the quickstart guide to install the Blue platform. Here are some examples to try: 
+
+
+| **Context** | **Filter Condition** | **Output** |
+|--------------------------------|---------|---------|
+| context: "Job Title: Child Care Centre Cook, Company: Company_881, Location: 308 Tanglin Road, 247974, Holland Road, Employment Type: Full Time, Position: Non-Executive, Salary: Undisclosed, Job Posting Date: 10 May 2019, Application Deadline: 09 Jun 2019, Description: We are seeking a dedicated and experienced Child Care Centre Cook to prepare nutritious meals for children. The role involves menu planning, food preparation, and ensuring food safety standards are met. Ideal candidates should have a passion for child care and cooking, with the ability to work in a team-oriented environment." | filter condition: "job involves both cooking and teaching skills." |```{"filter_condition": false}```|
+| context: "Job Title: Child Care Centre Cook, Company: Company_881, Location: 308 Tanglin Road, 247974, Holland Road, Employment Type: Full Time, Position: Non-Executive, Salary: Undisclosed, Job Posting Date: 10 May 2019, Application Deadline: 09 Jun 2019, Description: We are seeking a dedicated and experienced Child Care Centre Cook to prepare nutritious meals for children. The role involves menu planning, food preparation, and ensuring food safety standards are met. Ideal candidates should have a passion for child care and cooking, with the ability to work in a team-oriented environment." | filter condition: "job involves both cooking skills." |```{"filter_condition": true}```|
+| context: "Job Title: Child Care Teacher, Company: Company_1370, Location: TradeHub 21, 16 Boon Lay Way, 609965, Jurong, Employment Type: Full Time, Position: Executive, Salary: $2,000 - $2,400 Monthly, Job Posting Date: 28 May 2019, Application Deadline: 27 Jun 2019, Description: We are looking for a passionate Child Care Teacher to join our team. The role involves creating a safe, nurturing, and engaging environment for young children, planning and implementing age-appropriate activities, and supporting the development of social, cognitive, and emotional skills. Candidates should possess relevant qualifications and experience in early childhood education." | filter condition: "background in early childhood education is mandatory." |```{"filter_condition": true}```|
+| context: "Job Title: Child Care Teacher, Company: Company_1370, Location: TradeHub 21, 16 Boon Lay Way, 609965, Jurong, Employment Type: Full Time, Position: Executive, Salary: $2,000 - $2,400 Monthly, Job Posting Date: 28 May 2019, Application Deadline: 27 Jun 2019, Description: We are looking for a passionate Child Care Teacher to join our team. The role involves creating a safe, nurturing, and engaging environment for young children, planning and implementing age-appropriate activities, and supporting the development of social, cognitive, and emotional skills. Candidates should possess relevant qualifications and experience in early childhood education." | filter condition: "background in early childhood education is optional." |```{"filter_condition": false}```|
+
+
+| **Context** | **Extract Columns** | **Output** |
+|--------------------------------|---------|---------|
+| context: "Job Title: Child Care Centre Cook, Company: Company_881, Location: 308 Tanglin Road, 247974, Holland Road, Employment Type: Full Time, Position: Non-Executive, Salary: Undisclosed, Job Posting Date: 10 May 2019, Application Deadline: 09 Jun 2019, Description: We are seeking a dedicated and experienced Child Care Centre Cook to prepare nutritious meals for children. The role involves menu planning, food preparation, and ensuring food safety standards are met. Ideal candidates should have a passion for child care and cooking, with the ability to work in a team-oriented environment." | columns to extract: {"involves teaching": "boolean value to indicate if job requires teaching skills", "occupation category": "occupation sector such as education, child development, healthcare, technology", "skills": "list of skills expected", "certifications": "any certifications required for the job"} |```{"involves teaching":false,"occupation category":"child development","skills":["menu planning","food preparation","food safety","teamwork"],"certifications":[]}```|
+| context: "Job Title: Child Care Teacher, Company: Company_1370, Location: TradeHub 21, 16 Boon Lay Way, 609965, Jurong, Employment Type: Full Time, Position: Executive, Salary: $2,000 - $2,400 Monthly, Job Posting Date: 28 May 2019, Application Deadline: 27 Jun 2019, Description: We are looking for a passionate Child Care Teacher to join our team. The role involves creating a safe, nurturing, and engaging environment for young children, planning and implementing age-appropriate activities, and supporting the development of social, cognitive, and emotional skills. Candidates should possess relevant qualifications and experience in early childhood education." | columns to extract: {"is full-time": "boolean value to indicate if job is full time", "salary": "range of annual salary"} |```{"is_full_time":true,"salary":"$24,000 - $28,800 Annual"```|
+
+
+
+
+
+
+
+
+

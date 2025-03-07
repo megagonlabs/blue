@@ -112,5 +112,13 @@ class MongoDBSource(DataSource):
 
         q = json.loads(query)
         result = col.find(q)
-        return result
+
+        # Convert cursor to a list of dictionaries and handle ObjectId safely
+        result_list = []
+        for doc in result:
+            if '_id' in doc:  # Check if '_id' exists
+                doc['_id'] = str(doc['_id'])  # Convert ObjectId to string
+            result_list.append(doc)
+
+        return result_list
     
