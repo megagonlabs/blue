@@ -1,6 +1,7 @@
 import axios from "axios";
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
+import { AppContext } from "../contexts/app-context";
 import EntityDescription from "../entity/EntityDescription";
 import EntityMain from "../entity/EntityMain";
 import EntityProperties from "../entity/EntityProperties";
@@ -15,6 +16,8 @@ export default function ModelEntity() {
     const router = useRouter();
     const [entity, setEntity] = useState(BLANK_ENTITY);
     const [editEntity, setEditEntity] = useState(BLANK_ENTITY);
+    const { appState } = useContext(AppContext);
+    const urlPrefix = `/registry/${appState.model.registryName}/model`;
     const [edit, setEdit] = useState(false);
     const [loading, setLoading] = useState(true);
     const [jsonError, setJsonError] = useState(false);
@@ -44,7 +47,6 @@ export default function ModelEntity() {
         setEditEntity(newEntity);
     };
     const saveEntity = () => {
-        const urlPrefix = `/registry/${process.env.NEXT_PUBLIC_MODEL_REGISTRY_NAME}/model`;
         setLoading(true);
         let icon = _.get(editEntity, "icon", null);
         if (!_.isEmpty(icon) && !_.startsWith(icon, "data:image/")) {

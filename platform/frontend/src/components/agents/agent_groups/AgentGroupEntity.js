@@ -22,11 +22,11 @@ import _ from "lodash";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useCallback, useContext, useEffect, useState } from "react";
-const agentRegistryName = process.env.NEXT_PUBLIC_AGENT_REGISTRY_NAME;
 export default function AgentGroupEntity() {
     const BLANK_ENTITY = { type: "agent_group" };
     const router = useRouter();
-    const { appActions } = useContext(AppContext);
+    const { appState, appActions } = useContext(AppContext);
+    const urlPrefix = `/registry/${appState.agent.registryName}/agent_group`;
     const [entity, setEntity] = useState(BLANK_ENTITY);
     const [editEntity, setEditEntity] = useState(BLANK_ENTITY);
     const [edit, setEdit] = useState(false);
@@ -75,7 +75,6 @@ export default function AgentGroupEntity() {
         setEditEntity(newEntity);
     };
     const saveEntity = () => {
-        const urlPrefix = `/registry/${agentRegistryName}/agent_group`;
         setLoading(true);
         let icon = _.get(editEntity, "icon", null);
         if (!_.isEmpty(icon) && !_.startsWith(icon, "data:image/")) {

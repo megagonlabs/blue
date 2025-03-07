@@ -43,6 +43,7 @@ import {
     faWavePulse,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import _ from "lodash";
+import { allEnv } from "next-runtime-env";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -51,6 +52,13 @@ import DebugPanel from "./debugger/DebugPanel";
 import { hasTrue, populateRouterPathname } from "./helper";
 import Settings from "./navigation/Settings";
 import UserAccountPanel from "./navigation/UserAccountPanel";
+const {
+    NEXT_PUBLIC_DATA_REGISTRY_NAME,
+    NEXT_PUBLIC_AGENT_REGISTRY_NAME,
+    NEXT_PUBLIC_OPERATOR_REGISTRY_NAME,
+    NEXT_PUBLIC_MODEL_REGISTRY_NAME,
+    NEXT_PUBLIC_PLATFORM_NAME,
+} = allEnv();
 export default function App({ children }) {
     const router = useRouter();
     const { appState, appActions } = useContext(AppContext);
@@ -98,25 +106,25 @@ export default function App({ children }) {
             visible: canReadSessions,
         },
         data_registry: {
-            href: `/registry/${process.env.NEXT_PUBLIC_DATA_REGISTRY_NAME}/data`,
+            href: `/registry/${NEXT_PUBLIC_DATA_REGISTRY_NAME}/data`,
             text: "Data",
             icon: ENTITY_TYPE_LOOKUP.source.icon,
             visible: canReadDataRegistry,
         },
         agent_registry: {
-            href: `/registry/${process.env.NEXT_PUBLIC_AGENT_REGISTRY_NAME}/agent`,
+            href: `/registry/${NEXT_PUBLIC_AGENT_REGISTRY_NAME}/agent`,
             text: "Agent",
             icon: ENTITY_TYPE_LOOKUP.agent.icon,
             visible: canReadAgentRegistry,
         },
         operator_registry: {
-            href: `/registry/${process.env.NEXT_PUBLIC_OPERATOR_REGISTRY_NAME}/operator`,
+            href: `/registry/${NEXT_PUBLIC_OPERATOR_REGISTRY_NAME}/operator`,
             text: "Operator",
             icon: ENTITY_TYPE_LOOKUP.operator.icon,
             visible: canReadOperatorRegistry,
         },
         model_registry: {
-            href: `/registry/${process.env.NEXT_PUBLIC_MODEL_REGISTRY_NAME}/model`,
+            href: `/registry/${NEXT_PUBLIC_MODEL_REGISTRY_NAME}/model`,
             text: "Model",
             icon: ENTITY_TYPE_LOOKUP.model.icon,
             visible: canReadModelRegistry,
@@ -193,7 +201,7 @@ export default function App({ children }) {
                         <NavbarHeading style={{ display: "flex" }}>
                             <H3 style={{ margin: "0px 10px 0px" }}>Blue</H3>
                             <Tag minimal intent={Intent.PRIMARY}>
-                                {process.env.NEXT_PUBLIC_PLATFORM_NAME}
+                                {NEXT_PUBLIC_PLATFORM_NAME}
                             </Tag>
                         </NavbarHeading>
                     </Link>

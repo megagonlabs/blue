@@ -10,9 +10,11 @@ import {
 import axios from "axios";
 import _ from "lodash";
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
+import { AppContext } from "../contexts/app-context";
 export default function InputEntity() {
     const router = useRouter();
+    const { appState } = useContext(AppContext);
     const [entity, setEntity] = useState({});
     const [scope, setScope] = useState(null);
     const [editEntity, setEditEntity] = useState({});
@@ -37,7 +39,7 @@ export default function InputEntity() {
     };
     const saveEntity = () => {
         const parent = _.last(_.split(scope, "/"));
-        const urlPrefix = `/registry/${process.env.NEXT_PUBLIC_AGENT_REGISTRY_NAME}/agent/${parent}/input`;
+        const urlPrefix = `/registry/${appState.agent.registryName}/agent/${parent}/input`;
         setLoading(true);
         axios
             .put(`${urlPrefix}/${entity.name}`, {

@@ -34,7 +34,7 @@ export default function Data() {
     const [keywords, setKeywords] = useState(filter.keywords);
     const [page, setPage] = useState(filter.page);
     const [pageSize, setPageSize] = useState(filter.page_size);
-    const dataRegistryName = process.env.NEXT_PUBLIC_DATA_REGISTRY_NAME;
+    const dataRegistryName = appState.data.registryName;
     const debounceOnKeywordsChange = useMemo(
         () =>
             _.debounce(
