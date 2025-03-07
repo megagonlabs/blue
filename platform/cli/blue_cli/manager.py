@@ -667,14 +667,31 @@ class PlatformManager:
 
         blue_config_data_image =  BLUE_CORE_DOCKER_ORG + "/" + "blue-config-data" + ":" + BLUE_DEPLOY_VERSION
         
+        print("Pulling image: " + blue_config_data_image)
+        client.images.pull(blue_config_data_image, tag=BLUE_DEPLOY_VERSION)
+        
         # Create container to copy files from to the docker volume
         # docker run -d --rm --name blue-config-data -v <docker_volume>:/root alpine 
+        print("Copying config data...")
         container = client.containers.run(blue_config_data_image, 'cp -r /mnt/. /blue_data',
             volumes=["blue_" + BLUE_DEPLOY_PLATFORM + "_data:/blue_data"],
             stdout=True,
             stderr=True,
+            detach=True
         )
-        print(container)
+        # rename regsitry files
+        BLUE_AGENT_REGISTRY = config["BLUE_AGENT_REGISTRY"]
+        BLUE_DATA_REGISTRY = config["BLUE_DATA_REGISTRY"]
+        BLUE_MODEL_REGISTRY = config["BLUE_MODEL_REGISTRY"]
+        BLUE_OPERATOR_REGISTRY = config["BLUE_OPERATOR_REGISTRY"]
+
+        container.exec_run(f"mv /blue_data/config/agents.json /blue_data/config/{BLUE_AGENT_REGISTRY}.agents.json")
+        container.exec_run(f"mv /blue_data/config/data.json /blue_data/config/{BLUE_DATA_REGISTRY}.data.json")
+        container.exec_run(f"mv /blue_data/config/models.json /blue_data/config/{BLUE_MODEL_REGISTRY}.models.json")
+        container.exec_run(f"mv /blue_data/config/operators.json /blue_data/config/{BLUE_OPERATOR_REGISTRY}.operators.json")
+
+        container.stop()
+        print("Done.")
 
     def start_platform(
         self,
@@ -1115,9 +1132,6 @@ class ServiceManager:
         service = self.get_service(service_name)
         service = service if service else {}
         service = dict(service)
-
-        print(service_name)
-        print(service)
 
         image = service["IMAGE"]
 

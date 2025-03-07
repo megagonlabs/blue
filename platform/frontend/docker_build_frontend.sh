@@ -1,5 +1,8 @@
 #/bin/bash
-echo 'Building Platform Frontend...'
+echo "Building docker image ..."
+echo "${BLUE_CORE_DOCKER_ORG}/blue-platform-frontend:${BLUE_DEPLOY_VERSION}"
+
+# fa token
 echo "Make sure to store fa.token in $BLUE_INSTALL_DIR/secrets/fa.token"
 fa_token=$(cat $BLUE_INSTALL_DIR/secrets/fa.token)
 # if no argument supplied
@@ -9,13 +12,11 @@ if [ -z "$fa_token" ]
 fi
 
 # build docker
-docker buildx build --platform ${BLUE_BUILD_PLATFORM} --no-cache -t blue-platform-frontend:latest -f Dockerfile.frontend \
+docker buildx build --platform ${BLUE_BUILD_PLATFORM} --no-cache --push -t ${BLUE_CORE_DOCKER_ORG}/blue-platform-frontend:${BLUE_DEPLOY_VERSION} -f Dockerfile.frontend \
     --build-arg git_short=$(git rev-parse --short HEAD) \
     --build-arg git_long=$(git rev-parse HEAD) \
     --build-arg git_branch=$(git rev-parse --abbrev-ref HEAD) \
     --build-arg fa_token=$fa_token .
 
-# tag image
-docker tag blue-platform-frontend:latest blue-platform-frontend:$(git rev-parse --abbrev-ref HEAD)-$(git rev-parse --short HEAD)
-
 echo 'Done...'
+
