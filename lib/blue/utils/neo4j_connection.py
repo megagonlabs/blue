@@ -498,6 +498,8 @@ class NEO4J_Connection:
             return value
         elif type(value) == list:
             return [ self._toJSON(v) for v in value]
+        elif type(value) == dict:
+            return { key: self._toJSON(value[key]) for key in value.keys() }
         elif isinstance(value, neo4j.graph.Node):
             return self._node_toJSON(value)
         elif isinstance(value, neo4j.graph.Relationship):
