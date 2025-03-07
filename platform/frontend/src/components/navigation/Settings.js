@@ -99,31 +99,34 @@ export default function Settings({ isOpen, setIsSettingsOpen }) {
                         display: "flex",
                         justifyContent: "space-between",
                         alignItems: "center",
-                        gap: 10,
+                        gap: 40,
                     }}
                 >
                     <H3 className="margin-0">Settings</H3>
-                    <Tooltip
-                        minimal
-                        placement="bottom-end"
-                        content={`Copy full SHA`}
-                    >
-                        <Tag
+                    <div style={{ maxWidth: "calc(100% - 123.71px)" }}>
+                        <Tooltip
+                            className="full-parent-width"
                             minimal
-                            intent={Intent.PRIMARY}
-                            interactive
-                            onClick={() => {
-                                copy(process.env.NEXT_PUBLIC_GIT_LONG);
-                                AppToaster.show({
-                                    icon: faIcon({ icon: faClipboard }),
-                                    message: `Copied "${process.env.NEXT_PUBLIC_GIT_LONG}"`,
-                                });
-                            }}
+                            placement="bottom-end"
+                            content={`Copy full SHA`}
                         >
-                            {process.env.NEXT_PUBLIC_GIT_BRANCH}-
-                            {process.env.NEXT_PUBLIC_GIT_SHORT}
-                        </Tag>
-                    </Tooltip>
+                            <Tag
+                                minimal
+                                intent={Intent.PRIMARY}
+                                interactive
+                                onClick={() => {
+                                    copy(process.env.NEXT_PUBLIC_GIT_LONG);
+                                    AppToaster.show({
+                                        icon: faIcon({ icon: faClipboard }),
+                                        message: `Copied "${process.env.NEXT_PUBLIC_GIT_LONG}"`,
+                                    });
+                                }}
+                            >
+                                {process.env.NEXT_PUBLIC_GIT_BRANCH}-
+                                {process.env.NEXT_PUBLIC_GIT_SHORT}
+                            </Tag>
+                        </Tooltip>
+                    </div>
                 </div>
                 <Section
                     {...SECTION_PROPS}
