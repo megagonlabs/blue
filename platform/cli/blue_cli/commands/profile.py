@@ -1,4 +1,3 @@
-
 import os
 import string
 import asyncio
@@ -75,9 +74,9 @@ def show():
         value = profile[key]
         if pydash.is_equal(key, "BLUE_COOKIE"):
             if not pydash.is_empty(value):
-                value = u'\033[32m\u2714\033[0m'
+                value = f'{bcolors.OKGREEN}\u2714{bcolors.ENDC}'
             else:
-                value = u'\033[31m\u274C\033[0m'
+                value = f'{bcolors.FAIL}\u274C{bcolors.ENDC}'
         if output == "table":
             data.append([key, value])
         else:
@@ -100,12 +99,13 @@ def create():
 
     if profile_name in profile_mgr.get_profile_list():
         raise Exception(f"profile {profile_name} exists")
-    
+
     # create profile
     profile_mgr.create_profile(profile_name)
 
     # inquire profile attributes from user, update
     profile_mgr.inquire_profile_attributes(profile_name=profile_name)
+
 
 @profile.command(short_help="select a blue profile")
 def select():
@@ -138,21 +138,22 @@ def authenticate():
 
         if profile_name is None:
             raise Exception(f"profile name cannot be empty")
-    
+
     auth = Authentication()
     cookie = auth.get_cookie()
     uid = auth.get_uid()
 
     profile_mgr.set_profile_attribute(
-            profile_name=profile_name,
-            attribute_name="BLUE_COOKIE",
-            attribute_value=cookie,
+        profile_name=profile_name,
+        attribute_name="BLUE_COOKIE",
+        attribute_value=cookie,
     )
     profile_mgr.set_profile_attribute(
-            profile_name=profile_name,
-            attribute_name="BLUE_UID",
-            attribute_value=uid,
+        profile_name=profile_name,
+        attribute_name="BLUE_UID",
+        attribute_value=uid,
     )
+
 
 @click.pass_context
 @click.argument("value", required=False)
@@ -185,4 +186,3 @@ def config(key: str, value):
 
 if __name__ == "__main__":
     profile()
-
