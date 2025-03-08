@@ -1,6 +1,7 @@
 #/bin/bash
 echo "Building docker image ..."
 echo "${BLUE_CORE_DOCKER_ORG}/blue-platform-frontend:${BLUE_DEPLOY_VERSION}"
+echo "plaforms: ${BLUE_BUILD_PLATFORM}"
 
 # fa token
 echo "Make sure to store fa.token in $BLUE_INSTALL_DIR/secrets/fa.token"
