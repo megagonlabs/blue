@@ -109,7 +109,35 @@ To try out the agent, first follow the quickstart guide to install the Blue plat
 | context: "Job Title: Child Care Centre Cook, Company: Company_881, Location: 308 Tanglin Road, 247974, Holland Road, Employment Type: Full Time, Position: Non-Executive, Salary: Undisclosed, Job Posting Date: 10 May 2019, Application Deadline: 09 Jun 2019, Description: We are seeking a dedicated and experienced Child Care Centre Cook to prepare nutritious meals for children. The role involves menu planning, food preparation, and ensuring food safety standards are met. Ideal candidates should have a passion for child care and cooking, with the ability to work in a team-oriented environment." | columns to extract: {"involves teaching": "boolean value to indicate if job requires teaching skills", "occupation category": "occupation sector such as education, child development, healthcare, technology", "skills": "list of skills expected", "certifications": "any certifications required for the job"} |```{"involves teaching":false,"occupation category":"child development","skills":["menu planning","food preparation","food safety","teamwork"],"certifications":[]}```|
 | context: "Job Title: Child Care Teacher, Company: Company_1370, Location: TradeHub 21, 16 Boon Lay Way, 609965, Jurong, Employment Type: Full Time, Position: Executive, Salary: $2,000 - $2,400 Monthly, Job Posting Date: 28 May 2019, Application Deadline: 27 Jun 2019, Description: We are looking for a passionate Child Care Teacher to join our team. The role involves creating a safe, nurturing, and engaging environment for young children, planning and implementing age-appropriate activities, and supporting the development of social, cognitive, and emotional skills. Candidates should possess relevant qualifications and experience in early childhood education." | columns to extract: {"is full-time": "boolean value to indicate if job is full time", "salary": "range of annual salary"} |```{"is_full_time":true,"salary":"$24,000 - $28,800 Annual"```|
 
+---
+# OPENAI___CLASSIFIER
 
+---
+
+OPENAI___CLASSIFIER is a derivative of the OPENAI agent, and is essentially a prompt template. This agent is used by the Dialog Manager agent to classify the user’s intent into one of several pre-defined plans.
+
+Being a derivative agent, this agent has no unique properties. Instead, all of its properties are the same as the above base agent, such as  openai.api, open.model, input_context, and so on. Any input passed to this agent’s DEFAULT processor is injected into the ${input} field of the input_template before the request is sent to the OpenAI API.
+
+Below are the recommended property values for this agent:
+
+```
+{
+	"input_field": "messages",
+	"openai.model": "gpt-4o",
+	"openai.api": "ChatCompletion",
+	"output_path": "$.choices[0].message.content",
+	"openai.max_tokens": 150,
+	"openai.top_p": 1,
+	"openai.service": "ws://blue_service_openai:8001",
+	"schema": {},
+	"openai.frequency_penalty": 0,
+	"input_context_field": "content",
+	"input_context": "$[0]",
+	"input_template": "You are an expert in intent classification and information extraction. Please identify the intent of the below user text and classify it into one of the below specified possible intents. Respond only with JSON in the following format, nothing else. JSON response format: {\"intent\": \"investigate\"}. Make sure the intent is an exact string match with one of the specified intents. ${input}",
+	"openai.presence_penalty": 0,
+	"input_json": "[{\"role\": \"user\"}]"
+}
+```
 
 
 
