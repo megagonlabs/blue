@@ -23,12 +23,6 @@
         "required": true,
         "cast": "str"
     },
-    "OPENAI_API_KEY": {
-        "default": null,
-        "prompt": "OPENAI API Key",
-        "required": true,
-        "cast": "str"
-    },
     "BLUE_COOKIE": {
         "default": null,
         "prompt": "Authentication Cookie",
