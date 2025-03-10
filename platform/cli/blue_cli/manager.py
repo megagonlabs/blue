@@ -665,7 +665,7 @@ class PlatformManager:
 
         BLUE_DEPLOY_PLATFORM = config["BLUE_DEPLOY_PLATFORM"]
 
-        blue_config_data_image =  BLUE_CORE_DOCKER_ORG + "/" + "blue-config-data" + ":" + BLUE_DEPLOY_VERSION
+        blue_config_data_image =  BLUE_CORE_DOCKER_ORG + "/" + "blue-config-data"
         
         print("Pulling image: " + blue_config_data_image)
         client.images.pull(blue_config_data_image, tag=BLUE_DEPLOY_VERSION)
