@@ -53,7 +53,7 @@ $ ./docker_build_service.sh
 
 ```
 $ cd platform/scripts
-$ ./deploy_service.sh --service websocket_counter --port_mapping 8001:8001 --image blue-service-websocket_counter:latest
+$ ./deploy_service.sh --service websocket_counter --port_mapping 8001:8001 --image blue-service-websocket_counter:v0.9
 ```
 
 **Step 3)** And lastly run the agent:

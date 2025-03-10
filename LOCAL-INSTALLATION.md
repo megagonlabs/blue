@@ -96,8 +96,8 @@ This will run the redis backend, api server, and the web application server for 
 ```
 docker ps
 CONTAINER ID   IMAGE                                       COMMAND                  CREATED        STATUS        PORTS                                                 NAMES
-081a9c8e59a8   megagonlabs/blue-platform-frontend:latest   "docker-entrypoint.s…"   2 days ago     Up 2 days     0.0.0.0:3000->3000/tcp, :::3000->3000/tcp             frosty_knuth
-2233a2c7cde9   megagonlabs/blue-platform-api:latest        "sh -c 'uvicorn serv…"   2 days ago     Up 2 days     0.0.0.0:5050->5050/tcp, :::5050->5050/tcp             hardcore_jemison
+081a9c8e59a8   megagonlabs/blue-platform-frontend:v0.9   "docker-entrypoint.s…"   2 days ago     Up 2 days     0.0.0.0:3000->3000/tcp, :::3000->3000/tcp             frosty_knuth
+2233a2c7cde9   megagonlabs/blue-platform-api:v0.9        "sh -c 'uvicorn serv…"   2 days ago     Up 2 days     0.0.0.0:5050->5050/tcp, :::5050->5050/tcp             hardcore_jemison
 79c773d9060d   redis/redis-stack:latest                    "/entrypoint.sh"         2 days ago     Up 2 days     0.0.0.0:6379->6379/tcp, :::6379->6379/tcp, 8001/tcp   bold_bhaskara
 ```
 

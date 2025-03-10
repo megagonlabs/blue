@@ -14,7 +14,7 @@ More specifically:
   * Using the CLI:
     ```
     $ cd platform/scripts
-    $ deploy_agent --registry default --agent KNOCKKNOCK --image blue-agent-template-interactive:latest --properties '{"db.host":"blue_db_redis"}' 
+    $ deploy_agent --registry default --agent KNOCKKNOCK --image blue-agent-template-interactive:v0.9 --properties '{"db.host":"blue_db_redis"}' 
     ```
 * Create a new session in the UI
   * Sessions / New
@@ -43,7 +43,7 @@ Create an entry in the agent registry, if one is not already present:
     "scope": "/",
     "description": "template agent to demonstrate interactive agents with UI, try it out by saying \"knock knock\"",
     "properties": {
-        "image": "blue-agent-template-interactive:latest",
+        "image": "blue-agent-template-interactive:v0.9",
         "listens": {
             "includes": [
                 "USER"

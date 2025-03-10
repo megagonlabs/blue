@@ -10,13 +10,13 @@ More specifically:
 * Start the OpenAI service, using:
   ```
   $ cd services\openai
-  $ ./deploy_service.sh --port_mapping 8001:8001 --service openai --image blue-service-openai:latest
+  $ ./deploy_service.sh --port_mapping 8001:8001 --service openai --image blue-service-openai:v0.9
   ```
   
 * Create a duplicate of the OpenAI agent, and name it `OpenAISQLQuery`, with the following properties (note the service address `openai.service`):
 ```
 {
-    "image": "blue-agent-nl2sql:latest",
+    "image": "blue-agent-nl2sql:v0.9",
     "openai.api": "Completion",
     "openai.model": "gpt-3.5-turbo-instruct",
     "output_path": "$.choices[0].text",
@@ -68,7 +68,7 @@ $ ./docker_publish_agent.sh
 Agent registry should contain:
 ```
 {
-    "image": "blue-agent-nl2sql:latest",
+    "image": "blue-agent-nl2sql:v0.9",
     "openai.api": "Completion",
     "openai.model": "gpt-3.5-turbo-instruct",
     "output_path": "$.choices[0].text",
