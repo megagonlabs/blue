@@ -8,8 +8,6 @@ import json
 from blue.agent import Agent
 from blue.plan import Plan, Status, NodeType
 from blue.stream import ControlCode
-from blue.data.planner import DataPlanner
-from blue.data.pipeline import DataPipeline
 from blue.utils import uuid_utils
 
 
@@ -20,20 +18,6 @@ logging.basicConfig(format="%(asctime)s [%(levelname)s] [%(process)d:%(threadNam
 
 ##########################
 ### Agent.CoordinatorAgent
-#
-### planner plan is passed as a property, e.g.
-# "plan": [
-#     ["user.text","a.default"],
-#     ["a","b"],
-#     ["a","c"],
-#     ["b","d"],
-#     ["c","d"]
-# ]
-# in the above agents can be further specified with a suffix that represents an identified, for example: a:1, a:2
-#
-# where the plan is to take data in user stream and pass it on to agent a first,
-# next, agent a's result is then passed on to agents b and c,
-# and lastly agent d will take results from b and c to produce it's results
 #
 class CoordinatorAgent(Agent):
     def __init__(self, **kwargs):
@@ -108,72 +92,10 @@ class CoordinatorAgent(Agent):
         return super().session_listener(message)
 
     def transform_data(self, input_stream, budget, f, t):
-        # from_input = None
-        # from_agent = None
-        # from_agent_param = None
-        # to_agent = None
-        # to_agent_param = None
-        # to_output = None
-
-        # if type(f) == tuple: 
-        #     from_agent, from_agent_param = f
-        # else:
-        #     from_input = f
-
-        # if type(t) == tuple:
-        #     to_agent, to_agent_param = t
-        # else:
-        #     to_output = t
-
-        # logging.info("TRANSFORM DATA:")
-        # logging.info(from_agent + "." + from_agent_param)
-        # logging.info(to_agent + "." + to_agent_param)
-        # logging.info("BUDGET:")
-        # logging.info(json.dumps(budget, indent=3))
-
-        # context = {}
-        # TODO: get registry info on from_agent, from_agent_param
-
-        # TODO: get registry info on to_agent, to_agent_param
-
-        # TODO: TEMPORARY
-
-        # fetch data from stream
-        # input_data = self.fetch_stream_data(input_stream)
-
-        # # TODO: call data planner, plan, optimize given budget
-        # pid = str(hex(uuid.uuid4().fields[0]))[2:]
-        # dp = DataPlanner(id=pid, properties=self.properties)
-        # plan = dp.plan(input_data, "TRANSFORM", context)
-        # plan = dp.optimize(plan, budget)
-
-        # # TODO: execute plan, update budget
-        # pipeline = DataPipeline(id=pid, properties=self.properties)
-        # output_data = pipeline.execute(plan, budget)
-
-        # # # persist data to stream
-        # output_stream = self.persist_stream_data(output_data)
-
-        # # TODO: update session budget
-
-        # # TODO: OVERRIDE TEMPORARILY
+        # TODO: 
         output_stream = input_stream
 
         return output_stream
-
-    # TODO: fetch data from stream
-    def fetch_stream_data(self, input_stream):
-        # get input data 
-        input_data = None 
-
-        return input_data
-    
-    # TODO: persist data to stream
-    def persist_stream_data(self, input_data):
-        # return output stream
-        output_stream = None
-
-        return output_stream 
     
     # node status progression
     # PLANNED, TRIGGERED, STARTED, FINISHED
@@ -284,7 +206,7 @@ class CoordinatorAgent(Agent):
                         # transform data utilizing planner/optimizers, if necessary
                         budget = worker.session.get_budget()
 
-                        # override output stream if data is transformed
+                        # set input stream to stream
                         input_stream = self.transform_data(stream, budget, f, t)
 
                         # set next node stream
