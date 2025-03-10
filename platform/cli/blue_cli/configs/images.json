@@ -15,9 +15,6 @@
         "visualizer": {
             "image": "blue-agent-visualizer"
         },
-        "intent_classifier": {
-            "image": "blue-agent-intent_classifier"
-        },
         "presenter": {
             "image": "blue-agent-presenter"
         },
