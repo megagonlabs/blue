@@ -1,1 +1,952 @@
-[{"name": "indeed_mongodb", "type": "source", "scope": "/", "description": "Source for all indeed original data", "created_by": null, "properties": {"connection": {"host": "localhost", "port": 27017, "protocol": "mongodb"}}, "icon": null}, {"name": "indeed_yellowhat", "type": "source", "scope": "/", "description": "Source for all indeed yellowhat data", "created_by": null, "properties": {"connection": {"host": "3.17.140.111", "port": 7687, "protocol": "bolt"}}, "icon": null}, {"name": "megagon_hr_insights", "type": "source", "scope": "/", "description": "", "created_by": null, "properties": {"connection": {"host": "18.222.178.50", "port": 7687, "protocol": "bolt", "user": "neo4j", "password": "444@Castro"}, "link": "http://18.222.178.50:7474/browser/", "metadata": {}}, "icon": null}, {"name": "cmdbench_sql", "type": "source", "scope": "/", "description": "", "created_by": "D8mQz2heOvhaMUsXSGKoeAwrrBq2", "properties": {"connection": {"host": "10.0.158.213", "port": 16111, "protocol": "postgres", "user": "postgres"}, "metadata": {}}, "icon": null}, {"name": "employer_mysql", "type": "source", "scope": "/", "description": "temporary mysql database to replicate postgres data", "created_by": "5WgRzdacRdOEvj8JBmCXFZSvWmH3", "properties": {"metadata": {}, "connection": {"host": "10.119.85.30", "port": 3306, "protocol": "mysql", "user": "root", "password": "444@Castro"}}, "icon": null}, {"name": "job_search_postgres", "type": "source", "scope": "/", "description": "", "created_by": "5WgRzdacRdOEvj8JBmCXFZSvWmH3", "properties": {"metadata": {}, "connection": {"host": "10.0.160.75", "port": 5432, "protocol": "postgres", "user": "postgres", "password": "example"}}, "icon": null}, {"name": "megalake-hr-relational", "type": "source", "scope": "/", "description": "", "created_by": "5WgRzdacRdOEvj8JBmCXFZSvWmH3", "properties": {"connection": {"host": "10.0.148.214", "port": 5432, "protocol": "postgres", "user": "megagon"}, "metadata": {}}, "icon": null}, {"name": "cmdbench_neo4j", "type": "source", "scope": "/", "description": "", "created_by": "D8mQz2heOvhaMUsXSGKoeAwrrBq2", "properties": {"connection": {"host": "10.0.158.213", "port": 16112, "protocol": "bolt", "user": "neo4j", "password": "cypherbench"}, "metadata": {}}, "icon": null}, {"name": "indeed_yellowhat", "type": "database", "scope": "/indeed_yellowhat", "description": "Database for all indeed yellowhat data", "created_by": null, "properties": {}, "icon": null}, {"name": "indeed_yellowhat", "type": "collection", "scope": "/indeed_yellowhat/indeed_yellowhat", "description": "Collection for all indeed yellowhat data", "created_by": null, "properties": {}, "icon": null}, {"name": "neo4j", "type": "database", "scope": "/megagon_hr_insights", "description": "", "created_by": null, "properties": {"metadata": {}}, "icon": null}, {"name": "nba_db", "type": "database", "scope": "/cmdbench_sql", "description": "", "created_by": null, "properties": {"metadata": {}}, "icon": null}, {"name": "public", "type": "collection", "scope": "/cmdbench_sql/nba_db", "description": "", "created_by": null, "properties": {"metadata": {}}, "icon": null}, {"name": "team_info_common", "type": "entity", "scope": "/cmdbench_sql/nba_db/public", "description": "", "created_by": null, "properties": {"name": "team_info_common", "index": 0, "properties": {"w": "bigint", "l": "bigint", "pct": "real", "conf_rank": "bigint", "div_rank": "bigint", "min_year": "bigint", "max_year": "bigint", "pts_rank": "bigint", "pts_pg": "real", "reb_rank": "bigint", "reb_pg": "real", "ast_rank": "bigint", "ast_pg": "real", "opp_pts_rank": "bigint", "opp_pts_pg": "real", "team_id": "text", "season_year": "text", "team_city": "text", "team_name": "text", "team_abbreviation": "text", "team_conference": "text", "team_division": "text", "team_code": "text", "team_slug": "text", "league_id": "text", "season_id": "text"}}, "icon": null}, {"name": "inactive_players", "type": "entity", "scope": "/cmdbench_sql/nba_db/public", "description": "", "created_by": null, "properties": {"name": "inactive_players", "index": 0, "properties": {"game_id": "text", "player_id": "text", "first_name": "text", "last_name": "text", "jersey_num": "text", "team_id": "text", "team_city": "text", "team_name": "text", "team_abbreviation": "text"}}, "icon": null}, {"name": "game_summary", "type": "entity", "scope": "/cmdbench_sql/nba_db/public", "description": "", "created_by": null, "properties": {"name": "game_summary", "index": 0, "properties": {"game_date_est": "timestamp without time zone", "game_sequence": "bigint", "game_status_id": "bigint", "live_period": "bigint", "wh_status": "bigint", "game_id": "text", "game_status_text": "text", "gamecode": "text", "home_team_id": "text", "visitor_team_id": "text", "season": "text", "live_pc_time": "text", "natl_tv_broadcaster_abbreviation": "text", "live_period_time_bcast": "text"}}, "icon": null}, {"name": "game_info", "type": "entity", "scope": "/cmdbench_sql/nba_db/public", "description": "", "created_by": null, "properties": {"name": "game_info", "index": 0, "properties": {"game_date": "timestamp without time zone", "attendance": "bigint", "game_id": "text", "game_time": "text"}}, "icon": null}, {"name": "line_score", "type": "entity", "scope": "/cmdbench_sql/nba_db/public", "description": "", "created_by": null, "properties": {"name": "line_score", "index": 0, "properties": {"pts_qtr1_away": "bigint", "pts_qtr4_away": "bigint", "pts_ot1_away": "bigint", "pts_ot2_away": "bigint", "pts_ot3_away": "bigint", "pts_ot4_away": "bigint", "pts_ot5_away": "bigint", "pts_ot6_away": "bigint", "pts_ot7_away": "bigint", "pts_ot8_away": "bigint", "pts_ot9_away": "bigint", "pts_ot10_away": "bigint", "pts_away": "real", "game_date_est": "timestamp without time zone", "game_sequence": "bigint", "pts_ot1_home": "bigint", "pts_ot2_home": "bigint", "pts_ot3_home": "bigint", "pts_ot4_home": "bigint", "pts_ot5_home": "bigint", "pts_ot6_home": "bigint", "pts_ot7_home": "bigint", "pts_ot8_home": "bigint", "pts_ot9_home": "bigint", "pts_ot10_home": "bigint", "pts_home": "real", "game_id": "text", "team_id_home": "text", "team_abbreviation_home": "text", "team_city_name_home": "text", "team_nickname_home": "text", "team_wins_losses_home": "text", "pts_qtr1_home": "text", "pts_qtr2_home": "text", "pts_qtr3_home": "text", "pts_qtr4_home": "text", "team_id_away": "text", "team_abbreviation_away": "text", "team_city_name_away": "text", "team_nickname_away": "text", "team_wins_losses_away": "text", "pts_qtr2_away": "text", "pts_qtr3_away": "text"}}, "icon": null}, {"name": "play_by_play", "type": "entity", "scope": "/cmdbench_sql/nba_db/public", "description": "", "created_by": null, "properties": {"name": "play_by_play", "index": 0, "properties": {"eventnum": "bigint", "eventmsgtype": "bigint", "eventmsgactiontype": "bigint", "period": "bigint", "person1type": "real", "person2type": "real", "person3type": "real", "game_id": "text", "wctimestring": "text", "pctimestring": "text", "homedescription": "text", "neutraldescription": "text", "visitordescription": "text", "score": "text", "scoremargin": "text", "player1_id": "text", "player1_name": "text", "player1_team_id": "text", "player1_team_city": "text", "player1_team_nickname": "text", "player1_team_abbreviation": "text", "player2_id": "text", "player2_name": "text", "player2_team_id": "text", "player2_team_city": "text", "player2_team_nickname": "text", "player2_team_abbreviation": "text", "player3_id": "text", "player3_name": "text", "player3_team_id": "text", "player3_team_city": "text", "player3_team_nickname": "text", "player3_team_abbreviation": "text", "video_available_flag": "text"}}, "icon": null}, {"name": "officials", "type": "entity", "scope": "/cmdbench_sql/nba_db/public", "description": "", "created_by": null, "properties": {"name": "officials", "index": 0, "properties": {"game_id": "text", "official_id": "text", "first_name": "text", "last_name": "text", "jersey_num": "text"}}, "icon": null}, {"name": "team_details", "type": "entity", "scope": "/cmdbench_sql/nba_db/public", "description": "", "created_by": null, "properties": {"name": "team_details", "index": 0, "properties": {"yearfounded": "real", "arenacapacity": "real", "team_id": "text", "abbreviation": "text", "city": "text", "arena": "text", "owner": "text", "generalmanager": "text", "headcoach": "text", "dleagueaffiliation": "text", "facebook": "text", "instagram": "text", "twitter": "text", "nickname": "text"}}, "icon": null}, {"name": "draft_combine_stats", "type": "entity", "scope": "/cmdbench_sql/nba_db/public", "description": "", "created_by": null, "properties": {"name": "draft_combine_stats", "index": 0, "properties": {"lane_agility_time": "real", "modified_lane_agility_time": "real", "three_quarter_sprint": "real", "bench_press": "real", "wingspan": "real", "standing_reach": "real", "height_wo_shoes": "real", "height_w_shoes": "real", "standing_vertical_leap": "real", "max_vertical_leap": "real", "season": "text", "player_id": "text", "first_name": "text", "last_name": "text", "player_name": "text", "position": "text", "height_wo_shoes_ft_in": "text", "height_w_shoes_ft_in": "text", "weight": "text", "wingspan_ft_in": "text", "standing_reach_ft_in": "text", "body_fat_pct": "text", "hand_length": "text", "hand_width": "text", "spot_fifteen_corner_left": "text", "spot_fifteen_break_left": "text", "spot_fifteen_top_key": "text", "spot_fifteen_break_right": "text", "spot_fifteen_corner_right": "text", "spot_college_corner_left": "text", "spot_college_break_left": "text", "spot_college_top_key": "text", "spot_college_break_right": "text", "spot_college_corner_right": "text", "spot_nba_corner_left": "text", "spot_nba_break_left": "text", "spot_nba_top_key": "text", "spot_nba_break_right": "text", "spot_nba_corner_right": "text", "off_drib_fifteen_break_left": "text", "off_drib_fifteen_top_key": "text", "off_drib_fifteen_break_right": "text", "off_drib_college_break_left": "text", "off_drib_college_top_key": "text", "off_drib_college_break_right": "text", "on_move_fifteen": "text", "on_move_college": "text"}}, "icon": null}, {"name": "player", "type": "entity", "scope": "/cmdbench_sql/nba_db/public", "description": "", "created_by": null, "properties": {"name": "player", "index": 0, "properties": {"is_active": "bigint", "id": "text", "full_name": "text", "first_name": "text", "last_name": "text"}}, "icon": null}, {"name": "other_stats", "type": "entity", "scope": "/cmdbench_sql/nba_db/public", "description": "", "created_by": null, "properties": {"name": "other_stats", "index": 0, "properties": {"pts_paint_home": "bigint", "pts_2nd_chance_home": "bigint", "pts_fb_home": "bigint", "largest_lead_home": "bigint", "lead_changes": "bigint", "times_tied": "bigint", "team_turnovers_home": "bigint", "total_turnovers_home": "bigint", "team_rebounds_home": "bigint", "pts_off_to_home": "bigint", "pts_paint_away": "bigint", "pts_2nd_chance_away": "bigint", "pts_fb_away": "bigint", "largest_lead_away": "bigint", "team_turnovers_away": "bigint", "total_turnovers_away": "bigint", "team_rebounds_away": "bigint", "pts_off_to_away": "bigint", "game_id": "text", "league_id": "text", "team_id_home": "text", "team_abbreviation_home": "text", "team_city_home": "text", "team_id_away": "text", "team_abbreviation_away": "text", "team_city_away": "text"}}, "icon": null}, {"name": "common_player_info", "type": "entity", "scope": "/cmdbench_sql/nba_db/public", "description": "", "created_by": null, "properties": {"name": "common_player_info", "index": 0, "properties": {"to_year": "real", "team_id": "bigint", "birthdate": "timestamp without time zone", "season_exp": "real", "from_year": "real", "person_id": "text", "first_name": "text", "last_name": "text", "display_first_last": "text", "display_last_comma_first": "text", "display_fi_last": "text", "player_slug": "text", "school": "text", "country": "text", "last_affiliation": "text", "height": "text", "weight": "text", "jersey": "text", "position": "text", "rosterstatus": "text", "games_played_current_season_flag": "text", "team_name": "text", "team_abbreviation": "text", "team_code": "text", "team_city": "text", "playercode": "text", "dleague_flag": "text", "nba_flag": "text", "games_played_flag": "text", "draft_year": "text", "draft_round": "text", "draft_number": "text", "greatest_75_flag": "text"}}, "icon": null}, {"name": "draft_history", "type": "entity", "scope": "/cmdbench_sql/nba_db/public", "description": "", "created_by": null, "properties": {"name": "draft_history", "index": 0, "properties": {"round_number": "bigint", "round_pick": "bigint", "overall_pick": "bigint", "person_id": "text", "player_name": "text", "season": "text", "draft_type": "text", "team_id": "text", "team_city": "text", "team_name": "text", "team_abbreviation": "text", "organization": "text", "organization_type": "text", "player_profile_flag": "text"}}, "icon": null}, {"name": "game", "type": "entity", "scope": "/cmdbench_sql/nba_db/public", "description": "", "created_by": null, "properties": {"name": "game", "index": 0, "properties": {"video_available_home": "bigint", "fgm_away": "real", "fga_away": "real", "fg_pct_away": "real", "fg3m_away": "real", "fg3a_away": "real", "fg3_pct_away": "real", "ftm_away": "real", "fta_away": "real", "ft_pct_away": "real", "oreb_away": "real", "dreb_away": "real", "reb_away": "real", "ast_away": "real", "stl_away": "real", "blk_away": "real", "tov_away": "real", "pf_away": "real", "pts_away": "real", "plus_minus_away": "bigint", "video_available_away": "bigint", "game_date": "timestamp without time zone", "min": "bigint", "fgm_home": "real", "fga_home": "real", "fg_pct_home": "real", "fg3m_home": "real", "fg3a_home": "real", "fg3_pct_home": "real", "ftm_home": "real", "fta_home": "real", "ft_pct_home": "real", "oreb_home": "real", "dreb_home": "real", "reb_home": "real", "ast_home": "real", "stl_home": "real", "blk_home": "real", "tov_home": "real", "pf_home": "real", "pts_home": "real", "plus_minus_home": "bigint", "season_id": "text", "team_id_home": "text", "team_abbreviation_home": "text", "team_name_home": "text", "game_id": "text", "matchup_home": "text", "wl_home": "text", "team_id_away": "text", "team_abbreviation_away": "text", "team_name_away": "text", "matchup_away": "text", "wl_away": "text", "season_type": "text"}}, "icon": null}, {"name": "team_history", "type": "entity", "scope": "/cmdbench_sql/nba_db/public", "description": "", "created_by": null, "properties": {"name": "team_history", "index": 0, "properties": {"year_founded": "bigint", "year_active_till": "bigint", "team_id": "text", "city": "text", "nickname": "text"}}, "icon": null}, {"name": "team", "type": "entity", "scope": "/cmdbench_sql/nba_db/public", "description": "", "created_by": null, "properties": {"name": "team", "index": 0, "properties": {"year_founded": "real", "id": "text", "full_name": "text", "abbreviation": "text", "nickname": "text", "city": "text", "state": "text"}}, "icon": null}, {"name": "JOBS", "type": "database", "scope": "/job_search_postgres", "description": "", "created_by": null, "properties": {"metadata": {}}, "icon": null}, {"name": "postgres", "type": "database", "scope": "/job_search_postgres", "description": "", "created_by": null, "properties": {"metadata": {}}, "icon": null}, {"name": "public", "type": "collection", "scope": "/job_search_postgres/postgres", "description": "", "created_by": null, "properties": {"metadata": {}}, "icon": null}, {"name": "jobs", "type": "entity", "scope": "/job_search_postgres/postgres/public", "description": "", "created_by": null, "properties": {"name": "jobs", "index": 0, "properties": {"title": "character varying", "company": "character varying", "description": "character varying"}}, "icon": null}, {"name": "sghr", "type": "database", "scope": "/megalake-hr-relational", "description": "", "created_by": null, "properties": {"metadata": {}}, "icon": null}, {"name": "public", "type": "collection", "scope": "/megalake-hr-relational/sghr", "description": "", "created_by": null, "properties": {"metadata": {}}, "icon": null}, {"name": "avg_min_experience_years_by_title", "type": "entity", "scope": "/megalake-hr-relational/sghr/public", "description": "", "created_by": null, "properties": {"name": "avg_min_experience_years_by_title", "index": 0, "properties": {"avg_min_experience_years": "real", "short_job_title": "character varying"}}, "icon": null}, {"name": "certifications_for_jobs", "type": "entity", "scope": "/megalake-hr-relational/sghr/public", "description": "", "created_by": null, "properties": {"name": "certifications_for_jobs", "index": 0, "properties": {"unique_job_id": "character varying", "certification": "character varying"}}, "icon": null}, {"name": "frequent_certifications_by_title", "type": "entity", "scope": "/megalake-hr-relational/sghr/public", "description": "", "created_by": null, "properties": {"name": "frequent_certifications_by_title", "index": 0, "properties": {"frequency": "integer", "short_job_title": "character varying", "certification": "character varying"}}, "icon": null}, {"name": "avg_min_salary_by_title", "type": "entity", "scope": "/megalake-hr-relational/sghr/public", "description": "", "created_by": null, "properties": {"name": "avg_min_salary_by_title", "index": 0, "properties": {"avg_min_salary": "double precision", "short_job_title": "character varying"}}, "icon": null}, {"name": "categories_for_jobs", "type": "entity", "scope": "/megalake-hr-relational/sghr/public", "description": "", "created_by": null, "properties": {"name": "categories_for_jobs", "index": 0, "properties": {"unique_job_id": "character varying", "job_category": "character varying"}}, "icon": null}, {"name": "frequent_job_type_by_title", "type": "entity", "scope": "/megalake-hr-relational/sghr/public", "description": "", "created_by": null, "properties": {"name": "frequent_job_type_by_title", "index": 0, "properties": {"frequency": "integer", "short_job_title": "character varying", "job_type": "character varying"}}, "icon": null}, {"name": "skills_required_for_job", "type": "entity", "scope": "/megalake-hr-relational/sghr/public", "description": "", "created_by": null, "properties": {"name": "skills_required_for_job", "index": 0, "properties": {"unique_job_id": "character varying", "skill_required": "character varying"}}, "icon": null}, {"name": "frequent_degree_by_title", "type": "entity", "scope": "/megalake-hr-relational/sghr/public", "description": "", "created_by": null, "properties": {"name": "frequent_degree_by_title", "index": 0, "properties": {"frequency": "integer", "short_job_title": "character varying", "degree": "character varying", "field_of_study": "character varying"}}, "icon": null}, {"name": "jobs", "type": "entity", "scope": "/megalake-hr-relational/sghr/public", "description": "", "created_by": null, "properties": {"name": "jobs", "index": 0, "properties": {"min_salary": "double precision", "max_salary": "double precision", "min_experience": "double precision", "company_id": "character varying", "unique_job_id": "character varying", "job_title": "character varying", "short_job_title": "character varying", "address": "character varying", "location": "character varying", "employment_type": "character varying", "seniority": "character varying", "posting_date": "character varying", "expiry_date": "character varying", "no_of_applications": "character varying"}}, "icon": null}, {"name": "frequent_benefit_by_title", "type": "entity", "scope": "/megalake-hr-relational/sghr/public", "description": "", "created_by": null, "properties": {"name": "frequent_benefit_by_title", "index": 0, "properties": {"frequency": "integer", "short_job_title": "character varying", "benefit": "character varying"}}, "icon": null}, {"name": "degrees_for_jobs", "type": "entity", "scope": "/megalake-hr-relational/sghr/public", "description": "", "created_by": null, "properties": {"name": "degrees_for_jobs", "index": 0, "properties": {"degree": "character varying", "field_of_study": "character varying", "unique_job_id": "character varying"}}, "icon": null}, {"name": "company_info", "type": "entity", "scope": "/megalake-hr-relational/sghr/public", "description": "", "created_by": null, "properties": {"name": "company_info", "index": 0, "properties": {"company_name": "character varying", "company_info": "character varying", "location_areas": "character varying", "company_id": "character varying"}}, "icon": null}, {"name": "benefits_for_jobs", "type": "entity", "scope": "/megalake-hr-relational/sghr/public", "description": "", "created_by": null, "properties": {"name": "benefits_for_jobs", "index": 0, "properties": {"unique_job_id": "character varying", "benefit": "character varying"}}, "icon": null}, {"name": "category_to_job_titles", "type": "entity", "scope": "/megalake-hr-relational/sghr/public", "description": "", "created_by": null, "properties": {"name": "category_to_job_titles", "index": 0, "properties": {"short_job_titles": "character varying", "job_cateogry": "character varying"}}, "icon": null}, {"name": "frequent_skills_by_title", "type": "entity", "scope": "/megalake-hr-relational/sghr/public", "description": "", "created_by": null, "properties": {"name": "frequent_skills_by_title", "index": 0, "properties": {"frequency": "integer", "short_job_title": "character varying", "skill_required": "character varying"}}, "icon": null}, {"name": "frequent_skill_pairs", "type": "entity", "scope": "/megalake-hr-relational/sghr/public", "description": "", "created_by": null, "properties": {"name": "frequent_skill_pairs", "index": 0, "properties": {"frequency": "integer", "skill_1": "character varying", "skill_2": "character varying"}}, "icon": null}]
+[
+    {
+      "name": "cmdbench_sql",
+      "type": "source",
+      "scope": "/",
+      "description": "",
+      "created_by": "D8mQz2heOvhaMUsXSGKoeAwrrBq2",
+      "properties": {
+        "connection": {
+          "host": "10.0.158.213",
+          "port": 16111,
+          "protocol": "postgres",
+          "user": "postgres"
+        },
+        "metadata": {}
+      },
+      "icon": null
+    },
+    {
+      "name": "megalake-hr-relational",
+      "type": "source",
+      "scope": "/",
+      "description": "",
+      "created_by": "5WgRzdacRdOEvj8JBmCXFZSvWmH3",
+      "properties": {
+        "connection": {
+          "host": "10.0.148.214",
+          "port": 5432,
+          "protocol": "postgres",
+          "user": "megagon"
+        },
+        "metadata": {}
+      },
+      "icon": null
+    },
+    {
+      "name": "cmdbench_neo4j",
+      "type": "source",
+      "scope": "/",
+      "description": "",
+      "created_by": "D8mQz2heOvhaMUsXSGKoeAwrrBq2",
+      "properties": {
+        "connection": {
+          "host": "10.0.158.213",
+          "port": 16112,
+          "protocol": "bolt",
+          "user": "neo4j",
+          "password": "cypherbench"
+        },
+        "metadata": {}
+      },
+      "icon": null
+    },
+    {
+      "name": "neo4j",
+      "type": "database",
+      "scope": "/megagon_hr_insights",
+      "description": "",
+      "created_by": null,
+      "properties": {
+        "metadata": {}
+      },
+      "icon": null
+    },
+    {
+      "name": "nba_db",
+      "type": "database",
+      "scope": "/cmdbench_sql",
+      "description": "",
+      "created_by": null,
+      "properties": {
+        "metadata": {}
+      },
+      "icon": null
+    },
+    {
+      "name": "public",
+      "type": "collection",
+      "scope": "/cmdbench_sql/nba_db",
+      "description": "",
+      "created_by": null,
+      "properties": {
+        "metadata": {}
+      },
+      "icon": null
+    },
+    {
+      "name": "team_info_common",
+      "type": "entity",
+      "scope": "/cmdbench_sql/nba_db/public",
+      "description": "",
+      "created_by": null,
+      "properties": {
+        "name": "team_info_common",
+        "index": 0,
+        "properties": {
+          "w": "bigint",
+          "l": "bigint",
+          "pct": "real",
+          "conf_rank": "bigint",
+          "div_rank": "bigint",
+          "min_year": "bigint",
+          "max_year": "bigint",
+          "pts_rank": "bigint",
+          "pts_pg": "real",
+          "reb_rank": "bigint",
+          "reb_pg": "real",
+          "ast_rank": "bigint",
+          "ast_pg": "real",
+          "opp_pts_rank": "bigint",
+          "opp_pts_pg": "real",
+          "team_id": "text",
+          "season_year": "text",
+          "team_city": "text",
+          "team_name": "text",
+          "team_abbreviation": "text",
+          "team_conference": "text",
+          "team_division": "text",
+          "team_code": "text",
+          "team_slug": "text",
+          "league_id": "text",
+          "season_id": "text"
+        }
+      },
+      "icon": null
+    },
+    {
+      "name": "inactive_players",
+      "type": "entity",
+      "scope": "/cmdbench_sql/nba_db/public",
+      "description": "",
+      "created_by": null,
+      "properties": {
+        "name": "inactive_players",
+        "index": 0,
+        "properties": {
+          "game_id": "text",
+          "player_id": "text",
+          "first_name": "text",
+          "last_name": "text",
+          "jersey_num": "text",
+          "team_id": "text",
+          "team_city": "text",
+          "team_name": "text",
+          "team_abbreviation": "text"
+        }
+      },
+      "icon": null
+    },
+    {
+      "name": "game_summary",
+      "type": "entity",
+      "scope": "/cmdbench_sql/nba_db/public",
+      "description": "",
+      "created_by": null,
+      "properties": {
+        "name": "game_summary",
+        "index": 0,
+        "properties": {
+          "game_date_est": "timestamp without time zone",
+          "game_sequence": "bigint",
+          "game_status_id": "bigint",
+          "live_period": "bigint",
+          "wh_status": "bigint",
+          "game_id": "text",
+          "game_status_text": "text",
+          "gamecode": "text",
+          "home_team_id": "text",
+          "visitor_team_id": "text",
+          "season": "text",
+          "live_pc_time": "text",
+          "natl_tv_broadcaster_abbreviation": "text",
+          "live_period_time_bcast": "text"
+        }
+      },
+      "icon": null
+    },
+    {
+      "name": "game_info",
+      "type": "entity",
+      "scope": "/cmdbench_sql/nba_db/public",
+      "description": "",
+      "created_by": null,
+      "properties": {
+        "name": "game_info",
+        "index": 0,
+        "properties": {
+          "game_date": "timestamp without time zone",
+          "attendance": "bigint",
+          "game_id": "text",
+          "game_time": "text"
+        }
+      },
+      "icon": null
+    },
+    {
+      "name": "line_score",
+      "type": "entity",
+      "scope": "/cmdbench_sql/nba_db/public",
+      "description": "",
+      "created_by": null,
+      "properties": {
+        "name": "line_score",
+        "index": 0,
+        "properties": {
+          "pts_qtr1_away": "bigint",
+          "pts_qtr4_away": "bigint",
+          "pts_ot1_away": "bigint",
+          "pts_ot2_away": "bigint",
+          "pts_ot3_away": "bigint",
+          "pts_ot4_away": "bigint",
+          "pts_ot5_away": "bigint",
+          "pts_ot6_away": "bigint",
+          "pts_ot7_away": "bigint",
+          "pts_ot8_away": "bigint",
+          "pts_ot9_away": "bigint",
+          "pts_ot10_away": "bigint",
+          "pts_away": "real",
+          "game_date_est": "timestamp without time zone",
+          "game_sequence": "bigint",
+          "pts_ot1_home": "bigint",
+          "pts_ot2_home": "bigint",
+          "pts_ot3_home": "bigint",
+          "pts_ot4_home": "bigint",
+          "pts_ot5_home": "bigint",
+          "pts_ot6_home": "bigint",
+          "pts_ot7_home": "bigint",
+          "pts_ot8_home": "bigint",
+          "pts_ot9_home": "bigint",
+          "pts_ot10_home": "bigint",
+          "pts_home": "real",
+          "game_id": "text",
+          "team_id_home": "text",
+          "team_abbreviation_home": "text",
+          "team_city_name_home": "text",
+          "team_nickname_home": "text",
+          "team_wins_losses_home": "text",
+          "pts_qtr1_home": "text",
+          "pts_qtr2_home": "text",
+          "pts_qtr3_home": "text",
+          "pts_qtr4_home": "text",
+          "team_id_away": "text",
+          "team_abbreviation_away": "text",
+          "team_city_name_away": "text",
+          "team_nickname_away": "text",
+          "team_wins_losses_away": "text",
+          "pts_qtr2_away": "text",
+          "pts_qtr3_away": "text"
+        }
+      },
+      "icon": null
+    },
+    {
+      "name": "play_by_play",
+      "type": "entity",
+      "scope": "/cmdbench_sql/nba_db/public",
+      "description": "",
+      "created_by": null,
+      "properties": {
+        "name": "play_by_play",
+        "index": 0,
+        "properties": {
+          "eventnum": "bigint",
+          "eventmsgtype": "bigint",
+          "eventmsgactiontype": "bigint",
+          "period": "bigint",
+          "person1type": "real",
+          "person2type": "real",
+          "person3type": "real",
+          "game_id": "text",
+          "wctimestring": "text",
+          "pctimestring": "text",
+          "homedescription": "text",
+          "neutraldescription": "text",
+          "visitordescription": "text",
+          "score": "text",
+          "scoremargin": "text",
+          "player1_id": "text",
+          "player1_name": "text",
+          "player1_team_id": "text",
+          "player1_team_city": "text",
+          "player1_team_nickname": "text",
+          "player1_team_abbreviation": "text",
+          "player2_id": "text",
+          "player2_name": "text",
+          "player2_team_id": "text",
+          "player2_team_city": "text",
+          "player2_team_nickname": "text",
+          "player2_team_abbreviation": "text",
+          "player3_id": "text",
+          "player3_name": "text",
+          "player3_team_id": "text",
+          "player3_team_city": "text",
+          "player3_team_nickname": "text",
+          "player3_team_abbreviation": "text",
+          "video_available_flag": "text"
+        }
+      },
+      "icon": null
+    },
+    {
+      "name": "officials",
+      "type": "entity",
+      "scope": "/cmdbench_sql/nba_db/public",
+      "description": "",
+      "created_by": null,
+      "properties": {
+        "name": "officials",
+        "index": 0,
+        "properties": {
+          "game_id": "text",
+          "official_id": "text",
+          "first_name": "text",
+          "last_name": "text",
+          "jersey_num": "text"
+        }
+      },
+      "icon": null
+    },
+    {
+      "name": "team_details",
+      "type": "entity",
+      "scope": "/cmdbench_sql/nba_db/public",
+      "description": "",
+      "created_by": null,
+      "properties": {
+        "name": "team_details",
+        "index": 0,
+        "properties": {
+          "yearfounded": "real",
+          "arenacapacity": "real",
+          "team_id": "text",
+          "abbreviation": "text",
+          "city": "text",
+          "arena": "text",
+          "owner": "text",
+          "generalmanager": "text",
+          "headcoach": "text",
+          "dleagueaffiliation": "text",
+          "facebook": "text",
+          "instagram": "text",
+          "twitter": "text",
+          "nickname": "text"
+        }
+      },
+      "icon": null
+    },
+    {
+      "name": "draft_combine_stats",
+      "type": "entity",
+      "scope": "/cmdbench_sql/nba_db/public",
+      "description": "",
+      "created_by": null,
+      "properties": {
+        "name": "draft_combine_stats",
+        "index": 0,
+        "properties": {
+          "lane_agility_time": "real",
+          "modified_lane_agility_time": "real",
+          "three_quarter_sprint": "real",
+          "bench_press": "real",
+          "wingspan": "real",
+          "standing_reach": "real",
+          "height_wo_shoes": "real",
+          "height_w_shoes": "real",
+          "standing_vertical_leap": "real",
+          "max_vertical_leap": "real",
+          "season": "text",
+          "player_id": "text",
+          "first_name": "text",
+          "last_name": "text",
+          "player_name": "text",
+          "position": "text",
+          "height_wo_shoes_ft_in": "text",
+          "height_w_shoes_ft_in": "text",
+          "weight": "text",
+          "wingspan_ft_in": "text",
+          "standing_reach_ft_in": "text",
+          "body_fat_pct": "text",
+          "hand_length": "text",
+          "hand_width": "text",
+          "spot_fifteen_corner_left": "text",
+          "spot_fifteen_break_left": "text",
+          "spot_fifteen_top_key": "text",
+          "spot_fifteen_break_right": "text",
+          "spot_fifteen_corner_right": "text",
+          "spot_college_corner_left": "text",
+          "spot_college_break_left": "text",
+          "spot_college_top_key": "text",
+          "spot_college_break_right": "text",
+          "spot_college_corner_right": "text",
+          "spot_nba_corner_left": "text",
+          "spot_nba_break_left": "text",
+          "spot_nba_top_key": "text",
+          "spot_nba_break_right": "text",
+          "spot_nba_corner_right": "text",
+          "off_drib_fifteen_break_left": "text",
+          "off_drib_fifteen_top_key": "text",
+          "off_drib_fifteen_break_right": "text",
+          "off_drib_college_break_left": "text",
+          "off_drib_college_top_key": "text",
+          "off_drib_college_break_right": "text",
+          "on_move_fifteen": "text",
+          "on_move_college": "text"
+        }
+      },
+      "icon": null
+    },
+    {
+      "name": "player",
+      "type": "entity",
+      "scope": "/cmdbench_sql/nba_db/public",
+      "description": "",
+      "created_by": null,
+      "properties": {
+        "name": "player",
+        "index": 0,
+        "properties": {
+          "is_active": "bigint",
+          "id": "text",
+          "full_name": "text",
+          "first_name": "text",
+          "last_name": "text"
+        }
+      },
+      "icon": null
+    },
+    {
+      "name": "other_stats",
+      "type": "entity",
+      "scope": "/cmdbench_sql/nba_db/public",
+      "description": "",
+      "created_by": null,
+      "properties": {
+        "name": "other_stats",
+        "index": 0,
+        "properties": {
+          "pts_paint_home": "bigint",
+          "pts_2nd_chance_home": "bigint",
+          "pts_fb_home": "bigint",
+          "largest_lead_home": "bigint",
+          "lead_changes": "bigint",
+          "times_tied": "bigint",
+          "team_turnovers_home": "bigint",
+          "total_turnovers_home": "bigint",
+          "team_rebounds_home": "bigint",
+          "pts_off_to_home": "bigint",
+          "pts_paint_away": "bigint",
+          "pts_2nd_chance_away": "bigint",
+          "pts_fb_away": "bigint",
+          "largest_lead_away": "bigint",
+          "team_turnovers_away": "bigint",
+          "total_turnovers_away": "bigint",
+          "team_rebounds_away": "bigint",
+          "pts_off_to_away": "bigint",
+          "game_id": "text",
+          "league_id": "text",
+          "team_id_home": "text",
+          "team_abbreviation_home": "text",
+          "team_city_home": "text",
+          "team_id_away": "text",
+          "team_abbreviation_away": "text",
+          "team_city_away": "text"
+        }
+      },
+      "icon": null
+    },
+    {
+      "name": "common_player_info",
+      "type": "entity",
+      "scope": "/cmdbench_sql/nba_db/public",
+      "description": "",
+      "created_by": null,
+      "properties": {
+        "name": "common_player_info",
+        "index": 0,
+        "properties": {
+          "to_year": "real",
+          "team_id": "bigint",
+          "birthdate": "timestamp without time zone",
+          "season_exp": "real",
+          "from_year": "real",
+          "person_id": "text",
+          "first_name": "text",
+          "last_name": "text",
+          "display_first_last": "text",
+          "display_last_comma_first": "text",
+          "display_fi_last": "text",
+          "player_slug": "text",
+          "school": "text",
+          "country": "text",
+          "last_affiliation": "text",
+          "height": "text",
+          "weight": "text",
+          "jersey": "text",
+          "position": "text",
+          "rosterstatus": "text",
+          "games_played_current_season_flag": "text",
+          "team_name": "text",
+          "team_abbreviation": "text",
+          "team_code": "text",
+          "team_city": "text",
+          "playercode": "text",
+          "dleague_flag": "text",
+          "nba_flag": "text",
+          "games_played_flag": "text",
+          "draft_year": "text",
+          "draft_round": "text",
+          "draft_number": "text",
+          "greatest_75_flag": "text"
+        }
+      },
+      "icon": null
+    },
+    {
+      "name": "draft_history",
+      "type": "entity",
+      "scope": "/cmdbench_sql/nba_db/public",
+      "description": "",
+      "created_by": null,
+      "properties": {
+        "name": "draft_history",
+        "index": 0,
+        "properties": {
+          "round_number": "bigint",
+          "round_pick": "bigint",
+          "overall_pick": "bigint",
+          "person_id": "text",
+          "player_name": "text",
+          "season": "text",
+          "draft_type": "text",
+          "team_id": "text",
+          "team_city": "text",
+          "team_name": "text",
+          "team_abbreviation": "text",
+          "organization": "text",
+          "organization_type": "text",
+          "player_profile_flag": "text"
+        }
+      },
+      "icon": null
+    },
+    {
+      "name": "game",
+      "type": "entity",
+      "scope": "/cmdbench_sql/nba_db/public",
+      "description": "",
+      "created_by": null,
+      "properties": {
+        "name": "game",
+        "index": 0,
+        "properties": {
+          "video_available_home": "bigint",
+          "fgm_away": "real",
+          "fga_away": "real",
+          "fg_pct_away": "real",
+          "fg3m_away": "real",
+          "fg3a_away": "real",
+          "fg3_pct_away": "real",
+          "ftm_away": "real",
+          "fta_away": "real",
+          "ft_pct_away": "real",
+          "oreb_away": "real",
+          "dreb_away": "real",
+          "reb_away": "real",
+          "ast_away": "real",
+          "stl_away": "real",
+          "blk_away": "real",
+          "tov_away": "real",
+          "pf_away": "real",
+          "pts_away": "real",
+          "plus_minus_away": "bigint",
+          "video_available_away": "bigint",
+          "game_date": "timestamp without time zone",
+          "min": "bigint",
+          "fgm_home": "real",
+          "fga_home": "real",
+          "fg_pct_home": "real",
+          "fg3m_home": "real",
+          "fg3a_home": "real",
+          "fg3_pct_home": "real",
+          "ftm_home": "real",
+          "fta_home": "real",
+          "ft_pct_home": "real",
+          "oreb_home": "real",
+          "dreb_home": "real",
+          "reb_home": "real",
+          "ast_home": "real",
+          "stl_home": "real",
+          "blk_home": "real",
+          "tov_home": "real",
+          "pf_home": "real",
+          "pts_home": "real",
+          "plus_minus_home": "bigint",
+          "season_id": "text",
+          "team_id_home": "text",
+          "team_abbreviation_home": "text",
+          "team_name_home": "text",
+          "game_id": "text",
+          "matchup_home": "text",
+          "wl_home": "text",
+          "team_id_away": "text",
+          "team_abbreviation_away": "text",
+          "team_name_away": "text",
+          "matchup_away": "text",
+          "wl_away": "text",
+          "season_type": "text"
+        }
+      },
+      "icon": null
+    },
+    {
+      "name": "team_history",
+      "type": "entity",
+      "scope": "/cmdbench_sql/nba_db/public",
+      "description": "",
+      "created_by": null,
+      "properties": {
+        "name": "team_history",
+        "index": 0,
+        "properties": {
+          "year_founded": "bigint",
+          "year_active_till": "bigint",
+          "team_id": "text",
+          "city": "text",
+          "nickname": "text"
+        }
+      },
+      "icon": null
+    },
+    {
+      "name": "team",
+      "type": "entity",
+      "scope": "/cmdbench_sql/nba_db/public",
+      "description": "",
+      "created_by": null,
+      "properties": {
+        "name": "team",
+        "index": 0,
+        "properties": {
+          "year_founded": "real",
+          "id": "text",
+          "full_name": "text",
+          "abbreviation": "text",
+          "nickname": "text",
+          "city": "text",
+          "state": "text"
+        }
+      },
+      "icon": null
+    },
+    {
+      "name": "sghr",
+      "type": "database",
+      "scope": "/megalake-hr-relational",
+      "description": "",
+      "created_by": null,
+      "properties": {
+        "metadata": {}
+      },
+      "icon": null
+    },
+    {
+      "name": "public",
+      "type": "collection",
+      "scope": "/megalake-hr-relational/sghr",
+      "description": "",
+      "created_by": null,
+      "properties": {
+        "metadata": {}
+      },
+      "icon": null
+    },
+    {
+      "name": "avg_min_experience_years_by_title",
+      "type": "entity",
+      "scope": "/megalake-hr-relational/sghr/public",
+      "description": "",
+      "created_by": null,
+      "properties": {
+        "name": "avg_min_experience_years_by_title",
+        "index": 0,
+        "properties": {
+          "avg_min_experience_years": "real",
+          "short_job_title": "character varying"
+        }
+      },
+      "icon": null
+    },
+    {
+      "name": "certifications_for_jobs",
+      "type": "entity",
+      "scope": "/megalake-hr-relational/sghr/public",
+      "description": "",
+      "created_by": null,
+      "properties": {
+        "name": "certifications_for_jobs",
+        "index": 0,
+        "properties": {
+          "unique_job_id": "character varying",
+          "certification": "character varying"
+        }
+      },
+      "icon": null
+    },
+    {
+      "name": "frequent_certifications_by_title",
+      "type": "entity",
+      "scope": "/megalake-hr-relational/sghr/public",
+      "description": "",
+      "created_by": null,
+      "properties": {
+        "name": "frequent_certifications_by_title",
+        "index": 0,
+        "properties": {
+          "frequency": "integer",
+          "short_job_title": "character varying",
+          "certification": "character varying"
+        }
+      },
+      "icon": null
+    },
+    {
+      "name": "avg_min_salary_by_title",
+      "type": "entity",
+      "scope": "/megalake-hr-relational/sghr/public",
+      "description": "",
+      "created_by": null,
+      "properties": {
+        "name": "avg_min_salary_by_title",
+        "index": 0,
+        "properties": {
+          "avg_min_salary": "double precision",
+          "short_job_title": "character varying"
+        }
+      },
+      "icon": null
+    },
+    {
+      "name": "categories_for_jobs",
+      "type": "entity",
+      "scope": "/megalake-hr-relational/sghr/public",
+      "description": "",
+      "created_by": null,
+      "properties": {
+        "name": "categories_for_jobs",
+        "index": 0,
+        "properties": {
+          "unique_job_id": "character varying",
+          "job_category": "character varying"
+        }
+      },
+      "icon": null
+    },
+    {
+      "name": "frequent_job_type_by_title",
+      "type": "entity",
+      "scope": "/megalake-hr-relational/sghr/public",
+      "description": "",
+      "created_by": null,
+      "properties": {
+        "name": "frequent_job_type_by_title",
+        "index": 0,
+        "properties": {
+          "frequency": "integer",
+          "short_job_title": "character varying",
+          "job_type": "character varying"
+        }
+      },
+      "icon": null
+    },
+    {
+      "name": "skills_required_for_job",
+      "type": "entity",
+      "scope": "/megalake-hr-relational/sghr/public",
+      "description": "",
+      "created_by": null,
+      "properties": {
+        "name": "skills_required_for_job",
+        "index": 0,
+        "properties": {
+          "unique_job_id": "character varying",
+          "skill_required": "character varying"
+        }
+      },
+      "icon": null
+    },
+    {
+      "name": "frequent_degree_by_title",
+      "type": "entity",
+      "scope": "/megalake-hr-relational/sghr/public",
+      "description": "",
+      "created_by": null,
+      "properties": {
+        "name": "frequent_degree_by_title",
+        "index": 0,
+        "properties": {
+          "frequency": "integer",
+          "short_job_title": "character varying",
+          "degree": "character varying",
+          "field_of_study": "character varying"
+        }
+      },
+      "icon": null
+    },
+    {
+      "name": "jobs",
+      "type": "entity",
+      "scope": "/megalake-hr-relational/sghr/public",
+      "description": "",
+      "created_by": null,
+      "properties": {
+        "name": "jobs",
+        "index": 0,
+        "properties": {
+          "min_salary": "double precision",
+          "max_salary": "double precision",
+          "min_experience": "double precision",
+          "company_id": "character varying",
+          "unique_job_id": "character varying",
+          "job_title": "character varying",
+          "short_job_title": "character varying",
+          "address": "character varying",
+          "location": "character varying",
+          "employment_type": "character varying",
+          "seniority": "character varying",
+          "posting_date": "character varying",
+          "expiry_date": "character varying",
+          "no_of_applications": "character varying"
+        }
+      },
+      "icon": null
+    },
+    {
+      "name": "frequent_benefit_by_title",
+      "type": "entity",
+      "scope": "/megalake-hr-relational/sghr/public",
+      "description": "",
+      "created_by": null,
+      "properties": {
+        "name": "frequent_benefit_by_title",
+        "index": 0,
+        "properties": {
+          "frequency": "integer",
+          "short_job_title": "character varying",
+          "benefit": "character varying"
+        }
+      },
+      "icon": null
+    },
+    {
+      "name": "degrees_for_jobs",
+      "type": "entity",
+      "scope": "/megalake-hr-relational/sghr/public",
+      "description": "",
+      "created_by": null,
+      "properties": {
+        "name": "degrees_for_jobs",
+        "index": 0,
+        "properties": {
+          "degree": "character varying",
+          "field_of_study": "character varying",
+          "unique_job_id": "character varying"
+        }
+      },
+      "icon": null
+    },
+    {
+      "name": "company_info",
+      "type": "entity",
+      "scope": "/megalake-hr-relational/sghr/public",
+      "description": "",
+      "created_by": null,
+      "properties": {
+        "name": "company_info",
+        "index": 0,
+        "properties": {
+          "company_name": "character varying",
+          "company_info": "character varying",
+          "location_areas": "character varying",
+          "company_id": "character varying"
+        }
+      },
+      "icon": null
+    },
+    {
+      "name": "benefits_for_jobs",
+      "type": "entity",
+      "scope": "/megalake-hr-relational/sghr/public",
+      "description": "",
+      "created_by": null,
+      "properties": {
+        "name": "benefits_for_jobs",
+        "index": 0,
+        "properties": {
+          "unique_job_id": "character varying",
+          "benefit": "character varying"
+        }
+      },
+      "icon": null
+    },
+    {
+      "name": "category_to_job_titles",
+      "type": "entity",
+      "scope": "/megalake-hr-relational/sghr/public",
+      "description": "",
+      "created_by": null,
+      "properties": {
+        "name": "category_to_job_titles",
+        "index": 0,
+        "properties": {
+          "short_job_titles": "character varying",
+          "job_cateogry": "character varying"
+        }
+      },
+      "icon": null
+    },
+    {
+      "name": "frequent_skills_by_title",
+      "type": "entity",
+      "scope": "/megalake-hr-relational/sghr/public",
+      "description": "",
+      "created_by": null,
+      "properties": {
+        "name": "frequent_skills_by_title",
+        "index": 0,
+        "properties": {
+          "frequency": "integer",
+          "short_job_title": "character varying",
+          "skill_required": "character varying"
+        }
+      },
+      "icon": null
+    },
+    {
+      "name": "frequent_skill_pairs",
+      "type": "entity",
+      "scope": "/megalake-hr-relational/sghr/public",
+      "description": "",
+      "created_by": null,
+      "properties": {
+        "name": "frequent_skill_pairs",
+        "index": 0,
+        "properties": {
+          "frequency": "integer",
+          "skill_1": "character varying",
+          "skill_2": "character varying"
+        }
+      },
+      "icon": null
+    }
+  ]

@@ -1,6 +1,6 @@
 {
     "BLUE_DEPLOY_VERSION": { 
-        "default": "latest",
+        "default": "v0.9",
         "prompt": "Blue Deployment Version",
         "required": true,
         "cast": "str"
@@ -12,7 +12,7 @@
         "cast": "str"
     },
     "BLUE_DEPLOY_SECURE": { 
-        "default": true,
+        "default": false,
         "prompt": "Secure Deployment",
         "required": true,
         "cast": "bool"
@@ -44,30 +44,6 @@
     "BLUE_DATA_REGISTRY_MODEL": { 
         "default": "/blue_data/models/paraphrase-MiniLM-L6-v2",
         "prompt": "Data Registry Model",
-        "required": false,
-        "cast": "file"
-    },
-    "BLUE_MODEL_REGISTRY": { 
-        "default": "default",
-        "prompt": "Model Registry Name",
-        "required": true,
-        "cast": "str"
-    },
-    "BLUE_MODEL_REGISTRY_MODEL": { 
-        "default": "/blue_data/models/paraphrase-MiniLM-L6-v2",
-        "prompt": "Model Regsitry Model",
-        "required": false,
-        "cast": "file"
-    },
-    "BLUE_OPERATOR_REGISTRY": { 
-        "default": "default",
-        "prompt": "Operator Registry Name",
-        "required": true,
-        "cast": "str"
-    },
-    "BLUE_OPERATOR_REGISTRY_MODEL": { 
-        "default": "/blue_data/models/paraphrase-MiniLM-L6-v2",
-        "prompt": "Operator Registry Model",
         "required": false,
         "cast": "file"
     },
