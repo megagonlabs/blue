@@ -15,13 +15,14 @@ from fastapi.responses import JSONResponse
 import firebase_admin
 from firebase_admin import auth, credentials, exceptions
 
-from constant import EMAIL_DOMAIN_ADDRESS_REGEXP, account_id_header, acl_enforce
+from constant import EMAIL_DOMAIN_ADDRESS_REGEXP, account_id_header, acl_enforce, verify_google_id_token
 from fastapi import Depends, Request
 from APIRouter import APIRouter
 from fastapi.responses import JSONResponse
 
 ###### Settings
-from settings import EMAIL_DOMAIN_WHITE_LIST, PROPERTIES, ROLE_PERMISSIONS, SECURE_COOKIE
+from settings import EMAIL_DOMAIN_WHITE_LIST, PROPERTIES, ROLE_PERMISSIONS, SECURE_COOKIE, FIREBASE_SERVICE_CRED
+import jwt, requests
 
 ### Assign from platform properties
 from blue.platform import Platform
@@ -35,10 +36,10 @@ p = Platform(id=platform_id, properties=PROPERTIES)
 ##### ROUTER
 router = APIRouter(prefix=f"{PLATFORM_PREFIX}/accounts", dependencies=[Depends(account_id_header)])
 
-FIREBASE_SERVICE_CRED = os.getenv("FIREBASE_SERVICE_CRED", "{}")
-cert = json.loads(base64.b64decode(FIREBASE_SERVICE_CRED))
-cred = credentials.Certificate(cert)
-firebase_admin.initialize_app(cred)
+if not pydash.is_empty(FIREBASE_SERVICE_CRED):
+    cert = json.loads(base64.b64decode(FIREBASE_SERVICE_CRED))
+    cred = credentials.Certificate(cert)
+    firebase_admin.initialize_app(cred)
 allowed_domains = EMAIL_DOMAIN_WHITE_LIST.split(",")
 
 
@@ -75,7 +76,13 @@ async def signin(request: Request):
     if pydash.is_empty(id_token):
         return JSONResponse(content={"message": "Illegal ID token provided: ID token must be a non-empty string."}, status_code=400)
     try:
-        decoded_claims = auth.verify_id_token(id_token)
+        if not pydash.is_empty(FIREBASE_SERVICE_CRED):
+            decoded_claims = auth.verify_id_token(id_token)
+        else:
+            try:
+                decoded_claims = verify_google_id_token(id_token, client_id='blue-9d597', issuer='https://securetoken.google.com/blue-9d597')
+            except (jwt.ExpiredSignatureError, jwt.InvalidAudienceError, jwt.InvalidIssuerError, jwt.InvalidTokenError, requests.exceptions.RequestException, Exception) as e:
+                return ERROR_RESPONSE
         # {
         #     "name": "string",
         #     "picture": "url",
@@ -107,7 +114,12 @@ async def signin(request: Request):
             expires_in = datetime.timedelta(days=14)
             # Create the session cookie. This will also verify the ID token in the process.
             # The session cookie will have the same claims as the ID token.
-            session_cookie = auth.create_session_cookie(id_token, expires_in=expires_in)
+            if not pydash.is_empty(FIREBASE_SERVICE_CRED):
+                session_cookie = auth.create_session_cookie(id_token, expires_in=expires_in)
+            else:
+                session_cookie = id_token
+                expires_in = datetime.timedelta(hours=1)
+            print(decoded_claims)
             response = JSONResponse(
                 content={
                     "result": {
