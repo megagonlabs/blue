@@ -14,7 +14,7 @@ Most convenient way to install and configure blue is through its CLI (`blue-cli`
 #### install blue-cli
 To download and install `blue-cli`, you can pip install it as shown below. It is highly recommended to create a virtual environment to avoid any conflicts:
 ```
-$ pip install --no-cache --extra-index-url  http://10.0.160.75:8888/simple/ --trusted-host 10.0.160.75 blue_cli==0.9
+$ pip install --no-cache --extra-index-url  http://10.0.160.75:8888/simple/ --trusted-host 10.0.160.75 blue_cli==1.0
 ```
 
 `blue-cli` also installs `blue-py`, the python library for blue.

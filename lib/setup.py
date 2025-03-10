@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="blue-py",
-    version="0.9",
+    version="1.0",
     author="megagon labs",
     author_email="contact@megagon.ai",
     description="blue py - python library for blue streaming framework for agentic orchestration",

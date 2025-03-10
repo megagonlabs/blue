@@ -4,7 +4,7 @@ from setuptools import find_packages, setup
 
 package = {
     "name": "blue-cli",
-    "version": "0.9",
+    "version": "1.0",
     "author": "megagon labs",
     "author_email": "contact@megagon.ai",
     "description": "blue cli - cli for blue streaming framework for agentic orchestration",
@@ -13,7 +13,7 @@ package = {
     "setup_requires": ['setuptools_scm'],
     "include_package_data": True,
     "install_requires": [
-        "blue-py==0.9",
+        "blue-py==1.0",
         "python-dotenv==1.0.0",
         "click==8.1.7",
         "tabulate==0.9.0",
