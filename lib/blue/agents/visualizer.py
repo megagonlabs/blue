@@ -80,8 +80,8 @@ class VisualizerAgent(Agent):
         # set input
         p.define_input(name, value=question)
         # set plan
-        p.connect_input_to_agent(from_input=name, to_agent="NL2Q")
-        p.connect_agent_to_agent(from_agent="NL2Q", to_agent=self.name, to_agent_input=to_param_prefix + name)
+        p.connect_input_to_agent(from_input=name, to_agent="NL2SQL")
+        p.connect_agent_to_agent(from_agent="NL2SQL", to_agent=self.name, to_agent_input=to_param_prefix + name)
         
         # submit plan
         p.submit(worker)
