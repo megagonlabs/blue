@@ -124,7 +124,7 @@ class ProfileManager:
             os.makedirs(os.path.expanduser("~/.blue"))
 
         # set profiles path
-        self.profiles_path = os.path.expanduser("~/.blue/profiles")
+        self.profiles_path = os.path.expanduser("~/.blue/.profiles")
 
         # load profile attribute config
         self.__load_profile_attributes_config()
@@ -364,7 +364,7 @@ class PlatformManager:
             os.makedirs(os.path.expanduser("~/.blue"))
 
         # set platforms path
-        self.platforms_path = os.path.expanduser("~/.blue/platforms")
+        self.platforms_path = os.path.expanduser("~/.blue/.platforms")
 
         # load platform attribute config
         self.__load_platform_attributes_config()
@@ -682,14 +682,10 @@ class PlatformManager:
         # rename regsitry files
         BLUE_AGENT_REGISTRY = config["BLUE_AGENT_REGISTRY"]
         BLUE_DATA_REGISTRY = config["BLUE_DATA_REGISTRY"]
-        BLUE_MODEL_REGISTRY = config["BLUE_MODEL_REGISTRY"]
-        BLUE_OPERATOR_REGISTRY = config["BLUE_OPERATOR_REGISTRY"]
 
         container.exec_run(f"mv /blue_data/config/agents.json /blue_data/config/{BLUE_AGENT_REGISTRY}.agents.json")
         container.exec_run(f"mv /blue_data/config/data.json /blue_data/config/{BLUE_DATA_REGISTRY}.data.json")
-        container.exec_run(f"mv /blue_data/config/models.json /blue_data/config/{BLUE_MODEL_REGISTRY}.models.json")
-        container.exec_run(f"mv /blue_data/config/operators.json /blue_data/config/{BLUE_OPERATOR_REGISTRY}.operators.json")
-
+       
         container.stop()
         print("Done.")
 
@@ -861,7 +857,7 @@ class ServiceManager:
             os.makedirs(os.path.expanduser("~/.blue"))
 
         # set services path
-        self.services_path = os.path.expanduser("~/.blue/services")
+        self.services_path = os.path.expanduser("~/.blue/.services")
 
         # load service attribute config
         self.__load_service_attributes_config()
@@ -1020,9 +1016,6 @@ class ServiceManager:
         self.__read_services()
 
         service = service_attributes
-
-        # deploy service atttribute
-        service['BLUE_DEPLOY_PLATFORM'] = service_name
 
         # update services
         self.services[service_name] = service

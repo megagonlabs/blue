@@ -1,12 +1,12 @@
 {
     "BLUE_INSTALL_DIR": { 
-        "default": "~/blue",
+        "default": "~/blue/",
         "prompt": "Blue Installation Directory",
         "required": true,
         "cast": "file"
     },
     "BLUE_DATA_DIR": { 
-        "default": "~/blue/data",
+        "default": "~/.blue/data",
         "prompt": "Blue Shared Data Directory",
         "required": true,
         "cast": "file"
