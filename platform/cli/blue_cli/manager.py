@@ -810,14 +810,14 @@ class PlatformManager:
         )
 
         ### run redis, api, and frontend
-        BLUE_PUBLIC_DB_SERVER_PORT_MAPPED = config["BLUE_PUBLIC_DB_SERVER_PORT_MAPPED"]
+        BLUE_PUBLIC_DB_SERVER_PORT = config["BLUE_PUBLIC_DB_SERVER_PORT"]
         # redis
         image = "redis/redis-stack:latest"
         client.containers.run(
             image,
             network="blue_platform_" + BLUE_DEPLOY_PLATFORM + "_network_bridge",
             hostname="blue_db_redis",
-            ports={str(BLUE_PUBLIC_DB_SERVER_PORT_MAPPED):6379},
+            ports={str(BLUE_PUBLIC_DB_SERVER_PORT):6379},
             volumes=["blue_" + BLUE_DEPLOY_PLATFORM + "_data:/blue_data"],
             labels={"blue.platform": BLUE_DEPLOY_PLATFORM + "." + "redis"},
             environment=config,
@@ -828,13 +828,13 @@ class PlatformManager:
         )
 
         # api
-        BLUE_PUBLIC_API_SERVER_PORT_MAPPED = config["BLUE_PUBLIC_API_SERVER_PORT_MAPPED"]
+        BLUE_PUBLIC_API_SERVER_PORT = config["BLUE_PUBLIC_API_SERVER_PORT"]
         image = BLUE_CORE_DOCKER_ORG + "/" + "blue-platform-api" + ":" + BLUE_DEPLOY_VERSION
         client.containers.run(
             image,
             network="blue_platform_" + BLUE_DEPLOY_PLATFORM + "_network_bridge",
             hostname="blue_platform_api",
-            ports={str(BLUE_PUBLIC_API_SERVER_PORT_MAPPED):5050},
+            ports={str(BLUE_PUBLIC_API_SERVER_PORT):5050},
             volumes=["blue_" + BLUE_DEPLOY_PLATFORM + "_data:/blue_data", "/var/run/docker.sock:/var/run/docker.sock"],
             labels={"blue.platform": BLUE_DEPLOY_PLATFORM + "." + "api"},
             environment=config,
@@ -844,13 +844,13 @@ class PlatformManager:
         )
 
         # frontend
-        BLUE_PUBLIC_WEB_SERVER_PORT_MAPPED = config["BLUE_PUBLIC_WEB_SERVER_PORT_MAPPED"]
+        BLUE_PUBLIC_WEB_SERVER_PORT = config["BLUE_PUBLIC_WEB_SERVER_PORT"]
         image = BLUE_CORE_DOCKER_ORG + "/" + "blue-platform-frontend" + ":" + BLUE_DEPLOY_VERSION
         client.containers.run(
             image,
             network="blue_platform_" + BLUE_DEPLOY_PLATFORM + "_network_bridge",
             hostname="blue_platform_frontend",
-            ports={str(BLUE_PUBLIC_WEB_SERVER_PORT_MAPPED):3000},
+            ports={str(BLUE_PUBLIC_WEB_SERVER_PORT):3000},
             volumes=["blue_" + BLUE_DEPLOY_PLATFORM + "_data:/blue_data"],
             labels={"blue.platform": BLUE_DEPLOY_PLATFORM + "." + "frontend"},
             environment=config,
