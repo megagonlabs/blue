@@ -682,14 +682,10 @@ class PlatformManager:
         # rename regsitry files
         BLUE_AGENT_REGISTRY = config["BLUE_AGENT_REGISTRY"]
         BLUE_DATA_REGISTRY = config["BLUE_DATA_REGISTRY"]
-        BLUE_MODEL_REGISTRY = config["BLUE_MODEL_REGISTRY"]
-        BLUE_OPERATOR_REGISTRY = config["BLUE_OPERATOR_REGISTRY"]
 
         container.exec_run(f"mv /blue_data/config/agents.json /blue_data/config/{BLUE_AGENT_REGISTRY}.agents.json")
         container.exec_run(f"mv /blue_data/config/data.json /blue_data/config/{BLUE_DATA_REGISTRY}.data.json")
-        container.exec_run(f"mv /blue_data/config/models.json /blue_data/config/{BLUE_MODEL_REGISTRY}.models.json")
-        container.exec_run(f"mv /blue_data/config/operators.json /blue_data/config/{BLUE_OPERATOR_REGISTRY}.operators.json")
-
+       
         container.stop()
         print("Done.")
 
