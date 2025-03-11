@@ -1021,9 +1021,6 @@ class ServiceManager:
 
         service = service_attributes
 
-        # deploy service atttribute
-        service['BLUE_DEPLOY_PLATFORM'] = service_name
-
         # update services
         self.services[service_name] = service
 
