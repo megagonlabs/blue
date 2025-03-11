@@ -72,7 +72,7 @@ def inquire_user_input(prompt, default=None, required=False, cast=None):
             return inquire_user_input(prompt, default=default, required=required, cast=cast)
         return user_input
     else:
-        if default:
+        if default is not None:
             return convert(default, cast=cast)
         else:
             if required:
