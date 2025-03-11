@@ -101,6 +101,12 @@
         "required": true,
         "cast": "int"
     },
+    "BLUE_EMAIL_DOMAIN_WHITE_LIST": {
+        "default": null,
+        "prompt": "Allowed email domains to sign in",
+        "required": true,
+        "cast": "str"
+    },
     "BLUE_RBAC_CONFIG_FOLDER": {
         "default":"/blue_data/config/rbac",
         "prompt": "Access Control Config Directory",
