@@ -1,6 +1,10 @@
 from fastapi import Header
 from jsonschema.validators import Draft7Validator
+from fastapi.responses import JSONResponse
 import pydash
+import jwt
+from jwt.algorithms import RSAAlgorithm
+import requests
 
 EMAIL_DOMAIN_ADDRESS_REGEXP = r"@((\w+?\.)+\w+)"
 BANNED_ENTITY_NAMES = ['new']
@@ -17,6 +21,26 @@ class InvalidRequestJson(Exception):
     def __init__(self, errors):
         super().__init__()
         self.errors = errors
+
+
+def verify_google_id_token(id_token, client_id, issuer):
+    openid_config_url = "https://securetoken.google.com/blue-9d597/.well-known/openid-configuration"
+    openid_config = requests.get(openid_config_url).json()
+    jwks_url = openid_config["jwks_uri"]
+    jwks = requests.get(jwks_url).json()
+    unverified_token = jwt.get_unverified_header(id_token)
+    kid = unverified_token["kid"]
+    public_key = None
+    for key in jwks["keys"]:
+        if key["kid"] == kid:
+            public_key = RSAAlgorithm.from_jwk(key)
+            break
+    if not pydash.is_empty(public_key):
+        decoded_token = jwt.decode(id_token, public_key, algorithms=openid_config['id_token_signing_alg_values_supported'], audience=client_id, issuer=issuer)
+        uid = pydash.objects.get(decoded_token, 'user_id', None)
+        pydash.objects.set_(decoded_token, 'uid', uid)
+        return decoded_token
+    raise Exception('Empty public_key')
 
 
 def d7validate(validations, payload):
