@@ -14,4 +14,5 @@ RUN cat > .env.production
 RUN echo "NEXT_PUBLIC_GIT_SHORT=${git_short}" >> .env.production
 RUN echo "NEXT_PUBLIC_GIT_LONG=${git_long}" >> .env.production
 RUN echo "NEXT_PUBLIC_GIT_BRANCH=${git_branch}" >> .env.production
+RUN npm run build
 CMD ["sh", "-c", "./launch.sh"]
