@@ -369,6 +369,7 @@ def shutdown_service_container(request: Request, service_name):
 @router.get('/agents/container/{container_id}')
 async def stream_log(container_id):
     client = docker.from_env()
+    swarm_mode = pydash.is_equal(PROPERTIES["platform.deploy.target"], "swarm")
     try:
         if pydash.is_equal(PROPERTIES["platform.deploy.target"], "localhost"):
             instance = client.containers.get(container_id)
@@ -456,11 +457,15 @@ async def stream_log(container_id):
         # calculate the timestamp for 1 week ago
         one_week_ago = datetime.datetime.now() - datetime.timedelta(weeks=1)
 
-        def get_logs(instance, queue, epoch):
-            for line in instance.logs(stream=True, follow=True, timestamps=True, since=epoch):
-                queue.put_nowait(line.decode().strip())
+        def get_logs(instance, queue, epoch, swarm_mode):
+            if swarm_mode:
+                for line in instance.logs(stdout=True, stderr=True, follow=True, timestamps=True, since=epoch):
+                    queue.put_nowait(line.decode().strip())
+            else:
+                for line in instance.logs(stream=True, follow=True, timestamps=True, since=epoch):
+                    queue.put_nowait(line.decode().strip())
 
-        log_thread = threading.Thread(target=get_logs, args=(instance, queue, int(one_week_ago.timestamp())))
+        log_thread = threading.Thread(target=get_logs, args=(instance, queue, int(one_week_ago.timestamp()), swarm_mode))
         log_thread.daemon = True
         log_thread.start()
 
