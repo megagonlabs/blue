@@ -80,7 +80,7 @@ async def signin(request: Request):
             decoded_claims = auth.verify_id_token(id_token)
         else:
             try:
-                decoded_claims = verify_google_id_token(id_token, client_id='blue-9d597', issuer='https://securetoken.google.com/blue-9d597')
+                decoded_claims = verify_google_id_token(id_token, client_id='blue-public', issuer='https://securetoken.google.com/blue-public')
             except (jwt.ExpiredSignatureError, jwt.InvalidAudienceError, jwt.InvalidIssuerError, jwt.InvalidTokenError, requests.exceptions.RequestException, Exception) as e:
                 return ERROR_RESPONSE
         # {
