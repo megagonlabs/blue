@@ -122,7 +122,7 @@ export default function Index() {
         const server = _.get(profile, "BLUE_PUBLIC_API_SERVER", null);
         const secure =
             _.toLower(_.get(profile, "BLUE_DEPLOY_SECURE", "True")) == "true";
-        const port = _.get(profile, "BLUE_PUBLIC_API_SERVER_PORT_MAPPED", null);
+        const port = _.get(profile, "BLUE_PUBLIC_API_SERVER_PORT", null);
         const platformName = _.get(profile, "BLUE_DEPLOY_PLATFORM", null);
         setPopupOpen(true);
         signInWithPopup(auth, provider)
