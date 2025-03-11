@@ -119,7 +119,6 @@ async def signin(request: Request):
             else:
                 session_cookie = id_token
                 expires_in = datetime.timedelta(hours=1)
-            print(decoded_claims)
             response = JSONResponse(
                 content={
                     "result": {
@@ -169,7 +168,10 @@ async def signin_cli(request: Request):
             return JSONResponse(content={"message": "Invalid email domain"}, status_code=403)
         if time.time() - decoded_claims["auth_time"] < 5 * 60:
             expires_in = datetime.timedelta(hours=10)
-            session_cookie = auth.create_session_cookie(id_token, expires_in=expires_in)
+            if not pydash.is_empty(FIREBASE_SERVICE_CRED):
+                session_cookie = auth.create_session_cookie(id_token, expires_in=expires_in)
+            else:
+                session_cookie = id_token
             p.create_update_user(decoded_claims)
             return JSONResponse(content={"cookie": session_cookie, "uid": decoded_claims['uid']})
         return ERROR_RESPONSE
