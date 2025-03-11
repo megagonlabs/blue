@@ -16,12 +16,13 @@ import Head from "next/head";
 import { useEffect, useState } from "react";
 // Your web app's Firebase configuration
 const firebaseConfig = {
-    apiKey: "AIzaSyAkVp-dj3o1yf89mL3wMUtEidUHjzqyWCQ",
-    authDomain: "blue-9d597.firebaseapp.com",
-    projectId: "blue-9d597",
-    storageBucket: "blue-9d597.appspot.com",
-    messagingSenderId: "851224572522",
-    appId: "1:851224572522:web:b8b3f5b50e30333773d013",
+    apiKey: "AIzaSyBgwI0-HcszkCrtMf5EnVH4i8J6AAiQk3Q",
+    authDomain: "blue-public.firebaseapp.com",
+    projectId: "blue-public",
+    storageBucket: "blue-public.firebasestorage.app",
+    messagingSenderId: "342414327441",
+    appId: "1:342414327441:web:477d438a75d0d406e3c930",
+    measurementId: "G-M74783LTXN",
 };
 
 // Initialize Firebase

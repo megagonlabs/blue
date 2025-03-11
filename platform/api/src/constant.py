@@ -24,7 +24,7 @@ class InvalidRequestJson(Exception):
 
 
 def verify_google_id_token(id_token, client_id, issuer):
-    openid_config_url = "https://securetoken.google.com/blue-9d597/.well-known/openid-configuration"
+    openid_config_url = "https://securetoken.google.com/blue-public/.well-known/openid-configuration"
     openid_config = requests.get(openid_config_url).json()
     jwks_url = openid_config["jwks_uri"]
     jwks = requests.get(jwks_url).json()
