@@ -53,13 +53,13 @@
         "required": true,
         "cast": "str"
     },
-    "BLUE_PUBLIC_API_SERVER_PORT": { 
+    "BLUE_PRIVATE_API_SERVER_PORT": { 
         "default": 5050,
-        "prompt": "Public Port of API Server",
+        "prompt": "Private Port of API Server",
         "required": true,
         "cast": "int"
     },
-    "BLUE_PUBLIC_API_SERVER_PORT_MAPPED": { 
+    "BLUE_PUBLIC_API_SERVER_PORT": { 
         "default": 5050,
         "prompt": "Public Exposed Port of API Server",
         "required": true,
@@ -71,13 +71,13 @@
         "required": true,
         "cast": "str"
     },
-    "BLUE_PUBLIC_DB_SERVER_PORT": { 
+    "BLUE_PRIVATE_DB_SERVER_PORT": { 
         "default": 6379,
-        "prompt": "Port Address of Redis DB",
+        "prompt": "Private Port Address of Redis DB",
         "required": true,
         "cast": "int"
     },
-    "BLUE_PUBLIC_DB_SERVER_PORT_MAPPED": { 
+    "BLUE_PUBLIC_DB_SERVER_PORT": { 
         "default": 6379,
         "prompt": "Public IP/Name of Redis DB Server",
         "required": true,
@@ -89,17 +89,23 @@
         "required": true,
         "cast": "str"
     },
-    "BLUE_PUBLIC_WEB_SERVER_PORT": { 
+    "BLUE_PRIVATE_WEB_SERVER_PORT": { 
         "default": 3000,
-        "prompt": "Public Port of Web Application Server",
+        "prompt": "Private Port of Web Application Server",
         "required": true,
         "cast": "int"
     },
-    "BLUE_PUBLIC_WEB_SERVER_PORT_MAPPED": { 
+    "BLUE_PUBLIC_WEB_SERVER_PORT": { 
         "default": 3000,
         "prompt": "Public Exposed Port of Web Application Server",
         "required": true,
         "cast": "int"
+    },
+    "BLUE_EMAIL_DOMAIN_WHITE_LIST": {
+        "default": null,
+        "prompt": "Allowed email domains to sign in",
+        "required": true,
+        "cast": "str"
     },
     "BLUE_RBAC_CONFIG_FOLDER": {
         "default":"/blue_data/config/rbac",

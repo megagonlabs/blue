@@ -111,6 +111,23 @@ def install():
     service_mgr.install_service(service_name)
 
 @click.pass_context
+@service.command(short_help="uninstall a blue service")
+def uninstall():
+    ctx = click.get_current_context()
+    service_name = ctx.obj["service_name"]
+    output = ctx.obj["output"]
+    allowed_characters = set(string.ascii_lowercase + string.ascii_uppercase + string.digits + "_")
+    if service_name is None:
+        service_name = 'default'
+
+    if service_name not in service_mgr.get_service_list():
+        raise Exception(f"service {service_name} does not exists")
+    
+    # uninstall service
+    service_mgr.uninstall_service(service_name)
+
+
+@click.pass_context
 @service.command(short_help="starts a blue service")
 def start():
     ctx = click.get_current_context()
