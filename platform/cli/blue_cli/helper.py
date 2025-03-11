@@ -59,13 +59,13 @@ def show_output(data, ctx, **options):
 
 def inquire_user_input(prompt, default=None, required=False, cast=None):
 
-    if default:
+    if default is not None:
         user_input = input(f"{prompt} [default: {default}]: ")
     else:
         user_input = input(f"{prompt}: ")
    
     
-    if user_input:
+    if user_input != "":
         user_input = convert(user_input, cast=cast)
         if type(user_input) == Exception:
             print(str(user_input))

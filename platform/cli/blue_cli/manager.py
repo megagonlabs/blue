@@ -124,7 +124,7 @@ class ProfileManager:
             os.makedirs(os.path.expanduser("~/.blue"))
 
         # set profiles path
-        self.profiles_path = os.path.expanduser("~/.blue/profiles")
+        self.profiles_path = os.path.expanduser("~/.blue/.profiles")
 
         # load profile attribute config
         self.__load_profile_attributes_config()
@@ -364,7 +364,7 @@ class PlatformManager:
             os.makedirs(os.path.expanduser("~/.blue"))
 
         # set platforms path
-        self.platforms_path = os.path.expanduser("~/.blue/platforms")
+        self.platforms_path = os.path.expanduser("~/.blue/.platforms")
 
         # load platform attribute config
         self.__load_platform_attributes_config()
@@ -861,7 +861,7 @@ class ServiceManager:
             os.makedirs(os.path.expanduser("~/.blue"))
 
         # set services path
-        self.services_path = os.path.expanduser("~/.blue/services")
+        self.services_path = os.path.expanduser("~/.blue/.services")
 
         # load service attribute config
         self.__load_service_attributes_config()

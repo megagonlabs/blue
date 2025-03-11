@@ -13,7 +13,7 @@
     },
     "BLUE_DEPLOY_SECURE": { 
         "default": false,
-        "prompt": "Secure Deployment",
+        "prompt": "Secure API Deployment over HTTPS",
         "required": true,
         "cast": "bool"
     },
