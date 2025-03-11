@@ -120,7 +120,7 @@ export default function Index() {
     const signInWithGoogle = () => {
         const server = _.get(profile, "BLUE_PUBLIC_API_SERVER", null);
         const secure =
-            _.get(profile, "BLUE_DEPLOY_SECURE", "True").lower() == "true";
+            _.toLower(_.get(profile, "BLUE_DEPLOY_SECURE", "True")) == "true";
         const port = _.get(profile, "BLUE_PUBLIC_API_SERVER_PORT_MAPPED", null);
         const platformName = _.get(profile, "BLUE_DEPLOY_PLATFORM", null);
         setPopupOpen(true);
