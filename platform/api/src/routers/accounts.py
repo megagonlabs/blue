@@ -156,7 +156,13 @@ async def signin_cli(request: Request):
     if pydash.is_empty(id_token):
         return JSONResponse(content={"message": "Illegal ID token provided: ID token must be a non-empty string."}, status_code=400)
     try:
-        decoded_claims = auth.verify_id_token(id_token)
+        if not pydash.is_empty(FIREBASE_SERVICE_CRED):
+            decoded_claims = auth.verify_id_token(id_token)
+        else:
+            try:
+                decoded_claims = verify_google_id_token(id_token, client_id='blue-public', issuer='https://securetoken.google.com/blue-public')
+            except (jwt.ExpiredSignatureError, jwt.InvalidAudienceError, jwt.InvalidIssuerError, jwt.InvalidTokenError, requests.exceptions.RequestException, Exception) as e:
+                return ERROR_RESPONSE
         email = decoded_claims["email"]
         email_domain = re.search(EMAIL_DOMAIN_ADDRESS_REGEXP, email).group(1)
         if email_domain not in allowed_domains:
