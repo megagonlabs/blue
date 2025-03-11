@@ -12,7 +12,6 @@ import pydash
 from click import Context
 
 import docker
-from blue.connection import PooledConnectionFactory
 
 import webbrowser
 import websockets
@@ -48,7 +47,7 @@ class Authentication:
 
     def __start_servers(self):
         path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        print(path)
+        
         try:
             self.process = subprocess.Popen(
                 [
@@ -144,7 +143,7 @@ class ProfileManager:
     def __load_profile_attributes_config(self):
         self._profile_attributes_config = {}
         path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        print(path)
+        
         with open(f"{path}/blue_cli/configs/profile.json") as cfp:
             self._profile_attributes_config = json.load(cfp)
 
@@ -538,18 +537,23 @@ class PlatformManager:
         platform = dict(platform)
 
         config = profile | platform
+        
 
-        ### write to db
+        # redis container
+        redis_container = None
+        ### connect to docker
+        client = docker.from_env()
+        containers = client.containers.list()
+        for container in containers:
+            if 'blue.platform' in container.labels:
+                if container.labels['blue.platform'].find("redis") >= 0:
+                    redis_container = container
+
+        if redis_container is None:
+            print("Platform needs to be started to perform this operation.")
+
         BLUE_DEPLOY_PLATFORM = config["BLUE_DEPLOY_PLATFORM"]
-        metadata = "PLATFORM:" + BLUE_DEPLOY_PLATFORM + ":METADATA"
-        path = "$.users." + uid + ".role"
-        value = "\"" + role + "\""
-
-        # redis connection
-        connection_factory = PooledConnectionFactory(properties=self.properties)
-        connection = self.connection_factory.get_connection()
-        # write
-        connection.json().set(metadata, path, value)
+        redis_container.exec_run(["redis-cli","JSON.SET","PLATFORM:" + BLUE_DEPLOY_PLATFORM + ":METADATA", "users." + uid + ".role", '"' + role + '"'])
 
     def create_platform(
         self,
@@ -748,7 +752,6 @@ class PlatformManager:
         )
 
         # api
-        ### TODO: FIREBASE_SERVICE_CRED
         BLUE_PUBLIC_API_SERVER_PORT_MAPPED = config["BLUE_PUBLIC_API_SERVER_PORT_MAPPED"]
         image = BLUE_CORE_DOCKER_ORG + "/" + "blue-platform-api" + ":" + BLUE_DEPLOY_VERSION
         client.containers.run(
@@ -765,7 +768,6 @@ class PlatformManager:
         )
 
         # frontend
-        ### TODO: FA_TOKEN
         BLUE_PUBLIC_WEB_SERVER_PORT_MAPPED = config["BLUE_PUBLIC_WEB_SERVER_PORT_MAPPED"]
         image = BLUE_CORE_DOCKER_ORG + "/" + "blue-platform-frontend" + ":" + BLUE_DEPLOY_VERSION
         client.containers.run(
