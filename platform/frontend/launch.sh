@@ -13,5 +13,4 @@ echo "NEXT_PUBLIC_DATA_REGISTRY_NAME=${BLUE_DATA_REGISTRY}" >> .env.production
 echo "NEXT_PUBLIC_OPERATOR_REGISTRY_NAME=${BLUE_OPERATOR_REGISTRY}" >> .env.production
 echo "NEXT_PUBLIC_MODEL_REGISTRY_NAME=${BLUE_MODEL_REGISTRY}" >> .env.production
 echo "NEXT_PUBLIC_PLATFORM_NAME=${BLUE_DEPLOY_PLATFORM}" >> .env.production
-npm run build
 npm run start
