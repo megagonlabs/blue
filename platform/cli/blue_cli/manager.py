@@ -638,6 +638,43 @@ class PlatformManager:
         #### copy config to docker volume
         self._copy_config_to_docker_volume(client, config)
 
+    def uninstall_platform(
+        self,
+        platform_name):
+        
+        ### get profile
+        # get profile
+        profile = ProfileManager().get_selected_profile()
+        profile = profile if profile else {}
+        profile = dict(profile)
+
+        ### get platform 
+        # get platform
+        platform = self.get_platform(platform_name)
+        platform = platform if platform else {}
+        platform = dict(platform)
+
+        config = profile | platform
+
+        # check deployment mode
+        BLUE_DEPLOY_TARGET = config['BLUE_DEPLOY_TARGET']
+        if BLUE_DEPLOY_TARGET != "localhost":
+            print("Only localhost mode is supported. See README for swarm mode deployment instructions...")
+            return
+        
+        ### stop platform
+        self.stop_platform(platform_name)
+
+        ### connect to docker
+        client = docker.from_env()
+
+        # remove docker volume
+        self._remove_docker_volume(client, config)
+        
+        #### remove images
+        self._remove_docker_images(client, config)
+
+
     def _create_docker_volume(self, client, config):
         BLUE_DATA_DIR = config["BLUE_DATA_DIR"]
         BLUE_DEPLOY_PLATFORM = config["BLUE_DEPLOY_PLATFORM"]
@@ -648,6 +685,17 @@ class PlatformManager:
         ### create docker volume
         # docker volume create --driver local  --opt type=none --opt device=${BLUE_DATA_DIR}/${BLUE_DEPLOY_PLATFORM} --opt o=bind blue_${BLUE_DEPLOY_PLATFORM}_data
         client.volumes.create(name=f"blue_{BLUE_DEPLOY_PLATFORM}_data", driver='local', driver_opts={'type': 'none', 'o': 'bind', 'device': f"{BLUE_DATA_DIR}/{BLUE_DEPLOY_PLATFORM}"})
+
+    def _remove_docker_volume(self, client, config):
+        BLUE_DATA_DIR = config["BLUE_DATA_DIR"]
+        BLUE_DEPLOY_PLATFORM = config["BLUE_DEPLOY_PLATFORM"]
+
+        ### remove docker volume
+        volumes = client.volumes.list()
+        for volume in volumes:
+            if volume.name == "blue_" + BLUE_DEPLOY_PLATFORM + "_data":
+                volume.remove()
+        client.volumes.prune()
 
     def _pull_docker_images(self, client, config):
         BLUE_DEPLOY_VERSION = config["BLUE_DEPLOY_VERSION"]
@@ -662,6 +710,34 @@ class PlatformManager:
                 canonical_image = BLUE_CORE_DOCKER_ORG + "/" + image
                 print("Pulling image: " + canonical_image)
                 client.images.pull(canonical_image, tag=BLUE_DEPLOY_VERSION)
+
+    def _remove_docker_images(self, client, config):
+        BLUE_DEPLOY_VERSION = config["BLUE_DEPLOY_VERSION"]
+        BLUE_CORE_DOCKER_ORG = config["BLUE_CORE_DOCKER_ORG"]
+        BLUE_DEV_DOCKER_ORG = config["BLUE_DEV_DOCKER_ORG"]
+
+        image_list = set()
+        for group_key in self._platform_images:
+            group = self._platform_images[group_key]
+            for image_key in group:
+                entry = group[image_key]
+                image = entry["image"]
+                canonical_image = BLUE_CORE_DOCKER_ORG + "/" + image
+                full_image = canonical_image + ":" + BLUE_DEPLOY_VERSION
+
+                image_list.add(full_image)
+
+        image_list.add(BLUE_CORE_DOCKER_ORG + "/" + "blue-config-data" + ":" + BLUE_DEPLOY_VERSION)
+
+        # remove docker images
+        images = client.images.list()
+        for image in images:
+            image_tags = image.tags
+            for image_tag in image_tags:
+                if image_tag in image_list:
+                    image.remove()
+        client.images.prune()
+
 
     def _copy_config_to_docker_volume(self, client, config):
         BLUE_DEPLOY_VERSION = config["BLUE_DEPLOY_VERSION"]
@@ -802,6 +878,7 @@ class PlatformManager:
         config = profile | platform
 
         # check deployment mode
+        BLUE_DEPLOY_PLATFORM = config['BLUE_DEPLOY_PLATFORM']
         BLUE_DEPLOY_TARGET = config['BLUE_DEPLOY_TARGET']
         if BLUE_DEPLOY_TARGET != "localhost":
             print("Only localhost mode is supported. See README for swarm mode instructions...")
@@ -809,6 +886,20 @@ class PlatformManager:
         
         ### connect to docker
         client = docker.from_env()
+
+        # stop blue containers
+        containers = client.containers.list()
+        for container in containers:
+            if 'blue.platform' in container.labels or 'blue.service' in container.labels or 'blue.agent' in container.labels:
+                container.stop()
+        client.containers.prune()
+
+        # remove network
+        networks = client.networks.list()
+        for network in networks:
+            if network.name == "blue_platform_" + BLUE_DEPLOY_PLATFORM + "_network_bridge":
+                network.remove()
+        client.networks.prune()
 
     def select_platform(self, platform_name):
         self.set_selected_platform_name(platform_name)
@@ -1083,6 +1174,36 @@ class ServiceManager:
         #### pull image
         self._pull_docker_image(client, config, service_name)
 
+    def uninstall_service(
+        self,
+        service_name):
+        
+        ### get profile
+        # get profile
+        profile = ProfileManager().get_selected_profile()
+        profile = profile if profile else {}
+        profile = dict(profile)
+
+        ### get platform
+        # get platform
+        platform = PlatformManager().get_selected_platform()
+        platform = platform if platform else {}
+        platform = dict(platform)
+
+        config = profile | platform
+
+        # check deployment mode
+        BLUE_DEPLOY_TARGET = config['BLUE_DEPLOY_TARGET']
+        if BLUE_DEPLOY_TARGET != "localhost":
+            print("Only localhost mode is supported. See README for swarm mode deployment instructions...")
+            return
+        
+        ### connect to docker
+        client = docker.from_env()
+
+        #### remove image
+        self._remove_docker_image(client, config, service_name)
+
     def _pull_docker_image(self, client, config, service_name):
         BLUE_DEPLOY_VERSION = config["BLUE_DEPLOY_VERSION"]
         BLUE_CORE_DOCKER_ORG = config["BLUE_CORE_DOCKER_ORG"]
@@ -1099,6 +1220,28 @@ class ServiceManager:
         print("Pulling image: " + image)
         client.images.pull(image)
 
+    def _remove_docker_image(self, client, config, service_name):
+                
+        BLUE_DEPLOY_VERSION = config["BLUE_DEPLOY_VERSION"]
+        BLUE_CORE_DOCKER_ORG = config["BLUE_CORE_DOCKER_ORG"]
+        BLUE_DEV_DOCKER_ORG = config["BLUE_DEV_DOCKER_ORG"]
+
+        ### get service 
+        # get service
+        service = self.get_service(service_name)
+        service = service if service else {}
+        service = dict(service)
+
+
+        full_image_name = service["IMAGE"]
+        # remove docker image
+        images = client.images.list()
+        for image in images:
+            image_tags = image.tags
+            for image_tag in image_tags:
+                if image_tag == full_image_name:
+                    image.remove()
+        client.images.prune()
 
     def start_service(
         self,
@@ -1178,12 +1321,20 @@ class ServiceManager:
         config = profile | platform
 
         # check deployment mode
+        BLUE_DEPLOY_PLATFORM = config["BLUE_DEPLOY_PLATFORM"]
         BLUE_DEPLOY_TARGET = config['BLUE_DEPLOY_TARGET']
         if BLUE_DEPLOY_TARGET != "localhost":
             print("Only localhost mode is supported. See README for swarm mode instructions...")
             return
         
-        
+        ### connect to docker
+        client = docker.from_env()
+        containers = client.containers.list()
+        for container in containers:
+            if 'blue.service' in container.labels:
+                if container.labels['blue.service'].find(BLUE_DEPLOY_PLATFORM + "." + service_name.lower()) >= 0:
+                    container.stop()
+        client.containers.prune()
 
     def select_service(self, service_name):
         self.set_selected_service_name(service_name)
