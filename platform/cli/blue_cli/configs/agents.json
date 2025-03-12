@@ -3,14 +3,34 @@
     "name": "USER",
     "type": "agent",
     "scope": "/",
-    "description": "Represents a user interacting with other agents where output from the user agent is passed on for agents to process",
+    "description": "Represents a user interacting with other agents where text output from the user agent is passed on for agents to process",
     "created_by": null,
     "properties": {
       "image": "megagonlabs/blue-agent-user:v0.9",
       "test": 1,
-      "display_name": "User Agent"
+      "display_name": "User Agent",
+      "system_agent": true,
+      "listens": {},
+      "tags": {},
+      "categories": [
+        "SYSTEM"
+      ]
     },
     "icon": "head-side:#1C2127"
+  },
+  {
+    "name": "TEXT",
+    "type": "output",
+    "scope": "/USER",
+    "description": "Output text from the user interaction",
+    "created_by": null,
+    "properties": {
+      "type": "str",
+      "optional": false,
+      "default": null,
+      "schema": null
+    },
+    "icon": null
   },
   {
     "name": "RECORDER",
@@ -21,7 +41,12 @@
     "properties": {
       "image": "megagonlabs/blue-agent-recorder:v0.9",
       "records": [],
-      "display_name": "Recorder Agent"
+      "display_name": "Recorder Agent",
+      "categories": [
+        "BASE"
+      ],
+      "tags": {},
+      "listens": {}
     },
     "icon": "scanner-gun:#1C2127"
   },
@@ -43,14 +68,19 @@
         "DEFAULT": {
           "includes": [
             "PLAN"
-          ]
+          ],
+          "excludes": []
         }
       },
       "tracker.autostart": false,
       "tracker.outputs": [
         "log.INFO"
       ],
-      "display_name": "Task Coordinator Agent"
+      "display_name": "Task Coordinator Agent",
+      "system_agent": true,
+      "categories": [
+        "SYSTEM"
+      ]
     },
     "icon": "diagram-project:#1C2127"
   },
@@ -106,9 +136,40 @@
         ";"
       ],
       "openai.top_p": 1,
-      "output_strip": true
+      "output_strip": true,
+      "categories": [
+        "BASE"
+      ]
     },
     "icon": "aperture:#16A5A5"
+  },
+  {
+    "name": "PROMPT",
+    "type": "input",
+    "scope": "/OPENAI",
+    "description": "text prompt as input",
+    "created_by": null,
+    "properties": {
+      "type": "str",
+      "optional": false,
+      "default": null,
+      "schema": null
+    },
+    "icon": null
+  },
+  {
+    "name": "OUTPUT",
+    "type": "output",
+    "scope": "/OPENAI",
+    "description": "generated text output",
+    "created_by": null,
+    "properties": {
+      "type": "str",
+      "optional": false,
+      "default": null,
+      "schema": null
+    },
+    "icon": null
   },
   {
     "name": "PRESENTER",
@@ -142,9 +203,27 @@
         ]
       },
       "display_name": "Presenter Agent",
-      "system_agent": false
+      "system_agent": false,
+      "listens": {},
+      "categories": [
+        "BASE"
+      ]
     },
     "icon": "calendar-lines:#1C2127"
+  },
+  {
+    "name": "DATA",
+    "type": "output",
+    "scope": "/PRESENTER",
+    "description": "form data in structured format (JSON)",
+    "created_by": null,
+    "properties": {
+      "type": "json",
+      "optional": false,
+      "default": null,
+      "schema": null
+    },
+    "icon": null
   },
   {
     "name": "NL2SQL",
@@ -155,16 +234,12 @@
     "properties": {
       "image": "megagonlabs/blue-agent-nl2sql:v0.9",
       "openai.service": "ws://blue_service_openai:8001",
-      "tags": {
-        "DEFAULT": [
-          "HIDDEN"
-        ]
-      },
       "listens": {
         "DEFAULT": {
           "includes": [
+            "USER"
           ],
-          "excludes": [ "USER"]
+          "excludes": []
         }
       },
       "openai.model": "gpt-4o",
@@ -217,7 +292,35 @@
       ],
       "nl2q_case_insensitive": true,
       "nl2q_source_database": null,
-      "nl2q_discovery_similarity_threshold": 0.65
+      "nl2q_discovery_similarity_threshold": 0.65,
+      "tags": {},
+      "categories": [
+        "BASE"
+      ]
+    },
+    "icon": null
+  },
+  {
+    "name": "NL2SQL___INTERACTIVE",
+    "type": "agent",
+    "scope": "/NL2SQL",
+    "description": "Extends NL2SQL for interactive use, including listening to the USER agent directly.",
+    "created_by": "NhFy2jG4JCSJJz7cYbAm7HJ7Txk2",
+    "properties": {
+      "image": "megagonlabs/blue-agent-nl2sql:v0.9",
+      "openai.service": "ws://blue_service_openai:8001",
+      "openai.model": "gpt-4o",
+      "tags": {
+        "DEFAULT": []
+      },
+      "listens": {
+        "DEFAULT": {
+          "includes": [
+            "USER"
+          ],
+          "excludes": []
+        }
+      }
     },
     "icon": null
   },
@@ -235,7 +338,12 @@
       "tracker.output": [
         "log.INFO"
       ],
-      "input_context": null
+      "input_context": null,
+      "tags": {},
+      "listens": {},
+      "categories": [
+        "BASE"
+      ]
     },
     "icon": null
   },
@@ -272,7 +380,11 @@
       "tracker.outputs": [
         "log.INFO"
       ],
-      "display_name": "Summarizer Agent"
+      "display_name": "Summarizer Agent",
+      "categories": [
+        "BASE"
+      ],
+      "tags": {}
     },
     "icon": null
   },
@@ -300,7 +412,10 @@
       "tracker.autostart": false,
       "tracker.output": "log.INFO",
       "display_name": "Query Executor Agent",
-      "system_agent": false
+      "system_agent": false,
+      "categories": [
+        "BASE"
+      ]
     },
     "icon": null
   },
@@ -311,7 +426,7 @@
     "description": "Given queries or data, injected into a visualization template, substitute query results, and render a visualization as specified in the template",
     "created_by": "5WgRzdacRdOEvj8JBmCXFZSvWmH3",
     "properties": {
-      "image": "megagonlabs/blue-agent-visualizer",
+      "image": "megagonlabs/blue-agent-visualizer:v0.9",
       "template": {
         "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
         "description": "${description}",
@@ -362,7 +477,11 @@
       "tracker.outputs": [
         "log.INFO"
       ],
-      "display_name": "Visualizer Agent"
+      "display_name": "Visualizer Agent",
+      "tags": {},
+      "categories": [
+        "BASE"
+      ]
     },
     "icon": null
   },
@@ -373,7 +492,7 @@
     "description": "Creates a data-driven document, optionally highlighting segments of the document using OpenAI",
     "created_by": "5WgRzdacRdOEvj8JBmCXFZSvWmH3",
     "properties": {
-      "image": "megagonlabs/blue-agent-documenter",
+      "image": "megagonlabs/blue-agent-documenter:v0.9",
       "template": "This is a jinja template with references to data from the queries: There are $num_jobs many jobs",
       "questions": {},
       "queries": {
@@ -396,28 +515,23 @@
         "log.INFO"
       ],
       "display_name": "Document Builder Agent",
-      "system_agent": false
+      "system_agent": false,
+      "tags": {},
+      "categories": [
+        "BASE"
+      ]
     },
-    "icon": null
-  },
-  {
-    "name": "nl2sql_demo",
-    "type": "agent_group",
-    "scope": "/",
-    "description": "Try out the NL2SQL agent",
-    "created_by": "5WgRzdacRdOEvj8JBmCXFZSvWmH3",
-    "properties": {},
     "icon": null
   },
   {
     "name": "BASIC_PLANNER",
     "type": "agent",
     "scope": "/",
-    "description": "Basic planner to demonstrate Plan object functionality",
+    "description": "Planner example to demonstrate plan execution",
     "created_by": "5WgRzdacRdOEvj8JBmCXFZSvWmH3",
     "properties": {
-      "image": "megagonlabs/blue-agent-basic_planner",
-      "display_name": "Basic Planner",
+      "image": "megagonlabs/blue-agent-basic_planner:v0.9",
+      "display_name": "Planner Example",
       "system_agent": false,
       "listens": {
         "DEFAULT": {
@@ -426,12 +540,16 @@
           ],
           "excludes": []
         }
-      }
+      },
+      "tags": {},
+      "categories": [
+        "EXAMPLE"
+      ]
     },
     "icon": null
   },
   {
-    "name": "DialogManager",
+    "name": "DIALOG_MANAGER",
     "type": "agent",
     "scope": "/",
     "description": "",
@@ -448,7 +566,11 @@
       },
       "display_name": "Dialog Manager",
       "system_agent": true,
-      "intents": "[{\"name\": \"investigate\", \"description\": \"Execute a query on a database by calling an NL2SQL agent and get the raw data.\"}, {\"name\": \"job_search\", \"description\": \"Search for jobs that meet certain requirements.\"}, {\"name\": \"summarize\", \"description\": \"Execute a query on a database by calling an NL2SQL agent and view a generated summary of the data.\"}, {\"name\": \"default\", \"description\": \"Not one of the other specified intents, simply pass the input on to a chatbot.\"}]"
+      "intents": "[{\"name\": \"investigate\", \"description\": \"Execute a query on a database by calling an NL2SQL agent and get the raw data.\"}, {\"name\": \"job_search\", \"description\": \"Search for jobs that meet certain requirements.\"}, {\"name\": \"summarize\", \"description\": \"Execute a query on a database by calling an NL2SQL agent and view a generated summary of the data.\"}, {\"name\": \"default\", \"description\": \"Not one of the other specified intents, simply pass the input on to a chatbot.\"}]",
+      "tags": {},
+      "categories": [
+        "EXPERIMENTAL"
+      ]
     },
     "icon": null
   },
@@ -456,34 +578,16 @@
     "name": "BASIC_COUNTER",
     "type": "agent",
     "scope": "/",
-    "description": "test basic counter example",
+    "description": "Counter agent example to demonstrate data processing",
     "created_by": "5WgRzdacRdOEvj8JBmCXFZSvWmH3",
     "properties": {
       "image": "megagonlabs/blue-agent-counter:v0.9",
-      "listens": {}
-    },
-    "icon": null
-  },
-  {
-    "name": "DialogManagerGroup",
-    "type": "agent_group",
-    "scope": "/",
-    "description": "Test the Dialog Manager",
-    "created_by": "RMKX3vPR7XhKHhy5eu7Av5nui2F2",
-    "properties": {},
-    "icon": null
-  },
-  {
-    "name": "TEXT",
-    "type": "output",
-    "scope": "/USER",
-    "description": "Output text from the user interaction",
-    "created_by": null,
-    "properties": {
-      "type": "str",
-      "optional": false,
-      "default": null,
-      "schema": null
+      "listens": {},
+      "display_name": "Counter Example",
+      "tags": {},
+      "categories": [
+        "EXAMPLE"
+      ]
     },
     "icon": null
   },
@@ -754,34 +858,6 @@
     "icon": null
   },
   {
-    "name": "PROMPT",
-    "type": "input",
-    "scope": "/OPENAI",
-    "description": "text prompt as input",
-    "created_by": null,
-    "properties": {
-      "type": "str",
-      "optional": false,
-      "default": null,
-      "schema": null
-    },
-    "icon": null
-  },
-  {
-    "name": "OUTPUT",
-    "type": "output",
-    "scope": "/OPENAI",
-    "description": "generated text output",
-    "created_by": null,
-    "properties": {
-      "type": "str",
-      "optional": false,
-      "default": null,
-      "schema": null
-    },
-    "icon": null
-  },
-  {
     "name": "OPENAI___SEMANTIC_EXTRACTOR",
     "type": "agent",
     "scope": "/OPENAI",
@@ -868,46 +944,6 @@
     "icon": null
   },
   {
-    "name": "DATA",
-    "type": "output",
-    "scope": "/PRESENTER",
-    "description": "form data in structured format (JSON)",
-    "created_by": null,
-    "properties": {
-      "type": "json",
-      "optional": false,
-      "default": null,
-      "schema": null
-    },
-    "icon": null
-  },
-  {
-    "name": "NL2SQL___INTERACTIVE",
-    "type": "agent",
-    "scope": "/NL2SQL",
-    "description": "Extends NL2SQL for interactive use, including listening to the USER agent directly.",
-    "created_by": "NhFy2jG4JCSJJz7cYbAm7HJ7Txk2",
-    "properties": {
-      "image": "megagonlabs/blue-agent-nl2sql:v0.9",
-      "openai.service": "ws://blue_service_openai:8001",
-      "openai.model": "gpt-4o",
-      "tags": {
-        "DEFAULT": [
-        ]
-      },
-      "listens": {
-        "DEFAULT": {
-          "includes": [
-            "USER"
-          ],
-          "excludes": [
-          ]
-        }
-      }
-    },
-    "icon": null
-  },
-  {
     "name": "OPENAI___CLASSIFIER",
     "type": "agent",
     "scope": "/openai_classifier_testing",
@@ -931,19 +967,36 @@
     "icon": null
   },
   {
+    "name": "nl2sql_demo",
+    "type": "agent_group",
+    "scope": "/",
+    "description": "Try out the NL2SQL agent",
+    "created_by": "5WgRzdacRdOEvj8JBmCXFZSvWmH3",
+    "properties": {},
+    "icon": null
+  },
+  {
     "name": "NL2SQL___INTERACTIVE",
     "type": "agent",
     "scope": "/nl2sql_demo",
     "description": "string",
     "created_by": null,
-    "properties": {
-    },
+    "properties": {},
+    "icon": null
+  },
+  {
+    "name": "dialog_manager_demo",
+    "type": "agent_group",
+    "scope": "/",
+    "description": "Test the Dialog Manager",
+    "created_by": "RMKX3vPR7XhKHhy5eu7Av5nui2F2",
+    "properties": {},
     "icon": null
   },
   {
     "name": "OPENAI___EXTRACTOR",
     "type": "agent",
-    "scope": "/DialogManagerGroup",
+    "scope": "/dialog_manager_demo",
     "description": "",
     "created_by": null,
     "properties": {},
@@ -952,7 +1005,7 @@
   {
     "name": "OPENAI___ROGUEAGENT",
     "type": "agent",
-    "scope": "/DialogManagerGroup",
+    "scope": "/dialog_manager_demo",
     "description": "",
     "created_by": null,
     "properties": {},
@@ -961,7 +1014,7 @@
   {
     "name": "COORDINATOR",
     "type": "agent",
-    "scope": "/DialogManagerGroup",
+    "scope": "/dialog_manager_demo",
     "description": "",
     "created_by": null,
     "properties": {},
@@ -970,7 +1023,7 @@
   {
     "name": "OPENAI___CLASSIFIER",
     "type": "agent",
-    "scope": "/DialogManagerGroup",
+    "scope": "/dialog_manager_demo",
     "description": "",
     "created_by": null,
     "properties": {},
@@ -979,7 +1032,7 @@
   {
     "name": "QUERYEXECUTOR",
     "type": "agent",
-    "scope": "/DialogManagerGroup",
+    "scope": "/dialog_manager_demo",
     "description": "",
     "created_by": null,
     "properties": {},
@@ -988,7 +1041,7 @@
   {
     "name": "OPENAI___SUMMARIZER",
     "type": "agent",
-    "scope": "/DialogManagerGroup",
+    "scope": "/dialog_manager_demo",
     "description": "",
     "created_by": null,
     "properties": {},
@@ -997,7 +1050,7 @@
   {
     "name": "DialogManager",
     "type": "agent",
-    "scope": "/DialogManagerGroup",
+    "scope": "/dialog_manager_demo",
     "description": "",
     "created_by": null,
     "properties": {},
@@ -1006,7 +1059,7 @@
   {
     "name": "NL2SQL",
     "type": "agent",
-    "scope": "/DialogManagerGroup",
+    "scope": "/dialog_manager_demo",
     "description": "",
     "created_by": null,
     "properties": {},
