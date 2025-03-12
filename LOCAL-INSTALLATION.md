@@ -1,6 +1,6 @@
 # installation
 
-Blue can be deployed in two modes: (1) `localhost` (2) `swarm` mode. `localhost` is more suitable for development and `swarm` mode is more suitable for staging and production deployment. Below, we describe how you can install blue in `localhost` mode. See [Swarm Deployment](SWARM-DEPLOYMENT.md) for deployment in `swarm` mode when we discuss production mode of deployment.
+Blue can be deployed in two modes: (1) `localhost` (2) `swarm` mode. `localhost` is more suitable for trying blue out and for development and `swarm` mode is more suitable for staging and production deployments. Below, we describe how you can install blue in `localhost` mode. See [Swarm Deployment](SWARM-DEPLOYMENT.md) for deployment in `swarm` mode when we discuss production mode of deployment.
 
 ## requirements
 Blue requires docker engine to build and run the infrastructure and agents. To develop on your local machine you would need to install docker engine from 
@@ -12,7 +12,7 @@ Most convenient way to install and configure blue is through its CLI (`blue-cli`
 ### installation through `blue-cli`
 
 #### install blue-cli
-To download and install `blue-cli`, you can pip install it as shown below. It is highly recommended to create a virtual environment to avoid any conflicts:
+To download and install `blue-cli`, you can pip install it as shown below. It is highly recommended to create a virtual environment (e.g. `venv`) to avoid any conflicts and also upgrade pip (`pip install --upgrade pip`):
 ```
 $ pip install --no-cache --extra-index-url  http://10.0.160.75:8888/simple/ --trusted-host 10.0.160.75 blue_cli==0.9
 ```
@@ -40,7 +40,7 @@ Commands:
 
 To use `blue-cli` most conveniently you need to create a blue profile, which captures profile specific configuration of the blue deployment. By default `defajult` profile is automatically created which you can see from the output of:
 ```
-$ blue profile ls`
+$ blue profile ls
 name
 * default
 ```
@@ -79,7 +79,7 @@ As before you will most likely accept the default values for these configuration
 
 #### install platform
 
-To install platform, you can run:
+To install platform, you can run (you may need to `docker login` before if your repos are private) :
 ```
 $ blue platform install
 ```
@@ -110,6 +110,11 @@ $ blue service --service_name OPENAI create
 and the configure it:
 ```
 $ blue service  --service_name OPENAI config
+```
+
+For `OPENAI` and other services that require additional service-specific configurations you can config them separately, e.g. for `OPENAI` you would need to configure `OPENAI_API_KEY`
+```
+$ blue service --service_name OPENAI config OPENAI_API_KEY  <your_key>
 ```
 
 To install (downloads service image) and start (start running service containers):
