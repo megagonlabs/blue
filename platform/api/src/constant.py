@@ -1,6 +1,5 @@
 from fastapi import Header
 from jsonschema.validators import Draft7Validator
-from fastapi.responses import JSONResponse
 import pydash
 import jwt
 from jwt.algorithms import RSAAlgorithm
