@@ -119,7 +119,6 @@ async def signin(request: Request):
             else:
                 session_cookie = id_token
                 expires_in = datetime.timedelta(hours=1)
-            print(decoded_claims)
             response = JSONResponse(
                 content={
                     "result": {
