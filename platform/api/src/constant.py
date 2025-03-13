@@ -4,6 +4,7 @@ import pydash
 import jwt
 from jwt.algorithms import RSAAlgorithm
 import requests
+from settings import ACL, FIREBASE_CLIENT_ID
 
 EMAIL_DOMAIN_ADDRESS_REGEXP = r"@((\w+?\.)+\w+)"
 BANNED_ENTITY_NAMES = ['new']
@@ -56,9 +57,6 @@ def d7validate(validations, payload):
         pydash.objects.set_(errors, abs_path, messages)
     if len(errors) > 0:
         raise InvalidRequestJson(errors)
-
-
-from settings import ACL, FIREBASE_CLIENT_ID
 
 
 class PermissionDenied(Exception):
