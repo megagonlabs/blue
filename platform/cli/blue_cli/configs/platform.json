@@ -124,5 +124,11 @@
         "prompt": "User Role",
         "required": false,
         "cast": "str"
+    },
+    "POSTGRES_PASSWORD": {
+        "default": "postgres",
+        "prompt": "Example Postgres DB password",
+        "required": false,
+        "cast": "str"
     }
 }
