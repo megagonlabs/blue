@@ -24,7 +24,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from firebase_admin import auth
 
 ###### Settings
-from settings import PROPERTIES, DISABLE_AUTHENTICATION, FIREBASE_SERVICE_CRED
+from settings import FIREBASE_CLIENT_ID, PROPERTIES, DISABLE_AUTHENTICATION, FIREBASE_SERVICE_CRED
 import jwt, requests
 
 # start redis connection
@@ -146,7 +146,7 @@ async def session_verification(request: Request, call_next):
                 if not pydash.is_empty(FIREBASE_SERVICE_CRED):
                     decoded_claims = auth.verify_session_cookie(session_cookie, check_revoked=True)
                 else:
-                    decoded_claims = verify_google_id_token(session_cookie, client_id='blue-public', issuer='https://securetoken.google.com/blue-public')
+                    decoded_claims = verify_google_id_token(session_cookie, client_id=FIREBASE_CLIENT_ID, issuer=f'https://securetoken.google.com/{FIREBASE_CLIENT_ID}')
                 email = decoded_claims["email"]
                 email_domain = re.search(EMAIL_DOMAIN_ADDRESS_REGEXP, email).group(1)
                 profile = {
