@@ -727,7 +727,7 @@ class PlatformManager:
 
                 image_list.add(full_image)
 
-        image_list.add(BLUE_CORE_DOCKER_ORG + "/" + "blue-config-data" + ":" + BLUE_DEPLOY_VERSION)
+        image_list.add(BLUE_CORE_DOCKER_ORG + "/" + "blue-platform-setup" + ":" + BLUE_DEPLOY_VERSION)
 
         # remove docker images
         images = client.images.list()
@@ -745,15 +745,15 @@ class PlatformManager:
 
         BLUE_DEPLOY_PLATFORM = config["BLUE_DEPLOY_PLATFORM"]
 
-        blue_config_data_image =  BLUE_CORE_DOCKER_ORG + "/" + "blue-config-data"
+        blue_platform_setup_image =  BLUE_CORE_DOCKER_ORG + "/" + "blue-platform-setup"
         
-        print("Pulling image: " + blue_config_data_image)
-        client.images.pull(blue_config_data_image, tag=BLUE_DEPLOY_VERSION)
+        print("Pulling image: " + blue_platform_setup_image)
+        client.images.pull(blue_platform_setup_image, tag=BLUE_DEPLOY_VERSION)
         
         # Create container to copy files from to the docker volume
-        # docker run -d --rm --name blue-config-data -v <docker_volume>:/root alpine 
+        # docker run -d --rm --name blue-platform-setup -v <docker_volume>:/root alpine 
         print("Copying config data...")
-        container = client.containers.run(blue_config_data_image, 'cp -r /mnt/. /blue_data',
+        container = client.containers.run(blue_platform_setup_image + ":" + BLUE_DEPLOY_VERSION, "tail -f /dev/null",
             volumes=["blue_" + BLUE_DEPLOY_PLATFORM + "_data:/blue_data"],
             stdout=True,
             stderr=True,
@@ -763,9 +763,10 @@ class PlatformManager:
         BLUE_AGENT_REGISTRY = config["BLUE_AGENT_REGISTRY"]
         BLUE_DATA_REGISTRY = config["BLUE_DATA_REGISTRY"]
 
+        container.exec_run("cp -r /app/. /blue_data")
         container.exec_run(f"mv /blue_data/config/agents.json /blue_data/config/{BLUE_AGENT_REGISTRY}.agents.json")
         container.exec_run(f"mv /blue_data/config/data.json /blue_data/config/{BLUE_DATA_REGISTRY}.data.json")
-       
+
         container.stop()
         print("Done.")
 
