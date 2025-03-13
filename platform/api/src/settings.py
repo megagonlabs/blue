@@ -2,7 +2,6 @@
 import os
 
 import pydash
-import copy
 
 ###### Properties
 PROPERTIES = {}
