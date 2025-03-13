@@ -4,6 +4,7 @@ import pydash
 import jwt
 from jwt.algorithms import RSAAlgorithm
 import requests
+from settings import ACL, FIREBASE_CLIENT_ID
 
 EMAIL_DOMAIN_ADDRESS_REGEXP = r"@((\w+?\.)+\w+)"
 BANNED_ENTITY_NAMES = ['new']
@@ -23,7 +24,7 @@ class InvalidRequestJson(Exception):
 
 
 def verify_google_id_token(id_token, client_id, issuer):
-    openid_config_url = "https://securetoken.google.com/blue-public/.well-known/openid-configuration"
+    openid_config_url = f"https://securetoken.google.com/{FIREBASE_CLIENT_ID}/.well-known/openid-configuration"
     openid_config = requests.get(openid_config_url).json()
     jwks_url = openid_config["jwks_uri"]
     jwks = requests.get(jwks_url).json()
@@ -56,9 +57,6 @@ def d7validate(validations, payload):
         pydash.objects.set_(errors, abs_path, messages)
     if len(errors) > 0:
         raise InvalidRequestJson(errors)
-
-
-from settings import ACL
 
 
 class PermissionDenied(Exception):

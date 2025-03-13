@@ -21,7 +21,7 @@ from APIRouter import APIRouter
 from fastapi.responses import JSONResponse
 
 ###### Settings
-from settings import EMAIL_DOMAIN_WHITE_LIST, PROPERTIES, ROLE_PERMISSIONS, SECURE_COOKIE, FIREBASE_SERVICE_CRED
+from settings import EMAIL_DOMAIN_WHITE_LIST, FIREBASE_CLIENT_ID, PROPERTIES, ROLE_PERMISSIONS, SECURE_COOKIE, FIREBASE_SERVICE_CRED
 import jwt, requests
 
 ### Assign from platform properties
@@ -80,7 +80,7 @@ async def signin(request: Request):
             decoded_claims = auth.verify_id_token(id_token)
         else:
             try:
-                decoded_claims = verify_google_id_token(id_token, client_id='blue-public', issuer='https://securetoken.google.com/blue-public')
+                decoded_claims = verify_google_id_token(id_token, client_id=FIREBASE_CLIENT_ID, issuer=f'https://securetoken.google.com/{FIREBASE_CLIENT_ID}')
             except (jwt.ExpiredSignatureError, jwt.InvalidAudienceError, jwt.InvalidIssuerError, jwt.InvalidTokenError, requests.exceptions.RequestException, Exception) as e:
                 return ERROR_RESPONSE
         # {
@@ -159,7 +159,7 @@ async def signin_cli(request: Request):
             decoded_claims = auth.verify_id_token(id_token)
         else:
             try:
-                decoded_claims = verify_google_id_token(id_token, client_id='blue-public', issuer='https://securetoken.google.com/blue-public')
+                decoded_claims = verify_google_id_token(id_token, client_id=FIREBASE_CLIENT_ID, issuer=f'https://securetoken.google.com/{FIREBASE_CLIENT_ID}')
             except (jwt.ExpiredSignatureError, jwt.InvalidAudienceError, jwt.InvalidIssuerError, jwt.InvalidTokenError, requests.exceptions.RequestException, Exception) as e:
                 return ERROR_RESPONSE
         email = decoded_claims["email"]
