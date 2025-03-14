@@ -33,13 +33,31 @@ Most of blue scripts require configuration of environment variables. Below is th
 - `BLUE_PUBLIC_WEB_SERVER` - server address for the web application (e.g. localhost)
 - `BLUE_PUBLIC_WEB_SERVER_PORT` -  public port for the web application server (e.g. 3000)
 - `BLUE_RBAC_CONFIG_FOLDER` - folder path to the role-based access control configurations (e.g. /blue_data/config/rbac)
-  
-Use of utilities such as [direnv](https://direnv.net/) is strongly encouraged to help management environment variables.
+
+A default value for these environment variable is in `localhost.envrc`. You can update them for your own configuration and simply set them by `source localhost.envrc`. Alternatively you can use utilities such as [direnv](https://direnv.net/) is  to help management environment variables and save your configuration as `.envrc`
 
 #### setup
 
-##### data volume setup
+Refer to [Local Installation](LOCAL-INSTALLATION) for software and hardware requirements. Make sure you have `docker` already setup on your development environment.
 
+##### builders
+
+If you plan to use multi-platform builds (as specified in `BLUE_BUILD_PLATFORM`). It is recommended that you create a multi-platform builder in your environment. Please refer to [docker buildx](https://docs.docker.com/reference/cli/docker/buildx/) for more details. 
+
+Below is a quick builder setup:
+```
+$ docker buildx create --name multi_platform_builder --platform $BLUE_BUILD_PLATFORM
+$ docker buildx use multi_platform_builder
+$ docker buildx ls
+```
+
+If occasionally you run into disk space problems you can clean up your builder, and check disk usage:
+```
+$ docker buildx prune
+$ docker buildx du
+```
+
+##### data volume setup
 
 A data volume is added to several services (agents, API, etc.) where common data such as models can be stored within a platform (e.g. `default`). To create a data volume on your development environment, run:
 
