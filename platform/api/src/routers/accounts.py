@@ -216,7 +216,7 @@ def get_profile_by_uid(request: Request, uid):
                 user_metadata = p.get_metadata(f'users.{request.state.user["uid"]}')
                 user = pydash.pick(user_metadata, ['uid', 'email', 'picture', 'name'])
     except auth.UserNotFoundError as ex:
-        print(ex)
+        return JSONResponse(content={"message": "No user record found for the given identifier."}, status_code=400)
     except ValueError as ex:
         print(ex)
     return JSONResponse(content={"user": user})
