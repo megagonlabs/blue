@@ -72,20 +72,12 @@ This will create a directory called `default` under the `$BLUE_DATA_DIR` directo
 In the default configuration some of the components of blue require data and models, stored in the data volume. Below are the steps to put them into the volume you just created:
 
 ```
-$ brew install git-lfs
-$ git lfs install
-$ cd $BLUE_DATA_DIR/$BLUE_DEPLOY_PLATFORM
-$ mkdir models
-$ cd models
-$ git clone https://huggingface.co/sentence-transformers/paraphrase-MiniLM-L6-v2
-$ cd $BLUE_INSTALL_DIR
-$ cp -r platform/api/src/casbin $BLUE_DATA_DIR/$BLUE_DEPLOY_PLATFORM
+$ cd $BLUE_INSTALL_DIR/platform/setup
+$ ./build_setup.sh
+$ cd $BLUE_INSTALL_DIR/platform/scripts
+# ./setup_data_volume.sh
 ```
-Then set the environment variables to point to the correct location
-```
-$ export BLUE_AGENT_REGISTRY_MODEL="/blue_data/models/paraphrase-MiniLM-L6-v2"
-$ export BLUE_RBAC_CONFIG_FOLDER="/blue_data/casbin"
-```
+
 
 #### build
 
@@ -141,8 +133,6 @@ Run:
 $ cd platform/frontend
 $ ./docker_build_frontend.sh
 ```
-
-While not necessary to build images for agent and data regisries, if you would like to use them independently, you could build images for them as well. Simply `cd agent_registry` and `./docker_build_agent_regisry.sh` to build agent registry and `cd data_registry` and `./docker_build_data_regisry.sh` to build data registry. See more in [agent_registry](platform/agent_regisry) and [data_registry](platform/data_registry).
 
 #### deployment
 
