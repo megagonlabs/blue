@@ -44,8 +44,9 @@ Sounds interesting? Want to learn more?
 
 * [Orchestration Concepts](ORCHESTRATION-CONCEPTS.md) to learn more about Blue concepts
 * Install your own Blue environment
-  * [Local Installation](LOCAL-INSTALLATION.md) more suited for development 
-  * [SWARM Deployment](SWARM-DEPLOYMENT.md) more suited for staging and production deployment 
+  * [Local Installation](LOCAL-INSTALLATION.md) more suited for trying out and development 
+  * [SWARM Deployment](SWARM-DEPLOYMENT.md) more suited for staging and production deployment
+* [Build](BUILD.md) to learn how to build and deploy from repository
 * [Development](DEVELOPMENT.md) to learn more about how to develop with Blue
 * [Access Control](ACCESS-CONTROL.md) to learn more about access control with roles
 
