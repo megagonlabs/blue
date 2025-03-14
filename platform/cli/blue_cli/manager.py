@@ -900,7 +900,7 @@ class PlatformManager:
             print("Error: " + str(error) )
         print("Done.")
 
-    def __container_exec_run(self, container, command, trials=3, sleep=3):
+    def __container_exec_run(self, container, command, trials=10, sleep=5):
         if trials > 0:
             result = container.exec_run(command)
             if result.exit_code != 0:
@@ -910,7 +910,7 @@ class PlatformManager:
             else:
                 return None
         else:
-            return "Error Running: " + command
+            return "Error Running: " + str(command)
             
     def stop_platform(
         self,
