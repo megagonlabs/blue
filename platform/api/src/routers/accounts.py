@@ -209,8 +209,12 @@ def get_profile_by_uid(request: Request, uid):
     user = {}
     try:
         if uid is not None:
-            user_record = auth.get_user(uid)
-            user.update({'uid': user_record.uid, 'email': user_record.email, 'picture': user_record.photo_url, 'name': user_record.display_name})
+            if not pydash.is_empty(FIREBASE_SERVICE_CRED):
+                user_record = auth.get_user(uid)
+                user.update({'uid': user_record.uid, 'email': user_record.email, 'picture': user_record.photo_url, 'name': user_record.display_name})
+            else:
+                user_metadata = p.get_metadata(f'users.{request.state.user["uid"]}')
+                user = pydash.pick(user_metadata, ['uid', 'email', 'picture', 'name'])
     except auth.UserNotFoundError as ex:
         print(ex)
     except ValueError as ex:
