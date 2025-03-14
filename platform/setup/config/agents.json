@@ -579,7 +579,7 @@
     "name": "DIALOGUE_MANAGER___EXAMPLE",
     "type": "agent",
     "scope": "/DIALOGUE_MANAGER",
-    "description": "Example use case of Dialog Manager. ",
+    "description": "Example use case of Dialogue Manager. ",
     "created_by": "RMKX3vPR7XhKHhy5eu7Av5nui2F2",
     "properties": {
         "intents": {
@@ -637,7 +637,7 @@
                         "DEFAULT"
                     ],
                     [
-                        "SUMMARIZER",
+                        "OPENAI___SUMMARIZER",
                         "DEFAULT"
                     ],
                     [
@@ -1166,7 +1166,7 @@
     "icon": null
   },
   {
-    "name": "DIALOG_MANAGER___EXAMPLE",
+    "name": "DIALOGUE_MANAGER___EXAMPLE",
     "type": "agent",
     "scope": "/dialogue_manager_demo",
     "description": "",
