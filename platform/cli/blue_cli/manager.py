@@ -700,6 +700,7 @@ class PlatformManager:
         volumes = client.volumes.list()
         for volume in volumes:
             if volume.name == "blue_" + BLUE_DEPLOY_PLATFORM + "_data" or volume.name == "blue_" + BLUE_DEPLOY_PLATFORM + "_example_data":
+                print("Removing docker volume: " + volume.name)
                 volume.remove()
         client.volumes.prune()
 
@@ -908,7 +909,7 @@ class PlatformManager:
         url += config["BLUE_PUBLIC_WEB_SERVER"] + ":" + config["BLUE_PUBLIC_WEB_SERVER_PORT"]
 
         webbrowser.open(url)
-        
+
         print("Done.")
 
     def __container_exec_run(self, container, command, trials=10, sleep=5):
@@ -955,14 +956,18 @@ class PlatformManager:
         containers = client.containers.list()
         for container in containers:
             if 'blue.platform' in container.labels or 'blue.service' in container.labels or 'blue.agent' in container.labels:
+                print("Stopping container: " + str(container.id) + " " + container.image)
                 container.stop()
+        print("Pruning containers...")
         client.containers.prune()
 
         # remove network
         networks = client.networks.list()
         for network in networks:
             if network.name == "blue_platform_" + BLUE_DEPLOY_PLATFORM + "_network_bridge":
+                print("Removing network: " + network.name)
                 network.remove()
+        print("Pruning networks...")
         client.networks.prune()
 
     def select_platform(self, platform_name):
@@ -1304,7 +1309,9 @@ class ServiceManager:
             image_tags = image.tags
             for image_tag in image_tags:
                 if image_tag == full_image_name:
+                    print("Removing image: " + image_tag)
                     image.remove()
+        print("Pruning images...")
         client.images.prune()
 
     def start_service(
@@ -1398,6 +1405,7 @@ class ServiceManager:
         for container in containers:
             if 'blue.service' in container.labels:
                 if container.labels['blue.service'].find(BLUE_DEPLOY_PLATFORM + "." + service_name.lower()) >= 0:
+                    print("Stopping container: " + str(container.id) + " " + container.image)
                     container.stop()
         client.containers.prune()
 
