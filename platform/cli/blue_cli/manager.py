@@ -17,7 +17,7 @@ import webbrowser
 import websockets
 from websockets import exceptions as ws_exceptions
 
-from blue_cli.helper import inquire_user_input
+from blue_cli.helper import inquire_user_input, convert
 
 class Authentication:
     def __init__(self) -> None:
@@ -903,7 +903,7 @@ class PlatformManager:
         print("Launching blue web application...")
 
         url = "http" 
-        if config["BLUE_DEPLOY_SECURE"]:
+        if convert(config["BLUE_DEPLOY_SECURE"], cast='bool'):
             url += "s"
         url += "://"
         url += config["BLUE_PUBLIC_WEB_SERVER"] + ":" + config["BLUE_PUBLIC_WEB_SERVER_PORT"]
@@ -956,7 +956,7 @@ class PlatformManager:
         containers = client.containers.list()
         for container in containers:
             if 'blue.platform' in container.labels or 'blue.service' in container.labels or 'blue.agent' in container.labels:
-                print("Stopping container: " + str(container.id) + " " + container.image)
+                print("Stopping container: " + str(container.id)[:12] + " " + str(container.image))
                 container.stop()
         print("Pruning containers...")
         client.containers.prune()
@@ -1405,7 +1405,7 @@ class ServiceManager:
         for container in containers:
             if 'blue.service' in container.labels:
                 if container.labels['blue.service'].find(BLUE_DEPLOY_PLATFORM + "." + service_name.lower()) >= 0:
-                    print("Stopping container: " + str(container.id) + " " + container.image)
+                    print("Stopping container: " + str(container.id)[:12] + " " + str(container.image))
                     container.stop()
         client.containers.prune()
 
