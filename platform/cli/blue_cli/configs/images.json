@@ -41,6 +41,9 @@
         },
         "query_executor": {
             "image": "blue-agent-query_executor"
+        },
+        "dialog_manager": {
+            "image": "blue-agent-dialog_manager"
         }
     },
     "services": {
