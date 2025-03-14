@@ -553,7 +553,9 @@ class PlatformManager:
             print("Platform needs to be started to perform this operation.")
 
         BLUE_DEPLOY_PLATFORM = config["BLUE_DEPLOY_PLATFORM"]
-        redis_container.exec_run(["redis-cli","JSON.SET","PLATFORM:" + BLUE_DEPLOY_PLATFORM + ":METADATA", "users." + uid + ".role", '"' + role + '"'])
+        error = self.__container_exec_run(container, ["redis-cli","JSON.SET","PLATFORM:" + BLUE_DEPLOY_PLATFORM + ":METADATA", "users." + uid + ".role", '"' + role + '"'])
+        if error:
+            print("Error: " + str(error) )
 
     def create_platform(
         self,
@@ -681,10 +683,14 @@ class PlatformManager:
 
         ### make dir if not exists
         os.makedirs(f"{BLUE_DATA_DIR}/{BLUE_DEPLOY_PLATFORM}", exist_ok=True)
+        os.makedirs(f"{BLUE_DATA_DIR}/example/{BLUE_DEPLOY_PLATFORM}", exist_ok=True)
 
         ### create docker volume
         # docker volume create --driver local  --opt type=none --opt device=${BLUE_DATA_DIR}/${BLUE_DEPLOY_PLATFORM} --opt o=bind blue_${BLUE_DEPLOY_PLATFORM}_data
         client.volumes.create(name=f"blue_{BLUE_DEPLOY_PLATFORM}_data", driver='local', driver_opts={'type': 'none', 'o': 'bind', 'device': f"{BLUE_DATA_DIR}/{BLUE_DEPLOY_PLATFORM}"})
+
+        # create example data volume
+        client.volumes.create(name=f"blue_{BLUE_DEPLOY_PLATFORM}_example_data", driver='local', driver_opts={'type': 'none', 'o': 'bind', 'device': f"{BLUE_DATA_DIR}/example/{BLUE_DEPLOY_PLATFORM}"})
 
     def _remove_docker_volume(self, client, config):
         BLUE_DATA_DIR = config["BLUE_DATA_DIR"]
@@ -693,7 +699,7 @@ class PlatformManager:
         ### remove docker volume
         volumes = client.volumes.list()
         for volume in volumes:
-            if volume.name == "blue_" + BLUE_DEPLOY_PLATFORM + "_data":
+            if volume.name == "blue_" + BLUE_DEPLOY_PLATFORM + "_data" or volume.name == "blue_" + BLUE_DEPLOY_PLATFORM + "_example_data":
                 volume.remove()
         client.volumes.prune()
 
@@ -763,9 +769,15 @@ class PlatformManager:
         BLUE_AGENT_REGISTRY = config["BLUE_AGENT_REGISTRY"]
         BLUE_DATA_REGISTRY = config["BLUE_DATA_REGISTRY"]
 
-        container.exec_run("cp -r /app/. /blue_data")
-        container.exec_run(f"mv /blue_data/config/agents.json /blue_data/config/{BLUE_AGENT_REGISTRY}.agents.json")
-        container.exec_run(f"mv /blue_data/config/data.json /blue_data/config/{BLUE_DATA_REGISTRY}.data.json")
+        error = self.__container_exec_run(container, "cp -r /app/. /blue_data")
+        if error:
+            print("Error: " + str(error) )
+        error = self.__container_exec_run(container, f"mv /blue_data/config/agents.json /blue_data/config/{BLUE_AGENT_REGISTRY}.agents.json")
+        if error:
+            print("Error: " + str(error) )
+        error = self.__container_exec_run(container, f"mv /blue_data/config/data.json /blue_data/config/{BLUE_DATA_REGISTRY}.data.json")
+        if error:
+            print("Error: " + str(error) )
 
         container.stop()
         print("Done.")
@@ -802,6 +814,7 @@ class PlatformManager:
         client = docker.from_env()
 
         ### create network
+        print("Creating network: " + "blue_platform_" + BLUE_DEPLOY_PLATFORM + "_network_bridge")
         client.networks.create(
             name="blue_platform_" + BLUE_DEPLOY_PLATFORM + "_network_bridge",
             driver="bridge",
@@ -814,6 +827,7 @@ class PlatformManager:
         BLUE_PUBLIC_DB_SERVER_PORT = config["BLUE_PUBLIC_DB_SERVER_PORT"]
         # redis
         image = "redis/redis-stack:latest"
+        print("Starting container: " + image)
         client.containers.run(
             image,
             network="blue_platform_" + BLUE_DEPLOY_PLATFORM + "_network_bridge",
@@ -831,6 +845,7 @@ class PlatformManager:
         # api
         BLUE_PUBLIC_API_SERVER_PORT = config["BLUE_PUBLIC_API_SERVER_PORT"]
         image = BLUE_CORE_DOCKER_ORG + "/" + "blue-platform-api" + ":" + BLUE_DEPLOY_VERSION
+        print("Starting container: " + image)
         client.containers.run(
             image,
             network="blue_platform_" + BLUE_DEPLOY_PLATFORM + "_network_bridge",
@@ -847,6 +862,7 @@ class PlatformManager:
         # frontend
         BLUE_PUBLIC_WEB_SERVER_PORT = config["BLUE_PUBLIC_WEB_SERVER_PORT"]
         image = BLUE_CORE_DOCKER_ORG + "/" + "blue-platform-frontend" + ":" + BLUE_DEPLOY_VERSION
+        print("Starting container: " + image)
         client.containers.run(
             image,
             network="blue_platform_" + BLUE_DEPLOY_PLATFORM + "_network_bridge",
@@ -860,6 +876,42 @@ class PlatformManager:
             stderr=True,
         )
 
+        # example data, postgres
+        image = "postgres:16.0"
+        print("Starting container: " + image)
+        container = client.containers.run(
+            image,
+            network="blue_platform_" + BLUE_DEPLOY_PLATFORM + "_network_bridge",
+            hostname="blue_db_postgres_example",
+            ports={"5432": 5432},
+            volumes=["blue_" + BLUE_DEPLOY_PLATFORM + "_data:/blue_data", "blue_" + BLUE_DEPLOY_PLATFORM + "_example_data:/var/lib/postgresql/data"],
+            labels={"blue.platform": BLUE_DEPLOY_PLATFORM + "." + "postgres"},
+            environment=config,
+            detach=True,
+            stdout=True,
+            stderr=True,
+        )
+
+        print("Ingesting example data.")
+
+    
+        error = self.__container_exec_run(container, ["/bin/sh", "-c", "psql -U postgres postgres < /blue_data/data/postgres.dump"])
+        if error:
+            print("Error: " + str(error) )
+        print("Done.")
+
+    def __container_exec_run(self, container, command, trials=10, sleep=5):
+        if trials > 0:
+            result = container.exec_run(command)
+            if result.exit_code != 0:
+                time.sleep(sleep)
+                print("Trying again. Remaining trials: " + str(trials-1))
+                return self.__container_exec_run(container, command, trials=trials-1)
+            else:
+                return None
+        else:
+            return "Error Running: " + str(command)
+            
     def stop_platform(
         self,
         platform_name):
