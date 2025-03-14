@@ -898,6 +898,17 @@ class PlatformManager:
         error = self.__container_exec_run(container, ["/bin/sh", "-c", "psql -U postgres postgres < /blue_data/data/postgres.dump"])
         if error:
             print("Error: " + str(error) )
+
+        print("Launching blue web application...")
+
+        url = "http" 
+        if config["BLUE_DEPLOY_SECURE"]:
+            url += "s"
+        url += "://"
+        url += config["BLUE_PUBLIC_WEB_SERVER"] + ":" + config["BLUE_PUBLIC_WEB_SERVER_PORT"]
+
+        webbrowser.open(url)
+        
         print("Done.")
 
     def __container_exec_run(self, container, command, trials=10, sleep=5):
@@ -1354,6 +1365,7 @@ class ServiceManager:
             stdout=True,
             stderr=True,
         )
+
 
     def stop_service(
         self,
