@@ -582,95 +582,95 @@
     "description": "Example use case of Dialogue Manager. ",
     "created_by": "RMKX3vPR7XhKHhy5eu7Av5nui2F2",
     "properties": {
-        "intents": {
-            "investigate": {
-                "description": "The user is requesting job market statistics or insights that can be fulfilled by a single SQL query (e.g., 'What is the average salary for data scientists in New York?').",
-                "plan": [
-                    [
-                        "NL2SQL",
-                        "DEFAULT"
-                    ],
-                    [
-                        "QUERYEXECUTOR",
-                        "DEFAULT"
-                    ],
-                    [
-                        "DIALOGUE_MANAGER",
-                        "RESULT"
-                    ]
-                ]
-            },
-            "job_search": {
-                "description": "The user is searching for job postings that match specific criteria (e.g., 'Show me remote software engineer jobs with at least 5 years of experience.').",
-                "plan": [
-                    [
-                        "OPENAI___EXTRACTOR",
-                        "DEFAULT"
-                    ],
-                    [
-                        "NL2SQL",
-                        "DEFAULT"
-                    ],
-                    [
-                        "QUERYEXECUTOR",
-                        "DEFAULT"
-                    ],
-                    [
-                        "DIALOGUE_MANAGER",
-                        "RESULT"
-                    ]
-                ]
-            },
-            "summarize": {
-                "description": "The user wants a summary or aggregated insights over a group of job postings (e.g., 'Summarize the key skills required for product management roles in California.').",
-                "plan": [
-                    [
-                        "OPENAI___EXTRACTOR",
-                        "DEFAULT"
-                    ],
-                    [
-                        "NL2SQL",
-                        "DEFAULT"
-                    ],
-                    [
-                        "QUERYEXECUTOR",
-                        "DEFAULT"
-                    ],
-                    [
-                        "OPENAI___SUMMARIZER",
-                        "DEFAULT"
-                    ],
-                    [
-                        "DIALOGUE_MANAGER",
-                        "RESULT"
-                    ]
-                ]
-            },
-            "default": {
-                "description": "The user’s request does not fit into any of the above categories.",
-                "plan": [
-                    [
-                        "OPENAI___ROGUEAGENT",
-                        "DEFAULT"
-                    ],
-                    [
-                        "DIALOGUE_MANAGER",
-                        "RESULT"
-                    ]
-                ]
-            }
+      "intents": {
+        "investigate": {
+          "description": "The user is requesting job market statistics or insights that can be fulfilled by a single SQL query (e.g., 'What is the average salary for data scientists in New York?').",
+          "plan": [
+            [
+              "NL2SQL",
+              "DEFAULT"
+            ],
+            [
+              "QUERYEXECUTOR",
+              "DEFAULT"
+            ],
+            [
+              "DIALOGUE_MANAGER",
+              "RESULT"
+            ]
+          ]
         },
-        "listens": {
-            "DEFAULT": {
-                "includes": [
-                    "USER"
-                ],
-                "excludes": []
-            }
+        "job_search": {
+          "description": "The user is searching for job postings that match specific criteria (e.g., 'Show me remote software engineer jobs with at least 5 years of experience.').",
+          "plan": [
+            [
+              "OPENAI___EXTRACTOR",
+              "DEFAULT"
+            ],
+            [
+              "NL2SQL",
+              "DEFAULT"
+            ],
+            [
+              "QUERYEXECUTOR",
+              "DEFAULT"
+            ],
+            [
+              "DIALOGUE_MANAGER",
+              "RESULT"
+            ]
+          ]
         },
-        "intent_classifier_agent": "OPENAI___CLASSIFIER"
+        "summarize": {
+          "description": "The user wants a summary or aggregated insights over a group of job postings (e.g., 'Summarize the key skills required for product management roles in California.').",
+          "plan": [
+            [
+              "OPENAI___EXTRACTOR",
+              "DEFAULT"
+            ],
+            [
+              "NL2SQL",
+              "DEFAULT"
+            ],
+            [
+              "QUERYEXECUTOR",
+              "DEFAULT"
+            ],
+            [
+              "OPENAI___SUMMARIZER",
+              "DEFAULT"
+            ],
+            [
+              "DIALOGUE_MANAGER",
+              "RESULT"
+            ]
+          ]
+        },
+        "default": {
+          "description": "The user’s request does not fit into any of the above categories.",
+          "plan": [
+            [
+              "OPENAI___ROGUEAGENT",
+              "DEFAULT"
+            ],
+            [
+              "DIALOGUE_MANAGER",
+              "RESULT"
+            ]
+          ]
+        }
+      },
+      "listens": {
+        "DEFAULT": {
+          "includes": [
+            "USER"
+          ],
+          "excludes": []
+        }
+      },
+      "intent_classifier_agent": "OPENAI___CLASSIFIER"
     },
-    "icon": null,
+    "icon": null
   },
   {
     "name": "BASIC_COUNTER",
@@ -886,7 +886,7 @@
     "description": "Explain a query result ",
     "created_by": "5WgRzdacRdOEvj8JBmCXFZSvWmH3",
     "properties": {
-      "display_name": "OPENAI Query Explainer Agent",
+      "display_name": "OpenAI Query Explainer Agent",
       "input_field": "messages",
       "openai.model": "gpt-4o-mini",
       "openai.api": "ChatCompletion",
@@ -918,7 +918,6 @@
       "openai.frequency_penalty": 0,
       "input_context": "$[0]",
       "openai.presence_penalty": 0,
-      "display_name": "OpenAI Query Explainer Agent",
       "system_agent": false
     },
     "icon": null
