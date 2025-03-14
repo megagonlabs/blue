@@ -736,7 +736,7 @@
         "#",
         ";"
       ],
-      "entities": "Name, Contact Information, Nationality, Degree, University, Institution, Duration, Achievement, Project, Skills, Job Title, Company, Organization, Location, Date, Product, Event, Language",
+      "entities": "query limit, job title, salary, location, skills, years of experiences, employment_type",
       "input_template": "You are an expert in information extraction. Please extract information from the provided input that fall under below list of possible arguments. If an argument has multiple values, please return a list. Respond in a JSON format and do not add any extra explanation. If there was no information return an empty JSON format.\nList of possible arguments include but not limited to: ${entities}.\nIf the provided input contains any arguments not included in the list above, please generate the appropriate argument and extract the corresponding information.\nInput: ${input}",
       "listens": {
         "DEFAULT": {
