@@ -1,6 +1,6 @@
 #/bin/bash
 echo "Building docker image ..."
-echo "${BLUE_CORE_DOCKER_ORG}/blue-platform-api:${BLUE_DEPLOY_VERSION}"
+echo "${BLUE_CORE_DOCKER_ORG}/blue-platform-setup:${BLUE_DEPLOY_VERSION}"
 echo "plaforms: ${BLUE_BUILD_PLATFORM}"
 
 # build setup
