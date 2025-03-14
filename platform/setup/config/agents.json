@@ -239,9 +239,7 @@
       "openai.service": "ws://blue_service_openai:8001",
       "listens": {
         "DEFAULT": {
-          "includes": [
-            "USER"
-          ],
+          "includes": [],
           "excludes": []
         }
       },
@@ -552,7 +550,7 @@
     "icon": null
   },
   {
-    "name": "DIALOG_MANAGER",
+    "name": "DIALOGUE_MANAGER",
     "type": "agent",
     "scope": "/",
     "description": "",
@@ -567,7 +565,7 @@
           "excludes": []
         }
       },
-      "display_name": "Dialog Manager",
+      "display_name": "Dialogue Manager",
       "system_agent": true,
       "intents": "[{\"name\": \"investigate\", \"description\": \"Execute a query on a database by calling an NL2SQL agent and get the raw data.\"}, {\"name\": \"job_search\", \"description\": \"Search for jobs that meet certain requirements.\"}, {\"name\": \"summarize\", \"description\": \"Execute a query on a database by calling an NL2SQL agent and view a generated summary of the data.\"}, {\"name\": \"default\", \"description\": \"Not one of the other specified intents, simply pass the input on to a chatbot.\"}]",
       "tags": {},
@@ -576,6 +574,103 @@
       ]
     },
     "icon": null
+  },
+  {
+    "name": "DIALOGUE_MANAGER___EXAMPLE",
+    "type": "agent",
+    "scope": "/DIALOGUE_MANAGER",
+    "description": "Example use case of Dialogue Manager. ",
+    "created_by": "RMKX3vPR7XhKHhy5eu7Av5nui2F2",
+    "properties": {
+        "intents": {
+            "investigate": {
+                "description": "The user is requesting job market statistics or insights that can be fulfilled by a single SQL query (e.g., 'What is the average salary for data scientists in New York?').",
+                "plan": [
+                    [
+                        "NL2SQL",
+                        "DEFAULT"
+                    ],
+                    [
+                        "QUERYEXECUTOR",
+                        "DEFAULT"
+                    ],
+                    [
+                        "DIALOGUE_MANAGER",
+                        "RESULT"
+                    ]
+                ]
+            },
+            "job_search": {
+                "description": "The user is searching for job postings that match specific criteria (e.g., 'Show me remote software engineer jobs with at least 5 years of experience.').",
+                "plan": [
+                    [
+                        "OPENAI___EXTRACTOR",
+                        "DEFAULT"
+                    ],
+                    [
+                        "NL2SQL",
+                        "DEFAULT"
+                    ],
+                    [
+                        "QUERYEXECUTOR",
+                        "DEFAULT"
+                    ],
+                    [
+                        "DIALOGUE_MANAGER",
+                        "RESULT"
+                    ]
+                ]
+            },
+            "summarize": {
+                "description": "The user wants a summary or aggregated insights over a group of job postings (e.g., 'Summarize the key skills required for product management roles in California.').",
+                "plan": [
+                    [
+                        "OPENAI___EXTRACTOR",
+                        "DEFAULT"
+                    ],
+                    [
+                        "NL2SQL",
+                        "DEFAULT"
+                    ],
+                    [
+                        "QUERYEXECUTOR",
+                        "DEFAULT"
+                    ],
+                    [
+                        "OPENAI___SUMMARIZER",
+                        "DEFAULT"
+                    ],
+                    [
+                        "DIALOGUE_MANAGER",
+                        "RESULT"
+                    ]
+                ]
+            },
+            "default": {
+                "description": "The user’s request does not fit into any of the above categories.",
+                "plan": [
+                    [
+                        "OPENAI___ROGUEAGENT",
+                        "DEFAULT"
+                    ],
+                    [
+                        "DIALOGUE_MANAGER",
+                        "RESULT"
+                    ]
+                ]
+            }
+        },
+        "listens": {
+            "DEFAULT": {
+                "includes": [
+                    "USER"
+                ],
+                "excludes": []
+            }
+        },
+        "intent_classifier_agent": "OPENAI___CLASSIFIER"
+    },
+    "icon": null,
   },
   {
     "name": "BASIC_COUNTER",
@@ -641,7 +736,7 @@
         "#",
         ";"
       ],
-      "entities": "Name, Contact Information, Nationality, Degree, University, Institution, Duration, Achievement, Project, Skills, Job Title, Company, Organization, Location, Date, Product, Event, Language",
+      "entities": "query limit, job title, salary, location, skills, years of experiences, employment_type",
       "input_template": "You are an expert in information extraction. Please extract information from the provided input that fall under below list of possible arguments. If an argument has multiple values, please return a list. Respond in a JSON format and do not add any extra explanation. If there was no information return an empty JSON format.\nList of possible arguments include but not limited to: ${entities}.\nIf the provided input contains any arguments not included in the list above, please generate the appropriate argument and extract the corresponding information.\nInput: ${input}",
       "listens": {
         "DEFAULT": {
@@ -1008,10 +1103,10 @@
     "icon": null
   },
   {
-    "name": "dialog_manager_demo",
+    "name": "dialogue_manager_demo",
     "type": "agent_group",
     "scope": "/",
-    "description": "Test the Dialog Manager",
+    "description": "Test the Dialogue Manager",
     "created_by": "RMKX3vPR7XhKHhy5eu7Av5nui2F2",
     "properties": {},
     "icon": null
@@ -1019,7 +1114,7 @@
   {
     "name": "OPENAI___EXTRACTOR",
     "type": "agent",
-    "scope": "/dialog_manager_demo",
+    "scope": "/dialogue_manager_demo",
     "description": "",
     "created_by": null,
     "properties": {},
@@ -1028,7 +1123,7 @@
   {
     "name": "OPENAI___ROGUEAGENT",
     "type": "agent",
-    "scope": "/dialog_manager_demo",
+    "scope": "/dialogue_manager_demo",
     "description": "",
     "created_by": null,
     "properties": {},
@@ -1037,7 +1132,7 @@
   {
     "name": "COORDINATOR",
     "type": "agent",
-    "scope": "/dialog_manager_demo",
+    "scope": "/dialogue_manager_demo",
     "description": "",
     "created_by": null,
     "properties": {},
@@ -1046,7 +1141,7 @@
   {
     "name": "OPENAI___INTENT_CLASSIFIER",
     "type": "agent",
-    "scope": "/dialog_manager_demo",
+    "scope": "/dialogue_manager_demo",
     "description": "",
     "created_by": null,
     "properties": {},
@@ -1055,7 +1150,7 @@
   {
     "name": "QUERYEXECUTOR",
     "type": "agent",
-    "scope": "/dialog_manager_demo",
+    "scope": "/dialogue_manager_demo",
     "description": "",
     "created_by": null,
     "properties": {},
@@ -1064,16 +1159,16 @@
   {
     "name": "OPENAI___SUMMARIZER",
     "type": "agent",
-    "scope": "/dialog_manager_demo",
+    "scope": "/dialogue_manager_demo",
     "description": "",
     "created_by": null,
     "properties": {},
     "icon": null
   },
   {
-    "name": "DialogManager",
+    "name": "DIALOGUE_MANAGER___EXAMPLE",
     "type": "agent",
-    "scope": "/dialog_manager_demo",
+    "scope": "/dialogue_manager_demo",
     "description": "",
     "created_by": null,
     "properties": {},
@@ -1082,7 +1177,7 @@
   {
     "name": "NL2SQL",
     "type": "agent",
-    "scope": "/dialog_manager_demo",
+    "scope": "/dialogue_manager_demo",
     "description": "",
     "created_by": null,
     "properties": {},
