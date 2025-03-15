@@ -16,4 +16,31 @@ To try out a few of the demos, you can click on any one of the cards, as shown b
 
 ![home_screen](docs/images/home_screen.png)
 
+### launching demos from home screen
+
+
+
 ### configuring home screen
+
+
+## sessions
+
+
+## agent registry
+
+
+## data registry
+
+## developer tools: form designer
+
+## admin tools
+
+## status
+
+## agents
+
+## services
+
+## users
+
+## config
