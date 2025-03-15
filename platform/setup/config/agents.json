@@ -673,7 +673,7 @@
     "icon": null
   },
   {
-    "name": "BASIC_COUNTER",
+    "name": "COUNTER",
     "type": "agent",
     "scope": "/",
     "description": "Counter agent example to demonstrate data processing",

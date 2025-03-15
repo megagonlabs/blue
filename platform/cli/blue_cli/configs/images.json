@@ -42,6 +42,9 @@
         "query_executor": {
             "image": "blue-agent-query_executor"
         },
+        "counter": {
+            "image": "blue-agent-counter"
+        },
         "dialogue_manager": {
             "image": "blue-agent-dialogue_manager"
         }
