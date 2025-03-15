@@ -1,4 +1,4 @@
-# What is Blue
+# What is Blue?
 
 Blue is an agent orchestration platform to coordinate data and work in an enterprise AI system, comprised of agents and other components to perform complex tasks with workflows, accessing data, models, and APIs in the enterprise.
 
@@ -26,26 +26,31 @@ In Blue, key components of the AI system are:
 
 </br>
 
-# What can you build with Blue
+# What can you build with Blue?
 
-Here are a few examples you can build with blue:
+Here are a few examples to inspire you to build with blue:
 
 * a fact-checker API to examine LLM generated text against propriery data (e.g. fact-check resume)
-* a conversational agent that uses backend models and APIs (e.g. career support agent with predictive models and data from insight database)
+* a conversational agent that uses backend models and APIs (e.g. career support agent with predictive models and application data)
 * a sophisticated search exploiting LLMs (e.g. search jobs interfacing to ranking models)
-* an interactive graphical user experience for complex workflows (e.g. profile builder)
-* an API to convert user text into database queryes (e.g. natural language to SQL)
+* an interactive graphical user experience for complex workflows, visualizations (e.g. profile builder)
+* an API to convert user text into database queries (e.g. natural language to SQL)
+
+# Want to try out blue demos?
+
+You can try out a demos on our [blue-examples repository!](http://github.com/rit-git/blue-examples)
 
 </br>
 
-Sounds interesting? Want to learn more?
+Sounds interesting? Want to learn more? Read documentation below.
 
-# Outline of the documentation on this repo:
+# Outline of the Documentation:
 
 * [Orchestration Concepts](ORCHESTRATION-CONCEPTS.md) to learn more about Blue concepts
 * Install your own Blue environment
   * [Local Installation](LOCAL-INSTALLATION.md) more suited for trying out and development 
   * [SWARM Deployment](SWARM-DEPLOYMENT.md) more suited for staging and production deployment
+ * [Demos](http://github.com/rit-git/blue-examples) to try out agentic demos with base and experimental agents
 * [Build](BUILD.md) to learn how to build and deploy from repository
 * [Development](DEVELOPMENT.md) to learn more about how to develop with Blue
 * [Access Control](ACCESS-CONTROL.md) to learn more about access control with roles
