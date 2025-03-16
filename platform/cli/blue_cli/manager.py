@@ -716,8 +716,20 @@ class PlatformManager:
                 image = entry["image"]
                 canonical_image = BLUE_CORE_DOCKER_ORG + "/" + image
                 print("Pulling image: " + canonical_image)
-                client.images.pull(canonical_image, tag=BLUE_DEPLOY_VERSION)
+                self.__pull_docker_image(client, canonical_image + ":" + BLUE_DEPLOY_VERSION)
 
+    def __pull_docker_image(self, client, image, trials=10, sleep=5):
+        if trials > 0:     
+            print("Pulling image: " + image)
+            try:
+                client.images.pull(image)
+            except:
+                time.sleep(sleep)
+                print("Trying again. Remaining trials: " + str(trials-1))
+                self.__pull_docker_image(client, image, trials=trials-1)
+        else: 
+            return "Error Pulling Image: " + image
+        
     def _remove_docker_images(self, client, config):
         BLUE_DEPLOY_VERSION = config["BLUE_DEPLOY_VERSION"]
         BLUE_CORE_DOCKER_ORG = config["BLUE_CORE_DOCKER_ORG"]
@@ -755,7 +767,7 @@ class PlatformManager:
         blue_platform_setup_image =  BLUE_CORE_DOCKER_ORG + "/" + "blue-platform-setup"
         
         print("Pulling image: " + blue_platform_setup_image)
-        client.images.pull(blue_platform_setup_image, tag=BLUE_DEPLOY_VERSION)
+        self.__pull_docker_image(client, blue_platform_setup_image + ":" + BLUE_DEPLOY_VERSION)
         
         # Create container to copy files from to the docker volume
         # docker run -d --rm --name blue-platform-setup -v <docker_volume>:/root alpine 
@@ -1241,7 +1253,7 @@ class ServiceManager:
         client = docker.from_env()
 
         #### pull image
-        self._pull_docker_image(client, config, service_name)
+        self._pull_service_docker_image(client, config, service_name)
 
     def uninstall_service(
         self,
@@ -1273,7 +1285,7 @@ class ServiceManager:
         #### remove image
         self._remove_docker_image(client, config, service_name)
 
-    def _pull_docker_image(self, client, config, service_name):
+    def _pull_service_docker_image(self, client, config, service_name):
         BLUE_DEPLOY_VERSION = config["BLUE_DEPLOY_VERSION"]
         BLUE_CORE_DOCKER_ORG = config["BLUE_CORE_DOCKER_ORG"]
         BLUE_DEV_DOCKER_ORG = config["BLUE_DEV_DOCKER_ORG"]
@@ -1286,8 +1298,22 @@ class ServiceManager:
 
 
         image = service["IMAGE"]
-        print("Pulling image: " + image)
-        client.images.pull(image)
+        # pull image
+        self.__pull_docker_image(client, image)
+
+
+    def __pull_docker_image(self, client, image, trials=10, sleep=5):
+        if trials > 0:     
+            print("Pulling image: " + image)
+            try:
+                client.images.pull(image)
+            except:
+                time.sleep(sleep)
+                print("Trying again. Remaining trials: " + str(trials-1))
+                self.__pull_docker_image(client, image, trials=trials-1)
+        else: 
+            return "Error Pulling Image: " + image
+
 
     def _remove_docker_image(self, client, config, service_name):
                 
