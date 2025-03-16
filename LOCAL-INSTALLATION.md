@@ -192,7 +192,7 @@ If you type `docker ps` you should see now an additional containers running, sim
 
 #### testing
 
-At this point blue is ready to use. You can test your deployment by browsing to the blue web application hosted at http://localhost:3000, if you accepted default configuration. Otherwise, it is `BLUE_PUBLIC_WEB_SERVER`:`BLUE_PUBLIC_API_SERVER_PORT`
+At this point blue is ready to use. You can test your deployment by browsing to the blue web application hosted at http://localhost:3000, if you accepted default configuration. Otherwise, it is http://`BLUE_PUBLIC_WEB_SERVER`:`BLUE_PUBLIC_WEB_SERVER_PORT`
 
 You should see:
 
