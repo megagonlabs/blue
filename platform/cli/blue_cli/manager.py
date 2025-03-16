@@ -765,7 +765,6 @@ class PlatformManager:
 
         blue_platform_setup_image =  BLUE_CORE_DOCKER_ORG + "/" + "blue-platform-setup"
         
-        print("Pulling image: " + blue_platform_setup_image)
         self.__pull_docker_image(client, blue_platform_setup_image + ":" + BLUE_DEPLOY_VERSION)
         
         # Create container to copy files from to the docker volume
