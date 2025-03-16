@@ -12,7 +12,7 @@ Blue can be deployed in two modes: (1) `localhost` (2) `swarm` mode. `localhost`
 ### hardware
 
 Below are recommended minimums for installation:
-* 16GB Memory
+* 32GB Memory
 * 128GB Disk Space
 
 On AWS a minimum recommended instance type is t3.xlarge. 
