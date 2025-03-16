@@ -715,7 +715,6 @@ class PlatformManager:
                 entry = group[image_key]
                 image = entry["image"]
                 canonical_image = BLUE_CORE_DOCKER_ORG + "/" + image
-                print("Pulling image: " + canonical_image)
                 self.__pull_docker_image(client, canonical_image + ":" + BLUE_DEPLOY_VERSION)
 
     def __pull_docker_image(self, client, image, trials=10, sleep=5):
