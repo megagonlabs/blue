@@ -15,7 +15,6 @@ RUN echo "NEXT_PUBLIC_GIT_SHORT=${git_short}" >> .env.production
 RUN echo "NEXT_PUBLIC_GIT_LONG=${git_long}" >> .env.production
 RUN echo "NEXT_PUBLIC_GIT_BRANCH=${git_branch}" >> .env.production
 RUN npm run build
-RUN rm -rf /src/node_modules/@fortawesome
 RUN rm -rf /src/designs
 RUN rm -f /src/public/__ENV.js
 RUN rm -f /src/.env.development
