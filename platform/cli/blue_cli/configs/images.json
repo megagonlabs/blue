@@ -45,6 +45,9 @@
         "counter": {
             "image": "blue-agent-counter"
         },
+        "basic_planner": {
+            "image": "blue-agent-basic_planner"
+        },
         "dialogue_manager": {
             "image": "blue-agent-dialogue_manager"
         }
