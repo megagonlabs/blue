@@ -12,7 +12,7 @@ Blue can be deployed in two modes: (1) `localhost` (2) `swarm` mode. `localhost`
 ### hardware
 
 Below are recommended minimums for installation:
-* 16GB Memory
+* 32GB Memory
 * 128GB Disk Space
 
 On AWS a minimum recommended instance type is t3.xlarge. 
@@ -192,7 +192,7 @@ If you type `docker ps` you should see now an additional containers running, sim
 
 #### testing
 
-At this point blue is ready to use. You can test your deployment by browsing to the blue web application hosted at http://localhost:3000, if you accepted default configuration. Otherwise, it is `BLUE_PUBLIC_WEB_SERVER`:`BLUE_PUBLIC_API_SERVER_PORT`
+At this point blue is ready to use. You can test your deployment by browsing to the blue web application hosted at http://localhost:3000, if you accepted default configuration. Otherwise, it is http://`BLUE_PUBLIC_WEB_SERVER`:`BLUE_PUBLIC_WEB_SERVER_PORT`
 
 You should see:
 

@@ -673,14 +673,21 @@
     "icon": null
   },
   {
-    "name": "BASIC_COUNTER",
+    "name": "COUNTER",
     "type": "agent",
     "scope": "/",
     "description": "Counter agent example to demonstrate data processing",
     "created_by": "5WgRzdacRdOEvj8JBmCXFZSvWmH3",
     "properties": {
       "image": "megagonlabs/blue-agent-counter:v0.9",
-      "listens": {},
+      "listens": {
+        "DEFAULT": {
+          "includes": [
+            "USER"
+          ],
+          "excludes": []
+        }
+      },
       "display_name": "Counter Example",
       "tags": {},
       "categories": [
