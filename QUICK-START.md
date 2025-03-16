@@ -33,6 +33,8 @@ To try out a few of the demos, you can click on any one of the cards, as shown b
 
 ## developer tools: form designer
 
+## debugging
+
 ## admin tools
 
 ## status
