@@ -178,14 +178,16 @@ export default function EntityMain({
         }
         return false;
     })();
-    const entityScope = _.get(entity, "scope", "/");
+    const isDerivativeAgent = !_.isEqual(entity.scope, "/");
     const canPullImage =
-        _.isEqual(entity.type, "agent") && _.has(entity.properties, "image");
+        _.isEqual(entity.type, "agent") &&
+        _.has(entity.properties, "image") &&
+        !isDerivativeAgent;
     const canDeployAgent =
         _.isEqual(entity.type, "agent") &&
         permissions.canWritePlatformAgents &&
         !_.isEqual(containerStatus, "running") &&
-        _.isEqual(entityScope, "/");
+        !isDerivativeAgent;
     const canSyncData = _.includes(
         ["source", "database", "collection"],
         entity.type
