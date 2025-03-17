@@ -178,12 +178,14 @@ export default function EntityMain({
         }
         return false;
     })();
+    const entityScope = _.get(entity, "scope", "/");
     const canPullImage =
         _.isEqual(entity.type, "agent") && _.has(entity.properties, "image");
     const canDeployAgent =
         _.isEqual(entity.type, "agent") &&
         permissions.canWritePlatformAgents &&
-        !_.isEqual(containerStatus, "running");
+        !_.isEqual(containerStatus, "running") &&
+        _.isEqual(entityScope, "/");
     const canSyncData = _.includes(
         ["source", "database", "collection"],
         entity.type
