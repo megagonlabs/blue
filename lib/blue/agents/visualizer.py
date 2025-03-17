@@ -76,7 +76,7 @@ class VisualizerAgent(Agent):
         worker.write_progress(progress_id=worker.sid, label='Issuing question:' + question, value=self.current_step/self.num_steps)
 
         # plan
-        p = Plan(prefix=worker.prefix)
+        p = Plan(scope=worker.prefix)
         # set input
         p.define_input(name, value=question)
         # set plan
@@ -95,7 +95,7 @@ class VisualizerAgent(Agent):
         worker.write_progress(progress_id=worker.sid, label='Issuing query:' + query, value=self.current_step/self.num_steps)
 
         # plan
-        p = Plan(prefix=worker.prefix)
+        p = Plan(scope=worker.prefix)
         # set input
         p.define_input(name, value=query)
         # set plan
