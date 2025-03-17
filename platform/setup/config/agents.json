@@ -294,7 +294,11 @@
       "nl2q_case_insensitive": true,
       "nl2q_source_database": null,
       "nl2q_discovery_similarity_threshold": 0.65,
-      "tags": {},
+      "tags": {
+        "DEFAULT": [
+          "QUERY"
+        ]
+      },
       "categories": [
         "BASE"
       ]
@@ -312,7 +316,9 @@
       "openai.service": "ws://blue_service_openai:8001",
       "openai.model": "gpt-4o",
       "tags": {
-        "DEFAULT": []
+        "DEFAULT": [
+          "QUERY"
+        ]
       },
       "listens": {
         "DEFAULT": {
@@ -906,7 +912,9 @@
       },
       "listens": {
         "DEFAULT": {
-          "includes": [],
+          "includes": [
+            "QUERY"
+          ],
           "excludes": [
             "USER"
           ]
