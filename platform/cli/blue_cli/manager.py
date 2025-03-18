@@ -709,26 +709,23 @@ class PlatformManager:
                 curses.curs_set(0)
                 curses.noecho()
                 for event in response_stream:
-                    try:
-                        if 'id' in event:
-                            id = event.get('id')
-                            if 'progress' in event:
-                                status = event.get('status')
-                                progress = event.get('progress')
-                                message = f'{status} {progress}'.strip()
-                                line = {'message': f'{id}: {message}', 'id': id}
-                            elif 'status' in event:
-                                status = event.get('status')
-                                line = {'message': f'{id}: {status}', 'id': id}
-                            if id not in id_to_index:
-                                output.append(line)
-                                id_to_index[id] = len(output) - 1
-                            else:
-                                output[id_to_index[id]] = line
-                        if len(output) > 0:
-                            print_list_curses(stdscr, output)
-                    except Exception as e:
-                        print(e)
+                    if 'id' in event:
+                        id = event.get('id')
+                        if 'progress' in event:
+                            status = event.get('status')
+                            progress = event.get('progress')
+                            message = f'{status} {progress}'.strip()
+                            line = {'message': f'{id}: {message}', 'id': id}
+                        elif 'status' in event:
+                            status = event.get('status')
+                            line = {'message': f'{id}: {status}', 'id': id}
+                        if id not in id_to_index:
+                            output.append(line)
+                            id_to_index[id] = len(output) - 1
+                        else:
+                            output[id_to_index[id]] = line
+                    if len(output) > 0:
+                        print_list_curses(stdscr, output)
             except Exception:
                 curses.endwin()
                 time.sleep(sleep)
