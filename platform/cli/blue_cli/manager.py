@@ -1,3 +1,4 @@
+import curses
 import os
 import string
 import asyncio
@@ -17,7 +18,8 @@ import webbrowser
 import websockets
 from websockets import exceptions as ws_exceptions
 
-from blue_cli.helper import inquire_user_input, convert
+from blue_cli.helper import inquire_user_input, convert, print_list_curses
+
 
 class Authentication:
     def __init__(self) -> None:
@@ -47,7 +49,7 @@ class Authentication:
 
     def __start_servers(self):
         path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        
+
         try:
             self.process = subprocess.Popen(
                 [
@@ -111,8 +113,6 @@ class Authentication:
             self.stop.set_result(None)
 
 
-
-        
 class ProfileManager:
     def __init__(self):
         self.__initialize()
@@ -143,7 +143,7 @@ class ProfileManager:
     def __load_profile_attributes_config(self):
         self._profile_attributes_config = {}
         path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        
+
         with open(f"{path}/blue_cli/configs/profile.json") as cfp:
             self._profile_attributes_config = json.load(cfp)
 
@@ -151,7 +151,7 @@ class ProfileManager:
         if profile_name is None:
             profile_name = self.get_default_profile_name()
 
-        profile  = self.get_profile(profile_name)
+        profile = self.get_profile(profile_name)
         profile_attributes = dict(profile)
 
         if profile_attributes is None:
@@ -175,7 +175,7 @@ class ProfileManager:
                 profile_attribute_value = value
 
             self.set_profile_attribute(profile_name, profile_attribute, profile_attribute_value)
-    
+
     def __read_profiles(self):
         # read profiles file
         self.profiles = configparser.ConfigParser()
@@ -272,11 +272,7 @@ class ProfileManager:
         else:
             return None
 
-    def create_profile(
-        self,
-        profile_name,
-        **profile_attributes
-    ):
+    def create_profile(self, profile_name, **profile_attributes):
         # read profiles file
         self.__read_profiles()
 
@@ -351,8 +347,6 @@ class ProfileName(click.Group):
         super(ProfileName, self).parse_args(ctx, args)
 
 
-
-
 class PlatformManager:
     def __init__(self):
         self.__initialize()
@@ -383,18 +377,17 @@ class PlatformManager:
         # activate selected profiile
         self.__activate_selected_platform()
 
-
     def __load_platform_image_config(self):
         self._platform_images = {}
         path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-     
+
         with open(f"{path}/blue_cli/configs/images.json") as cfp:
             self._platform_images = json.load(cfp)
 
     def __load_platform_attributes_config(self):
         self._platform_attributes_config = {}
         path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-     
+
         with open(f"{path}/blue_cli/configs/platform.json") as cfp:
             self._platform_attributes_config = json.load(cfp)
 
@@ -402,7 +395,7 @@ class PlatformManager:
         if platform_name is None:
             platform_name = self.get_default_platform_name()
 
-        platform  = self.get_platform(platform_name)
+        platform = self.get_platform(platform_name)
         platform_attributes = dict(platform)
 
         if platform_attributes is None:
@@ -426,7 +419,7 @@ class PlatformManager:
                 platform_attribute_value = value
 
             self.set_platform_attribute(platform_name, platform_attribute, platform_attribute_value)
-    
+
     def __read_platforms(self):
         # read platforms file
         self.platforms = configparser.ConfigParser()
@@ -530,14 +523,13 @@ class PlatformManager:
         profile = profile if profile else {}
         profile = dict(profile)
 
-        ### get platform 
+        ### get platform
         # get platform
         platform = self.get_platform(platform_name)
         platform = platform if platform else {}
         platform = dict(platform)
 
         config = profile | platform
-        
 
         # redis container
         redis_container = None
@@ -553,15 +545,11 @@ class PlatformManager:
             print("Platform needs to be started to perform this operation.")
 
         BLUE_DEPLOY_PLATFORM = config["BLUE_DEPLOY_PLATFORM"]
-        error = self.__container_exec_run(container, ["redis-cli","JSON.SET","PLATFORM:" + BLUE_DEPLOY_PLATFORM + ":METADATA", "users." + uid + ".role", '"' + role + '"'])
+        error = self.__container_exec_run(container, ["redis-cli", "JSON.SET", "PLATFORM:" + BLUE_DEPLOY_PLATFORM + ":METADATA", "users." + uid + ".role", '"' + role + '"'])
         if error:
-            print("Error: " + str(error) )
+            print("Error: " + str(error))
 
-    def create_platform(
-        self,
-        platform_name,
-        **platform_attributes
-    ):
+    def create_platform(self, platform_name, **platform_attributes):
         # read platforms file
         self.__read_platforms()
 
@@ -572,7 +560,6 @@ class PlatformManager:
 
         # update platforms
         self.platforms[platform_name] = platform
-
 
         # write platforms file
         self.__write_platforms()
@@ -604,17 +591,15 @@ class PlatformManager:
             self.platforms.pop(platform_name)
             self.__write_platforms()
 
-    def install_platform(
-        self,
-        platform_name):
-        
+    def install_platform(self, platform_name):
+
         ### get profile
         # get profile
         profile = ProfileManager().get_selected_profile()
         profile = profile if profile else {}
         profile = dict(profile)
 
-        ### get platform 
+        ### get platform
         # get platform
         platform = self.get_platform(platform_name)
         platform = platform if platform else {}
@@ -627,30 +612,28 @@ class PlatformManager:
         if BLUE_DEPLOY_TARGET != "localhost":
             print("Only localhost mode is supported. See README for swarm mode deployment instructions...")
             return
-        
+
         ### connect to docker
         client = docker.from_env()
 
         # create docker volume
         self._create_docker_volume(client, config)
-        
+
         #### pull images
         self._pull_docker_images(client, config)
-        
+
         #### copy config to docker volume
         self._copy_config_to_docker_volume(client, config)
 
-    def uninstall_platform(
-        self,
-        platform_name):
-        
+    def uninstall_platform(self, platform_name):
+
         ### get profile
         # get profile
         profile = ProfileManager().get_selected_profile()
         profile = profile if profile else {}
         profile = dict(profile)
 
-        ### get platform 
+        ### get platform
         # get platform
         platform = self.get_platform(platform_name)
         platform = platform if platform else {}
@@ -663,7 +646,7 @@ class PlatformManager:
         if BLUE_DEPLOY_TARGET != "localhost":
             print("Only localhost mode is supported. See README for swarm mode deployment instructions...")
             return
-        
+
         ### stop platform
         self.stop_platform(platform_name)
 
@@ -672,10 +655,9 @@ class PlatformManager:
 
         # remove docker volume
         self._remove_docker_volume(client, config)
-        
+
         #### remove images
         self._remove_docker_images(client, config)
-
 
     def _create_docker_volume(self, client, config):
         BLUE_DATA_DIR = config["BLUE_DATA_DIR"]
@@ -718,17 +700,43 @@ class PlatformManager:
                 self.__pull_docker_image(client, canonical_image + ":" + BLUE_DEPLOY_VERSION)
 
     def __pull_docker_image(self, client, image, trials=10, sleep=5):
-        if trials > 0:     
-            print("Pulling image: " + image)
+        if trials > 0:
             try:
-                client.images.pull(image)
-            except:
+                output = []
+                id_to_index = {}
+                response_stream = client.api.pull(image, stream=True, decode=True)
+                stdscr = curses.initscr()
+                curses.curs_set(0)
+                curses.noecho()
+                for event in response_stream:
+                    if 'id' in event:
+                        id = event.get('id')
+                        if 'progress' in event:
+                            status = event.get('status')
+                            progress = event.get('progress')
+                            message = f'{status} {progress}'.strip()
+                            line = {'message': f'{id}: {message}', 'id': id}
+                        elif 'status' in event:
+                            status = event.get('status')
+                            line = {'message': f'{id}: {status}', 'id': id}
+                        if id not in id_to_index:
+                            output.append(line)
+                            id_to_index[id] = len(output) - 1
+                        else:
+                            output[id_to_index[id]] = line
+                    if len(output) > 0:
+                        print_list_curses(stdscr, output)
+            except Exception:
+                curses.endwin()
                 time.sleep(sleep)
-                print("Trying again. Remaining trials: " + str(trials-1))
-                self.__pull_docker_image(client, image, trials=trials-1)
-        else: 
+                print("Trying again. Remaining trials: " + str(trials - 1))
+                self.__pull_docker_image(client, image, trials=trials - 1)
+            finally:
+                curses.endwin()
+            print("Pulled image: " + image)
+        else:
             return "Error Pulling Image: " + image
-        
+
     def _remove_docker_images(self, client, config):
         BLUE_DEPLOY_VERSION = config["BLUE_DEPLOY_VERSION"]
         BLUE_CORE_DOCKER_ORG = config["BLUE_CORE_DOCKER_ORG"]
@@ -756,25 +764,21 @@ class PlatformManager:
                     image.remove()
         client.images.prune()
 
-
     def _copy_config_to_docker_volume(self, client, config):
         BLUE_DEPLOY_VERSION = config["BLUE_DEPLOY_VERSION"]
         BLUE_CORE_DOCKER_ORG = config["BLUE_CORE_DOCKER_ORG"]
 
         BLUE_DEPLOY_PLATFORM = config["BLUE_DEPLOY_PLATFORM"]
 
-        blue_platform_setup_image =  BLUE_CORE_DOCKER_ORG + "/" + "blue-platform-setup"
-        
+        blue_platform_setup_image = BLUE_CORE_DOCKER_ORG + "/" + "blue-platform-setup"
+
         self.__pull_docker_image(client, blue_platform_setup_image + ":" + BLUE_DEPLOY_VERSION)
-        
+
         # Create container to copy files from to the docker volume
-        # docker run -d --rm --name blue-platform-setup -v <docker_volume>:/root alpine 
+        # docker run -d --rm --name blue-platform-setup -v <docker_volume>:/root alpine
         print("Copying config data...")
-        container = client.containers.run(blue_platform_setup_image + ":" + BLUE_DEPLOY_VERSION, "tail -f /dev/null",
-            volumes=["blue_" + BLUE_DEPLOY_PLATFORM + "_data:/blue_data"],
-            stdout=True,
-            stderr=True,
-            detach=True
+        container = client.containers.run(
+            blue_platform_setup_image + ":" + BLUE_DEPLOY_VERSION, "tail -f /dev/null", volumes=["blue_" + BLUE_DEPLOY_PLATFORM + "_data:/blue_data"], stdout=True, stderr=True, detach=True
         )
         # rename regsitry files
         BLUE_AGENT_REGISTRY = config["BLUE_AGENT_REGISTRY"]
@@ -782,28 +786,26 @@ class PlatformManager:
 
         error = self.__container_exec_run(container, "cp -r /app/. /blue_data")
         if error:
-            print("Error: " + str(error) )
+            print("Error: " + str(error))
         error = self.__container_exec_run(container, f"mv /blue_data/config/agents.json /blue_data/config/{BLUE_AGENT_REGISTRY}.agents.json")
         if error:
-            print("Error: " + str(error) )
+            print("Error: " + str(error))
         error = self.__container_exec_run(container, f"mv /blue_data/config/data.json /blue_data/config/{BLUE_DATA_REGISTRY}.data.json")
         if error:
-            print("Error: " + str(error) )
+            print("Error: " + str(error))
 
         container.stop()
         print("Done.")
 
-    def start_platform(
-        self,
-        platform_name):
-        
+    def start_platform(self, platform_name):
+
         ### get profile
         # get profile
         profile = ProfileManager().get_selected_profile()
         profile = profile if profile else {}
         profile = dict(profile)
 
-        ### get platform 
+        ### get platform
         # get platform
         platform = self.get_platform(platform_name)
         platform = platform if platform else {}
@@ -820,19 +822,13 @@ class PlatformManager:
         if BLUE_DEPLOY_TARGET != "localhost":
             print("Only localhost mode is supported. See README for swarm mode instructions...")
             return
-        
+
         ### connect to docker
         client = docker.from_env()
 
         ### create network
         print("Creating network: " + "blue_platform_" + BLUE_DEPLOY_PLATFORM + "_network_bridge")
-        client.networks.create(
-            name="blue_platform_" + BLUE_DEPLOY_PLATFORM + "_network_bridge",
-            driver="bridge",
-            attachable=True,
-            internal=False,
-            scope="local"
-        )
+        client.networks.create(name="blue_platform_" + BLUE_DEPLOY_PLATFORM + "_network_bridge", driver="bridge", attachable=True, internal=False, scope="local")
 
         ### run redis, api, and frontend
         BLUE_PUBLIC_DB_SERVER_PORT = config["BLUE_PUBLIC_DB_SERVER_PORT"]
@@ -843,7 +839,7 @@ class PlatformManager:
             image,
             network="blue_platform_" + BLUE_DEPLOY_PLATFORM + "_network_bridge",
             hostname="blue_db_redis",
-            ports={str(BLUE_PUBLIC_DB_SERVER_PORT):6379},
+            ports={str(BLUE_PUBLIC_DB_SERVER_PORT): 6379},
             volumes=["blue_" + BLUE_DEPLOY_PLATFORM + "_data:/blue_data"],
             labels={"blue.platform": BLUE_DEPLOY_PLATFORM + "." + "redis"},
             environment=config,
@@ -861,7 +857,7 @@ class PlatformManager:
             image,
             network="blue_platform_" + BLUE_DEPLOY_PLATFORM + "_network_bridge",
             hostname="blue_platform_api",
-            ports={str(BLUE_PUBLIC_API_SERVER_PORT):5050},
+            ports={str(BLUE_PUBLIC_API_SERVER_PORT): 5050},
             volumes=["blue_" + BLUE_DEPLOY_PLATFORM + "_data:/blue_data", "/var/run/docker.sock:/var/run/docker.sock"],
             labels={"blue.platform": BLUE_DEPLOY_PLATFORM + "." + "api"},
             environment=config,
@@ -878,7 +874,7 @@ class PlatformManager:
             image,
             network="blue_platform_" + BLUE_DEPLOY_PLATFORM + "_network_bridge",
             hostname="blue_platform_frontend",
-            ports={str(BLUE_PUBLIC_WEB_SERVER_PORT):3000},
+            ports={str(BLUE_PUBLIC_WEB_SERVER_PORT): 3000},
             volumes=["blue_" + BLUE_DEPLOY_PLATFORM + "_data:/blue_data"],
             labels={"blue.platform": BLUE_DEPLOY_PLATFORM + "." + "frontend"},
             environment=config,
@@ -905,14 +901,13 @@ class PlatformManager:
 
         print("Ingesting example data.")
 
-    
         error = self.__container_exec_run(container, ["/bin/sh", "-c", "psql -U postgres postgres < /blue_data/data/postgres.dump"])
         if error:
-            print("Error: " + str(error) )
+            print("Error: " + str(error))
 
         print("Launching blue web application...")
 
-        url = "http" 
+        url = "http"
         if convert(config["BLUE_DEPLOY_SECURE"], cast='bool'):
             url += "s"
         url += "://"
@@ -927,24 +922,22 @@ class PlatformManager:
             result = container.exec_run(command)
             if result.exit_code != 0:
                 time.sleep(sleep)
-                print("Trying again. Remaining trials: " + str(trials-1))
-                return self.__container_exec_run(container, command, trials=trials-1)
+                print("Trying again. Remaining trials: " + str(trials - 1))
+                return self.__container_exec_run(container, command, trials=trials - 1)
             else:
                 return None
         else:
             return "Error Running: " + str(command)
-            
-    def stop_platform(
-        self,
-        platform_name):
-        
+
+    def stop_platform(self, platform_name):
+
         ### get profile
         # get profile
         profile = ProfileManager().get_selected_profile()
         profile = profile if profile else {}
         profile = dict(profile)
 
-        ### get platform 
+        ### get platform
         # get platform
         platform = self.get_platform(platform_name)
         platform = platform if platform else {}
@@ -958,7 +951,7 @@ class PlatformManager:
         if BLUE_DEPLOY_TARGET != "localhost":
             print("Only localhost mode is supported. See README for swarm mode instructions...")
             return
-        
+
         ### connect to docker
         client = docker.from_env()
 
@@ -1016,9 +1009,6 @@ class PlatformName(click.Group):
         super(PlatformName, self).parse_args(ctx, args)
 
 
-
-
-
 class ServiceManager:
     def __init__(self):
         self.__initialize()
@@ -1049,7 +1039,7 @@ class ServiceManager:
     def __load_service_attributes_config(self):
         self._service_attributes_config = {}
         path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-     
+
         with open(f"{path}/blue_cli/configs/service.json") as cfp:
             self._service_attributes_config = json.load(cfp)
 
@@ -1057,7 +1047,7 @@ class ServiceManager:
         if service_name is None:
             service_name = self.get_default_service_name()
 
-        service  = self.get_service(service_name)
+        service = self.get_service(service_name)
         service_attributes = dict(service)
 
         if service_attributes is None:
@@ -1081,7 +1071,7 @@ class ServiceManager:
                 service_attribute_value = value
 
             self.set_service_attribute(service_name, service_attribute, service_attribute_value)
-    
+
     def __read_services(self):
         # read services file
         self.services = configparser.ConfigParser()
@@ -1178,12 +1168,7 @@ class ServiceManager:
         else:
             return None
 
-
-    def create_service(
-        self,
-        service_name,
-        **service_attributes
-    ):
+    def create_service(self, service_name, **service_attributes):
         # read services file
         self.__read_services()
 
@@ -1191,7 +1176,6 @@ class ServiceManager:
 
         # update services
         self.services[service_name] = service
-
 
         # write services file
         self.__write_services()
@@ -1223,10 +1207,8 @@ class ServiceManager:
             self.services.pop(service_name)
             self.__write_services()
 
-    def install_service(
-        self,
-        service_name):
-        
+    def install_service(self, service_name):
+
         ### get profile
         # get profile
         profile = ProfileManager().get_selected_profile()
@@ -1246,17 +1228,15 @@ class ServiceManager:
         if BLUE_DEPLOY_TARGET != "localhost":
             print("Only localhost mode is supported. See README for swarm mode deployment instructions...")
             return
-        
+
         ### connect to docker
         client = docker.from_env()
 
         #### pull image
         self._pull_service_docker_image(client, config, service_name)
 
-    def uninstall_service(
-        self,
-        service_name):
-        
+    def uninstall_service(self, service_name):
+
         ### get profile
         # get profile
         profile = ProfileManager().get_selected_profile()
@@ -1276,7 +1256,7 @@ class ServiceManager:
         if BLUE_DEPLOY_TARGET != "localhost":
             print("Only localhost mode is supported. See README for swarm mode deployment instructions...")
             return
-        
+
         ### connect to docker
         client = docker.from_env()
 
@@ -1288,43 +1268,39 @@ class ServiceManager:
         BLUE_CORE_DOCKER_ORG = config["BLUE_CORE_DOCKER_ORG"]
         BLUE_DEV_DOCKER_ORG = config["BLUE_DEV_DOCKER_ORG"]
 
-        ### get service 
+        ### get service
         # get service
         service = self.get_service(service_name)
         service = service if service else {}
         service = dict(service)
-
 
         image = service["IMAGE"]
         # pull image
         self.__pull_docker_image(client, image)
 
-
     def __pull_docker_image(self, client, image, trials=10, sleep=5):
-        if trials > 0:     
+        if trials > 0:
             print("Pulling image: " + image)
             try:
                 client.images.pull(image)
             except:
                 time.sleep(sleep)
-                print("Trying again. Remaining trials: " + str(trials-1))
-                self.__pull_docker_image(client, image, trials=trials-1)
-        else: 
+                print("Trying again. Remaining trials: " + str(trials - 1))
+                self.__pull_docker_image(client, image, trials=trials - 1)
+        else:
             return "Error Pulling Image: " + image
 
-
     def _remove_docker_image(self, client, config, service_name):
-                
+
         BLUE_DEPLOY_VERSION = config["BLUE_DEPLOY_VERSION"]
         BLUE_CORE_DOCKER_ORG = config["BLUE_CORE_DOCKER_ORG"]
         BLUE_DEV_DOCKER_ORG = config["BLUE_DEV_DOCKER_ORG"]
 
-        ### get service 
+        ### get service
         # get service
         service = self.get_service(service_name)
         service = service if service else {}
         service = dict(service)
-
 
         full_image_name = service["IMAGE"]
         # remove docker image
@@ -1338,10 +1314,8 @@ class ServiceManager:
         print("Pruning images...")
         client.images.prune()
 
-    def start_service(
-        self,
-        service_name):
-        
+    def start_service(self, service_name):
+
         ### get profile
         # get profile
         profile = ProfileManager().get_selected_profile()
@@ -1360,7 +1334,7 @@ class ServiceManager:
         BLUE_CORE_DOCKER_ORG = config["BLUE_CORE_DOCKER_ORG"]
         BLUE_DEPLOY_VERSION = config["BLUE_DEPLOY_VERSION"]
 
-        ### get service 
+        ### get service
         # get service
         service = self.get_service(service_name)
         service = service if service else {}
@@ -1373,14 +1347,12 @@ class ServiceManager:
         if BLUE_DEPLOY_TARGET != "localhost":
             print("Only localhost mode is supported. See README for swarm mode instructions...")
             return
-        
+
         ### connect to docker
         client = docker.from_env()
 
         # service properties
-        service_properties = {
-            "db.host" : "blue_db_redis"
-        }
+        service_properties = {"db.host": "blue_db_redis"}
 
         # service
         client.containers.run(
@@ -1388,7 +1360,7 @@ class ServiceManager:
             ["--name", service_name.upper(), "--platform", BLUE_DEPLOY_PLATFORM, "--properties", json.dumps(service_properties)],
             network="blue_platform_" + BLUE_DEPLOY_PLATFORM + "_network_bridge",
             hostname="blue_service_" + service_name.lower(),
-            ports={str(service["PORT_SRC"]):service["PORT_DST"]},
+            ports={str(service["PORT_SRC"]): service["PORT_DST"]},
             volumes=["blue_" + BLUE_DEPLOY_PLATFORM + "_data:/blue_data", "/var/run/docker.sock:/var/run/docker.sock"],
             labels={"blue.service": BLUE_DEPLOY_PLATFORM + "." + service_name.lower()},
             environment=config | service,
@@ -1397,11 +1369,8 @@ class ServiceManager:
             stderr=True,
         )
 
+    def stop_service(self, service_name):
 
-    def stop_service(
-        self,
-        service_name):
-        
         ### get profile
         # get profile
         profile = ProfileManager().get_selected_profile()
@@ -1422,7 +1391,7 @@ class ServiceManager:
         if BLUE_DEPLOY_TARGET != "localhost":
             print("Only localhost mode is supported. See README for swarm mode instructions...")
             return
-        
+
         ### connect to docker
         client = docker.from_env()
         containers = client.containers.list()
