@@ -128,7 +128,7 @@ class DocumenterAgent(Agent):
             # submit plan
             p.submit(worker)
 
-    def process_doc(self, properties=None, worker=None):
+    def process_doc(self, properties=None, input="", worker=None):
 
         if worker == None:
             worker = self.create_worker(None)
@@ -139,14 +139,14 @@ class DocumenterAgent(Agent):
         # progress
         worker.write_progress(progress_id=worker.sid, label='Processing document...', value=self.current_step/self.num_steps)
 
-        doc = self.substitute_doc(worker, self.results, properties)
+        doc = self.substitute_doc(worker, self.results, properties, input)
 
         if 'hilite' in properties:
             self.hilite_doc(doc, properties=properties, worker=worker)
         else:
             self.render_doc(doc, properties=properties, worker=worker)
 
-    def substitute_doc(self, worker, results, properties):
+    def substitute_doc(self, worker, results, properties, input):
         session_data = worker.get_all_session_data()
         if session_data is None:
             session_data = {}
@@ -155,7 +155,7 @@ class DocumenterAgent(Agent):
         if type(template) is dict:
             template = json.dumps(template)
 
-        processed_template = string_utils.safe_substitute(template, **properties,  **session_data, **results)
+        processed_template = string_utils.safe_substitute(template, **properties,  **session_data, **results, input=input)
 
         return processed_template
 
@@ -186,6 +186,8 @@ class DocumenterAgent(Agent):
 
                 stream_data = worker.get_data(stream)
                 input_data = " ".join(stream_data)
+                worker.set_data("input", input_data)
+
                 if worker:
                     session_data = worker.get_all_session_data()
 
@@ -228,7 +230,7 @@ class DocumenterAgent(Agent):
                             self.todos.add(query_name)
                             self.issue_sql_query(query, name=query_name, worker=worker)
                     if 'questions' not in self.properties and 'queries' not in self.properties:
-                        self.process_doc(properties=properties, worker=None)
+                        self.process_doc(properties=properties, input=input_data, worker=None)
 
                     return
 
@@ -263,6 +265,7 @@ class DocumenterAgent(Agent):
                     self.results[query] = query_results
                     self.todos.remove(query)
                     
+                    
                     # progress
                     self.current_step = len(self.results)
                     q = ""
@@ -272,7 +275,10 @@ class DocumenterAgent(Agent):
                     worker.write_progress(progress_id=worker.sid, label='Received query results: ' + q, value=self.current_step/self.num_steps)
 
                     if len(self.todos) == 0:
-                        self.process_doc(properties=properties, worker=worker)
+                        input_data = worker.get_data("input")
+                        if input_data is None:
+                            input_data = ""
+                        self.process_doc(properties=properties, input=input_data, worker=worker)
                 else:
                     logging.info("nothing found")
         elif input.find("QUESTION_RESULTS_") == 0:
@@ -290,6 +296,9 @@ class DocumenterAgent(Agent):
                     self.results[question] = question_results
                     self.todos.remove(question)
                     
+                    input_data = worker.get_data("input")
+                    if input_data is None:
+                        input_data = ""
                     # progress
                     self.current_step = len(self.results)
                     q = ""
@@ -299,7 +308,10 @@ class DocumenterAgent(Agent):
                     worker.write_progress(progress_id=worker.sid, label='Received question results: ' + q, value=self.current_step/self.num_steps)
 
                     if len(self.todos) == 0:
-                        self.process_doc(properties=properties, worker=worker)
+                        input_data = worker.get_data("input")
+                        if input_data is None:
+                            input_data = ""
+                        self.process_doc(properties=properties, input=input_data, worker=worker)
                 else:
                     logging.info("nothing found")
         elif input == "DOC":
