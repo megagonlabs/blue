@@ -5,6 +5,7 @@ import jwt
 from jwt.algorithms import RSAAlgorithm
 import requests
 from settings import ACL, FIREBASE_CLIENT_ID
+from datetime import timedelta
 
 EMAIL_DOMAIN_ADDRESS_REGEXP = r"@((\w+?\.)+\w+)"
 BANNED_ENTITY_NAMES = ['new']
@@ -36,7 +37,7 @@ def verify_google_id_token(id_token, client_id, issuer):
             public_key = RSAAlgorithm.from_jwk(key)
             break
     if not pydash.is_empty(public_key):
-        decoded_token = jwt.decode(id_token, public_key, algorithms=openid_config['id_token_signing_alg_values_supported'], audience=client_id, issuer=issuer)
+        decoded_token = jwt.decode(id_token, public_key, algorithms=openid_config['id_token_signing_alg_values_supported'], audience=client_id, issuer=issuer, leeway=timedelta(seconds=5))
         uid = pydash.objects.get(decoded_token, 'user_id', None)
         pydash.objects.set_(decoded_token, 'uid', uid)
         return decoded_token
