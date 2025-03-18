@@ -9,6 +9,7 @@ import {
     Blockquote,
     Button,
     ButtonGroup,
+    Callout,
     Card,
     Classes,
     Colors,
@@ -17,6 +18,7 @@ import {
     H5,
     H6,
     InputGroup,
+    Intent,
     Menu,
     MenuDivider,
     MenuItem,
@@ -189,6 +191,7 @@ export default function Status() {
             ),
         [keyword, trackerList]
     );
+    const waitingForFirstMessage = isLive && _.isEmpty(trackerList);
     return (
         <>
             <Card
@@ -294,11 +297,25 @@ export default function Status() {
                     </Popover>
                 </ButtonGroup>
             </Card>
+            {waitingForFirstMessage && (
+                <Callout
+                    icon={null}
+                    intent={Intent.PRIMARY}
+                    style={{
+                        margin: "20px 20px 0px 20px",
+                        width: "calc(100% - 40px)",
+                    }}
+                >
+                    Waiting for messages. This may take a while.
+                </Callout>
+            )}
             <div
                 style={{
                     padding: 20,
                     overflowY: "auto",
-                    height: "calc(100% - 50px)",
+                    height: `calc(100% - 50px - ${
+                        waitingForFirstMessage ? 71 : 0
+                    }px)`,
                 }}
             >
                 {_.isEmpty(trackerList) ? (
