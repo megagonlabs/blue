@@ -19,7 +19,8 @@ To help facilitate ‘Agentic for Enterprise’ we are introducing several conce
 
 To get a glimpse of where we are heading with agentic architectures, read our papers:
 
-* [A Blueprint Architecture of Compound AI Systems for Enterprise](https://arxiv.org/abs/2406.00584)
+* [A Blueprint Architecture of Compound AI Systems for Enterprise](https://arxiv.org/abs/2406.00584) [Compound AI Systems Workshop](https://sites.google.com/view/compound-ai-systems-workshop/home)
+* [Orchestrating Agents and Data for Enterprise: A Blueprint Architecture for Compound AI]() [Data-AI Systems Workshop at ICDE'25](https://dais-workshop-icde.github.io/)
 
 </br>
 
