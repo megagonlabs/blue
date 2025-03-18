@@ -182,22 +182,8 @@
     "created_by": null,
     "properties": {
       "form": {
-        "type": "VerticalLayout",
-        "elements": [
-          {
-            "type": "Control",
-            "label": "First Name",
-            "scope": "#/properties/name"
-          }
-        ]
       },
       "schema": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string"
-          }
-        }
       },
       "image": "megagonlabs/blue-agent-presenter:v0.9",
       "tags": {
@@ -228,6 +214,44 @@
     },
     "icon": null
   },
+  {
+    "name": "PRESENTER___EXAMPLE",
+    "type": "agent",
+    "scope": "/PRESENTER",
+    "description": "Example Presenter agent that show a form to collect user name in a form-based UI",
+    "created_by": "xmFn7nD9nfMD0zo14RHmYmrHZQu1",
+    "properties": {
+        "schema": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "form": {
+            "type": "VerticalLayout",
+            "elements": [
+                {
+                    "type": "Control",
+                    "label": "First Name",
+                    "scope": "#/properties/name"
+                }
+            ]
+        },
+        "tags": {},
+        "listens": {
+            "DEFAULT": {
+                "includes": [
+                    "USER"
+                ],
+                "excludes": []
+            }
+        },
+        "display_name": "Presenter Example Agent"
+    },
+    "icon": null
+},
   {
     "name": "NL2SQL",
     "type": "agent",
@@ -396,6 +420,30 @@
     "icon": null
   },
   {
+    "name": "SUMMARIZER___EXAMPLE",
+    "type": "agent",
+    "scope": "/SUMMARIZER",
+    "description": "Example Summarizer agent to summarize skills for a given job role from user input",
+    "created_by": "xmFn7nD9nfMD0zo14RHmYmrHZQu1",
+    "properties": {
+        "listens": {
+            "DEFAULT": {
+                "includes": [
+                    "USER"
+                ],
+                "excludes": []
+            }
+        },
+        "tags": {},
+        "display_name": "Summarizer Example Agent",
+        "template": "${input} role requires these skills: {% for se_skill in se_skills %} {{se_skill.skill_required}}, {% endfor %}. \n Note: Soft skills are highlighted.",
+        "questions": {
+            "se_skills": "what skills are required for ${input} jobs?"
+        }
+    },
+    "icon": null
+},
+  {
     "name": "QUERYEXECUTOR",
     "type": "agent",
     "scope": "/",
@@ -493,10 +541,10 @@
     "icon": null
   },
   {
-    "name": "VISUALIZER___SKILLS_BY_FREQUENCY",
+    "name": "VISUALIZER___EXAMPLE",
     "type": "agent",
     "scope": "/VISUALIZER",
-    "description": "Example agent to visualize skills by frequency from a query result",
+    "description": "Example Visualizer agent to visualize skills by frequency from a query result",
     "created_by": "xmFn7nD9nfMD0zo14RHmYmrHZQu1",
     "properties": {
       "template": "{\"$schema\":\"https://vega.github.io/schema/vega-lite/v5.json\",\"description\":\"Top skills required by frequency\",\"data\":{\"values\":${skills_by_frequency}},\"mark\":\"bar\",\"encoding\":{\"x\":{\"field\":\"skill_required\",\"type\":\"nominal\",\"sort\":\"-y\",\"axis\":{\"title\":\"Skill Required\"}},\"y\":{\"field\":\"frequency\",\"type\":\"quantitative\",\"axis\":{\"title\":\"Frequency\"}}},\"title\":\"Top skills required by frequency\"}",
@@ -512,7 +560,7 @@
           "excludes": []
         }
       },
-      "display_name": "Visualize Skills by Frequency Agent"
+      "display_name": "Visualizer Example Agent"
     },
     "icon": null
   },
@@ -524,13 +572,9 @@
     "created_by": "5WgRzdacRdOEvj8JBmCXFZSvWmH3",
     "properties": {
       "image": "megagonlabs/blue-agent-documenter:v0.9",
-      "template": "This is a jinja template with references to data from the queries: There are $num_jobs many jobs",
+      "template": "jinja template with references to data from the queries",
       "questions": {},
       "queries": {
-        "num_jobs": {
-          "source": "/job_search_postgres/postgres/public",
-          "query": "SELECT COUNT(*) from jobs"
-        }
       },
       "listens": {
         "DEFAULT": {
@@ -540,7 +584,7 @@
           "excludes": []
         }
       },
-      "hilite": "topics to highlight",
+      "hilite": "",
       "tracker.autostart": false,
       "tracker.outputs": [
         "log.INFO"
@@ -554,6 +598,35 @@
     },
     "icon": null
   },
+  {
+    "name": "DOCUMENTER___EXAMPLE",
+    "type": "agent",
+    "scope": "/DOCUMENTER",
+    "description": "Example document builder agent to hilite soft skills for a given job role from user input",
+    "created_by": "xmFn7nD9nfMD0zo14RHmYmrHZQu1",
+    "properties": {
+        "template": "${input} role requires these skills: {% for se_skill in se_skills %} {{se_skill.skill_required}}, {% endfor %}. \n Note: Soft skills are highlighted.",
+        "tracker.autostart": false,
+        "hilite": "soft skills",
+        "questions": {
+            "se_skills": "what skills are required for ${input} jobs?"
+        },
+        "listens": {
+            "DEFAULT": {
+                "includes": [
+                    "USER"
+                ],
+                "excludes": []
+            }
+        },
+        "tracker.outputs": [
+            "log.INFO"
+        ],
+        "tags": {},
+        "display_name": "Document Builder Example Agent"
+    },
+    "icon": null
+},
   {
     "name": "BASIC_PLANNER",
     "type": "agent",
@@ -698,7 +771,7 @@
           "excludes": []
         }
       },
-      "intent_classifier_agent": "OPENAI___CLASSIFIER"
+      "intent_classifier_agent": "OPENAI___INTENT_CLASSIFIER"
     },
     "icon": null
   },
