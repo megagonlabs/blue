@@ -2,6 +2,7 @@ import os
 import subprocess
 import json
 from base64 import b64encode
+import curses
 
 import tabulate
 import pandas as pd
@@ -19,6 +20,18 @@ RESERVED_KEYS = [
 ]
 
 
+def print_list_curses(stdscr, string_list):
+    """Prints a list of strings to the curses window."""
+    stdscr.clear()
+    height, width = stdscr.getmaxyx()
+    for i, text in enumerate(string_list):
+        try:
+            stdscr.addstr(i, 0, text['message'][:width])
+        except curses.error:
+            pass
+    stdscr.refresh()
+
+
 class bcolors:
     HEADER = "\033[95m"
     OKBLUE = "\033[94m"
@@ -32,6 +45,7 @@ class bcolors:
 
 
 tabulate.PRESERVE_WHITESPACE = True
+
 
 def show_output(data, ctx, **options):
     output = ctx.obj["output"]
@@ -57,14 +71,14 @@ def show_output(data, ctx, **options):
     else:
         print('Unknown output format: ' + output)
 
+
 def inquire_user_input(prompt, default=None, required=False, cast=None):
 
     if default is not None:
         user_input = input(f"{prompt} [default: {default}]: ")
     else:
         user_input = input(f"{prompt}: ")
-   
-    
+
     if user_input != "":
         user_input = convert(user_input, cast=cast)
         if type(user_input) == Exception:
@@ -81,6 +95,7 @@ def inquire_user_input(prompt, default=None, required=False, cast=None):
             else:
                 return None
 
+
 def convert(value, cast=None):
     if cast:
         if cast == 'int':
@@ -94,9 +109,9 @@ def convert(value, cast=None):
                 return value
             elif type(value) == str:
                 if value.upper() == "FALSE":
-                    value = False 
+                    value = False
                 elif value.upper() == "TRUE":
-                    value = True 
+                    value = True
                 else:
                     value = Exception("value must be: bool")
             else:
@@ -105,5 +120,5 @@ def convert(value, cast=None):
             value = str(value)
         elif cast == 'file':
             value = os.path.expanduser(value)
-   
+
     return value
