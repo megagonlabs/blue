@@ -181,10 +181,8 @@
     "description": "Presents a form associated with data of specific schema. Form is displayed when triggered and collects data from the user, by rendering a user interface. When form is submitted the data collected from the form is output as JSON data.",
     "created_by": null,
     "properties": {
-      "form": {
-      },
-      "schema": {
-      },
+      "form": {},
+      "schema": {},
       "image": "megagonlabs/blue-agent-presenter:v0.9",
       "tags": {
         "DEFAULT": [
@@ -219,45 +217,45 @@
     "type": "agent",
     "scope": "/PRESENTER",
     "description": "Example Presenter agent that show a form to collect user name in a form-based UI",
-    "created_by": "xmFn7nD9nfMD0zo14RHmYmrHZQu1",
+    "created_by": null,
     "properties": {
-        "schema": {
-            "type": "object",
-            "properties": {
-                "name": {
-                    "type": "string"
-                }
-            }
-        },
-        "form": {
-            "type": "VerticalLayout",
-            "elements": [
-                {
-                    "type": "Control",
-                    "label": "First Name",
-                    "scope": "#/properties/name"
-                }
-            ]
-        },
-        "tags": {},
-        "listens": {
-            "DEFAULT": {
-                "includes": [
-                    "USER"
-                ],
-                "excludes": []
-            }
-        },
-        "display_name": "Presenter Example Agent"
+      "schema": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "form": {
+        "type": "VerticalLayout",
+        "elements": [
+          {
+            "type": "Control",
+            "label": "First Name",
+            "scope": "#/properties/name"
+          }
+        ]
+      },
+      "tags": {},
+      "listens": {
+        "DEFAULT": {
+          "includes": [
+            "USER"
+          ],
+          "excludes": []
+        }
+      },
+      "display_name": "Presenter Example Agent"
     },
     "icon": null
-},
+  },
   {
     "name": "NL2SQL",
     "type": "agent",
     "scope": "/",
     "description": "Converts a natural language query to SQL, executes, and returns the result, in and end to end manner with steps including data source selection, nl2sql generation, and sql execution. Returns output as a JSON with keys `question`, `source`, `query`, `result` and `error`.",
-    "created_by": "D8mQz2heOvhaMUsXSGKoeAwrrBq2",
+    "created_by": null,
     "properties": {
       "image": "megagonlabs/blue-agent-nl2sql:v0.9",
       "openai.service": "ws://blue_service_openai:8001",
@@ -334,7 +332,7 @@
     "type": "agent",
     "scope": "/NL2SQL",
     "description": "Extends NL2SQL for interactive use, including listening to the USER agent directly.",
-    "created_by": "NhFy2jG4JCSJJz7cYbAm7HJ7Txk2",
+    "created_by": null,
     "properties": {
       "display_name": "NL-to-SQL Interactive Agent",
       "openai.service": "ws://blue_service_openai:8001",
@@ -356,13 +354,28 @@
     "icon": null
   },
   {
+    "name": "NL2SQL___DM",
+    "type": "agent",
+    "scope": "/NL2SQL",
+    "description": "NL2SQL for dialogue manager example",
+    "created_by": null,
+    "properties": {
+      "nl2q_execute": false,
+      "listens": {},
+      "tags": {},
+      "nl2q_discovery": false,
+      "nl2q_source": "postgres_example"
+    },
+    "icon": null
+  },
+  {
     "name": "REQUESTOR",
     "type": "agent",
     "scope": "/",
     "description": "Makes request on any API",
-    "created_by": "5WgRzdacRdOEvj8JBmCXFZSvWmH3",
+    "created_by": null,
     "properties": {
-      "requestor.service": "ws://blue_service_openai:8001",
+      "requestor.service": "",
       "display_name": "Requestor Agent",
       "image": "megagonlabs/blue-agent-requestor:v0.9",
       "tracker.autostart": false,
@@ -383,7 +396,7 @@
     "type": "agent",
     "scope": "/",
     "description": "Summarizes data by executing queries and retrieving query results, and eventually passing them to OpenAI to summarize",
-    "created_by": "5WgRzdacRdOEvj8JBmCXFZSvWmH3",
+    "created_by": null,
     "properties": {
       "image": "megagonlabs/blue-agent-summarizer:v0.9",
       "listens": {
@@ -424,31 +437,31 @@
     "type": "agent",
     "scope": "/SUMMARIZER",
     "description": "Example Summarizer agent to summarize skills for a given job role from user input",
-    "created_by": "xmFn7nD9nfMD0zo14RHmYmrHZQu1",
+    "created_by": null,
     "properties": {
-        "listens": {
-            "DEFAULT": {
-                "includes": [
-                    "USER"
-                ],
-                "excludes": []
-            }
-        },
-        "tags": {},
-        "display_name": "Summarizer Example Agent",
-        "template": "${input} role requires these skills: {% for se_skill in se_skills %} {{se_skill.skill_required}}, {% endfor %}. \n Note: Soft skills are highlighted.",
-        "questions": {
-            "se_skills": "what skills are required for ${input} jobs?"
+      "listens": {
+        "DEFAULT": {
+          "includes": [
+            "USER"
+          ],
+          "excludes": []
         }
+      },
+      "tags": {},
+      "display_name": "Summarizer Example Agent",
+      "template": "${input} role requires these skills: {% for se_skill in se_skills %} {{se_skill.skill_required}}, {% endfor %}. \n Note: Soft skills are highlighted.",
+      "questions": {
+        "se_skills": "what skills are required for ${input} jobs?"
+      }
     },
     "icon": null
-},
+  },
   {
     "name": "QUERYEXECUTOR",
     "type": "agent",
     "scope": "/",
     "description": "Executes a query on data source",
-    "created_by": "5WgRzdacRdOEvj8JBmCXFZSvWmH3",
+    "created_by": null,
     "properties": {
       "image": "megagonlabs/blue-agent-query_executor:v0.9",
       "listens": {
@@ -479,52 +492,15 @@
     "type": "agent",
     "scope": "/",
     "description": "Given queries or data, injected into a visualization template, substitute query results, and render a visualization as specified in the template",
-    "created_by": "5WgRzdacRdOEvj8JBmCXFZSvWmH3",
+    "created_by": null,
     "properties": {
       "image": "megagonlabs/blue-agent-visualizer:v0.9",
-      "template": {
-        "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
-        "description": "${description}",
-        "title": {
-          "text": [
-            "${chart_title}"
-          ],
-          "align": "center"
-        },
-        "data": {
-          "values": [
-            {
-              "x": 2,
-              "y": 3
-            }
-          ]
-        },
-        "mark": "bar",
-        "encoding": {
-          "x": {
-            "field": "x",
-            "type": "quantitative",
-            "axis": {
-              "labelAngle": 0
-            },
-            "title": "${x_title}"
-          },
-          "y": {
-            "field": "y",
-            "type": "quantitative",
-            "title": "${y_title}"
-          }
-        }
-      },
-      "chart_title": "Title",
-      "description": "Description",
-      "x_title": "X",
-      "y_title": "Y",
+      "template": {},
+      "questions": {},
+      "queries": {},
       "listens": {
         "DEFAULT": {
-          "includes": [
-            "USER"
-          ],
+          "includes": [],
           "excludes": []
         }
       },
@@ -545,7 +521,7 @@
     "type": "agent",
     "scope": "/VISUALIZER",
     "description": "Example Visualizer agent to visualize skills by frequency from a query result",
-    "created_by": "xmFn7nD9nfMD0zo14RHmYmrHZQu1",
+    "created_by": null,
     "properties": {
       "template": "{\"$schema\":\"https://vega.github.io/schema/vega-lite/v5.json\",\"description\":\"Top skills required by frequency\",\"data\":{\"values\":${skills_by_frequency}},\"mark\":\"bar\",\"encoding\":{\"x\":{\"field\":\"skill_required\",\"type\":\"nominal\",\"sort\":\"-y\",\"axis\":{\"title\":\"Skill Required\"}},\"y\":{\"field\":\"frequency\",\"type\":\"quantitative\",\"axis\":{\"title\":\"Frequency\"}}},\"title\":\"Top skills required by frequency\"}",
       "questions": {
@@ -569,18 +545,15 @@
     "type": "agent",
     "scope": "/",
     "description": "Creates a data-driven document, optionally highlighting segments of the document using OpenAI",
-    "created_by": "5WgRzdacRdOEvj8JBmCXFZSvWmH3",
+    "created_by": null,
     "properties": {
       "image": "megagonlabs/blue-agent-documenter:v0.9",
-      "template": "jinja template with references to data from the queries",
+      "template": "",
       "questions": {},
-      "queries": {
-      },
+      "queries": {},
       "listens": {
         "DEFAULT": {
-          "includes": [
-            "USER"
-          ],
+          "includes": [],
           "excludes": []
         }
       },
@@ -603,36 +576,36 @@
     "type": "agent",
     "scope": "/DOCUMENTER",
     "description": "Example document builder agent to hilite soft skills for a given job role from user input",
-    "created_by": "xmFn7nD9nfMD0zo14RHmYmrHZQu1",
+    "created_by": null,
     "properties": {
-        "template": "${input} role requires these skills: {% for se_skill in se_skills %} {{se_skill.skill_required}}, {% endfor %}. \n Note: Soft skills are highlighted.",
-        "tracker.autostart": false,
-        "hilite": "soft skills",
-        "questions": {
-            "se_skills": "what skills are required for ${input} jobs?"
-        },
-        "listens": {
-            "DEFAULT": {
-                "includes": [
-                    "USER"
-                ],
-                "excludes": []
-            }
-        },
-        "tracker.outputs": [
-            "log.INFO"
-        ],
-        "tags": {},
-        "display_name": "Document Builder Example Agent"
+      "template": "${input} role requires these skills: {% for se_skill in se_skills %} {{se_skill.skill_required}}, {% endfor %}. \n Note: Soft skills are highlighted.",
+      "tracker.autostart": false,
+      "hilite": "soft skills",
+      "questions": {
+        "se_skills": "what skills are required for ${input} jobs?"
+      },
+      "listens": {
+        "DEFAULT": {
+          "includes": [
+            "USER"
+          ],
+          "excludes": []
+        }
+      },
+      "tracker.outputs": [
+        "log.INFO"
+      ],
+      "tags": {},
+      "display_name": "Document Builder Example Agent"
     },
     "icon": null
-},
+  },
   {
     "name": "BASIC_PLANNER",
     "type": "agent",
     "scope": "/",
     "description": "Planner example to demonstrate plan execution",
-    "created_by": "5WgRzdacRdOEvj8JBmCXFZSvWmH3",
+    "created_by": null,
     "properties": {
       "image": "megagonlabs/blue-agent-basic_planner:v0.9",
       "display_name": "Planner Example",
@@ -656,8 +629,8 @@
     "name": "DIALOGUE_MANAGER",
     "type": "agent",
     "scope": "/",
-    "description": "",
-    "created_by": "RMKX3vPR7XhKHhy5eu7Av5nui2F2",
+    "description": "A dialogue manager that detects user intents and invokes matching plan.",
+    "created_by": null,
     "properties": {
       "image": "megagonlabs/blue-agent-dialogue_manager:v0.9",
       "listens": {
@@ -669,9 +642,8 @@
         }
       },
       "display_name": "Dialogue Manager",
-      "system_agent": true,
-      "intents": "[{\"name\": \"investigate\", \"description\": \"Execute a query on a database by calling an NL2SQL agent and get the raw data.\"}, {\"name\": \"job_search\", \"description\": \"Search for jobs that meet certain requirements.\"}, {\"name\": \"summarize\", \"description\": \"Execute a query on a database by calling an NL2SQL agent and view a generated summary of the data.\"}, {\"name\": \"default\", \"description\": \"Not one of the other specified intents, simply pass the input on to a chatbot.\"}]",
-      "tags": {},
+      "system_agent": false,
+      "intents": {},
       "categories": [
         "EXPERIMENTAL"
       ]
@@ -682,15 +654,15 @@
     "name": "DIALOGUE_MANAGER___EXAMPLE",
     "type": "agent",
     "scope": "/DIALOGUE_MANAGER",
-    "description": "Example use case of Dialogue Manager. ",
-    "created_by": "RMKX3vPR7XhKHhy5eu7Av5nui2F2",
+    "description": "Example use case of dialogue manager.",
+    "created_by": null,
     "properties": {
       "intents": {
         "investigate": {
           "description": "The user is requesting job market statistics or insights that can be fulfilled by a single SQL query (e.g., 'What is the average salary for data scientists in New York?').",
           "plan": [
             [
-              "NL2SQL",
+              "NL2SQL___DM",
               "DEFAULT"
             ],
             [
@@ -698,7 +670,7 @@
               "DEFAULT"
             ],
             [
-              "DIALOGUE_MANAGER",
+              "DIALOGUE_MANAGER___EXAMPLE",
               "RESULT"
             ]
           ]
@@ -711,7 +683,7 @@
               "DEFAULT"
             ],
             [
-              "NL2SQL",
+              "NL2SQL___DM",
               "DEFAULT"
             ],
             [
@@ -719,7 +691,7 @@
               "DEFAULT"
             ],
             [
-              "DIALOGUE_MANAGER",
+              "DIALOGUE_MANAGER___EXAMPLE",
               "RESULT"
             ]
           ]
@@ -732,7 +704,7 @@
               "DEFAULT"
             ],
             [
-              "NL2SQL",
+              "NL2SQL___DM",
               "DEFAULT"
             ],
             [
@@ -740,24 +712,24 @@
               "DEFAULT"
             ],
             [
-              "OPENAI___SUMMARIZER",
+              "OPENAI___QUERY_EXPLAINER",
               "DEFAULT"
             ],
             [
-              "DIALOGUE_MANAGER",
+              "DIALOGUE_MANAGER___EXAMPLE",
               "RESULT"
             ]
           ]
         },
         "default": {
-          "description": "The user’s request does not fit into any of the above categories.",
+          "description": "The user\u2019s request does not fit into any of the above categories.",
           "plan": [
             [
               "OPENAI___ROGUEAGENT",
               "DEFAULT"
             ],
             [
-              "DIALOGUE_MANAGER",
+              "DIALOGUE_MANAGER___EXAMPLE",
               "RESULT"
             ]
           ]
@@ -771,7 +743,8 @@
           "excludes": []
         }
       },
-      "intent_classifier_agent": "OPENAI___INTENT_CLASSIFIER"
+      "intent_classifier_agent": "OPENAI___INTENT_CLASSIFIER",
+      "tags": {}
     },
     "icon": null
   },
@@ -780,7 +753,7 @@
     "type": "agent",
     "scope": "/",
     "description": "Counter agent example to demonstrate data processing",
-    "created_by": "5WgRzdacRdOEvj8JBmCXFZSvWmH3",
+    "created_by": null,
     "properties": {
       "image": "megagonlabs/blue-agent-counter:v0.9",
       "listens": {
@@ -803,7 +776,7 @@
     "name": "OPENAI___INTERACTIVE",
     "type": "agent",
     "scope": "/OPENAI",
-    "description": "Extends OPENAI for interactive use, including listening to the USER agent directly.",
+    "description": "Extends OPENAI agent for interactive use, by listening to the USER agent directly.",
     "created_by": null,
     "properties": {
       "display_name": "OpenAI Interactive Agent",
@@ -823,7 +796,7 @@
     "type": "agent",
     "scope": "/OPENAI",
     "description": "Extracts entities, specified as a property (entities) below, using OpenAI guided by generic instructions for information extraction",
-    "created_by": "5WgRzdacRdOEvj8JBmCXFZSvWmH3",
+    "created_by": null,
     "properties": {
       "openai.model": "gpt-4o-mini",
       "openai.frequency_penalty": 0,
@@ -880,7 +853,7 @@
     "type": "agent",
     "scope": "/OPENAI",
     "description": "Given a string containing an instruction for task and an input, generate a prompt for an LLM agent to solve the task given the input.",
-    "created_by": "wP6D9D9GOQeRqN56QJ6wxYOl3n62",
+    "created_by": null,
     "properties": {
       "openai.model": "gpt-3.5-turbo-instruct",
       "openai.top_p": 1,
@@ -906,9 +879,7 @@
       "input_template": "You are a Prompt Generator Agent. Your role is to generate a clear and effective prompt for another LLM agent based on a combined input and task string. This string includes both the specific input and the task to be performed.\n\nInstructions:\n\n1. Extract the specific input and the task from the combined string.\n2. Create a precise and actionable prompt for another LLM agent based on the extracted information.\n3. Ensure the prompt is clear and provides enough context for the other LLM agent to perform the task accurately.\n4. Provide the extracted input at the end.\n\nExample:\n\nCombined String: what are the named entities in the sentence 'Tesla's battery innovations in 2023'.\n Output: Please extract named entities from the provided input.\nInput: Tesla's battery innovations in 2023\n\nTarget:\n\nCombined String: ${input}\nOutput:\n",
       "listens": {
         "DEFAULT": {
-          "includes": [
-            "USER"
-          ],
+          "includes": [],
           "excludes": []
         }
       }
@@ -920,7 +891,7 @@
     "type": "agent",
     "scope": "/OPENAI",
     "description": "An empty LLM agent, which uses the prompt generated from a generated prompt to solve a given task.",
-    "created_by": "wP6D9D9GOQeRqN56QJ6wxYOl3n62",
+    "created_by": null,
     "properties": {
       "openai.top_p": 1,
       "openai.frequency_penalty": 0,
@@ -955,14 +926,16 @@
     "type": "agent",
     "scope": "/OPENAI",
     "description": "Gets results from executing input prompt through OpenAI models that can be configured in properties, as shown below.",
-    "created_by": "5WgRzdacRdOEvj8JBmCXFZSvWmH3",
+    "created_by": null,
     "properties": {
       "display_name": "OPENAI Intent Classifier Agent",
-      "input_field": "messages",
-      "openai.model": "gpt-4o",
-      "openai.api": "ChatCompletion",
-      "output_path": "$.choices[0].message.content",
-      "openai.max_tokens": 300,
+      "input_template": "You are an expert in intent classification and information extraction. Please identify the intent of the below user text and classify it into one of the below specified possible intents. Respond only with JSON in the following format, nothing else. JSON response format: {\"intent\": \"investigate\"}. Make sure the intent is an exact string match with one of the specified intents. ${input}",
+      "tags": {
+        "DEFAULT": [
+          "EXTRACTIONS",
+          "HIDDEN"
+        ]
+      },
       "listens": {
         "DEFAULT": {
           "includes": [],
@@ -970,22 +943,7 @@
             "USER"
           ]
         }
-      },
-      "tags": {
-        "DEFAULT": [
-          "EXTRACTIONS",
-          "HIDDEN"
-        ]
-      },
-      "openai.top_p": 1,
-      "openai.service": "ws://blue_service_openai:8001",
-      "schema": {},
-      "openai.frequency_penalty": 0,
-      "input_context_field": "content",
-      "input_context": "$[0]",
-      "input_template": "You are an expert in intent classification and information extraction. Please identify the intent of the below user text and classify it into one of the below specified possible intents. Respond only with JSON in the following format, nothing else. JSON response format: {\"intent\": \"investigate\"}. Make sure the intent is an exact string match with one of the specified intents. ${input}",
-      "openai.presence_penalty": 0,
-      "input_json": "[{\"role\": \"user\"}]"
+      }
     },
     "icon": null
   },
@@ -994,14 +952,10 @@
     "type": "agent",
     "scope": "/OPENAI",
     "description": "Explain a query result ",
-    "created_by": "5WgRzdacRdOEvj8JBmCXFZSvWmH3",
+    "created_by": null,
     "properties": {
       "display_name": "OpenAI Query Explainer Agent",
-      "input_field": "messages",
       "openai.model": "gpt-4o-mini",
-      "openai.api": "ChatCompletion",
-      "output_path": "$.choices[0].message.content",
-      "openai.max_tokens": 300,
       "tags": {
         "DEFAULT": [
           "EXPLANATION"
@@ -1009,28 +963,13 @@
       },
       "listens": {
         "DEFAULT": {
-          "includes": [
-            "QUERY"
-          ],
+          "includes": [],
           "excludes": [
             "USER"
           ]
         }
       },
-      "openai.service": "ws://blue_service_openai:8001",
-      "schema": {},
-      "input_context_field": "content",
-      "input_json": "[{\"role\":\"user\"}]",
-      "openai.stop": [
-        "#",
-        ";"
-      ],
-      "input_template": "Given a question expressed in natural language and its corresponding sql query, along with the result of the query as below in JSON, explain the results. Return only result in natural language\n ${input}",
-      "openai.top_p": 1,
-      "openai.frequency_penalty": 0,
-      "input_context": "$[0]",
-      "openai.presence_penalty": 0,
-      "system_agent": false
+      "input_template": "Given a question expressed in natural language and its corresponding sql query, along with the result of the query as below in JSON, explain the results. Return only result in natural language\n ${input}"
     },
     "icon": null
   },
@@ -1039,12 +978,11 @@
     "type": "agent",
     "scope": "/OPENAI",
     "description": "Simple document hiliter using OpenAI",
-    "created_by": "5WgRzdacRdOEvj8JBmCXFZSvWmH3",
+    "created_by": null,
     "properties": {
       "display_name": "OPENAI Hiliter Agent",
       "openai.model": "gpt-4o",
       "openai.max_tokens": 2000,
-      "output_path": "$.choices[*].message.content",
       "tags": {
         "DEFAULT": [
           "DOC",
@@ -1090,7 +1028,7 @@
     "type": "agent",
     "scope": "/OPENAI",
     "description": "Uses OpenAI to extracts values given column names and descriptions, specified as a property (entities) below.",
-    "created_by": "ycYtg6Xe9IRQy1ibcJNRHiv96Lk2",
+    "created_by": null,
     "properties": {
       "output_strip": true,
       "output_transformations": [
@@ -1134,7 +1072,7 @@
     "type": "agent",
     "scope": "/OPENAI",
     "description": "Uses OpenAI to return a boolean value based on whether the input doc meets the specified filter condition.",
-    "created_by": "ycYtg6Xe9IRQy1ibcJNRHiv96Lk2",
+    "created_by": null,
     "properties": {
       "display_name": "OPENAI Semantic Filter Agent",
       "openai.model": "gpt-4o-mini",
@@ -1200,7 +1138,7 @@
     "type": "agent_group",
     "scope": "/",
     "description": "Try out the NL2SQL agent",
-    "created_by": "5WgRzdacRdOEvj8JBmCXFZSvWmH3",
+    "created_by": null,
     "properties": {},
     "icon": null
   },
@@ -1217,8 +1155,8 @@
     "name": "dialogue_manager_demo",
     "type": "agent_group",
     "scope": "/",
-    "description": "Test the Dialogue Manager",
-    "created_by": "RMKX3vPR7XhKHhy5eu7Av5nui2F2",
+    "description": "Try out the Dialogue Manager",
+    "created_by": null,
     "properties": {},
     "icon": null
   },
@@ -1268,7 +1206,7 @@
     "icon": null
   },
   {
-    "name": "OPENAI___SUMMARIZER",
+    "name": "NL2SQL___DM",
     "type": "agent",
     "scope": "/dialogue_manager_demo",
     "description": "",
@@ -1287,6 +1225,15 @@
   },
   {
     "name": "NL2SQL",
+    "type": "agent",
+    "scope": "/dialogue_manager_demo",
+    "description": "",
+    "created_by": null,
+    "properties": {},
+    "icon": null
+  },
+  {
+    "name": "OPENAI___QUERY_EXPLAINER",
     "type": "agent",
     "scope": "/dialogue_manager_demo",
     "description": "",
