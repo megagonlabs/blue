@@ -128,4 +128,4 @@ class PresenterAgent(Agent):
 
                 if worker:
                     worker.append_data(stream, data)
-        return None
+

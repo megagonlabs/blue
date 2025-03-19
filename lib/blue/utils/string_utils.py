@@ -8,11 +8,11 @@ def camel_case(string):
 
 def safe_substitute(ts, **mappings):
     
-    ## basis string template first
+    ## basic string template first
     t = string.Template(ts)
     r = t.safe_substitute(**mappings)
 
-    ## jinha
+    ## jinja
     e = Environment(loader=BaseLoader()).from_string(r)
     r = e.render(**mappings)
     

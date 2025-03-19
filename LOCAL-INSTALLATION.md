@@ -12,7 +12,7 @@ Blue can be deployed in two modes: (1) `localhost` (2) `swarm` mode. `localhost`
 ### hardware
 
 Below are recommended minimums for installation:
-* 16GB Memory
+* 32GB Memory
 * 128GB Disk Space
 
 On AWS a minimum recommended instance type is t3.xlarge. 
@@ -185,6 +185,8 @@ $ blue service  --service_name OPENAI install
 $ blue service  --service_name OPENAI start
 ```
 
+Note, if you change the configuration of a service, you must re-run ```blue service  --service_name <service_name> start``` for the changes to take effect.
+
 If you type `docker ps` you should see now an additional containers running, similar to below:
 ```
 45b6488db428   megagonlabs/blue-service-openai:v0.9      "python openai_servi…"   18 hours ago   Up 18 hours   0.0.0.0:8001->8001/tcp             youthful_galileo
@@ -192,7 +194,7 @@ If you type `docker ps` you should see now an additional containers running, sim
 
 #### testing
 
-At this point blue is ready to use. You can test your deployment by browsing to the blue web application hosted at http://localhost:3000, if you accepted default configuration. Otherwise, it is `BLUE_PUBLIC_WEB_SERVER`:`BLUE_PUBLIC_API_SERVER_PORT`
+At this point blue is ready to use. You can test your deployment by browsing to the blue web application hosted at http://localhost:3000, if you accepted default configuration. Otherwise, it is http://`BLUE_PUBLIC_WEB_SERVER`:`BLUE_PUBLIC_WEB_SERVER_PORT`
 
 You should see:
 

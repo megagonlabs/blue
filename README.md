@@ -1,51 +1,55 @@
-# What is Blue
+# What is Blue?
 
-Blue is an agent orchestration platform to coordinate data and work in an enterprise AI system, comprised of agents and other components to perform complex tasks with workflows, accessing data, models, and APIs in the enterprise.
-
-We are building Blue to explore the design space of agent orchestration systems, to support a variety of use-cases: from data and domain-agnostic to data-aware design, from non-interactive use cases to conversational interaction, from fixed workflows to ad-hoc workflows with planners, from purely textual interaction to interactive agents with user interfaces, and beyond. Blue is designed such that it can be configured to support any of these use cases.
+Blue is an agent orchestration platform for building and deploying applications with agentic workflows for the enterprise. 
 
 A key target use-case of Blue is enterprise, i.e. integrate an existing enterprise infrastructure with advanced AI, LLMs, and beyond for a wide-variety of enterprise use-cases. We aim to leverage what already exist in the enterprise infrastructure, i.e. existing APIs, models, and data in their original source, format, and systems and couple them with new capabilities.
 
-Below is an overview of the Blue infrastructure, with the key touchpoints to an enterprise infrastructure:
+Blue is currently a research project to explore the design space of agent orchestration systems, to support a variety of use-cases: from data and domain-agnostic to data-aware design, from non-interactive use cases to conversational interaction, from fixed workflows to ad-hoc workflows with planners, from purely textual interaction to interactive agents with user interfaces, and beyond. 
 
-![Stream](./docs/images/overview.png)
+# How does Blue work?
 
-In Blue, key components of the AI system are:
+To help facilitate ‘Agentic for Enterprise’ we are introducing several concepts in the design of our framework, including:
+- **Streams** to facilitate data, control, and communication among agents
+- **Messages** in streams to standardize of data and instructions for agents
+- **Registries** to capture metadata about data, agents and beyond
+- **Session** to provide context (and shared memory) for computation
+- **Plans** to represent workflows and execution of agents
 
-- data lake(s) to store and query data from, consisting of a multitude of databases
-- data registry, serving as a metadata store for data sources, with capabilities to discover and search data, and eventually query data from the sources
-- data planner(s), modeled as an agent, utilizing metadata (performance and beyond) in the data registry, provide crucial functionality to generate query plans
-- agent registry, serving as a metadata store for agents, with capabilities to search agent metadata (e.g. descriptions, inputs, outputs)
-- agent(s) providing a wide range of functionality, from calling APIs, interfacing with LLMs, to running predictive models, etc.
-- task planner(s), also modeled as an agent, taking initial user/agent input and creating execution plans, utilizing metadata in the agent registry, as well as basic operators to serve as glue between inputs and outputs.
-- task coordinator(s), modeled as an agent,coordinate and monitor execution progress, once a plan is created.
-- operators, supporting the need for basic common capabilities such as data transformation and beyond, as executable functions accessible to the coordinator to invoke
-- orchestration, supporting infrastructure and streams to govern the flow of data and instructions among all agents within a user session
-- a conversational user interface where users can create sessions, add agents to their conversation, interact with them, and accomplish tasks.
-- a python API to allow other modalities where a multi-agent system can be utilized programatically, such as developing APIs.
+![Stream](./docs/images/concepts.png)
 
-</br>
+To get a glimpse of where we are heading with agentic architectures, read our papers:
 
-# What can you build with Blue
-
-Here are a few examples you can build with blue:
-
-* a fact-checker API to examine LLM generated text against propriery data (e.g. fact-check resume)
-* a conversational agent that uses backend models and APIs (e.g. career support agent with predictive models and data from insight database)
-* a sophisticated search exploiting LLMs (e.g. search jobs interfacing to ranking models)
-* an interactive graphical user experience for complex workflows (e.g. profile builder)
-* an API to convert user text into database queryes (e.g. natural language to SQL)
+* [A Blueprint Architecture of Compound AI Systems for Enterprise](https://arxiv.org/abs/2406.00584) [Compound AI Systems Workshop](https://sites.google.com/view/compound-ai-systems-workshop/home)
+* [Orchestrating Agents and Data for Enterprise: A Blueprint Architecture for Compound AI]() [Data-AI Systems Workshop at ICDE'25](https://dais-workshop-icde.github.io/)
 
 </br>
 
-Sounds interesting? Want to learn more?
+# What can you build with Blue?
 
-# Outline of the documentation on this repo:
+Here are a few examples to inspire you to build with blue:
+
+* a set of agents that convert natural language to SQL, executes, and summarizes results in natural language 
+* agents that produces interactive graphical user interfaces and visualizations with your data (e.g. self-service business intelligence) 
+* a conversational agent that interfaces to existing predictive models and APIs (e.g. job search agent with predictive models and data)
+* agents that execute workflows processing text data, extracting and populating databases.
+
+
+# Want to try out blue demos?
+
+You can try out a demos on our [blue-examples repository!](http://github.com/rit-git/blue-examples)
+
+</br>
+
+Sounds interesting? Want to learn more? Read documentation below.
+
+# Outline of the Documentation:
 
 * [Orchestration Concepts](ORCHESTRATION-CONCEPTS.md) to learn more about Blue concepts
 * Install your own Blue environment
   * [Local Installation](LOCAL-INSTALLATION.md) more suited for trying out and development 
   * [SWARM Deployment](SWARM-DEPLOYMENT.md) more suited for staging and production deployment
+* [Quickstart Guide](QUICK-START.md) to learn basics of using blue web application.
+* [Demos](https://github.com/rit-git/blue-examples/tree/v0.9) to try out agentic demos with base and experimental agents
 * [Build](BUILD.md) to learn how to build and deploy from repository
 * [Development](DEVELOPMENT.md) to learn more about how to develop with Blue
 * [Access Control](ACCESS-CONTROL.md) to learn more about access control with roles

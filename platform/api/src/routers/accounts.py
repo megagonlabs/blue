@@ -22,7 +22,6 @@ from fastapi.responses import JSONResponse
 
 ###### Settings
 from settings import EMAIL_DOMAIN_WHITE_LIST, FIREBASE_CLIENT_ID, PROPERTIES, ROLE_PERMISSIONS, SECURE_COOKIE, FIREBASE_SERVICE_CRED
-import jwt, requests
 
 ### Assign from platform properties
 from blue.platform import Platform
@@ -81,7 +80,7 @@ async def signin(request: Request):
         else:
             try:
                 decoded_claims = verify_google_id_token(id_token, client_id=FIREBASE_CLIENT_ID, issuer=f'https://securetoken.google.com/{FIREBASE_CLIENT_ID}')
-            except (jwt.ExpiredSignatureError, jwt.InvalidAudienceError, jwt.InvalidIssuerError, jwt.InvalidTokenError, requests.exceptions.RequestException, Exception) as e:
+            except Exception:
                 return ERROR_RESPONSE
         # {
         #     "name": "string",
@@ -160,7 +159,7 @@ async def signin_cli(request: Request):
         else:
             try:
                 decoded_claims = verify_google_id_token(id_token, client_id=FIREBASE_CLIENT_ID, issuer=f'https://securetoken.google.com/{FIREBASE_CLIENT_ID}')
-            except (jwt.ExpiredSignatureError, jwt.InvalidAudienceError, jwt.InvalidIssuerError, jwt.InvalidTokenError, requests.exceptions.RequestException, Exception) as e:
+            except Exception:
                 return ERROR_RESPONSE
         email = decoded_claims["email"]
         email_domain = re.search(EMAIL_DOMAIN_ADDRESS_REGEXP, email).group(1)

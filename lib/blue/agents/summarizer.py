@@ -67,7 +67,7 @@ class SummarizerAgent(OpenAIAgent):
         worker.write_progress(progress_id=worker.sid, label='Issuing question:' + question, value=self.current_step/self.num_steps)
 
         # plan
-        p = Plan(prefix=worker.prefix)
+        p = Plan(scope=worker.prefix)
         # set input
         p.define_input(name, value=question)
         # set plan
@@ -86,7 +86,7 @@ class SummarizerAgent(OpenAIAgent):
         worker.write_progress(progress_id=worker.sid, label='Issuing query:' + query, value=self.current_step/self.num_steps)
 
         # plan
-        p = Plan(prefix=worker.prefix)
+        p = Plan(scope=worker.prefix)
         # set input
         p.define_input(name, value=query)
         # set plan
@@ -96,7 +96,7 @@ class SummarizerAgent(OpenAIAgent):
         # submit plan
         p.submit(worker)
 
-    def summarize_doc(self, properties=None, worker=None):
+    def summarize_doc(self, properties=None, input="", worker=None):
 
         if worker == None:
             worker = self.create_worker(None)
@@ -116,7 +116,7 @@ class SummarizerAgent(OpenAIAgent):
         id = uuid_utils.create_uuid()
 
         summary_template = properties['template']
-        summary = string_utils.safe_substitute(summary_template, **self.results,  **session_data)
+        summary = string_utils.safe_substitute(summary_template, **self.results,  **session_data, input=input)
 
         if 'rephrase' in properties and properties['rephrase']:
             # progress 
@@ -143,6 +143,8 @@ class SummarizerAgent(OpenAIAgent):
 
                 stream_data = worker.get_data(stream)
                 input_data = " ".join(stream_data)
+                worker.set_data("input", input_data)
+
                 if worker:
                     session_data = worker.get_all_session_data()
 
@@ -168,7 +170,7 @@ class SummarizerAgent(OpenAIAgent):
                             q = questions[question_name]
                             question = string_utils.safe_substitute(q, **self.properties, **session_data, input=input_data)
                             self.todos.add(question_name)
-                            self.issue_nl_query(question, name=query_name, worker=worker)
+                            self.issue_nl_query(question, name=question_name, worker=worker)
 
                     # db queries
                     if 'queries' in self.properties:
@@ -217,7 +219,10 @@ class SummarizerAgent(OpenAIAgent):
                     
                     # all queries received
                     if len(self.todos) == 0:
-                        self.summarize_doc(properties=properties, worker=worker)
+                        input_data = worker.get_data("input")
+                        if input_data is None:
+                            input_data = ""
+                        self.summarize_doc(properties=properties, input=input_data, worker=worker)
                 else:
                     logging.info("nothing found")
         elif input.find("QUESTION_RESULTS_") == 0:
@@ -237,7 +242,10 @@ class SummarizerAgent(OpenAIAgent):
                     
                     # all questions received
                     if len(self.todos) == 0:
-                        self.summarize_doc(properties=properties, worker=worker)
+                        input_data = worker.get_data("input")
+                        if input_data is None:
+                            input_data = ""
+                        self.summarize_doc(properties=properties, input=input_data, worker=worker)
                 else:
                     logging.info("nothing found")
 
