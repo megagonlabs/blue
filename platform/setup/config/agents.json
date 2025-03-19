@@ -362,7 +362,10 @@
     "properties": {
       "nl2q_execute": false,
       "listens": {},
-      "tags": {},
+      "tags": {
+       "DEFAULT": [
+          "HIDDEN"
+        ]},
       "nl2q_discovery": false,
       "nl2q_source": "postgres_example"
     },
@@ -806,7 +809,8 @@
       "openai.max_tokens": 300,
       "tags": {
         "DEFAULT": [
-          "EXTRACTIONS"
+          "EXTRACTIONS",
+          "HIDDEN"
         ]
       },
       "output_path": "$.choices[0].message.content",
@@ -899,7 +903,8 @@
       "openai.model": "gpt-4o-mini",
       "tags": {
         "DEFAULT": [
-          "EXTRACTIONS"
+          "EXTRACTIONS",
+          "HIDDEN"
         ]
       },
       "input_template": "${input}",
@@ -958,7 +963,8 @@
       "openai.model": "gpt-4o-mini",
       "tags": {
         "DEFAULT": [
-          "EXPLANATION"
+          "EXPLANATION",
+          "HIDDEN"
         ]
       },
       "listens": {
@@ -1216,15 +1222,6 @@
   },
   {
     "name": "DIALOGUE_MANAGER___EXAMPLE",
-    "type": "agent",
-    "scope": "/dialogue_manager_demo",
-    "description": "",
-    "created_by": null,
-    "properties": {},
-    "icon": null
-  },
-  {
-    "name": "NL2SQL",
     "type": "agent",
     "scope": "/dialogue_manager_demo",
     "description": "",
