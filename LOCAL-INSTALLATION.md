@@ -185,6 +185,8 @@ $ blue service  --service_name OPENAI install
 $ blue service  --service_name OPENAI start
 ```
 
+Note, if you change the configuration of a service, you must re-run ```blue service  --service_name <service_name> start``` for the changes to take effect.
+
 If you type `docker ps` you should see now an additional containers running, similar to below:
 ```
 45b6488db428   megagonlabs/blue-service-openai:v0.9      "python openai_servi…"   18 hours ago   Up 18 hours   0.0.0.0:8001->8001/tcp             youthful_galileo
