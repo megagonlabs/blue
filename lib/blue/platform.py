@@ -8,14 +8,13 @@ import datetime
 from redis.commands.json.path import Path
 
 ###### Blue
-from blue.stream  import Message, MessageType, ContentType, ControlCode
-from blue.connection  import PooledConnectionFactory
+from blue.stream import Message, MessageType, ContentType, ControlCode
+from blue.connection import PooledConnectionFactory
 from blue.pubsub import Producer
 from blue.session import Session
 from blue.tracker import PerformanceTracker, Metric, MetricGroup
 from blue.utils import uuid_utils
 from blue.scheduler import Scheduler
-
 
 
 ###############
@@ -78,8 +77,6 @@ class Platform:
         for p in properties:
             self.properties[p] = properties[p]
 
-
-
     ###### SESSION
     def _init_session_cleanup_scheduler(self, callback=None):
         key = 'default_session_expiration_duration'
@@ -92,7 +89,6 @@ class Platform:
 
     def _stop_session_cleanup_job(self):
         self.session_cleanup_scheduler.stop()
-
 
     def get_session_sids(self):
         keys = self.connection.keys(pattern=self.cid + ":SESSION:*:DATA")
@@ -282,7 +278,6 @@ class PlatformPerformanceTracker(PerformanceTracker):
         platform_group = MetricGroup(id="platform", label="Platform Info", visibility=False)
         self.data.add(platform_group)
 
-
         # platform info
         name_metric = Metric(id="name", label="Name", value=self.platform.name, visibility=False)
         platform_group.add(name_metric)
@@ -305,11 +300,13 @@ class PlatformPerformanceTracker(PerformanceTracker):
         db_connections_group.add(num_created_connections_metric)
         num_in_use_connections_metric = Metric(id="num_in_use_connections", label="Num In Use Connections", type="series", value=self.platform.connection_factory.count_in_use_connections())
         db_connections_group.add(num_in_use_connections_metric)
-        num_available_connections_metric = Metric(id="num_available_connections", label="Num Available Connections", type="series", value=self.platform.connection_factory.count_available_connections())
+        num_available_connections_metric = Metric(
+            id="num_available_connections", label="Num Available Connections", type="series", value=self.platform.connection_factory.count_available_connections()
+        )
         db_connections_group.add(num_available_connections_metric)
 
         return self.data.toDict()
-    
+
 
 ###############
 ### SessionCleanupScheduler
@@ -329,11 +326,20 @@ class SessionCleanupScheduler(Scheduler):
             session_expiration_duration = 3
         session_expiration_duration = max(3, session_expiration_duration)
         for session in sessions:
-            epoch = pydash.objects.get(session, 'last_activity_date', session['created_date'])
-            elapsed = datetime.datetime.now() - datetime.datetime.fromtimestamp(epoch)
-            if elapsed.days >= session_expiration_duration:
-                self.platform.delete_session(session['id'])
-                deleted_sessions.append(session['id'])
+            try:
+                epoch = pydash.objects.get(session, 'last_activity_date', session['created_date'])
+                elapsed = datetime.datetime.now() - datetime.datetime.fromtimestamp(epoch)
+                pinned = pydash.objects.get(session, 'pinned', {})
+                is_pinned = False
+                for value in pinned.values():
+                    if value is True:
+                        is_pinned = True
+                        break
+                if elapsed.days >= session_expiration_duration and not is_pinned:
+                    self.platform.delete_session(session['id'])
+                    deleted_sessions.append(session['id'])
+            except:
+                pass
         if pydash.is_function(self.callback):
             self.callback(deleted_sessions)
 

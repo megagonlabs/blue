@@ -1,4 +1,3 @@
-
 ###### Parsers, Utils
 import time
 import argparse
@@ -14,6 +13,7 @@ from blue.stream import ControlCode
 from blue.pubsub import Producer
 from blue.connection import PooledConnectionFactory
 from blue.utils import uuid_utils
+
 
 ###############
 ### Session
@@ -43,7 +43,7 @@ class Session:
                 self.cid = self.prefix + ":" + self.cid
             if self.suffix:
                 self.cid = self.cid + ":" + self.suffix
-        
+
         # session stream
         self.producer = None
 
@@ -160,7 +160,7 @@ class Session:
         self.connection.json().set(
             self._get_metadata_namespace(),
             "$",
-            {"members": {}},
+            {"members": {}, 'pinned': {}},
             nx=True,
         )
 
@@ -359,7 +359,6 @@ class Session:
 
     def to_dict(self):
         return {**self.get_metadata(), "id": self.sid}
-
 
     ###### OPERATIONS
     def _start(self):

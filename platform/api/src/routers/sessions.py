@@ -160,15 +160,21 @@ def add_agent_to_session(request: Request, session_id, agent_name, properties: J
 
 @router.put('/session/{session_id}/pin')
 def pin_session(request: Request, session_id):
+    session = p.get_session(session_id)
+    session_acl_enforce(request, session.to_dict(), read=True)
     uid = request.state.user['uid']
     p.set_metadata(f'users.{uid}.sessions.pinned.{session_id}', True)
+    session.set_metadata(f'pinned.{uid}', True)
     return JSONResponse(content={"message": "Success"})
 
 
 @router.put('/session/{session_id}/unpin')
 def pin_session(request: Request, session_id):
+    session = p.get_session(session_id)
+    session_acl_enforce(request, session.to_dict(), read=True)
     uid = request.state.user['uid']
     p.set_metadata(f'users.{uid}.sessions.pinned.{session_id}', False)
+    session.set_metadata(f'pinned.{uid}', False)
     return JSONResponse(content={"message": "Success"})
 
 
