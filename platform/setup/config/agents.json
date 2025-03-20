@@ -316,6 +316,9 @@
       "nl2q_case_insensitive": true,
       "nl2q_source_database": null,
       "nl2q_discovery_similarity_threshold": 0.65,
+      "nl2q_output_filters": ["all"],
+      "nl2q_output_unroll_results": false,
+      "nl2q_output_max_results": null,
       "tags": {
         "DEFAULT": [
           "QUERY"
@@ -354,6 +357,40 @@
     "icon": null
   },
   {
+    "name": "NL2SQL___RESULT_UNROLLED",
+    "type": "agent",
+    "scope": "/NL2SQL",
+    "description": "Extends NL2SQL, returning only results, unrolled.",
+    "created_by": null,
+    "properties": {
+      "display_name": "NL-to-SQL Agent Unrolled",
+      "nl2q_output_filters": ["result"],
+      "nl2q_output_unroll_results": true
+    },
+    "icon": null
+  },
+  {
+    "name": "NL2SQL___INTERACTIVE_RESULT_UNROLLED",
+    "type": "agent",
+    "scope": "/NL2SQL",
+    "description": "Extends NL2SQL for interactive use, including listening to the USER agent directly, returning only results, unrolled.",
+    "created_by": null,
+    "properties": {
+      "display_name": "NL-to-SQL Agent InteractiveUnrolled",
+      "nl2q_output_filters": ["result"],
+      "nl2q_output_unroll_results": true,
+      "listens": {
+        "DEFAULT": {
+          "includes": [
+            "USER"
+          ],
+          "excludes": []
+        }
+      }
+    },
+    "icon": null
+  },
+  {
     "name": "NL2SQL___DM",
     "type": "agent",
     "scope": "/NL2SQL",
@@ -362,7 +399,10 @@
     "properties": {
       "nl2q_execute": false,
       "listens": {},
-      "tags": {},
+      "tags": {
+       "DEFAULT": [
+          "HIDDEN"
+        ]},
       "nl2q_discovery": false,
       "nl2q_source": "postgres_example"
     },
@@ -477,9 +517,34 @@
           "HIDDEN"
         ]
       },
+      "output_filters": ["all"],
+      "output_unroll_results": false,
+      "output_max_results":null,
       "tracker.autostart": false,
       "tracker.output": "log.INFO",
       "display_name": "Query Executor Agent",
+      "system_agent": false,
+      "categories": [
+        "BASE"
+      ]
+    },
+    "icon": null
+  },
+  {
+    "name": "QUERYEXECUTOR___RESULTS_UNROLLED",
+    "type": "agent",
+    "scope": "/",
+    "description": "Executes a query on data source, only returning results, unrolling lists",
+    "created_by": null,
+    "properties": {
+      "image": "megagonlabs/blue-agent-query_executor:v0.9",
+     
+      "output_filters": ["result"],
+      "output_unroll_results": true,
+      "output_max_results":null,
+      "tracker.autostart": false,
+      "tracker.output": "log.INFO",
+      "display_name": "Query Executor Agent Unrolled",
       "system_agent": false,
       "categories": [
         "BASE"
@@ -806,7 +871,8 @@
       "openai.max_tokens": 300,
       "tags": {
         "DEFAULT": [
-          "EXTRACTIONS"
+          "EXTRACTIONS",
+          "HIDDEN"
         ]
       },
       "output_path": "$.choices[0].message.content",
@@ -899,7 +965,8 @@
       "openai.model": "gpt-4o-mini",
       "tags": {
         "DEFAULT": [
-          "EXTRACTIONS"
+          "EXTRACTIONS",
+          "HIDDEN"
         ]
       },
       "input_template": "${input}",
@@ -958,7 +1025,8 @@
       "openai.model": "gpt-4o-mini",
       "tags": {
         "DEFAULT": [
-          "EXPLANATION"
+          "EXPLANATION",
+          "HIDDEN"
         ]
       },
       "listens": {
@@ -1216,15 +1284,6 @@
   },
   {
     "name": "DIALOGUE_MANAGER___EXAMPLE",
-    "type": "agent",
-    "scope": "/dialogue_manager_demo",
-    "description": "",
-    "created_by": null,
-    "properties": {},
-    "icon": null
-  },
-  {
-    "name": "NL2SQL",
     "type": "agent",
     "scope": "/dialogue_manager_demo",
     "description": "",

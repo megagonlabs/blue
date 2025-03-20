@@ -4,7 +4,7 @@ import json
 
 ###### Blue
 from blue.agent import Agent
-from blue.stream import ContentType
+from blue.stream import ContentType, Message
 from blue.data.registry import DataRegistry
 
 
@@ -56,6 +56,96 @@ class QueryExecutorAgent(Agent):
             'result': result,
             'error': error
         }
+
+    def _apply_filter(self, output, eos=True):
+        output_filters = ['all']
+
+        output_unroll_results = False
+
+        if 'output_filters' in self.properties:
+            output_filters = self.properties['output_filters']
+        if 'output_unroll_results' in self.properties:
+            output_unroll_results = self.properties['output_unroll_results']
+
+        # unroll only if filters == result
+        if len(output_filters) != 1 or 'result' not in output_filters:
+            output_unroll_results = False
+
+        question = output['question']
+        source = output['source']
+        query = output['query']
+        result = output['result']
+        error = output['error']
+
+        # max results
+        if "output_max_results" in self.properties and self.properties['output_max_results']:
+            if isinstance(result, list):
+                result = result[:self.properties['output_max_results']]
+
+        message = None
+        if 'all' in output_filters:
+            message = {
+                'question': question,
+                'source': source,
+                'query': query,
+                'result': result,
+                'error': error
+            }
+            if eos:
+                return [message, Message.EOS]
+            else:
+                return message
+            
+        elif len(output_filters) == 1:
+            if 'result' in output_filters:
+                message = result
+
+                if output_unroll_results:
+                    if eos:
+                        if type(message) == list:
+                            return message + [Message.EOS]
+                        else:
+                            return [message, Message.EOS]
+                    else:
+                        return message
+                else:
+                    if eos:
+                        return [message, Message.EOS]
+                    else:
+                        return message
+
+            else:
+                if 'question' in output_filters:
+                    message = question
+                if 'source' in output_filters:
+                    message = source
+                if 'query' in output_filters:
+                    message = query
+                if 'error' in output_filters:
+                    message = error
+                
+                if eos:
+                    return [message, Message.EOS]
+                else:
+                    return message
+        else:
+            message = {}
+            if 'question' in output_filters:
+                message['question'] = question
+            if 'source' in output_filters:
+                message['source'] = source
+            if 'query' in output_filters:
+                message['query'] = query
+            if 'result' in output_filters:
+                message['result'] = result
+            if 'error' in output_filters:
+                message['error'] = error
+        
+            if eos:
+                return [message, Message.EOS]
+            else:
+                return message
+
     
     def default_processor(self, message, input="DEFAULT", properties=None, worker=None):
 
@@ -80,8 +170,8 @@ class QueryExecutorAgent(Agent):
                     # extract path, query
                     path = data['source']
                     query = data['query']
-                    result = self.execute_sql_query(path, query)
-                    return [result, message.EOS]
+                    output = self.execute_sql_query(path, query)
+                    return self._apply_filter(output)
                 
             elif message.isBOS():
                 stream = message.getStream()
@@ -99,8 +189,9 @@ class QueryExecutorAgent(Agent):
                     # extract path, query
                     path = data['source']
                     query = data['query']
-                    result = self.execute_sql_query(path, query)
-                    return [result, message.EOS]
+                    output = self.execute_sql_query(path, query)
+
+                    return self._apply_filter(output)
                 else:
                     # append to private stream data
                     if worker:
