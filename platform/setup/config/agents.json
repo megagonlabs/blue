@@ -317,7 +317,6 @@
       "nl2q_source_database": null,
       "nl2q_discovery_similarity_threshold": 0.65,
       "nl2q_output_filters": ["all"],
-      "nl2q_output_unroll_results": false,
       "nl2q_output_max_results": null,
       "tags": {
         "DEFAULT": [
@@ -357,28 +356,26 @@
     "icon": null
   },
   {
-    "name": "NL2SQL___RESULT_UNROLLED",
+    "name": "NL2SQL___RESULT_ONLY",
     "type": "agent",
     "scope": "/NL2SQL",
-    "description": "Extends NL2SQL, returning only results, unrolled.",
+    "description": "Extends NL2SQL, returning only results.",
     "created_by": null,
     "properties": {
-      "display_name": "NL-to-SQL Agent Unrolled",
-      "nl2q_output_filters": ["result"],
-      "nl2q_output_unroll_results": true
+      "display_name": "NL-to-SQL Agent Result Only",
+      "nl2q_output_filters": ["result"]
     },
     "icon": null
   },
   {
-    "name": "NL2SQL___INTERACTIVE_RESULT_UNROLLED",
+    "name": "NL2SQL___INTERACTIVE_RESULT_ONLY",
     "type": "agent",
     "scope": "/NL2SQL",
-    "description": "Extends NL2SQL for interactive use, including listening to the USER agent directly, returning only results, unrolled.",
+    "description": "Extends NL2SQL for interactive use, including listening to the USER agent directly, returning only results.",
     "created_by": null,
     "properties": {
-      "display_name": "NL-to-SQL Agent InteractiveUnrolled",
+      "display_name": "NL-to-SQL Agent Interactive Results Only",
       "nl2q_output_filters": ["result"],
-      "nl2q_output_unroll_results": true,
       "listens": {
         "DEFAULT": {
           "includes": [
@@ -518,7 +515,6 @@
         ]
       },
       "output_filters": ["all"],
-      "output_unroll_results": false,
       "output_max_results":null,
       "tracker.autostart": false,
       "tracker.output": "log.INFO",
@@ -531,20 +527,19 @@
     "icon": null
   },
   {
-    "name": "QUERYEXECUTOR___RESULTS_UNROLLED",
+    "name": "QUERYEXECUTOR___RESULTS_ONLY",
     "type": "agent",
     "scope": "/",
-    "description": "Executes a query on data source, only returning results, unrolling lists",
+    "description": "Executes a query on data source, only returning results",
     "created_by": null,
     "properties": {
       "image": "megagonlabs/blue-agent-query_executor:v0.9",
      
       "output_filters": ["result"],
-      "output_unroll_results": true,
       "output_max_results":null,
       "tracker.autostart": false,
       "tracker.output": "log.INFO",
-      "display_name": "Query Executor Agent Unrolled",
+      "display_name": "Query Executor Agent Results Only",
       "system_agent": false,
       "categories": [
         "BASE"

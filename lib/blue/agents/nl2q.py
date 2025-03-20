@@ -70,7 +70,6 @@ agent_properties = {
     "nl2q_additional_requirements": [],
     "nl2q_context": [],
     "nl2q_output_filters": ["all"],
-    "nl2q_output_unroll_results": False,
     "nl2q_output_max_results": None,
     "output_transformations": [
         {
@@ -345,19 +344,11 @@ class NL2SQLAgent(OpenAIAgent):
 
         return params
 
-    def _apply_filter(self, output, eos=True):
+    def _apply_filter(self, output):
         output_filters = ['all']
-
-        output_unroll_results = False
 
         if 'nl2q_output_filters' in self.properties:
             output_filters = self.properties['nl2q_output_filters']
-        if 'nl2q_output_unroll_results' in self.properties:
-            output_unroll_results = self.properties['nl2q_output_unroll_results']
-
-        # unroll only if filters == result
-        if len(output_filters) != 1 or 'result' not in output_filters:
-            output_unroll_results = False
 
         question = output['question']
         source = output['source']
@@ -379,43 +370,19 @@ class NL2SQLAgent(OpenAIAgent):
                 'result': result,
                 'error': error
             }
-            if eos:
-                return [message, Message.EOS]
-            else:
-                return message
+            return message
             
         elif len(output_filters) == 1:
+            if 'question' in output_filters:
+                message = question
+            if 'source' in output_filters:
+                message = source
+            if 'query' in output_filters:
+                message = query
+            if 'error' in output_filters:
+                message = error
             if 'result' in output_filters:
                 message = result
-
-                if output_unroll_results:
-                    if eos:
-                        if type(message) == list:
-                            return message + [Message.EOS]
-                        else:
-                            return [message, Message.EOS]
-                    else:
-                        return message
-                else:
-                    if eos:
-                        return [message, Message.EOS]
-                    else:
-                        return message
-
-            else:
-                if 'question' in output_filters:
-                    message = question
-                if 'source' in output_filters:
-                    message = source
-                if 'query' in output_filters:
-                    message = query
-                if 'error' in output_filters:
-                    message = error
-                
-                if eos:
-                    return [message, Message.EOS]
-                else:
-                    return message
         else:
             message = {}
             if 'question' in output_filters:
@@ -429,10 +396,7 @@ class NL2SQLAgent(OpenAIAgent):
             if 'error' in output_filters:
                 message['error'] = error
         
-            if eos:
-                return [message, Message.EOS]
-            else:
-                return message
+        return message
 
             
     def process_output(self, output_data, properties=None):
@@ -470,7 +434,7 @@ class NL2SQLAgent(OpenAIAgent):
                 logging.info("collection: " + collection)
                 logging.info("executing query: " + query)
                 result = source_connection.execute_query(query, database=database, collection=collection)
-
+                logging.info(result)
                
 
         except Exception as e:
@@ -484,5 +448,7 @@ class NL2SQLAgent(OpenAIAgent):
             'result': result,
             'error': error
         }
-
-        return self._apply_filter(output)
+        logging.info(output)
+        x = self._apply_filter(output)
+        logging.info(str(x))
+        return x
