@@ -86,10 +86,11 @@ export const AuthProvider = ({ children }) => {
     const [popupOpen, setPopupOpen] = useState(false);
     const [authInitialized, setAuthInitialized] = useState(false);
     const signOut = () => {
-        axios.post("/accounts/sign-out").then(() => {
-            setUser(null);
-            setPermissions({});
-        });
+        axios.post("/accounts/sign-out").then(() => clearAuth());
+    };
+    const clearAuth = () => {
+        setUser(null);
+        setPermissions({});
     };
     const getPermissions = (user) => {
         const permissions = _.get(user, "permissions", null);
@@ -172,6 +173,7 @@ export const AuthProvider = ({ children }) => {
         axios
             .get("/accounts/profile")
             .then((response) => {
+                console.log(response);
                 const profile = _.get(response, "data.profile", null);
                 setUser(profile);
                 appActions.session.setState({
@@ -240,7 +242,14 @@ export const AuthProvider = ({ children }) => {
     }, [fetchAccountProfile]);
     return (
         <AuthContext.Provider
-            value={{ user, permissions, settings, updateSettings, signOut }}
+            value={{
+                user,
+                permissions,
+                settings,
+                updateSettings,
+                signOut,
+                clearAuth,
+            }}
         >
             <Alert
                 intent={Intent.DANGER}
