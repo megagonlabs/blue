@@ -1,4 +1,5 @@
 import App from "@/components/App";
+import AuthErrorHandler from "@/components/AuthErrorHandler";
 import { AppProvider } from "@/components/contexts/app-context";
 import { AuthProvider } from "@/components/contexts/auth-context";
 import { SocketProvider } from "@/components/contexts/socket-context";
@@ -43,11 +44,13 @@ const Blue = ({ Component, pageProps }) => {
                     }
                 `}</style>
                 <AuthProvider>
-                    <SocketProvider>
-                        <App>
-                            <Component {...pageProps} />
-                        </App>
-                    </SocketProvider>
+                    <AuthErrorHandler>
+                        <SocketProvider>
+                            <App>
+                                <Component {...pageProps} />
+                            </App>
+                        </SocketProvider>
+                    </AuthErrorHandler>
                 </AuthProvider>
             </AppProvider>
         );
