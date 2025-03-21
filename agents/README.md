@@ -16,7 +16,7 @@ Use below links for quick accces:
 - [Template Agents](#template-agents)
   - [template agent](#template-agent)
   - [template interactive agent](#template-interactive-agent)
-- [Generic Agents](#generic-agents)
+- [Base Agents](#base-agents)
 
 </br>
 </br>
