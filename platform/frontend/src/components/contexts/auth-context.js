@@ -81,9 +81,18 @@ export const AuthContext = createContext();
 export const useAuthContext = () => useContext(AuthContext);
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
-    const userRef = useRef(user); // create a ref for the user variable
+    const timeoutIdRef = useRef(null); // Ref to store the timeoutId
     useEffect(() => {
-        userRef.current = user; // Update the ref whenever the user prop changes
+        const checkSession = async () => {
+            axios.get("/accounts/profile").then(() => {
+                timeoutIdRef.current = setTimeout(checkSession, 2 * 60 * 1000);
+            });
+        };
+        checkSession();
+        return () => {
+            // clear the latest timeout using the ref
+            if (timeoutIdRef.current) clearTimeout(timeoutIdRef.current);
+        };
     }, [user]);
     const [permissions, setPermissions] = useState({});
     const { appActions } = useContext(AppContext);
@@ -243,15 +252,6 @@ export const AuthProvider = ({ children }) => {
     };
     useEffect(() => {
         fetchAccountProfile();
-        let intervalId;
-        const checkSession = async () => {
-            if (_.isNull(userRef.current)) return;
-            axios.get("/accounts/profile");
-        };
-        intervalId = setInterval(checkSession, 2 * 60 * 1000);
-        return () => {
-            clearInterval(intervalId); // cleanup on unmount
-        };
     }, [fetchAccountProfile]);
     return (
         <AuthContext.Provider
