@@ -4,6 +4,7 @@ Below you will find more information on developing your own agents as well as a 
 
 Use below links for quick accces:
 - [Agents](#agents)
+  - [library](#library)
   - [basics](#basics)
   - [data processor](#data-processor)
   - [messages](#messages)
@@ -20,37 +21,42 @@ Use below links for quick accces:
 </br>
 
 ---
+## library
+
+To install blue-py (v0.9), you can run:
+```
+pip install --extra-index-url  http://10.0.160.75:8888/simple/ --trusted-host 10.0.160.75 blue-py==0.9
+```
+
+It is highly recommended that you use a virtual environment before installing blue-py.
 
 ## basics
 
 Let's dive into a bit of development of the agents, starting with basics...
 
-The `agents/lib` contains an Agent class that can be used as a base class for developing new agents. While it is often the practice to use Agent class as the base class, however, you do not necessarily need to extend the base class as you can simply use the Agent class directly, and pass in different parameters (such as `processor` function to process data).
+The blue-py library contains an Agent class that can be used as a base class for developing new agents. While it is often the practice to use Agent class as the base class, however, you do not necessarily need to extend the base class as you can simply use the Agent class directly, and pass in different parameters (such as `processor` function to process data).
 
-Let's first go through an example that basically uses Agent class directly. You can find this example in `agents/test` directory. To setup for this example:
+Let's first go through an example that basically uses Agent class directly. 
 
+We will walk through the source code of the [basic example](/agents/basics).
+
+Once you install the blue-py, you should pip install other requirements:
 ```
-$ cd agents/test
-$ pip install -r requirements.txt
-$ ./build_agent.sh
+$ cd ${BLUE_INSTALL_DIR}/agents/basics
+$ pip install -r requirements.core
+$ pip install -r requirements.agent
 ```
 
-Then, invoke a python interpreter (in `agents/test` directory):
+Then, you invoke can invoke a python interpreter:
+
 ```
 $ python
 ```
 
-First, to import Agent class, `import sys` so that you can access classes defined in various directories under `lib`. Afterwards, import `Agent` and `Session`:
+First, import `Agent` and `Session`:
 ```
-import sys
-import logging
-
-sys.path.append('./lib/')
-sys.path.append('./lib/agent/')
-sys.path.append('./lib/platform/')
-
-from agent import Agent
-from session import Session
+from blue.agent import Agent
+from blue.session import Session
 ```
 
 Initially, let's turn off a lot of the logging, by settting logging level to `ERROR`:
@@ -63,8 +69,10 @@ In this example, let's first create a session, then have a USER agent, simply us
 # create a session
 session = Session()
 
+prefix = session.cid + ":" + "AGENT"
+
 # create a user agent
-user_agent = Agent(name="USER", session=session)
+user_agent = Agent(name="USER", prefix=prefix, session=session)
 
 # user initiates an interaction
 user_agent.interact("hello world!", eos=False)
@@ -80,6 +88,7 @@ The signature of the `processor` function is `(message, input=None, properties=N
 Let's write below code to create a COUNTER agent with a custom `processor` function as below:
 
 ```
+# sample func to process data for counter
 stream_data = []
 
 def processor(message, input=None, properties=None, worker=None):
@@ -100,7 +109,17 @@ def processor(message, input=None, properties=None, worker=None):
         return None
 
 # create a counter agent in the same session
-counter_agent = Agent(name="COUNTER", session=session, processor=processor)
+properties = {
+    "listens": {
+        "DEFAULT": {
+          "includes": [
+            "USER"
+          ],
+          "excludes": []
+        }
+      }
+}
+counter_agent = Agent(name="COUNTER", prefix=prefix, properties=properties, session=session, processor=processor)
 ```
 
 And run it:
