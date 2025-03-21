@@ -57,19 +57,11 @@ class QueryExecutorAgent(Agent):
             'error': error
         }
 
-    def _apply_filter(self, output, eos=True):
+    def _apply_filter(self, output):
         output_filters = ['all']
-
-        output_unroll_results = False
 
         if 'output_filters' in self.properties:
             output_filters = self.properties['output_filters']
-        if 'output_unroll_results' in self.properties:
-            output_unroll_results = self.properties['output_unroll_results']
-
-        # unroll only if filters == result
-        if len(output_filters) != 1 or 'result' not in output_filters:
-            output_unroll_results = False
 
         question = output['question']
         source = output['source']
@@ -91,43 +83,17 @@ class QueryExecutorAgent(Agent):
                 'result': result,
                 'error': error
             }
-            if eos:
-                return [message, Message.EOS]
-            else:
-                return message
-            
         elif len(output_filters) == 1:
+            if 'question' in output_filters:
+                message = question
+            if 'source' in output_filters:
+                message = source
+            if 'query' in output_filters:
+                message = query
+            if 'error' in output_filters:
+                message = error
             if 'result' in output_filters:
                 message = result
-
-                if output_unroll_results:
-                    if eos:
-                        if type(message) == list:
-                            return message + [Message.EOS]
-                        else:
-                            return [message, Message.EOS]
-                    else:
-                        return message
-                else:
-                    if eos:
-                        return [message, Message.EOS]
-                    else:
-                        return message
-
-            else:
-                if 'question' in output_filters:
-                    message = question
-                if 'source' in output_filters:
-                    message = source
-                if 'query' in output_filters:
-                    message = query
-                if 'error' in output_filters:
-                    message = error
-                
-                if eos:
-                    return [message, Message.EOS]
-                else:
-                    return message
         else:
             message = {}
             if 'question' in output_filters:
@@ -141,10 +107,8 @@ class QueryExecutorAgent(Agent):
             if 'error' in output_filters:
                 message['error'] = error
         
-            if eos:
-                return [message, Message.EOS]
-            else:
-                return message
+        if message:
+            return message
 
     
     def default_processor(self, message, input="DEFAULT", properties=None, worker=None):
@@ -171,7 +135,9 @@ class QueryExecutorAgent(Agent):
                     path = data['source']
                     query = data['query']
                     output = self.execute_sql_query(path, query)
-                    return self._apply_filter(output)
+
+                    worker.write_data(self._apply_filter(output))
+                    worker.write_eos()
                 
             elif message.isBOS():
                 stream = message.getStream()

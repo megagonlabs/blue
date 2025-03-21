@@ -251,22 +251,28 @@ class Worker:
     def write_data(self, data, output="DEFAULT", id=None, tags=None, scope="worker"):
         # producer = self._start_producer(output=output)
         # producer.write_data(data)
-        if type(data) == int:
-            contents = data
-            content_type = ContentType.INT
-        elif type(data) == float:
-            contents = data
-            content_type = ContentType.FLOAT
-        elif type(data) == str:
-            contents = data
-            content_type = ContentType.STR
-        elif type(data) == dict:
-            contents = data
-            content_type = ContentType.JSON
+        if type(data) == list:
+            for d in data:
+                s = self.write_data(d, output=output, id=id, tags=tags, scope=scope)
+            return s
         else:
-            raise Exception("Unknown data type: " + str(type(data)))
+            if type(data) == int:
+                contents = data
+                content_type = ContentType.INT
+            elif type(data) == float:
+                contents = data
+                content_type = ContentType.FLOAT
+            elif type(data) == str:
+                contents = data
+                content_type = ContentType.STR
+            elif type(data) == dict:
+                contents = data
+                content_type = ContentType.JSON
+            else:
+                print(data)
+                raise Exception("Unknown data type: " + str(type(data)))
 
-        return self.write(Message(MessageType.DATA, contents, content_type), output=output, id=id, tags=tags, scope=scope)
+            return self.write(Message(MessageType.DATA, contents, content_type), output=output, id=id, tags=tags, scope=scope)
 
     def write_progress(self, progress_id=None, label=None, value=0):
         progress = {'progress_id': progress_id, 'label': label, 'value': min(max(0, value), 1)}
