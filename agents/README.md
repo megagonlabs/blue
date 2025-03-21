@@ -193,7 +193,7 @@ For `DATA` messages its content is the data itself, for example, 3 or "Hello". F
 For `CONTROL` messages its content is: (1) `code`, specific control code, (2) `args` JSON object containing arguments for the message. `content_type` of `CONTROL` messages is always `JSON`. Besides `BOS` and `EOS`, there are other control codes such as
 `JOIN_SESSION` in platform streams `ADD_AGENT`, `REMOVE_AGENT`, `ADD_STREAM`, in session streams, and `EXECUTE_AGENT`, `CREATE_FORM`, `UPDATE_FORM`, and `CLOSE_FORM` in agent streams.
 
-Message is a python class, that can be imported from `lib/platform/message`. It has a number of utility functions, to determine the type of message, such as `isData`, `isControl`, `isBOS`, `isEOS`, get parts of the message such as `getLabel`, `getData`, `getContents`, `getContentType`, `getCode`, `getArgs`, and `getArg`.
+Message is a python class, that can be imported `from blue.stream import Message`. It has a number of utility functions, to determine the type of message, such as `isData`, `isControl`, `isBOS`, `isEOS`, get parts of the message such as `getLabel`, `getData`, `getContents`, `getContentType`, `getCode`, `getArgs`, and `getArg`.
 
 Additionally when a message is received from the `processor` function it additionally has an `id` and `stream`, capturing id of the message and the id of the stream it resides. These can be obtained through `getID` and `getStream` functions.
 
@@ -244,17 +244,16 @@ Note, as you might recall tags on output streams can also be specified as part o
 ## listeners
 So, you might ask how did the `COUNTER` agent listened to output from the `USER` agent. 
 
-To decide which agents to listen to which streams, each agent defines a `listens` property and `includes` and `excludes` list. The default values are:
+To decide which agents to listen to which streams, each agent defines a `listens` property and `includes` and `excludes` list. In the above example the `COUNTER` agent is made to list to `USER` streams by:
 ```
 "listens": {
    "DEFAULT": {
-      "includes" = [".*"]
+      "includes" = ["USER"]
       "excludes" = []
    }
 }
 ```
 
-Above specification essentially says every agent in the session listens to every stream from any other agents with no exclusions. Internally though an agent is prevented to listen to its own stream to avoid any loops.
 
 To build more complex workflows though the `listens` property can be set more specifically per input parameter of the agent. As you recall `DEFAULT` is the default input parameter. So, in the above specification the `includes` list contains a list of regular expressions that are matched against stream tags. For example, above `.*` matches any sequence of characters, as such `includes` matches any tag. The `excludes` list similarly contains a list of regular expressions. In the above example though the list is empty, as such there are no exclusions.
 
@@ -263,8 +262,6 @@ The mechanism of listening is as follows, with more details:
 Agents tag each stream they create, as you have seen above, `USER` agent tagged its output stream as `USER`. Agents by default tag each stream they produce by their own name. Additional, tags can be provided as a property (`tags`), or at the time of creating a new stream (see [data processor](#data0processor) worker.write function tag parameter).
 
 Other agents in the session check if their `includes` and `excludes` list against the tags of the stream. `includes` and `excludes` lists are ordered lists of regular expressions that are evaluated on stream tags. To decide if a stream should be listened to, first the `includes` list is processed. If none of the regular expressions is matched, the stream with the tags is not listened to. If any of the regular expressions is a match, a further check is made in the `excludes` list. If none of the `excludes` regular expressions is matched, the stream is listened. If any one of `excludes` is matched the stream is not listened to. 
-
-Default `includes` list is ['.*'], i.e. all agents are listened to, and the default `excludes` list is `[]`. Both include and exclude list can include an element that is itself a list, e.g. `["A","B",["C","D"]]` to support conjunctions. For example, previous example is `A or B or (C and D)`.
 
 Once a match is found a worker is initiated to begin processing data on that stream, with the `input` set to the parameter for which a match is found.
 </br>
