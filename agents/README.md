@@ -25,8 +25,14 @@ Use below links for quick accces:
 
 To install blue-py (v0.9), you can run:
 ```
-pip install --extra-index-url  http://10.0.160.75:8888/simple/ --trusted-host 10.0.160.75 blue-py==0.9
+pip install ${BLUE_BUILD_CACHE_ARG} ${BLUE_BUILD_LIB_ARG} blue-py==0.9
 ```
+
+Unless you are developing both BLUE_BUILD_CACHE_ARG and BLUE_BUILD_LIB_ARG should be empty, in other words:
+```
+$ pip install blue_cli==0.9
+```
+
 
 It is highly recommended that you use a virtual environment before installing blue-py.
 

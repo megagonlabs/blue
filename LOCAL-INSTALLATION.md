@@ -39,7 +39,12 @@ Another approach is through cloning code from this repo, building images and man
 To download and install `blue-cli`, you can pip install it as shown below. It is highly recommended to create a virtual environment (e.g. `venv`) to avoid any conflicts and also upgrade pip (`pip install --upgrade pip`) first:
 
 ```
-$ pip install --no-cache --extra-index-url  http://10.0.160.75:8888/simple/ --trusted-host 10.0.160.75 blue_cli==0.9
+$ pip install ${BLUE_BUILD_CACHE_ARG} ${BLUE_BUILD_LIB_ARG} blue_cli==0.9
+```
+
+Unless you are developing both BLUE_BUILD_CACHE_ARG and BLUE_BUILD_LIB_ARG should be empty, in other words:
+```
+$ pip install blue_cli==0.9
 ```
 
 `blue-cli` also installs `blue-py`, the python library for blue development.

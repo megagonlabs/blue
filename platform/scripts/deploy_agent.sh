@@ -81,7 +81,7 @@ export PROPERTIES=${PROPERTIES}
 # set image, if not provided
 if [ -z "$IMAGE" ]
 then
-   export IMAGE=blue-agent-${AGENT_LOWERCASE}:${BLUE_DEPLOY_VERSION}
+   export IMAGE=blue-agent-${AGENT_LOWERCASE}${BLUE_BUILD_IMG_SUFFIX}:${BLUE_DEPLOY_VERSION}
 fi
 
 export IMAGE=${IMAGE}

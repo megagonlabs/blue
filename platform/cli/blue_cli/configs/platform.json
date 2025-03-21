@@ -113,6 +113,24 @@
         "required": false,
         "cast": "file"
     },
+    "BLUE_BUILD_LIB_ARG": {
+        "default":"",
+        "prompt": "Build Lib Argument",
+        "required": false,
+        "cast": "str"
+    },
+    "BLUE_BUILD_CACHE_ARG": {
+        "default":"",
+        "prompt": "Build Cache Argument",
+        "required": false,
+        "cast": "str"
+    },
+    "BLUE_BUILD_IMG_SUFFIX": {
+        "default":"",
+        "prompt": "Build Image Suffix",
+        "required": false,
+        "cast": "str"
+    },
     "FIREBASE_SERVICE_CRED": {
         "default": "",
 	    "prompt": "FireBase Service Credentialls",
