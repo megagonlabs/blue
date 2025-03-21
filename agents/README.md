@@ -381,29 +381,11 @@ The above instruction essentially triggers an execution on Agent with name `<age
 
 # Template Agents
 
-## template agent
+See the [template agent](https://github.com/rit-git/blue-examples/tree/v0.9/agents/template) and [template interactive agent](https://github.com/rit-git/blue-examples/tree/v0.9/agents/template_interactive) in the blue-example repo, to get a head-start on writing agents from a template.
 
-Key functionality of the agent is defined in the `processor` function, the rest is template. To help develop agents you can use the [template agent](template) code as starter code.
+# Base Agents
 
-</br>
-</br>
+Below is a list of agents that you can directly use as they are base agents. Also look for other agents in [agents](/lib/blue/agents) in the blue library to use them as examples.
 
----
-
-## template interactive agent
-
-See the `processor` function in the template interactive agent to see how to send interactive forms to render on the web application. To help develop interactive agents you can use the [template-interactive agent](template-interactive) code as starter code.
-
-Build interactive forms using "Form Designer" in the "Dev. Tools" section of the navigation menu. Instructions on the form elements are available within the interface.
-</br>
-</br>
-
----
-
-# Generic Agents
-
-Below is a list of agents that you can directly use as they are generic. Also look for other agents in `agents` directory to use them as examples.
-
-* [API Caller Agent](apicaller) - call any API
-* [Form Agent](form) - present form to collect structured data
-* [OpenAI Agent](openai) - call OpenAI 
+* [Requestor Agent](requestor) - make requests to any API
+* [OpenAI Agent](openai) - make requests to OpenAI API 
