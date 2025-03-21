@@ -27,7 +27,7 @@ A worker is a thread of an agent that is basically dedicated to a specific input
 
 
 ## session
-The central "context" concept in Blue is a `session`. A session is initiated by an agent, typically a user agent, and continiously expanded by other agents responding to the initial stream and other streams in the session. Agents are added to a session to orchestrate a response to the initial user input. Once added an agent can listen to any `stream` in the session and decide to follow-up and process data in the stream to produce more streams in the session.
+The central "context" concept in Blue is a `session`. A session is initiated by an agent, typically a user agent, and continously expanded by other agents responding to the initial stream and other streams in the session. Agents are added to a session to orchestrate a response to the initial user input. Once added an agent can listen to any `stream` in the session and decide to follow-up and process data in the stream to produce more streams in the session.
 
 ![Session](./docs/images/session.png)
 
