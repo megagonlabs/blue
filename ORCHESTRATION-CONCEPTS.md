@@ -41,7 +41,10 @@ Agents (i.e. agent workers) can store and share data among each other. Data is s
 - A worker can further limit the scope of the data to a specific stream, where data can be seen only by agents (workers) which are working on that specific stream. This is the `stream memory`. 
 - Finally, a worker can put data into the private `agent memory`  where it can only be seen by the workers of the agent itself.
 
+## plans
 
+As noted above messages can be both data and instructions (for other agents to execute, for example). A higher-level concept to instruct a number of agents in the nature of a workflow is called a plan. A plan can have a number of inputs, outputs, and agents that connect inputs to outputs in a sequence. Connections can also be defined between agents, connecting an agent's output to another agent's input. Once the plan object is constructed it can be submitted. [Coordinator](/lib/blue/agents/coordinator.py) agent is reponsible for the execution of the plan, i.e. issueing instruction messages for agents to execute and tracking progress.
+See [Plan](/lib/blue/plan.py) for more details and the `Planner Agent - Example` (`BASIC_PLANNER`) for an example.
 
 </br>
 </br>
