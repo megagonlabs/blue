@@ -92,54 +92,34 @@ For OSS components having different portions released under different licenses, 
 
 | ID  | OSS Component Name | Modified | Copyright Holder | Upstream Link | License  |
 |-----|----------------------------------|----------|------------------|-----------------------------------------------------------------------------------------------------------|--------------------|
-| 1 | async-timeout | No | aio-libs collaboration | [link](https://github.com/aio-libs/async-timeout) | Apache Software License | 
-| 2 | bidict | No | Joshua Bronson | [link](https://github.com/jab/bidict) | Mozilla Public License 2.0 | 
-| 3 | blinker | No | Jason Kirtland | [link](https://github.com/pallets-eco/blinker/) | MIT License | 
-| 4 | casbin | No | TechLee | [link](https://github.com/casbin/pycasbin) | Apache Software License | 
-| 5 | click | No | Pallets | [link](https://github.com/pallets/click/) | BSD License | 
-| 6 | dnspython | No | Dnspython Contributors | [link](https://www.dnspython.org/) | ISC License | 
-| 7 | docker | No | Docker, Inc. | [link](https://github.com/docker/docker-py) | Apache Software License | 
-| 8 | eventlet | No | Eventlet Contributors, Linden Research, Inc. | [link](https://github.com/eventlet/eventlet) | MIT License | 
-| 9 | fastapi | No | Sebastián Ramírez | [link](https://github.com/fastapi/fastapi) | MIT License | 
-| 10 | firebase-admin | No | Firebase | [link](https://github.com/firebase/firebase-admin-python) | Apache Software License | 
-| 11 | Flask | No | Pallets | [link](https://github.com/pallets/flask/) | BSD License | 
-| 12 | Flask-SocketIO | No | Miguel Grinberg | [link](https://github.com/miguelgrinberg/flask-socketio) | MIT License | 
-| 13 | greenlet | No | Armin Rigo, Christian Tismer and contributors | [link](https://greenlet.readthedocs.io/en/latest/) | MIT License | 
-| 14 | gunicorn | No | Benoît Chesneau <benoitc@gunicorn.org> | [link](https://gunicorn.org/) | MIT License | 
-| 15 | httpx | No | Encode OSS Ltd. | [link](https://github.com/encode/httpx) | BSD License | 
-| 16 | huggingface-hub | No | Hugging Face, Inc. | [link](https://github.com/huggingface/huggingface_hub) | Apache Software License | 
-| 17 | importlib-metadata | No | Jason R. Coombs | [link](https://github.com/python/importlib_metadata) | Apache Software License | 
-| 18 | itsdangerous | No | Pallets | [link](https://github.com/pallets/itsdangerous/) | BSD License | 
-| 19 | Jinja2 | No | Pallets | [link](https://github.com/pallets/jinja/) | BSD License | 
-| 20 | jsonmerge | No | Tomaz Solc | [link](https://pypi.org/project/jsonmerge/) | MIT License | 
-| 21 | jsonpath-ng | No | Tomas Aparicio | [link](https://github.com/h2non/jsonpath-ng) | Apache Software License | 
-| 22 | jsonschema | No | Julian Berman | [link](https://github.com/python-jsonschema/jsonschema) | MIT License | 
-| 23 | MarkupSafe | No | Pallets | [link](https://github.com/pallets/markupsafe/) | BSD License | 
-| 24 | mysql-connector-python | No | Oracle and/or its affiliates | [link](https://dev.mysql.com/doc/connector-python/en/) | GNU General Public License | 
-| 25 | neo4j | No | Free Software Foundation, Inc. | [link](https://neo4j.com/) | GNU General Public License | 
-| 26 | nest_asyncio | No | Ewald de Wit | [link](https://github.com/erdewit/nest_asyncio) | BSD License | 
-| 27 | numpy | No | NumPy Developers | [link](https://numpy.org/) | BSD License | 
-| 28 | openai | No | OpenAI | [link](https://github.com/openai/openai-python) | Apache Software License | 
-| 29 | pandas | No | AQR Capital Management, LLC, Lambda Foundry, Inc. and PyData Development Team | [link](https://pandas.pydata.org/) | BSD License | 
-| 30 | psutil | No | Jay Loden, Dave Daeschler, Giampaolo Rodola | [link](https://github.com/giampaolo/psutil) | BSD License | 
-| 31 | psycopg2-binary | No | Free Software Foundation | [link](https://psycopg.org/) | GNU General Public License | 
-| 32 | pydantic | No | Pydantic Services Inc. and individual contributors | [link](https://github.com/pydantic/pydantic) | MIT License | 
-| 33 | pydash | No | Derrick Gilland | [link](https://github.com/dgilland/pydash) | MIT License | 
-| 34 | pymongo | No | MongoDB, Inc | [link](https://www.mongodb.org/) | Apache Software License | 
-| 35 | python-engineio | No | Miguel Grinberg | [link](https://github.com/miguelgrinberg/python-engineio) | MIT License | 
-| 36 | python-socketio | No | Miguel Grinberg | [link](https://github.com/miguelgrinberg/python-socketio) | MIT License | 
-| 37 | redis | No | Redis, inc. | [link](https://github.com/redis/redis-py) | MIT License | 
-| 38 | requests | No | Kenneth Reitz | [link](https://requests.readthedocs.io/) | Apache Software License | 
-| 39 | rpyc | No | Tomer Filiba | [link](https://rpyc.readthedocs.org/) | MIT License | 
-| 40 | schedule | No | Daniel Bader  | [link](https://github.com/dbader/schedule) | MIT License | 
-| 41 | sentence-transformers | No | Nils Reimers | [link](https://www.sbert.net/) | Apache Software License | 
-| 42 | six | No | Benjamin Peterson | [link](https://github.com/benjaminp/six) | MIT License | 
-| 43 | torch | No | Facebook, Inc  | [link](https://pytorch.org/) | BSD License | 
-| 44 | torchvision | No | Soumith Chintala | [link](https://github.com/pytorch/vision) | BSD License | 
-| 45 | tqdm | No | noamraph | [link](https://github.com/tqdm/tqdm) | MIT License | 
-| 46 | uuid | No | Ka-ping Yee | [link](http://zesty.ca/python/) | Python software license | 
-| 47 | uvicorn | No | Encode OSS Ltd | [link](https://github.com/encode/uvicorn) | BSD License | 
-| 48 | websocket_client | No | engn33r | [link](https://github.com/websocket-client/websocket-client.git) | Apache Software License | 
-| 49 | websockets | No | Aymeric Augustin and contributors | [link](https://github.com/python-websockets/websockets) | BSD License | 
-| 50 | Werkzeug | No | Pallets | [link](https://github.com/pallets/werkzeug/) | BSD License | 
-| 51 | zipp | No | Jason R. Coombs | [link](https://github.com/jaraco/zipp) | MIT License | 
+| 1 | casbin | No | TechLee | [link](https://github.com/casbin/pycasbin) | Apache Software License | 
+| 2 | docker | No | Docker, Inc. | [link](https://github.com/docker/docker-py) | Apache Software License | 
+| 3 | fastapi | No | Sebastián Ramírez | [link](https://github.com/fastapi/fastapi) | MIT License | 
+| 4 | firebase-admin | No | Firebase | [link](https://github.com/firebase/firebase-admin-python) | Apache Software License | 
+| 5 | httpx | No | Encode OSS Ltd. | [link](https://github.com/encode/httpx) | BSD License | 
+| 6 | huggingface-hub | No | Hugging Face, Inc. | [link](https://github.com/huggingface/huggingface_hub) | Apache Software License | 
+| 7 | Jinja2 | No | Pallets | [link](https://github.com/pallets/jinja/) | BSD License | 
+| 8 | jsonmerge | No | Tomaz Solc | [link](https://pypi.org/project/jsonmerge/) | MIT License | 
+| 9 | jsonpath-ng | No | Tomas Aparicio | [link](https://github.com/h2non/jsonpath-ng) | Apache Software License | 
+| 10 | jsonschema | No | Julian Berman | [link](https://github.com/python-jsonschema/jsonschema) | MIT License | 
+| 11 | mysql-connector-python | No | Oracle and/or its affiliates | [link](https://dev.mysql.com/doc/connector-python/en/) | GNU General Public License | 
+| 12 | neo4j | No | Free Software Foundation, Inc. | [link](https://neo4j.com/) | GNU General Public License | 
+| 13 | nest_asyncio | No | Ewald de Wit | [link](https://github.com/erdewit/nest_asyncio) | BSD License | 
+| 14 | numpy | No | NumPy Developers | [link](https://numpy.org/) | BSD License | 
+| 15 | openai | No | OpenAI | [link](https://github.com/openai/openai-python) | Apache Software License | 
+| 16 | pandas | No | AQR Capital Management, LLC, Lambda Foundry, Inc. and PyData Development Team | [link](https://pandas.pydata.org/) | BSD License | 
+| 17 | psutil | No | Jay Loden, Dave Daeschler, Giampaolo Rodola | [link](https://github.com/giampaolo/psutil) | BSD License | 
+| 18 | psycopg2-binary | No | Free Software Foundation | [link](https://psycopg.org/) | GNU General Public License | 
+| 19 | pydantic | No | Pydantic Services Inc. and individual contributors | [link](https://github.com/pydantic/pydantic) | MIT License | 
+| 20 | pydash | No | Derrick Gilland | [link](https://github.com/dgilland/pydash) | MIT License | 
+| 21 | pymongo | No | MongoDB, Inc | [link](https://www.mongodb.org/) | Apache Software License | 
+| 22 | redis | No | Redis, inc. | [link](https://github.com/redis/redis-py) | MIT License | 
+| 23 | requests | No | Kenneth Reitz | [link](https://requests.readthedocs.io/) | Apache Software License | 
+| 24 | schedule | No | Daniel Bader  | [link](https://github.com/dbader/schedule) | MIT License | 
+| 25 | sentence-transformers | No | Nils Reimers | [link](https://www.sbert.net/) | Apache Software License | 
+| 26 | torch | No | Facebook, Inc  | [link](https://pytorch.org/) | BSD License | 
+| 27 | torchvision | No | Soumith Chintala | [link](https://github.com/pytorch/vision) | BSD License | 
+| 28 | uuid | No | Ka-ping Yee | [link](http://zesty.ca/python/) | Python software license | 
+| 29 | uvicorn | No | Encode OSS Ltd | [link](https://github.com/encode/uvicorn) | BSD License | 
+| 30 | websocket_client | No | engn33r | [link](https://github.com/websocket-client/websocket-client.git) | Apache Software License | 
+| 31 | websockets | No | Aymeric Augustin and contributors | [link](https://github.com/python-websockets/websockets) | BSD License | 
