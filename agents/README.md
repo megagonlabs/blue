@@ -382,7 +382,7 @@ An instructable agent essentially means that the agent can be made to process da
 
 Sending an `EXECUTE_AGENT` message, essentially triggers execution. An example of such an instruction is:
 ```
-worker.write_control(ControlCode.EXECUTE_AGENT, {"agent": <agent_name>, "context": <context>, "input": { <param>: <stream> }})
+worker.write_control(ControlCode.EXECUTE_AGENT, {"agent": <agent_name>, "context": <context>, "inputs": { <param>: <stream> }}) 
 ```
 
 The above instruction essentially triggers an execution on Agent with name `<agent_name>`, with `input=<param>` on stream `<stream>`. Context is an additional parameter, typically this can be set to session id but depending on the application logic you may want to set a different id for the context.
