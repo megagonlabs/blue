@@ -378,10 +378,11 @@ The above instruction essentially triggers an execution on Agent with name `<age
 
 ---
 
-
 # Template Agents
 
 See the [template agent](https://github.com/rit-git/blue-examples/tree/v0.9/agents/template) and [template interactive agent](https://github.com/rit-git/blue-examples/tree/v0.9/agents/template_interactive) in the blue-example repo, to get a head-start on writing agents from a template.
+
+---
 
 # Base Agents
 
