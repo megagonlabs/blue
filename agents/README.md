@@ -14,8 +14,6 @@ Use below links for quick accces:
   - [interactive agents](#interactive-agents)
   - [instructable agents](#instructable-agents)
 - [Template Agents](#template-agents)
-  - [template agent](#template-agent)
-  - [template interactive agent](#template-interactive-agent)
 - [Base Agents](#base-agents)
 
 </br>
