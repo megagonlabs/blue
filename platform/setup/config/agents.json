@@ -1,37 +1,5 @@
 [
   {
-    "name": "USER",
-    "type": "agent",
-    "scope": "/",
-    "description": "Represents a user interacting with other agents where text output from the user agent is passed on for agents to process",
-    "created_by": null,
-    "properties": {
-      "image": "megagonlabs/blue-agent-user:v0.9",
-      "display_name": "User Agent",
-      "system_agent": true,
-      "listens": {},
-      "tags": {},
-      "categories": [
-        "SYSTEM"
-      ]
-    },
-    "icon": "head-side:#1C2127"
-  },
-  {
-    "name": "DEFAULT",
-    "type": "output",
-    "scope": "/USER",
-    "description": "Output text from the user interaction",
-    "created_by": null,
-    "properties": {
-      "type": "str",
-      "optional": false,
-      "default": null,
-      "schema": null
-    },
-    "icon": null
-  },
-  {
     "name": "RECORDER",
     "type": "agent",
     "scope": "/",
@@ -246,7 +214,7 @@
           "excludes": []
         }
       },
-      "display_name": "Presenter Example Agent"
+      "display_name": "Presenter Agent - Example"
     },
     "icon": null
   },
@@ -336,7 +304,7 @@
     "description": "Extends NL2SQL for interactive use, including listening to the USER agent directly.",
     "created_by": null,
     "properties": {
-      "display_name": "NL-to-SQL Interactive Agent",
+      "display_name": "NL-to-SQL Agent - Interactive",
       "openai.service": "ws://blue_service_openai:8001",
       "openai.model": "gpt-4o",
       "tags": {
@@ -362,7 +330,7 @@
     "description": "Extends NL2SQL, returning only results.",
     "created_by": null,
     "properties": {
-      "display_name": "NL-to-SQL Agent Result Only",
+      "display_name": "NL-to-SQL Agent - Result Only",
       "nl2q_output_filters": ["result"]
     },
     "icon": null
@@ -374,7 +342,7 @@
     "description": "Extends NL2SQL for interactive use, including listening to the USER agent directly, returning only results.",
     "created_by": null,
     "properties": {
-      "display_name": "NL-to-SQL Agent Interactive Results Only",
+      "display_name": "NL-to-SQL Agent - Interactive Results Only",
       "nl2q_output_filters": ["result"],
       "listens": {
         "DEFAULT": {
@@ -394,6 +362,7 @@
     "description": "NL2SQL for dialogue manager example",
     "created_by": null,
     "properties": {
+      "display_name": "NL-to-SQL Agent - Dialogue Manager Example",
       "nl2q_execute": false,
       "listens": {},
       "tags": {
@@ -485,7 +454,7 @@
         }
       },
       "tags": {},
-      "display_name": "Summarizer Example Agent",
+      "display_name": "Summarizer Agent - Example",
       "template": "${input} role requires these skills: {% for se_skill in se_skills %} {{se_skill.skill_required}}, {% endfor %}. \n Note: Soft skills are highlighted.",
       "questions": {
         "se_skills": "what skills are required for ${input} jobs?"
@@ -529,17 +498,15 @@
   {
     "name": "QUERYEXECUTOR___RESULTS_ONLY",
     "type": "agent",
-    "scope": "/",
+    "scope": "/QUERYEXECUTOR",
     "description": "Executes a query on data source, only returning results",
     "created_by": null,
     "properties": {
-      "image": "megagonlabs/blue-agent-query_executor:v0.9",
-     
       "output_filters": ["result"],
       "output_max_results":null,
       "tracker.autostart": false,
       "tracker.output": "log.INFO",
-      "display_name": "Query Executor Agent Results Only",
+      "display_name": "Query Executor Agent - Results Only",
       "system_agent": false,
       "categories": [
         "BASE"
@@ -596,7 +563,7 @@
           "excludes": []
         }
       },
-      "display_name": "Visualizer Example Agent"
+      "display_name": "Visualizer Agent - Example"
     },
     "icon": null
   },
@@ -656,7 +623,7 @@
         "log.INFO"
       ],
       "tags": {},
-      "display_name": "Document Builder Example Agent"
+      "display_name": "Document Builder Agent - Example"
     },
     "icon": null
   },
@@ -668,7 +635,7 @@
     "created_by": null,
     "properties": {
       "image": "megagonlabs/blue-agent-basic_planner:v0.9",
-      "display_name": "Planner Example",
+      "display_name": "Planner Agent - Example",
       "system_agent": false,
       "listens": {
         "DEFAULT": {
@@ -701,7 +668,7 @@
           "excludes": []
         }
       },
-      "display_name": "Dialogue Manager",
+      "display_name": "Dialogue Manager Agent",
       "system_agent": false,
       "intents": {},
       "categories": [
@@ -803,6 +770,7 @@
           "excludes": []
         }
       },
+      "display_name": "Dialogue Manager Agent - Example",
       "intent_classifier_agent": "OPENAI___INTENT_CLASSIFIER",
       "tags": {}
     },
@@ -824,7 +792,7 @@
           "excludes": []
         }
       },
-      "display_name": "Counter Example",
+      "display_name": "Counter Agent - Example",
       "tags": {},
       "categories": [
         "EXAMPLE"
@@ -839,7 +807,7 @@
     "description": "Extends OPENAI agent for interactive use, by listening to the USER agent directly.",
     "created_by": null,
     "properties": {
-      "display_name": "OpenAI Interactive Agent",
+      "display_name": "OpenAI Agent - Interactive",
       "listens": {
         "DEFAULT": {
           "includes": [
@@ -1090,89 +1058,159 @@
     "name": "OPENAI___SEMANTIC_EXTRACTOR",
     "type": "agent",
     "scope": "/OPENAI",
-    "description": "Uses OpenAI to extracts values given column names and descriptions, specified as a property (entities) below.",
+    "description": "OPENAI Semantic Extractor Agent for extracting semantic entities from input",
     "created_by": null,
     "properties": {
-      "output_strip": true,
-      "output_transformations": [
-        {
-          "transformation": "replace",
-          "from": "```",
-          "to": ""
+        "listens": {
+            "DEFAULT": {
+                "includes": [
+                    "USER"
+                ],
+                "excludes": []
+            }
         },
-        {
-          "transformation": "replace",
-          "from": "json",
-          "to": ""
-        }
-      ],
-      "input_field": "messages",
-      "openai.api": "ChatCompletion",
-      "output_path": "$.choices[0].message.content",
-      "display_name": "OPENAI Semantic Extractor Agent",
-      "openai.top_p": 1,
-      "openai.model": "gpt-4o-mini",
-      "input_context": "$[0]",
-      "output_cast": "json",
-      "openai.max_tokens": 300,
-      "input_template": "The user will provide the columns that need to be extracted and some relevant context.\n Your job is to extract a list of concise values for each of the column.\n The response should be valid JSON format with the fields. Do not add any extra explanation. If there was no information return an empty JSON format.\n Here is the user input: ${input}",
-      "openai.service": "ws://blue_service_openai:8001",
-      "openai.presence_penalty": 0,
-      "entities": "name, company, date",
-      "openai.frequency_penalty": 0,
-      "openai.stop": [
-        "#",
-        ";"
-      ],
-      "input_context_field": "content",
-      "schema": {},
-      "input_json": "[{\"role\":\"user\"}]"
+        "input_template": "The user will provide the entities that need to be extracted and text to extract entities from.\n Your job is to process the text and extract a list of concise values for each of the entities.\n The response should be valid JSON format with the entities and extracted values. Do not add any extra explanation. If there was no extractions return an empty JSON format.\n  Here is the user input: \n entities: ${entities} \n text: ${input}",
+        "tags": {},
+        "entities": {
+        },
+        "display_name": "OPENAI Semantic Extractor Agent",
+        "openai.model": "gpt-4o-mini",
+        "output_strip": true,
+        "output_transformations": [
+            {
+                "transformation": "replace",
+                "from": "```",
+                "to": ""
+            },
+            {
+                "transformation": "replace",
+                "from": "json",
+                "to": ""
+            }
+        ],
+        "output_cast": "json"
     },
     "icon": null
-  },
+},
   {
-    "name": "OPENAI___SEMANTIC_FILTER",
+    "name": "OPENAI___SEMANTIC_EXTRACTOR_EXAMPLE",
     "type": "agent",
     "scope": "/OPENAI",
-    "description": "Uses OpenAI to return a boolean value based on whether the input doc meets the specified filter condition.",
+    "description": "Example Semantic Extractor Agent to extract occupation sector, skill, and certifications",
     "created_by": null,
     "properties": {
-      "display_name": "OPENAI Semantic Filter Agent",
-      "openai.model": "gpt-4o-mini",
-      "openai.api": "ChatCompletion",
-      "openai.frequency_penalty": 0,
-      "openai.top_p": 1,
-      "openai.max_tokens": 300,
-      "input_field": "messages",
-      "input_json": "[{\"role\":\"user\"}]",
-      "output_strip": true,
-      "openai.service": "ws://blue_service_openai:8001",
-      "openai.stop": [
-        "#",
-        ";"
-      ],
-      "input_context": "$[0]",
-      "schema": {},
-      "input_context_field": "content",
-      "output_transformations": [
-        {
-          "transformation": "replace",
-          "from": "```",
-          "to": ""
+        "listens": {
+            "DEFAULT": {
+                "includes": [
+                    "USER"
+                ],
+                "excludes": []
+            }
         },
-        {
-          "transformation": "replace",
-          "from": "json",
-          "to": ""
-        }
-      ],
-      "openai.presence_penalty": 0,
-      "output_path": "$.choices[0].message.content",
-      "output_cast": "json",
-      "input_template": "The user will provide a claim and some relevant context.\n Your job is to determine whether the claim is true for the given context.\n The response should be valid JSON format  {filter_condition: bool}. Do not add any extra explanation. \n Here is the user input: ${input}"
+        "input_template": "The user will provide the entities  that need to be extracted and text to extract entities from.\n Your job is to process the text and extract a list of concise values for each of the entities.\n The response should be valid JSON format with the entities and extracted values. Do not add any extra explanation. If there was no extractions return an empty JSON format.\n  Here is the user input: \n entities: ${entities} \n text: ${input}",
+        "tags": {},
+        "entities": {
+            "occupation sector": "occupation sector such as education, child development, healthcare, technology",
+            "skill": "list of skills for job",
+            "certifications": "job related certifications"
+        },
+        "display_name": "OPENAI Semantic Extractor Agent - Example",
+        "openai.model": "gpt-4o-mini",
+        "output_strip": true,
+        "output_transformations": [
+            {
+                "transformation": "replace",
+                "from": "```",
+                "to": ""
+            },
+            {
+                "transformation": "replace",
+                "from": "json",
+                "to": ""
+            }
+        ],
+        "output_cast": "json"
     },
     "icon": null
+},
+{
+  "name": "OPENAI___SEMANTIC_FILTER",
+  "type": "agent",
+  "scope": "/OPENAI",
+  "description": "OPENAI Semantic Filter",
+  "created_by": null,
+  "properties": {
+      "display_name": "OPENAI Semantic Filter Agent",
+      "listens": {
+          "DEFAULT": {
+              "includes": [
+                  "USER"
+              ],
+              "excludes": []
+          }
+      },
+      "tags": {},
+      "openai.model": "gpt-4o-mini",
+      "output_strip": true,
+      "output_transformations": [
+          {
+              "transformation": "replace",
+              "from": "```",
+              "to": ""
+          },
+          {
+              "transformation": "replace",
+              "from": "json",
+              "to": ""
+          }
+      ],
+      "input_template": "The user will provide some filter conditions and text to examine filter conditions on.\n Your job is to determine whether each of the filter conditions are true or false for the given text.\n The response should be valid JSON format. Do not add any extra explanation. \n The user will provide the entities that need to be extracted and text to extract entities from.\n Your job is to process the text and extract a list of concise values for each of the entities.\n The response should be valid JSON format with the entities and extracted values. Do not add any extra explanation. If there was no extractions return an empty JSON format.\n  Here is the user input: \n filter conditions: ${filter_conditions} \n text: ${input}",
+      "output_cast": "json",
+      "filter_conditions": {
+      }
   },
+  "icon": null
+},
+{
+  "name": "OPENAI___SEMANTIC_FILTER_EXAMPLE",
+  "type": "agent",
+  "scope": "/OPENAI",
+  "description": "OPENAI Semantic Filter to filter soft and technical skills",
+  "created_by": null,
+  "properties": {
+      "display_name": "OPENAI Semantic Filter Agent - Example",
+      "listens": {
+          "DEFAULT": {
+              "includes": [
+                  "USER"
+              ],
+              "excludes": []
+          }
+      },
+      "tags": {},
+      "openai.model": "gpt-4o-mini",
+      "output_strip": true,
+      "output_transformations": [
+          {
+              "transformation": "replace",
+              "from": "```",
+              "to": ""
+          },
+          {
+              "transformation": "replace",
+              "from": "json",
+              "to": ""
+          }
+      ],
+      "input_template": "The user will provide some filter conditions and text to examine filter conditions on.\n Your job is to determine whether each of the filter conditions are true or false for the given text.\n The response should be valid JSON format. Do not add any extra explanation. \n The user will provide the entities that need to be extracted and text to extract entities from.\n Your job is to process the text and extract a list of concise values for each of the entities.\n The response should be valid JSON format with the entities and extracted values. Do not add any extra explanation. If there was no extractions return an empty JSON format.\n  Here is the user input: \n filter conditions: ${filter_conditions} \n text: ${input}",
+      "output_cast": "json",
+      "filter_conditions": {
+          "soft skills": "non-technical but important skills that enable individuals to collaborate effectively with others in a workplace",
+          "technical skills": "specialized abilities, knowledge, and techniques acquired to fullfill tasks in a workplace"
+      }
+  },
+  "icon": null
+},
   {
     "name": "OPENAI___INTENT_CLASSIFIER",
     "type": "agent",
