@@ -33,6 +33,9 @@ Most of blue scripts require configuration of environment variables. Below is th
 - `BLUE_PUBLIC_WEB_SERVER` - server address for the web application (e.g. localhost)
 - `BLUE_PUBLIC_WEB_SERVER_PORT` -  public port for the web application server (e.g. 3000)
 - `BLUE_RBAC_CONFIG_FOLDER` - folder path to the role-based access control configurations (e.g. /blue_data/config/rbac)
+- `BLUE_BUILD_LIB_ARG`, specific index-url settings for blue lib, for public set to empty, for private set to `--extra-index-url <private_pypi_server> --trusted-host <private_pypy_server_ip>`
+- `BLUE_BUILD_CACHE_ARG`, cache option, set to empty or `--no-cache`
+- `BLUE_BUILD_IMG_SUFFIX`, additional image suffix, set to empty or `-private`
 
 A default value for these environment variable is in `localhost.envrc`. You can update them for your own configuration and simply set them by `source localhost.envrc`. Alternatively you can use utilities such as [direnv](https://direnv.net/) is  to help management environment variables and save your configuration as `.envrc`
 
