@@ -18,6 +18,7 @@ import {
     useCallback,
     useContext,
     useEffect,
+    useRef,
     useState,
 } from "react";
 import { axiosErrorToast, hasIntersection } from "../helper";
@@ -80,6 +81,10 @@ export const AuthContext = createContext();
 export const useAuthContext = () => useContext(AuthContext);
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
+    const userRef = useRef(user); // create a ref for the user variable
+    useEffect(() => {
+        userRef.current = user; // Update the ref whenever the user prop changes
+    }, [user]);
     const [permissions, setPermissions] = useState({});
     const { appActions } = useContext(AppContext);
     const [settings, setSettings] = useState({});
@@ -173,7 +178,6 @@ export const AuthProvider = ({ children }) => {
         axios
             .get("/accounts/profile")
             .then((response) => {
-                console.log(response);
                 const profile = _.get(response, "data.profile", null);
                 setUser(profile);
                 appActions.session.setState({
@@ -239,6 +243,15 @@ export const AuthProvider = ({ children }) => {
     };
     useEffect(() => {
         fetchAccountProfile();
+        let intervalId;
+        const checkSession = async () => {
+            if (_.isNull(userRef.current)) return;
+            axios.get("/accounts/profile");
+        };
+        intervalId = setInterval(checkSession, 2 * 60 * 1000);
+        return () => {
+            clearInterval(intervalId); // cleanup on unmount
+        };
     }, [fetchAccountProfile]);
     return (
         <AuthContext.Provider
