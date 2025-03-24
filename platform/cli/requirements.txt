@@ -1,2 +1,0 @@
-nest_asyncio==1.6.0
-pydash==7.0.6

@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["blue-cli"]
+
+[project]
+name = "blue-placlitform"
+version = "0.8.3"
+authors = [
+  { name="Megagon Labs", email="contact@megagon.ai" },
+]
+description = "Command line interface for blue installation and deployment"
+readme = "README.md"
+requires-python = ">=3.9"
+classifiers = [
+      "Programming Language :: Python :: 3",
+      "Operating System :: OS Independent",
+]
+license = "BSD-3-Clause"
+
+[project.urls]
+Homepage = "https://github.com/megagonlabs/blue"
+Issues = "https://github.com/megagonlabs/blue/issues"
