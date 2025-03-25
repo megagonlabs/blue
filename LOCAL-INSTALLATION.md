@@ -47,7 +47,7 @@ Unless you are developing both BLUE_BUILD_CACHE_ARG and BLUE_BUILD_LIB_ARG shoul
 $ pip install blue_cli==0.9
 ```
 
-`blue-cli` also installs `blue-py`, the python library for blue development.
+`blue-cli` also installs `blue-platform`, the python library for blue development.
 
 Once installed, you can invoke blue cli, for example:
 

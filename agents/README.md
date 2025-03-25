@@ -23,9 +23,9 @@ Use below links for quick accces:
 ---
 ## library
 
-To install blue-py (v0.9), you can run:
+To install blue-platform (v0.9), you can run:
 ```
-pip install ${BLUE_BUILD_CACHE_ARG} ${BLUE_BUILD_LIB_ARG} blue-py==0.9
+pip install ${BLUE_BUILD_CACHE_ARG} ${BLUE_BUILD_LIB_ARG} blue-platform==0.9
 ```
 
 Unless you are developing both BLUE_BUILD_CACHE_ARG and BLUE_BUILD_LIB_ARG should be empty, in other words:
@@ -34,19 +34,19 @@ $ pip install blue_cli==0.9
 ```
 
 
-It is highly recommended that you use a virtual environment before installing blue-py.
+It is highly recommended that you use a virtual environment before installing blue-platform.
 
 ## basics
 
 Let's dive into a bit of development of the agents, starting with basics...
 
-The blue-py library contains an Agent class that can be used as a base class for developing new agents. While it is often the practice to use Agent class as the base class, however, you do not necessarily need to extend the base class as you can simply use the Agent class directly, and pass in different parameters (such as `processor` function to process data).
+The blue-platform library contains an Agent class that can be used as a base class for developing new agents. While it is often the practice to use Agent class as the base class, however, you do not necessarily need to extend the base class as you can simply use the Agent class directly, and pass in different parameters (such as `processor` function to process data).
 
 Let's first go through an example that basically uses Agent class directly. 
 
 We will walk through the source code of the [basic example](/agents/basics).
 
-Once you install the blue-py, you should pip install other requirements:
+Once you install the blue-platform, you should pip install other requirements:
 ```
 $ cd ${BLUE_INSTALL_DIR}/agents/basics
 $ pip install -r requirements.core
