@@ -1,0 +1,28 @@
+{
+    "name": "blue",
+    "version": "0.1.0",
+    "private": true,
+    "scripts": {
+        "dev": "NODE_ENV=development next dev",
+        "start": "NODE_ENV=production next start",
+        "build": "next build",
+        "lint": "next lint"
+    },
+    "dependencies": {
+        "@blueprintjs/core": "^5.17.6",
+        "@fortawesome/fontawesome-svg-core": "^6.7.2",
+        "@fortawesome/react-fontawesome": "^0.2.2",
+        "@fortawesome/sharp-duotone-solid-svg-icons": "^6.7.2",
+        "lodash": "^4.17.21",
+        "next": "^14.2.24",
+        "normalize.css": "^8.0.1",
+        "react": "^18.2.0",
+        "react-dom": "^18.2.0",
+        "react-grid-layout": "^1.5.1"
+    },
+    "devDependencies": {
+        "@eslint/eslintrc": "^3",
+        "eslint": "^8.55.0",
+        "eslint-config-next": "^14.0.3"
+    }
+}
