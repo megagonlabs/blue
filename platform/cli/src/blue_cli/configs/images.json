@@ -24,9 +24,6 @@
         "documenter": {
             "image": "blue-agent-documenter"
         },
-        "observer": {
-            "image": "blue-agent-observer"
-        },
         "summarizer": {
             "image": "blue-agent-summarizer"
         },
