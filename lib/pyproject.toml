@@ -7,7 +7,7 @@ where = ["src"]
 
 [project]
 name = "blue-platform"
-version = "0.8.13"
+version = "0.9"
 authors = [
   { name="Megagon Labs", email="contact@megagon.ai" },
 ]
