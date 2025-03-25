@@ -7,7 +7,7 @@ where = ["src"]
 
 [project]
 name = "blue-platform"
-version = "0.8.12"
+version = "0.8.13"
 authors = [
   { name="Megagon Labs", email="contact@megagon.ai" },
 ]
@@ -23,3 +23,4 @@ license = "BSD-3-Clause"
 [project.urls]
 Homepage = "https://github.com/megagonlabs/blue"
 Issues = "https://github.com/megagonlabs/blue/issues"
+Discussions = "https://github.com/megagonlabs/blue/discussions"
