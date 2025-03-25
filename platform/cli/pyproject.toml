@@ -3,11 +3,11 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
-where = ["blue-cli"]
+where = ["src"]
 
 [project]
-name = "blue-placlitform"
-version = "0.8.3"
+name = "blue-cli"
+version = "0.8.11"
 authors = [
   { name="Megagon Labs", email="contact@megagon.ai" },
 ]
@@ -18,7 +18,9 @@ classifiers = [
       "Programming Language :: Python :: 3",
       "Operating System :: OS Independent",
 ]
+dynamic = ["scripts", "dependencies"]
 license = "BSD-3-Clause"
+
 
 [project.urls]
 Homepage = "https://github.com/megagonlabs/blue"

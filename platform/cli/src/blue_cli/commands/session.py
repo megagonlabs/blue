@@ -9,7 +9,6 @@ from subprocess import PIPE, STDOUT, Popen
 from urllib.parse import urlencode
 
 import click
-import dotenv
 import requests
 import tabulate
 from click import Context

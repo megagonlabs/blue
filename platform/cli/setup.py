@@ -1,20 +1,14 @@
-from pathlib import Path
+import setuptools
 
-from setuptools import find_packages, setup
-
-package = {
-    "name": "blue-cli",
-    "version": "0.9",
-    "author": "megagon labs",
-    "author_email": "contact@megagon.ai",
-    "description": "blue cli - cli for blue streaming framework for agentic orchestration",
-    "packages": find_packages(),
-    "entry_points": {"console_scripts": ["blue = blue_cli.blue:cli"]},
-    "setup_requires": ['setuptools_scm'],
-    "include_package_data": True,
-    "install_requires": [
-        "blue-py==0.9",
-        "python-dotenv==1.0.0",
+setuptools.setup(
+    entry_points={
+    'console_scripts': [
+        'blue = blue_cli.blue:cli'
+    ]
+    },
+    packages=setuptools.find_packages(),
+    install_requires = [
+        "blue-platform==0.8.11",
         "click==8.1.7",
         "tabulate==0.9.0",
         "requests==2.31.0",
@@ -29,7 +23,5 @@ package = {
         "redis==5.2.0",
         "docker==7.0.0",
         "uuid==1.30",
-    ],
-    "python_requires": ">=3.9",  
-}
-setup(**package)
+    ]
+)
