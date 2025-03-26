@@ -828,8 +828,12 @@ class PlatformManager:
 
         ### create network
         print("Creating network: " + "blue_platform_" + BLUE_DEPLOY_PLATFORM + "_network_bridge")
-        client.networks.create(name="blue_platform_" + BLUE_DEPLOY_PLATFORM + "_network_bridge", driver="bridge", attachable=True, internal=False, scope="local")
-
+        try: 
+            client.networks.create(name="blue_platform_" + BLUE_DEPLOY_PLATFORM + "_network_bridge", driver="bridge", attachable=True, internal=False, scope="local")
+        except Exception:
+            print("Already running... Exiting start")
+            return
+        
         ### run redis, api, and frontend
         BLUE_PUBLIC_DB_SERVER_PORT = config["BLUE_PUBLIC_DB_SERVER_PORT"]
         # redis
@@ -861,6 +865,7 @@ class PlatformManager:
             volumes=["blue_" + BLUE_DEPLOY_PLATFORM + "_data:/blue_data", "/var/run/docker.sock:/var/run/docker.sock"],
             labels={"blue.platform": BLUE_DEPLOY_PLATFORM + "." + "api"},
             environment=config,
+            restart_policy={"Name": "always"},
             detach=True,
             stdout=True,
             stderr=True,
@@ -878,6 +883,7 @@ class PlatformManager:
             volumes=["blue_" + BLUE_DEPLOY_PLATFORM + "_data:/blue_data"],
             labels={"blue.platform": BLUE_DEPLOY_PLATFORM + "." + "frontend"},
             environment=config,
+            restart_policy={"Name": "always"},
             detach=True,
             stdout=True,
             stderr=True,
@@ -894,6 +900,7 @@ class PlatformManager:
             volumes=["blue_" + BLUE_DEPLOY_PLATFORM + "_data:/blue_data", "blue_" + BLUE_DEPLOY_PLATFORM + "_example_data:/var/lib/postgresql/data"],
             labels={"blue.platform": BLUE_DEPLOY_PLATFORM + "." + "postgres"},
             environment=config,
+            restart_policy={"Name": "always"},
             detach=True,
             stdout=True,
             stderr=True,
