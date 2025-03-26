@@ -137,7 +137,7 @@ class QueryExecutorAgent(Agent):
                     output = self.execute_sql_query(path, query)
 
                     worker.write_data(self._apply_filter(output))
-                    worker.write_eos()
+                worker.write_eos()
                 
             elif message.isBOS():
                 stream = message.getStream()
