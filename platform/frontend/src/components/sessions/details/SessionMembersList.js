@@ -17,7 +17,8 @@ import {
     faCircleCheck,
     faSearch,
     faTrash,
-} from "@fortawesome/pro-duotone-svg-icons";
+    faUserPlus,
+} from "@fortawesome/sharp-duotone-solid-svg-icons";
 import axios from "axios";
 import classNames from "classnames";
 import _ from "lodash";
@@ -67,7 +68,18 @@ export default function SessionMembersList({ loading, setLoading }) {
                         result.uid,
                     ]);
                     if (!hasUserProfile) {
-                        appActions.app.getUserProfile(result.uid);
+                        let pendingRquest = _.get(
+                            appState,
+                            [
+                                "app",
+                                "pendingRequests",
+                                `getUserProfile ${result.uid}`,
+                            ],
+                            false
+                        );
+                        if (!pendingRquest) {
+                            appActions.app.getUserProfile(result.uid);
+                        }
                     }
                 }
                 appActions.session.setSessionDetailMembers({
@@ -80,7 +92,7 @@ export default function SessionMembersList({ loading, setLoading }) {
     };
     useEffect(() => {
         fetchMemberList();
-    }, []);
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
     const handleSearchQuery = useCallback(
         _.debounce((keyword) => {
             if (!_.isEmpty(keyword)) {
@@ -89,9 +101,7 @@ export default function SessionMembersList({ loading, setLoading }) {
                     .then((response) => {
                         setSearchResult(_.get(response, "data.users", []));
                     })
-                    .finally(() => {
-                        setIsTyping(false);
-                    });
+                    .finally(() => setIsTyping(false));
             } else {
                 setSearchResult([]);
                 setIsTyping(false);
@@ -162,6 +172,7 @@ export default function SessionMembersList({ loading, setLoading }) {
                     padding: 15,
                     minHeight: 202,
                     height: _.isEmpty(members) ? 202 : null,
+                    maxHeight: 463,
                 }}
             >
                 <Popover
@@ -219,7 +230,9 @@ export default function SessionMembersList({ loading, setLoading }) {
                                         />
                                         {!recentlyAdded.has(user.uid) &&
                                         !memberIds.has(user.uid) ? (
-                                            <a
+                                            <Button
+                                                intent={Intent.PRIMARY}
+                                                minimal
                                                 onClick={() => {
                                                     addMember(user);
                                                 }}
@@ -231,19 +244,19 @@ export default function SessionMembersList({ loading, setLoading }) {
                                                 style={{
                                                     position: "absolute",
                                                     right: 15,
-                                                    fontWeight: 600,
-                                                    cursor: "pointer",
                                                 }}
-                                            >
-                                                Add
-                                            </a>
+                                                icon={faIcon({
+                                                    icon: faUserPlus,
+                                                })}
+                                                text="Add"
+                                            />
                                         ) : (
                                             faIcon({
                                                 icon: faCircleCheck,
                                                 size: 20,
                                                 style: {
                                                     position: "absolute",
-                                                    right: 15,
+                                                    right: 39.387,
                                                     color: "#238551",
                                                 },
                                             })
@@ -367,6 +380,7 @@ export default function SessionMembersList({ loading, setLoading }) {
                         );
                     })
                 )}
+                {!_.isEmpty(members) && <div style={{ height: 15 }}></div>}
             </div>
         </DialogBody>
     );

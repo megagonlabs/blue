@@ -1,6 +1,9 @@
 import { AppContext } from "@/components/contexts/app-context";
 import { AuthContext } from "@/components/contexts/auth-context";
 import { faIcon } from "@/components/icon";
+import MessageContent from "@/components/sessions/message/MessageContent";
+import MessageIcon from "@/components/sessions/message/MessageIcon";
+import MessageMetadata from "@/components/sessions/message/MessageMetadata";
 import {
     Button,
     ButtonGroup,
@@ -11,16 +14,16 @@ import {
     Tooltip,
     mergeRefs,
 } from "@blueprintjs/core";
-import { faBinary, faEllipsisH } from "@fortawesome/pro-duotone-svg-icons";
+import {
+    faBinary,
+    faEllipsisH,
+    faSidebar,
+} from "@fortawesome/sharp-duotone-solid-svg-icons";
 import _ from "lodash";
 import { useCallback, useContext, useEffect, useMemo, useRef } from "react";
 import { useResizeDetector } from "react-resize-detector";
 import AutoSizer from "react-virtualized-auto-sizer";
 import { VariableSizeList } from "react-window";
-import MessageIcon from "./MessageIcon";
-import MessageMetadata from "./MessageMetadata";
-import JsonForm from "./renderers/JsonForm";
-import JsonViewer from "./renderers/JsonViewer";
 const Row = ({ index, data, style }) => {
     const { setRowHeight } = data;
     const { appState, appActions } = useContext(AppContext);
@@ -68,7 +71,7 @@ const Row = ({ index, data, style }) => {
             }
         }
         return _.isEqual(uid, user.uid) && _.isEqual(created_by, "USER");
-    }, [user.uid]);
+    }, [user.uid]); // eslint-disable-line react-hooks/exhaustive-deps
     const isOverflown = useRef(false);
     const message = messages[index];
     const stream = message.stream;
@@ -94,7 +97,7 @@ const Row = ({ index, data, style }) => {
                     (isOverflown.current ? 35 : 0)
             );
         }
-    }, [rowRef, debugMode, expandMessage]);
+    }, [rowRef, debugMode, expandMessage]); // eslint-disable-line react-hooks/exhaustive-deps
     const streamData = _.get(streams, [stream, "data"], []);
     const contentType = _.get(messages, [index, "contentType"], null);
     const { ref: resizeRef } = useResizeDetector({
@@ -136,6 +139,33 @@ const Row = ({ index, data, style }) => {
                     }}
                 >
                     <ButtonGroup large>
+                        <Tooltip
+                            content="Add to workspace"
+                            minimal
+                            placement={`bottom${
+                                _.get(settings, "debug_mode", false)
+                                    ? ""
+                                    : "-end"
+                            }`}
+                        >
+                            <Button
+                                icon={faIcon({ icon: faSidebar })}
+                                onClick={() => {
+                                    appActions.session.addToWorkspace({
+                                        type: "session",
+                                        message,
+                                    });
+                                    appActions.session.setState({
+                                        key: "showWorkspacePanel",
+                                        value: true,
+                                    });
+                                    appActions.session.toggleWorkspaceCollapse({
+                                        stream,
+                                        value: false,
+                                    });
+                                }}
+                            />
+                        </Tooltip>
                         {_.get(settings, "debug_mode", false) ? (
                             <Tooltip
                                 content="Raw"
@@ -179,7 +209,7 @@ const Row = ({ index, data, style }) => {
                                 maxWidth: "100%",
                                 minWidth: 50,
                                 whiteSpace: "pre-wrap",
-                                wordBreak: "break-all",
+                                wordBreak: "break-word",
                                 width: "fit-content",
                                 minHeight: 21,
                                 overflow: "hidden",
@@ -193,37 +223,11 @@ const Row = ({ index, data, style }) => {
                                         : MESSAGE_OVERFLOW_THRESHOLD,
                             }}
                         >
-                            {_.isEqual(contentType, "JSON_FORM") ? (
-                                <JsonForm
-                                    content={_.last(streamData).content}
-                                    hasError={hasError}
-                                />
-                            ) : (
-                                streamData.map((e, index) => {
-                                    const { dataType, content, id } = e;
-                                    if (
-                                        _.includes(
-                                            ["STR", "INT", "FLOAT"],
-                                            dataType
-                                        )
-                                    ) {
-                                        return (
-                                            <span key={id}>
-                                                {(index ? " " : "") + content}
-                                            </span>
-                                        );
-                                    } else if (_.isEqual(dataType, "JSON")) {
-                                        return (
-                                            <JsonViewer
-                                                displaySize={true}
-                                                key={id}
-                                                json={content}
-                                            />
-                                        );
-                                    }
-                                    return null;
-                                })
-                            )}
+                            <MessageContent
+                                contentType={contentType}
+                                streamData={streamData}
+                                hasError={hasError}
+                            />
                             {!complete ? (
                                 <div style={{ marginTop: 7.5 }}>
                                     <Tag
@@ -286,7 +290,7 @@ export default function SessionMessages() {
                 }
             });
         }, 0);
-    }, [variableSizeListRef, sessionIdFocus]);
+    }, [variableSizeListRef, sessionIdFocus]); // eslint-disable-line react-hooks/exhaustive-deps
     return (
         <AutoSizer>
             {({ width, height }) => (

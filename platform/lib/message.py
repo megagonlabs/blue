@@ -75,6 +75,8 @@ ControlCode.ADD_STREAM = ControlCode("ADD_STREAM")
 ControlCode.CREATE_FORM = ControlCode("CREATE_FORM")
 ControlCode.UPDATE_FORM = ControlCode("UPDATE_FORM")
 ControlCode.CLOSE_FORM = ControlCode("CLOSE_FORM")
+# progress
+ControlCode.PROGRESS = ControlCode('PROGRESS')
 # operators
 ControlCode.CREATE_PIPELINE = ControlCode("CREATE_PIPELINE")
 ControlCode.JOIN_PIPELINE = ControlCode("JOIN_PIPELINE")

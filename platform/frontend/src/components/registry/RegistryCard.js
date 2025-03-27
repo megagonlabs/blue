@@ -9,7 +9,7 @@ import {
     Tag,
     Tooltip,
 } from "@blueprintjs/core";
-import { faCircleDot } from "@fortawesome/pro-duotone-svg-icons";
+import { faCircleDot } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import _ from "lodash";
 import Link from "next/link";
 import EntityIcon from "../entity/EntityIcon";

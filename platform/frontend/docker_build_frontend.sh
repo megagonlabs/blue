@@ -1,6 +1,6 @@
 #/bin/bash
 echo 'Building Platform Frontend...'
-echo 'Make sure to store fa.token in $BLUE_INSTALL_DIR/secrets/fa.token'
+echo "Make sure to store fa.token in $BLUE_INSTALL_DIR/secrets/fa.token"
 fa_token=$(cat $BLUE_INSTALL_DIR/secrets/fa.token)
 # if no argument supplied
 if [ -z "$fa_token" ]

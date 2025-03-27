@@ -25,9 +25,8 @@ import {
     faIcons,
     faImage,
     faTrash,
-} from "@fortawesome/pro-duotone-svg-icons";
+} from "@fortawesome/sharp-duotone-solid-svg-icons";
 import _ from "lodash";
-import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import ReactCrop, {
     centerCrop,
@@ -360,7 +359,7 @@ export default function EntityIconEditor({
                                     minWidth={80}
                                     minHeight={80}
                                 >
-                                    <Image
+                                    <img
                                         ref={imgRef}
                                         alt="Crop me"
                                         src={imgSrc}

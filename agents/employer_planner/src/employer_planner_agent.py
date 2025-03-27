@@ -78,6 +78,17 @@ class EmployerPlannerAgent(Agent):
             "Let’s get started!"
         )
 
+        # create lists
+        if self.session:
+            self.session.set_data("lists", {})
+            self.session.set_data("LIST", "")
+
+        # import predefined lists from properties
+        if self.session:
+            if 'lists' in self.properties:
+                for list_name in self.properties['lists']:
+                    self.session.set_data("lists." + list_name, self.properties['lists'][list_name])
+
         # say welcome
         if self.session:
             self.interact(welcome_message)
@@ -96,7 +107,7 @@ class EmployerPlannerAgent(Agent):
 
         return plan
 
-    def write_to_new_stream(self, worker, content, output, id=None, tags=None):
+    def write_to_new_stream(self, worker, content, output, id=None, tags=None, scope="worker"):
         
         # create a unique id
         if id is None:
@@ -104,38 +115,67 @@ class EmployerPlannerAgent(Agent):
 
         if worker:
             output_stream = worker.write_data(
-                content, output=output, id=id, tags=tags
+                content, output=output, id=id, tags=tags, scope=scope
             )
-            worker.write_eos(output=output, id=id)
+            worker.write_eos(output=output, id=id, scope=scope)
 
         return output_stream
 
-    def issue_sql_query(self, query, worker, id=None):
 
-        # query plan
-        query_plan = [
-            [self.name + ".QUERY", "NL2SQL-E2E_INPLAN.DEFAULT"],
-            ["NL2SQL-E2E_INPLAN.DEFAULT", self.name+".RESULTS"],
+    def show_employer_form(self, properties=None, worker=None, update=False):
+        # present main employer form
+        job_ids = []
+        if "job_ids" in properties:
+            job_ids = properties['job_ids']
+        
+        predefined_lists = []
+        if 'lists' in self.properties:
+            predefined_lists = list(self.properties['lists'])
+
+        predefined_lists_names = set()
+        for  predefined_list in predefined_lists:
+            predefined_lists_names.add(predefined_list["name"])
+
+        # get custom lists
+        custom_lists = []
+        lists = worker.get_session_data("lists")
+        if lists:
+            for list in lists:
+                if list in predefined_lists_names:
+                    pass
+                else:
+                    custom_lists.append({
+                        "name": list,
+                        "label": util_functions.camel_case(list)
+                    })
+
+        list_actions = [
+            {"name": "SHOW", "label": "Show"},
+            {"name": "SUMMARIZE", "label": "Summarize"}
         ]
-       
-        # write query to stream
-        query_stream = self.write_to_new_stream(worker, query, "QUERY", tags=["HIDDEN"], id=id)
 
-        # build query plan
-        plan = self.build_plan(query_plan, query_stream, id=id)
 
-        # write plan
-        # TODO: this shouldn't necessarily be into a new stream
-        self.write_to_new_stream(worker, plan, "PLAN", tags=["HIDDEN", "PLAN"], id=id)
+        misc_list_actions = []
+        if 'list_actions' in self.properties:
+            misc_list_actions = list(self.properties['list_actions'])
 
-        return
+        form = ui_builders.build_employer_form(job_ids=job_ids, predefined_lists=predefined_lists, custom_lists=custom_lists, list_actions=list_actions, misc_list_actions=misc_list_actions)
 
+        # write form, updating existing if necessary 
+        if update:
+            worker.write_control(
+                ControlCode.UPDATE_FORM, form, output="FORM", id="employer", scope="agent"
+            )
+        else:
+            worker.write_control(
+                ControlCode.CREATE_FORM, form, output="FORM", id="employer", scope="agent"
+            )
     
     def default_processor(self, message, input="DEFAULT", properties=None, worker=None):
 
         stream = stream = message.getStream()
 
-        ##### Upon USER input text
+        ##### PROCESS USER input text
         if input == "DEFAULT":
            
             if message.isEOS():
@@ -151,58 +191,78 @@ class EmployerPlannerAgent(Agent):
                     # set welcome
                     worker.set_session_data("welcome", True)
 
-                    # present main form
-                    form = ui_builders.build_form()
+                    # show employer form
+                    self.show_employer_form(properties=properties, worker=worker)    
 
-                    # write form
-                    worker.write_control(
-                        ControlCode.CREATE_FORM, form, output="FORM"
-                    )
+                    # describe possible inputs to user
+                    # self.write_to_new_stream(worker, "You can also directly ask questions in English (e.g. summarize recent candidates, who is top 5 candidates for JD 123)", "TEXT")
 
-
-                    # self.write_to_new_stream(worker, "Below is a summary of skills and educational backgrounds", "TEXT")
-
-                    # # present form
-                    # skill_vis = ui_builders.build_skill_viz()
-                    # # logging.info(json.dumps(skill_vis, indent=3))
-                    
-                    # # write vis
-                    # worker.write_control(
-                    #     ControlCode.CREATE_FORM, skill_vis, output="SKILLVIS"
-                    # )
-
-                    # # present form
-                    # ed_vis = ui_builders.build_ed_viz()
-                    # # logging.info(json.dumps(ed_vis, indent=3))
-                    
-                    # # write vis
-                    # worker.write_control(
-                    #     ControlCode.CREATE_FORM, ed_vis, output="EDVIS"
-                    # )
-
-                    # # present form
-                    # list_vis = ui_builders.build_list_viz()
-                    # # logging.info(json.dumps(list_vis, indent=3))
-                    
-                    # # write vis
-                    # worker.write_control(
-                    #     ControlCode.CREATE_FORM, list_vis, output="LISTVIS"
-                    # )
+        ##### PROCESS RESULTS FROM INTENT CLASSIFICATION   
         elif input == "INTENT":
             if message.isData():
                 if worker:
                     data = message.getData()
                     logging.info(json.dumps(data, indent=3))
 
-                    if 'intent' in data:
-                        intent = data['intent']
-                        entities = {}
-                        if 'entities' in data:
-                            entities = data['entities']
+                    input = None
+                    intent = None
+                    entities = {}
 
-                        self.init_action(worker, intent, entities)
+                    for key in data:
+                        if key.upper() == 'INPUT':
+                            input = data[key]
+                        elif key.upper() == 'INTENT':
+                            intent = data[key]
+                        elif key.upper() == 'ENTITIES' or key.upper() == "ENTITY":
+                            entities = data[key]
+                        else:
+                            entities[key.upper()] = data[key]
 
-            
+                    self.init_action(worker, properties=properties, intent=intent, entities=entities, input=input)
+
+        elif input == "ADD_LIST_FROM_QUERY":
+            if message.isData():
+                if worker:
+                    data = message.getData()
+                    logging.info(json.dumps(data, indent=3))
+
+                    list = worker.get_session_data("list")
+                    if list is None:
+                        list = "short"
+
+                    if 'result' in data:
+                        results = data['result']
+                        if results:
+                            
+                            for result in results:
+                                if 'job_seeker_id' in result:
+                                    job_seeker_id = result['job_seeker_id']
+                                    worker.set_session_data("lists."+list+"."+str(job_seeker_id), True)
+
+                    self._display_list(worker, list, text="Your list now contains: \n")
+
+        elif input == "REMOVE_LIST_FROM_QUERY":
+            if message.isData():
+                if worker:
+                    data = message.getData()
+                    logging.info(json.dumps(data, indent=3))
+
+                    list = worker.get_session_data("list")
+                    if list is None:
+                        list = "short"
+
+                    if 'result' in data:
+                        results = data['result']
+                        if results:
+                            
+                            for result in results:
+                                if 'job_seeker_id' in result:
+                                    job_seeker_id = result['job_seeker_id']
+                                    worker.set_session_data("lists."+list+"."+str(job_seeker_id), False)
+
+                    self._display_list(worker, list, text="Your list now contains: \n")
+
+        ##### PROCESS FORM UI EVENTS
         elif input == "EVENT":
             if message.isData():
                 if worker:
@@ -210,76 +270,72 @@ class EmployerPlannerAgent(Agent):
                     stream = message.getStream()
                     plan_id = form_id = data["form_id"]
                     action = data["action"]
+                    
 
+                    # debug
+                    context = worker.get_all_session_data()
+                    logging.info(json.dumps(context, indent=3)) 
+                    
                     # get form stream
                     form_data_stream = stream.replace("EVENT", "OUTPUT:FORM")
 
-                    # when the user clicked DONE
-                    if action == "DONE":
-                      
+                    
+                    if action is None:
+                        # save form data
+                        path = data["path"]
+                        value = data["value"]
+
+                        if path.find("misc_list_actions_") == 0:
+                            ## handle misc actions
+                            list = path[len("misc_list_actions_"):]
+
+                            self.perform_misc_list_action(worker, list=list, label=value, context=context)
+                        else:
+                            timestamp = worker.get_stream_data(
+                                path + ".timestamp", stream=form_data_stream
+                            )
+
+                            if timestamp is None or data["timestamp"] > timestamp:
+                                worker.set_stream_data(
+                                    path,
+                                    {
+                                        "value": value,
+                                        "timestamp": data["timestamp"],
+                                    },
+                                    stream=form_data_stream,
+                                )
+                            
+                            # save to session
+                            sesion_path_filter = set(["JOB_ID"])
+
+                            if path in sesion_path_filter:
+                                logging.info("RECORDED")
+                                worker.set_session_data(path, value)
+                    elif action == "DONE":
+                        # when the user clicked DONE, (disbaled)
                         # close form
                         worker.write_control(
                             ControlCode.CLOSE_FORM,
                             args={"form_id": form_id},
                             output="FORM",
                         )
-                    elif action == "SUMMARIZE":
-                        session_data = worker.get_all_session_data()
-                        logging.info(json.dumps(session_data, indent=3)) 
-                        
-                        self.summarize_all_jobseekers(worker, session_data)
-                               
-                        pass 
-                    elif action == "RECENT":
-                        pass
-                    elif action == "RANK":
-                        pass
-                    elif action == "TOP":
-                        pass
-                    elif action == "SHORTLIST":
-                        pass 
-                    elif action == "COMPARE":
-                        pass 
-                    elif action == "SMARTQUERIES":
-                        pass 
+                    elif action.find("SHOW_") == 0:
+                        list = action[len("SHOW_"):]
+                        self._display_list(worker, list, text=util_functions.camel_case(list))
+                    elif action == "SUMMARIZE_recent":
+                        logging.info("3")
+                        self.summarize_recent_jobseekers(worker, properties=properties, context=context)
+                    elif action.find("SUMMARIZE_") == 0:
+                        list = action[len("SUMMARIZE_"):]
+                        if list == "short":
+                            self.summarize_shortlisted_jobseekers(worker, properties=properties, context=context)
+                        else:
+                            pass
+                    elif action == "EXAMPLE_SMART_QUERIES":
+                        self.write_to_new_stream(worker, "Here are a few example queries you can try 'which candidate has the most required skills?'", "TEXT")             
                     else:
-                        # save form data
-                        path = data["path"]
-                        value = data["value"]
-                        timestamp = worker.get_stream_data(
-                            path + ".timestamp", stream=form_data_stream
-                        )
-
-                        if timestamp is None or data["timestamp"] > timestamp:
-                            worker.set_stream_data(
-                                path,
-                                {
-                                    "value": value,
-                                    "timestamp": data["timestamp"],
-                                },
-                                stream=form_data_stream,
-                            )
-                        
-                        # save to session
-                        sesion_path_filter = set(["JOB_ID"])
-
-                        if path in sesion_path_filter:
-                            worker.set_session_data(path, value)
+                       pass
                             
-        # process query results
-        elif input == "RESULTS":
-                if message.isData():
-                    stream = message.getStream()
-                    # TODO: REVISE
-                    # get query from incoming stream
-                    query = stream[stream.find("QUERY"):].split(":")[1]
-
-                    data = message.getData()
-
-                    logging.info(data)
-                
-                    if 'result' in data:
-                        query_results = data['result']
             
 
     #### 
@@ -295,89 +351,423 @@ class EmployerPlannerAgent(Agent):
             ["OPENAI_CLASSIFIER.DEFAULT", self.name + ".INTENT"]
         ]
     
-
         # build query plan
         plan = self.build_plan(intent_plan, user_stream, id=id)
 
         # write plan
-        # TODO: change to tags=["HIDDEN"]
         self.write_to_new_stream(worker, plan, "PLAN", tags=["PLAN"], id=id)
 
         return
 
 
-    def init_action(self, worker, intent, entities):
-        # update entities in session
-        for entity in entities:
-            worker.set_session_data(entity, entities[entity])
+    def init_action(self, worker, properties=None, intent=None, entities=None, input=None):
+
+        ### Possible Intents
+        # Intent: SUMMARIZE, SHOW, COMPARE, ADD, REMOVE 
+        # Entities: JOB_ID, JOB_SEEKER_ID, LIST, QUERY
+
+        # get session data
+        context = worker.get_all_session_data()
+        if context is None:
+            context = {}
+
+        if entities is None:
+            entities = {}
+
+        # update context, if JOB_ID present
+        if "JOB_ID" in entities:
+            worker.set_session_data("JOB_ID", entities["JOB_ID"])
+
+        if "JOB_SEEKER_ID" in entities:
+            worker.set_session_data("JOB_SEEKER_ID", entities["JOB_SEEKER_ID"])
 
         if intent == "SUMMARIZE":
-            session_data = worker.get_all_session_data()
-            logging.info(json.dumps(session_data, indent=3)) 
-            self.summarize_all_jobseekers(worker, session_data)
+            if "LIST" in entities:
+                list = entities["LIST"]
+                if list == "recent":
+                    logging.info("2")
+                    self.summarize_recent_jobseekers(worker, properties=properties, context=context, entities=entities, input=input)
+                else:
+                    self.summarize_listed_jobseekers(worker, properties=properties, context=context, entities=entities, input=input)
+            else:
+                self.summarize_shortlisted_jobseekers(worker, properties=properties, context=context, entities=entities, input=input)   
+        elif intent == "SHOW":
+            self.show_list_jobseekers(worker, properties=properties, context=context, entities=entities, input=input)
+        elif intent == "ADD":
+            self.add_list_jobseekers(worker, properties=properties, context=context, entities=entities, input=input)
+        elif intent == "REMOVE":
+            self.remove_list_jobseekers(worker, properties=properties, context=context, entities=entities, input=input)
+        elif intent == "QUERY":
+            self.issue_nl_query(worker, properties=properties, context=context, entities=entities, input=input)
+        else:
+            self.write_to_new_stream(worker, "I don't know how to help you on that, try summarizing, querying, comparing applies...", "TEXT") 
 
     #### ACTIONS
     ## summaries
-    def summarize_all_jobseekers(self, worker, session_data, id=None):
+    # recents
+    def summarize_recent_jobseekers(self,  worker, properties=None, context=None, entities=None, input=None):
+        logging.info("1")
+        self.write_to_new_stream(worker, "Analyzing recent applies to your posting...", "TEXT") 
 
         # create a unique id
-        if id is None:
-            id = util_functions.create_uuid()
+        id = util_functions.create_uuid()
 
         # summary plan
         summary_plan = [
-            [self.name + ".SESSION_DATA", "SUMMARIZER.DEFAULT"]
+            [self.name + ".SESSION_DATA", "SUMMARIZER_RECENT.DEFAULT"]
         ]
     
-        # write session_data to stream
-        # TODO: change to tags=["HIDDEN"]
-        session_data_stream = self.write_to_new_stream(worker, session_data, "SESSION_DATA", id=id)
+        # filter relevant session data and write to stream
+        session_data_stream = self.write_to_new_stream(worker, context, "SESSION_DATA", id=id)
 
         # build query plan
         plan = self.build_plan(summary_plan, session_data_stream, id=id)
 
         # write plan
-        # TODO: change to tags=["HIDDEN"]
         self.write_to_new_stream(worker, plan, "PLAN", tags=["PLAN"], id=id)
 
         return
 
-    def summarize_recent_jobseekers(self, jd_id, date):
-        pass
+    # comparisons
+    def summarize_compare_jobseekers(self, worker, properties=None, context=None, entities=None, input=None):
 
-    def compare_jobseekers(self, js_ids):
-        pass
+        self.write_to_new_stream(worker, "Comparing selected applies to your posting...", "TEXT") 
 
-    def summarize_jobseekers_jd(self, js_ids, jd_id):
-        pass 
+        # create a unique id
+        id = util_functions.create_uuid()
 
-    ## visualizations
-    def show_skills_distribution(self, jd_id):
-        pass
-
-    def show_education_distribution(self, jd_id):
-        pass
-
-    ## lists
-    def list_all_jobseekers(self, jd_id):
-        pass
+        # summary plan
+        summary_plan = [
+            [self.name + ".SESSION_DATA", "SUMMARIZER_COMPARE.DEFAULT"]
+        ]
     
-    def list_ranked_jobseekers(self, jd_id, topk):
-        pass
+        # filter relevant session data and write to stream
+        session_data_stream = self.write_to_new_stream(worker, context, "SESSION_DATA", id=id)
 
-    def list_shortlisted_jobseekers(self, jd_id):
-        pass
+        # build query plan
+        plan = self.build_plan(summary_plan, session_data_stream, id=id)
 
-    def add_shortlist_jobseekers(self, js_ids):
+        # write plan
+        self.write_to_new_stream(worker, plan, "PLAN", tags=["PLAN"], id=id)
+
+        return
+
+    ### lists
+    def summarize_listed_jobseekers(self,  worker, properties=None, context=None, entities=None, input=None):
+
+        self.write_to_new_stream(worker, "Analyzing applies in your list...", "TEXT") 
+
+        # create a unique id
+        id = util_functions.create_uuid()
+
+        # summary plan
+        summary_plan = [
+            [self.name + ".SESSION_DATA", "SUMMARIZER_LIST.DEFAULT"]
+        ]
+    
+        # filter relevant session data and write to stream
+        session_data_stream = self.write_to_new_stream(worker, context, "SESSION_DATA", id=id)
+
+        # build query plan
+        plan = self.build_plan(summary_plan, session_data_stream, id=id)
+
+        # write plan
+        self.write_to_new_stream(worker, plan, "PLAN", tags=["PLAN"], id=id)
+
+        return
+
+    def _display_list(self, worker, list, text="List contents: \n"):
+
+        lists = worker.get_session_data("lists")
+
+        if list in lists:
+            list_contents = worker.get_session_data("lists." + list)
+            if len(list_contents.values()) > 0:
+                job_seeker_ids_in_list = worker.get_session_data("lists." + list)
+                job_seekers = []
+                for job_seeker_id in job_seeker_ids_in_list:
+                    if job_seeker_ids_in_list[job_seeker_id]:
+                        job_seekers.append({"id":job_seeker_id, "label":"Candidate " + str(job_seeker_id),"value":True })
+
+                # create a form with the list
+                form = ui_builders.build_list(job_seekers, title=list, 
+                                            text="Below are candidates in your list, toggle checkbox to add/remove from the list...",
+                                            element_actions=[{"label": "View", "action":"VIEW"}, {"label": "E-Mail", "action":"EMAIL"}], 
+                                            list_actions=[{"label": "Compare", "action":"COMPARE"}, {"label": "Summarize", "action":"SUMMARIZE"}])
+
+                # write form, scope=agent
+                worker.write_control(
+                    ControlCode.CREATE_FORM, form, output="LIST_"+list, id=list, scope="agent"
+                )
+            else:
+                self.write_to_new_stream(worker, "Your list is empty...", "TEXT")
+        else:
+            self.write_to_new_stream(worker, "Your list is empty...", "TEXT")
+        
+
+    def _identify_list(self, worker, properties=None, context=None, entities=None, input=None):
+        list = "short"
+        if "LIST" in entities:
+            entities_list = entities["LIST"]
+
+            if entities_list is None:
+                return list 
+            
+            # if list, take first one
+            if type(entities_list) == list:
+                if len(entities_list) == 0:
+                    return list
+                elif len(entities_list) == 1:
+                    entities_list = entities_list[0]
+
+            list = entities_list.replace(" ", "_")
+        
+        return list
+
+    def show_list_jobseekers(self, worker, properties=None, context=None, entities=None, input=None):
+        
+        # identify list to operate on
+        list = self._identify_list(worker, properties=properties, context=context, entities=entities, input=input)
+
+        # create list, if not exists
+        lists = worker.get_session_data("lists")
+        if list not in lists:
+            # create list
+            worker.set_session_data("lists."+list, {})
+
+        # set list to the session
+        worker.set_session_data("list", list)
+
+        logging.info(entities)
+
+        if "QUERY" in entities:
+            query = entities["QUERY"]
+
+            # Expand query with context as context
+            expanded_query = "Answer the following question with the below context. Ignore information in context if the query overrides context:\n"
+            expanded_query += json.dumps(context, indent=3) + "\n"
+        
+            expanded_query += query
+
+            # create a unique id
+            id = util_functions.create_uuid()
+
+            # query plan
+            query_plan = [
+                [self.name + ".QUERY", "NL2SQL-E2E_INPLAN.DEFAULT"],
+                ["NL2SQL-E2E_INPLAN.DEFAULT", self.name + ".ADD_LIST_FROM_QUERY"],
+            ]
+
+            # write query to stream
+            query_stream = self.write_to_new_stream(worker, expanded_query, "QUERY", id=id)
+
+            # build query plan
+            plan = self.build_plan(query_plan, query_stream, id=id)
+
+            # write plan
+            self.write_to_new_stream(worker, plan, "PLAN", tags=["PLAN"], id=id)
+
+        else:
+            self._display_list(worker, list)
+            
+    def add_list_jobseekers(self, worker, properties=None, context=None, entities=None, input=None):
+        
+        # identify list to operate on
+        list = self._identify_list(worker, properties=properties, context=context, entities=entities, input=input)
+
+        # create list, if not exists
+        lists = worker.get_session_data("lists")
+        if list not in lists:
+            # create list
+            worker.set_session_data("lists."+list, {})
+            # show list, updated in employer form
+            self.show_employer_form(properties=properties, worker=worker, update=True)    
+
+        # set list to the session
+        worker.set_session_data("list", list)
+
+        logging.info(entities)
+
+        if "JOB_SEEKER_ID" in entities:
+            job_seeker_ids = entities["JOB_SEEKER_ID"]
+            if type(job_seeker_ids) == str:
+                job_seeker_ids = [job_seeker_ids]
+            
+            for job_seeker_id in job_seeker_ids:
+                worker.set_session_data("lists."+list+"."+str(job_seeker_id), True)
+
+            self._display_list(worker, list, text="Your list now contains: \n")
+        else:
+            query = None
+            if "QUERY" in entities:
+                query = entities["QUERY"]
+            else:
+                query = input
+        
+            # Expand query with context as context
+            expanded_query = "Answer the following question with the below context. Ignore information in context if the query overrides context:\n"
+            expanded_query += json.dumps(context, indent=3) + "\n"
+            expanded_query += query
+
+            # create a unique id
+            id = util_functions.create_uuid()
+
+            # query plan
+            query_plan = [
+                [self.name + ".QUERY", "NL2SQL-E2E_INPLAN.DEFAULT"],
+                ["NL2SQL-E2E_INPLAN.DEFAULT", self.name + ".ADD_LIST_FROM_QUERY"],
+            ]
+
+            # write query to stream
+            query_stream = self.write_to_new_stream(worker, expanded_query, "QUERY", id=id)
+
+            # build query plan
+            plan = self.build_plan(query_plan, query_stream, id=id)
+
+            # write plan
+            self.write_to_new_stream(worker, plan, "PLAN", tags=["PLAN"], id=id)
+        
+        
+    def remove_list_jobseekers(self, worker, properties=None, context=None, entities=None, input=None):
+        
+        # identify list to operate on
+        list = self._identify_list(worker, properties=properties, context=context, entities=entities, input=input)
+
+        # create list, if not exists
+        lists = worker.get_session_data("lists")
+        if list not in lists:
+            # create list
+            worker.set_session_data("lists."+list, {})
+
+        # set list to the session
+        worker.set_session_data("list", list)
+
+        logging.info(entities)
+
+
+        if "JOB_SEEKER_ID" in entities:
+            job_seeker_ids = entities["JOB_SEEKER_ID"]
+            if type(job_seeker_ids) == str:
+                job_seeker_ids = [job_seeker_ids]
+            
+            for job_seeker_id in job_seeker_ids:
+                worker.set_session_data("lists."+list+"."+str(job_seeker_id), False)
+
+            self._display_list(worker, list, text="Your list now contains: \n")
+        else:
+            query = None
+            if "QUERY" in entities:
+                query = entities["QUERY"]
+            else:
+                query = input
+
+            # Expand query with context as context
+            expanded_query = "Answer the following question with the below context. Ignore information in context if the query overrides context:\n"
+            expanded_query += json.dumps(context, indent=3) + "\n"
+            expanded_query += query
+
+            # create a unique id
+            id = util_functions.create_uuid()
+
+            # query plan
+            query_plan = [
+                [self.name + ".QUERY", "NL2SQL-E2E_INPLAN.DEFAULT"],
+                ["NL2SQL-E2E_INPLAN.DEFAULT", self.name + ".REMOVE_LIST_FROM_QUERY"],
+            ]
+
+            # write query to stream
+            query_stream = self.write_to_new_stream(worker, expanded_query, "QUERY", id=id)
+
+            # build query plan
+            plan = self.build_plan(query_plan, query_stream, id=id)
+
+            # write plan
+            self.write_to_new_stream(worker, plan, "PLAN", tags=["PLAN"], id=id)
+
+    def summarize_jobseekers_jd(self, worker, context=None, entities=None, input=None):
         pass 
 
-    def remove_shortlist_jobseekers(self, js_ids):
-        pass
+    ## misc list actions
+    def perform_misc_list_action(worker, list=None, label=None, context=None, input=None):
 
-    ## example queries
-    def show_smart_query_examples(self):
-        pass
+        action = None
+        # from label identify action
+        if 'list_actions' in self.properties:
+            for action_name in self.properties['list_actions']:
+                if self.properties['list_actions'][action_name]['label'] == label:
+                    action = self.properties['list_actions'][action_name]
 
+        ### execute plan for the action
+        
+        # create a unique id
+        id = util_functions.create_uuid()
+
+        # action plan
+        if 'plan' in action:
+            p = action['plan']
+
+            action_plan = []
+            # substitue self
+            for step in action_plan:
+                f = step[0]
+                t = step[1]
+
+                if f.find('self.') == 0:
+                    s = f.split('.')
+                    s[0] = self.name
+                    f = ".".join(s)
+                if t.find('self.') == 0:
+                    s = t.split('.')
+                    s[0] = self.name
+                    t = ".".join(s)
+
+                action_plan.append([f,t])
+           
+            # write trigger to stream
+            a_stream = self.write_to_new_stream(worker, action['label'], "DEFAULT", tags=["HIDDEN"], id=id)
+
+            # build plan
+            plan = self.build_plan(action_plan, a_stream, id=id)
+
+            # write plan
+            self.write_to_new_stream(worker, plan, "PLAN", tags=["PLAN"], id=id)
+
+    
+    def issue_nl_query(self, worker, properties=None, context=None, entities=None, input=None):
+
+        if "QUERY" in entities:
+            query = entities["QUERY"]
+        else:
+            query = input
+
+
+        # Expand query with context as context
+        expanded_query = "Answer the following question with the below context. Ignore information in context if the query overrides context:\n"
+        expanded_query += "question: " + query + "\n"
+        expanded_query += "context: " + "\n" + json.dumps(context, indent=3) + "\n"
+        
+
+        logging.info("ISSUE NL QUERY:" + expanded_query)
+        # create a unique id
+        id = util_functions.create_uuid()
+
+        # query plan
+        query_plan = [
+            [self.name + ".QUERY", "NL2SQL-E2E_INPLAN.DEFAULT"],
+            ["NL2SQL-E2E_INPLAN.DEFAULT", "OPENAI_EXPLAINER.DEFAULT"],
+        ]
+
+        # write query to strea
+        query_stream = self.write_to_new_stream(worker, expanded_query, "QUERY", id=id)
+
+        # build query plan
+        plan = self.build_plan(query_plan, query_stream, id=id)
+
+        # write plan
+        # TODO: this shouldn't necessarily be into a new strea
+        self.write_to_new_stream(worker, plan, "PLAN", tags=["PLAN"], id=id)
+
+        return
 
 
 

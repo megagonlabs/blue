@@ -39,6 +39,18 @@ export const agentAction = (dispatch) => ({
                     },
                 });
                 dispatch({
+                    type: "agent/propertyLookups/set",
+                    payload: {
+                        agent: payload,
+                        key: "display_name",
+                        value: _.get(
+                            response,
+                            "data.result.properties.display_name",
+                            null
+                        ),
+                    },
+                });
+                dispatch({
                     type: "agent/pendingAttributesRequests/set",
                     payload: { key: requestKey, value: false },
                 });

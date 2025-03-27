@@ -1,5 +1,11 @@
 :root {
-    --separator-border: rgba(17, 20, 24, 0.15);
+    --separator-border: rgba(17, 20, 24, 0.15) !important;
+    --focus-border: #2d72d2 !important;
+}
+.no-text-selection {
+    -webkit-user-select: none; /* Safari */
+    -ms-user-select: none; /* IE 10 and IE 11 */
+    user-select: none; /* Standard syntax */
 }
 a.no-link-decoration {
     color: inherit !important;
@@ -10,6 +16,12 @@ a.no-link-decoration {
 }
 .full-parent-width {
     width: 100%;
+}
+.session-search-result-row .session-search-result-row-actions {
+    display: none;
+}
+.session-search-result-row:hover .session-search-result-row-actions {
+    display: inline-flex;
 }
 .multiline-ellipsis {
     display: -webkit-box;
@@ -36,13 +48,13 @@ table.entity-section-card-table tr td {
 .height-0 {
     height: 0px !important;
 }
-.bp-border-top {
+.border-top {
     border-top: 1px solid rgba(17, 20, 24, 0.15);
 }
-.bp-border-bottom {
+.border-bottom {
     border-bottom: 1px solid rgba(17, 20, 24, 0.15);
 }
-.bp-border-right {
+.border-right {
     border-right: 1px solid rgba(17, 20, 24, 0.15);
 }
 .z-index-36 {

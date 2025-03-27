@@ -10,7 +10,7 @@ import {
     Intent,
     Tag,
 } from "@blueprintjs/core";
-import { faArrowLeft } from "@fortawesome/pro-duotone-svg-icons";
+import { faArrowLeft } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import CopyDocJsonButton from "./CopyDocJsonButton";
 export default function IntegerDoc({ closePanel }) {
     const docJson = {
@@ -25,7 +25,7 @@ export default function IntegerDoc({ closePanel }) {
     };
     return (
         <>
-            <div className="bp-border-bottom" style={{ padding: "10px 20px" }}>
+            <div className="border-bottom" style={{ padding: "10px 20px" }}>
                 <Button
                     outlined
                     text="Back"

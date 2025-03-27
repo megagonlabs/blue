@@ -1,4 +1,11 @@
+
+import logging
+
+###### Parsers, Formats, Utils
 import json
+from string import Template
+import copy
+
 
 def build_list_viz():
     viz_ui = { 
@@ -17,10 +24,10 @@ def build_list_viz():
             "vis": {
                "vl-spec": {
                     "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
-                    "description": "candidate ranking table",
+                    "description": "applies ranking table",
                     "width": "container",
                     "title": {
-                        "text": ["Overall Ranking of Candidates:", "Top-20"],
+                        "text": ["Overall Ranking of Applies:", "Top-`0"],
                         "align": "center",
                         "dy": -10,
                         "fontWeight": "bold",
@@ -31,27 +38,17 @@ def build_list_viz():
                     "config": {"axis": {"grid": True, "tickBand": "extent"}},
                     "data": {
                         "values": [
-                            {"job_seeker_id":"Candidate1","Overall_Score":1.26131699577619, "Experience_Score":1, "Must_Have_Score":0.285714285714285},
-                            {"job_seeker_id":"Candidate2","Overall_Score":1.07679430536457, "Experience_Score":1, "Must_Have_Score":0.5},
-                            {"job_seeker_id":"Candidate3","Overall_Score":0.984472292227462, "Experience_Score":1, "Must_Have_Score":0.5},
-                            {"job_seeker_id":"Candidate4","Overall_Score":0.975357541397898, "Experience_Score":1, "Must_Have_Score":0.5},
-                            {"job_seeker_id":"Candidate5","Overall_Score":0.809060094596622, "Experience_Score":1, "Must_Have_Score":0.285714285714285},
-                            {"job_seeker_id":"Candidate6","Overall_Score":0.726512483842964, "Experience_Score":1, "Must_Have_Score":0.285714285714285},
-                            {"job_seeker_id":"Candidate7","Overall_Score":0.701245858829762, "Experience_Score":1, "Must_Have_Score":0.214285714285714},
-                            {"job_seeker_id":"Candidate8","Overall_Score":0.679647326628337, "Experience_Score":1, "Must_Have_Score":0.5},
-                            {"job_seeker_id":"Candidate9","Overall_Score":0.679326954961354, "Experience_Score":1, "Must_Have_Score":0.214285714285714},
-                            {"job_seeker_id":"Candidate10","Overall_Score":0.675973774052811, "Experience_Score":1, "Must_Have_Score":0.285714285714285},
-                            {"job_seeker_id":"Candidate11","Overall_Score":0.668109009444329, "Experience_Score":1, "Must_Have_Score":0.357142857142857},
-                            {"job_seeker_id":"Candidate12","Overall_Score":0.668061460079778, "Experience_Score":1, "Must_Have_Score":0.428571428571428},
-                            {"job_seeker_id":"Candidate13","Overall_Score":0.661292617616242, "Experience_Score":1, "Must_Have_Score":0.357142857142857},
-                            {"job_seeker_id":"Candidate14","Overall_Score":0.614455274130432, "Experience_Score":0.875, "Must_Have_Score":0.428571428571428},
-                            {"job_seeker_id":"Candidate15","Overall_Score":0.613492476327006, "Experience_Score":0.875, "Must_Have_Score":0.428571428571428},
-                            {"job_seeker_id":"Candidate16","Overall_Score":0.609042067996767, "Experience_Score":0.875, "Must_Have_Score":0.285714285714285},
-                            {"job_seeker_id":"Candidate17","Overall_Score":0.595054232542885, "Experience_Score":0.875, "Must_Have_Score":0.642857142857142},
-                            {"job_seeker_id":"Candidate18","Overall_Score":0.595054232542885, "Experience_Score":0.875, "Must_Have_Score":0.428571428571428},
-                            {"job_seeker_id":"Candidate19","Overall_Score":0.595006683178334, "Experience_Score":0.75, "Must_Have_Score":0.428571428571428},
-                            {"job_seeker_id":"Candidate20","Overall_Score":0.571112446251456, "Experience_Score":1, "Must_Have_Score":0.5}
-                                ]
+                            {"job_seeker_id":"1003","Overall_Score":1.26, "Experience_Score":1, "Must_Have_Score":0.28},
+                            {"job_seeker_id":"1002","Overall_Score":1.07, "Experience_Score":1, "Must_Have_Score":0.5},
+                            {"job_seeker_id":"1007","Overall_Score":0.98, "Experience_Score":1, "Must_Have_Score":0.5},
+                            {"job_seeker_id":"1005","Overall_Score":0.97, "Experience_Score":1, "Must_Have_Score":0.5},
+                            {"job_seeker_id":"1001","Overall_Score":0.80, "Experience_Score":1, "Must_Have_Score":0.28},
+                            {"job_seeker_id":"1004","Overall_Score":0.72, "Experience_Score":1, "Must_Have_Score":0.28},
+                            {"job_seeker_id":"1010","Overall_Score":0.70, "Experience_Score":1, "Must_Have_Score":0.21},
+                            {"job_seeker_id":"1006","Overall_Score":0.67, "Experience_Score":1, "Must_Have_Score":0.5},
+                            {"job_seeker_id":"1008","Overall_Score":0.67, "Experience_Score":1, "Must_Have_Score":0.21},
+                            {"job_seeker_id":"1009","Overall_Score":0.67, "Experience_Score":1, "Must_Have_Score":0.28}
+                            ]
                     },
                     "transform": [
                         {"calculate": "datum.Overall_Score", "as": "Overall Score"},
@@ -370,7 +367,327 @@ def build_skill_viz():
 
     return viz
 
-def build_form():
+def build_employer_form(job_ids=None, predefined_lists=None, custom_lists=None, list_actions=None, misc_list_actions=None):
+    if predefined_lists == None:
+        predefined_lists = []
+
+    if custom_lists == None:
+        custom_lists = []
+
+    if list_actions == None:
+        list_actions = []
+
+    if misc_list_actions == None:
+        misc_list_actions = []
+    else: 
+        actions = []
+        # only use label
+        for misc_list_action in misc_list_actions:
+            actions.append(misc_list_action["label"])
+        misc_list_actions = actions
+
+    # lists
+    predefined_lists_ui = []
+    custom_lists_ui = []
+
+    list_action_template = """
+    {
+        "type": "Button",
+        "label": "${list_action_label}",
+        "props": {
+            "action": "${list_action_name}_${list_name}",
+            "large": false
+        }
+    }
+    """
+
+    list_actions_sa = []
+    list_actions_s = ""
+    list_action_t = Template(list_action_template)
+    for list_action in list_actions:
+        list_action_s = list_action_t.safe_substitute(list_action_label=list_action["label"], list_action_name=list_action["name"])
+        list_actions_sa.append(list_action_s)
+
+    list_actions_s = ",".join(list_actions_sa)
+
+    list_template_pre = """
+        {
+        "type": "HorizontalLayout",
+            "props": {
+            "spaceEvenly": false
+        },
+        "elements": [
+            {
+                "type": "Control",
+                "label": "${list_label}",
+                "scope": "#/properties/list_checkbox_${list_name}"
+            },
+    """
+
+    misc_actions_template = """
+    {
+        "type": "Control",
+        "scope": "#/properties/misc_list_actions_${list_name}"
+    }
+    """
+
+    list_template_post = """
+        ]
+    }
+    """
+
+
+    list_template = list_template_pre + list_actions_s
+
+    if len(misc_list_actions) > 0:
+        list_template = list_template + "," + misc_actions_template
+
+    list_template = list_template + list_template_post
+
+    
+    custom_lists_text = "You do not have any custom groups yet..."
+    if len(custom_lists_ui) > 0:
+        custom_lists_text = "Below are your custom smart groups:"
+
+    list_template_t = Template(list_template)
+
+    for predefined_list in predefined_lists:
+        predefined_list_s = list_template_t.safe_substitute(list_label=predefined_list["label"], list_name=predefined_list["name"])
+        predefined_lists_ui.append(json.loads(predefined_list_s))
+
+
+    for custom_list in custom_lists:
+        custom_list_s = list_template_t.safe_substitute(list_label=custom_list["label"], list_name=custom_list["name"])
+        custom_lists_ui.append(json.loads(custom_list_s))
+
+    form_ui = {
+        "type": "VerticalLayout",
+        "elements": [
+            {
+                "type": "Label",
+                "label": "Employer Assistant",
+                "props": {
+                    "style": {
+                        "fontSize": 20,
+                        "fontWeight": "bold"
+                    }
+                }
+            },
+            {
+                "type": "Label",
+                "label": "Below are your posted JDs. Select a JD to continue...",
+                "props": {
+                    "muted": True,
+                    "style": {
+                        "marginBottom": 15,
+                        "fontStyle": "italic"
+                    }
+                }
+            },
+            {
+                "type": "HorizontalLayout",
+                    "props": {
+                    "spaceEvenly": False
+                },
+                "elements": [
+                    {
+                        "type": "Control",
+                        "scope": "#/properties/JOB_ID"
+                    },
+                    {
+                        "type": "Button",
+                        "label": "View JD",
+                        "props": {
+                            "action": "VIEW_JD",
+                            "large": False
+                        }
+                    }
+                ]
+            },
+            {
+                "type": "Label",
+                "label": "Your Applicants",
+                "props": {
+                    "style": {
+                        "fontSize": 16,
+                        "fontWeight": "bold"
+                    }
+                }
+            },
+            {
+                "type": "Label",
+                "label": "Work with your applicants below or create your own custom smart group...",
+                "props": {
+                    "muted": True,
+                    "style": {
+                        "marginBottom": 15,
+                        "fontStyle": "italic"
+                    }
+                }
+            },
+            {
+                "type": "VerticalLayout",
+                        "elements": predefined_lists_ui
+            },
+                {
+                "type": "Label",
+                "label": "Custom Smart Groups",
+                "props": {
+                    "style": {
+                        "fontSize": 16,
+                        "fontWeight": "bold"
+                    }
+                }
+            },
+            {
+                "type": "Label",
+                "label": custom_lists_text,
+                "props": {
+                    "muted": True,
+                    "style": {
+                        "marginBottom": 15,
+                        "fontStyle": "italic"
+                    }
+                }
+            },
+            {
+                "type": "VerticalLayout",
+                        "elements": custom_lists_ui
+            },
+            {
+                "type": "Label",
+                "label": " ",
+                "props": {
+                    "muted": True,
+                    "style": {
+                        "marginBottom": 5,
+                        "fontStyle": "italic"
+                    }
+                }
+            },
+            {
+                "type": "HorizontalLayout",
+                "props": {
+                    "spaceEvenly": False
+                },
+                "elements": [
+                    {
+                        "type": "Button",
+                        "label": "Compare Selected Groups",
+                        "props": {
+                            "action": "COMPARE_SELECTED_GROUPS",
+                            "large": False
+                        }
+                    },
+                    {
+                        "type": "Button",
+                        "label": "Create Automatic Groups",
+                        "props": {
+                            "action": "AUTO_GROUPS",
+                            "large": False
+                        }
+                    },
+                    {
+                        "type": "Button",
+                        "label": "Example Custom Smart Groups",
+                        "props": {
+                            "action": "EXAMPLE_SAMPLE_GROUPS",
+                            "large": False
+                        }
+                    }
+                ]
+            },
+                {
+                "type": "Label",
+                "label": " ",
+                "props": {
+                    "muted": True,
+                    "style": {
+                        "marginBottom": 5,
+                        "fontStyle": "italic"
+                    }
+                }
+            },
+                {
+                "type": "Label",
+                "label": "Smart Queries",
+                "props": {
+                    "style": {
+                        "fontSize": 16,
+                        "fontWeight": "bold"
+                    }
+                }
+            },
+            {
+                "type": "Label",
+                "label": "You can also create queries for your applicants ...",
+                "props": {
+                    "muted": True,
+                    "style": {
+                        "marginBottom": 15,
+                        "fontStyle": "italic"
+                    }
+                }
+            },
+            {
+                "type": "Button",
+                "label": "Example Smart Queries",
+                "props": {
+                    "action": "EXAMPLE_SMART_QUERIES",
+                    "large": False
+                }
+            },
+            {
+                "type": "Label",
+                "label": " ",
+                "props": {
+                    "muted": True,
+                    "style": {
+                        "marginBottom": 5,
+                        "fontStyle": "italic"
+                    }
+                }
+            }
+        ]
+    }
+
+    form_schema = {
+        "type": "object",
+        "properties": {
+            "JOB_ID": {
+                "type": "string",
+                "enum": job_ids
+            }
+        }
+    }
+
+    # add checkbox and enum for each list
+    for predefined_list in predefined_lists:
+        form_schema['properties']['list_checkbox_' + predefined_list["name"]] = {
+            "type": "boolean"
+        }
+        form_schema['properties']['misc_list_actions_' + predefined_list["name"]] = {
+            "type": "string",
+            "enum": misc_list_actions
+        }
+    for custom_list in custom_lists:
+        form_schema['properties']['list_checkbox_' + custom_list["name"]] = {
+            "type": "boolean"
+        }
+        form_schema['properties']['misc_list_actions_' + custom_list["name"]] = {
+            "type": "string",
+            "enum": misc_list_actions
+        }
+      
+    form = {
+        "schema": form_schema,
+        "data": {"JOB_ID": ""},
+        "uischema": form_ui,
+    }
+
+    return form
+
+def build_form(job_ids=["2001","2002","2003"]):
     form_ui = {
         "type": "VerticalLayout",
         "elements": [
@@ -441,43 +758,11 @@ def build_form():
                             },
                             {
                                 "type": "Button",
-                                "label": "Rank All",
-                                "props": {
-                                    "action": "RANK",
-                                    "large": False
-                                }
-                            },
-                            {
-                                "type": "Label",
-                                "label": "",
-                                "props": {
-                                    "muted": True,
-                                    "style": {
-                                        "marginBottom": 5,
-                                        "fontStyle": "italic"
-                                    }
-                                }
-                            },
-                            {
-                                "type": "Button",
                                 "label": "Top Applies",
                                 "props": {
                                     "action": "TOP",
                                     "large": False
                                 }
-                            }
-                        ]
-                    },
-                    {
-                        "type": "VerticalLayout",
-                        "elements": [
-                             {
-                                "type": "Button",
-                                "label": "Summary",
-                                "props": {
-                                    "action": "SUMMARIZE",
-                                    "large": False
-                                }
                             },
                             {
                                 "type": "Label",
@@ -492,7 +777,7 @@ def build_form():
                             },
                             {
                                 "type": "Button",
-                                "label": "Short List",
+                                "label": "Shortlist Applies",
                                 "props": {
                                     "action": "SHORTLIST",
                                     "large": False
@@ -511,9 +796,71 @@ def build_form():
                             },
                             {
                                 "type": "Button",
-                                "label": "Compare",
+                                "label": "Compare Applies",
                                 "props": {
                                     "action": "COMPARE",
+                                    "large": False
+                                }
+                            },
+                            {
+                                "type": "Label",
+                                "label": "",
+                                "props": {
+                                    "muted": True,
+                                    "style": {
+                                        "marginBottom": 5,
+                                        "fontStyle": "italic"
+                                    }
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "type": "VerticalLayout",
+                        "elements": [
+                             {
+                                "type": "Button",
+                                "label": "Years of Experience",
+                                "props": {
+                                    "action": "YOE",
+                                    "large": False
+                                }
+                            },
+                            {
+                                "type": "Label",
+                                "label": "",
+                                "props": {
+                                    "muted": True,
+                                    "style": {
+                                        "marginBottom": 5,
+                                        "fontStyle": "italic"
+                                    }
+                                }
+                            },
+                            {
+                                "type": "Button",
+                                "label": "Skills Distribution",
+                                "props": {
+                                    "action": "SKILLS",
+                                    "large": False
+                                }
+                            },
+                            {
+                                "type": "Label",
+                                "label": "",
+                                "props": {
+                                    "muted": True,
+                                    "style": {
+                                        "marginBottom": 5,
+                                        "fontStyle": "italic"
+                                    }
+                                }
+                            },
+                             {
+                                "type": "Button",
+                                "label": "Education Levels",
+                                "props": {
+                                    "action": "EDUCATION",
                                     "large": False
                                 }
                             },
@@ -568,10 +915,7 @@ def build_form():
         "properties": {
             "JOB_ID": {
                 "type": "string",
-                "enum": [
-                    "2001",
-                    "2002"
-                ]
+                "enum": job_ids
             }
         }
     }
@@ -580,6 +924,179 @@ def build_form():
         "schema": form_schema,
         "data": {"JOB_ID": ""},
         "uischema": form_ui,
+    }
+
+    return form
+
+
+def build_list(list, title="List", text="Contents:", element_actions=None, list_actions=None):
+
+    ## list actions
+    list_actions_template = """
+    {
+        "type": "Button",
+        "label": "${label}",
+        "props": {
+            "action": "${action}",
+            "large": false
+        }
+    }
+    """
+    list_actions_a = []
+    list_actions_s = ""
+    if list_actions:
+        list_actions_t = Template(list_actions_template)
+        for action in list_actions:
+            list_action_s = list_actions_t.safe_substitute(label=action["label"], action=action["action"])
+            list_action = json.loads(list_action_s)
+            list_actions_a.append(list_action)
+
+    ## element actions
+    element_actions_template = """
+    {
+        "type": "Button",
+        "label": "${label}",
+        "props": {
+            "action": "${action}_${id}",
+            "large": false
+        }
+    }
+    """
+    element_actions_a = []
+    element_actions_s = ""
+    if element_actions:
+        element_action_t = Template(element_actions_template)
+        for action in element_actions:
+            element_actions_a.append(element_action_t.safe_substitute(label=action["label"], action=action["action"]))
+            
+        element_actions_s = ",".join(element_actions_a)
+
+
+    ## list element
+    list_element_template_prefix = """
+    {
+        "type": "HorizontalLayout",
+        "elements": [
+            {
+                "type": "Control",
+                "label": "${label}",
+                "scope": "#/properties/element_${id}"
+            },
+    """ 
+
+    list_element_template_postfix = """
+        ],
+        "props": {
+            "spaceEvenly": false
+        }
+    }
+    """
+
+    list_element_template = list_element_template_prefix + element_actions_s + list_element_template_postfix 
+    
+    list_elements_a = []
+    list_element_t = Template(list_element_template)
+    for element in list:
+        list_element_s = list_element_t.safe_substitute(label=element["label"], id=element["id"])
+        list_element = json.loads(list_element_s)
+        list_elements_a.append(list_element)
+    
+    form_ui = {
+        "type": "VerticalLayout",
+        "elements": [
+            {
+                "type": "Label",
+                "label": title,
+                "props": {
+                    "style": {
+                        "fontWeight": "bold"
+                    }
+                }
+            },
+            {
+                "type": "Label",
+                "label": text,
+                "props": {
+                    "muted": True,
+                    "style": {
+                        "marginBottom": 15,
+                        "fontStyle": "italic"
+                    }
+                }
+            },
+            {
+                "type": "VerticalLayout",
+                "elements": list_elements_a
+            },
+            {
+                "type": "Label",
+                "label": " ",
+                "props": {
+                    "muted": True,
+                    "style": {
+                        "marginBottom": 5,
+                        "fontStyle": "italic"
+                    }
+                }
+            },
+            {
+                "type": "HorizontalLayout",
+                "elements": list_actions_a,
+                "props": {
+                    "spaceEvenly": False
+                },
+            },
+            {
+                "type": "Label",
+                "label": " ",
+                "props": {
+                    "muted": True,
+                    "style": {
+                        "marginBottom": 5,
+                        "fontStyle": "italic"
+                    }
+                }
+            },
+            {
+                "type": "Button",
+                "label": "Done",
+                "props": {
+                    "intent": "success",
+                    "action": "DONE",
+                    "large": True
+                }
+            }
+        ]
+    }
+    
+    ## schema element
+    form_schema_properties = {}
+    element_schema_template = """
+    {
+        "type": "boolean"
+    }           
+    """
+    element_schema_t = Template(element_schema_template)
+    for element in list:
+        element_schema_s = element_schema_t.safe_substitute(label=element["label"], id=element["id"])
+        element_schema = json.loads(element_schema_s)
+        form_schema_properties["element_" + str(element["id"])] = element_schema
+
+    form_schema = {
+        "type": "object",
+        "properties": form_schema_properties
+    }
+
+    ## data element
+    form_data = {}
+   
+    for element in list:
+        form_data["element_" + str(element["id"])] = element["value"]
+
+    form = {
+        "schema": form_schema,
+        "data": form_data,
+        "uischema": form_ui
     }
 
     return form

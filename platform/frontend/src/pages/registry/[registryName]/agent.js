@@ -22,19 +22,18 @@ import {
     faBarsFilter,
     faSearch,
     faTimes,
-} from "@fortawesome/pro-duotone-svg-icons";
+} from "@fortawesome/sharp-duotone-solid-svg-icons";
 import _ from "lodash";
 import { useCallback, useContext, useEffect, useState } from "react";
 export default function Agent() {
     const { appState, appActions } = useContext(AppContext);
-    const [hybrid, setHybrid] = useState(appState.agent.filter.hybrid);
-    const [approximate, setApproximate] = useState(
-        appState.agent.filter.approximate
-    );
-    const [type, setType] = useState(appState.agent.filter.type);
-    const [keywords, setKeywords] = useState(appState.agent.filter.keywords);
-    const [page, setPage] = useState(appState.agent.filter.page);
-    const [pageSize, setPageSize] = useState(appState.agent.filter.page_size);
+    const { filter } = appState.agent;
+    const [hybrid, setHybrid] = useState(filter.hybrid);
+    const [approximate, setApproximate] = useState(filter.approximate);
+    const [type, setType] = useState(filter.type);
+    const [keywords, setKeywords] = useState(filter.keywords);
+    const [page, setPage] = useState(filter.page);
+    const [pageSize, setPageSize] = useState(filter.page_size);
     const agentRegistryName = process.env.NEXT_PUBLIC_AGENT_REGISTRY_NAME;
     const debounceOnKeywordsChange = useCallback(
         _.debounce(
@@ -76,7 +75,7 @@ export default function Agent() {
             page,
             pageSize,
         });
-    }, [hybrid, approximate, type, page, pageSize]);
+    }, [hybrid, approximate, type, page, pageSize]); // eslint-disable-line react-hooks/exhaustive-deps
     const { permissions } = useContext(AuthContext);
     if (!permissions.canReadAgentRegistry) {
         return <AccessDeniedNonIdealState />;
@@ -101,11 +100,12 @@ export default function Agent() {
                 <div
                     style={{
                         maxWidth: 690,
-                        width: "calc(100% - 250px - 40px)",
+                        width: "calc(100% - 224px - 40px)",
                     }}
                 >
                     <ControlGroup fill>
                         <InputGroup
+                            id="agent-registry-search-input"
                             placeholder="Search agents"
                             className={
                                 appState.agent.loading ? Classes.SKELETON : null
@@ -118,7 +118,7 @@ export default function Agent() {
                                 setKeywords(event.target.value);
                             }}
                             rightElement={
-                                !_.isEmpty(keywords) &&
+                                !_.isEmpty(keywords) ||
                                 appState.agent.search ? (
                                     <Button
                                         minimal

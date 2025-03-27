@@ -11,7 +11,7 @@ import {
     Intent,
     NonIdealState,
 } from "@blueprintjs/core";
-import { faPlusLarge } from "@fortawesome/pro-duotone-svg-icons";
+import { faPlusLarge } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import _ from "lodash";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -103,6 +103,11 @@ export default function RegistryList({ type }) {
                     ) {
                         icon = _.split(icon, ":");
                     }
+                    const displayName = _.get(
+                        element,
+                        "properties.display_name",
+                        null
+                    );
                     return (
                         <Col
                             key={element.name}
@@ -115,7 +120,11 @@ export default function RegistryList({ type }) {
                             <RegistryCard
                                 type={type}
                                 icon={icon}
-                                title={element.name}
+                                title={
+                                    !_.isEmpty(displayName)
+                                        ? displayName
+                                        : element.name
+                                }
                                 description={element.description}
                                 extra={extra}
                                 href={`${router.asPath}/${element.name}`}
@@ -162,7 +171,7 @@ export default function RegistryList({ type }) {
                                             size: 20,
                                         })}
                                     </div>
-                                    Add {type}
+                                    Add {ENTITY_TYPE_LOOKUP[type].key}
                                 </div>
                             </Card>
                         </Link>

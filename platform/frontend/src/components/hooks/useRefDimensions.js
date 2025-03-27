@@ -25,6 +25,6 @@ export const useRefDimensions = (ref) => {
         handleResize();
         // Remove event listener on cleanup
         return () => window.removeEventListener("resize", handleResize);
-    }, [ref]);
+    }, [ref]); // eslint-disable-line react-hooks/exhaustive-deps
     return dimensions;
 };

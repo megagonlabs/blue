@@ -17,7 +17,7 @@ export default function EntityIcon({ entity }) {
         <FontAwesomeIcon
             color={icon[1]}
             style={{ height: 20, width: 20 }}
-            icon={["fad", icon[0]]}
+            icon={["fasds", icon[0]]}
         />
     );
 }

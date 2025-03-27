@@ -8,5 +8,5 @@ export function useDebounceEffect(fn, waitTime, deps) {
         return () => {
             clearTimeout(t);
         };
-    }, deps);
+    }, deps); // eslint-disable-line react-hooks/exhaustive-deps
 }

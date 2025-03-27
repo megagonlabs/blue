@@ -87,7 +87,7 @@ class NEO4JSource(DataSource):
     def fetch_database_schema(self, database):
         return {}
 
-   ######### database/collection
+    ######### database/collection
     def fetch_database_collections(self, database):
         collections = [database]
         return collections
@@ -115,6 +115,10 @@ class NEO4JSource(DataSource):
             schema.add_relation(relation['from']['type'],relation['type'],relation['to']['type'])
         return schema
 
+    ######### execute query
+    def execute_query(self, query, database=None, collection=None):
+        result = self.connection.run_query(query, single=False, single_transaction=False)
+        return result
 
 #######################
 if __name__ == "__main__":

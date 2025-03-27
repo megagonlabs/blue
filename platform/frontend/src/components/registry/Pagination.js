@@ -4,12 +4,13 @@ import {
     Button,
     ButtonGroup,
     Classes,
-    Menu,
-    MenuItem,
     Popover,
     Tooltip,
 } from "@blueprintjs/core";
-import { faArrowLeft, faArrowRight } from "@fortawesome/pro-duotone-svg-icons";
+import {
+    faArrowLeft,
+    faArrowRight,
+} from "@fortawesome/sharp-duotone-solid-svg-icons";
 import _ from "lodash";
 import { useContext } from "react";
 export default function Pagination({
@@ -21,7 +22,7 @@ export default function Pagination({
 }) {
     const { appState } = useContext(AppContext);
     return (
-        <ButtonGroup style={{ width: 250 }} fill large>
+        <ButtonGroup style={{ width: 224 }} fill large>
             <Tooltip content="Previous" placement="bottom" minimal>
                 <Button
                     className={appState[type].loading ? Classes.SKELETON : null}
@@ -31,7 +32,7 @@ export default function Pagination({
                     icon={faIcon({ icon: faArrowLeft })}
                 />
             </Tooltip>
-            <Button disabled minimal text={page + 1} />
+            <Button minimal disabled text={page + 1} />
             <Tooltip content="Next" placement="bottom" minimal>
                 <Button
                     className={appState[type].loading ? Classes.SKELETON : null}
@@ -45,10 +46,12 @@ export default function Pagination({
                 minimal
                 placement="bottom-end"
                 content={
-                    <Menu>
+                    <div style={{ padding: 10, width: 150 }}>
                         {[10, 25, 50].map((size) => {
                             return (
-                                <MenuItem
+                                <Button
+                                    fill
+                                    minimal
                                     text={size}
                                     key={size}
                                     disabled={_.isEqual(pageSize, size)}
@@ -56,15 +59,15 @@ export default function Pagination({
                                 />
                             );
                         })}
-                    </Menu>
+                    </div>
                 }
             >
                 <Button
                     className={appState[type].loading ? Classes.SKELETON : null}
                     alignText="right"
-                    style={{ width: 125 }}
+                    style={{ width: 100 }}
                     outlined
-                    text={`${pageSize} per page`}
+                    text={`${pageSize} / page`}
                 />
             </Popover>
         </ButtonGroup>

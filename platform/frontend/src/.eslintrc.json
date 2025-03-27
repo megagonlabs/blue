@@ -15,7 +15,7 @@
         "react/react-in-jsx-scope": "off",
         "react/no-unknown-property": [2, { "ignore": ["jsx", "global"] }],
         "react/prop-types": "off",
-        "no-unused-vars": "warn",
+        "no-unused-vars": "off",
         "no-empty": ["error", { "allowEmptyCatch": true }]
     },
     "settings": {

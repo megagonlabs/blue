@@ -22,19 +22,18 @@ import {
     faBarsFilter,
     faSearch,
     faTimes,
-} from "@fortawesome/pro-duotone-svg-icons";
+} from "@fortawesome/sharp-duotone-solid-svg-icons";
 import _ from "lodash";
 import { useCallback, useContext, useEffect, useState } from "react";
 export default function Model() {
     const { appState, appActions } = useContext(AppContext);
-    const [hybrid, setHybrid] = useState(appState.model.filter.hybrid);
-    const [approximate, setApproximate] = useState(
-        appState.model.filter.approximate
-    );
-    const [type, setType] = useState(appState.model.filter.type);
-    const [keywords, setKeywords] = useState(appState.model.filter.keywords);
-    const [page, setPage] = useState(appState.model.filter.page);
-    const [pageSize, setPageSize] = useState(appState.model.filter.page_size);
+    const { filter } = appState.model;
+    const [hybrid, setHybrid] = useState(filter.hybrid);
+    const [approximate, setApproximate] = useState(filter.approximate);
+    const [type, setType] = useState(filter.type);
+    const [keywords, setKeywords] = useState(filter.keywords);
+    const [page, setPage] = useState(filter.page);
+    const [pageSize, setPageSize] = useState(filter.page_size);
     const modelRegistryName = process.env.NEXT_PUBLIC_MODEL_REGISTRY_NAME;
     const debounceOnKeywordsChange = useCallback(
         _.debounce(
@@ -76,7 +75,7 @@ export default function Model() {
             page,
             pageSize,
         });
-    }, [hybrid, approximate, type, page, pageSize]);
+    }, [hybrid, approximate, type, page, pageSize]); // eslint-disable-line react-hooks/exhaustive-deps
     const { permissions } = useContext(AuthContext);
     if (!permissions.canReadModelRegistry) {
         return <AccessDeniedNonIdealState />;
@@ -101,11 +100,12 @@ export default function Model() {
                 <div
                     style={{
                         maxWidth: 690,
-                        width: "calc(100% - 250px - 40px)",
+                        width: "calc(100% - 224px - 40px)",
                     }}
                 >
                     <ControlGroup fill>
                         <InputGroup
+                            id="model-registry-search-input"
                             placeholder="Search models"
                             className={
                                 appState.model.loading ? Classes.SKELETON : null
@@ -118,7 +118,7 @@ export default function Model() {
                                 setKeywords(event.target.value);
                             }}
                             rightElement={
-                                !_.isEmpty(keywords) &&
+                                !_.isEmpty(keywords) ||
                                 appState.model.search ? (
                                     <Button
                                         minimal

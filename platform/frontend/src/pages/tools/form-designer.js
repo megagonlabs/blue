@@ -3,7 +3,7 @@ import {
     DATA_JSON_SCHEMA,
     UI_JSON_SCHEMA,
 } from "@/components/codemirror/constant";
-import { JSONFORMS_RENDERERS } from "@/components/constant";
+import { JSONFORMS_RENDERERS, MIN_ALLOTMENT_PANE } from "@/components/constant";
 import { faIcon } from "@/components/icon";
 import DocDrawer from "@/components/jsonforms/docs/DocDrawer";
 import JsonViewer from "@/components/sessions/message/renderers/JsonViewer";
@@ -37,7 +37,7 @@ import {
     faIndent,
     faPlay,
     faTrash,
-} from "@fortawesome/pro-duotone-svg-icons";
+} from "@fortawesome/sharp-duotone-solid-svg-icons";
 import { JsonForms } from "@jsonforms/react";
 import { vanillaCells } from "@jsonforms/vanilla-renderers";
 import { Allotment } from "allotment";
@@ -82,23 +82,19 @@ function FormDesigner() {
         }
     }, [error]);
     useEffect(() => {
-        if (!uiSchemaLoading) {
-            let uiSchemaCache = sessionStorage.getItem("jsonUischema");
-            if (!uiSchemaInitialized && uiSchemaCache) {
-                setJsonUischema(uiSchemaCache);
-            }
-            setUiSchemaInitialized(true);
+        let uiSchemaCache = sessionStorage.getItem("jsonUischema");
+        if (!uiSchemaInitialized && uiSchemaCache) {
+            setJsonUischema(uiSchemaCache);
         }
-    }, [uiSchemaLoading]);
-    useEffect(() => {
-        if (!schemaLoading) {
-            let schemaCache = sessionStorage.getItem("jsonSchema");
-            if (!schemaInitialized && schemaCache) {
-                setJsonSchema(schemaCache);
-            }
-            setSchemaInitialized(true);
+        setUiSchemaInitialized(true);
+        setUiSchemaLoading(false);
+        let schemaCache = sessionStorage.getItem("jsonSchema");
+        if (!schemaInitialized && schemaCache) {
+            setJsonSchema(schemaCache);
         }
-    }, [schemaLoading]);
+        setSchemaInitialized(true);
+        setSchemaLoading(false);
+    }, []);
     useEffect(() => {
         sessionStorage.setItem("data", JSON.stringify(data));
     }, [data]);
@@ -240,11 +236,11 @@ function FormDesigner() {
             </Card>
             <div style={{ height: "calc(100% - 50px)" }}>
                 <Allotment>
-                    <Allotment.Pane minSize={321.094}>
+                    <Allotment.Pane minSize={MIN_ALLOTMENT_PANE}>
                         <Allotment vertical ref={leftPaneRef}>
                             <Allotment.Pane minSize={187.5}>
                                 <div
-                                    className="bp-border-bottom"
+                                    className="border-bottom"
                                     style={{ padding: 5 }}
                                 >
                                     <Tooltip
@@ -297,9 +293,9 @@ function FormDesigner() {
                                 >
                                     <JsonEditor
                                         schema={UI_JSON_SCHEMA}
-                                        setLoading={setUiSchemaLoading}
-                                        allowSaveWithError
+                                        allowEditWithError
                                         code={jsonUischema}
+                                        alwaysAllowPopulate
                                         setCode={setJsonUischema}
                                         setError={setUiSchemaError}
                                     />
@@ -307,7 +303,7 @@ function FormDesigner() {
                             </Allotment.Pane>
                             <Allotment.Pane minSize={187.5}>
                                 <div
-                                    className="bp-border-bottom"
+                                    className="border-bottom"
                                     style={{ padding: 5 }}
                                 >
                                     <Tooltip
@@ -359,9 +355,9 @@ function FormDesigner() {
                                 >
                                     <JsonEditor
                                         schema={DATA_JSON_SCHEMA}
-                                        setLoading={setSchemaLoading}
-                                        allowSaveWithError
+                                        allowEditWithError
                                         code={jsonSchema}
+                                        alwaysAllowPopulate
                                         setCode={setJsonSchema}
                                         setError={setSchemaError}
                                     />
@@ -371,7 +367,7 @@ function FormDesigner() {
                     </Allotment.Pane>
                     <Allotment.Pane minSize={400}>
                         <div
-                            className="bp-border-bottom"
+                            className="border-bottom"
                             style={{ padding: 5, display: "flex" }}
                         >
                             <Tooltip
@@ -502,10 +498,7 @@ function FormDesigner() {
                                             overflow: "hidden",
                                         }}
                                     >
-                                        <JsonViewer
-                                            displaySize={true}
-                                            json={data}
-                                        />
+                                        <JsonViewer json={data} />
                                     </pre>
                                 </div>
                             )}

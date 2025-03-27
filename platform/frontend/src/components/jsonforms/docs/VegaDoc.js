@@ -3,6 +3,7 @@ import * as docProps from "@/components/jsonforms/docs/constant";
 import JsonViewer from "@/components/sessions/message/renderers/JsonViewer";
 import {
     Button,
+    Callout,
     Classes,
     Code,
     H1,
@@ -11,7 +12,7 @@ import {
     Intent,
     Tag,
 } from "@blueprintjs/core";
-import { faArrowLeft } from "@fortawesome/pro-duotone-svg-icons";
+import { faArrowLeft } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import classNames from "classnames";
 import CopyDocJsonButton from "./CopyDocJsonButton";
 export default function VegaDoc({ closePanel }) {
@@ -63,7 +64,7 @@ export default function VegaDoc({ closePanel }) {
     };
     return (
         <>
-            <div className="bp-border-bottom" style={{ padding: "10px 20px" }}>
+            <div className="border-bottom" style={{ padding: "10px 20px" }}>
                 <Button
                     outlined
                     text="Back"
@@ -87,6 +88,10 @@ export default function VegaDoc({ closePanel }) {
                 >
                     <H1 style={{ margin: 0 }}>Vega</H1>
                 </div>
+                <Callout icon={null} intent={Intent.SUCCESS}>
+                    It is recommended to set <Code>width</Code> with an integer
+                    &#40;in pixels&#41; for a more controllable behavior.
+                </Callout>
                 <H2>Props</H2>
                 <HTMLTable
                     className="docs-prop-table"

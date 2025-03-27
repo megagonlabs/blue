@@ -4,25 +4,27 @@ import EntityProperties from "@/components/entity/EntityProperties";
 import {
     constructSavePropertyRequests,
     settlePromises,
+    shallowDiff,
 } from "@/components/helper";
 import { faIcon } from "@/components/icon";
 import { AppToaster } from "@/components/toaster";
 import {
     Button,
+    Classes,
     HTMLTable,
     Intent,
     Section,
     SectionCard,
     Tag,
 } from "@blueprintjs/core";
-import { faPlus } from "@fortawesome/pro-duotone-svg-icons";
+import { faPlus } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import axios from "axios";
-import { diff } from "deep-diff";
 import _ from "lodash";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useContext, useEffect, useState } from "react";
 import { AppContext } from "../contexts/app-context";
+import { AuthContext } from "../contexts/auth-context";
 export default function AgentEntity() {
     const BLANK_ENTITY = { type: "agent" };
     const router = useRouter();
@@ -84,13 +86,16 @@ export default function AgentEntity() {
                     });
             }),
         ];
-        const difference = diff(entity.properties, editEntity.properties);
+        const difference = shallowDiff(
+            entity.properties,
+            editEntity.properties
+        );
         tasks.concat(
             constructSavePropertyRequests({
                 axios,
                 url: `${urlPrefix}/${entity.name}/property`,
                 difference,
-                editEntity,
+                properties: editEntity.properties,
             })
         );
         settlePromises(tasks, (error) => {
@@ -109,6 +114,20 @@ export default function AgentEntity() {
         if (!router.isReady) return;
         router.push(`${routerQueryPath}/${type}/new`);
     };
+    const { user } = useContext(AuthContext);
+    const canEditEntity = (() => {
+        // write_own
+        const created_by = _.get(entity, "created_by", null);
+        if (_.isEqual(created_by, user.uid)) {
+            return true;
+        }
+        // write_all
+        const writePermissions = _.get(user, "permissions.agent_registry", []);
+        if (_.includes(writePermissions, "write_all")) {
+            return true;
+        }
+        return false;
+    })();
     return (
         <div style={{ padding: "10px 20px 20px" }}>
             <EntityMain
@@ -126,6 +145,7 @@ export default function AgentEntity() {
                 edit={edit}
                 setEdit={setEdit}
                 entity={editEntity}
+                loading={loading}
                 updateEntity={updateEntity}
             />
             <EntityProperties
@@ -133,9 +153,9 @@ export default function AgentEntity() {
                 setEdit={setEdit}
                 entity={editEntity}
                 jsonError={jsonError}
+                loading={loading}
                 setJsonError={setJsonError}
                 updateEntity={updateEntity}
-                setLoading={setLoading}
             />
             <Section
                 compact
@@ -183,18 +203,25 @@ export default function AgentEntity() {
                                     </tr>
                                 );
                             })}
-                            <tr>
-                                <td colSpan={2}>
-                                    <Button
-                                        icon={faIcon({ icon: faPlus })}
-                                        outlined
-                                        text="Add input"
-                                        onClick={() => {
-                                            addInputOutput("input");
-                                        }}
-                                    />
-                                </td>
-                            </tr>
+                            {canEditEntity ? (
+                                <tr>
+                                    <td colSpan={2}>
+                                        <Button
+                                            className={
+                                                loading
+                                                    ? Classes.SKELETON
+                                                    : null
+                                            }
+                                            icon={faIcon({ icon: faPlus })}
+                                            outlined
+                                            text="Add input"
+                                            onClick={() => {
+                                                addInputOutput("input");
+                                            }}
+                                        />
+                                    </td>
+                                </tr>
+                            ) : null}
                         </tbody>
                     </HTMLTable>
                 </SectionCard>
@@ -245,18 +272,25 @@ export default function AgentEntity() {
                                     </tr>
                                 );
                             })}
-                            <tr>
-                                <td colSpan={2}>
-                                    <Button
-                                        icon={faIcon({ icon: faPlus })}
-                                        outlined
-                                        text="Add output"
-                                        onClick={() => {
-                                            addInputOutput("output");
-                                        }}
-                                    />
-                                </td>
-                            </tr>
+                            {canEditEntity ? (
+                                <tr>
+                                    <td colSpan={2}>
+                                        <Button
+                                            className={
+                                                loading
+                                                    ? Classes.SKELETON
+                                                    : null
+                                            }
+                                            icon={faIcon({ icon: faPlus })}
+                                            outlined
+                                            text="Add output"
+                                            onClick={() => {
+                                                addInputOutput("output");
+                                            }}
+                                        />
+                                    </td>
+                                </tr>
+                            ) : null}
                         </tbody>
                     </HTMLTable>
                 </SectionCard>

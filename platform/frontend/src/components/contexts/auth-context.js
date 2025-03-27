@@ -86,6 +86,10 @@ export const AuthProvider = ({ children }) => {
     const getPermissions = (user) => {
         const permissions = _.get(user, "permissions", null);
         return {
+            launchScreen: hasIntersection(
+                _.get(permissions, "launch_screen", []),
+                ["active"]
+            ),
             canWriteAgentRegistry: hasIntersection(
                 _.get(permissions, "agent_registry", []),
                 ["write_all", "write_own"]
@@ -108,6 +112,10 @@ export const AuthProvider = ({ children }) => {
             ),
             showFormDesigner: hasIntersection(
                 _.get(permissions, "form_designer", []),
+                ["visible"]
+            ),
+            showRegistryList: hasIntersection(
+                _.get(permissions, "registry_list", ["visible"]),
                 ["visible"]
             ),
             showPromptDesigner: hasIntersection(
@@ -179,13 +187,15 @@ export const AuthProvider = ({ children }) => {
                 }
                 setSettings(profileSettings);
                 appActions.session.setState({
-                    key: "collapsed",
+                    key: "sessionListPanelCollapsed",
                     value: !_.get(profileSettings, "show_session_list", false),
                 });
+                appActions.session.setState({
+                    key: "showWorkspacePanel",
+                    value: _.get(profileSettings, "show_workspace", false),
+                });
             })
-            .finally(() => {
-                setAuthInitialized(true);
-            });
+            .finally(() => setAuthInitialized(true));
     };
     const updateSettings = (key, value) => {
         setSettings({ ...settings, [key]: value });
@@ -272,10 +282,12 @@ export const AuthProvider = ({ children }) => {
                             width: "calc(100vw - 40px)",
                             maxWidth: 300,
                             height: 30,
+                            textAlign: "center",
                         }}
                         className="center-center"
                     >
                         <ProgressBar intent={Intent.PRIMARY} />
+                        <div style={{ marginTop: 5 }}>Initializing...</div>
                     </div>
                 </div>
             ) : null}

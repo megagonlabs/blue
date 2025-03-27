@@ -1,16 +1,22 @@
 import { AppContext } from "@/components/contexts/app-context";
 import { AuthContext } from "@/components/contexts/auth-context";
-import { Classes, Tag, Tooltip } from "@blueprintjs/core";
+import Timestamp from "@/components/Timestamp";
+import { Classes, Tag } from "@blueprintjs/core";
 import classNames from "classnames";
 import _ from "lodash";
 import { memo, useContext } from "react";
-import ReactTimeAgo from "react-time-ago";
 function MessageMetadata({ message }) {
     const { appState } = useContext(AppContext);
+    const { propertyLookups } = appState.agent;
     const { settings } = useContext(AuthContext);
     const debugMode = _.get(settings, "debug_mode", false);
     const uid = _.get(message, "metadata.id", null);
     const created_by = _.get(message, "metadata.created_by", null);
+    const displayName = _.get(
+        propertyLookups,
+        [created_by, "display_name"],
+        null
+    );
     const hasUserProfile = _.has(appState, ["app", "users", uid]);
     const user = _.get(appState, ["app", "users", uid], {});
     const timestamp = message.timestamp;
@@ -30,6 +36,8 @@ function MessageMetadata({ message }) {
                         ? hasUserProfile
                             ? user.name
                             : uid
+                        : !_.isEmpty(displayName)
+                        ? displayName
                         : created_by}
                 </span>
                 {_.get(
@@ -41,23 +49,7 @@ function MessageMetadata({ message }) {
                         SYSTEM
                     </Tag>
                 ) : null}
-                <Tooltip
-                    className={Classes.TEXT_MUTED}
-                    placement="bottom"
-                    content={
-                        <div className={Classes.TEXT_MUTED}>
-                            {new Date(timestamp).toLocaleDateString()}
-                            &nbsp;at&nbsp;
-                            {new Date(timestamp).toLocaleTimeString()}
-                        </div>
-                    }
-                >
-                    <ReactTimeAgo
-                        tooltip={false}
-                        date={new Date(timestamp)}
-                        locale="en-US"
-                    />
-                </Tooltip>
+                <Timestamp timestamp={timestamp} />
             </div>
             {debugMode ? (
                 <div

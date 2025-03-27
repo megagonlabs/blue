@@ -1,7 +1,10 @@
 import { faIcon } from "@/components/icon";
 import { AppToaster } from "@/components/toaster";
 import { Button, Tooltip } from "@blueprintjs/core";
-import { faClipboard, faCopy } from "@fortawesome/pro-duotone-svg-icons";
+import {
+    faClipboard,
+    faCopy,
+} from "@fortawesome/sharp-duotone-solid-svg-icons";
 import copy from "copy-to-clipboard";
 export default function CopyDocJsonButton({
     docJson,

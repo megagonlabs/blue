@@ -6,7 +6,7 @@ import {
     HTMLSelect,
     Tooltip,
 } from "@blueprintjs/core";
-import { faBan } from "@fortawesome/pro-duotone-svg-icons";
+import { faBan } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import _ from "lodash";
 import { useContext, useState } from "react";
 import { AppContext } from "../contexts/app-context";
@@ -20,10 +20,11 @@ export default function Debugger() {
         <>
             <Card style={{ borderRadius: 0, padding: "5px 15px" }}>
                 <ButtonGroup minimal>
-                    <HTMLSelect id="debugger-message-type" minimal>
-                        <option value="all">All</option>
-                    </HTMLSelect>
-                    <Tooltip minimal content="Clear all" placement="bottom">
+                    <Tooltip
+                        minimal
+                        content="Clear debugger"
+                        placement="bottom-start"
+                    >
                         <Button
                             onClick={appActions.debug.clearMessages}
                             icon={faIcon({
@@ -33,6 +34,10 @@ export default function Debugger() {
                             })}
                         />
                     </Tooltip>
+                    <Divider />
+                    <HTMLSelect id="debugger-message-type" minimal>
+                        <option value="all">All</option>
+                    </HTMLSelect>
                 </ButtonGroup>
             </Card>
             <div

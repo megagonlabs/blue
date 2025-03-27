@@ -10,7 +10,7 @@ import {
     Tag,
     Tooltip,
 } from "@blueprintjs/core";
-import { faArrowRightFromBracket } from "@fortawesome/pro-duotone-svg-icons";
+import { faArrowRightFromBracket } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import classNames from "classnames";
 import _ from "lodash";
 import Image from "next/image";
@@ -33,7 +33,7 @@ export default function UserAccountPanel() {
                         textAlign: "center",
                     }}
                 >
-                    <div style={{ fontWeight: 500 }}>
+                    <div style={{ fontWeight: 600 }}>
                         {_.get(user, "email", "-")}
                     </div>
                     <div
@@ -47,22 +47,33 @@ export default function UserAccountPanel() {
                     </div>
                     <div style={{ marginTop: 5 }}>
                         <Tag minimal>
-                            {_.get(USER_ROLES_LOOKUP, userRole, userRole)}
+                            {_.get(
+                                USER_ROLES_LOOKUP,
+                                [userRole, "text"],
+                                userRole
+                            )}
                         </Tag>
                     </div>
-                    <Image
-                        alt=""
-                        src={_.get(user, "picture", "").replace(
-                            "=s96-c",
-                            "=s288-c"
-                        )}
+                    <Card
                         style={{
+                            ...PROFILE_PICTURE_40,
+                            height: 80,
+                            width: 80,
                             marginTop: 20,
-                            borderRadius: "50%",
+                            marginLeft: "auto",
+                            marginRight: "auto",
                         }}
-                        width={80}
-                        height={80}
-                    />
+                    >
+                        <Image
+                            alt=""
+                            src={_.get(user, "picture", "").replace(
+                                "=s96-c",
+                                "=s288-c"
+                            )}
+                            width={80}
+                            height={80}
+                        />
+                    </Card>
                     <div style={{ marginTop: 20 }}>
                         <Button
                             intent={Intent.WARNING}

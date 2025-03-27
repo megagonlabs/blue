@@ -1,6 +1,6 @@
 // https://nmingaleev.medium.com/draggable-and-resizable-panel-with-react-hooks-part-2-6e6d0076bcf1
 import { Icon } from "@blueprintjs/core";
-import { faCaretRight } from "@fortawesome/pro-duotone-svg-icons";
+import { faCaretRight } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import { useEffect, useState } from "react";
 import { RESIZE_DIRECTION } from "../constant";
 import { faIcon } from "../icon";

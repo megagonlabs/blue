@@ -52,6 +52,7 @@ module.exports = {
                     "Group",
                     "Vega",
                     "Markdown",
+                    "Callout",
                 ],
             },
             label: { type: "string", minLength: 1 },

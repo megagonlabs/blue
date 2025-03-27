@@ -9,7 +9,9 @@ const {
     faArrowRightFromArc,
     faFunction,
     faCube,
-} = require("@fortawesome/pro-duotone-svg-icons");
+    faKeynote,
+    faUsersViewfinder,
+} = require("@fortawesome/sharp-duotone-solid-svg-icons");
 const { vanillaRenderers } = require("@jsonforms/vanilla-renderers");
 import BooleanRenderer, {
     BooleanTester,
@@ -43,6 +45,7 @@ import UnknownRenderer, {
 } from "@/components/jsonforms/renderers/Unknown";
 import { Classes, Colors, Intent } from "@blueprintjs/core";
 import ArrayRenderer, { ArrayTester } from "./jsonforms/renderers/Array";
+import CalloutRenderer, { CalloutTester } from "./jsonforms/renderers/Callout";
 import DateRenderer, { DateTester } from "./jsonforms/renderers/Date";
 import DateTimeRenderer, {
     DateTimeTester,
@@ -54,6 +57,7 @@ import VegaRenderer, { VegaTester } from "./jsonforms/renderers/Vega";
 export const ENTITY_TYPE_LOOKUP = {
         agent: { icon: faCircleA, key: "agent" },
         data: { icon: faServer, key: "source" },
+        agent_group: { icon: faUsersViewfinder, backtrackCrumb: "agent" },
         input: { icon: faArrowRightToArc },
         output: { icon: faArrowRightFromArc },
         source: { icon: faServer },
@@ -80,10 +84,12 @@ export const ENTITY_TYPE_LOOKUP = {
         { tester: VegaTester, renderer: VegaRenderer },
         { tester: ArrayTester, renderer: ArrayRenderer },
         { tester: MarkdownTester, renderer: MarkdownRenderer },
+        { tester: CalloutTester, renderer: CalloutRenderer },
         { tester: UnknownTester, renderer: UnknownRenderer },
     ],
     CARD_LIST_CLASS_NAMES = `${Classes.CARD} ${Classes.CARD_LIST} ${Classes.CARD_LIST_BORDERED}`,
     NAVIGATION_MENU_WIDTH = 203,
+    WORKSAPCE_DRAGGABLE_SYMBOL = Symbol("workspaceDraggable"),
     CONTAINER_STATUS_INDICATOR = {
         created: { style: { color: Colors.ORANGE5 }, intent: Intent.WARNING },
         running: { style: { color: Colors.GREEN3 }, intent: Intent.SUCCESS },
@@ -115,11 +121,15 @@ export const ENTITY_TYPE_LOOKUP = {
         alignItems: "center",
         justifyContent: "center",
     },
+    MIN_ALLOTMENT_PANE = 321.094,
     USER_ROLES_LOOKUP = {
-        admin: "Administrator",
-        member: "Member",
-        guest: "Guest",
-        developer: "Developer",
+        admin: {
+            text: "Administrator",
+        },
+        member: { text: "Member" },
+        guest: { text: "Guest" },
+        developer: { text: "Developer" },
+        demo: { text: "Demo", icon: faKeynote },
     },
     COLOR_OPTIONS = [
         "#979B9D",

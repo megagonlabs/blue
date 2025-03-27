@@ -10,7 +10,7 @@ import {
     H2,
     HTMLTable,
 } from "@blueprintjs/core";
-import { faArrowLeft } from "@fortawesome/pro-duotone-svg-icons";
+import { faArrowLeft } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import classNames from "classnames";
 import CopyDocJsonButton from "./CopyDocJsonButton";
 export default function LabelDoc({ closePanel }) {
@@ -26,7 +26,7 @@ export default function LabelDoc({ closePanel }) {
     };
     return (
         <>
-            <div className="bp-border-bottom" style={{ padding: "10px 20px" }}>
+            <div className="border-bottom" style={{ padding: "10px 20px" }}>
                 <Button
                     outlined
                     text="Back"

@@ -11,6 +11,7 @@ import {
     Card,
     Classes,
     Divider,
+    Intent,
     NonIdealState,
     Tooltip,
 } from "@blueprintjs/core";
@@ -27,7 +28,7 @@ import {
     faRefresh,
     faStamp,
     faUserGroup,
-} from "@fortawesome/pro-duotone-svg-icons";
+} from "@fortawesome/sharp-duotone-solid-svg-icons";
 import axios from "axios";
 import _ from "lodash";
 import Image from "next/image";
@@ -48,8 +49,8 @@ export default function Users() {
     useEffect(() => {
         appActions.admin.setState({ key: "selectedUsers", value: new Set() });
         fetchUserList();
-    }, []);
-    const TABLE_CELL_HEIGHT = 55;
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    const TABLE_CELL_HEIGHT = 40;
     const INIT_COLUMNS = [
         {
             name: <div>&nbsp;</div>,
@@ -77,6 +78,8 @@ export default function Users() {
                                 className="margin-0"
                                 style={{
                                     ...PROFILE_PICTURE_40,
+                                    height: 25,
+                                    width: 25,
                                     position: "absolute",
                                     top: 7.5,
                                     left: 1,
@@ -85,12 +88,12 @@ export default function Users() {
                                 <Image
                                     alt=""
                                     src={picture}
-                                    width={40}
-                                    height={40}
+                                    width={25}
+                                    height={25}
                                 />
                             </Card>
                             <div
-                                style={{ paddingLeft: 52 }}
+                                style={{ paddingLeft: 35 }}
                                 className={Classes.TEXT_OVERFLOW_ELLIPSIS}
                             >
                                 {name}
@@ -108,7 +111,7 @@ export default function Users() {
                 const role = _.get(data, [rowIndex, "role"], "-");
                 return (
                     <Cell style={{ lineHeight: `${TABLE_CELL_HEIGHT - 1}px` }}>
-                        {_.get(USER_ROLES_LOOKUP, role, role)}
+                        {_.get(USER_ROLES_LOOKUP, [role, "text"], role)}
                     </Cell>
                 );
             },
@@ -138,7 +141,15 @@ export default function Users() {
                 setIsRoleConfigOpen={setIsRoleConfigOpen}
                 isRoleConfigOpen={isRoleConfigOpen}
             />
-            <Card interactive style={{ padding: 5, borderRadius: 0 }}>
+            <Card
+                interactive
+                style={{
+                    padding: 5,
+                    borderRadius: 0,
+                    position: "relative",
+                    zIndex: 1,
+                }}
+            >
                 <ButtonGroup large minimal>
                     <Tooltip placement="bottom-start" minimal content="Refresh">
                         <Button
@@ -154,6 +165,7 @@ export default function Users() {
                         minimal
                     >
                         <Button
+                            intent={Intent.SUCCESS}
                             disabled={
                                 _.isEmpty(appState.admin.selectedUsers) ||
                                 loading
@@ -171,7 +183,6 @@ export default function Users() {
                         position: "absolute",
                         bottom: 0,
                         right: 0,
-                        zIndex: 1,
                         height: "calc(100% - 50px)",
                     }}
                 >

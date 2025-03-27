@@ -19,7 +19,7 @@ import {
     faCircleCheck,
     faForward,
     faGrid2Plus,
-} from "@fortawesome/pro-duotone-svg-icons";
+} from "@fortawesome/sharp-duotone-solid-svg-icons";
 import axios from "axios";
 import classNames from "classnames";
 import _ from "lodash";
@@ -103,7 +103,7 @@ export default function AddAgents({
             .catch(() => {
                 setLoading(false);
             });
-    }, [isOpen]);
+    }, [isOpen]); // eslint-disable-line react-hooks/exhaustive-deps
     const handleAddAgents = () => {
         setLoading(true);
         let promises = [];
@@ -117,7 +117,7 @@ export default function AddAgents({
                 new Promise((resolve, reject) => {
                     axios
                         .post(
-                            `/sessions/session/${sessionIdFocus}/agents/${registryName}/agent/${agentName}`,
+                            `/sessions/session/${sessionIdFocus}/agent/${agentName}`,
                             { properties: {} }
                         )
                         .then(() => {
@@ -156,7 +156,7 @@ export default function AddAgents({
         >
             <DialogBody className="dialog-body">
                 {_.isEmpty(agents) ? (
-                    <div style={{ padding: 15 }}>
+                    <div style={{ padding: 15, height: 141 }}>
                         <NonIdealState
                             className={loading ? Classes.SKELETON : null}
                             title="No Agent"
@@ -321,13 +321,13 @@ export default function AddAgents({
                         </span>
                     ) : null}
                 </div>
-                {!_.isEmpty(unavailableAgents) ? (
+                {!_.isEmpty(unavailableAgents) && (
                     <div style={{ position: "absolute", right: 15, top: 15 }}>
                         <Tag intent={Intent.WARNING} minimal large>
                             {_.size(unavailableAgents)} unavailable
                         </Tag>
                     </div>
-                ) : null}
+                )}
             </DialogFooter>
         </Dialog>
     );

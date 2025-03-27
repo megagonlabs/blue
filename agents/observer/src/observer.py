@@ -142,7 +142,7 @@ class ObserverAgent(Agent):
                     worker.append_data(stream, str(data))
                 elif mode == 'streaming':
                     self.response_handler(stream=stream, message=base_message)
-        elif message.getCode() in [ControlCode.CREATE_FORM, ControlCode.UPDATE_FORM, ControlCode.CLOSE_FORM]:
+        elif message.getCode() in [ControlCode.CREATE_FORM, ControlCode.UPDATE_FORM, ControlCode.CLOSE_FORM, ControlCode.PROGRESS]:
             # interactive messages
             self.response_handler(stream=stream, message=base_message)
 

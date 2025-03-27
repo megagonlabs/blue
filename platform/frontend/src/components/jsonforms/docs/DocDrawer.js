@@ -26,6 +26,7 @@ import {
     Tooltip,
 } from "@blueprintjs/core";
 import {
+    faBookOpenCover,
     faInputNumeric,
     faInputText,
     faList,
@@ -34,18 +35,22 @@ import {
     faParagraph,
     faPlay,
     faPresentationScreen,
+    faRectangle,
     faRectanglesMixed,
     faSquareCheck,
     faSquareM,
     faTimes,
-} from "@fortawesome/pro-duotone-svg-icons";
+} from "@fortawesome/sharp-duotone-solid-svg-icons";
 import _ from "lodash";
 import { useCallback, useState } from "react";
 import ArrayDoc from "./ArrayDoc";
+import BasicsDoc from "./BasicsDoc";
+import CalloutDoc from "./CalloutDoc";
 import MarkdownDoc from "./MarkdownDoc";
 import VegaDoc from "./VegaDoc";
 const RendererDetailPanel = (props) => {
     const DOCS = {
+        callout: <CalloutDoc closePanel={props.closePanel} />,
         boolean: <BooleanDoc closePanel={props.closePanel} />,
         button: <ButtonDoc closePanel={props.closePanel} />,
         enum: <EnumDoc closePanel={props.closePanel} />,
@@ -58,25 +63,25 @@ const RendererDetailPanel = (props) => {
         array: <ArrayDoc closePanel={props.closePanel} />,
         vega: <VegaDoc closePanel={props.closePanel} />,
         markdown: <MarkdownDoc closePanel={props.closePanel} />,
+        basics: <BasicsDoc closePanel={props.closePanel} />,
     };
     return _.get(DOCS, props.type, null);
 };
 const MainMenuPanel = (props) => {
     const TYPES = [
         {
+            text: "Basics",
+            icon: faBookOpenCover,
+            label: "Documentation",
+        },
+        {
             text: "Array",
             icon: faList,
-            label: (
-                <span
-                    className={Classes.TEXT_DISABLED}
-                    style={{ marginRight: 4 }}
-                >
-                    Inlined UI schema
-                </span>
-            ),
+            label: "Inlined UI schema",
         },
         { text: "Boolean", icon: faSquareCheck },
         { text: "Button", icon: faPlay },
+        { text: "Callout", icon: faRectangle },
         { text: "Enum", icon: faListDropdown },
         { text: "Group", icon: faObjectGroup },
         { text: "Integer", icon: faInputNumeric },
@@ -88,14 +93,7 @@ const MainMenuPanel = (props) => {
         {
             text: "Vega",
             icon: faPresentationScreen,
-            label: (
-                <span
-                    className={Classes.TEXT_DISABLED}
-                    style={{ marginRight: 4 }}
-                >
-                    Vega-Lite
-                </span>
-            ),
+            label: "Vega-Lite",
         },
     ];
     const [openingPanel, setOpeningPanel] = useState(false);
@@ -141,7 +139,14 @@ const MainMenuPanel = (props) => {
                             }, 500);
                         }}
                         text={type.text}
-                        label={type.label}
+                        label={
+                            <span
+                                className={Classes.TEXT_DISABLED}
+                                style={{ marginRight: 4 }}
+                            >
+                                {type.label}
+                            </span>
+                        }
                     />
                 ))}
                 <MenuDivider title="Data Schema" />

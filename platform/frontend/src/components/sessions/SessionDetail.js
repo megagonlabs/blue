@@ -1,18 +1,22 @@
 import { AppContext } from "@/components/contexts/app-context";
 import { faIcon } from "@/components/icon";
-import { Button, Card, Classes, Dialog } from "@blueprintjs/core";
+import { Button, ButtonGroup, Card, Classes, Dialog } from "@blueprintjs/core";
 import {
     faCircleA,
+    faFolderTree,
+    faGear,
     faMoneyBillsSimple,
     faSquareInfo,
     faUserGroup,
-} from "@fortawesome/pro-duotone-svg-icons";
+} from "@fortawesome/sharp-duotone-solid-svg-icons";
 import _ from "lodash";
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import SessionAgentsList from "./details/SessionAgentsList";
 import SessionBudget from "./details/SessionBudget";
+import SessionData from "./details/SessionData";
 import SessionMembersList from "./details/SessionMembersList";
 import SessionMetadata from "./details/SessionMetadata";
+import SessionSettings from "./details/SessionSettings";
 export default function SessionDetail({ isOpen, setIsSessionDetailOpen }) {
     const { appState } = useContext(AppContext);
     const sessionIdFocus = appState.session.sessionIdFocus;
@@ -25,6 +29,20 @@ export default function SessionDetail({ isOpen, setIsSessionDetailOpen }) {
     const sessionName = _.get(sessionDetails, "name", "");
     const [loading, setLoading] = useState(false);
     const [tab, setTab] = useState("about");
+    const TAB_BUTTONS = [
+        { text: "About", icon: faSquareInfo, key: "about" },
+        { text: "Agents", icon: faCircleA, key: "agents" },
+        { text: "Members", icon: faUserGroup, key: "members" },
+        { text: "Budget", icon: faMoneyBillsSimple, key: "budget" },
+        { text: "Data", icon: faFolderTree, key: "data" },
+        { text: "Settings", icon: faGear, key: "settings" },
+    ];
+    useEffect(() => {
+        if (_.isNil(sessionIdFocus)) {
+            setIsSessionDetailOpen(false);
+            setTab("about");
+        }
+    }, [sessionIdFocus]); // eslint-disable-line react-hooks/exhaustive-deps
     return (
         <Dialog
             title={
@@ -33,10 +51,7 @@ export default function SessionDetail({ isOpen, setIsSessionDetailOpen }) {
                     sessionIdFocus
                 ) : (
                     <div className={Classes.TEXT_OVERFLOW_ELLIPSIS}>
-                        {sessionName}&nbsp;
-                        <span className={Classes.TEXT_MUTED}>
-                            ({sessionIdFocus})
-                        </span>
+                        {sessionName}
                     </div>
                 )
             }
@@ -44,71 +59,52 @@ export default function SessionDetail({ isOpen, setIsSessionDetailOpen }) {
             onClose={() => {
                 if (loading) return;
                 setIsSessionDetailOpen(false);
+                setTab("about");
             }}
             isOpen={isOpen}
         >
-            <Card style={{ padding: "5px 15px", borderRadius: 0 }}>
-                <Button
-                    icon={faIcon({ icon: faSquareInfo })}
-                    minimal
-                    large
-                    text="About"
-                    onClick={() => {
-                        setTab("about");
-                    }}
-                    active={_.isEqual(tab, "about")}
-                />
-                <Button
-                    icon={faIcon({ icon: faCircleA })}
-                    minimal
-                    large
-                    text="Agents"
-                    onClick={() => {
-                        setTab("agents");
-                    }}
-                    active={_.isEqual(tab, "agents")}
-                />
-                <Button
-                    icon={faIcon({ icon: faUserGroup })}
-                    minimal
-                    large
-                    text="Members"
-                    onClick={() => {
-                        setTab("members");
-                    }}
-                    active={_.isEqual(tab, "members")}
-                />
-                <Button
-                    icon={faIcon({ icon: faMoneyBillsSimple })}
-                    minimal
-                    large
-                    text="Budget"
-                    onClick={() => {
-                        setTab("budget");
-                    }}
-                    active={_.isEqual(tab, "budget")}
-                />
+            <Card
+                style={{
+                    padding: "5px 15px",
+                    borderRadius: 0,
+                    overflowX: "auto",
+                    overscrollBehavior: "contain",
+                }}
+            >
+                <ButtonGroup minimal large>
+                    {TAB_BUTTONS.map((tabButton) => (
+                        <Button
+                            key={tabButton.key}
+                            text={tabButton.text}
+                            icon={faIcon({ icon: tabButton.icon })}
+                            onClick={() => setTab(tabButton.key)}
+                            active={_.isEqual(tab, tabButton.key)}
+                        />
+                    ))}
+                </ButtonGroup>
             </Card>
-            {_.isEqual(tab, "about") ? (
+            {_.isEqual(tab, "about") && (
                 <SessionMetadata
                     setAllowQuickClose={setAllowQuickClose}
                     loading={loading}
                     setLoading={setLoading}
                 />
-            ) : null}
-            {_.isEqual(tab, "agents") ? (
+            )}
+            {_.isEqual(tab, "agents") && (
                 <SessionAgentsList loading={loading} setLoading={setLoading} />
-            ) : null}
-            {_.isEqual(tab, "members") ? (
+            )}
+            {_.isEqual(tab, "members") && (
                 <SessionMembersList loading={loading} setLoading={setLoading} />
-            ) : null}
-            {_.isEqual(tab, "budget") ? (
+            )}
+            {_.isEqual(tab, "budget") && (
                 <SessionBudget
                     setAllowQuickClose={setAllowQuickClose}
                     loading={loading}
                     setLoading={setLoading}
                 />
-            ) : null}
+            )}
+            {_.isEqual(tab, "data") && <SessionData />}
+            {_.isEqual(tab, "settings") && <SessionSettings />}
         </Dialog>
     );
 }

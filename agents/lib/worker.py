@@ -76,9 +76,7 @@ class Worker:
         self.input_stream = input_stream
         self.processor = processor
         if processor is not None:
-            self.processor = lambda *args, **kwargs,: processor(
-                *args, **kwargs, worker=self
-            )
+            self.processor = lambda *args, **kwargs,: processor(*args, **kwargs, worker=self)
 
         self.properties = properties
 
@@ -131,9 +129,7 @@ class Worker:
 
             else:
                 # error
-                logging.error(
-                    "Unknown return type from processor function: " + str(result)
-                )
+                logging.error("Unknown return type from processor function: " + str(result))
                 return
 
     # TODO: this seems out of place...
@@ -152,17 +148,17 @@ class Worker:
             pydash.objects.set_(form_element, "props.streamId", stream_id)
             pydash.objects.set_(form_element, "props.formId", form_id)
 
-    def write_bos(self, output="DEFAULT", id=None, tags=None):
+    def write_bos(self, output="DEFAULT", id=None, tags=None, scope="worker"):
         # producer = self._start_producer(output=output)
         # producer.write_bos()
-        return self.write(Message.BOS, output=output, id=id, tags=tags)
+        return self.write(Message.BOS, output=output, id=id, tags=tags, scope=scope)
 
-    def write_eos(self, output="DEFAULT", id=None, tags=None):
+    def write_eos(self, output="DEFAULT", id=None, tags=None, scope="worker"):
         # producer = self._start_producer(output=output)
         # producer.write_eos()
-        return self.write(Message.EOS, output=output, id=id, tags=tags)
+        return self.write(Message.EOS, output=output, id=id, tags=tags, scope=scope)
 
-    def write_data(self, data, output="DEFAULT", id=None, tags=None):
+    def write_data(self, data, output="DEFAULT", id=None, tags=None, scope="worker"):
         # producer = self._start_producer(output=output)
         # producer.write_data(data)
         if type(data) == int:
@@ -177,26 +173,28 @@ class Worker:
         elif type(data) == dict:
             contents = data
             content_type = ContentType.JSON
-        return self.write(
-            Message(MessageType.DATA, contents, content_type),
-            output=output,
-            id=id,
-            tags=tags,
-        )
+        else:
+            raise Exception("Unknown data type: " + str(type(data)))
 
-    def write_control(self, code, args, output="DEFAULT", id=None, tags=None):
+        return self.write(Message(MessageType.DATA, contents, content_type), output=output, id=id, tags=tags, scope=scope)
+
+    def write_progress(self, progress_id=None, label=None, value=0):
+        progress = {'progress_id': progress_id, 'label': label, 'value': min(max(0, value), 1)}
+        stream = self.write_control(code=ControlCode.PROGRESS, args=progress, output='PROGRESS')
+        return stream
+
+    def write_control(self, code, args, output="DEFAULT", id=None, tags=None, scope="worker"):
         # producer = self._start_producer(output=output)
         # producer.write_control(code, args)
-        return self.write(
-            Message(
-                MessageType.CONTROL, {"code": code, "args": args}, ContentType.JSON
-            ),
-            output=output,
-            id=id,
-            tags=tags,
-        )
+        return self.write(Message(MessageType.CONTROL, {"code": code, "args": args}, ContentType.JSON), output=output, id=id, tags=tags, scope=scope)
 
-    def write(self, message, output="DEFAULT", id=None, tags=None):
+    def write(self, message, output="DEFAULT", id=None, tags=None, scope="worker"):
+
+        # set prefix, based on scope
+        if scope == "agent":
+            prefix = self.agent.cid
+        else:
+            prefix = self.prefix
 
         # TODO: This doesn't belong here..
         if message.getCode() in [
@@ -215,7 +213,7 @@ class Worker:
                 event_producer = Producer(
                     name="EVENT",
                     id=id,
-                    prefix=self.prefix,
+                    prefix=prefix,
                     suffix="STREAM",
                     properties=self.properties,
                 )
@@ -243,7 +241,7 @@ class Worker:
             output = output + ":" + id
 
         # create producer, if not existing
-        producer = self._start_producer(output=output, tags=tags)
+        producer = self._start_producer(output=output, tags=tags, prefix=prefix)
         producer.write(message)
 
         # close consumer, if end of stream
@@ -279,21 +277,25 @@ class Worker:
         self.consumer = consumer
         consumer.start()
 
-    def _start_producer(self, output="DEFAULT", tags=None):
+    def _start_producer(self, output="DEFAULT", tags=None, prefix=None):
+        if prefix is None:
+            prefix = self.prefix
+
         # start, if not started
-        if output in self.producers:
-            return self.producers[output]
+        pid = prefix + ":OUTPUT:" + output
+        if pid in self.producers:
+            return self.producers[pid]
 
         # create producer for output
         producer = Producer(
             name="OUTPUT",
             id=output,
-            prefix=self.prefix,
+            prefix=prefix,
             suffix="STREAM",
             properties=self.properties,
         )
         producer.start()
-        self.producers[output] = producer
+        self.producers[pid] = producer
 
         # notify session of new stream, if in a session
         if self.session:
@@ -364,7 +366,7 @@ class Worker:
             return self.session.get_stream_data(stream, key)
 
         return None
-    
+
     def get_all_stream_data(self, stream=None):
         if self.session:
             return self.session.get_all_stream_data(stream)

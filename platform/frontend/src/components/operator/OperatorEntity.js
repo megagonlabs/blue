@@ -1,12 +1,15 @@
 import { Intent } from "@blueprintjs/core";
 import axios from "axios";
-import { diff } from "deep-diff";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import EntityDescription from "../entity/EntityDescription";
 import EntityMain from "../entity/EntityMain";
 import EntityProperties from "../entity/EntityProperties";
-import { constructSavePropertyRequests, settlePromises } from "../helper";
+import {
+    constructSavePropertyRequests,
+    settlePromises,
+    shallowDiff,
+} from "../helper";
 import { AppToaster } from "../toaster";
 export default function OperatorEntity() {
     const BLANK_ENTITY = { type: "operator" };
@@ -35,7 +38,7 @@ export default function OperatorEntity() {
             setEditEntity(result);
             setLoading(false);
         });
-    }, [router]);
+    }, [router]); // eslint-disable-line react-hooks/exhaustive-deps
     const updateEntity = ({ path, value }) => {
         let newEntity = _.cloneDeep(editEntity);
         _.set(newEntity, path, value);
@@ -68,13 +71,16 @@ export default function OperatorEntity() {
                     });
             }),
         ];
-        const difference = diff(entity.properties, editEntity.properties);
+        const difference = shallowDiff(
+            entity.properties,
+            editEntity.properties
+        );
         tasks.concat(
             constructSavePropertyRequests({
                 axios,
                 url: `${urlPrefix}/${entity.name}/property`,
                 difference,
-                editEntity,
+                properties: editEntity.properties,
             })
         );
         settlePromises(tasks, (error) => {
@@ -99,19 +105,20 @@ export default function OperatorEntity() {
                 jsonError={jsonError}
             />
             <EntityDescription
+                loading={loading}
                 edit={edit}
                 setEdit={setEdit}
                 entity={editEntity}
                 updateEntity={updateEntity}
             />
             <EntityProperties
+                loading={loading}
                 edit={edit}
                 setEdit={setEdit}
                 entity={editEntity}
                 jsonError={jsonError}
                 setJsonError={setJsonError}
                 updateEntity={updateEntity}
-                setLoading={setLoading}
             />
         </div>
     );

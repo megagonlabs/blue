@@ -136,11 +136,11 @@ class Session:
 
         # create data namespace to share data on stream
         data_success = self._init_stream_data_namespace(output_stream)
-        logging.info("inited stream data namespace {} {}".format(output_stream, data_success))
+        # logging.info("inited stream data namespace {} {}".format(output_stream, data_success))
 
         # create metadata namespace for stream, metadata_success = True, if not existing
         metadata_success = self._init_stream_metadata_namespace(output_stream, agent, tags)
-        logging.info("inited stream metadata namespace {} {}".format(output_stream, metadata_success))
+        # logging.info("inited stream metadata namespace {} {}".format(output_stream, metadata_success))
 
         # add to stream to notify others, unless it exists
         if metadata_success:
@@ -244,14 +244,14 @@ class Session:
     def set_data(self, key, value):
         self.connection.json().set(self._get_data_namespace(), "$." + key, value)
 
+    def delete_data(self, key):
+        self.connection.json().delete(self._get_data_namespace(), "$." + key)
+
     def get_data(self, key):
         value = self.connection.json().get(self._get_data_namespace(), Path("$." + key))
         return self.__get_json_value(value)
 
     def get_all_data(self):
-        logging.info("get_all_data")
-        logging.info(self.cid)
-        logging.info(self._get_data_namespace())
         value = self.connection.json().get(self._get_data_namespace(), Path("$"))
         return self.__get_json_value(value)
 
@@ -431,7 +431,7 @@ class Session:
         # start  producer to emit session events
         self._start_producer()
 
-        logging.info("Started session {cid}".format(cid=self.cid))
+        # logging.info("Started session {cid}".format(cid=self.cid))
 
     def _start_connection(self):
         host = self.properties["db.host"]

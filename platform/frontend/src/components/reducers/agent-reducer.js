@@ -6,6 +6,7 @@ export const defaultState = {
     loading: true,
     icon: {},
     systemAgents: {},
+    propertyLookups: {},
     filter: {
         keywords: "",
         hybrid: false,
@@ -17,8 +18,14 @@ export const defaultState = {
     pendingAttributesRequests: {},
 };
 export default function agentReducer(state = defaultState, { type, payload }) {
-    let { icon, pendingAttributesRequests } = state;
+    let { icon, pendingAttributesRequests, propertyLookups } = state;
     switch (type) {
+        case "agent/propertyLookups/set": {
+            let agentLookups = _.get(propertyLookups, payload.agent, {});
+            _.set(agentLookups, payload.key, payload.value);
+            _.set(propertyLookups, payload.agent, agentLookups);
+            return { ...state, propertyLookups };
+        }
         case "agent/pendingAttributesRequests/set": {
             _.set(pendingAttributesRequests, payload.key, payload.value);
             return { ...state, pendingAttributesRequests };

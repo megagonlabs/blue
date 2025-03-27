@@ -13,15 +13,21 @@ export default function JsonEditor({
     code,
     setCode,
     setError,
-    setLoading,
     schema = null,
-    allowSaveWithError = false,
+    allowEditWithError = false,
+    allowPopulateOnce = false,
+    alwaysAllowPopulate = false,
 }) {
+    const prePopulateOnce = useRef(!allowPopulateOnce);
     const [doc, setDoc] = useState(code);
     useEffect(() => {
         setCode(doc);
     }, [doc]);
     const editor = useRef();
+    const onUpdate = EditorView.updateListener.of((v) => {
+        // v.docChanged
+        debounced(v);
+    });
     const debounced = useCallback(
         _.debounce((v) => {
             let error = false;
@@ -33,24 +39,21 @@ export default function JsonEditor({
             if (_.isFunction(setError)) {
                 setError(error);
             }
-            if (!error || allowSaveWithError) {
+            if (!error || allowEditWithError) {
                 setDoc(v.state.doc.toString());
-            }
-            if (_.isFunction(setLoading)) {
-                setLoading(false);
             }
         }, 300),
         []
     );
-    const onUpdate = EditorView.updateListener.of((v) => {
-        if (_.isFunction(setLoading) && v.docChanged) {
-            setLoading(true);
-        }
-        debounced(v);
-    });
     const [codeEditorView, setCodeEditorView] = useState(null);
     useEffect(() => {
-        if (_.isEqual(code, doc) || _.isNil(codeEditorView)) return;
+        if (
+            _.isEqual(code, doc) ||
+            _.isNil(codeEditorView) ||
+            (prePopulateOnce.current && !alwaysAllowPopulate)
+        )
+            return;
+        prePopulateOnce.current = true;
         codeEditorView.dispatch({
             changes: { from: 0, to: doc.length, insert: code },
         });
@@ -78,19 +81,6 @@ export default function JsonEditor({
         const view = new EditorView({
             state,
             parent: editor.current,
-        });
-        view.contentDOM.addEventListener("blur", () => {
-            var editableFix = document.createElement("input");
-            editableFix.style =
-                "position: absolute; width: 1px; left: 0px; top: 0px;";
-            editableFix.tabIndex = -1;
-            view.contentDOM.appendChild(editableFix);
-            editableFix.focus();
-            editableFix.setSelectionRange(0, 0);
-            editableFix.blur();
-            setTimeout(() => {
-                editableFix.remove();
-            }, 0);
         });
         setCodeEditorView(view);
         return () => {
