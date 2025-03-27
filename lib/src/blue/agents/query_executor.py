@@ -125,19 +125,20 @@ class QueryExecutorAgent(Agent):
                 # logging.info("input: "  + input)
                 
                 if worker:
-                    try:
-                        data = json.loads(input)
-                    except:
-                        logging.error("Input is not JSON")
-                        return
+                    if input.strip() != '':
+                        try:
+                            data = json.loads(input)
+                            path = data['source']
+                            query = data['query']
+                            output = self.execute_sql_query(path, query)
 
-                    # extract path, query
-                    path = data['source']
-                    query = data['query']
-                    output = self.execute_sql_query(path, query)
+                            worker.write_data(self._apply_filter(output))
 
-                    worker.write_data(self._apply_filter(output))
-                worker.write_eos()
+                        except:
+                            print("Input is not JSON")
+                            pass
+                   
+                    worker.write_eos()
                 
             elif message.isBOS():
                 stream = message.getStream()
