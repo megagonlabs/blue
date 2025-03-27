@@ -139,6 +139,7 @@ class QueryExecutorAgent(Agent):
                             pass
                    
                     worker.write_eos()
+
                 
             elif message.isBOS():
                 stream = message.getStream()
