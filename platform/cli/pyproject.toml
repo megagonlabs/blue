@@ -13,13 +13,14 @@ where = ["src"]
 name = "blue-cli"
 version = "0.9"
 authors = [
-  { name="Megagon Labs", email="contact@megagon.ai" },
+  { name="Megagon Labs", email="blue@megagon.ai" },
 ]
 description = "Command line interface for blue installation and deployment"
 readme = "README.md"
 requires-python = ">=3.9"
 classifiers = [
-      "Programming Language :: Python :: 3",
+      "Development Status :: 4 - Beta",
+      "Programming Language :: Python :: 3.9",
       "Operating System :: OS Independent",
 ]
 dynamic = ["scripts", "dependencies"]

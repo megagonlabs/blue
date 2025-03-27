@@ -275,7 +275,8 @@
         "SELECT"
       ],
       "nl2q_source": null,
-      "nl2q_translation_requirements": [],
+      "nl2q_additional_requirements": [],
+      "nl2q_context": [],
       "nl2q_prompt": "Your task is to translate a natural language question into a SQL query based on a list of provided data sources. \nFor each source you will be provided with a list of table schemas that specify the columns and their types. \nHere are the requirements: \n- The output should be a JSON object with the following fields \n  - \"question\": the original natural language question \n  - \"source\": the name of the data source that the query will be executed on \n  - \"query\": the SQL query that is translated from the natural language question \n- The SQL query should be compatible with the schema of the datasource. \n- The SQL query should be compatible with the syntax of the corresponding database's protocol. Examples of protocol include \"mysql\" and \"postgres\". \n- Always do case-${sensitivity} matching for string comparison. \n- The query should starts with any of the following prefixes: ${force_query_prefixes} \n- Output the JSON directly. Do not generate explanation or other additional output. \n${translation_requirements} \nProtocol: \n${protocol} \nData sources: \n${sources} \nQuestion: ${question} \nOutput:",
       "nl2q_discovery_source_protocols": [
         "postgres",

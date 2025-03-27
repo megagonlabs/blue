@@ -111,8 +111,8 @@ class DocumenterAgent(Agent):
             processed_hilite = string_utils.safe_substitute(hilite, **properties,  **session_data, **self.results)
 
             hilite_contents = {
-                "doc": doc,
-                "hilite": processed_hilite
+                "hilite": processed_hilite,
+                "doc": doc
             }
 
             hilite_contents_json = json.dumps(hilite_contents, indent=3)

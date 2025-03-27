@@ -9,13 +9,14 @@ where = ["src"]
 name = "blue-platform"
 version = "0.9"
 authors = [
-  { name="Megagon Labs", email="contact@megagon.ai" },
+  { name="Megagon Labs", email="blue@megagon.ai" },
 ]
 description = "Streams-based agent orchestration platform for building and deploying applications with agentic workflows for the enterprise"
 readme = "README.md"
 requires-python = ">=3.9"
 classifiers = [
-      "Programming Language :: Python :: 3",
+      "Development Status :: 4 - Beta",
+      "Programming Language :: Python :: 3.9",
       "Operating System :: OS Independent",
 ]
 license = "BSD-3-Clause"
