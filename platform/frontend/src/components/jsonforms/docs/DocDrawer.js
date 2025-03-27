@@ -1,3 +1,4 @@
+import { AuthContext } from "@/components/contexts/auth-context";
 import { faIcon } from "@/components/icon";
 import BooleanDoc from "@/components/jsonforms/docs/BooleanDoc";
 import ButtonDoc from "@/components/jsonforms/docs/ButtonDoc";
@@ -14,6 +15,7 @@ import {
     Callout,
     Classes,
     Code,
+    Colors,
     Drawer,
     HTMLTable,
     Intent,
@@ -33,41 +35,83 @@ import {
     faListDropdown,
     faObjectGroup,
     faParagraph,
+    faPause,
     faPlay,
     faPresentationScreen,
     faRectangle,
     faRectanglesMixed,
     faSquareCheck,
     faSquareM,
+    faTable,
     faTimes,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
+import classNames from "classnames";
 import _ from "lodash";
-import { useCallback, useState } from "react";
+import { useCallback, useContext, useState } from "react";
+import CandidatesTable from "../examples/CandidatesTable";
 import ArrayDoc from "./ArrayDoc";
 import BasicsDoc from "./BasicsDoc";
 import CalloutDoc from "./CalloutDoc";
 import MarkdownDoc from "./MarkdownDoc";
+import TableDoc from "./TableDoc";
+import TabsDoc from "./TabsDoc";
 import VegaDoc from "./VegaDoc";
-const RendererDetailPanel = (props) => {
-    const DOCS = {
-        callout: <CalloutDoc closePanel={props.closePanel} />,
-        boolean: <BooleanDoc closePanel={props.closePanel} />,
-        button: <ButtonDoc closePanel={props.closePanel} />,
-        enum: <EnumDoc closePanel={props.closePanel} />,
-        group: <GroupDoc closePanel={props.closePanel} />,
-        integer: <IntegerDoc closePanel={props.closePanel} />,
-        label: <LabelDoc closePanel={props.closePanel} />,
-        layout: <LayoutDoc closePanel={props.closePanel} />,
-        number: <NumberDoc closePanel={props.closePanel} />,
-        string: <StringDoc closePanel={props.closePanel} />,
-        array: <ArrayDoc closePanel={props.closePanel} />,
-        vega: <VegaDoc closePanel={props.closePanel} />,
-        markdown: <MarkdownDoc closePanel={props.closePanel} />,
-        basics: <BasicsDoc closePanel={props.closePanel} />,
+const EXAMPLE_LIST = [
+    {
+        id: "candidates-table",
+        title: "Candidates table",
+        icon: faTable,
+        description:
+            "Table view for a list of candidates with name, job title, and skill matches.",
+    },
+];
+const RendererExamplePanel = ({
+    closePanel,
+    id,
+    setJsonUischema,
+    setData,
+    setJsonSchema,
+}) => {
+    const EXAMPLES = {
+        "candidates-table": (
+            <CandidatesTable
+                setJsonUischema={setJsonUischema}
+                setData={setData}
+                setJsonSchema={setJsonSchema}
+                closePanel={closePanel}
+            />
+        ),
     };
-    return _.get(DOCS, props.type, null);
+    return _.get(EXAMPLES, id, null);
 };
-const MainMenuPanel = (props) => {
+const RendererDetailPanel = ({ closePanel, type }) => {
+    const DOCS = {
+        callout: <CalloutDoc closePanel={closePanel} />,
+        boolean: <BooleanDoc closePanel={closePanel} />,
+        button: <ButtonDoc closePanel={closePanel} />,
+        enum: <EnumDoc closePanel={closePanel} />,
+        group: <GroupDoc closePanel={closePanel} />,
+        integer: <IntegerDoc closePanel={closePanel} />,
+        label: <LabelDoc closePanel={closePanel} />,
+        layout: <LayoutDoc closePanel={closePanel} />,
+        number: <NumberDoc closePanel={closePanel} />,
+        string: <StringDoc closePanel={closePanel} />,
+        array: <ArrayDoc closePanel={closePanel} />,
+        vega: <VegaDoc closePanel={closePanel} />,
+        markdown: <MarkdownDoc closePanel={closePanel} />,
+        basics: <BasicsDoc closePanel={closePanel} />,
+        tabs: <TabsDoc closePanel={closePanel} />,
+        table: <TableDoc closePanel={closePanel} />,
+    };
+    return _.get(DOCS, type, null);
+};
+const MainMenuPanel = ({
+    openPanel,
+    setIsDocOpen,
+    setJsonUischema,
+    setData,
+    setJsonSchema,
+}) => {
     const TYPES = [
         {
             text: "Basics",
@@ -90,6 +134,8 @@ const MainMenuPanel = (props) => {
         { text: "Markdown", icon: faSquareM },
         { text: "Number", icon: faInputNumeric },
         { text: "String", icon: faInputText },
+        { text: "Table", icon: faTable },
+        { text: "Tabs", icon: faPause, iconClass: "fa-rotate-90" },
         {
             text: "Vega",
             icon: faPresentationScreen,
@@ -97,8 +143,15 @@ const MainMenuPanel = (props) => {
         },
     ];
     const [openingPanel, setOpeningPanel] = useState(false);
+    const { settings } = useContext(AuthContext);
+    const darkMode = _.get(settings, "dark_mode", false);
     return (
-        <div style={{ padding: 20 }}>
+        <div
+            style={{
+                padding: 20,
+                backgroundColor: darkMode ? Colors.DARK_GRAY2 : Colors.WHITE,
+            }}
+        >
             <div style={{ position: "absolute", top: 13.25, right: 20 }}>
                 <Tooltip
                     usePortal={false}
@@ -107,17 +160,23 @@ const MainMenuPanel = (props) => {
                     content="Close"
                 >
                     <Button
-                        large
-                        minimal
+                        size="large"
+                        variant="minimal"
                         icon={faIcon({ icon: faTimes })}
                         onClick={() => {
-                            props.setIsDocOpen(false);
+                            setIsDocOpen(false);
                             sessionStorage.setItem("isDocOpen", "false");
                         }}
                     />
                 </Tooltip>
             </div>
-            <Menu large style={{ padding: 0 }}>
+            <Menu
+                size="large"
+                style={{
+                    padding: 0,
+                    backgroundColor: darkMode ? Colors.DARK_GRAY2 : null,
+                }}
+            >
                 <MenuDivider title="UI Schema" />
                 {TYPES.map((type, index) => (
                     <MenuItem
@@ -125,12 +184,13 @@ const MainMenuPanel = (props) => {
                         icon={faIcon({
                             icon: type.icon,
                             size: 20,
+                            className: type.iconClass,
                             style: { marginRight: 10, marginLeft: 4 },
                         })}
                         onClick={() => {
                             if (openingPanel) return;
                             setOpeningPanel(true);
-                            props.openPanel({
+                            openPanel({
                                 props: { type: _.lowerCase(type.text) },
                                 renderPanel: RendererDetailPanel,
                             });
@@ -224,12 +284,59 @@ const MainMenuPanel = (props) => {
                     </tbody>
                 </HTMLTable>
                 <MenuDivider title="Examples" />
+                <div style={{ marginBottom: 15 }}>
+                    <Menu size="large" style={{ padding: 0 }}>
+                        {EXAMPLE_LIST.map((example, index) => (
+                            <MenuItem
+                                key={index}
+                                icon={faIcon({
+                                    icon: example.icon,
+                                    style: { marginLeft: 4 },
+                                })}
+                                onClick={() => {
+                                    if (openingPanel) return;
+                                    setOpeningPanel(true);
+                                    openPanel({
+                                        props: {
+                                            id: example.id,
+                                            setJsonUischema,
+                                            setData,
+                                            setJsonSchema,
+                                        },
+                                        renderPanel: RendererExamplePanel,
+                                    });
+                                    setTimeout(() => {
+                                        setOpeningPanel(false);
+                                    }, 500);
+                                }}
+                                text={
+                                    <div style={{ marginLeft: 3 }}>
+                                        <div>{example.title}</div>
+                                        <div
+                                            style={{
+                                                marginTop: 5,
+                                                whiteSpace: "initial",
+                                                lineHeight: "initial",
+                                            }}
+                                            className={classNames(
+                                                Classes.TEXT_SMALL,
+                                                Classes.TEXT_MUTED
+                                            )}
+                                        >
+                                            {example.description}
+                                        </div>
+                                    </div>
+                                }
+                            />
+                        ))}
+                    </Menu>
+                </div>
                 <Callout icon={null} intent={Intent.PRIMARY}>
                     Didn&apos;t find an useful example here? Please request for
                     an example by&nbsp;
                     <a
                         href="https://github.com/rit-git/blue/issues/new"
-                        rel="noreferrer"
+                        rel="noopener noreferrer"
                         target="_blank"
                     >
                         creating an issue on Blue GitHub repository
@@ -240,10 +347,16 @@ const MainMenuPanel = (props) => {
         </div>
     );
 };
-export default function DocDrawer({ isOpen, setIsDocOpen }) {
+export default function DocDrawer({
+    isOpen,
+    setIsDocOpen,
+    setJsonUischema,
+    setData,
+    setJsonSchema,
+}) {
     const initialPanel = {
         renderPanel: MainMenuPanel,
-        props: { setIsDocOpen },
+        props: { setIsDocOpen, setJsonUischema, setData, setJsonSchema },
     };
     const [currentPanelStack, setCurrentPanelStack] = useState([initialPanel]);
     const addToPanelStack = useCallback((newPanel) => {
@@ -252,8 +365,11 @@ export default function DocDrawer({ isOpen, setIsDocOpen }) {
     const removeFromPanelStack = useCallback(() => {
         setCurrentPanelStack((stack) => stack.slice(0, -1));
     }, []);
+    const { settings } = useContext(AuthContext);
+    const darkMode = _.get(settings, "dark_mode", false);
     return (
         <Drawer
+            className={darkMode ? Classes.DARK : null}
             isOpen={isOpen}
             hasBackdrop={false}
             enforceFocus={false}
@@ -265,11 +381,11 @@ export default function DocDrawer({ isOpen, setIsDocOpen }) {
                 setIsDocOpen(false);
                 sessionStorage.setItem("isDocOpen", "false");
             }}
-            style={{ zIndex: 36 }}
+            style={{ zIndex: 36, padding: 1 }}
             size={"min(40%, 716.8px)"}
         >
             <PanelStack2
-                renderActivePanelOnly={false}
+                renderActivePanelOnly
                 className="full-parent-height transition-none"
                 onOpen={addToPanelStack}
                 onClose={removeFromPanelStack}

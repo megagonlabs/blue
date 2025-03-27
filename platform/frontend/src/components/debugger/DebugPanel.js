@@ -1,3 +1,5 @@
+import { AuthContext } from "@/components/contexts/auth-context";
+import { faIcon } from "@/components/icon";
 import {
     Button,
     Classes,
@@ -10,9 +12,7 @@ import { faMinus } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import classNames from "classnames";
 import { useCallback, useContext, useEffect, useRef, useState } from "react";
 import { RESIZE_DIRECTION } from "../constant";
-import { AuthContext } from "../contexts/auth-context";
 import { useFloatingWindow } from "../hooks/useFloatingWindow";
-import { faIcon } from "../icon";
 import Debugger from "./Debugger";
 import Resizer from "./Resizer";
 const BASE_HEIGHT = 300;
@@ -59,6 +59,8 @@ export default function DebugPanel() {
         return () => window.removeEventListener("resize", handleWindowResize);
     }, []);
     const { settings } = useContext(AuthContext);
+    const debugMode = _.get(settings, "debug_mode", false);
+    const darkMode = _.get(settings, "dark_mode", false);
     const [isMinimized, setIsMinimized] = useState(false);
     return (
         <OverlaysProvider>
@@ -72,15 +74,16 @@ export default function DebugPanel() {
             >
                 <div
                     key="debugger"
-                    className={classNames(Classes.DIALOG, "margin-0")}
+                    className={classNames(
+                        Classes.DIALOG,
+                        "margin-0",
+                        darkMode ? Classes.DARK : null
+                    )}
                     ref={resizeRef}
                     style={{
                         transform: "translate(40px, 40px)",
                         position: "relative",
-                        display:
-                            _.get(settings, "debug_mode", false) && !isMinimized
-                                ? null
-                                : "none",
+                        display: debugMode && !isMinimized ? null : "none",
                         height: BASE_HEIGHT,
                         width: BASE_HEIGHT * 1.5,
                         paddingBottom: 0,
@@ -115,7 +118,7 @@ export default function DebugPanel() {
                             minimal
                         >
                             <Button
-                                minimal
+                                variant="minimal"
                                 intent={Intent.WARNING}
                                 icon={faIcon({ icon: faMinus })}
                                 onClick={() => setIsMinimized(true)}
@@ -125,7 +128,11 @@ export default function DebugPanel() {
                 </div>
                 <div
                     key="debugger-minimized"
-                    className={`${Classes.DIALOG} margin-0`}
+                    className={classNames(
+                        Classes.DIALOG,
+                        "margin-0",
+                        darkMode ? Classes.DARK : null
+                    )}
                     style={{
                         position: "absolute",
                         top: "calc(100vh - 40px)",
@@ -133,11 +140,8 @@ export default function DebugPanel() {
                         borderBottomLeftRadius: 0,
                         borderBottomRightRadius: 0,
                         width: 250,
-                        right: 40,
-                        display:
-                            _.get(settings, "debug_mode", false) && isMinimized
-                                ? null
-                                : "none",
+                        right: 20,
+                        display: debugMode && isMinimized ? null : "none",
                         cursor: "pointer",
                     }}
                     onClick={() => setIsMinimized(false)}

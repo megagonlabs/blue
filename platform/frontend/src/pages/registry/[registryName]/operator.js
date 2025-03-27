@@ -24,7 +24,7 @@ import {
     faTimes,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import _ from "lodash";
-import { useCallback, useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useMemo, useState } from "react";
 export default function Operator() {
     const { appState, appActions } = useContext(AppContext);
     const { filter } = appState.operator;
@@ -34,36 +34,40 @@ export default function Operator() {
     const [keywords, setKeywords] = useState(filter.keywords);
     const [page, setPage] = useState(filter.page);
     const [pageSize, setPageSize] = useState(filter.page_size);
-    const operatorRegistryName = process.env.NEXT_PUBLIC_OPERATOR_REGISTRY_NAME;
-    const debounceOnKeywordsChange = useCallback(
-        _.debounce(
-            ({
-                registryName,
-                hybrid,
-                approximate,
-                keywords,
-                type,
-                page,
-                pageSize,
-            }) => {
-                appActions.operator.setState({ key: "loading", value: true });
-                if (_.isEmpty(keywords)) {
-                    appActions.operator.getList(operatorRegistryName);
-                } else {
-                    appActions.operator.searchList({
-                        registryName: registryName,
-                        hybrid: hybrid,
-                        approximate: approximate,
-                        keywords: keywords,
-                        type: type,
-                        page: page,
-                        pageSize: pageSize,
+    const operatorRegistryName = appState.operator.registryName;
+    const debounceOnKeywordsChange = useMemo(
+        () =>
+            _.debounce(
+                ({
+                    registryName,
+                    hybrid,
+                    approximate,
+                    keywords,
+                    type,
+                    page,
+                    pageSize,
+                }) => {
+                    appActions.operator.setState({
+                        key: "loading",
+                        value: true,
                     });
-                }
-            },
-            300
-        ),
-        []
+                    if (_.isEmpty(keywords)) {
+                        appActions.operator.getList(operatorRegistryName);
+                    } else {
+                        appActions.operator.searchList({
+                            registryName: registryName,
+                            hybrid: hybrid,
+                            approximate: approximate,
+                            keywords: keywords,
+                            type: type,
+                            page: page,
+                            pageSize: pageSize,
+                        });
+                    }
+                },
+                300
+            ),
+        [] // eslint-disable-line react-hooks/exhaustive-deps
     );
     useEffect(() => {
         debounceOnKeywordsChange({
@@ -114,7 +118,7 @@ export default function Operator() {
                                     ? Classes.SKELETON
                                     : null
                             }
-                            large
+                            size="large"
                             fill
                             value={keywords}
                             leftIcon={faIcon({ icon: faSearch })}
@@ -125,7 +129,7 @@ export default function Operator() {
                                 !_.isEmpty(keywords) ||
                                 appState.operator.search ? (
                                     <Button
-                                        minimal
+                                        variant="minimal"
                                         onClick={() => {
                                             setKeywords("");
                                             setPage(0);
@@ -162,7 +166,7 @@ export default function Operator() {
                             content={
                                 <div
                                     style={{
-                                        padding: "20px 20px 10px",
+                                        padding: "15px 15px 5px",
                                         maxWidth: 500,
                                     }}
                                 >
@@ -173,7 +177,7 @@ export default function Operator() {
                                                 : null
                                         }
                                         inline
-                                        large
+                                        size="large"
                                         checked={hybrid}
                                         label="Hybrid"
                                         onChange={(event) => {
@@ -190,7 +194,7 @@ export default function Operator() {
                                                 : null
                                         }
                                         inline
-                                        large
+                                        size="large"
                                         checked={approximate}
                                         label="Approximate"
                                         onChange={(event) => {
@@ -217,22 +221,19 @@ export default function Operator() {
                                                 value: "operator",
                                                 text: "Operator",
                                             },
-                                        ].map(({ value, text }, index) => {
-                                            return (
-                                                <Radio
-                                                    key={index}
-                                                    className={
-                                                        appState.operator
-                                                            .loading
-                                                            ? Classes.SKELETON
-                                                            : null
-                                                    }
-                                                    large
-                                                    value={value}
-                                                    label={text}
-                                                />
-                                            );
-                                        })}
+                                        ].map(({ value, text }, index) => (
+                                            <Radio
+                                                key={index}
+                                                className={
+                                                    appState.operator.loading
+                                                        ? Classes.SKELETON
+                                                        : null
+                                                }
+                                                size="large"
+                                                value={value}
+                                                label={text}
+                                            />
+                                        ))}
                                     </RadioGroup>
                                 </div>
                             }
@@ -243,10 +244,11 @@ export default function Operator() {
                                         ? Classes.SKELETON
                                         : null
                                 }
-                                large
-                                outlined
+                                size="large"
+                                variant="outlined"
+                                intent={Intent.PRIMARY}
                                 text="Filter"
-                                rightIcon={faIcon({ icon: faBarsFilter })}
+                                endIcon={faIcon({ icon: faBarsFilter })}
                             />
                         </Popover>
                     </ControlGroup>

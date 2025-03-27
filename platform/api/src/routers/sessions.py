@@ -3,15 +3,9 @@ from curses import noecho
 import sys
 import pydash
 
-###### Add lib path
-sys.path.append("./lib/")
-sys.path.append("./lib/agent_registry/")
-sys.path.append("./lib/platform/")
-
 ###### Parsers, Formats, Utils
 import json
 import logging
-from utils import json_utils
 from constant import PermissionDenied, account_id_header, acl_enforce, d7validate
 from validations.base import BaseValidation
 
@@ -31,12 +25,14 @@ JSONStructure = Union[JSONArray, JSONObject, Any]
 
 
 ###### Blue
-from blueprint import Platform
-from agent_registry import AgentRegistry
-from session import Session
+from blue.agent import Agent
+from blue.platform import Platform
+from blue.agents.registry import AgentRegistry
+from blue.utils import json_utils
 
 ###### Properties
 from settings import ACL, PROPERTIES
+from server import connection
 
 ### Assign from platform properties
 platform_id = PROPERTIES["platform.name"]
@@ -90,7 +86,7 @@ def agent_join_session(registry_name, agent_name, properties, session_id):
     agent_properties = json_utils.merge_json(agent_properties, PROPERTIES)
     # check if derivate agent, if so merge
     # <_name> or <_name>_<derivative__name>
-    ca = agent_name.split("_")
+    ca = agent_name.split(Agent.SEPARATOR)
     if len(ca) > 1:
         parent_agent_name = ca[0]
 
@@ -141,7 +137,10 @@ def get_sessions(request: Request, my_sessions: bool = False):
 def get_session(request: Request, session_id):
     session = p.get_session(session_id).to_dict()
     session_acl_enforce(request, session, read=True)
-    return JSONResponse(content={"result": session})
+    uid = request.state.user['uid']
+    owner_of = pydash.is_equal(pydash.objects.get(session, 'created_by', None), uid)
+    member_of = pydash.objects.get(session, f'members.{uid}', False)
+    return JSONResponse(content={"result": {**session, 'group_by': {'owner': owner_of, 'member': not owner_of and member_of}}})
 
 
 @router.get("/session/{session_id}/agents")
@@ -311,7 +310,7 @@ def get_session_data(request: Request, session_id):
 def set_session_data(request: Request, session_id, property_name, property: JSONStructure):
     session = p.get_session(session_id)
     session_acl_enforce(request, session.to_dict(), write=True)
-    session.set_data(property_name, property)
+    session.set_data(property_name, pydash.objects.get(property, [property_name], None))
     return JSONResponse(content={"message": "Success"})
 
 

@@ -30,7 +30,7 @@ export default function ButtonDoc({ closePanel }) {
         <>
             <div className="border-bottom" style={{ padding: "10px 20px" }}>
                 <Button
-                    outlined
+                    variant="outlined"
                     text="Back"
                     onClick={closePanel}
                     icon={faIcon({ icon: faArrowLeft })}
@@ -43,13 +43,7 @@ export default function ButtonDoc({ closePanel }) {
                     overflowY: "auto",
                 }}
             >
-                <div
-                    style={{
-                        display: "flex",
-                        alignItems: "center",
-                        marginBottom: 20,
-                    }}
-                >
+                <div style={{ marginBottom: 20 }}>
                     <H1 style={{ margin: 0 }}>Button</H1>
                 </div>
                 <pre style={{ position: "relative", overflow: "hidden" }}>
@@ -100,7 +94,7 @@ export default function ButtonDoc({ closePanel }) {
                                         alignItems: "flex-start",
                                     }}
                                 >
-                                    <Button large text="large: true" />
+                                    <Button size="large" text="large: true" />
                                     <Button text="large: false" />
                                 </Callout>
                             </td>
@@ -133,7 +127,10 @@ export default function ButtonDoc({ closePanel }) {
                                     }}
                                 >
                                     <Button text="outlined: false" />
-                                    <Button outlined text="outlined: true" />
+                                    <Button
+                                        variant="outlined"
+                                        text="outlined: true"
+                                    />
                                 </Callout>
                             </td>
                         </tr>

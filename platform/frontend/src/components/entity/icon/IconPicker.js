@@ -19,7 +19,7 @@ import {
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import _ from "lodash";
 import Link from "next/link";
-import { useCallback, useContext, useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useMemo, useRef, useState } from "react";
 export default function IconPicker({
     icon,
     color,
@@ -37,16 +37,18 @@ export default function IconPicker({
         setColorHex(_.isEmpty(color) ? "" : color);
         invalidColor.current = false;
     }, [color]);
-    const handleSearchQuery = useCallback(
-        _.debounce((keyword) => {
-            if (!_.isEmpty(keyword)) {
-                const results = appState.app.iconPickerIndex.search(keyword);
-                setSearchResults(results);
-            } else {
-                setSearchResults([]);
-            }
-        }, 800),
-        []
+    const handleSearchQuery = useMemo(
+        () =>
+            _.debounce((keyword) => {
+                if (!_.isEmpty(keyword)) {
+                    const results =
+                        appState.app.iconPickerIndex.search(keyword);
+                    setSearchResults(results);
+                } else {
+                    setSearchResults([]);
+                }
+            }, 800),
+        [appState.app.iconPickerIndex]
     );
     return (
         <>
@@ -54,7 +56,7 @@ export default function IconPicker({
                 autoFocus
                 leftIcon={faIcon({ icon: faSearch })}
                 placeholder="Search icons"
-                large
+                size="large"
                 value={keyword}
                 onChange={(event) => {
                     setKeyword(event.target.value);
@@ -66,14 +68,15 @@ export default function IconPicker({
                 }}
                 rightElement={
                     <Link
+                        rel="noopener noreferrer"
                         target="_blank"
-                        href="https://fontawesome.com/search?o=r&s=solid&f=sharp-duotone"
+                        href="https://fontawesome.com/search?o=r&ic=pro-collection&s=solid&ip=sharp-duotone"
                     >
                         <Button
                             icon={faIcon({ icon: faTelescope })}
                             intent={Intent.PRIMARY}
-                            minimal
-                            rightIcon={faIcon({
+                            variant="minimal"
+                            endIcon={faIcon({
                                 icon: faArrowUpRightFromSquare,
                             })}
                             text="Advanced"
@@ -82,20 +85,15 @@ export default function IconPicker({
                 }
             />
             {!_.isEmpty(searchResults) || !_.isEmpty(icon) ? (
-                <div
-                    style={{
-                        position: "relative",
-                        display: "flex",
-                        gap: 15,
-                        paddingBottom: 15,
-                    }}
-                >
+                <div style={{ position: "relative", display: "flex", gap: 15 }}>
                     <Card
                         style={{
                             boxShadow: "none",
                             padding: 7.5,
                             display: "grid",
                             width: 155,
+                            maxHeight: 476,
+                            overflowY: "auto",
                             gap: 10,
                             gridAutoRows: 40,
                             gridTemplateColumns: "40px 40px 40px",
@@ -109,16 +107,14 @@ export default function IconPicker({
                             );
                             return (
                                 <div
-                                    className="on-hover-background-color-bp-gray-3"
+                                    className="background-color-on-hover"
                                     key={index}
                                     style={{
                                         ...ENTITY_ICON_40,
                                         borderRadius: 2,
                                         cursor: "pointer",
                                     }}
-                                    onClick={() => {
-                                        setIcon(iconName);
-                                    }}
+                                    onClick={() => setIcon(iconName)}
                                 >
                                     <FontAwesomeIcon
                                         style={{ height: 20, width: 20 }}
@@ -176,7 +172,7 @@ export default function IconPicker({
                                             ? Intent.DANGER
                                             : null
                                     }
-                                    large
+                                    size="large"
                                     onChange={(event) => {
                                         const value = _.toUpper(
                                             event.target.value

@@ -20,6 +20,7 @@ export default function EnumDoc({ closePanel }) {
             inline: false,
             helperText: null,
             style: {},
+            large: false,
         },
         scope: "#/properties/...",
         required: false,
@@ -28,7 +29,7 @@ export default function EnumDoc({ closePanel }) {
         <>
             <div className="border-bottom" style={{ padding: "10px 20px" }}>
                 <Button
-                    outlined
+                    variant="outlined"
                     text="Back"
                     onClick={closePanel}
                     icon={faIcon({ icon: faArrowLeft })}
@@ -50,7 +51,7 @@ export default function EnumDoc({ closePanel }) {
                 >
                     <H1 style={{ margin: 0 }}>Enum</H1>
                     <Tag
-                        large
+                        size="large"
                         style={{ marginLeft: 10 }}
                         minimal
                         intent={Intent.PRIMARY}

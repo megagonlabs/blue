@@ -4,6 +4,8 @@ import { AuthProvider } from "@/components/contexts/auth-context";
 import { SocketProvider } from "@/components/contexts/socket-context";
 import "@/styles/custom.css";
 import "@/styles/docs.css";
+import "@/styles/markdown-dark.css";
+import "@/styles/markdown-light.css";
 import { FocusStyleManager } from "@blueprintjs/core";
 import "@blueprintjs/core/lib/css/blueprint.css";
 import "@blueprintjs/icons/lib/css/blueprint-icons.css";
@@ -14,22 +16,26 @@ import axios from "axios";
 import TimeAgo from "javascript-time-ago";
 import en from "javascript-time-ago/locale/en";
 import _ from "lodash";
+import { allEnv } from "next-runtime-env";
 import dynamic from "next/dynamic";
 import Head from "next/head";
 import "normalize.css/normalize.css";
 TimeAgo.addDefaultLocale(en);
 axios.defaults.withCredentials = true;
-axios.defaults.baseURL = `${process.env.NEXT_PUBLIC_REST_API_SERVER}/blue/platform/${process.env.NEXT_PUBLIC_PLATFORM_NAME}`;
+const { NEXT_PUBLIC_REST_API_SERVER, NEXT_PUBLIC_PLATFORM_NAME } = allEnv();
+axios.defaults.baseURL = `${NEXT_PUBLIC_REST_API_SERVER}/blue/platform/${NEXT_PUBLIC_PLATFORM_NAME}`;
 FocusStyleManager.onlyShowFocusOnTabs();
 const Blue = ({ Component, pageProps }) => {
     if (_.isEqual(typeof window, "object"))
         return (
             <AppProvider>
                 <Head>
-                    <title>
-                        Blue &#91;{process.env.NEXT_PUBLIC_PLATFORM_NAME}&#93;
-                    </title>
+                    <title>Blue &#91;{NEXT_PUBLIC_PLATFORM_NAME}&#93;</title>
                     <link rel="icon" href="/favicon.ico" />
+                    <meta
+                        name="viewport"
+                        content="width=device-width, initial-scale=1.0"
+                    />
                 </Head>
                 <style jsx global>{`
                     body {

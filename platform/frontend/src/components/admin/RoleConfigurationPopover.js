@@ -1,4 +1,5 @@
 import { USER_ROLES_LOOKUP } from "@/components/constant";
+import { faIcon } from "@/components/icon";
 import {
     Button,
     Classes,
@@ -17,8 +18,8 @@ import axios from "axios";
 import _ from "lodash";
 import { useContext, useState } from "react";
 import { AppContext } from "../contexts/app-context";
-import { faIcon } from "../icon";
-import { AppToaster } from "../toaster";
+import { AuthContext } from "../contexts/auth-context";
+import { axiosErrorToast } from "../helper";
 const READ_TAG = (
     <Tag minimal intent={Intent.SUCCESS}>
         Read
@@ -59,7 +60,7 @@ const ROLE_PERMISSIONS = {
                 <li>
                     {READ_TAG}
                     {WRITE_TAG}
-                    any sessions
+                    any session
                 </li>
             </ul>
         </>
@@ -102,7 +103,7 @@ const ROLE_PERMISSIONS = {
                 <li>
                     {WRITE_TAG}
                     operations in agent / data registries for any agent / data
-                    they created
+                    they own
                     <ul className={Classes.LIST}>
                         <li>deploy and stop agents</li>
                     </ul>
@@ -175,6 +176,8 @@ export default function RoleConfigurationPopover({
     const selectedUsers = appState.admin.selectedUsers;
     const [saved, setSaved] = useState(false);
     const usersMap = appState.admin.usersMap;
+    const { settings } = useContext(AuthContext);
+    const darkMode = _.get(settings, "dark_mode", false);
     const handleUpdateUserRole = () => {
         setLoading(true);
         let promises = [];
@@ -192,10 +195,7 @@ export default function RoleConfigurationPopover({
                             resolve(uid);
                         })
                         .catch((error) => {
-                            AppToaster.show({
-                                intent: Intent.DANGER,
-                                message: `${error.name}: ${error.message}`,
-                            });
+                            axiosErrorToast(error);
                             reject(uid);
                         });
                 })
@@ -229,20 +229,21 @@ export default function RoleConfigurationPopover({
     };
     return (
         <Dialog
+            className={darkMode ? Classes.DARK : null}
             onClose={onClose}
-            title="Role configuration"
+            title="Role Configuration"
             isOpen={isRoleConfigOpen}
         >
             <DialogBody>
                 <p>Select a new role</p>
-                {["admin", "member", "developer", "demo", "guest"].map(
+                {["admin", "developer", "member", "demo", "guest"].map(
                     (role) => (
                         <div style={{ display: "flex" }} key={role}>
                             <Radio
                                 onChange={handleRadioChange}
                                 value={role}
                                 style={{ marginTop: 10 }}
-                                large
+                                size="large"
                                 checked={_.isEqual(role, selectedRole)}
                             />
                             <Section
@@ -260,8 +261,6 @@ export default function RoleConfigurationPopover({
                                         null
                                     ),
                                 })}
-                                collapsible
-                                collapseProps={{ defaultIsOpen: false }}
                             >
                                 <SectionCard
                                     className="role-configuration-permission-list"
@@ -317,14 +316,14 @@ export default function RoleConfigurationPopover({
                     disabled={_.isEmpty(selectedRole)}
                     loading={loading}
                     text="Assign"
-                    large
+                    size="large"
                     onClick={handleUpdateUserRole}
                     intent={Intent.SUCCESS}
                     icon={faIcon({ icon: faCheck })}
                 />
                 {saved && _.size(updated) < _.size(selectedUsers) ? (
                     <Tag
-                        large
+                        size="large"
                         style={{ position: "absolute", right: 15, top: 15 }}
                         minimal
                         intent={Intent.DANGER}

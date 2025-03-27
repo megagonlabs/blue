@@ -2,18 +2,19 @@ import EntityDescription from "@/components/entity/EntityDescription";
 import EntityMain from "@/components/entity/EntityMain";
 import EntityProperties from "@/components/entity/EntityProperties";
 import {
+    axiosErrorToast,
     constructSavePropertyRequests,
     settlePromises,
     shallowDiff,
 } from "@/components/helper";
-import { AppToaster } from "@/components/toaster";
-import { Intent } from "@blueprintjs/core";
 import axios from "axios";
 import _ from "lodash";
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
+import { AppContext } from "../contexts/app-context";
 export default function OutputEntity() {
     const router = useRouter();
+    const { appState } = useContext(AppContext);
     const [entity, setEntity] = useState({});
     const [scope, setScope] = useState(null);
     const [editEntity, setEditEntity] = useState({});
@@ -30,7 +31,7 @@ export default function OutputEntity() {
             setEditEntity(_.get(response, "data.result", {}));
             setLoading(false);
         });
-    }, [router]);
+    }, [router, routerQueryPath]);
     const updateEntity = ({ path, value }) => {
         let newEntity = _.cloneDeep(editEntity);
         _.set(newEntity, path, value);
@@ -39,46 +40,32 @@ export default function OutputEntity() {
     const saveEntity = () => {
         setLoading(true);
         const parent = _.last(_.split(scope, "/"));
-        const urlPrefix = `/registry/${process.env.NEXT_PUBLIC_AGENT_REGISTRY_NAME}/agent/${parent}/output`;
-        let tasks = [
-            new Promise((resolve, reject) => {
-                axios
-                    .put(`${urlPrefix}/${entity.name}`, {
-                        name: entity.name,
-                        description: editEntity.description,
-                    })
-                    .then(() => {
-                        resolve(true);
-                    })
-                    .catch((error) => {
-                        AppToaster.show({
-                            intent: Intent.DANGER,
-                            message: `${error.name}: ${error.message}`,
-                        });
-                        reject(false);
-                    });
-            }),
-        ];
-        const difference = shallowDiff(
-            entity.properties,
-            editEntity.properties
-        );
-        tasks.concat(
-            constructSavePropertyRequests({
-                axios,
-                url: `${urlPrefix}/${entity.name}/property`,
-                difference,
-                entity,
-                properties: editEntity.properties,
+        const urlPrefix = `/registry/${appState.agent.registryName}/agent/${parent}/output`;
+        axios
+            .put(`${urlPrefix}/${entity.name}`, {
+                name: entity.name,
+                description: editEntity.description,
             })
-        );
-        settlePromises(tasks, (error) => {
-            if (!error) {
-                setEdit(false);
-                setEntity(editEntity);
-            }
-            setLoading(false);
-        });
+            .then(() => {
+                let tasks = constructSavePropertyRequests({
+                    axios,
+                    url: `${urlPrefix}/${entity.name}/property`,
+                    difference: shallowDiff(
+                        entity.properties,
+                        editEntity.properties
+                    ),
+                    entity,
+                    properties: editEntity.properties,
+                });
+                settlePromises(tasks, ({ error }) => {
+                    if (!error) {
+                        setEdit(false);
+                        setEntity(editEntity);
+                    }
+                    setLoading(false);
+                });
+            })
+            .catch((error) => axiosErrorToast(error));
     };
     return (
         <div style={{ padding: "10px 20px 20px" }}>

@@ -1,7 +1,9 @@
+import { faIcon } from "@/components/icon";
 import {
     Button,
     ButtonGroup,
     Card,
+    Classes,
     Dialog,
     DialogBody,
     Tooltip,
@@ -16,7 +18,7 @@ import dagre from "dagre";
 import _ from "lodash";
 import { useContext, useState } from "react";
 import { AppContext } from "../contexts/app-context";
-import { faIcon } from "../icon";
+import { AuthContext } from "../contexts/auth-context";
 import AgentNode from "./visualization/AgentNode";
 import TransitionEdgeNode from "./visualization/TransitionEdgeNode";
 const getNodeDimension = (node) => {
@@ -75,6 +77,8 @@ const TRANSITION_OPTION = { duration: 300 };
 export default function PlanVisualizationPanel() {
     const { fitView } = useReactFlow();
     const { appState, appActions } = useContext(AppContext);
+    const { settings } = useContext(AuthContext);
+    const darkMode = _.get(settings, "dark_mode", false);
     const initialNodes = _.get(appState, "session.visualization.nodes", []);
     const initialEdges = _.get(appState, "session.visualization.edges", []);
     const [loading, setLoading] = useState(false);
@@ -86,6 +90,7 @@ export default function PlanVisualizationPanel() {
     };
     return (
         <Dialog
+            className={darkMode ? Classes.DARK : null}
             onOpening={() => {
                 setLoading(true);
             }}
@@ -107,8 +112,8 @@ export default function PlanVisualizationPanel() {
             isOpen={!_.isEmpty(initialNodes)}
             style={{ width: "100%", maxWidth: 795, height: "70vh" }}
         >
-            <DialogBody className="dialog-body">
-                <div style={{ height: "100%", width: "100%", padding: 15 }}>
+            <DialogBody>
+                <div style={{ height: "100%", width: "100%" }}>
                     <ReactFlow
                         nodeTypes={nodeTypes}
                         nodesDraggable={false}
@@ -129,7 +134,7 @@ export default function PlanVisualizationPanel() {
                                 })
                             ) : (
                                 <Card style={{ padding: 5 }}>
-                                    <ButtonGroup vertical minimal>
+                                    <ButtonGroup vertical variant="minimal">
                                         <Tooltip
                                             content="Fit view"
                                             minimal

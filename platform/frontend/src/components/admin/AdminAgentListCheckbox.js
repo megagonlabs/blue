@@ -17,7 +17,7 @@ export default function AdminAgentListCheckbox({ data, rowIndex }) {
         <Checkbox
             onChange={onChange}
             checked={selectedAgents.has(agent)}
-            large
+            size="large"
             className="margin-0"
         />
     );

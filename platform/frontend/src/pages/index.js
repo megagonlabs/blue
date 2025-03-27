@@ -1,7 +1,6 @@
 import { ENTITY_ICON_40 } from "@/components/constant";
 import { AppContext } from "@/components/contexts/app-context";
 import { AuthContext } from "@/components/contexts/auth-context";
-import { SocketContext } from "@/components/contexts/socket-context";
 import EntityIcon from "@/components/entity/EntityIcon";
 import { useSocket } from "@/components/hooks/useSocket";
 import { faIcon } from "@/components/icon";
@@ -14,25 +13,27 @@ import {
     Colors,
     H1,
     Intent,
+    Tooltip,
 } from "@blueprintjs/core";
 import {
     faHourglassStart,
+    faPen,
     faPlus,
-    faSatelliteDish,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import axios from "axios";
 import _ from "lodash";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useContext, useEffect, useState } from "react";
+const ROW_ACTION_STYLE = { position: "absolute", right: 15 };
 export default function LaunchScreen() {
     const { user, permissions } = useContext(AuthContext);
     const { appState, appActions } = useContext(AppContext);
+    const agentRegistryName = appState.agent.registryName;
     const router = useRouter();
     const name = _.get(user, "name", null);
     const [agentGroups, setAgentGroups] = useState([]);
     const [loading, setLoading] = useState(true);
-    const { authenticating } = useContext(SocketContext);
     const LOADING_PLACEMENT = (
         <Card className={Classes.SKELETON} style={{ marginBottom: 20 }}>
             &nbsp;
@@ -41,9 +42,7 @@ export default function LaunchScreen() {
     useEffect(() => {
         setLoading(true);
         axios
-            .get(
-                `/registry/${process.env.NEXT_PUBLIC_AGENT_REGISTRY_NAME}/agent_groups`
-            )
+            .get(`/registry/${agentRegistryName}/agent_groups`)
             .then((response) => {
                 let results = _.get(response, "data.results", []);
                 for (let i = 0; i < _.size(results); i++) {
@@ -61,21 +60,20 @@ export default function LaunchScreen() {
             })
             .finally(() => setLoading(false));
     }, []);
-    const { socket, reconnectWs, isSocketOpen } = useSocket();
+    const { isSocketOpen } = useSocket();
     const [launchGroup, setLaunchGroup] = useState(null);
     const { creatingSession } = appState.session;
     const joinAgentGroupSession = (groupName) => {
-        if (!isSocketOpen || creatingSession) return;
+        if (!isSocketOpen || creatingSession || !router.isReady) return;
         setLaunchGroup(groupName);
         AppToaster.show({
             message: `Launching ${groupName}`,
             icon: faIcon({ icon: faHourglassStart }),
         });
-        appActions.session.createSession({ socket, groupName });
+        appActions.session.createSession({ groupName, router });
     };
     useEffect(() => {
         if (appState.session.joinAgentGroupSession) {
-            router.push("/sessions");
             appActions.session.setState({
                 key: "joinAgentGroupSession",
                 value: false,
@@ -109,25 +107,6 @@ export default function LaunchScreen() {
                 >
                     How can I help you today?
                 </H1>
-                {!isSocketOpen ? (
-                    <Button
-                        loading={
-                            (!_.isNil(socket) &&
-                                _.isEqual(
-                                    socket.readyState,
-                                    WebSocket.CONNECTING
-                                )) ||
-                            authenticating
-                        }
-                        style={{ marginBottom: 20 }}
-                        text="Connect"
-                        alignText="left"
-                        onClick={reconnectWs}
-                        large
-                        intent={Intent.PRIMARY}
-                        icon={faIcon({ icon: faSatelliteDish })}
-                    />
-                ) : null}
                 {loading ? (
                     <>
                         {LOADING_PLACEMENT}
@@ -149,17 +128,24 @@ export default function LaunchScreen() {
                                     padding: 15,
                                     whiteSpace: "pre-wrap",
                                     cursor: "pointer",
-                                    opacity: !isSocketOpen ? 0.54 : null,
+                                    opacity: !isSocketOpen ? 0.6 : null,
                                     pointerEvents:
                                         creatingSession || !isSocketOpen
                                             ? "none"
                                             : null,
                                 }}
+                                className="agent-group-row"
                                 onClick={() =>
                                     joinAgentGroupSession(agentGroup.name)
                                 }
                             >
-                                <Card style={{ ...ENTITY_ICON_40, opacity }}>
+                                <Card
+                                    style={{
+                                        ...ENTITY_ICON_40,
+                                        opacity,
+                                        backgroundColor: Colors.WHITE,
+                                    }}
+                                >
                                     <EntityIcon entity={agentGroup} />
                                 </Card>
                                 <div
@@ -170,18 +156,39 @@ export default function LaunchScreen() {
                                 >
                                     {_.get(agentGroup, "description", "-")}
                                 </div>
-                                {creatingSession &&
-                                _.isEqual(launchGroup, agentGroup.name) ? (
-                                    <Button
-                                        large
-                                        style={{
-                                            position: "absolute",
-                                            right: 15,
-                                        }}
+                                <div
+                                    className="agent-group-row-actions"
+                                    style={ROW_ACTION_STYLE}
+                                >
+                                    <Tooltip
+                                        content="Edit"
                                         minimal
-                                        loading={creatingSession}
-                                    />
-                                ) : null}
+                                        placement="left"
+                                    >
+                                        <Button
+                                            intent={Intent.PRIMARY}
+                                            icon={faIcon({ icon: faPen })}
+                                            onClick={(event) => {
+                                                event.stopPropagation();
+                                                router.push(
+                                                    `/registry/${agentRegistryName}/agent_group/${agentGroup.name}`
+                                                );
+                                            }}
+                                            size="large"
+                                            variant="minimal"
+                                            disabled={creatingSession}
+                                        />
+                                    </Tooltip>
+                                </div>
+                                {creatingSession &&
+                                    _.isEqual(launchGroup, agentGroup.name) && (
+                                        <Button
+                                            size="large"
+                                            style={ROW_ACTION_STYLE}
+                                            variant="minimal"
+                                            loading={creatingSession}
+                                        />
+                                    )}
                             </Card>
                         );
                     })
@@ -189,15 +196,15 @@ export default function LaunchScreen() {
                 {permissions.canWriteAgentRegistry ? (
                     <Link
                         className="no-link-decoration"
-                        href={`/registry/${process.env.NEXT_PUBLIC_AGENT_REGISTRY_NAME}/agent_group/new`}
+                        href={`/registry/${agentRegistryName}/agent_group/new`}
                     >
                         <Button
                             disabled={creatingSession}
                             className={loading ? Classes.SKELETON : null}
-                            minimal
-                            alignText={Alignment.LEFT}
+                            variant="minimal"
+                            alignText={Alignment.START}
                             fill
-                            large
+                            size="large"
                             icon={faIcon({ icon: faPlus })}
                             text="Add"
                         />

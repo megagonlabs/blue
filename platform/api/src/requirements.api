@@ -1,0 +1,10 @@
+docker==7.0.0
+requests==2.31.0
+fastapi==0.110.0
+pydantic==1.8.2
+uvicorn==0.25.0
+websocket_client==1.7.0
+websockets==11.0.3
+firebase-admin==6.5.0
+casbin==1.36.3
+schedule==1.2.2

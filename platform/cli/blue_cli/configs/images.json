@@ -1,0 +1,58 @@
+{
+    "platform": {
+        "api": {
+            "image": "blue-platform-api"
+        },
+        "frontend": {
+            "image": "blue-platform-frontend"
+        }
+
+    },
+    "agents": {
+        "nl2sql": {
+            "image": "blue-agent-nl2sql"
+        },
+        "visualizer": {
+            "image": "blue-agent-visualizer"
+        },
+        "intent_classifier": {
+            "image": "blue-agent-intent_classifier"
+        },
+        "presenter": {
+            "image": "blue-agent-presenter"
+        },
+        "requestor": {
+            "image": "blue-agent-requestor"
+        },
+        "documenter": {
+            "image": "blue-agent-documenter"
+        },
+        "observer": {
+            "image": "blue-agent-observer"
+        },
+        "summarizer": {
+            "image": "blue-agent-summarizer"
+        },
+        "openai": {
+            "image": "blue-agent-openai"
+        },
+        "recorder": {
+            "image": "blue-agent-recorder"
+        },
+        "coordinator": {
+            "image": "blue-agent-coordinator"
+        },
+        "query_executor": {
+            "image": "blue-agent-query_executor"
+        }
+    },
+    "services": {
+        "openai": {
+            "image": "blue-service-openai"
+        },
+        "requestor": {
+            "image": "blue-service-requestor"
+        }
+    }
+}
+

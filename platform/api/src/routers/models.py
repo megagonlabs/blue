@@ -6,18 +6,12 @@ from fastapi import Depends, Request
 import pydash
 from constant import BANNED_ENTITY_NAMES, PermissionDenied, account_id_header, acl_enforce
 
-###### Add lib path
-sys.path.append("./lib/")
-sys.path.append("./lib/model_registry/")
-sys.path.append("./lib/platform/")
-
 ###### Parsers, Formats, Utils
 import re
 import csv
 import json
 import time
 import logging
-from utils import json_utils
 
 
 ##### Typing
@@ -30,13 +24,13 @@ from fastapi.responses import JSONResponse
 
 
 ###### Schema
-class Model(BaseModel):
+class ModelSchema(BaseModel):
     name: str
     description: Union[str, None] = None
     icon: Union[str, dict, None] = None
 
 
-class Parameter(BaseModel):
+class ParameterSchema(BaseModel):
     name: str
     description: Union[str, None] = None
 
@@ -48,8 +42,8 @@ JSONStructure = Union[JSONArray, JSONObject, Any]
 
 
 ###### Blue
-from blueprint import Platform
-from model_registry import ModelRegistry
+from blue.platform import Platform
+from blue.model import ModelRegistry
 
 ###### Properties
 from settings import ACL, PROPERTIES
@@ -94,7 +88,6 @@ def model_acl_enforce(request: Request, source: dict, write=False, throw=True):
 def get_models(request: Request):
     acl_enforce(request.state.user['role'], 'model_registry', 'read_all')
     registry_results = model_registry.list_records()
-    registry_results = list(registry_results.values())
     return JSONResponse(content={"results": registry_results})
 
 
@@ -106,7 +99,7 @@ def get_model(request: Request, model_name):
 
 
 @router.post("/model/{model_name}")
-def add_model(request: Request, model_name, model: Model):
+def add_model(request: Request, model_name, model: ModelSchema):
     model_db = model_registry.get_model(model_name)
     if model_name in BANNED_ENTITY_NAMES:
         return JSONResponse(content={"message": "The name cannot be used."}, status_code=403)
@@ -122,7 +115,7 @@ def add_model(request: Request, model_name, model: Model):
 
 
 @router.put("/model/{model_name}")
-def update_model(request: Request, model_name, model: Model):
+def update_model(request: Request, model_name, model: ModelSchema):
     model_db = model_registry.get_model(model_name)
     model_acl_enforce(request, model_db, write=True)
     # TODO: properties
@@ -161,7 +154,7 @@ def get_model_property(request: Request, model_name, property_name):
 def set_model_property(request: Request, model_name, property_name, property: JSONStructure):
     model_db = model_registry.get_model(model_name)
     model_acl_enforce(request, model_db, write=True)
-    model_registry.set_model_property(model_name, property_name, property, rebuild=True)
+    model_registry.set_model_property(model_name, property_name, pydash.objects.get(property, [property_name], None), rebuild=True)
     # save
     model_registry.dump("/blue_data/config/" + model_registry_id + ".models.json")
     return JSONResponse(content={"message": "Success"})

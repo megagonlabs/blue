@@ -24,7 +24,7 @@ import {
     faTimes,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import _ from "lodash";
-import { useCallback, useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useMemo, useState } from "react";
 export default function Model() {
     const { appState, appActions } = useContext(AppContext);
     const { filter } = appState.model;
@@ -34,36 +34,37 @@ export default function Model() {
     const [keywords, setKeywords] = useState(filter.keywords);
     const [page, setPage] = useState(filter.page);
     const [pageSize, setPageSize] = useState(filter.page_size);
-    const modelRegistryName = process.env.NEXT_PUBLIC_MODEL_REGISTRY_NAME;
-    const debounceOnKeywordsChange = useCallback(
-        _.debounce(
-            ({
-                registryName,
-                hybrid,
-                approximate,
-                keywords,
-                type,
-                page,
-                pageSize,
-            }) => {
-                appActions.model.setState({ key: "loading", value: true });
-                if (_.isEmpty(keywords)) {
-                    appActions.model.getList(modelRegistryName);
-                } else {
-                    appActions.model.searchList({
-                        registryName: registryName,
-                        hybrid: hybrid,
-                        approximate: approximate,
-                        keywords: keywords,
-                        type: type,
-                        page: page,
-                        pageSize: pageSize,
-                    });
-                }
-            },
-            300
-        ),
-        []
+    const modelRegistryName = appState.model.registryName;
+    const debounceOnKeywordsChange = useMemo(
+        () =>
+            _.debounce(
+                ({
+                    registryName,
+                    hybrid,
+                    approximate,
+                    keywords,
+                    type,
+                    page,
+                    pageSize,
+                }) => {
+                    appActions.model.setState({ key: "loading", value: true });
+                    if (_.isEmpty(keywords)) {
+                        appActions.model.getList(modelRegistryName);
+                    } else {
+                        appActions.model.searchList({
+                            registryName: registryName,
+                            hybrid: hybrid,
+                            approximate: approximate,
+                            keywords: keywords,
+                            type: type,
+                            page: page,
+                            pageSize: pageSize,
+                        });
+                    }
+                },
+                300
+            ),
+        [] // eslint-disable-line react-hooks/exhaustive-deps
     );
     useEffect(() => {
         debounceOnKeywordsChange({
@@ -110,7 +111,7 @@ export default function Model() {
                             className={
                                 appState.model.loading ? Classes.SKELETON : null
                             }
-                            large
+                            size="large"
                             fill
                             value={keywords}
                             leftIcon={faIcon({ icon: faSearch })}
@@ -121,7 +122,7 @@ export default function Model() {
                                 !_.isEmpty(keywords) ||
                                 appState.model.search ? (
                                     <Button
-                                        minimal
+                                        variant="minimal"
                                         onClick={() => {
                                             setKeywords("");
                                             setPage(0);
@@ -158,7 +159,7 @@ export default function Model() {
                             content={
                                 <div
                                     style={{
-                                        padding: "20px 20px 10px",
+                                        padding: "15px 15px 5px",
                                         maxWidth: 500,
                                     }}
                                 >
@@ -169,7 +170,7 @@ export default function Model() {
                                                 : null
                                         }
                                         inline
-                                        large
+                                        size="large"
                                         checked={hybrid}
                                         label="Hybrid"
                                         onChange={(event) => {
@@ -186,7 +187,7 @@ export default function Model() {
                                                 : null
                                         }
                                         inline
-                                        large
+                                        size="large"
                                         checked={approximate}
                                         label="Approximate"
                                         onChange={(event) => {
@@ -210,21 +211,19 @@ export default function Model() {
                                         {[
                                             { value: "", text: "All" },
                                             { value: "model", text: "Model" },
-                                        ].map(({ value, text }, index) => {
-                                            return (
-                                                <Radio
-                                                    key={index}
-                                                    className={
-                                                        appState.model.loading
-                                                            ? Classes.SKELETON
-                                                            : null
-                                                    }
-                                                    large
-                                                    value={value}
-                                                    label={text}
-                                                />
-                                            );
-                                        })}
+                                        ].map(({ value, text }, index) => (
+                                            <Radio
+                                                key={index}
+                                                className={
+                                                    appState.model.loading
+                                                        ? Classes.SKELETON
+                                                        : null
+                                                }
+                                                size="large"
+                                                value={value}
+                                                label={text}
+                                            />
+                                        ))}
                                     </RadioGroup>
                                 </div>
                             }
@@ -235,10 +234,11 @@ export default function Model() {
                                         ? Classes.SKELETON
                                         : null
                                 }
-                                large
-                                outlined
+                                size="large"
+                                variant="outlined"
+                                intent={Intent.PRIMARY}
                                 text="Filter"
-                                rightIcon={faIcon({ icon: faBarsFilter })}
+                                endIcon={faIcon({ icon: faBarsFilter })}
                             />
                         </Popover>
                     </ControlGroup>

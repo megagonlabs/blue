@@ -93,14 +93,14 @@ export default function Index() {
                         intent: Intent.DANGER,
                         message: data.error,
                     });
-                } else if (_.isEqual(data, "done")) {
+                } else if (_.isEqual(data, "DONE")) {
                     setDone(true);
                     socket.close();
                 }
             } catch (e) {
                 AppToaster.show({
                     intent: Intent.WARNING,
-                    message: event.data,
+                    message: e,
                 });
                 console.log(event.data);
                 console.error(e);
@@ -130,11 +130,9 @@ export default function Index() {
                             { id_token: idToken }
                         )
                         .then((response) => {
-                            ws.send(
-                                JSON.stringify(
-                                    _.get(response, "data.cookie", null)
-                                )
-                            );
+                            const cookie = _.get(response, "data.cookie", null),
+                                uid = _.get(response, "data.uid", null);
+                            ws.send(JSON.stringify({ cookie, uid }));
                             setPopupOpen(false);
                         })
                         .catch(() => {
@@ -191,8 +189,8 @@ export default function Index() {
                         <Button
                             loading={popupOpen}
                             disabled={_.isNil(ws)}
-                            large
-                            outlined
+                            size="large"
+                            variant="outlined"
                             className={loading ? Classes.SKELETON : null}
                             text="Sign in with Google"
                             onClick={signInWithGoogle}

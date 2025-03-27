@@ -165,7 +165,7 @@ export default function NumberInput({
             onValueChange={handleValueChange}
             value={_.isNumber(data) || _.isString(data) ? data : ""}
             buttonPosition="none"
-            large
+            size="large"
             fill
         />
     );

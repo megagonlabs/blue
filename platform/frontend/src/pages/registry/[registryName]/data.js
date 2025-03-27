@@ -24,7 +24,7 @@ import {
     faTimes,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import _ from "lodash";
-import { useCallback, useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useMemo, useState } from "react";
 export default function Data() {
     const { appState, appActions } = useContext(AppContext);
     const { filter } = appState.data;
@@ -34,36 +34,37 @@ export default function Data() {
     const [keywords, setKeywords] = useState(filter.keywords);
     const [page, setPage] = useState(filter.page);
     const [pageSize, setPageSize] = useState(filter.page_size);
-    const dataRegistryName = process.env.NEXT_PUBLIC_DATA_REGISTRY_NAME;
-    const debounceOnKeywordsChange = useCallback(
-        _.debounce(
-            ({
-                registryName,
-                hybrid,
-                approximate,
-                keywords,
-                type,
-                page,
-                pageSize,
-            }) => {
-                appActions.data.setState({ key: "loading", value: true });
-                if (_.isEmpty(keywords)) {
-                    appActions.data.getList(dataRegistryName);
-                } else {
-                    appActions.data.searchList({
-                        registryName: registryName,
-                        hybrid: hybrid,
-                        approximate: approximate,
-                        keywords: keywords,
-                        type: type,
-                        page: page,
-                        pageSize: pageSize,
-                    });
-                }
-            },
-            300
-        ),
-        []
+    const dataRegistryName = appState.data.registryName;
+    const debounceOnKeywordsChange = useMemo(
+        () =>
+            _.debounce(
+                ({
+                    registryName,
+                    hybrid,
+                    approximate,
+                    keywords,
+                    type,
+                    page,
+                    pageSize,
+                }) => {
+                    appActions.data.setState({ key: "loading", value: true });
+                    if (_.isEmpty(keywords)) {
+                        appActions.data.getList(dataRegistryName);
+                    } else {
+                        appActions.data.searchList({
+                            registryName: registryName,
+                            hybrid: hybrid,
+                            approximate: approximate,
+                            keywords: keywords,
+                            type: type,
+                            page: page,
+                            pageSize: pageSize,
+                        });
+                    }
+                },
+                300
+            ),
+        [] // eslint-disable-line react-hooks/exhaustive-deps
     );
     useEffect(() => {
         debounceOnKeywordsChange({
@@ -107,7 +108,7 @@ export default function Data() {
                         <InputGroup
                             id="data-registry-search-input"
                             placeholder="Search data"
-                            large
+                            size="large"
                             fill
                             className={
                                 appState.data.loading ? Classes.SKELETON : null
@@ -120,7 +121,7 @@ export default function Data() {
                             rightElement={
                                 !_.isEmpty(keywords) || appState.data.search ? (
                                     <Button
-                                        minimal
+                                        variant="minimal"
                                         onClick={() => {
                                             setKeywords("");
                                             setPage(0);
@@ -157,7 +158,7 @@ export default function Data() {
                             content={
                                 <div
                                     style={{
-                                        padding: "20px 20px 10px",
+                                        padding: "15px 15px 5px",
                                         maxWidth: 500,
                                     }}
                                 >
@@ -168,7 +169,7 @@ export default function Data() {
                                                 : null
                                         }
                                         inline
-                                        large
+                                        size="large"
                                         checked={hybrid}
                                         label="Hybrid"
                                         onChange={(event) => {
@@ -185,7 +186,7 @@ export default function Data() {
                                                 : null
                                         }
                                         inline
-                                        large
+                                        size="large"
                                         checked={approximate}
                                         label="Approximate"
                                         onChange={(event) => {
@@ -225,21 +226,19 @@ export default function Data() {
                                                 value: "relation",
                                                 text: "Relation",
                                             },
-                                        ].map(({ value, text }, index) => {
-                                            return (
-                                                <Radio
-                                                    key={index}
-                                                    className={
-                                                        appState.data.loading
-                                                            ? Classes.SKELETON
-                                                            : null
-                                                    }
-                                                    large
-                                                    value={value}
-                                                    label={text}
-                                                />
-                                            );
-                                        })}
+                                        ].map(({ value, text }, index) => (
+                                            <Radio
+                                                key={index}
+                                                className={
+                                                    appState.data.loading
+                                                        ? Classes.SKELETON
+                                                        : null
+                                                }
+                                                size="large"
+                                                value={value}
+                                                label={text}
+                                            />
+                                        ))}
                                     </RadioGroup>
                                 </div>
                             }
@@ -250,10 +249,11 @@ export default function Data() {
                                         ? Classes.SKELETON
                                         : null
                                 }
-                                large
-                                outlined
+                                size="large"
+                                variant="outlined"
+                                intent={Intent.PRIMARY}
                                 text="Filter"
-                                rightIcon={faIcon({ icon: faBarsFilter })}
+                                endIcon={faIcon({ icon: faBarsFilter })}
                             />
                         </Popover>
                     </ControlGroup>

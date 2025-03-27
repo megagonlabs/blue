@@ -24,7 +24,7 @@ import {
     faTimes,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import _ from "lodash";
-import { useCallback, useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useMemo, useState } from "react";
 export default function Agent() {
     const { appState, appActions } = useContext(AppContext);
     const { filter } = appState.agent;
@@ -34,36 +34,37 @@ export default function Agent() {
     const [keywords, setKeywords] = useState(filter.keywords);
     const [page, setPage] = useState(filter.page);
     const [pageSize, setPageSize] = useState(filter.page_size);
-    const agentRegistryName = process.env.NEXT_PUBLIC_AGENT_REGISTRY_NAME;
-    const debounceOnKeywordsChange = useCallback(
-        _.debounce(
-            ({
-                registryName,
-                hybrid,
-                approximate,
-                keywords,
-                type,
-                page,
-                pageSize,
-            }) => {
-                appActions.agent.setState({ key: "loading", value: true });
-                if (_.isEmpty(keywords)) {
-                    appActions.agent.getList(agentRegistryName);
-                } else {
-                    appActions.agent.searchList({
-                        registryName: registryName,
-                        hybrid: hybrid,
-                        approximate: approximate,
-                        keywords: keywords,
-                        type: type,
-                        page: page,
-                        pageSize: pageSize,
-                    });
-                }
-            },
-            300
-        ),
-        []
+    const agentRegistryName = appState.agent.registryName;
+    const debounceOnKeywordsChange = useMemo(
+        () =>
+            _.debounce(
+                ({
+                    registryName,
+                    hybrid,
+                    approximate,
+                    keywords,
+                    type,
+                    page,
+                    pageSize,
+                }) => {
+                    appActions.agent.setState({ key: "loading", value: true });
+                    if (_.isEmpty(keywords)) {
+                        appActions.agent.getList(agentRegistryName);
+                    } else {
+                        appActions.agent.searchList({
+                            registryName: registryName,
+                            hybrid: hybrid,
+                            approximate: approximate,
+                            keywords: keywords,
+                            type: type,
+                            page: page,
+                            pageSize: pageSize,
+                        });
+                    }
+                },
+                300
+            ),
+        [] // eslint-disable-line react-hooks/exhaustive-deps
     );
     useEffect(() => {
         debounceOnKeywordsChange({
@@ -110,7 +111,7 @@ export default function Agent() {
                             className={
                                 appState.agent.loading ? Classes.SKELETON : null
                             }
-                            large
+                            size="large"
                             fill
                             value={keywords}
                             leftIcon={faIcon({ icon: faSearch })}
@@ -121,7 +122,7 @@ export default function Agent() {
                                 !_.isEmpty(keywords) ||
                                 appState.agent.search ? (
                                     <Button
-                                        minimal
+                                        variant="minimal"
                                         onClick={() => {
                                             setKeywords("");
                                             setPage(0);
@@ -158,7 +159,7 @@ export default function Agent() {
                             content={
                                 <div
                                     style={{
-                                        padding: "20px 20px 10px",
+                                        padding: "15px 15px 5px",
                                         maxWidth: 500,
                                     }}
                                 >
@@ -169,7 +170,7 @@ export default function Agent() {
                                                 : null
                                         }
                                         inline
-                                        large
+                                        size="large"
                                         checked={hybrid}
                                         label="Hybrid"
                                         onChange={(event) => {
@@ -186,7 +187,7 @@ export default function Agent() {
                                                 : null
                                         }
                                         inline
-                                        large
+                                        size="large"
                                         checked={approximate}
                                         label="Approximate"
                                         onChange={(event) => {
@@ -212,21 +213,19 @@ export default function Agent() {
                                             { value: "agent", text: "Agent" },
                                             { value: "input", text: "Input" },
                                             { value: "output", text: "Output" },
-                                        ].map(({ value, text }, index) => {
-                                            return (
-                                                <Radio
-                                                    key={index}
-                                                    className={
-                                                        appState.agent.loading
-                                                            ? Classes.SKELETON
-                                                            : null
-                                                    }
-                                                    large
-                                                    value={value}
-                                                    label={text}
-                                                />
-                                            );
-                                        })}
+                                        ].map(({ value, text }, index) => (
+                                            <Radio
+                                                key={index}
+                                                className={
+                                                    appState.agent.loading
+                                                        ? Classes.SKELETON
+                                                        : null
+                                                }
+                                                size="large"
+                                                value={value}
+                                                label={text}
+                                            />
+                                        ))}
                                     </RadioGroup>
                                 </div>
                             }
@@ -237,10 +236,11 @@ export default function Agent() {
                                         ? Classes.SKELETON
                                         : null
                                 }
-                                large
-                                outlined
+                                size="large"
+                                variant="outlined"
+                                intent={Intent.PRIMARY}
                                 text="Filter"
-                                rightIcon={faIcon({ icon: faBarsFilter })}
+                                endIcon={faIcon({ icon: faBarsFilter })}
                             />
                         </Popover>
                     </ControlGroup>

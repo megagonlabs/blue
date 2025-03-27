@@ -1,0 +1,20 @@
+{
+    "PORT_SRC": { 
+        "default": null,
+        "prompt": "Source Port Mapping",
+        "required": true,
+        "cast": "int"
+    },
+    "PORT_DST": { 
+        "default": null,
+        "prompt": "Destination Port Mapping",
+        "required": true,
+        "cast": "int"
+    },
+    "IMAGE": {
+        "default": null,
+        "prompt": "Service Docker Image",
+        "required": true,
+        "cast": "str"
+    }
+}

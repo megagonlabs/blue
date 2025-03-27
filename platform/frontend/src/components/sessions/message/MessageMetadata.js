@@ -53,11 +53,16 @@ function MessageMetadata({ message }) {
             </div>
             {debugMode ? (
                 <div
-                    style={{ marginBottom: 10, lineHeight: "15px" }}
+                    style={{
+                        marginBottom: 10,
+                        lineHeight: "15px",
+                        textAlign: "left",
+                    }}
                     className={classNames(
                         Classes.TEXT_DISABLED,
                         Classes.TEXT_SMALL,
-                        Classes.TEXT_OVERFLOW_ELLIPSIS
+                        Classes.TEXT_OVERFLOW_ELLIPSIS,
+                        "reverse-ellipsis"
                     )}
                 >
                     {message.stream}

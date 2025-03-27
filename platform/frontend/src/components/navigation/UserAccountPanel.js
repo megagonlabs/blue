@@ -46,7 +46,7 @@ export default function UserAccountPanel() {
                         {_.get(user, "email_domain", "-")}
                     </div>
                     <div style={{ marginTop: 5 }}>
-                        <Tag minimal>
+                        <Tag minimal intent={Intent.PRIMARY}>
                             {_.get(
                                 USER_ROLES_LOOKUP,
                                 [userRole, "text"],
@@ -82,8 +82,8 @@ export default function UserAccountPanel() {
                                 icon: faArrowRightFromBracket,
                             })}
                             text="Sign out"
-                            outlined
-                            large
+                            variant="outlined"
+                            size="large"
                         />
                     </div>
                 </div>

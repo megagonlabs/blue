@@ -6,18 +6,12 @@ from fastapi import Depends, Request
 import pydash
 from constant import BANNED_ENTITY_NAMES, PermissionDenied, account_id_header, acl_enforce
 
-###### Add lib path
-sys.path.append("./lib/")
-sys.path.append("./lib/data_registry/")
-sys.path.append("./lib/platform/")
-
 ###### Parsers, Formats, Utils
 import re
 import csv
 import json
 import time
 import logging
-from utils import json_utils
 
 
 ##### Typing
@@ -30,7 +24,7 @@ from fastapi.responses import JSONResponse
 
 
 ###### Schema
-class Data(BaseModel):
+class DataSchema(BaseModel):
     name: str
     description: Union[str, None] = None
     icon: Union[str, dict, None] = None
@@ -43,8 +37,8 @@ JSONStructure = Union[JSONArray, JSONObject, Any]
 
 
 ###### Blue
-from blueprint import Platform
-from data_registry import DataRegistry
+from blue.platform import Platform
+from blue.data.registry import DataRegistry
 
 ###### Properties
 from settings import ACL, PROPERTIES
@@ -89,7 +83,7 @@ def source_acl_enforce(request: Request, source: dict, write=False, throw=True):
 def get_data(request: Request):
     acl_enforce(request.state.user['role'], 'data_registry', 'read_all')
     results = data_registry.list_records()
-    return JSONResponse(content={"results": list(results.values())})
+    return JSONResponse(content={"results": results})
 
 
 @router.get("/search")
@@ -107,7 +101,7 @@ def get_data_source(request: Request, source_name):
 
 
 @router.post("/{source_name}")
-def add_source(request: Request, source_name, data: Data):
+def add_source(request: Request, source_name, data: DataSchema):
     source_db = data_registry.get_source(source_name)
     if source_name in BANNED_ENTITY_NAMES:
         return JSONResponse(content={"message": "The name cannot be used."}, status_code=403)
@@ -123,7 +117,7 @@ def add_source(request: Request, source_name, data: Data):
 
 
 @router.put("/{source_name}")
-def update_source(request: Request, source_name, data: Data, sync: bool = False, recursive: bool = False):
+def update_source(request: Request, source_name, data: DataSchema, sync: bool = False, recursive: bool = False):
     source = data_registry.get_source(source_name)
     source_acl_enforce(request, source, write=True)
     # TODO: properties
@@ -164,7 +158,7 @@ def get_source_property(request: Request, source_name, property_name):
 def set_source_property(request: Request, source_name, property_name, property: JSONStructure):
     source_db = data_registry.get_source(source_name)
     source_acl_enforce(request, source_db, write=True)
-    data_registry.set_source_property(source_name, property_name, property, rebuild=True)
+    data_registry.set_source_property(source_name, property_name, pydash.objects.get(property, [property_name], None), rebuild=True)
     # save
     data_registry.dump("/blue_data/config/" + data_registry_id + ".data.json")
     return JSONResponse(content={"message": "Success"})
@@ -195,7 +189,7 @@ def get_data_source_database(request: Request, source_name, database_name):
 
 
 @router.post("/{source_name}/database/{database_name}")
-def add_data_source_database(request: Request, source_name, database_name, data: Data):
+def add_data_source_database(request: Request, source_name, database_name, data: DataSchema):
     source = data_registry.get_source(source_name)
     source_acl_enforce(request, source, write=True)
     # TODO: properties
@@ -206,7 +200,7 @@ def add_data_source_database(request: Request, source_name, database_name, data:
 
 
 @router.put("/{source_name}/database/{database_name}")
-def update_source_database(request: Request, source_name, database_name, data: Data, sync: bool = False, recursive: bool = False):
+def update_source_database(request: Request, source_name, database_name, data: DataSchema, sync: bool = False, recursive: bool = False):
     source = data_registry.get_source(source_name)
     source_acl_enforce(request, source, write=True)
     # TODO: properties
@@ -243,7 +237,7 @@ def get_data_source_database_collection(request: Request, source_name, database_
 
 
 @router.post("/{source_name}/database/{database_name}/collection/{collection_name}")
-def add_data_source_database_collection(request: Request, source_name, database_name, collection_name, data: Data):
+def add_data_source_database_collection(request: Request, source_name, database_name, collection_name, data: DataSchema):
     source = data_registry.get_source(source_name)
     source_acl_enforce(request, source, write=True)
     # TODO: properties
@@ -254,7 +248,7 @@ def add_data_source_database_collection(request: Request, source_name, database_
 
 
 @router.put("/{source_name}/database/{database_name}/collection/{collection_name}")
-def update_source_database_collection(request: Request, source_name, database_name, collection_name, data: Data, sync: bool = False, recursive: bool = False):
+def update_source_database_collection(request: Request, source_name, database_name, collection_name, data: DataSchema, sync: bool = False, recursive: bool = False):
     source = data_registry.get_source(source_name)
     source_acl_enforce(request, source, write=True)
     # TODO: properties
@@ -274,6 +268,20 @@ def delete_source_database_collection(request: Request, source_name, database_na
     # save
     data_registry.dump("/blue_data/config/" + data_registry_id + ".data.json")
     return JSONResponse(content={"message": "Success"})
+
+
+@router.get("/{source_name}/database/{database_name}/collection/{collection_name}/entity/{entity_name}")
+def get_data_source_database_collection_entity(request: Request, source_name, database_name, collection_name, entity_name):
+    acl_enforce(request.state.user['role'], 'data_registry', 'read_all')
+    result = data_registry.get_source_database_collection_entity(source_name, database_name, collection_name, entity_name)
+    return JSONResponse(content={"result": result})
+
+
+@router.get("/{source_name}/database/{database_name}/collection/{collection_name}/relation/{relation_name}")
+def get_data_source_database_collection_relation(request: Request, source_name, database_name, collection_name, relation_name):
+    acl_enforce(request.state.user['role'], 'data_registry', 'read_all')
+    result = data_registry.get_source_database_collection_relation(source_name, database_name, collection_name, relation_name)
+    return JSONResponse(content={"result": result})
 
 
 ### sync entities

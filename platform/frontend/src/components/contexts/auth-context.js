@@ -1,6 +1,6 @@
 // Import the functions you need from the SDKs you need
-import { AppToaster } from "@/components/toaster";
 import {
+    Alert,
     Button,
     Drawer,
     DrawerSize,
@@ -13,8 +13,15 @@ import axios from "axios";
 import { initializeApp } from "firebase/app";
 import { GoogleAuthProvider, getAuth, signInWithPopup } from "firebase/auth";
 import _ from "lodash";
-import { createContext, useContext, useEffect, useState } from "react";
-import { hasIntersection } from "../helper";
+import {
+    createContext,
+    useCallback,
+    useContext,
+    useEffect,
+    useState,
+} from "react";
+import { axiosErrorToast, hasIntersection } from "../helper";
+import { AppToaster } from "../toaster";
 import { AppContext } from "./app-context";
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
@@ -160,7 +167,7 @@ export const AuthProvider = ({ children }) => {
             ),
         };
     };
-    const fetchAccountProfile = () => {
+    const fetchAccountProfile = useCallback(() => {
         axios
             .get("/accounts/profile")
             .then((response) => {
@@ -185,10 +192,9 @@ export const AuthProvider = ({ children }) => {
                         );
                     }
                 }
-                setSettings(profileSettings);
-                appActions.session.setState({
-                    key: "sessionListPanelCollapsed",
-                    value: !_.get(profileSettings, "show_session_list", false),
+                setSettings({
+                    ...profileSettings,
+                    debug_mode: _.get(profileSettings, "debug_mode", false),
                 });
                 appActions.session.setState({
                     key: "showWorkspacePanel",
@@ -196,10 +202,15 @@ export const AuthProvider = ({ children }) => {
                 });
             })
             .finally(() => setAuthInitialized(true));
-    };
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
     const updateSettings = (key, value) => {
         setSettings({ ...settings, [key]: value });
-        axios.post(`/accounts/profile/settings/${key}`, { value: value });
+        axios.put(`/accounts/profile/settings/${key}`, { value }).then(() => {
+            AppToaster.show({
+                message: "Settings saved successfully",
+                intent: Intent.SUCCESS,
+            });
+        });
     };
     const signInWithGoogle = () => {
         setPopupOpen(true);
@@ -214,48 +225,38 @@ export const AuthProvider = ({ children }) => {
                         })
                         .catch((error) => {
                             setPopupOpen(false);
-                            AppToaster.show({
-                                intent: Intent.DANGER,
-                                message: (
-                                    <>
-                                        <div>
-                                            {_.get(
-                                                error,
-                                                "response.data.message"
-                                            )}
-                                        </div>
-                                        <div>
-                                            {error.name}: {error.message}
-                                        </div>
-                                    </>
-                                ),
-                            });
+                            axiosErrorToast(error);
                         });
                 });
             })
             .catch((error) => {
                 setPopupOpen(false);
-                AppToaster.show({
-                    intent: Intent.DANGER,
-                    message: `${error.code ? `[${error.code}]` : ""} ${
-                        error.message
-                    }`,
-                });
+                axiosErrorToast(error);
             });
     };
     useEffect(() => {
         fetchAccountProfile();
-    }, []);
+    }, [fetchAccountProfile]);
     return (
         <AuthContext.Provider
             value={{ user, permissions, settings, updateSettings, signOut }}
         >
+            <Alert
+                intent={Intent.DANGER}
+                isOpen={
+                    !_.isEmpty(user) && _.isEmpty(_.get(user, "role", null))
+                }
+                confirmButtonText="Sign out"
+                onConfirm={signOut}
+            >
+                An error has occured; please re-authenticate your account.
+            </Alert>
             <Drawer
                 size={DrawerSize.SMALL}
                 portalClassName="z-index-36"
                 position="bottom"
                 backdropClassName="glassmorphism-5"
-                isOpen={_.isNil(user) && authInitialized}
+                isOpen={_.isEmpty(user) && authInitialized}
             >
                 <div style={{ margin: "auto" }}>
                     <H1>Blue</H1>
@@ -263,9 +264,9 @@ export const AuthProvider = ({ children }) => {
                     <div>Sign in to your account to continue.</div>
                     <Button
                         loading={!authInitialized || popupOpen}
-                        large
+                        size="large"
                         style={{ marginTop: 20 }}
-                        outlined
+                        variant="outlined"
                         onClick={signInWithGoogle}
                         text="Sign in with Google"
                         icon={GOOGLE_LOGO_SVG}
@@ -275,7 +276,7 @@ export const AuthProvider = ({ children }) => {
             <div style={{ display: authInitialized ? null : "none" }}>
                 {children}
             </div>
-            {!authInitialized ? (
+            {!authInitialized && (
                 <div style={{ height: "100vh", width: "100vw" }}>
                     <div
                         style={{
@@ -290,7 +291,7 @@ export const AuthProvider = ({ children }) => {
                         <div style={{ marginTop: 5 }}>Initializing...</div>
                     </div>
                 </div>
-            ) : null}
+            )}
         </AuthContext.Provider>
     );
 };

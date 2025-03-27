@@ -1,51 +1,17 @@
-###### OS / Systems
-import os
-import sys
-
-###### Add lib path
-sys.path.append('./lib/')
-sys.path.append('./lib/agent/')
-sys.path.append('./lib/platform/')
-sys.path.append('./lib/utils/')
-
-###### 
-import time
+###### Parsers, Formats, Utils
 import argparse
 import logging
-import time
-import uuid
-import random
-
-###### Parsers, Formats, Utils
-import re
-import csv
 import json
 
-import itertools
-from tqdm import tqdm
-
 ###### Blue
-from agent import Agent, AgentFactory
-from session import Session
+from blue.agent import Agent, AgentFactory
+from blue.agents.user import UserAgent
+from blue.session import Session
 
 # set log level
 logging.getLogger().setLevel(logging.INFO)
 logging.basicConfig(format="%(asctime)s [%(levelname)s] [%(process)d:%(threadName)s:%(thread)d](%(filename)s:%(lineno)d) %(name)s -  %(message)s", level=logging.ERROR, datefmt="%Y-%m-%d %H:%M:%S")
 
-
-#######################
-class UserAgent(Agent):
-    def __init__(self, **kwargs):
-        if 'name' not in kwargs:
-            kwargs['name'] = "USER"
-        super().__init__(**kwargs)
-
-    
-    def _initialize(self, properties=None):
-        super()._initialize(properties=properties)
-
-        # user is not instructable
-        self.properties['instructable'] = False
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

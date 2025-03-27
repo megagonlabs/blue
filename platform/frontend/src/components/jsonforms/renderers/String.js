@@ -72,7 +72,7 @@ const StringRenderer = ({
             <InputGroup
                 name={id}
                 placeholder={placeholder}
-                large
+                size="large"
                 value={_.isEmpty(data) ? "" : data}
                 onChange={handleOnChange}
                 fill

@@ -1,6 +1,5 @@
 import { AppContext } from "@/components/contexts/app-context";
 import { faIcon } from "@/components/icon";
-import { AppToaster } from "@/components/toaster";
 import {
     Button,
     Card,
@@ -26,7 +25,9 @@ import _ from "lodash";
 import { useContext, useEffect, useState } from "react";
 import { FixedSizeList } from "react-window";
 import { ENTITY_ICON_40 } from "../constant";
+import { AuthContext } from "../contexts/auth-context";
 import EntityIcon from "../entity/EntityIcon";
+import { axiosErrorToast } from "../helper";
 export default function AddAgents({
     isOpen,
     setIsAddAgentsOpen,
@@ -35,12 +36,13 @@ export default function AddAgents({
 }) {
     const { appState, appActions } = useContext(AppContext);
     const sessionIdFocus = appState.session.sessionIdFocus;
-    const registryName = process.env.NEXT_PUBLIC_AGENT_REGISTRY_NAME;
     const [loading, setLoading] = useState(true);
     const [agents, setAgents] = useState(null);
     const [unavailableAgents, setUnavailableAgents] = useState(null);
     const [selected, setSelected] = useState(new Set());
     const [added, setAdded] = useState(new Set());
+    const { settings } = useContext(AuthContext);
+    const darkMode = _.get(settings, "dark_mode", false);
     const selectionSize =
         _.size(selected) -
         _.size(_.intersection(Array.from(selected), Array.from(added)));
@@ -62,7 +64,9 @@ export default function AddAgents({
         }
         setLoading(true);
         axios
-            .get(`/registry/${registryName}/agents`)
+            .get(`/registry/${appState.agent.registryName}/agents`, {
+                params: { recursive: true },
+            })
             .then((response) => {
                 const list = _.get(response, "data.results", []);
                 let options = [];
@@ -73,20 +77,23 @@ export default function AddAgents({
                         [i, "container", "status"],
                         null
                     );
-                    const agentName = list[i].name;
+                    const displayName = _.get(
+                        list,
+                        [i, "properties", "display_name"],
+                        list[i].name
+                    );
                     const description = _.get(list, [i, "description"], "");
+                    const option = {
+                        displayName: _.toString(displayName),
+                        description: description,
+                        name: list[i].name,
+                    };
                     if (!_.isEqual(containerStatus, "running")) {
-                        unavailable.push({
-                            name: agentName,
-                            description: description,
-                        });
+                        unavailable.push(option);
                     } else {
-                        options.push({
-                            name: agentName,
-                            description: description,
-                        });
-                        if (!_.has(appState, ["agent", "icon", agentName])) {
-                            appActions.agent.fetchAttributes(agentName);
+                        options.push(option);
+                        if (!_.has(appState, ["agent", "icon", list[i].name])) {
+                            appActions.agent.fetchAttributes(list[i].name);
                         }
                     }
                 }
@@ -124,10 +131,7 @@ export default function AddAgents({
                             resolve(agentName);
                         })
                         .catch((error) => {
-                            AppToaster.show({
-                                intent: Intent.DANGER,
-                                message: `${error.name}: ${error.message}`,
-                            });
+                            axiosErrorToast(error);
                             reject(agentName);
                         });
                 })
@@ -145,6 +149,8 @@ export default function AddAgents({
     };
     return (
         <Dialog
+            className={darkMode ? Classes.DARK : null}
+            portalClassName="portal-overlay-z-index-36"
             title="Add Agents"
             canOutsideClickClose={_.isEqual(selectionSize, 0)}
             isOpen={isOpen}
@@ -154,9 +160,9 @@ export default function AddAgents({
                 setSkippable(false);
             }}
         >
-            <DialogBody className="dialog-body">
+            <DialogBody className="margin-0" style={{ padding: 0 }}>
                 {_.isEmpty(agents) ? (
-                    <div style={{ padding: 15, height: 141 }}>
+                    <div style={{ height: 141 }}>
                         <NonIdealState
                             className={loading ? Classes.SKELETON : null}
                             title="No Agent"
@@ -167,11 +173,12 @@ export default function AddAgents({
                     <FixedSizeList
                         itemCount={_.size(agents)}
                         style={{ paddingBottom: 20, marginTop: 1 }}
-                        itemSize={58.43}
+                        itemSize={63.43}
                         height={350.58}
                     >
                         {({ index, style }) => {
-                            const name = _.get(agents, [index, "name"], "");
+                            const name = agents[index].name,
+                                displayName = agents[index].displayName;
                             return (
                                 <Card
                                     onClick={() => {
@@ -214,7 +221,7 @@ export default function AddAgents({
                                     ) : (
                                         <Checkbox
                                             checked={selected.has(name)}
-                                            large
+                                            size="large"
                                             className="margin-0"
                                         />
                                     )}
@@ -254,7 +261,7 @@ export default function AddAgents({
                                                         "calc(100% - 45px)",
                                                 }}
                                             >
-                                                {name}
+                                                {displayName}
                                                 <div
                                                     className={classNames(
                                                         Classes.TEXT_MUTED,
@@ -290,7 +297,7 @@ export default function AddAgents({
                                 : Intent.PRIMARY
                         }
                         loading={selectionSize > 0 && loading}
-                        large
+                        size="large"
                         icon={faIcon({
                             icon:
                                 skippable && _.isEqual(selectionSize, 0)
@@ -323,7 +330,7 @@ export default function AddAgents({
                 </div>
                 {!_.isEmpty(unavailableAgents) && (
                     <div style={{ position: "absolute", right: 15, top: 15 }}>
-                        <Tag intent={Intent.WARNING} minimal large>
+                        <Tag intent={Intent.WARNING} minimal size="large">
                             {_.size(unavailableAgents)} unavailable
                         </Tag>
                     </div>

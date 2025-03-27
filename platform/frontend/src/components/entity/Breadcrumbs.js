@@ -25,7 +25,7 @@ export default function Breadcrumbs({ breadcrumbs }) {
         alignItems: "center",
     };
     const TAG_PROPS = {
-        large: true,
+        size: "large",
         minimal: true,
     };
     return (
@@ -35,7 +35,7 @@ export default function Breadcrumbs({ breadcrumbs }) {
                 <Popover
                     position={Position.BOTTOM_LEFT}
                     content={
-                        <Menu>
+                        <Menu size="large">
                             {_.reverse(items).map(
                                 ({ href, text, end, icon }, index) => {
                                     if (end) return null;
@@ -45,7 +45,9 @@ export default function Breadcrumbs({ breadcrumbs }) {
                                                 key={index}
                                                 icon={
                                                     !_.isEmpty(icon)
-                                                        ? faIcon({ icon: icon })
+                                                        ? faIcon({
+                                                              icon: icon,
+                                                          })
                                                         : null
                                                 }
                                                 intent={Intent.PRIMARY}
@@ -62,7 +64,9 @@ export default function Breadcrumbs({ breadcrumbs }) {
                                             <MenuItem
                                                 icon={
                                                     !_.isEmpty(icon)
-                                                        ? faIcon({ icon: icon })
+                                                        ? faIcon({
+                                                              icon: icon,
+                                                          })
                                                         : null
                                                 }
                                                 intent={Intent.PRIMARY}
@@ -77,7 +81,7 @@ export default function Breadcrumbs({ breadcrumbs }) {
                 >
                     <Button
                         intent={Intent.PRIMARY}
-                        minimal
+                        variant="minimal"
                         icon={faIcon({ icon: faBars })}
                     />
                 </Popover>

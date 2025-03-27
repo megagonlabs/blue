@@ -18,11 +18,13 @@ export default function RegistryCard({
     title,
     icon,
     description,
+    properties,
     href = "",
     extra,
     container,
 }) {
     const containerStatus = _.get(container, "status", "not exist");
+    const categories = _.get(properties, "categories", []);
     return (
         <Link
             style={
@@ -33,13 +35,7 @@ export default function RegistryCard({
             className="no-link-decoration"
             href={href}
         >
-            <Card
-                style={{
-                    height: "100%",
-                    backgroundColor: Colors.LIGHT_GRAY5,
-                    position: "relative",
-                }}
-            >
+            <Card style={{ height: "100%", position: "relative" }}>
                 <Card
                     style={{
                         position: "absolute",
@@ -52,6 +48,7 @@ export default function RegistryCard({
                         display: "flex",
                         justifyContent: "center",
                         alignItems: "center",
+                        backgroundColor: Colors.WHITE,
                     }}
                 >
                     <EntityIcon entity={{ icon, type }} />
@@ -64,16 +61,39 @@ export default function RegistryCard({
                         marginBottom: 0,
                     }}
                 >
-                    {title}
+                    {_.toString(title)}
                 </H5>
                 <div
-                    className="multiline-ellipsis"
+                    className="multiline-ellipsis-2"
                     style={{ height: 36, marginTop: 10 }}
                 >
                     {description}
                 </div>
+                {!_.isEmpty(categories) && (
+                    <div
+                        className="full-parent-width scrollbar-none"
+                        style={{
+                            display: "inline-flex",
+                            gap: 10,
+                            marginTop: 10,
+                            overflowX: "auto",
+                            overscrollBehavior: "contain",
+                        }}
+                    >
+                        {categories.map((category, index) => (
+                            <Tag
+                                key={index}
+                                style={{ display: "inline-table" }}
+                                minimal
+                            >
+                                {category}
+                            </Tag>
+                        ))}
+                    </div>
+                )}
                 {!_.isEmpty(extra) ? (
                     <Tag
+                        size="large"
                         style={{
                             marginTop: 10,
                             maxWidth: `calc(100% - ${

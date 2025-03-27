@@ -1,5 +1,6 @@
 import { ENTITY_TYPE_LOOKUP } from "@/components/constant";
 import { AppContext } from "@/components/contexts/app-context";
+import { AuthContext } from "@/components/contexts/auth-context";
 import { faIcon } from "@/components/icon";
 import RegistryCard from "@/components/registry/RegistryCard";
 import SearchList from "@/components/registry/SearchList";
@@ -7,7 +8,6 @@ import {
     Button,
     Card,
     Classes,
-    Colors,
     Intent,
     NonIdealState,
 } from "@blueprintjs/core";
@@ -17,7 +17,7 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { useContext } from "react";
 import { Col, Container, Row } from "react-grid-system";
-import { AuthContext } from "../contexts/auth-context";
+import { populateRouterPathname } from "../helper";
 export default function RegistryList({ type }) {
     const { appState } = useContext(AppContext);
     const list = appState[type].list;
@@ -57,11 +57,13 @@ export default function RegistryList({ type }) {
                     title={`No ${_.capitalize(ENTITY_TYPE_LOOKUP[type].key)}`}
                     action={
                         canAddEntity ? (
-                            <Link href={`${router.asPath}/new`}>
+                            <Link
+                                href={`${populateRouterPathname(router)}/new`}
+                            >
                                 <Button
                                     intent={Intent.PRIMARY}
-                                    large
-                                    outlined
+                                    size="large"
+                                    variant="outlined"
                                     icon={faIcon({ icon: faPlusLarge })}
                                     text={`Add ${ENTITY_TYPE_LOOKUP[type].key}`}
                                 />
@@ -81,22 +83,16 @@ export default function RegistryList({ type }) {
                     const properties = element.properties;
                     let extra = null;
                     if (_.includes(["agent", "operator"], type)) {
-                        extra = properties.image;
+                        extra = _.toString(properties.image);
                     } else if (_.isEqual(type, "data")) {
                         let protocol = _.get(properties, "connection.protocol");
                         let host = _.get(properties, "connection.host");
                         let port = _.get(properties, "connection.port");
-                        if (!_.isEmpty(protocol)) {
-                            extra = String(protocol);
-                        }
-                        if (!_.isEmpty(host)) {
-                            extra += `://${host}`;
-                        }
-                        if (!_.isEmpty(port)) {
-                            extra += `:${port}`;
-                        }
+                        if (!_.isEmpty(protocol)) extra = String(protocol);
+                        if (!_.isEmpty(host)) extra += `://${host}`;
+                        if (!_.isEmpty(port)) extra += `:${port}`;
                     }
-                    let icon = element.icon;
+                    let { icon } = element;
                     if (
                         !_.isEmpty(icon) &&
                         !_.startsWith(icon, "data:image/")
@@ -106,7 +102,7 @@ export default function RegistryList({ type }) {
                     const displayName = _.get(
                         element,
                         "properties.display_name",
-                        null
+                        element.name
                     );
                     return (
                         <Col
@@ -120,14 +116,13 @@ export default function RegistryList({ type }) {
                             <RegistryCard
                                 type={type}
                                 icon={icon}
-                                title={
-                                    !_.isEmpty(displayName)
-                                        ? displayName
-                                        : element.name
-                                }
+                                title={displayName}
                                 description={element.description}
+                                properties={element.properties}
                                 extra={extra}
-                                href={`${router.asPath}/${element.name}`}
+                                href={`${populateRouterPathname(router)}/${
+                                    element.name
+                                }`}
                                 container={element.container}
                             />
                         </Col>
@@ -143,7 +138,7 @@ export default function RegistryList({ type }) {
                     >
                         <Link
                             className="no-link-decoration"
-                            href={`${router.asPath}/new`}
+                            href={`${populateRouterPathname(router)}/new`}
                         >
                             <Card
                                 style={{
@@ -151,7 +146,6 @@ export default function RegistryList({ type }) {
                                     padding: 0,
                                     height: "100%",
                                     position: "relative",
-                                    backgroundColor: Colors.LIGHT_GRAY5,
                                     cursor: "pointer",
                                 }}
                             >

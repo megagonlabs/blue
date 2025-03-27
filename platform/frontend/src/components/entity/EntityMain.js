@@ -8,6 +8,7 @@ import {
     ButtonGroup,
     Card,
     Classes,
+    Colors,
     Intent,
     Menu,
     MenuDivider,
@@ -18,6 +19,7 @@ import {
     Tooltip,
 } from "@blueprintjs/core";
 import {
+    faArrowDownToLine,
     faCheck,
     faClone,
     faListDropdown,
@@ -31,6 +33,7 @@ import axios from "axios";
 import _ from "lodash";
 import { useRouter } from "next/router";
 import { useContext, useState } from "react";
+import { axiosErrorToast } from "../helper";
 import EntityIcon from "./EntityIcon";
 export default function EntityMain({
     entity,
@@ -55,12 +58,7 @@ export default function EntityMain({
                     message: `Deployed ${entity.name} ${entity.type}`,
                 });
             })
-            .catch((error) => {
-                AppToaster.show({
-                    intent: Intent.DANGER,
-                    message: `${error.name}: ${error.message}`,
-                });
-            });
+            .catch((error) => axiosErrorToast(error));
     };
     const routerQueryParams = _.get(router, "query.pathParams", []);
     const routerQueryPath = "/" + routerQueryParams.join("/");
@@ -103,12 +101,19 @@ export default function EntityMain({
                 }
                 router.push(`/${params.join("/")}`);
             })
-            .catch((error) => {
+            .catch((error) => axiosErrorToast(error));
+    };
+    const pullImage = () => {
+        axios
+            .put(`/containers/agents/agent/${entity.name}`)
+            .then((response) => {
                 AppToaster.show({
-                    intent: Intent.DANGER,
-                    message: `${error.name}: ${error.message}`,
+                    message: _.get(response, "data.message", "-"),
+                    icon: faIcon({ icon: faArrowDownToLine }),
+                    intent: Intent.PRIMARY,
                 });
-            });
+            })
+            .catch((error) => axiosErrorToast(error));
     };
     const syncData = () => {
         axios
@@ -119,12 +124,7 @@ export default function EntityMain({
                     message: `Synced ${entity.name} ${entity.type}`,
                 });
             })
-            .catch((error) => {
-                AppToaster.show({
-                    intent: Intent.DANGER,
-                    message: `${error.name}: ${error.message}`,
-                });
-            });
+            .catch((error) => axiosErrorToast(error));
     };
     const [isIconEditorOpen, setIsIconEditorOpen] = useState(false);
     const { user, permissions } = useContext(AuthContext);
@@ -139,6 +139,7 @@ export default function EntityMain({
             agent: "agent_registry",
             input: "agent_registry",
             output: "agent_registry",
+            database: "data_registry",
             source: "data_registry",
             model: "model_registry",
             operator: "operator_registry",
@@ -177,18 +178,18 @@ export default function EntityMain({
         }
         return false;
     })();
+    const canPullImage =
+        _.isEqual(entity.type, "agent") && _.has(entity.properties, "image");
     const canDeployAgent =
-        _.isEqual(entity.type, "agent") && permissions.canWritePlatformAgents;
-    const showActionMenuDivider =
-        (_.isFunction(setEdit) && canEditEntity) ||
-        canDuplicateEntity ||
-        canDeployAgent;
+        _.isEqual(entity.type, "agent") &&
+        permissions.canWritePlatformAgents &&
+        !_.isEqual(containerStatus, "running");
     const canSyncData = _.includes(
         ["source", "database", "collection"],
         entity.type
     );
-    const showActionMenu =
-        showActionMenuDivider || canEditEntity || canSyncData;
+    const canDeregister = _.isEqual("database", entity.type);
+    const showActionMenu = canEditEntity || canSyncData || canDeregister;
     return (
         <>
             <EntityIconEditor
@@ -219,6 +220,7 @@ export default function EntityMain({
                                 style={{
                                     cursor: edit ? "pointer" : null,
                                     ...ENTITY_ICON_40,
+                                    backgroundColor: Colors.WHITE,
                                 }}
                             >
                                 <EntityIcon entity={entity} />
@@ -297,12 +299,13 @@ export default function EntityMain({
                             }}
                         >
                             {edit ? (
-                                <ButtonGroup large>
+                                <ButtonGroup size="large">
                                     <Popover
                                         placement="left"
                                         content={
                                             <div style={{ padding: 15 }}>
                                                 <Button
+                                                    size="large"
                                                     className={
                                                         Classes.POPOVER_DISMISS
                                                     }
@@ -319,7 +322,7 @@ export default function EntityMain({
                                             content="Discard"
                                         >
                                             <Button
-                                                minimal
+                                                variant="minimal"
                                                 icon={faIcon({
                                                     icon: faXmarkLarge,
                                                 })}
@@ -330,7 +333,7 @@ export default function EntityMain({
                                         className={
                                             loading ? Classes.SKELETON : null
                                         }
-                                        large
+                                        size="large"
                                         disabled={jsonError}
                                         intent={Intent.SUCCESS}
                                         text="Save"
@@ -340,8 +343,8 @@ export default function EntityMain({
                                 </ButtonGroup>
                             ) : (
                                 <ButtonGroup
-                                    large
-                                    minimal
+                                    size="large"
+                                    variant="minimal"
                                     className={
                                         loading ? Classes.SKELETON : null
                                     }
@@ -350,13 +353,13 @@ export default function EntityMain({
                                         minimal
                                         placement="bottom-end"
                                         content={
-                                            <Menu large>
+                                            <Menu size="large">
                                                 {_.isFunction(setEdit) &&
                                                 canEditEntity ? (
                                                     <MenuItem
-                                                        onClick={() => {
-                                                            setEdit(true);
-                                                        }}
+                                                        onClick={() =>
+                                                            setEdit(true)
+                                                        }
                                                         intent={Intent.PRIMARY}
                                                         icon={faIcon({
                                                             icon: faPen,
@@ -385,7 +388,21 @@ export default function EntityMain({
                                                         onClick={syncData}
                                                     />
                                                 ) : null}
-                                                {canDeployAgent ? (
+                                                {(canPullImage ||
+                                                    canDeployAgent) && (
+                                                    <MenuDivider title="Docker" />
+                                                )}
+                                                {canPullImage && (
+                                                    <MenuItem
+                                                        icon={faIcon({
+                                                            icon: faArrowDownToLine,
+                                                        })}
+                                                        intent={Intent.PRIMARY}
+                                                        onClick={pullImage}
+                                                        text="Pull"
+                                                    />
+                                                )}
+                                                {canDeployAgent && (
                                                     <Popover
                                                         placement="left"
                                                         className="full-parent-width"
@@ -396,6 +413,7 @@ export default function EntityMain({
                                                                 }}
                                                             >
                                                                 <Button
+                                                                    size="large"
                                                                     onClick={
                                                                         deployAgent
                                                                     }
@@ -420,63 +438,60 @@ export default function EntityMain({
                                                             icon={faIcon({
                                                                 icon: faPlay,
                                                             })}
-                                                            disabled={_.isEqual(
-                                                                containerStatus,
-                                                                "running"
-                                                            )}
                                                             text="Deploy"
                                                         />
                                                     </Popover>
-                                                ) : null}
-                                                {showActionMenuDivider ? (
-                                                    <MenuDivider />
-                                                ) : null}
-                                                {canEditEntity ? (
-                                                    <Popover
-                                                        placement="left"
-                                                        className="full-parent-width"
-                                                        content={
-                                                            <div
-                                                                style={{
-                                                                    padding: 15,
-                                                                }}
-                                                            >
-                                                                <Button
-                                                                    onClick={
-                                                                        deleteEntity
-                                                                    }
-                                                                    className={
-                                                                        Classes.POPOVER_DISMISS
-                                                                    }
-                                                                    text="Confirm"
-                                                                    intent={
-                                                                        Intent.DANGER
-                                                                    }
-                                                                />
-                                                            </div>
-                                                        }
-                                                    >
-                                                        <MenuItem
-                                                            shouldDismissPopover={
-                                                                false
+                                                )}
+                                                {canEditEntity && (
+                                                    <>
+                                                        <MenuDivider />
+                                                        <Popover
+                                                            placement="left"
+                                                            className="full-parent-width"
+                                                            content={
+                                                                <div
+                                                                    style={{
+                                                                        padding: 15,
+                                                                    }}
+                                                                >
+                                                                    <Button
+                                                                        size="large"
+                                                                        onClick={
+                                                                            deleteEntity
+                                                                        }
+                                                                        className={
+                                                                            Classes.POPOVER_DISMISS
+                                                                        }
+                                                                        text="Confirm"
+                                                                        intent={
+                                                                            Intent.DANGER
+                                                                        }
+                                                                    />
+                                                                </div>
                                                             }
-                                                            intent={
-                                                                Intent.DANGER
-                                                            }
-                                                            icon={faIcon({
-                                                                icon: faTrash,
-                                                            })}
-                                                            text="Delete"
-                                                        />
-                                                    </Popover>
-                                                ) : null}
+                                                        >
+                                                            <MenuItem
+                                                                shouldDismissPopover={
+                                                                    false
+                                                                }
+                                                                intent={
+                                                                    Intent.DANGER
+                                                                }
+                                                                icon={faIcon({
+                                                                    icon: faTrash,
+                                                                })}
+                                                                text="Delete"
+                                                            />
+                                                        </Popover>
+                                                    </>
+                                                )}
                                             </Menu>
                                         }
                                     >
                                         <Button
-                                            outlined
+                                            variant="outlined"
                                             text="Actions"
-                                            rightIcon={faIcon({
+                                            endIcon={faIcon({
                                                 icon: faListDropdown,
                                             })}
                                         />

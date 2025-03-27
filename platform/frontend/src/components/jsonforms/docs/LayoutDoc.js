@@ -1,4 +1,5 @@
 import { faIcon } from "@/components/icon";
+import * as docProps from "@/components/jsonforms/docs/constant";
 import JsonViewer from "@/components/sessions/message/renderers/JsonViewer";
 import {
     Button,
@@ -22,14 +23,14 @@ export default function LayoutDoc({ closePanel }) {
     };
     const docJSonHorizontal = {
         type: "HorizontalLayout",
-        props: { spaceEvenly: true },
+        props: { spaceEvenly: true, style: {} },
         elements: [],
     };
     return (
         <>
             <div className="border-bottom" style={{ padding: "10px 20px" }}>
                 <Button
-                    outlined
+                    variant="outlined"
                     text="Back"
                     onClick={closePanel}
                     icon={faIcon({ icon: faArrowLeft })}
@@ -42,13 +43,7 @@ export default function LayoutDoc({ closePanel }) {
                     overflowY: "auto",
                 }}
             >
-                <div
-                    style={{
-                        display: "flex",
-                        alignItems: "center",
-                        marginBottom: 20,
-                    }}
-                >
+                <div style={{ marginBottom: 20 }}>
                     <H1 style={{ margin: 0 }}>Layout</H1>
                 </div>
                 <pre style={{ position: "relative", overflow: "hidden" }}>
@@ -130,7 +125,7 @@ export default function LayoutDoc({ closePanel }) {
                                     Whether to have elements with equal width.
                                 </div>
                                 <Tag
-                                    large
+                                    size="large"
                                     intent={Intent.PRIMARY}
                                     minimal
                                     style={{ marginTop: 5 }}
@@ -140,6 +135,7 @@ export default function LayoutDoc({ closePanel }) {
                                 </Tag>
                             </td>
                         </tr>
+                        {docProps.style}
                     </tbody>
                 </HTMLTable>
             </div>

@@ -58,53 +58,51 @@ export default function SessionMetadata({
     };
     return (
         <>
-            <DialogBody className="dialog-body">
-                <div style={{ padding: 15 }}>
-                    <div style={{ marginBottom: 15 }}>
-                        <span style={{ marginRight: 10 }}>Session ID</span>
-                        <span
-                            className={Classes.TEXT_MUTED}
-                            style={{ fontWeight: 600, lineHeight: "30px" }}
-                        >
-                            {sessionIdFocus}
-                        </span>
-                    </div>
-                    <FormGroup label="Name" labelFor="session-detail-name">
-                        <InputGroup
-                            id="session-detail-name"
-                            className={loading ? Classes.SKELETON : null}
-                            large
-                            value={name}
-                            onChange={(event) => {
-                                setName(event.target.value);
-                                setAllowQuickClose(false);
-                            }}
-                        />
-                    </FormGroup>
-                    <FormGroup
-                        label="Description"
-                        className="margin-0"
-                        labelFor="session-detail-description"
+            <DialogBody>
+                <div style={{ marginBottom: 15 }}>
+                    <span style={{ marginRight: 10 }}>Session ID</span>
+                    <span
+                        className={Classes.TEXT_MUTED}
+                        style={{ fontWeight: 600, lineHeight: "30px" }}
                     >
-                        <InputGroup
-                            id="session-detail-description"
-                            className={loading ? Classes.SKELETON : null}
-                            large
-                            value={description}
-                            onChange={(event) => {
-                                setDescription(event.target.value);
-                                setAllowQuickClose(false);
-                            }}
-                        />
-                    </FormGroup>
+                        {sessionIdFocus}
+                    </span>
                 </div>
+                <FormGroup label="Name" labelFor="session-detail-name">
+                    <InputGroup
+                        id="session-detail-name"
+                        className={loading ? Classes.SKELETON : null}
+                        size="large"
+                        value={name}
+                        onChange={(event) => {
+                            setName(event.target.value);
+                            setAllowQuickClose(false);
+                        }}
+                    />
+                </FormGroup>
+                <FormGroup
+                    label="Description"
+                    className="margin-0"
+                    labelFor="session-detail-description"
+                >
+                    <InputGroup
+                        id="session-detail-description"
+                        className={loading ? Classes.SKELETON : null}
+                        size="large"
+                        value={description}
+                        onChange={(event) => {
+                            setDescription(event.target.value);
+                            setAllowQuickClose(false);
+                        }}
+                    />
+                </FormGroup>
             </DialogBody>
             <DialogFooter>
                 <Button
                     disabled={_.isEmpty(_.trim(name))}
                     loading={loading}
                     text="Save"
-                    large
+                    size="large"
                     onClick={handleSaveMetadata}
                     intent={Intent.SUCCESS}
                     icon={faIcon({ icon: faCheck })}

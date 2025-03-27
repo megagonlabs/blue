@@ -1,8 +1,9 @@
 import EntityDescription from "@/components/entity/EntityDescription";
 import EntityMain from "@/components/entity/EntityMain";
 import EntityProperties from "@/components/entity/EntityProperties";
-import { AppToaster } from "@/components/toaster";
+import { faIcon } from "@/components/icon";
 import {
+    H5,
     HTMLTable,
     Intent,
     Section,
@@ -14,8 +15,10 @@ import _ from "lodash";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useContext, useEffect, useState } from "react";
+import { ENTITY_TYPE_LOOKUP } from "../constant";
 import { AppContext } from "../contexts/app-context";
 import {
+    axiosErrorToast,
     constructSavePropertyRequests,
     settlePromises,
     shallowDiff,
@@ -23,7 +26,8 @@ import {
 export default function SourceEntity() {
     const BLANK_ENTITY = { type: "data" };
     const router = useRouter();
-    const { appActions } = useContext(AppContext);
+    const { appState, appActions } = useContext(AppContext);
+    const urlPrefix = `/registry/${appState.data.registryName}/data`;
     const [entity, setEntity] = useState(BLANK_ENTITY);
     const [editEntity, setEditEntity] = useState(BLANK_ENTITY);
     const [edit, setEdit] = useState(false);
@@ -48,62 +52,47 @@ export default function SourceEntity() {
             setEditEntity(result);
             setLoading(false);
         });
-    }, [router]);
+    }, [router, routerQueryPath]);
     const updateEntity = ({ path, value }) => {
         let newEntity = _.cloneDeep(editEntity);
         _.set(newEntity, path, value);
         setEditEntity(newEntity);
     };
     const saveEntity = () => {
-        const urlPrefix = `/registry/${process.env.NEXT_PUBLIC_DATA_REGISTRY_NAME}/data`;
         setLoading(true);
         let icon = _.get(editEntity, "icon", null);
         if (!_.isEmpty(icon) && !_.startsWith(icon, "data:image/")) {
             icon = _.join(icon, ":");
         }
-        let tasks = [
-            new Promise((resolve, reject) => {
-                axios
-                    .put(`${urlPrefix}/${entity.name}`, {
-                        name: entity.name,
-                        description: editEntity.description,
-                        icon: icon,
-                    })
-                    .then(() => {
-                        resolve(true);
-                    })
-                    .catch((error) => {
-                        AppToaster.show({
-                            intent: Intent.DANGER,
-                            message: `${error.name}: ${error.message}`,
-                        });
-                        reject(false);
-                    });
-            }),
-        ];
-        const difference = shallowDiff(
-            entity.properties,
-            editEntity.properties
-        );
-        tasks.concat(
-            constructSavePropertyRequests({
-                axios,
-                url: `${urlPrefix}/${entity.name}/property`,
-                difference,
-                properties: editEntity.properties,
+        axios
+            .put(`${urlPrefix}/${entity.name}`, {
+                name: entity.name,
+                description: editEntity.description,
+                icon: icon,
             })
-        );
-        settlePromises(tasks, (error) => {
-            if (!error) {
-                setEdit(false);
-                appActions.agent.setIcon({
-                    key: entity.name,
-                    value: _.get(editEntity, "icon", null),
+            .then(() => {
+                let tasks = constructSavePropertyRequests({
+                    axios,
+                    url: `${urlPrefix}/${entity.name}/property`,
+                    difference: shallowDiff(
+                        entity.properties,
+                        editEntity.properties
+                    ),
+                    properties: editEntity.properties,
                 });
-                setEntity(editEntity);
-            }
-            setLoading(false);
-        });
+                settlePromises(tasks, ({ error }) => {
+                    if (!error) {
+                        setEdit(false);
+                        appActions.agent.setIcon({
+                            key: entity.name,
+                            value: _.get(editEntity, "icon", null),
+                        });
+                        setEntity(editEntity);
+                    }
+                    setLoading(false);
+                });
+            })
+            .catch((error) => axiosErrorToast(error));
     };
     return (
         <div style={{ padding: "10px 20px 20px" }}>
@@ -136,8 +125,8 @@ export default function SourceEntity() {
             />
             <Section
                 compact
-                collapsible
-                title="Databases"
+                icon={faIcon({ icon: ENTITY_TYPE_LOOKUP.database.icon })}
+                title={<H5 className="margin-0">Databases</H5>}
                 style={{ marginTop: 20 }}
             >
                 <SectionCard padded={false}>
@@ -169,7 +158,7 @@ export default function SourceEntity() {
                                                     }}
                                                     minimal
                                                     interactive
-                                                    large
+                                                    size="large"
                                                     intent={Intent.PRIMARY}
                                                 >
                                                     {element.name}

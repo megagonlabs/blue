@@ -4,9 +4,10 @@ import {
     UI_JSON_SCHEMA,
 } from "@/components/codemirror/constant";
 import { JSONFORMS_RENDERERS, MIN_ALLOTMENT_PANE } from "@/components/constant";
+import { AuthContext } from "@/components/contexts/auth-context";
+import { safeJsonParse } from "@/components/helper";
 import { faIcon } from "@/components/icon";
 import DocDrawer from "@/components/jsonforms/docs/DocDrawer";
-import JsonViewer from "@/components/sessions/message/renderers/JsonViewer";
 import { AppToaster } from "@/components/toaster";
 import {
     Alignment,
@@ -14,7 +15,9 @@ import {
     ButtonGroup,
     Callout,
     Card,
+    Checkbox,
     Classes,
+    Colors,
     Divider,
     Intent,
     Menu,
@@ -45,7 +48,7 @@ import classNames from "classnames";
 import copy from "copy-to-clipboard";
 import jsonFormatter from "json-string-formatter";
 import _ from "lodash";
-import { createRef, useEffect, useState } from "react";
+import { createRef, useContext, useEffect, useMemo, useState } from "react";
 import { useErrorBoundary, withErrorBoundary } from "react-use-error-boundary";
 const DEFAULT_SCHEMA = JSON.stringify(
     { type: "object", properties: {} },
@@ -65,8 +68,8 @@ function FormDesigner() {
     const leftPaneRef = createRef();
     const [uischema, setUischema] = useState({});
     const [schema, setSchema] = useState({});
-    const ssData = sessionStorage.getItem("data");
-    const [data, setData] = useState(_.isNil(ssData) ? {} : JSON.parse(ssData));
+    const [data, setData] = useState({});
+    const [jsonData, setJsonData] = useState("{}");
     const [jsonUischema, setJsonUischema] = useState(DEFAULT_UI_SCHEMA);
     const [jsonSchema, setJsonSchema] = useState(DEFAULT_SCHEMA);
     const [uiSchemaError, setUiSchemaError] = useState(false);
@@ -75,6 +78,8 @@ function FormDesigner() {
     const [uiSchemaInitialized, setUiSchemaInitialized] = useState(false);
     const [schemaLoading, setSchemaLoading] = useState(true);
     const [schemaInitialized, setSchemaInitialized] = useState(false);
+    const { settings } = useContext(AuthContext);
+    const darkMode = _.get(settings, "dark_mode", false);
     useEffect(() => {
         if (error) {
             setIsDocOpen(false);
@@ -82,22 +87,43 @@ function FormDesigner() {
         }
     }, [error]);
     useEffect(() => {
+        // uischema
         let uiSchemaCache = sessionStorage.getItem("jsonUischema");
         if (!uiSchemaInitialized && uiSchemaCache) {
             setJsonUischema(uiSchemaCache);
         }
         setUiSchemaInitialized(true);
         setUiSchemaLoading(false);
+        // schema
         let schemaCache = sessionStorage.getItem("jsonSchema");
         if (!schemaInitialized && schemaCache) {
             setJsonSchema(schemaCache);
         }
         setSchemaInitialized(true);
         setSchemaLoading(false);
+        // data
+        let dataCache = sessionStorage.getItem("data");
+        setTimeout(() => {
+            setData(safeJsonParse(dataCache));
+        }, 0);
     }, []);
     useEffect(() => {
-        sessionStorage.setItem("data", JSON.stringify(data));
-    }, [data]);
+        try {
+            setData(JSON.parse(jsonData));
+        } catch (error) {}
+        sessionStorage.setItem("data", jsonData);
+    }, [jsonData]);
+    const debounced = useMemo(
+        () =>
+            _.debounce((value) => {
+                try {
+                    if (!_.isEqual(value, JSON.parse(jsonData)))
+                        setJsonData(JSON.stringify(value, null, 4));
+                } catch (error) {}
+            }, 300),
+        [jsonData]
+    );
+    useEffect(() => debounced(data), [data]);
     useEffect(() => {
         try {
             setUischema(JSON.parse(jsonUischema));
@@ -117,10 +143,10 @@ function FormDesigner() {
     }, [jsonSchema]);
     const [resultPanel, setResultPanel] = useState(true);
     const BUTTON_PROPS = {
-        large: true,
-        alignText: Alignment.LEFT,
+        size: "large",
+        alignText: Alignment.START,
         fill: true,
-        minimal: true,
+        variant: "minimal",
         style: { fontWeight: 600 },
     };
     const handleFormattingCode = () => {
@@ -138,6 +164,15 @@ function FormDesigner() {
                 setJsonSchema(jsonFormatter.format(jsonSchema, "    "));
             }
         } catch (error) {}
+        try {
+            if (_.isEqual(jsonData.replace(/\s/g, ""), "{}")) {
+                setJsonData("{}");
+            } else {
+                setJsonData(jsonFormatter.format(jsonData, "    "));
+            }
+        } catch (error) {
+            console.log(error);
+        }
     };
     const handleExportConfig = (withData) => {
         let result = { schema: schema, uischema: uischema };
@@ -147,7 +182,7 @@ function FormDesigner() {
         copy(JSON.stringify(result));
         AppToaster.show({
             icon: faIcon({ icon: faClipboard }),
-            message: `Copied interactive message configuration (with${
+            message: `Copied schema (with${
                 withData ? "" : "out"
             } default data)`,
         });
@@ -157,6 +192,7 @@ function FormDesigner() {
         setUiSchemaError(false);
         setSchemaError(false);
         setJsonUischema(DEFAULT_UI_SCHEMA);
+        setJsonData("{}");
         setJsonSchema(DEFAULT_SCHEMA);
         setResultPanel(true);
         sessionStorage.removeItem("jsonUischema");
@@ -167,10 +203,24 @@ function FormDesigner() {
     );
     return (
         <>
-            <DocDrawer isOpen={isDocOpen} setIsDocOpen={setIsDocOpen} />
-            <Card interactive style={{ padding: 5, borderRadius: 0 }}>
-                <ButtonGroup large minimal>
-                    <Tooltip placement="bottom-start" minimal content="Re-run">
+            <DocDrawer
+                setJsonUischema={setJsonUischema}
+                setData={setData}
+                setJsonSchema={setJsonSchema}
+                isOpen={isDocOpen}
+                setIsDocOpen={setIsDocOpen}
+            />
+            <Card
+                interactive
+                style={{ padding: 5, borderRadius: 0, position: "relative" }}
+            >
+                <ButtonGroup size="large" variant="minimal">
+                    <Tooltip
+                        usePortal={false}
+                        placement="bottom-start"
+                        minimal
+                        content="Re-run"
+                    >
                         <Button
                             disabled={!error}
                             intent={Intent.SUCCESS}
@@ -178,13 +228,19 @@ function FormDesigner() {
                             icon={faIcon({ icon: faPlay })}
                         />
                     </Tooltip>
-                    <Tooltip placement="bottom" minimal content="Format">
+                    <Tooltip
+                        usePortal={false}
+                        placement="bottom"
+                        minimal
+                        content="Format"
+                    >
                         <Button
                             icon={faIcon({ icon: faIndent })}
                             onClick={handleFormattingCode}
                         />
                     </Tooltip>
                     <Popover
+                        usePortal={false}
                         minimal
                         placement="bottom"
                         content={
@@ -207,7 +263,12 @@ function FormDesigner() {
                             </Menu>
                         }
                     >
-                        <Tooltip placement="bottom" minimal content="Export">
+                        <Tooltip
+                            usePortal={false}
+                            placement="bottom"
+                            minimal
+                            content="Export"
+                        >
                             <Button icon={faIcon({ icon: faDownload })} />
                         </Tooltip>
                     </Popover>
@@ -234,7 +295,14 @@ function FormDesigner() {
                     />
                 </ButtonGroup>
             </Card>
-            <div style={{ height: "calc(100% - 50px)" }}>
+            <div
+                style={{
+                    height: "calc(100% - 50px)",
+                    backgroundColor: darkMode
+                        ? Colors.DARK_GRAY1
+                        : Colors.WHITE,
+                }}
+            >
                 <Allotment>
                     <Allotment.Pane minSize={MIN_ALLOTMENT_PANE}>
                         <Allotment vertical ref={leftPaneRef}>
@@ -244,6 +312,7 @@ function FormDesigner() {
                                     style={{ padding: 5 }}
                                 >
                                     <Tooltip
+                                        usePortal={false}
                                         fill
                                         minimal
                                         placement="bottom-start"
@@ -273,7 +342,7 @@ function FormDesigner() {
                                                     187.5,
                                                 ]);
                                             }}
-                                            rightIcon={faIcon({
+                                            endIcon={faIcon({
                                                 icon: faArrowsFromLine,
                                             })}
                                         />
@@ -307,6 +376,7 @@ function FormDesigner() {
                                     style={{ padding: 5 }}
                                 >
                                     <Tooltip
+                                        usePortal={false}
                                         fill
                                         minimal
                                         placement="bottom-start"
@@ -336,7 +406,7 @@ function FormDesigner() {
                                                     window.innerHeight,
                                                 ]);
                                             }}
-                                            rightIcon={faIcon({
+                                            endIcon={faIcon({
                                                 icon: faArrowsFromLine,
                                             })}
                                         />
@@ -368,43 +438,29 @@ function FormDesigner() {
                     <Allotment.Pane minSize={400}>
                         <div
                             className="border-bottom"
-                            style={{ padding: 5, display: "flex" }}
+                            style={{
+                                padding: 5,
+                                display: "flex",
+                                alignItems: "center",
+                            }}
                         >
-                            <Tooltip
-                                minimal
-                                placement="bottom-start"
-                                content="Read-only"
-                            >
-                                <Button
-                                    {...BUTTON_PROPS}
-                                    style={{
-                                        fontWeight: 600,
-                                        backgroundColor: resultPanel
-                                            ? "transparent"
-                                            : null,
-                                    }}
-                                    fill={false}
-                                    text="Data"
-                                    active={!resultPanel}
-                                    onClick={() => {
-                                        setResultPanel(false);
-                                    }}
-                                />
-                            </Tooltip>
                             <Button
                                 {...BUTTON_PROPS}
                                 style={{
+                                    pointerEvents: "none",
                                     fontWeight: 600,
-                                    backgroundColor: !resultPanel
-                                        ? "transparent"
-                                        : null,
                                 }}
                                 fill={false}
                                 text="Result"
-                                active={resultPanel}
-                                onClick={() => {
-                                    setResultPanel(true);
-                                }}
+                            />
+                            <Checkbox
+                                className="margin-0 no-text-selection"
+                                size="large"
+                                label="Show Data"
+                                checked={!resultPanel}
+                                onChange={(event) =>
+                                    setResultPanel(!event.target.checked)
+                                }
                             />
                         </div>
                         <div
@@ -415,92 +471,90 @@ function FormDesigner() {
                                 height: "calc(100% - 51px)",
                             }}
                         >
-                            {resultPanel ? (
-                                !_.isEmpty(uischema) ? (
-                                    <Callout
-                                        icon={null}
-                                        intent={error ? Intent.DANGER : null}
+                            <div
+                                className="border-top border-right border-bottom border-left"
+                                style={{
+                                    borderRadius: 2,
+                                    overflow: "hidden",
+                                    marginBottom: 20,
+                                    display: resultPanel ? "none" : null,
+                                    height: 200,
+                                }}
+                            >
+                                <JsonEditor
+                                    allowEditWithError
+                                    code={jsonData}
+                                    alwaysAllowPopulate
+                                    setCode={setJsonData}
+                                />
+                            </div>
+                            {!_.isEmpty(uischema) ? (
+                                <Callout
+                                    icon={null}
+                                    intent={error ? Intent.DANGER : null}
+                                    style={{
+                                        maxWidth: "100%",
+                                        width: "fit-content",
+                                    }}
+                                >
+                                    <div
                                         style={{
                                             maxWidth: "100%",
+                                            minWidth: 50,
+                                            whiteSpace: "pre-wrap",
+                                            wordBreak: "break-word",
                                             width: "fit-content",
-                                        }}
-                                    >
-                                        <div
-                                            style={{
-                                                maxWidth: "100%",
-                                                minWidth: 50,
-                                                whiteSpace: "pre-wrap",
-                                                wordBreak: "break-all",
-                                                width: "fit-content",
-                                                minHeight: 21,
-                                                overflow: "hidden",
-                                                padding: 1,
-                                            }}
-                                        >
-                                            {!error ? (
-                                                <JsonForms
-                                                    schema={schema}
-                                                    uischema={uischema}
-                                                    data={data}
-                                                    renderers={
-                                                        JSONFORMS_RENDERERS
-                                                    }
-                                                    cells={vanillaCells}
-                                                    onChange={({
-                                                        data,
-                                                        errors,
-                                                    }) => {
-                                                        console.log(
-                                                            data,
-                                                            errors
-                                                        );
-                                                        setData(data);
-                                                    }}
-                                                />
-                                            ) : (
-                                                <>
-                                                    <div>{String(error)}</div>
-                                                    <Tag
-                                                        large
-                                                        minimal
-                                                        style={{ marginTop: 5 }}
-                                                    >
-                                                        Click
-                                                        {faIcon({
-                                                            icon: faPlay,
-                                                            style: {
-                                                                color: "#1c6e42",
-                                                                marginLeft: 5,
-                                                                marginRight: 5,
-                                                            },
-                                                        })}
-                                                        to re-run
-                                                    </Tag>
-                                                </>
-                                            )}
-                                        </div>
-                                    </Callout>
-                                ) : (
-                                    <NonIdealState
-                                        icon={faIcon({
-                                            icon: faBracketsCurly,
-                                            size: 50,
-                                        })}
-                                        title="Empty UI Schema"
-                                    />
-                                )
-                            ) : (
-                                <div className={Classes.RUNNING_TEXT}>
-                                    <pre
-                                        className="margin-0"
-                                        style={{
-                                            position: "relative",
+                                            minHeight: 21,
                                             overflow: "hidden",
+                                            padding: 1,
                                         }}
                                     >
-                                        <JsonViewer json={data} />
-                                    </pre>
-                                </div>
+                                        {!error ? (
+                                            <JsonForms
+                                                schema={schema}
+                                                uischema={uischema}
+                                                data={data}
+                                                renderers={JSONFORMS_RENDERERS}
+                                                cells={vanillaCells}
+                                                onChange={({
+                                                    data,
+                                                    errors,
+                                                }) => {
+                                                    console.log(data, errors);
+                                                    setData(data);
+                                                }}
+                                            />
+                                        ) : (
+                                            <>
+                                                <div>{String(error)}</div>
+                                                <Tag
+                                                    size="large"
+                                                    minimal
+                                                    style={{ marginTop: 5 }}
+                                                >
+                                                    Click
+                                                    {faIcon({
+                                                        icon: faPlay,
+                                                        style: {
+                                                            color: "#1c6e42",
+                                                            marginLeft: 5,
+                                                            marginRight: 5,
+                                                        },
+                                                    })}
+                                                    to re-run
+                                                </Tag>
+                                            </>
+                                        )}
+                                    </div>
+                                </Callout>
+                            ) : (
+                                <NonIdealState
+                                    icon={faIcon({
+                                        icon: faBracketsCurly,
+                                        size: 50,
+                                    })}
+                                    title="Empty UI Schema"
+                                />
                             )}
                         </div>
                     </Allotment.Pane>

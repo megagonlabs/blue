@@ -12,11 +12,13 @@ const LayoutRenderer = ({
 }) => {
     // default layout is VerticalLayout
     const type = _.get(uischema, "type", "VerticalLayout");
+    const style = _.get(uischema, "props.style", {});
     const spaceEvenly = _.get(uischema, "props.spaceEvenly", true);
     const isHorizontal = _.isEqual(type, "HorizontalLayout");
     return (
         <div
             style={{
+                ...style,
                 display: "flex",
                 flexDirection: direction,
                 columnGap: 15,
@@ -38,7 +40,6 @@ const LayoutRenderer = ({
                                 path={path}
                                 renderers={renderers}
                                 cells={cells}
-                                key={index}
                             />
                         </div>
                     );

@@ -3,6 +3,7 @@ import AdminServiceListCheckbox from "@/components/admin/AdminServiceListCheckbo
 import { CONTAINER_STATUS_INDICATOR } from "@/components/constant";
 import { AppContext } from "@/components/contexts/app-context";
 import { AuthContext } from "@/components/contexts/auth-context";
+import { axiosErrorToast } from "@/components/helper";
 import { faIcon } from "@/components/icon";
 import { AppToaster } from "@/components/toaster";
 import {
@@ -10,6 +11,7 @@ import {
     ButtonGroup,
     Card,
     Divider,
+    H4,
     Intent,
     NonIdealState,
     Tag,
@@ -31,13 +33,13 @@ import {
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import axios from "axios";
 import _ from "lodash";
-import { useContext, useEffect, useState } from "react";
+import { useCallback, useContext, useEffect, useState } from "react";
 import ReactTimeAgo from "react-time-ago";
 export default function Services() {
-    const { appState } = useContext(AppContext);
+    const { appState, appActions } = useContext(AppContext);
     const [tableKey, setTableKey] = useState(Date.now());
     const [loading, setLoading] = useState(true);
-    const [data, setData] = useState([]);
+    const data = _.get(appState, "admin.services", []);
     const stopSelectedServices = async () => {
         const selectedServices = _.toArray(appState.admin.selectedServices);
         let tasks = [];
@@ -52,10 +54,7 @@ export default function Services() {
                             resolve(selectedServices[i]);
                         })
                         .catch((error) => {
-                            AppToaster.show({
-                                intent: Intent.DANGER,
-                                message: `${error.name}: ${error.message}`,
-                            });
+                            axiosErrorToast(error);
                             reject(selectedServices[i]);
                         });
                 })
@@ -77,16 +76,18 @@ export default function Services() {
             AppToaster.show({ intent: Intent.SUCCESS, message });
         }
     };
-    const fetchServiceList = () => {
+    const fetchServiceList = useCallback(() => {
         setLoading(true);
         axios.get("/containers/services").then((response) => {
-            setData(_.get(response, "data.results", []));
+            appActions.admin.setServiceList(
+                _.get(response, "data.results", [])
+            );
             setLoading(false);
         });
-    };
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
     useEffect(() => {
         fetchServiceList();
-    }, []);
+    }, [fetchServiceList]);
     const TABLE_CELL_HEIGHT = 40;
     const INIT_COLUMNS = [
         {
@@ -181,10 +182,16 @@ export default function Services() {
                     borderRadius: 0,
                     position: "relative",
                     zIndex: 1,
+                    cursor: "default",
                 }}
             >
-                <ButtonGroup large minimal>
-                    <Tooltip placement="bottom-start" minimal content="Refresh">
+                <ButtonGroup size="large" variant="minimal">
+                    <Button
+                        disabled
+                        style={{ cursor: "default" }}
+                        text={<H4 className="margin-0">Services</H4>}
+                    />
+                    <Tooltip placement="bottom" minimal content="Refresh">
                         <Button
                             onClick={fetchServiceList}
                             loading={loading}

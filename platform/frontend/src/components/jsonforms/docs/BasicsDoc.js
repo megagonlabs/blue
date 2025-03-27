@@ -17,7 +17,7 @@ export default function BasicsDoc({ closePanel }) {
         <>
             <div className="border-bottom" style={{ padding: "10px 20px" }}>
                 <Button
-                    outlined
+                    variant="outlined"
                     text="Back"
                     onClick={closePanel}
                     icon={faIcon({ icon: faArrowLeft })}
@@ -30,17 +30,20 @@ export default function BasicsDoc({ closePanel }) {
                     overflowY: "auto",
                 }}
             >
-                <div
-                    style={{
-                        display: "flex",
-                        alignItems: "center",
-                        marginBottom: 20,
-                    }}
-                >
+                <div style={{ marginBottom: 20 }}>
                     <H1 style={{ margin: 0 }}>Basics</H1>
                 </div>
                 <Callout intent={Intent.PRIMARY} icon={null}>
-                    This is not a type, but a documentation.
+                    This is not a type, but a documentation. For full
+                    documentation, please click&nbsp;
+                    <a
+                        rel="noopener noreferrer"
+                        target="_blank"
+                        href="https://jsonforms.io/"
+                    >
+                        here
+                    </a>
+                    .
                 </Callout>
                 <H2>Controls</H2>
                 <div>
@@ -61,7 +64,7 @@ export default function BasicsDoc({ closePanel }) {
                     The mandatory <Code>scope</Code> property, which expects
                     a&nbsp;
                     <a
-                        rel="noreferrer"
+                        rel="noopener noreferrer"
                         target="_blank"
                         href="https://json-schema.org/understanding-json-schema/structuring"
                     >

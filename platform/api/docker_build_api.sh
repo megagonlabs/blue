@@ -1,15 +1,9 @@
 #/bin/bash
-source $(dirname $0)/build_api.sh
-
-echo 'Building docker image...'
+echo "Building docker image ..."
+echo "${BLUE_CORE_DOCKER_ORG}/blue-platform-api:${BLUE_DEPLOY_VERSION}"
+echo "plaforms: ${BLUE_BUILD_PLATFORM}"
 
 # build docker
-docker build -t blue-platform-api:latest -f Dockerfile.api .
-
-# tag image
-docker tag blue-platform-api:latest blue-platform-api:$(git rev-parse --abbrev-ref HEAD)-$(git rev-parse --short HEAD)
-
-# tag image
-docker tag blue-platform-api:latest blue-platform-api:$(git rev-parse --abbrev-ref HEAD)-$(git rev-parse --short HEAD)
+docker buildx build --platform ${BLUE_BUILD_PLATFORM} --no-cache --push -t ${BLUE_CORE_DOCKER_ORG}/blue-platform-api:${BLUE_DEPLOY_VERSION} -f Dockerfile.api .
 
 echo 'Done...'

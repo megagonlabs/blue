@@ -1,17 +1,22 @@
-import { ENTITY_TYPE_LOOKUP } from "@/components/constant";
+import {
+    ENTITY_TYPE_LOOKUP,
+    REGISTRY_NESTING_SEPARATOR,
+} from "@/components/constant";
+import { AppContext } from "@/components/contexts/app-context";
 import Breadcrumbs from "@/components/entity/Breadcrumbs";
 import NewEntity from "@/components/entity/NewEntity";
 import {
+    axiosErrorToast,
     constructSavePropertyRequests,
     settlePromises,
     shallowDiff,
 } from "@/components/helper";
 import { AppToaster } from "@/components/toaster";
-import { Intent } from "@blueprintjs/core";
+import { Card, Intent } from "@blueprintjs/core";
 import axios from "axios";
 import _ from "lodash";
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 export default function New() {
     const router = useRouter();
     const [breadcrumbs, setBreadcrumbs] = useState([]);
@@ -23,7 +28,9 @@ export default function New() {
     const [created, setCreated] = useState(false);
     const [loading, setLoading] = useState(false);
     const [jsonError, setJsonError] = useState(false);
-    const urlPrefix = `/registry/${process.env.NEXT_PUBLIC_AGENT_REGISTRY_NAME}/agent`;
+    const { appState } = useContext(AppContext);
+    const urlPrefix = `/registry/${appState.agent.registryName}/agent`;
+    const [namePrefix, setNamePrefix] = useState("");
     const updateEntity = ({ path, value }) => {
         let newEntity = _.cloneDeep(entity);
         _.set(newEntity, path, value);
@@ -32,8 +39,9 @@ export default function New() {
     const saveEntity = () => {
         if (!router.isReady) return;
         setLoading(true);
-        axios[created ? "put" : "post"](`${urlPrefix}/${entity.name}`, {
-            name: entity.name,
+        const fullAgentName = `${namePrefix}${entity.name}`;
+        axios[created ? "put" : "post"](`${urlPrefix}/${fullAgentName}`, {
+            name: fullAgentName,
             description: entity.description,
         })
             .then(() => {
@@ -50,32 +58,26 @@ export default function New() {
                         difference,
                         properties: entity.properties,
                     }),
-                    (error) => {
+                    ({ error }) => {
                         if (!error) {
-                            router.push(`${urlPrefix}/${entity.name}`);
+                            const nextUrl = router.asPath
+                                .split("?")[0]
+                                .replace("/new", `/${fullAgentName}`);
+                            router.push(nextUrl);
                         }
                         setLoading(false);
                     }
                 );
             })
             .catch((error) => {
-                AppToaster.show({
-                    intent: Intent.DANGER,
-                    message: (
-                        <>
-                            <div>{_.get(error, "response.data.message")}</div>
-                            <div>
-                                {error.name}: {error.message}
-                            </div>
-                        </>
-                    ),
-                });
+                axiosErrorToast(error);
                 setLoading(false);
             });
     };
     useEffect(() => {
         if (_.isEmpty(router.query)) return;
         const pathParams = router.asPath
+            .split("?")[0]
             .split("/")
             .filter((param) => !_.isEmpty(param))
             .slice(0, -2);
@@ -84,13 +86,11 @@ export default function New() {
             key = null,
             value = null,
             type = "";
-        for (var i = 0; i < pathParams.length; i += 2) {
+        for (var i = 0; i < _.size(pathParams); i += 2) {
             key = pathParams[i];
             value = pathParams[i + 1];
             basePath += `/${key}/${value}`;
-            if (i > 0) {
-                type += `/${key}`;
-            }
+            if (i > 0) type += `/${key}`; // eslint-disable-line no-unused-vars
             crumbs.push({
                 href: basePath,
                 text: `${key}/ ${value}`,
@@ -105,23 +105,37 @@ export default function New() {
         // special case
         _.set(crumbs, 0, { ...crumb0, href: crumb0.href + "/agent" });
         setBreadcrumbs(crumbs);
+        if (!_.isEmpty(value) && _.size(pathParams) > 2)
+            setNamePrefix(`${value}${REGISTRY_NESTING_SEPARATOR}`);
     }, [router]);
     return (
         <div style={{ height: "100%", overflowY: "auto" }}>
-            <div style={{ margin: "20px 20px 10px" }}>
+            <Card
+                className="full-parent-width"
+                style={{
+                    padding: "15px 20px",
+                    top: 0,
+                    left: 0,
+                    position: "absolute",
+                    zIndex: 1,
+                }}
+            >
                 <Breadcrumbs breadcrumbs={breadcrumbs} />
+            </Card>
+            <div style={{ marginTop: 70 }}>
+                <NewEntity
+                    type="agent"
+                    namePrefix={namePrefix}
+                    updateEntity={updateEntity}
+                    saveEntity={saveEntity}
+                    entity={entity}
+                    loading={loading}
+                    jsonError={jsonError}
+                    setJsonError={setJsonError}
+                    urlPrefix={urlPrefix}
+                    setEntity={setEntity}
+                />
             </div>
-            <NewEntity
-                type="agent"
-                updateEntity={updateEntity}
-                saveEntity={saveEntity}
-                entity={entity}
-                loading={loading}
-                jsonError={jsonError}
-                setJsonError={setJsonError}
-                urlPrefix={urlPrefix}
-                setEntity={setEntity}
-            />
         </div>
     );
 }

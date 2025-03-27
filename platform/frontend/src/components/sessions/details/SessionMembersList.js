@@ -7,6 +7,7 @@ import {
     Card,
     Classes,
     DialogBody,
+    Icon,
     InputGroup,
     Intent,
     Popover,
@@ -15,6 +16,7 @@ import {
 } from "@blueprintjs/core";
 import {
     faCircleCheck,
+    faQuestion,
     faSearch,
     faTrash,
     faUserPlus,
@@ -23,15 +25,22 @@ import axios from "axios";
 import classNames from "classnames";
 import _ from "lodash";
 import Image from "next/image";
-import { useCallback, useContext, useEffect, useState } from "react";
-const UserAvatar = ({ user, loading = false }) => (
-    <Card
-        style={PROFILE_PICTURE_40}
-        className={loading ? Classes.SKELETON : null}
-    >
-        <Image alt="" src={_.get(user, "picture", "")} width={40} height={40} />
-    </Card>
-);
+import { useContext, useEffect, useMemo, useState } from "react";
+const UserAvatar = ({ user, loading = false }) => {
+    const picture = _.get(user, "picture", "");
+    return (
+        <Card
+            style={PROFILE_PICTURE_40}
+            className={loading ? Classes.SKELETON : null}
+        >
+            {_.isEmpty(picture) ? (
+                <Icon icon={faIcon({ icon: faQuestion, size: 20 })} />
+            ) : (
+                <Image alt="" src={picture} width={40} height={40} />
+            )}
+        </Card>
+    );
+};
 const UserInfo = ({ user, loading = false }) => (
     <div className={loading ? Classes.SKELETON : null}>
         <div style={{ fontWeight: 600 }}>{_.get(user, "name", "-")}</div>
@@ -93,21 +102,24 @@ export default function SessionMembersList({ loading, setLoading }) {
     useEffect(() => {
         fetchMemberList();
     }, []); // eslint-disable-line react-hooks/exhaustive-deps
-    const handleSearchQuery = useCallback(
-        _.debounce((keyword) => {
-            if (!_.isEmpty(keyword)) {
-                axios
-                    .get("/accounts/users", { params: { keyword: keyword } })
-                    .then((response) => {
-                        setSearchResult(_.get(response, "data.users", []));
-                    })
-                    .finally(() => setIsTyping(false));
-            } else {
-                setSearchResult([]);
-                setIsTyping(false);
-            }
-        }, 800),
-        [members]
+    const handleSearchQuery = useMemo(
+        () =>
+            _.debounce((keyword) => {
+                if (!_.isEmpty(keyword)) {
+                    axios
+                        .get("/accounts/users", {
+                            params: { keyword: keyword },
+                        })
+                        .then((response) => {
+                            setSearchResult(_.get(response, "data.users", []));
+                        })
+                        .finally(() => setIsTyping(false));
+                } else {
+                    setSearchResult([]);
+                    setIsTyping(false);
+                }
+            }, 800),
+        []
     );
     const LOADING_PLACEHOLDER = (
         <div
@@ -138,17 +150,14 @@ export default function SessionMembersList({ loading, setLoading }) {
         </div>
     );
     const removeMember = (user) => {
+        const userName = _.get(user, "name", "-");
         axios
             .delete(`/sessions/session/${sessionIdFocus}/members/${user.uid}`)
             .then(() => {
                 fetchMemberList();
                 AppToaster.show({
                     intent: Intent.SUCCESS,
-                    message: `Removed ${_.get(
-                        user,
-                        "name",
-                        "-"
-                    )} from the session`,
+                    message: `Removed ${userName} from the session`,
                 });
             });
     };
@@ -166,16 +175,16 @@ export default function SessionMembersList({ loading, setLoading }) {
             });
     };
     return (
-        <DialogBody className="dialog-body">
+        <DialogBody>
             <div
                 style={{
-                    padding: 15,
                     minHeight: 202,
                     height: _.isEmpty(members) ? 202 : null,
                     maxHeight: 463,
                 }}
             >
                 <Popover
+                    usePortal={false}
                     onInteraction={(state) => {
                         setIsSearchPopoverOpen(state);
                         if (!state && !_.isEmpty(recentlyAdded)) {
@@ -194,22 +203,21 @@ export default function SessionMembersList({ loading, setLoading }) {
                     isOpen={isSearchPopoverOpen}
                     placement="bottom-start"
                     content={
-                        <div style={{ padding: 7.5 }}>
+                        <div style={{ padding: 15 }}>
                             {_.isEmpty(searchResult) ? (
                                 <div
-                                    style={{ padding: 7.5 }}
                                     className={
                                         isTyping ? Classes.SKELETON : null
                                     }
                                 >
-                                    No result
+                                    No results.
                                 </div>
                             ) : null}
                             {searchResult.map((user) => {
                                 return (
                                     <div
                                         key={user.uid}
-                                        className="on-hover-background-color-bp-gray-3"
+                                        className="background-color-on-hover"
                                         style={{
                                             display: "flex",
                                             alignItems: "center",
@@ -223,7 +231,6 @@ export default function SessionMembersList({ loading, setLoading }) {
                                             user={user}
                                             loading={isTyping}
                                         />
-
                                         <UserInfo
                                             user={user}
                                             loading={isTyping}
@@ -232,10 +239,11 @@ export default function SessionMembersList({ loading, setLoading }) {
                                         !memberIds.has(user.uid) ? (
                                             <Button
                                                 intent={Intent.PRIMARY}
-                                                minimal
+                                                variant="minimal"
                                                 onClick={() => {
                                                     addMember(user);
                                                 }}
+                                                size="large"
                                                 className={
                                                     isTyping
                                                         ? Classes.SKELETON
@@ -244,6 +252,7 @@ export default function SessionMembersList({ loading, setLoading }) {
                                                 style={{
                                                     position: "absolute",
                                                     right: 15,
+                                                    top: 7.5,
                                                 }}
                                                 icon={faIcon({
                                                     icon: faUserPlus,
@@ -276,7 +285,7 @@ export default function SessionMembersList({ loading, setLoading }) {
                         autoFocus
                         leftIcon={faIcon({ icon: faSearch })}
                         placeholder="Search members"
-                        large
+                        size="large"
                         value={keyword}
                         onChange={(event) => {
                             setIsTyping(true);
@@ -313,7 +322,7 @@ export default function SessionMembersList({ loading, setLoading }) {
                         return (
                             <div
                                 key={member.uid}
-                                className="on-hover-background-color-bp-gray-3"
+                                className="background-color-on-hover"
                                 style={{
                                     display: "flex",
                                     alignItems: "center",
@@ -327,11 +336,13 @@ export default function SessionMembersList({ loading, setLoading }) {
                                 <UserInfo user={user} />
                                 {member.owner ? (
                                     <Tag
+                                        size="large"
                                         minimal
                                         intent={Intent.PRIMARY}
                                         style={{
                                             position: "absolute",
                                             right: 15,
+                                            top: 12.5,
                                         }}
                                     >
                                         Owner
@@ -341,9 +352,11 @@ export default function SessionMembersList({ loading, setLoading }) {
                                         style={{
                                             position: "absolute",
                                             right: 15,
+                                            top: 7.5,
                                         }}
                                     >
                                         <Popover
+                                            usePortal={false}
                                             placement="left"
                                             content={
                                                 <div style={{ padding: 15 }}>
@@ -351,6 +364,7 @@ export default function SessionMembersList({ loading, setLoading }) {
                                                         className={
                                                             Classes.POPOVER_DISMISS
                                                         }
+                                                        size="large"
                                                         text="Confirm"
                                                         onClick={() => {
                                                             removeMember(user);
@@ -366,7 +380,8 @@ export default function SessionMembersList({ loading, setLoading }) {
                                                 placement="left"
                                             >
                                                 <Button
-                                                    minimal
+                                                    size="large"
+                                                    variant="minimal"
                                                     icon={faIcon({
                                                         icon: faTrash,
                                                     })}

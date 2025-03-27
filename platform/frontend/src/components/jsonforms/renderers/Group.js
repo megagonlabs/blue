@@ -17,7 +17,11 @@ const GroupRenderer = ({
             collapseProps={{
                 defaultIsOpen: _.get(uischema, "props.defaultIsOpen", true),
             }}
-            style={convertCss(_.get(uischema, "props.style", {}))}
+            style={convertCss({
+                ..._.get(uischema, "props.style", {}),
+                maxWidth: "100%",
+                overflow: "auto",
+            })}
             compact={_.get(uischema, "props.compact", false)}
             collapsible={_.get(uischema, "props.collapsible", false)}
             title={_.isString(label) ? label : null}

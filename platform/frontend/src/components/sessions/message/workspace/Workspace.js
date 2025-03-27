@@ -60,7 +60,7 @@ export default function Workspace() {
     return (
         <div className="full-parent-height">
             <div className="border-bottom" style={{ padding: "5px 20px" }}>
-                <ButtonGroup minimal>
+                <ButtonGroup size="large" variant="minimal">
                     <Tooltip
                         minimal
                         content="Clear workspace"
@@ -81,7 +81,7 @@ export default function Workspace() {
                     <Tooltip content="Collapse all" minimal placement="bottom">
                         <Button
                             icon={faIcon({ icon: faArrowsToLine })}
-                            minimal
+                            variant="minimal"
                             onClick={() =>
                                 appActions.session.collapseAllWorkspace(
                                     sessionIdFocus
@@ -95,7 +95,7 @@ export default function Workspace() {
                 style={{
                     padding: 20,
                     overflowY: "auto",
-                    height: "calc(100% - 41px)",
+                    height: "calc(100% - 51px)",
                 }}
             >
                 {contents.map((content, index) => {

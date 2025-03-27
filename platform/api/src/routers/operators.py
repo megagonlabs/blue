@@ -6,18 +6,12 @@ from fastapi import Depends, Request
 import pydash
 from constant import BANNED_ENTITY_NAMES, PermissionDenied, account_id_header, acl_enforce
 
-###### Add lib path
-sys.path.append("./lib/")
-sys.path.append("./lib/operator_registry/")
-sys.path.append("./lib/platform/")
-
 ###### Parsers, Formats, Utils
 import re
 import csv
 import json
 import time
 import logging
-from utils import json_utils
 
 
 ##### Typing
@@ -30,13 +24,13 @@ from fastapi.responses import JSONResponse
 
 
 ###### Schema
-class Operator(BaseModel):
+class OperatorSchema(BaseModel):
     name: str
     description: Union[str, None] = None
     icon: Union[str, dict, None] = None
 
 
-class Parameter(BaseModel):
+class ParameterSchema(BaseModel):
     name: str
     description: Union[str, None] = None
 
@@ -48,8 +42,8 @@ JSONStructure = Union[JSONArray, JSONObject, Any]
 
 
 ###### Blue
-from blueprint import Platform
-from operator_registry import OperatorRegistry
+from blue.platform import Platform
+from blue.operator import OperatorRegistry
 
 ###### Properties
 from settings import ACL, PROPERTIES
@@ -94,7 +88,6 @@ def operator_acl_enforce(request: Request, source: dict, write=False, throw=True
 def get_operators(request: Request):
     acl_enforce(request.state.user['role'], 'operator_registry', 'read_all')
     registry_results = operator_registry.list_records()
-    registry_results = list(registry_results.values())
     return JSONResponse(content={"results": registry_results})
 
 
@@ -106,7 +99,7 @@ def get_operator(request: Request, operator_name):
 
 
 @router.post("/operator/{operator_name}")
-def add_operator(request: Request, operator_name, operator: Operator):
+def add_operator(request: Request, operator_name, operator: OperatorSchema):
     operator_db = operator_registry.get_operator(operator_name)
     if operator_name in BANNED_ENTITY_NAMES:
         return JSONResponse(content={"message": "The name cannot be used."}, status_code=403)
@@ -122,7 +115,7 @@ def add_operator(request: Request, operator_name, operator: Operator):
 
 
 @router.put("/operator/{operator_name}")
-def update_operator(request: Request, operator_name, operator: Operator):
+def update_operator(request: Request, operator_name, operator: OperatorSchema):
     operator_db = operator_registry.get_operator(operator_name)
     operator_acl_enforce(request, operator_db, write=True)
     # TODO: properties
@@ -161,7 +154,7 @@ def get_operator_property(request: Request, operator_name, property_name):
 def set_operator_property(request: Request, operator_name, property_name, property: JSONStructure):
     operator_db = operator_registry.get_operator(operator_name)
     operator_acl_enforce(request, operator_db, write=True)
-    operator_registry.set_operator_property(operator_name, property_name, property, rebuild=True)
+    operator_registry.set_operator_property(operator_name, property_name, pydash.objects.get(property, [property_name], None), rebuild=True)
     # save
     operator_registry.dump("/blue_data/config/" + operator_registry_id + ".operators.json")
     return JSONResponse(content={"message": "Success"})

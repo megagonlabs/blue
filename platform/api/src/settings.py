@@ -2,6 +2,7 @@
 import os
 
 import pydash
+import copy
 
 ###### Properties
 PROPERTIES = {}
@@ -19,6 +20,7 @@ PROPERTIES["model_registry.name"] = os.getenv("BLUE_MODEL_REGISTRY")
 PROPERTIES["operator_registry.name"] = os.getenv("BLUE_OPERATOR_REGISTRY")
 PROPERTIES["embeddings_model"] = os.getenv("BLUE_AGENT_REGISTRY_MODEL")
 PROPERTIES["db.host"] = os.getenv("BLUE_DB_HOST", 'blue_db_redis')
+PROPERTIES["db.port"] = os.getenv("BLUE_DB_PORT", '6379')
 PROPERTIES["rbac.config.folder"] = os.getenv("BLUE_RBAC_CONFIG_FOLDER")
 
 ##### Other Settings
@@ -26,9 +28,13 @@ DEVELOPMENT = os.getenv("BLUE_DEPLOY_DEVELOPMENT", "False").lower() == "true"
 SECURE_COOKIE = os.getenv("BLUE_DEPLOY_SECURE", "True").lower() == "true"
 EMAIL_DOMAIN_WHITE_LIST = os.getenv("BLUE_EMAIL_DOMAIN_WHITE_LIST", "megagon.ai")
 DISABLE_AUTHENTICATION = os.getenv('DISABLE_AUTHENTICATION', 'False').lower() == 'true'
+FIREBASE_SERVICE_CRED = os.getenv("FIREBASE_SERVICE_CRED", "")
 
 ##### RBAC
 import casbin
+
+##### Blue
+from blue.platform import Platform
 
 ACL = casbin.Enforcer(os.path.join(PROPERTIES["rbac.config.folder"], "model.conf"), os.path.join(PROPERTIES["rbac.config.folder"], "policy.csv"))
 

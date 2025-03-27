@@ -6,10 +6,12 @@ import {
     ButtonGroup,
     Card,
     Classes,
+    Colors,
     H5,
     Tooltip,
 } from "@blueprintjs/core";
 import {
+    faCircleSmall,
     faClipboard,
     faCopy,
     faThumbTack,
@@ -19,20 +21,31 @@ import axios from "axios";
 import copy from "copy-to-clipboard";
 import _ from "lodash";
 import { useRouter } from "next/router";
-import { useContext, useState } from "react";
+import { useContext, useMemo, useState } from "react";
 import { AppContext } from "../contexts/app-context";
-import { useSocket } from "../hooks/useSocket";
+import { AuthContext } from "../contexts/auth-context";
 export default function SearchResultRow({ sessionId, style = {} }) {
     const { appState, appActions } = useContext(AppContext);
-    const { pinnedSessionIds, sessionDetails } = appState.session;
+    const { pinnedSessionIds, sessionDetails, unreadSessionIds } =
+        appState.session;
     const sessionName = _.get(sessionDetails, [sessionId, "name"], sessionId);
+    const sessionDisplayName = useMemo(() => {
+        if (_.isEqual(sessionId, sessionName)) {
+            const utcSeconds = sessionDetails[sessionId].created_date;
+            let date = new Date(0); // The 0 here sets the date to the epoch
+            date.setUTCSeconds(utcSeconds);
+            return date.toLocaleString();
+        }
+        return sessionName;
+    }, [sessionDetails, sessionId, sessionName]);
     const sessionDescription = _.get(
         sessionDetails,
         [sessionId, "description"],
         ""
     );
     const router = useRouter();
-    const { socket } = useSocket();
+    const { settings } = useContext(AuthContext);
+    const darkMode = _.get(settings, "dark_mode", false);
     const [updatingPin, setUpdatingPin] = useState(false);
     const isPinned = pinnedSessionIds.has(sessionId);
     const handlePinSession = () => {
@@ -56,14 +69,7 @@ export default function SearchResultRow({ sessionId, style = {} }) {
         <div style={style}>
             <Card
                 className="session-search-result-row"
-                onClick={() => {
-                    appActions.session.setSessionIdFocus(sessionId);
-                    appActions.session.observeSession({
-                        sessionId,
-                        socket,
-                    });
-                    router.push("/sessions");
-                }}
+                onClick={() => router.push(`/sessions/${sessionId}`)}
                 style={{
                     cursor: "pointer",
                     display: "flex",
@@ -74,17 +80,28 @@ export default function SearchResultRow({ sessionId, style = {} }) {
                     height: 58,
                 }}
             >
+                {unreadSessionIds.has(sessionId) &&
+                    faIcon({
+                        icon: faCircleSmall,
+                        style: {
+                            color: Colors.RED3,
+                            position: "absolute",
+                            top: 21,
+                            left: 2,
+                        },
+                    })}
                 <div
                     className="session-search-result-row-actions"
                     style={{
                         position: "absolute",
                         left: 20,
                         width: 300,
-                        background:
-                            "linear-gradient(to right,  rgba(255,255,255,1) 0%,rgba(255,255,255,1) 100px,rgba(255,255,255,0) 99%,rgba(255,255,255,0) 100%)",
+                        background: darkMode
+                            ? "linear-gradient(to right,  rgba(37,42,49,1) 0%,rgba(37,42,49,1) 100px,rgba(255,255,255,0) 99%,rgba(255,255,255,0) 100%)"
+                            : "linear-gradient(to right,  rgba(255,255,255,1) 0%,rgba(255,255,255,1) 100px,rgba(255,255,255,0) 99%,rgba(255,255,255,0) 100%)",
                     }}
                 >
-                    <ButtonGroup large minimal>
+                    <ButtonGroup size="large" variant="minimal">
                         <Tooltip
                             content={isPinned ? "Unpin" : "Pin"}
                             minimal
@@ -113,16 +130,12 @@ export default function SearchResultRow({ sessionId, style = {} }) {
                                 onClick={(event) => {
                                     copy(sessionId);
                                     AppToaster.show({
-                                        icon: faIcon({
-                                            icon: faClipboard,
-                                        }),
+                                        icon: faIcon({ icon: faClipboard }),
                                         message: `Copied "${sessionId}"`,
                                     });
                                     event.stopPropagation();
                                 }}
-                                icon={faIcon({
-                                    icon: faCopy,
-                                })}
+                                icon={faIcon({ icon: faCopy })}
                             />
                         </Tooltip>
                     </ButtonGroup>
@@ -131,7 +144,7 @@ export default function SearchResultRow({ sessionId, style = {} }) {
                     className={`margin-0 ${Classes.TEXT_OVERFLOW_ELLIPSIS}`}
                     style={{ width: 300 }}
                 >
-                    #&nbsp;{sessionName}
+                    #&nbsp;{sessionDisplayName}
                 </H5>
                 <div
                     className={Classes.TEXT_OVERFLOW_ELLIPSIS}

@@ -1,7 +1,9 @@
 import EntityDescription from "@/components/entity/EntityDescription";
 import EntityMain from "@/components/entity/EntityMain";
 import EntityProperties from "@/components/entity/EntityProperties";
+import { faIcon } from "@/components/icon";
 import {
+    H5,
     HTMLTable,
     Intent,
     Section,
@@ -13,6 +15,7 @@ import _ from "lodash";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
+import { ENTITY_TYPE_LOOKUP } from "../constant";
 export default function CollectionEntity() {
     const router = useRouter();
     const [entity, setEntity] = useState({ type: "collection" });
@@ -25,16 +28,16 @@ export default function CollectionEntity() {
             setEntity(_.get(response, "data.result", {}));
             setLoading(false);
         });
-    }, [router]);
+    }, [router, routerQueryPath]);
     return (
         <div style={{ padding: "10px 20px 20px" }}>
             <EntityMain entity={entity} loading={loading} />
             <EntityDescription entity={entity} loading={loading} />
             <EntityProperties entity={entity} loading={loading} />
             <Section
-                collapsible
                 compact
-                title="Entities"
+                icon={faIcon({ icon: ENTITY_TYPE_LOOKUP.entity.icon })}
+                title={<H5 className="margin-0">Entities</H5>}
                 style={{ marginTop: 20 }}
             >
                 <SectionCard padded={false}>
@@ -66,7 +69,7 @@ export default function CollectionEntity() {
                                                     }}
                                                     minimal
                                                     interactive
-                                                    large
+                                                    size="large"
                                                     intent={Intent.PRIMARY}
                                                 >
                                                     {element.name}
@@ -83,8 +86,8 @@ export default function CollectionEntity() {
             </Section>
             <Section
                 compact
-                collapsible
-                title="Relations"
+                icon={faIcon({ icon: ENTITY_TYPE_LOOKUP.relation.icon })}
+                title={<H5 className="margin-0">Relations</H5>}
                 style={{ marginTop: 20 }}
             >
                 <SectionCard padded={false}>
@@ -116,7 +119,7 @@ export default function CollectionEntity() {
                                                     }}
                                                     minimal
                                                     interactive
-                                                    large
+                                                    size="large"
                                                     intent={Intent.PRIMARY}
                                                 >
                                                     {element.name}

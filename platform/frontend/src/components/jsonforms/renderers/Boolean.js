@@ -41,7 +41,7 @@ const BooleanRenderer = ({
                 checked={data}
                 label={labelElement}
                 style={style}
-                large
+                size="large"
                 onChange={handleOnChange}
             />
         );
@@ -52,7 +52,7 @@ const BooleanRenderer = ({
             checked={data}
             label={labelElement}
             style={style}
-            large
+            size="large"
             onChange={handleOnChange}
         />
     );

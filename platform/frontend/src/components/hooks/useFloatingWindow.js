@@ -47,7 +47,7 @@ export const useFloatingWindow = ({ onDrag = id } = {}) => {
             // don't forget to disable text selection during drag and drop
             // operations
             e.target.style.userSelect = "none";
-            const rect = event.target.getBoundingClientRect();
+            const rect = e.target.getBoundingClientRect();
             setOffset({ x: e.clientX - rect.left, y: e.clientY - rect.top });
             setPressed(true);
         };

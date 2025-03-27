@@ -1,17 +1,15 @@
 ###### OS / Systems
+import asyncio
+
+should_stop = asyncio.Event()
+import signal
+from contextlib import asynccontextmanager
 from curses import noecho
 import sys
+import copy
 import logging
-
 import pydash
-
-###### Add lib path
-sys.path.append("./lib/")
-sys.path.append("./lib/agent_registry/")
-sys.path.append("./lib/data_registry/")
-sys.path.append("./lib/model_registry/")
-sys.path.append("./lib/operator_registry/")
-sys.path.append("./lib/platform/")
+import redis
 
 
 ###### Parsers, Formats, Utils
@@ -26,27 +24,28 @@ from fastapi.middleware.cors import CORSMiddleware
 from firebase_admin import auth
 
 ###### Settings
-from settings import PROPERTIES, DISABLE_AUTHENTICATION
+from settings import PROPERTIES, DISABLE_AUTHENTICATION, FIREBASE_SERVICE_CRED
+import jwt, requests
+
+# start redis connection
+db_host = PROPERTIES['db.host']
+db_port = PROPERTIES['db.port']
+connection = redis.Redis(host=db_host, port=db_port, decode_responses=True)
 
 ###### API Routers
-from constant import EMAIL_DOMAIN_ADDRESS_REGEXP, InvalidRequestJson, PermissionDenied
-from routers import agents
-from routers import data
-from routers import models
-from routers import operators
-from routers import sessions
-from routers import platform
-from routers import accounts
+from constant import EMAIL_DOMAIN_ADDRESS_REGEXP, InvalidRequestJson, PermissionDenied, verify_google_id_token
+from routers import agents, data, models, operators, sessions, containers, platform, accounts, status
 
 from ConnectionManager import ConnectionManager
 
 ###### Blue
-from session import Session
-from blueprint import Platform
-from agent_registry import AgentRegistry
-from data_registry import DataRegistry
-from model_registry import ModelRegistry
-from operator_registry import OperatorRegistry
+
+from blue.platform import Platform
+from blue.agents.registry import AgentRegistry
+from blue.data.registry import DataRegistry
+from blue.model import ModelRegistry
+from blue.operator import OperatorRegistry
+from blue.tracker import SystemPerformanceTracker
 
 ### Assign from platform properties
 platform_id = PROPERTIES["platform.name"]
@@ -67,7 +66,7 @@ print("blue-platform-api: " + version)
 logging.getLogger().setLevel("INFO")
 
 ###### Initialization
-p = Platform(id=platform_id, properties=PROPERTIES)
+p = Platform(id=platform_id, properties={**PROPERTIES, 'default_session_expiration_duration': 3})
 
 ## Create Registries, Load
 agent_registry = AgentRegistry(id=agent_registry_id, prefix=prefix, properties=PROPERTIES)
@@ -93,14 +92,51 @@ web_server_port = PROPERTIES["web.server.port"]
 # local & cloud frontend
 allowed_origins = ["http://localhost:3000", "http://localhost:3001", "http://localhost:25830", "https://" + web_server, "http://" + web_server + ":" + web_server_port]
 
-app = FastAPI()
+
+def handle_signal(signum, frame):
+    should_stop.set()
+
+
+# global system tracker
+system_tracker_properties = copy.deepcopy(PROPERTIES)
+system_tracker_properties["tracker.perf.system.autostart"] = True
+system_tracker_properties["tracker.perf.system.outputs"] = ["pubsub"]
+system_tracker = SystemPerformanceTracker(properties=system_tracker_properties)
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # start platform performance tracker
+    p._start_tracker()
+
+    def session_cleanup(sessions):
+        connection_manager: ConnectionManager = app.connection_manager
+        for session in sessions:
+            connection_manager.clear_session(session)
+
+    p._init_session_cleanup_scheduler(callback=session_cleanup)
+    p._start_session_cleanup_job()
+    signal.signal(signal.SIGINT, handle_signal)
+    signal.signal(signal.SIGTERM, handle_signal)
+    yield
+    # stop platform performance tracker
+    p._terminate_tracker()
+    p._stop_session_cleanup_job()
+    system_tracker._terminate_tracker()
+    signal.signal(signal.SIGINT, signal.SIG_DFL)
+    signal.signal(signal.SIGTERM, signal.SIG_DFL)
+
+
+app = FastAPI(lifespan=lifespan)
 app.include_router(agents.router)
 app.include_router(data.router)
 app.include_router(models.router)
 app.include_router(operators.router)
 app.include_router(sessions.router)
+app.include_router(containers.router)
 app.include_router(platform.router)
 app.include_router(accounts.router)
+app.include_router(status.router)
 connection_manager = ConnectionManager()
 app.connection_manager = connection_manager
 
@@ -119,7 +155,10 @@ async def session_verification(request: Request, call_next):
         # if the user's firebase session was revoked, user deleted/disabled, etc.
         else:
             try:
-                decoded_claims = auth.verify_session_cookie(session_cookie, check_revoked=True)
+                if not pydash.is_empty(FIREBASE_SERVICE_CRED):
+                    decoded_claims = auth.verify_session_cookie(session_cookie, check_revoked=True)
+                else:
+                    decoded_claims = verify_google_id_token(session_cookie, client_id='blue-9d597', issuer='https://securetoken.google.com/blue-9d597')
                 email = decoded_claims["email"]
                 email_domain = re.search(EMAIL_DOMAIN_ADDRESS_REGEXP, email).group(1)
                 profile = {
@@ -133,7 +172,15 @@ async def session_verification(request: Request, call_next):
                 user_role = p.get_metadata(f'users.{profile["uid"]}.role')
                 profile['role'] = user_role
                 request.state.user = profile
-            except auth.InvalidSessionCookieError:
+            except (
+                auth.InvalidSessionCookieError,
+                jwt.ExpiredSignatureError,
+                jwt.InvalidAudienceError,
+                jwt.InvalidIssuerError,
+                jwt.InvalidTokenError,
+                requests.exceptions.RequestException,
+                Exception,
+            ):
                 # session cookie is invalid, expired or revoked. force user to login.
                 response = JSONResponse(content={"message": "Session cookie is invalid, epxpired or revoked"}, status_code=401)
                 response.set_cookie("session", expires=0, path="/")

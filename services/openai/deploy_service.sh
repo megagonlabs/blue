@@ -1,6 +1,6 @@
 #/bin/bash
 
-# USAGE: deploy_service --target localhost|swarm --platform platform --port_mapping port_mapping --service service --image image
+# USAGE: deploy_service --target localhost|swarm --platform platform --port_mapping port_mapping --service service --image image --properties properties 
 # if no arguments, use env variable as default
 
 
@@ -36,6 +36,12 @@ while [[ $# -gt 0 ]]; do
       shift 
       shift 
       ;;
+    --properties)
+      PROPERTIES="$2"
+      # pass argument and value
+      shift 
+      shift 
+      ;;
   esac
 done
 
@@ -51,16 +57,24 @@ then
    export BLUE_DEPLOY_PLATFORM=default
 fi
 
+# set properties to {}, if not provided
+if [ -z "$PROPERTIES" ]
+then
+   export PROPERTIES='{}'
+fi
 
 export IMAGE=${IMAGE}
 export SERVICE=${SERVICE}
 export SERVICE_LOWERCASE=$(echo ${SERVICE}| tr '[:upper:]' '[:lower:]')
 export PORT_MAPPING=${PORT_MAPPING}
+export PROPERTIES=${PROPERTIES}
+export IMAGE=${IMAGE}
 
 echo "DEPLOY TARGET   = ${BLUE_DEPLOY_TARGET}"
 echo "DEPLOY PLATFORM = ${BLUE_DEPLOY_PLATFORM}"
 echo "SERVICE = ${SERVICE}"
 echo "IMAGE = ${IMAGE}"
+echo "PROPERTIES = ${PROPERTIES}"
 echo "PORT_MAPPING = ${PORT_MAPPING}"
 
 if [ $BLUE_DEPLOY_TARGET == swarm ]

@@ -17,7 +17,7 @@ import {
 import {
     faArrowDown,
     faArrowUp,
-    faCircleNodes,
+    faDiagramNext,
     faPlus,
     faTrash,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
@@ -240,7 +240,7 @@ const ArrayRenderer = ({
                                                 onClick={() => {
                                                     moveUp(path, index)();
                                                 }}
-                                                minimal
+                                                variant="minimal"
                                                 icon={faIcon({
                                                     icon: faArrowUp,
                                                 })}
@@ -257,7 +257,7 @@ const ArrayRenderer = ({
                                                 onClick={() => {
                                                     moveDown(path, index)();
                                                 }}
-                                                minimal
+                                                variant="minimal"
                                                 icon={faIcon({
                                                     icon: faArrowDown,
                                                 })}
@@ -268,6 +268,7 @@ const ArrayRenderer = ({
                                         content={
                                             <div style={{ padding: 15 }}>
                                                 <Button
+                                                    size="large"
                                                     intent={Intent.DANGER}
                                                     className={
                                                         Classes.POPOVER_DISMISS
@@ -289,7 +290,7 @@ const ArrayRenderer = ({
                                             content={translations.removeTooltip}
                                         >
                                             <Button
-                                                minimal
+                                                variant="minimal"
                                                 intent={Intent.DANGER}
                                                 icon={faIcon({ icon: faTrash })}
                                             />
@@ -325,7 +326,7 @@ const ArrayRenderer = ({
                         icon={faIcon({ icon: faPlus })}
                         text="Add"
                         ellipsizeText
-                        outlined
+                        variant="outlined"
                         onClick={addItem(
                             path,
                             createDefaultValue(schema, rootSchema)
@@ -336,10 +337,10 @@ const ArrayRenderer = ({
                     <Button
                         ellipsizeText
                         disabled={_.isEmpty(data)}
-                        outlined
+                        variant="outlined"
                         text="Visualize"
                         onClick={setVisualization}
-                        icon={faIcon({ icon: faCircleNodes })}
+                        icon={faIcon({ icon: faDiagramNext })}
                     />
                 ) : null}
             </ButtonGroup>

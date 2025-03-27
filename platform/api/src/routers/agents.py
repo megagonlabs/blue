@@ -1,16 +1,10 @@
 ###### OS / Systems
 from curses import noecho
-import sys
 
 from fastapi import Depends, Request
 import pydash
 
 from constant import BANNED_ENTITY_NAMES, PermissionDenied, account_id_header, acl_enforce
-
-###### Add lib path
-sys.path.append("./lib/")
-sys.path.append("./lib/agent_registry/")
-sys.path.append("./lib/platform/")
 
 
 ###### Parsers, Formats, Utils
@@ -29,19 +23,19 @@ from fastapi.responses import JSONResponse
 
 
 ###### Schema
-class AgentGroup(BaseModel):
+class AgentGroupSchema(BaseModel):
     name: str
     description: Union[str, None] = None
     icon: Union[str, dict, None] = None
 
 
-class Agent(BaseModel):
+class AgentSchema(BaseModel):
     name: str
     description: Union[str, None] = None
     icon: Union[str, dict, None] = None
 
 
-class Parameter(BaseModel):
+class ParameterSchema(BaseModel):
     name: str
     description: Union[str, None] = None
 
@@ -53,9 +47,9 @@ JSONStructure = Union[JSONArray, JSONObject, Any]
 
 
 ###### Blue
-from session import Session
-from blueprint import Platform
-from agent_registry import AgentRegistry
+from blue.agent import Agent
+from blue.platform import Platform
+from blue.agents.registry import AgentRegistry
 
 
 ###### Properties
@@ -168,7 +162,7 @@ def merge_container_results(registry_results):
             else:
                 # check if parent has a container running
                 # TODO: REVISIT AFTER #186
-                name = name.split("_")[0]
+                name = name.split(Agent.SEPARATOR)[0]
                 if name in containers:
                     registry_result['container'] = containers[name]
                 else:
@@ -211,15 +205,25 @@ def agent_group_acl_enforce(request: Request, agent_group: dict, write=False, th
 
 #############
 @router.get("/agents")
-def get_agents(request: Request):
+def get_agents(request: Request, recursive: bool = False):
     acl_enforce(request.state.user['role'], 'agent_registry', 'read_all')
-    registry_results = agent_registry.list_records(type="agent")
-    registry_results = list(registry_results.values())
-    merged_results = merge_container_results(registry_results)
+    # get base agents
+    results = []
+    base_agents = agent_registry.list_records(type="agent", recursive=False)
+    results.extend(base_agents)
+    if recursive:
+        # get derived agents
+        derived_agents = agent_registry.list_records(condition='[?(@.type=="agent")]..[?(@.type=="agent")]')
+        results.extend(derived_agents)
+
+    merged_results = merge_container_results(results)
     return JSONResponse(content={"results": merged_results})
 
 
 @router.get("/agent/{agent_name}")
+@router.get("/agent/{path:path}/agent/{agent_name}")
+@router.get('/agent_group/{agent_group}/agent/{agent_name}')
+@router.get('/agent_group/{agent_group}/agent/{path:path}/agent/{agent_name}')
 def get_agent(request: Request, agent_name):
     acl_enforce(request.state.user['role'], 'agent_registry', 'read_all')
     result = agent_registry.get_agent(agent_name)
@@ -228,9 +232,9 @@ def get_agent(request: Request, agent_name):
 
 
 @router.post("/agent/{agent_name}")
-def add_agent(request: Request, agent_name, agent: Agent):
+def add_agent(request: Request, agent_name, agent: AgentSchema):
     agent_db = agent_registry.get_agent(agent_name)
-    if agent_name in BANNED_ENTITY_NAMES:
+    if agent_registry._extract_shortname(agent_name) in BANNED_ENTITY_NAMES:
         return JSONResponse(content={"message": "The name cannot be used."}, status_code=403)
     # if agent already exists, return 409 conflict error
     if not pydash.is_empty(agent_db):
@@ -244,7 +248,7 @@ def add_agent(request: Request, agent_name, agent: Agent):
 
 
 @router.put("/agent/{agent_name}")
-def update_agent(request: Request, agent_name, agent: Agent):
+def update_agent(request: Request, agent_name, agent: AgentSchema):
     agent_db = agent_registry.get_agent(agent_name)
     agent_acl_enforce(request, agent_db, write=True)
     # TODO: properties
@@ -259,6 +263,10 @@ def delete_agent(request: Request, agent_name):
     agent_db = agent_registry.get_agent(agent_name)
     agent_acl_enforce(request, agent_db, write=True)
     agent_registry.remove_agent(agent_name, rebuild=True)
+    # remove agent from agent groups
+    agent_groups = agent_registry.get_agent_groups()
+    for group in agent_groups:
+        agent_registry.remove_agent_from_agent_group(group['name'], agent_name, rebuild=True)
     # save
     agent_registry.dump("/blue_data/config/" + agent_registry_id + ".agents.json")
     return JSONResponse(content={"message": "Success"})
@@ -283,7 +291,7 @@ def get_agent_property(request: Request, agent_name, property_name):
 def set_agent_property(request: Request, agent_name, property_name, property: JSONStructure):
     agent_db = agent_registry.get_agent(agent_name)
     agent_acl_enforce(request, agent_db, write=True)
-    agent_registry.set_agent_property(agent_name, property_name, property, rebuild=True)
+    agent_registry.set_agent_property(agent_name, property_name, pydash.objects.get(property, [property_name], None), rebuild=True)
     # save
     agent_registry.dump("/blue_data/config/" + agent_registry_id + ".agents.json")
     return JSONResponse(content={"message": "Success"})
@@ -308,6 +316,9 @@ def get_agent_inputs(request: Request, agent_name):
 
 
 @router.get("/agent/{agent_name}/input/{param_name}")
+@router.get("/agent/{path:path}/agent/{agent_name}/input/{param_name}")
+@router.get("/agent_group/{agent_group}/agent/{agent_name}/input/{param_name}")
+@router.get("/agent_group/{agent_group}/agent/{path:path}/agent/{agent_name}/input/{param_name}")
 def get_agent_input(request: Request, agent_name, param_name):
     acl_enforce(request.state.user['role'], 'agent_registry', 'read_all')
     result = agent_registry.get_agent_input(agent_name, param_name)
@@ -315,10 +326,10 @@ def get_agent_input(request: Request, agent_name, param_name):
 
 
 @router.post("/agent/{agent_name}/input/{param_name}")
-def add_agent_input(request: Request, agent_name, param_name, parameter: Parameter):
+def add_agent_input(request: Request, agent_name, param_name, parameter: ParameterSchema):
     input = agent_registry.get_agent_input(agent_name, param_name)
     output = agent_registry.get_agent_output(agent_name, param_name)
-    if param_name in BANNED_ENTITY_NAMES:
+    if agent_registry._extract_shortname(param_name) in BANNED_ENTITY_NAMES:
         return JSONResponse(content={"message": "The name cannot be used."}, status_code=403)
     # if name already exists, return 409 conflict error
     if not pydash.is_empty(input) or not pydash.is_empty(output):
@@ -333,7 +344,7 @@ def add_agent_input(request: Request, agent_name, param_name, parameter: Paramet
 
 
 @router.put("/agent/{agent_name}/input/{param_name}")
-def update_agent_input(request: Request, agent_name, param_name, parameter: Parameter):
+def update_agent_input(request: Request, agent_name, param_name, parameter: ParameterSchema):
     agent_db = agent_registry.get_agent(agent_name)
     agent_acl_enforce(request, agent_db, write=True)
     # TODO: properties
@@ -344,6 +355,9 @@ def update_agent_input(request: Request, agent_name, param_name, parameter: Para
 
 
 @router.delete("/agent/{agent_name}/input/{param_name}")
+@router.delete("/agent/{path:path}/agent/{agent_name}/input/{param_name}")
+@router.delete("/agent_group/{agent_group}/agent/{agent_name}/input/{param_name}")
+@router.delete("/agent_group/{agent_group}/agent/{path:path}/agent/{agent_name}/input/{param_name}")
 def delete_agent_input(request: Request, agent_name, param_name):
     agent_db = agent_registry.get_agent(agent_name)
     agent_acl_enforce(request, agent_db, write=True)
@@ -371,7 +385,7 @@ def get_agent_input_property(request: Request, agent_name, param_name, property_
 def set_agent_input_property(request: Request, agent_name, param_name, property_name, property: JSONStructure):
     agent_db = agent_registry.get_agent(agent_name)
     agent_acl_enforce(request, agent_db, write=True)
-    agent_registry.set_agent_input_property(agent_name, param_name, property_name, property, rebuild=True)
+    agent_registry.set_agent_input_property(agent_name, param_name, property_name, pydash.objects.get(property, [property_name], None), rebuild=True)
     # save
     agent_registry.dump("/blue_data/config/" + agent_registry_id + ".agents.json")
     return JSONResponse(content={"message": "Success"})
@@ -396,6 +410,9 @@ def get_agent_outputs(request: Request, agent_name):
 
 
 @router.get("/agent/{agent_name}/output/{param_name}")
+@router.get("/agent/{path:path}/agent/{agent_name}/output/{param_name}")
+@router.get("/agent_group/{agent_group}/agent/{agent_name}/output/{param_name}")
+@router.get("/agent_group/{agent_group}/agent/{path:path}/agent/{agent_name}/output/{param_name}")
 def get_agent_output(request: Request, agent_name, param_name):
     acl_enforce(request.state.user['role'], 'agent_registry', 'read_all')
     result = agent_registry.get_agent_output(agent_name, param_name)
@@ -403,10 +420,10 @@ def get_agent_output(request: Request, agent_name, param_name):
 
 
 @router.post("/agent/{agent_name}/output/{param_name}")
-def add_agent_output(request: Request, agent_name, param_name, parameter: Parameter):
+def add_agent_output(request: Request, agent_name, param_name, parameter: ParameterSchema):
     input = agent_registry.get_agent_input(agent_name, param_name)
     output = agent_registry.get_agent_output(agent_name, param_name)
-    if param_name in BANNED_ENTITY_NAMES:
+    if agent_registry._extract_shortname(param_name) in BANNED_ENTITY_NAMES:
         return JSONResponse(content={"message": "The name cannot be used."}, status_code=403)
     # if name already exists, return 409 conflict error
     if not pydash.is_empty(input) or not pydash.is_empty(output):
@@ -419,7 +436,7 @@ def add_agent_output(request: Request, agent_name, param_name, parameter: Parame
 
 
 @router.put("/agent/{agent_name}/output/{param_name}")
-def update_agent_output(request: Request, agent_name, param_name, parameter: Parameter):
+def update_agent_output(request: Request, agent_name, param_name, parameter: ParameterSchema):
     agent_db = agent_registry.get_agent(agent_name)
     agent_acl_enforce(request, agent_db, write=True)
     # TODO: properties
@@ -430,6 +447,9 @@ def update_agent_output(request: Request, agent_name, param_name, parameter: Par
 
 
 @router.delete("/agent/{agent_name}/output/{param_name}")
+@router.delete("/agent/{path:path}/agent/{agent_name}/output/{param_name}")
+@router.delete("/agent_group/{agent_group}/agent/{agent_name}/output/{param_name}")
+@router.delete("/agent_group/{agent_group}/agent/{path:path}/agent/{agent_name}/output/{param_name}")
 def delete_agent_output(request: Request, agent_name, param_name):
     agent_db = agent_registry.get_agent(agent_name)
     agent_acl_enforce(request, agent_db, write=True)
@@ -457,7 +477,7 @@ def get_agent_output_property(request: Request, agent_name, param_name, property
 def set_agent_output_property(request: Request, agent_name, param_name, property_name, property: JSONStructure):
     agent_db = agent_registry.get_agent(agent_name)
     agent_acl_enforce(request, agent_db, write=True)
-    agent_registry.set_agent_output_property(agent_name, param_name, property_name, property, rebuild=True)
+    agent_registry.set_agent_output_property(agent_name, param_name, property_name, pydash.objects.get(property, [property_name], None), rebuild=True)
     # save
     agent_registry.dump("/blue_data/config/" + agent_registry_id + ".agents.json")
     return JSONResponse(content={"message": "Success"})
@@ -480,6 +500,14 @@ def search_agents(request: Request, keywords, approximate: bool = False, hybrid:
     return JSONResponse(content={"results": results})
 
 
+##### derived agents
+@router.get("/agent/{agent_name}/agents")
+def get_agent_derived_agents(request: Request, agent_name):
+    acl_enforce(request.state.user['role'], 'agent_registry', 'read_all')
+    results = agent_registry.get_agent_derived_agents(agent_name)
+    return JSONResponse(content={"results": results})
+
+
 #############
 # agent groups
 @router.get("/agent_groups")
@@ -487,8 +515,7 @@ def get_agent_groups(request: Request):
     acl_enforce(request.state.user['role'], 'agent_registry', 'read_all')
     registry_results = agent_registry.get_agent_groups()
     if registry_results is None:
-        registry_results = {}
-    registry_results = list(registry_results.values())
+        registry_results = []
     return JSONResponse(content={"results": registry_results})
 
 
@@ -500,7 +527,7 @@ def get_agent_group(request: Request, group_name):
 
 
 @router.put("/agent_group/{group_name}")
-def update_agent_group(request: Request, group_name, group: AgentGroup):
+def update_agent_group(request: Request, group_name, group: AgentGroupSchema):
     agent_group_db = agent_registry.get_agent_group(group_name)
     agent_group_acl_enforce(request, agent_group_db, write=True)
     # TODO: properties
@@ -521,9 +548,9 @@ def delete_agent_group(request: Request, group_name):
 
 
 @router.post("/agent_group/{group_name}")
-def add_agent_group(request: Request, group_name, group: AgentGroup):
+def add_agent_group(request: Request, group_name, group: AgentGroupSchema):
     agent_group_db = agent_registry.get_agent_group(group_name)
-    if group_name in BANNED_ENTITY_NAMES:
+    if agent_registry._extract_shortname(group_name) in BANNED_ENTITY_NAMES:
         return JSONResponse(content={"message": "The name cannot be used."}, status_code=403)
     # if agent already exists, return 409 conflict error
     if not pydash.is_empty(agent_group_db):
@@ -546,13 +573,13 @@ def get_agent_group_agents(request: Request, group_name):
 
 
 @router.post("/agent_group/{group_name}/agent/{agent_name}")
-def add_agent_to_agent_group(request: Request, group_name, agent_name, agent: Agent):
+def add_agent_to_agent_group(request: Request, group_name, agent_name, agent: AgentSchema):
     agent_existing = agent_registry.get_agent_group_agent(group_name, agent_name)
-    if agent_name in BANNED_ENTITY_NAMES:
-        return JSONResponse(content={"message": "The name cannot be used."}, status_code=403)
+    if agent_registry._extract_shortname(agent_name) in BANNED_ENTITY_NAMES:
+        return JSONResponse(content={"message": f"\"{agent_name}\" cannot be used."}, status_code=403)
     # if name already exists, return 409 conflict error
     if not pydash.is_empty(agent_existing):
-        return JSONResponse(content={"message": "The name already exists."}, status_code=409)
+        return JSONResponse(content={"message": f"\"{agent_name}\" already exists."}, status_code=409)
     agent_group_db = agent_registry.get_agent_group(group_name)
     agent_group_acl_enforce(request, agent_group_db, write=True)
     # TODO: properties
@@ -563,7 +590,7 @@ def add_agent_to_agent_group(request: Request, group_name, agent_name, agent: Ag
 
 
 @router.put("/agent_group/{group_name}/agent/{agent_name}")
-def update_agent_in_agent_group(request: Request, group_name, agent_name, agent: Agent):
+def update_agent_in_agent_group(request: Request, group_name, agent_name, agent: AgentSchema):
     agent_group_db = agent_registry.get_agent_group(group_name)
     agent_group_acl_enforce(request, agent_group_db, write=True)
     # TODO: properties
@@ -601,7 +628,7 @@ def get_agent_property_in_agent_group(request: Request, group_name, agent_name, 
 def set_agent_property_in_agent_group(request: Request, group_name, agent_name, property_name, property: JSONStructure):
     agent_group_db = agent_registry.get_agent_group(group_name)
     agent_group_acl_enforce(request, agent_group_db, write=True)
-    agent_registry.set_agent_property_in_agent_group(group_name, agent_name, property_name, property, rebuild=True)
+    agent_registry.set_agent_property_in_agent_group(group_name, agent_name, property_name, pydash.objects.get(property, [property_name], None), rebuild=True)
     # save
     agent_registry.dump("/blue_data/config/" + agent_registry_id + ".agents.json")
     return JSONResponse(content={"message": "Success"})

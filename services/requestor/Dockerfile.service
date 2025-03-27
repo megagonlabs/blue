@@ -1,0 +1,20 @@
+FROM --platform=$BUILDPLATFORM python:3.9
+
+# Set workdir
+WORKDIR /app
+
+# Build requirements first
+ADD src/requirements.core /app/requirements.core
+RUN pip install --no-cache --extra-index-url  http://10.0.160.75:8888/simple/ --trusted-host 10.0.160.75 -r requirements.core
+
+ADD src/requirements.service /app/requirements.service
+RUN pip install --no-cache -r requirements.service
+
+ADD src/requirements.requestor /app/requirements.requestor
+RUN pip install --no-cache -r requirements.requestor
+
+
+# Copy service files
+ADD /src /app/
+
+ENTRYPOINT ["python", "requestor_service.py" ] 

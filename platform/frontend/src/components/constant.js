@@ -4,13 +4,13 @@ const {
     faDatabase,
     faFolderOpen,
     faFile,
-    faProjectDiagram,
     faArrowRightToArc,
     faArrowRightFromArc,
     faFunction,
     faCube,
     faKeynote,
     faUsersViewfinder,
+    faCircleNodes,
 } = require("@fortawesome/sharp-duotone-solid-svg-icons");
 const { vanillaRenderers } = require("@jsonforms/vanilla-renderers");
 import BooleanRenderer, {
@@ -53,6 +53,8 @@ import DateTimeRenderer, {
 import MarkdownRenderer, {
     MarkdownTester,
 } from "./jsonforms/renderers/Markdown";
+import TableRenderer, { TableTester } from "./jsonforms/renderers/Table";
+import TabsRenderer, { TabsTester } from "./jsonforms/renderers/Tabs";
 import VegaRenderer, { VegaTester } from "./jsonforms/renderers/Vega";
 export const ENTITY_TYPE_LOOKUP = {
         agent: { icon: faCircleA, key: "agent" },
@@ -64,10 +66,11 @@ export const ENTITY_TYPE_LOOKUP = {
         database: { icon: faDatabase },
         collection: { icon: faFolderOpen },
         entity: { icon: faFile },
-        relation: { icon: faProjectDiagram },
+        relation: { icon: faCircleNodes },
         model: { icon: faCube, key: "model" },
         operator: { icon: faFunction, key: "operator" },
     },
+    END_OF_SSE_SIGNAL = "END_OF_EVENT_SIGNAL",
     JSONFORMS_RENDERERS = [
         ...vanillaRenderers,
         { tester: GroupTester, renderer: GroupRenderer },
@@ -85,6 +88,8 @@ export const ENTITY_TYPE_LOOKUP = {
         { tester: ArrayTester, renderer: ArrayRenderer },
         { tester: MarkdownTester, renderer: MarkdownRenderer },
         { tester: CalloutTester, renderer: CalloutRenderer },
+        { tester: TabsTester, renderer: TabsRenderer },
+        { tester: TableTester, renderer: TableRenderer },
         { tester: UnknownTester, renderer: UnknownRenderer },
     ],
     CARD_LIST_CLASS_NAMES = `${Classes.CARD} ${Classes.CARD_LIST} ${Classes.CARD_LIST_BORDERED}`,
@@ -102,6 +107,14 @@ export const ENTITY_TYPE_LOOKUP = {
         removing: { style: { color: Colors.RED3 }, intent: Intent.DANGER },
         dead: { style: { color: Colors.RED3 }, intent: Intent.DANGER },
     },
+    GENERAL_KEYS = [
+        "system_agent",
+        "image",
+        "display_name",
+        "listens",
+        "tags",
+        "categories",
+    ],
     PROFILE_PICTURE_40 = {
         borderRadius: "50%",
         padding: 0,
@@ -131,6 +144,7 @@ export const ENTITY_TYPE_LOOKUP = {
         developer: { text: "Developer" },
         demo: { text: "Demo", icon: faKeynote },
     },
+    REGISTRY_NESTING_SEPARATOR = "___",
     COLOR_OPTIONS = [
         "#979B9D",
         "#FFA8A8",

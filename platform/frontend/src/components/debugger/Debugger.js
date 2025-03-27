@@ -1,25 +1,27 @@
+import { faIcon } from "@/components/icon";
 import {
     Button,
     ButtonGroup,
-    Card,
     Divider,
     HTMLSelect,
     Tooltip,
 } from "@blueprintjs/core";
 import { faBan } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import _ from "lodash";
-import { useContext, useState } from "react";
+import { useContext } from "react";
 import { AppContext } from "../contexts/app-context";
-import { faIcon } from "../icon";
 import JsonViewer from "../sessions/message/renderers/JsonViewer";
 export default function Debugger() {
     const { appState, appActions } = useContext(AppContext);
-    const [focusMessageType, setFocusMessageType] = useState("all");
+    // const [focusMessageType, setFocusMessageType] = useState("all");
     const messages = _.get(appState, "debug.messages", []);
     return (
         <>
-            <Card style={{ borderRadius: 0, padding: "5px 15px" }}>
-                <ButtonGroup minimal>
+            <div
+                className="border-bottom"
+                style={{ borderRadius: 0, padding: "5px 15px" }}
+            >
+                <ButtonGroup variant="minimal" size="large">
                     <Tooltip
                         minimal
                         content="Clear debugger"
@@ -35,14 +37,14 @@ export default function Debugger() {
                         />
                     </Tooltip>
                     <Divider />
-                    <HTMLSelect id="debugger-message-type" minimal>
+                    <HTMLSelect large id="debugger-message-type" minimal>
                         <option value="all">All</option>
                     </HTMLSelect>
                 </ButtonGroup>
-            </Card>
+            </div>
             <div
                 style={{
-                    height: "calc(100% - 40px)",
+                    height: "calc(100% - 50px)",
                     overflowX: "auto",
                     padding: 15,
                 }}
@@ -53,6 +55,11 @@ export default function Debugger() {
                             <JsonViewer
                                 json={_.omit(message, ["type"])}
                                 key={index}
+                                collapsed={({ indexOrName }) => {
+                                    return ["uischema", "schema"].includes(
+                                        indexOrName
+                                    );
+                                }}
                             />
                             {index < _.size(messages) - 1 ? <Divider /> : null}
                         </>

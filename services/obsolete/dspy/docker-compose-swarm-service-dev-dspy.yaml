@@ -1,0 +1,44 @@
+---
+version: '3.8'
+x-blue-common:
+  &blue-common
+  # build: .
+  image: python:3.9.0
+  environment:
+    &blue-common-env
+    BLUE__PROPERTIES: '{"platform.name":"dev", "platform.deploy.target":"swarm", "api.server":"dev.blue.megagon.ai", "db.host":"blue_db_redis",  "agent_registry.name":"default", "data_registry.name":"default", "embeddings_model":"/blue_data/models/paraphrase-MiniLM-L6-v2"}'
+  depends_on:
+    &blue-common-depends-on
+    redis:
+      condition: service_healthy
+
+services:
+  dspy:
+    image: megagonlabs/blue-service-dspy:latest
+    hostname: blue_service_dspy
+    ports:
+      - 8003:8001
+    deploy:
+      placement:
+        constraints:
+          - node.labels.target == service
+    networks:
+      - blue_platform_dev_network_overlay
+    volumes:
+      - blue_dev_data:/blue_data
+    labels:
+      blue.service: "dev.dspy"
+    environment:
+      <<: *blue-common-env
+    env_file:
+      - dspy.env
+    restart: always
+
+networks:
+  blue_platform_dev_network_overlay:
+      external: true
+
+volumes:
+  blue_dev_data:
+      external: true
+

@@ -1,5 +1,7 @@
+import { allEnv } from "next-runtime-env";
+const { NEXT_PUBLIC_MODEL_REGISTRY_NAME } = allEnv();
 export const defaultState = {
-    registryName: process.env.NEXT_PUBLIC_MODEL_REGISTRY_NAME,
+    registryName: NEXT_PUBLIC_MODEL_REGISTRY_NAME,
     list: [],
     search: false,
     loading: true,

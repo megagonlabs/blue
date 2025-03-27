@@ -1,5 +1,6 @@
 import JsonEditor from "@/components/codemirror/JsonEditor";
 import { AppContext } from "@/components/contexts/app-context";
+import { AuthContext } from "@/components/contexts/auth-context";
 import {
     constructSavePropertyRequests,
     settlePromises,
@@ -29,6 +30,8 @@ import { useContext, useEffect, useState } from "react";
 import JsonViewer from "../message/renderers/JsonViewer";
 export default function SessionData() {
     const { appState } = useContext(AppContext);
+    const { settings } = useContext(AuthContext);
+    const darkMode = _.get(settings, "dark_mode", false);
     const { sessionIdFocus } = appState.session;
     const [data, setData] = useState(null);
     const [editData, setEditData] = useState(null);
@@ -38,6 +41,7 @@ export default function SessionData() {
     const discard = () => {
         setEdit(false);
         setEditData(data);
+        setJsonError(false);
     };
     useEffect(() => {
         // fetch session data
@@ -61,7 +65,7 @@ export default function SessionData() {
             difference,
             properties: editData,
         });
-        settlePromises(tasks, (error) => {
+        settlePromises(tasks, ({ error }) => {
             if (!error) {
                 setEdit(false);
                 setData(editData);
@@ -71,8 +75,11 @@ export default function SessionData() {
     };
     return (
         <>
-            <DialogBody className="dialog-body">
-                <div style={{ maxHeight: 463 }}>
+            <DialogBody
+                className="margin-0"
+                style={{ padding: `0px ${darkMode ? 1 : 0}px` }}
+            >
+                <div style={{ maxHeight: 463, minHeight: 141 }}>
                     {!edit ? (
                         _.isEmpty(data) ? (
                             <div style={{ height: 141 }}>
@@ -105,13 +112,15 @@ export default function SessionData() {
                 </div>
             </DialogBody>
             <DialogFooter className="position-relative">
-                <ButtonGroup large>
+                <ButtonGroup>
                     {edit && (
                         <Popover
+                            usePortal={false}
                             placement="top-start"
                             content={
                                 <div style={{ padding: 15 }}>
                                     <Button
+                                        size="large"
                                         className={Classes.POPOVER_DISMISS}
                                         text="Confirm"
                                         onClick={discard}
@@ -121,18 +130,21 @@ export default function SessionData() {
                             }
                         >
                             <Tooltip
+                                usePortal={false}
                                 minimal
                                 placement="top-start"
                                 content="Discard"
                             >
                                 <Button
-                                    minimal
+                                    size="large"
+                                    variant="minimal"
                                     icon={faIcon({ icon: faXmarkLarge })}
                                 />
                             </Tooltip>
                         </Popover>
                     )}
                     <Button
+                        size="large"
                         className={loading ? Classes.SKELETON : null}
                         text={edit ? "Save" : "Edit"}
                         onClick={() => {
@@ -146,7 +158,7 @@ export default function SessionData() {
                 </ButtonGroup>
                 {jsonError && edit && (
                     <div style={{ position: "absolute", right: 15, top: 15 }}>
-                        <Tag intent={Intent.DANGER} minimal large>
+                        <Tag intent={Intent.DANGER} minimal size="large">
                             Invalid JSON
                         </Tag>
                     </div>
