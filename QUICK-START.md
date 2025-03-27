@@ -1,23 +1,40 @@
-# QuickStart Guide
+# QuickStart guide
 
-Blue has a web application that allows you to:
+Megagon Blue has a web application where you can:
 
-* Configure the platform,
-* Browse agent and data registries,
-* Add and configure agents and data,
-* Create interactive sessions,
-* Debug sessions,
-* Use developer tools to help develop agents, and
-* Perform various administrative tasks
+* [Login to blue platform](#login)
+* [Access the home screen](#home-screen)
+* [Create interactive sessions](#sessions)
+    * [Interact with session window](#interact-with-session-window)
+    * [Access and editing existing sessions properties](#access-and-editing-existing-sessions-properties)
+* Configuration:
+    * [Add and configure agents](#agent-registry)
+    * [Add and configure data sources](#data-registry)
+* [Access developer tools](#developer-tools)
+* [Access admin tools to monitor/debug and configure Megagon Blue platform](#admin-tools)  
+* [User settings](#user-settings)
+
+## Login
+To login:
+- Go to the URL of your instance.  If you have installed locally and accepted the default configuration, the url will be http://localhost:3000. Otherwise, it is http://`BLUE_PUBLIC_WEB_SERVER`:`BLUE_PUBLIC_WEB_SERVER_PORT`
+- A "sign in with google" page will appear and please sign in using your google account. Note that login sessions are only valid for 1 hour.
+
+![google_sign_in](docs/images/google_sign_in.png)
+
+- <u> For admin users </u> - Please sign in with the google account you used during the [installation](LOCAL-INSTALLATION.md) process
+- <u> For new users </u>  - Please sign on using a google account within the whitelisted email domain defined in the configuration BLUE_EMAIL_DOMAIN_WHITE_LIST set during the [installation](LOCAL-INSTALLATION.md).  Note that by default new users are created with guest role.  Administrators can grant admin role access using [admin tools > Users](#users)
+
+
+- Home screen should appear once you have logged in successfully. 
 
 ## Home screen
 
-When launched the Blue home screen is shown by default. To get back to the home screen at any time by clicking on the "Blue" icon at the top left of the screen.  In the home screen you can:
+When launched the Megagon Blue home screen is shown by default. To get back to the home screen at any time by clicking on the "Blue" icon at the top left of the screen.  In the home screen you can:
 
-1) Launch a session with pre-configured agent groups.
-2) Change and add a new agent group.
+1) [Launch a session with pre-configured agent groups](#launch-a-session-with-pre-configured-agent-groups)
+2) [Change and add a new agent group](#change-and-add-a-new-agent-group)
 
-### Launch a session with pre-configured agent groups.
+### Launch a session with pre-configured agent groups
 
 To launch a session
 
@@ -28,8 +45,12 @@ To launch a session
 
 To try a few of the demos you can click on one of the cards as shown below:
 
-
 ![homescreen_demos](docs/images/homescreen_demos.png)
+
+Documentation for the demos can be found here:
+* [NL2SQL](https://github.com/rit-git/blue-examples/tree/v0.9/demos/nl2sql): Translate user input text to SQL and execute it with data in the registry.
+* [Dialogue Manager](https://github.com/rit-git/blue-examples/tree/v0.9/demos/dialogue_manager): Identify user intent and execute plans
+(Note: please ensure that you follow the steps in the "try it out" section of the demo documentation)
 
 ### Change and add a new agent group
 
@@ -48,8 +69,7 @@ To add a new agent group
 - To add agents to the agent group, click the update agents button.
 
 ## Sessions
-
-![access_sessions](docs/images/access_sessions.png)
+![session_window](docs/images/session_window.png)
 
 ### Create a new session
 
@@ -57,7 +77,15 @@ To create a new session:
 
 - Click on the new session button on the left sidebar
 - Select the agents you want to include in your session.
-- Click Add and Done buttons.  A session will be created.
+- Click add and done buttons.  
+- A new session will be created.
+
+### Interact with session window
+
+* You input text and interact via the interaction box.
+* Responses/output and interaction history will be displayed in the message window
+* At any time you can add any response/output to the workspace.  This enables you to keep the response/output visible while the message window continues to add interaction history.  
+    * Click on the button to hide or show the workplace.
 
 ### Access and editing existing sessions properties
 
@@ -68,7 +96,6 @@ To access existing sessions on the top of the left side bar, you can either:
 
 To edit an existing session properties
 -- click on the session name at the top of the chat window.
-![session_name](docs/images/session_name.png)
 
 Select the relevant tab to edit the session properties:
 
@@ -90,6 +117,14 @@ Agent registry is a repository that captures the metadata about the agent such a
 
 ![agent_registry](docs/images/agentregistry.png)
 
+### Agent deployment
+Before an agent is ready to be used it needs to be deployed.
+* In agent registry click on the agent
+* If required pull the latest docker image, click on actions > pull
+* To deploy, click on actions > deploy
+
+![agent_deployment](docs/images/agent_deployment.png)
+
 ## Data registry
 Data registry is a repository of metadata about data elements that blue agents can connect to, search, and browse. Each data element is described with metadata such as name, type, description, properties, and contents.
 
@@ -101,16 +136,25 @@ Data registry can be utilized by various agents (including planner) to find suit
 
 ![dataregistry](docs/images/dataregistry.png)
 
-## Developer tools: 
-### Form Designer
+### Data source sync
+
+Before a data source can be used you will need to sync the data registry with the data source by clicking on the action button > sync.  The sync action will connect to the database and get the database schema.
+
+![data_source_sync](docs/images/data_source_sync.png)
+
+
+## Developer tools 
+### Form designer
 Developer Tools > Form Designer, enables you to design a form including defining UI schema along with the data schema.  
 
 ![devtools_formdesigner](docs/images/devtools_formdesigner.png)
 
+
+
 ## Admin tools
 
 ### Status
-Admin Tools > Status, enables you to monitor the performance of components running on blue including:
+Admin Tools > Status, enables you to monitor the performance of components running on Megagon Blue including:
 - Thread information
 - Database information 
 - Service call counts 
@@ -122,7 +166,7 @@ Admin Tools > Status, enables you to monitor the performance of components runni
 ![admintools_status](docs/images/admintools_status.png)
 
 ### Agents
-Admin Tools > Agents, shows a list of the agents currently running in blue.
+Admin Tools > Agents, shows a list of the agents currently running in Megagon Blue.
 - Agent logs - you can view the container logs for the agent by clicking on actions > logs. 
 - Delete agent container - you can delete an agent contained by selecting an agent and clicking the delete button. 
 - Update agent container - you can update the agent container by selecting the agent and clicking the pull button.  
@@ -130,7 +174,7 @@ Admin Tools > Agents, shows a list of the agents currently running in blue.
 ![admintools_agents](docs/images/admintools_agents.png)
 
 ### Services
-Admin Tools > Services, show a list of the services that are currently running in blue.  
+Admin Tools > Services, show a list of the services that are currently running in Megagon Blue.  
 - Stop service - select the service and click on stop button to stop a service.
 
 ![admintools_services](docs/images/admintools_services.png)
@@ -144,6 +188,29 @@ Admin Tools > Users, shows a list of all the users and you can update:
 
 ### Config
 
-Admin Tools > Configs, enables you to change Blue configuration via the Blue web application.
+Admin Tools > Configs, enables you to change Megagon Blue configuration via the Blue web application.
 
 - Expiration duration - enables you to edit the length of time (stream, data and metadata) will be retained.  Currently the default and minimum value is 3 days.
+
+## User settings
+You can change your user settings by pressing the settings button on the top right of the window.  The following settings can be set
+* Appearance 
+    * Dark/light mode
+    * Compact sidebar - enabled you to minimize the size of the left sidebar to allow for a wider interaction window
+* Session and Messages
+    * Show workplace - by default show workspace
+    * Expand messages - automatically expand all session messages to show full context.  
+    * Conversational view 
+* Developer
+    * Debugger
+
+### Conversational view
+You can use conversational view user settings to show messages on opposite sides mimicking a conversational experience.  
+
+![conversational_view](docs/images/conversational_view.png)
+
+### Debugger 
+You can use debugging user settings to show debugger which expands the interactions and shows all the steps performed by Megagon Blue platform.  
+
+![debugger](docs/images/debugger.png)
+
