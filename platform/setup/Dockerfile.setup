@@ -1,0 +1,12 @@
+FROM --platform=$BUILDPLATFORM python:3.9
+
+# Set workdir
+WORKDIR /app
+
+# Updates
+RUN pip install --upgrade pip
+
+# Copy setup files
+ADD /config /app/config/
+ADD /data /app/data/
+ADD /models /app/models/

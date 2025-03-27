@@ -16,12 +16,13 @@ import Head from "next/head";
 import { useEffect, useState } from "react";
 // Your web app's Firebase configuration
 const firebaseConfig = {
-    apiKey: "AIzaSyAkVp-dj3o1yf89mL3wMUtEidUHjzqyWCQ",
-    authDomain: "blue-9d597.firebaseapp.com",
-    projectId: "blue-9d597",
-    storageBucket: "blue-9d597.appspot.com",
-    messagingSenderId: "851224572522",
-    appId: "1:851224572522:web:b8b3f5b50e30333773d013",
+    apiKey: "AIzaSyBgwI0-HcszkCrtMf5EnVH4i8J6AAiQk3Q",
+    authDomain: "blue-public.firebaseapp.com",
+    projectId: "blue-public",
+    storageBucket: "blue-public.firebasestorage.app",
+    messagingSenderId: "342414327441",
+    appId: "1:342414327441:web:477d438a75d0d406e3c930",
+    measurementId: "G-M74783LTXN",
 };
 
 // Initialize Firebase
@@ -119,6 +120,9 @@ export default function Index() {
     const [popupOpen, setPopupOpen] = useState(false);
     const signInWithGoogle = () => {
         const server = _.get(profile, "BLUE_PUBLIC_API_SERVER", null);
+        const secure =
+            _.toLower(_.get(profile, "BLUE_DEPLOY_SECURE", "True")) == "true";
+        const port = _.get(profile, "BLUE_PUBLIC_API_SERVER_PORT", null);
         const platformName = _.get(profile, "BLUE_DEPLOY_PLATFORM", null);
         setPopupOpen(true);
         signInWithPopup(auth, provider)
@@ -126,7 +130,9 @@ export default function Index() {
                 result.user.getIdToken().then((idToken) => {
                     axios
                         .post(
-                            `${server}/blue/platform/${platformName}/accounts/sign-in/cli`,
+                            `http${
+                                secure ? "s" : ""
+                            }://${server}:${port}/blue/platform/${platformName}/accounts/sign-in/cli`,
                             { id_token: idToken }
                         )
                         .then((response) => {

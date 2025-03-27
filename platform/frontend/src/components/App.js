@@ -479,8 +479,8 @@ export default function App({ children }) {
                                 {[
                                     "agent_registry",
                                     "data_registry",
-                                    "operator_registry",
-                                    "model_registry",
+                                    // "operator_registry",
+                                    // "model_registry",
                                 ].map((key, index) => {
                                     const { href, icon, text, visible } = _.get(
                                         MENU_ITEMS,

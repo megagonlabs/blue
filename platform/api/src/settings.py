@@ -2,7 +2,6 @@
 import os
 
 import pydash
-import copy
 
 ###### Properties
 PROPERTIES = {}
@@ -11,9 +10,9 @@ PROPERTIES["platform.deploy.version"] = os.getenv("BLUE_DEPLOY_VERSION")
 PROPERTIES["platform.deploy.target"] = os.getenv("BLUE_DEPLOY_TARGET")
 PROPERTIES["platform.deploy.secure"] = os.getenv("BLUE_DEPLOY_SECURE")
 PROPERTIES["api.server"] = os.getenv("BLUE_PUBLIC_API_SERVER")
-PROPERTIES["api.server.port"] = os.getenv("BLUE_PUBLIC_API_SERVER_PORT")
+PROPERTIES["api.server.port"] = os.getenv("BLUE_PRIVATE_API_SERVER_PORT")
 PROPERTIES["web.server"] = os.getenv("BLUE_PUBLIC_WEB_SERVER")
-PROPERTIES["web.server.port"] = os.getenv("BLUE_PUBLIC_WEB_SERVER_PORT")
+PROPERTIES["web.server.port"] = os.getenv("BLUE_PRIVATE_WEB_SERVER_PORT")
 PROPERTIES["agent_registry.name"] = os.getenv("BLUE_AGENT_REGISTRY")
 PROPERTIES["data_registry.name"] = os.getenv("BLUE_DATA_REGISTRY")
 PROPERTIES["model_registry.name"] = os.getenv("BLUE_MODEL_REGISTRY")
@@ -28,7 +27,8 @@ DEVELOPMENT = os.getenv("BLUE_DEPLOY_DEVELOPMENT", "False").lower() == "true"
 SECURE_COOKIE = os.getenv("BLUE_DEPLOY_SECURE", "True").lower() == "true"
 EMAIL_DOMAIN_WHITE_LIST = os.getenv("BLUE_EMAIL_DOMAIN_WHITE_LIST", "megagon.ai")
 DISABLE_AUTHENTICATION = os.getenv('DISABLE_AUTHENTICATION', 'False').lower() == 'true'
-FIREBASE_SERVICE_CRED = os.getenv("FIREBASE_SERVICE_CRED", "")
+FIREBASE_SERVICE_CRED = os.getenv("FIREBASE_SERVICE_CRED", "").strip()
+FIREBASE_CLIENT_ID = 'blue-public'
 
 ##### RBAC
 import casbin

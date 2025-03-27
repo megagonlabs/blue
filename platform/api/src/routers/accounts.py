@@ -21,8 +21,7 @@ from APIRouter import APIRouter
 from fastapi.responses import JSONResponse
 
 ###### Settings
-from settings import EMAIL_DOMAIN_WHITE_LIST, PROPERTIES, ROLE_PERMISSIONS, SECURE_COOKIE, FIREBASE_SERVICE_CRED
-import jwt, requests
+from settings import EMAIL_DOMAIN_WHITE_LIST, FIREBASE_CLIENT_ID, PROPERTIES, ROLE_PERMISSIONS, SECURE_COOKIE, FIREBASE_SERVICE_CRED
 
 ### Assign from platform properties
 from blue.platform import Platform
@@ -53,8 +52,9 @@ def ws_ticket(request: Request):
 def signout(request: Request):
     session_cookie = request.cookies.get("session")
     try:
-        decoded_claims = auth.verify_session_cookie(session_cookie)
-        auth.revoke_refresh_tokens(decoded_claims["sub"])
+        if not pydash.is_empty(FIREBASE_SERVICE_CRED):
+            decoded_claims = auth.verify_session_cookie(session_cookie)
+            auth.revoke_refresh_tokens(decoded_claims["sub"])
         response = JSONResponse(content={"message": "Success"})
         response.set_cookie("session", expires=0, path="/")
         return response
@@ -80,8 +80,8 @@ async def signin(request: Request):
             decoded_claims = auth.verify_id_token(id_token)
         else:
             try:
-                decoded_claims = verify_google_id_token(id_token, client_id='blue-9d597', issuer='https://securetoken.google.com/blue-9d597')
-            except (jwt.ExpiredSignatureError, jwt.InvalidAudienceError, jwt.InvalidIssuerError, jwt.InvalidTokenError, requests.exceptions.RequestException, Exception) as e:
+                decoded_claims = verify_google_id_token(id_token, client_id=FIREBASE_CLIENT_ID, issuer=f'https://securetoken.google.com/{FIREBASE_CLIENT_ID}')
+            except Exception:
                 return ERROR_RESPONSE
         # {
         #     "name": "string",
@@ -119,7 +119,6 @@ async def signin(request: Request):
             else:
                 session_cookie = id_token
                 expires_in = datetime.timedelta(hours=1)
-            print(decoded_claims)
             response = JSONResponse(
                 content={
                     "result": {
@@ -156,14 +155,23 @@ async def signin_cli(request: Request):
     if pydash.is_empty(id_token):
         return JSONResponse(content={"message": "Illegal ID token provided: ID token must be a non-empty string."}, status_code=400)
     try:
-        decoded_claims = auth.verify_id_token(id_token)
+        if not pydash.is_empty(FIREBASE_SERVICE_CRED):
+            decoded_claims = auth.verify_id_token(id_token)
+        else:
+            try:
+                decoded_claims = verify_google_id_token(id_token, client_id=FIREBASE_CLIENT_ID, issuer=f'https://securetoken.google.com/{FIREBASE_CLIENT_ID}')
+            except Exception:
+                return ERROR_RESPONSE
         email = decoded_claims["email"]
         email_domain = re.search(EMAIL_DOMAIN_ADDRESS_REGEXP, email).group(1)
         if email_domain not in allowed_domains:
             return JSONResponse(content={"message": "Invalid email domain"}, status_code=403)
         if time.time() - decoded_claims["auth_time"] < 5 * 60:
             expires_in = datetime.timedelta(hours=10)
-            session_cookie = auth.create_session_cookie(id_token, expires_in=expires_in)
+            if not pydash.is_empty(FIREBASE_SERVICE_CRED):
+                session_cookie = auth.create_session_cookie(id_token, expires_in=expires_in)
+            else:
+                session_cookie = id_token
             p.create_update_user(decoded_claims)
             return JSONResponse(content={"cookie": session_cookie, "uid": decoded_claims['uid']})
         return ERROR_RESPONSE
@@ -201,10 +209,14 @@ def get_profile_by_uid(request: Request, uid):
     user = {}
     try:
         if uid is not None:
-            user_record = auth.get_user(uid)
-            user.update({'uid': user_record.uid, 'email': user_record.email, 'picture': user_record.photo_url, 'name': user_record.display_name})
+            if not pydash.is_empty(FIREBASE_SERVICE_CRED):
+                user_record = auth.get_user(uid)
+                user.update({'uid': user_record.uid, 'email': user_record.email, 'picture': user_record.photo_url, 'name': user_record.display_name})
+            else:
+                user_metadata = p.get_metadata(f'users.{request.state.user["uid"]}')
+                user = pydash.pick(user_metadata, ['uid', 'email', 'picture', 'name'])
     except auth.UserNotFoundError as ex:
-        print(ex)
+        return JSONResponse(content={"message": "No user record found for the given identifier."}, status_code=400)
     except ValueError as ex:
         print(ex)
     return JSONResponse(content={"user": user})

@@ -173,7 +173,7 @@ def deploy_agent_container(request: Request, agent_name):
             image,
             ["--serve", agent_name, "--platform", platform_id, "--registry", agent_registry_id, "--properties", json.dumps(agent_properties)],
             network="blue_platform_" + PROPERTIES["platform.name"] + "_network_bridge",
-            name="blue_agent_" + platform_id + "_" + agent_registry_id + "_" + agent_name.lower(),
+            # name="blue_agent_" + platform_id + "_" + agent_registry_id + "_" + agent_name.lower(),
             hostname="blue_agent_" + agent_registry_id + "_" + agent_name,
             volumes=["blue_" + platform_id + "_data:/blue_data"],
             labels={"blue.agent": PROPERTIES["platform.name"] + "." + agent_registry_id + "." + agent_name},
@@ -187,7 +187,7 @@ def deploy_agent_container(request: Request, agent_name):
             args=["--serve", agent_name, "--platform", platform_id, "--registry", agent_registry_id, "--properties", json.dumps(agent_properties)],
             networks=["blue_platform_" + PROPERTIES["platform.name"] + "_network_overlay"],
             constraints=constraints,
-            name="blue_agent_" + platform_id + "_" + agent_registry_id + "_" + agent_name.lower(),
+            # name="blue_agent_" + platform_id + "_" + agent_registry_id + "_" + agent_name.lower(),
             hostname="blue_agent_" + agent_registry_id + "_" + agent_name,
             mounts=["blue_" + platform_id + "_data:/blue_data"],
             container_labels={"blue.agent": PROPERTIES["platform.name"] + "." + agent_registry_id + "." + agent_name},
@@ -369,6 +369,7 @@ def shutdown_service_container(request: Request, service_name):
 @router.get('/agents/container/{container_id}')
 async def stream_log(container_id):
     client = docker.from_env()
+    swarm_mode = pydash.is_equal(PROPERTIES["platform.deploy.target"], "swarm")
     try:
         if pydash.is_equal(PROPERTIES["platform.deploy.target"], "localhost"):
             instance = client.containers.get(container_id)
@@ -456,11 +457,15 @@ async def stream_log(container_id):
         # calculate the timestamp for 1 week ago
         one_week_ago = datetime.datetime.now() - datetime.timedelta(weeks=1)
 
-        def get_logs(instance, queue, epoch):
-            for line in instance.logs(stream=True, follow=True, timestamps=True, since=epoch):
-                queue.put_nowait(line.decode().strip())
+        def get_logs(instance, queue, epoch, swarm_mode):
+            if swarm_mode:
+                for line in instance.logs(stdout=True, stderr=True, follow=True, timestamps=True, since=epoch):
+                    queue.put_nowait(line.decode().strip())
+            else:
+                for line in instance.logs(stream=True, follow=True, timestamps=True, since=epoch):
+                    queue.put_nowait(line.decode().strip())
 
-        log_thread = threading.Thread(target=get_logs, args=(instance, queue, int(one_week_ago.timestamp())))
+        log_thread = threading.Thread(target=get_logs, args=(instance, queue, int(one_week_ago.timestamp()), swarm_mode))
         log_thread.daemon = True
         log_thread.start()
 

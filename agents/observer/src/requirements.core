@@ -1,4 +1,4 @@
-blue-py==0.9
+blue-platform==0.9
 jsonmerge==1.9.2
 jsonpath-ng==1.5.3
 jsonschema==4.21.1

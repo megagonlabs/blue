@@ -24,7 +24,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from firebase_admin import auth
 
 ###### Settings
-from settings import PROPERTIES, DISABLE_AUTHENTICATION, FIREBASE_SERVICE_CRED
+from settings import FIREBASE_CLIENT_ID, PROPERTIES, DISABLE_AUTHENTICATION, FIREBASE_SERVICE_CRED
 import jwt, requests
 
 # start redis connection
@@ -34,7 +34,7 @@ connection = redis.Redis(host=db_host, port=db_port, decode_responses=True)
 
 ###### API Routers
 from constant import EMAIL_DOMAIN_ADDRESS_REGEXP, InvalidRequestJson, PermissionDenied, verify_google_id_token
-from routers import agents, data, models, operators, sessions, containers, platform, accounts, status
+from routers import agents, data, sessions, containers, platform, accounts, status
 
 from ConnectionManager import ConnectionManager
 
@@ -43,8 +43,6 @@ from ConnectionManager import ConnectionManager
 from blue.platform import Platform
 from blue.agents.registry import AgentRegistry
 from blue.data.registry import DataRegistry
-from blue.model import ModelRegistry
-from blue.operator import OperatorRegistry
 from blue.tracker import SystemPerformanceTracker
 
 ### Assign from platform properties
@@ -52,8 +50,6 @@ platform_id = PROPERTIES["platform.name"]
 prefix = 'PLATFORM:' + platform_id
 agent_registry_id = PROPERTIES["agent_registry.name"]
 data_registry_id = PROPERTIES["data_registry.name"]
-model_registry_id = PROPERTIES["model_registry.name"]
-operator_registry_id = PROPERTIES["operator_registry.name"]
 PLATFORM_PREFIX = f'/blue/platform/{platform_id}'
 
 ####### Version
@@ -74,12 +70,6 @@ agent_registry.load("/blue_data/config/" + agent_registry_id + ".agents.json")
 
 data_registry = DataRegistry(id=data_registry_id, prefix=prefix, properties=PROPERTIES)
 data_registry.load("/blue_data/config/" + data_registry_id + ".data.json")
-
-model_registry = ModelRegistry(id=model_registry_id, prefix=prefix, properties=PROPERTIES)
-model_registry.load("/blue_data/config/" + model_registry_id + ".models.json")
-
-operator_registry = OperatorRegistry(id=operator_registry_id, prefix=prefix, properties=PROPERTIES)
-operator_registry.load("/blue_data/config/" + operator_registry_id + ".operators.json")
 
 ###  Get API server address from properties to white list
 api_server = PROPERTIES["api.server"]
@@ -130,8 +120,6 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan)
 app.include_router(agents.router)
 app.include_router(data.router)
-app.include_router(models.router)
-app.include_router(operators.router)
 app.include_router(sessions.router)
 app.include_router(containers.router)
 app.include_router(platform.router)
@@ -158,7 +146,7 @@ async def session_verification(request: Request, call_next):
                 if not pydash.is_empty(FIREBASE_SERVICE_CRED):
                     decoded_claims = auth.verify_session_cookie(session_cookie, check_revoked=True)
                 else:
-                    decoded_claims = verify_google_id_token(session_cookie, client_id='blue-9d597', issuer='https://securetoken.google.com/blue-9d597')
+                    decoded_claims = verify_google_id_token(session_cookie, client_id=FIREBASE_CLIENT_ID, issuer=f'https://securetoken.google.com/{FIREBASE_CLIENT_ID}')
                 email = decoded_claims["email"]
                 email_domain = re.search(EMAIL_DOMAIN_ADDRESS_REGEXP, email).group(1)
                 profile = {

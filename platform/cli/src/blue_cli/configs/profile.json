@@ -1,0 +1,38 @@
+{
+    "BLUE_INSTALL_DIR": { 
+        "default": "~/blue/",
+        "prompt": "Blue Installation Directory",
+        "required": true,
+        "cast": "file"
+    },
+    "BLUE_DATA_DIR": { 
+        "default": "~/.blue/data",
+        "prompt": "Blue Shared Data Directory",
+        "required": true,
+        "cast": "file"
+    },
+    "BLUE_DEV_DOCKER_ORG": { 
+        "default": null,
+        "prompt": "Docker Organization for Publishing Agent Images",
+        "required": true,
+        "cast": "str"
+    },
+    "BLUE_CORE_DOCKER_ORG": { 
+        "default": "megagonlabs",
+        "prompt": "Docker Organization for Publishing Blue Core Images",
+        "required": true,
+        "cast": "str"
+    },
+    "BLUE_COOKIE": {
+        "default": null,
+        "prompt": "Authentication Cookie",
+        "required": false,
+        "cast": "str"
+    },
+    "BLUE_UID": {
+        "default": null,
+        "prompt": "Profile UID",
+        "required": false,
+        "cast": "str"
+    }
+}

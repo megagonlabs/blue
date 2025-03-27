@@ -18,6 +18,7 @@ import {
     useCallback,
     useContext,
     useEffect,
+    useRef,
     useState,
 } from "react";
 import { axiosErrorToast, hasIntersection } from "../helper";
@@ -28,12 +29,13 @@ import { AppContext } from "./app-context";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
-    apiKey: "AIzaSyAkVp-dj3o1yf89mL3wMUtEidUHjzqyWCQ",
-    authDomain: "blue-9d597.firebaseapp.com",
-    projectId: "blue-9d597",
-    storageBucket: "blue-9d597.appspot.com",
-    messagingSenderId: "851224572522",
-    appId: "1:851224572522:web:b8b3f5b50e30333773d013",
+    apiKey: "AIzaSyBgwI0-HcszkCrtMf5EnVH4i8J6AAiQk3Q",
+    authDomain: "blue-public.firebaseapp.com",
+    projectId: "blue-public",
+    storageBucket: "blue-public.firebasestorage.app",
+    messagingSenderId: "342414327441",
+    appId: "1:342414327441:web:477d438a75d0d406e3c930",
+    measurementId: "G-M74783LTXN",
 };
 
 // Initialize Firebase
@@ -79,16 +81,30 @@ export const AuthContext = createContext();
 export const useAuthContext = () => useContext(AuthContext);
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
+    const timeoutIdRef = useRef(null); // Ref to store the timeoutId
+    useEffect(() => {
+        const checkSession = async () => {
+            axios.get("/accounts/profile").then(() => {
+                timeoutIdRef.current = setTimeout(checkSession, 2 * 60 * 1000);
+            });
+        };
+        checkSession();
+        return () => {
+            // clear the latest timeout using the ref
+            if (timeoutIdRef.current) clearTimeout(timeoutIdRef.current);
+        };
+    }, [user]);
     const [permissions, setPermissions] = useState({});
     const { appActions } = useContext(AppContext);
     const [settings, setSettings] = useState({});
     const [popupOpen, setPopupOpen] = useState(false);
     const [authInitialized, setAuthInitialized] = useState(false);
     const signOut = () => {
-        axios.post("/accounts/sign-out").then(() => {
-            setUser(null);
-            setPermissions({});
-        });
+        axios.post("/accounts/sign-out").then(() => clearAuth());
+    };
+    const clearAuth = () => {
+        setUser(null);
+        setPermissions({});
     };
     const getPermissions = (user) => {
         const permissions = _.get(user, "permissions", null);
@@ -239,7 +255,14 @@ export const AuthProvider = ({ children }) => {
     }, [fetchAccountProfile]);
     return (
         <AuthContext.Provider
-            value={{ user, permissions, settings, updateSettings, signOut }}
+            value={{
+                user,
+                permissions,
+                settings,
+                updateSettings,
+                signOut,
+                clearAuth,
+            }}
         >
             <Alert
                 intent={Intent.DANGER}

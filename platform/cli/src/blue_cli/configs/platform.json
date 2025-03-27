@@ -1,0 +1,152 @@
+{
+    "BLUE_DEPLOY_VERSION": { 
+        "default": "v0.9",
+        "prompt": "Blue Deployment Version",
+        "required": true,
+        "cast": "str"
+    },
+    "BLUE_DEPLOY_TARGET": { 
+        "default": "localhost",
+        "prompt": "Blue Deployment Target",
+        "required": true,
+        "cast": "str"
+    },
+    "BLUE_DEPLOY_SECURE": { 
+        "default": false,
+        "prompt": "Secure API Deployment over HTTPS",
+        "required": true,
+        "cast": "bool"
+    },
+    "BLUE_DEPLOY_DEVELOPMENT": { 
+        "default": true,
+        "prompt": "Development Mode",
+        "required": true,
+        "cast": "bool"
+    },
+    "BLUE_AGENT_REGISTRY": { 
+        "default": "default",
+        "prompt": "Agent Registry Name",
+        "required": true,
+        "cast": "str"
+    },
+    "BLUE_AGENT_REGISTRY_MODEL": { 
+        "default": "/blue_data/models/paraphrase-MiniLM-L6-v2",
+        "prompt": "Agent Registry Model",
+        "required": false,
+        "cast": "file"
+    },
+    "BLUE_DATA_REGISTRY": { 
+        "default": "default",
+        "prompt": "Data Registry Name",
+        "required": true,
+        "cast": "str"
+    },
+    "BLUE_DATA_REGISTRY_MODEL": { 
+        "default": "/blue_data/models/paraphrase-MiniLM-L6-v2",
+        "prompt": "Data Registry Model",
+        "required": false,
+        "cast": "file"
+    },
+    "BLUE_PUBLIC_API_SERVER": { 
+        "default": "localhost",
+        "prompt": "Public IP/Name of API Server",
+        "required": true,
+        "cast": "str"
+    },
+    "BLUE_PRIVATE_API_SERVER_PORT": { 
+        "default": 5050,
+        "prompt": "Private Port of API Server",
+        "required": false,
+        "cast": "int"
+    },
+    "BLUE_PUBLIC_API_SERVER_PORT": { 
+        "default": 5050,
+        "prompt": "Public Exposed Port of API Server",
+        "required": true,
+        "cast": "int"
+    },
+    "BLUE_PUBLIC_DB_SERVER": { 
+        "default": "localhost",
+        "prompt": "Public IP/Name of DB Server",
+        "required": true,
+        "cast": "str"
+    },
+    "BLUE_PRIVATE_DB_SERVER_PORT": { 
+        "default": 6379,
+        "prompt": "Private Port Address of Redis DB",
+        "required": false,
+        "cast": "int"
+    },
+    "BLUE_PUBLIC_DB_SERVER_PORT": { 
+        "default": 6379,
+        "prompt": "Public IP/Name of Redis DB Server",
+        "required": false,
+        "cast": "int"
+    },
+    "BLUE_PUBLIC_WEB_SERVER": { 
+        "default": "localhost",
+        "prompt": "Public IP/Name of Web Application Server",
+        "required": true,
+        "cast": "str"
+    },
+    "BLUE_PRIVATE_WEB_SERVER_PORT": { 
+        "default": 3000,
+        "prompt": "Private Port of Web Application Server",
+        "required": false,
+        "cast": "int"
+    },
+    "BLUE_PUBLIC_WEB_SERVER_PORT": { 
+        "default": 3000,
+        "prompt": "Public Exposed Port of Web Application Server",
+        "required": true,
+        "cast": "int"
+    },
+    "BLUE_EMAIL_DOMAIN_WHITE_LIST": {
+        "default": null,
+        "prompt": "Allowed email domains to sign in",
+        "required": true,
+        "cast": "str"
+    },
+    "BLUE_RBAC_CONFIG_FOLDER": {
+        "default":"/blue_data/config/rbac",
+        "prompt": "Access Control Config Directory",
+        "required": false,
+        "cast": "file"
+    },
+    "BLUE_BUILD_LIB_ARG": {
+        "default":"",
+        "prompt": "Build Lib Argument",
+        "required": false,
+        "cast": "str"
+    },
+    "BLUE_BUILD_CACHE_ARG": {
+        "default":"",
+        "prompt": "Build Cache Argument",
+        "required": false,
+        "cast": "str"
+    },
+    "BLUE_BUILD_IMG_SUFFIX": {
+        "default":"",
+        "prompt": "Build Image Suffix",
+        "required": false,
+        "cast": "str"
+    },
+    "FIREBASE_SERVICE_CRED": {
+        "default": "",
+	    "prompt": "FireBase Service Credentialls",
+        "required": false,
+        "cast": "str"
+    },
+    "BLUE_USER_ROLE": {
+        "default": "guest",
+        "prompt": "User Role",
+        "required": false,
+        "cast": "str"
+    },
+    "POSTGRES_PASSWORD": {
+        "default": "postgres",
+        "prompt": "Example Postgres DB password",
+        "required": false,
+        "cast": "str"
+    }
+}

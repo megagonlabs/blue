@@ -1,23 +1,25 @@
 FROM --platform=$BUILDPLATFORM python:3.9
+ARG BLUE_BUILD_CACHE_ARG
+ARG BLUE_BUILD_LIB_ARG
 
 # Set workdir
 WORKDIR /app
 
 # Build requirements first
 ADD src/requirements.core /app/requirements.core
-RUN pip install --no-cache --extra-index-url  http://10.0.160.75:8888/simple/ --trusted-host 10.0.160.75 -r requirements.core
+RUN pip install ${BLUE_BUILD_CACHE_ARG} ${BLUE_BUILD_LIB_ARG} -r requirements.core
 
 ADD src/requirements.agent /app/requirements.agent
-RUN pip install --no-cache -r requirements.agent
+RUN pip install ${BLUE_BUILD_CACHE_ARG} -r requirements.agent
 
 ADD src/requirements.data /app/requirements.data
-RUN pip install --no-cache -r requirements.data
+RUN pip install ${BLUE_BUILD_CACHE_ARG} -r requirements.data
 
 ADD src/requirements.registry /app/requirements.registry
-RUN pip install --no-cache-dir --no-cache --extra-index-url https://download.pytorch.org/whl/cpu -r requirements.registry
+RUN pip install ${BLUE_BUILD_CACHE_ARG} --no-cache-dir --no-cache --extra-index-url https://download.pytorch.org/whl/cpu -r requirements.registry
 
 ADD src/requirements.query_executor /app/requirements.query_executor
-RUN pip install --no-cache -r requirements.query_executor
+RUN pip install ${BLUE_BUILD_CACHE_ARG} -r requirements.query_executor
 
 
 
