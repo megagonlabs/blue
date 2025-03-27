@@ -42,6 +42,7 @@ You can try out a demos on our [blue-examples repository!](http://github.com/rit
 
 Sounds interesting? Want to learn more? Read documentation below.
 
+
 # Outline of the Documentation:
 
 * [Orchestration Concepts](ORCHESTRATION-CONCEPTS.md) to learn more about Blue concepts
