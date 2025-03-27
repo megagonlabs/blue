@@ -10,15 +10,20 @@
     },
     "dependencies": {
         "@blueprintjs/core": "^5.17.6",
+        "@blueprintjs/select": "^5.3.18",
         "@fortawesome/fontawesome-svg-core": "^6.7.2",
         "@fortawesome/react-fontawesome": "^0.2.2",
         "@fortawesome/sharp-duotone-solid-svg-icons": "^6.7.2",
+        "classnames": "^2.5.1",
         "lodash": "^4.17.21",
         "next": "^14.2.24",
         "normalize.css": "^8.0.1",
         "react": "^18.2.0",
         "react-dom": "^18.2.0",
-        "react-grid-layout": "^1.5.1"
+        "react-grid-layout": "^1.5.1",
+        "react-use-error-boundary": "^3.0.0",
+        "uuid": "^11.1.0",
+        "zustand": "^5.0.3"
     },
     "devDependencies": {
         "@eslint/eslintrc": "^3",
