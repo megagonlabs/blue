@@ -21,6 +21,7 @@
         "react": "^18.2.0",
         "react-dom": "^18.2.0",
         "react-grid-layout": "^1.5.1",
+        "react-grid-system": "^8.2.1",
         "react-use-error-boundary": "^3.0.0",
         "uuid": "^11.1.0",
         "zustand": "^5.0.3"

@@ -42,7 +42,7 @@ export default function Home() {
                                 fontWeight: 600,
                                 display: "flex",
                                 alignItems: "center",
-                                gap: 10,
+                                gap: 20,
                             }}
                         >
                             <Button

@@ -3,5 +3,9 @@
 }
 .react-grid-item.react-grid-placeholder {
     border-radius: 2px;
-    background: #abb3bf !important;
+    /* Colors.GRAY3 */
+    background: #8f99a8 !important;
+}
+.react-draggable-dragging {
+    z-index: 4 !important;
 }

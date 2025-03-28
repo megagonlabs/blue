@@ -2,6 +2,7 @@ import { useAppStore } from "@/stores/app-store";
 import { useGridStore } from "@/stores/grid-layout-store";
 import {
     Card,
+    Classes,
     Colors,
     HotkeysTarget2,
     Intent,
@@ -33,7 +34,9 @@ import FormDesigner from "./tools/FormDesigner";
 export default function Blue({ children }) {
     const addContainer = useGridStore((state) => state.addContainer);
     const openOmnibar = useAppStore((state) => state.openOmnibar);
+    const setState = useAppStore((state) => state.setState);
     const showOmnibar = useAppStore((state) => state.showOmnibar);
+    const darkMode = useAppStore((state) => state.darkMode);
     const closeOmnibar = useAppStore((state) => state.closeOmnibar);
     const omnibarItems = useAppStore((state) => state.omnibarItems);
     const hotkeys = [
@@ -45,17 +48,27 @@ export default function Blue({ children }) {
             // prevent typing "O" in omnibar input
             preventDefault: true,
         },
+        {
+            combo: "shift + d",
+            global: true,
+            label: "Toggle Theme",
+            onKeyDown: () => setState({ key: "darkMode", value: !darkMode }),
+        },
     ];
     return (
         <HotkeysTarget2 hotkeys={hotkeys}>
             <div
+                className={darkMode ? Classes.DARK : null}
                 style={{
                     height: "100vh",
                     width: "100vw",
-                    backgroundColor: Colors.LIGHT_GRAY5,
+                    backgroundColor: darkMode
+                        ? Colors.DARK_GRAY1
+                        : Colors.LIGHT_GRAY5,
                 }}
             >
                 <Omnibar
+                    className={darkMode ? Classes.DARK : null}
                     inputProps={{
                         size: Size.LARGE,
                         placeholder: null,
@@ -97,7 +110,12 @@ export default function Blue({ children }) {
                                 {isExpanded && (
                                     <div style={{ marginTop: 20 }}>
                                         <Menu
-                                            style={{ padding: 0 }}
+                                            style={{
+                                                padding: 0,
+                                                backgroundColor: darkMode
+                                                    ? Colors.DARK_GRAY2
+                                                    : null,
+                                            }}
                                             size={Size.LARGE}
                                         >
                                             <MenuDivider title="Sessions" />
@@ -254,9 +272,18 @@ export default function Blue({ children }) {
                 </div>
                 <div
                     className="full-parent-dimension"
-                    style={{ paddingLeft: 105 }}
+                    style={{ padding: "20px 20px 20px 105px" }}
                 >
-                    {children}
+                    <div
+                        className="border-radius-2 full-parent-dimension overflow-hidden"
+                        style={{
+                            backgroundColor: darkMode
+                                ? Colors.DARK_GRAY3
+                                : Colors.LIGHT_GRAY3,
+                        }}
+                    >
+                        {children}
+                    </div>
                 </div>
             </div>
         </HotkeysTarget2>
