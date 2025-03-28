@@ -205,3 +205,21 @@ You should see:
 
 ![LaunchScreen](./docs/images/blue_launch_screen.png)
 
+#### uninstall platform
+
+To uninstall platform, you can run (you may need to `docker login` before if your repos are private):
+
+```
+$ blue platform uninstall
+```
+
+This will first stop all the running containers and then remove images, docker volumes, and network.
+
+#### stop platform
+
+To stop platform, you can run:
+```
+$ blue platform stop
+```
+
+This will onlu stop the running containers. You can restart later with `blue platform start`.
