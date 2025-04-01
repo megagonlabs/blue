@@ -102,7 +102,7 @@
         "cast": "int"
     },
     "BLUE_EMAIL_DOMAIN_WHITE_LIST": {
-        "default": null,
+        "default": "gmail.com",
         "prompt": "Allowed email domains to sign in",
         "required": true,
         "cast": "str"

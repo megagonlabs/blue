@@ -114,7 +114,7 @@ $ blue platform config
 
 As before you will most likely accept the default values for these configuration options. 
 
-The only configuration without a default value is BLUE_EMAIL_DOMAIN_WHITE_LIST, which is a comma separated list of email domains allowed to sign in (through Google Signin).
+While `BLUE_EMAIL_DOMAIN_WHITE_LIST` is by default `gmail.com`, you might want to change it to limit access.
 
 In general, `platform` commands are very similar to `profile` commands. For example, you can use `blue platform show` to list platform configuration.
 
@@ -205,3 +205,21 @@ You should see:
 
 ![LaunchScreen](./docs/images/blue_launch_screen.png)
 
+#### uninstall platform
+
+To uninstall platform, you can run (you may need to `docker login` before if your repos are private):
+
+```
+$ blue platform uninstall
+```
+
+This will first stop all the running containers and then remove images, docker volumes, and network.
+
+#### stop platform
+
+To stop platform, you can run:
+```
+$ blue platform stop
+```
+
+This will onlu stop the running containers. You can restart later with `blue platform start`.
