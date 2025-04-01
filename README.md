@@ -36,7 +36,7 @@ Here are a few examples to inspire you to build with blue:
 
 # Want to try out blue demos?
 
-You can try out a demos on our [blue-examples repository!](http://github.com/rit-git/blue-examples)
+You can try out a demos on our [blue-examples repository!](http://github.com/megagonlabs/blue-examples)
 
 </br>
 
@@ -49,7 +49,7 @@ Sounds interesting? Want to learn more? Read documentation below.
   * [Local Installation](LOCAL-INSTALLATION.md) more suited for trying out and development 
   * [SWARM Deployment](SWARM-DEPLOYMENT.md) more suited for staging and production deployment
 * [Quickstart Guide](QUICK-START.md) to learn basics of using blue web application.
-* [Demos](https://github.com/rit-git/blue-examples/tree/v0.9) to try out agentic demos with base and experimental agents
+* [Demos](https://github.com/megagonlabs/blue-examples/tree/v0.9) to try out agentic demos with base and experimental agents
 * [Build](BUILD.md) to learn how to build and deploy from repository
 * [Development](DEVELOPMENT.md) to learn more about how to develop with Blue
 * [Access Control](ACCESS-CONTROL.md) to learn more about access control with roles

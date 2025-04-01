@@ -335,7 +335,7 @@ const MainMenuPanel = ({
                     Didn&apos;t find an useful example here? Please request for
                     an example by&nbsp;
                     <a
-                        href="https://github.com/rit-git/blue/issues/new"
+                        href="https://github.com/megagonlabs/blue/issues/new"
                         rel="noopener noreferrer"
                         target="_blank"
                     >

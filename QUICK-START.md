@@ -48,8 +48,8 @@ To try a few of the demos you can click on one of the cards as shown below:
 ![homescreen_demos](docs/images/homescreen_demos.png)
 
 Documentation for the demos can be found here:
-* [NL2SQL](https://github.com/rit-git/blue-examples/tree/v0.9/demos/nl2sql): Translate user input text to SQL and execute it with data in the registry.
-* [Dialogue Manager](https://github.com/rit-git/blue-examples/tree/v0.9/demos/dialogue_manager): Identify user intent and execute plans
+* [NL2SQL](https://github.com/megagonlabs/blue-examples/tree/v0.9/demos/nl2sql): Translate user input text to SQL and execute it with data in the registry.
+* [Dialogue Manager](https://github.com/megagonlabs/blue-examples/tree/v0.9/demos/dialogue_manager): Identify user intent and execute plans
 (Note: please ensure that you follow the steps in the "try it out" section of the demo documentation)
 
 ### Change and add a new agent group

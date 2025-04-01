@@ -2,7 +2,7 @@
 
 ## git cloning
 
-It is recommended that you fork from the blue repo: `https://github.com/rit-git/blue` and clone your forked repository.
+It is recommended that you fork from the blue repo: `https://github.com/megagonlabs/blue` and clone your forked repository.
 
 ## configuration
 
