@@ -1,4 +1,5 @@
 import { useAppStore } from "@/stores/app-store";
+import { useAuthStore } from "@/stores/auth-store";
 import { useGridStore } from "@/stores/grid-layout-store";
 import {
     Card,
@@ -27,19 +28,27 @@ import {
     faUserGroup,
     faWavePulse,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
+import _ from "lodash";
 import Image from "next/image";
+import { useShallow } from "zustand/react/shallow";
+import AccountPanel from "./AccountPanel";
+import Authentication from "./Authentication";
 import ExpandingBox from "./ExpandingBox";
 import { FAIcon } from "./FAIcon";
 import FormDesigner from "./tools/FormDesigner";
 
 export default function Blue({ children }) {
+    const { showOmnibar, darkMode, omnibarItems } = useAppStore(
+        useShallow((state) => ({
+            showOmnibar: state.showOmnibar,
+            darkMode: state.darkMode,
+            omnibarItems: state.omnibarItems,
+        }))
+    );
     const addContainer = useGridStore((state) => state.addContainer);
     const openOmnibar = useAppStore((state) => state.openOmnibar);
     const setState = useAppStore((state) => state.setState);
-    const showOmnibar = useAppStore((state) => state.showOmnibar);
-    const darkMode = useAppStore((state) => state.darkMode);
     const closeOmnibar = useAppStore((state) => state.closeOmnibar);
-    const omnibarItems = useAppStore((state) => state.omnibarItems);
     const hotkeys = [
         {
             combo: "shift + s",
@@ -57,6 +66,10 @@ export default function Blue({ children }) {
         },
     ];
     const darkModeClassName = darkMode ? Classes.DARK : null;
+    const { user } = useAuthStore(
+        useShallow((state) => ({ user: state.user }))
+    );
+    if (_.isNull(user)) return <Authentication />;
     return (
         <HotkeysProvider dialogProps={{ className: darkModeClassName }}>
             <HotkeysTarget2 hotkeys={hotkeys}>
@@ -81,6 +94,18 @@ export default function Blue({ children }) {
                         isOpen={showOmnibar}
                         items={omnibarItems}
                     />
+                    <div style={{ position: "absolute", bottom: 20, left: 20 }}>
+                        <ExpandingBox
+                            initialWidth={65}
+                            initialHeight={65}
+                            expandedWidth={340}
+                            expandedHeight={141.43}
+                        >
+                            {(isExpanded) => (
+                                <AccountPanel isExpanded={isExpanded} />
+                            )}
+                        </ExpandingBox>
+                    </div>
                     <div
                         style={{
                             position: "absolute",
@@ -98,9 +123,8 @@ export default function Blue({ children }) {
                             {(isExpanded) => (
                                 <Card
                                     interactive
+                                    className="full-parent-dimension"
                                     style={{
-                                        width: "100%",
-                                        height: "100%",
                                         overflow: isExpanded
                                             ? "auto"
                                             : "hidden",

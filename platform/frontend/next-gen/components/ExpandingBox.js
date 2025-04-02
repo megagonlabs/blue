@@ -1,5 +1,5 @@
 import _ from "lodash";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 const ExpandingBox = ({
     initialWidth,
@@ -11,13 +11,15 @@ const ExpandingBox = ({
     const [isExpanded, setIsExpanded] = useState(false);
     const [width, setWidth] = useState(initialWidth);
     const [height, setHeight] = useState(initialHeight);
+    const timeoutIdRef = useRef(null);
     const handleExpand = () => {
+        clearTimeout(timeoutIdRef.current);
         setIsExpanded(true);
         setWidth(expandedWidth);
         setHeight(expandedHeight);
     };
     const handleReset = () => {
-        setIsExpanded(false);
+        timeoutIdRef.current = setTimeout(() => setIsExpanded(false), 150);
         setWidth(initialWidth);
         setHeight(initialHeight);
     };
