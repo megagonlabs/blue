@@ -1,6 +1,6 @@
 import { convertCss, sendSocketMessage } from "@/components/helper";
 import { useSocket } from "@/components/hooks/useSocket";
-import { Checkbox, Switch } from "@blueprintjs/core";
+import { Checkbox, Size, Switch } from "@blueprintjs/core";
 import { isBooleanControl, rankWith } from "@jsonforms/core";
 import { withJsonFormsControlProps } from "@jsonforms/react";
 import _ from "lodash";
@@ -15,6 +15,7 @@ const BooleanRenderer = ({
     const { socket } = useSocket();
     const style = convertCss(_.get(uischema, "props.style", {}));
     const label = _.get(uischema, "label", null);
+    const large = _.get(uischema, "large", null);
     const labelElement = _.isString(label) ? (
         <label className={required ? "required" : null}>{label}</label>
     ) : null;
@@ -41,7 +42,7 @@ const BooleanRenderer = ({
                 checked={data}
                 label={labelElement}
                 style={style}
-                size="large"
+                size={large ? Size.LARGE : null}
                 onChange={handleOnChange}
             />
         );
@@ -52,7 +53,7 @@ const BooleanRenderer = ({
             checked={data}
             label={labelElement}
             style={style}
-            size="large"
+            size={large ? Size.LARGE : null}
             onChange={handleOnChange}
         />
     );
