@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=61.0", "setuptools-scm>=8"]
+build-backend = "setuptools.build_meta"
+
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[project]
+name = "blue-cli"
+version = "1.0"
+authors = [
+  { name="Megagon Labs", email="blue@megagon.ai" },
+]
+description = "Command line interface for blue installation and deployment"
+readme = "README.md"
+requires-python = ">=3.9"
+classifiers = [
+      "Development Status :: 4 - Beta",
+      "Programming Language :: Python :: 3.9",
+      "Operating System :: OS Independent",
+]
+dynamic = ["scripts", "dependencies"]
+license = "BSD-3-Clause"
+
+
+[project.urls]
+Homepage = "https://github.com/megagonlabs/blue"
+Issues = "https://github.com/megagonlabs/blue/issues"
+Discussions = "https://github.com/megagonlabs/blue/discussions"
