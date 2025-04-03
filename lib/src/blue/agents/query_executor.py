@@ -4,7 +4,7 @@ import json
 
 ###### Blue
 from blue.agent import Agent
-from blue.stream import ContentType
+from blue.stream import ContentType, Message
 from blue.data.registry import DataRegistry
 
 
@@ -56,6 +56,60 @@ class QueryExecutorAgent(Agent):
             'result': result,
             'error': error
         }
+
+    def _apply_filter(self, output):
+        output_filters = ['all']
+
+        if 'output_filters' in self.properties:
+            output_filters = self.properties['output_filters']
+
+        question = output['question']
+        source = output['source']
+        query = output['query']
+        result = output['result']
+        error = output['error']
+
+        # max results
+        if "output_max_results" in self.properties and self.properties['output_max_results']:
+            if isinstance(result, list):
+                result = result[:self.properties['output_max_results']]
+
+        message = None
+        if 'all' in output_filters:
+            message = {
+                'question': question,
+                'source': source,
+                'query': query,
+                'result': result,
+                'error': error
+            }
+        elif len(output_filters) == 1:
+            if 'question' in output_filters:
+                message = question
+            if 'source' in output_filters:
+                message = source
+            if 'query' in output_filters:
+                message = query
+            if 'error' in output_filters:
+                message = error
+            if 'result' in output_filters:
+                message = result
+        else:
+            message = {}
+            if 'question' in output_filters:
+                message['question'] = question
+            if 'source' in output_filters:
+                message['source'] = source
+            if 'query' in output_filters:
+                message['query'] = query
+            if 'result' in output_filters:
+                message['result'] = result
+            if 'error' in output_filters:
+                message['error'] = error
+        
+        if message:
+            return message
+
     
     def default_processor(self, message, input="DEFAULT", properties=None, worker=None):
 
@@ -71,17 +125,21 @@ class QueryExecutorAgent(Agent):
                 # logging.info("input: "  + input)
                 
                 if worker:
-                    try:
-                        data = json.loads(input)
-                    except:
-                        logging.error("Input is not JSON")
-                        return
+                    if input.strip() != '':
+                        try:
+                            data = json.loads(input)
+                            path = data['source']
+                            query = data['query']
+                            output = self.execute_sql_query(path, query)
 
-                    # extract path, query
-                    path = data['source']
-                    query = data['query']
-                    result = self.execute_sql_query(path, query)
-                    return [result, message.EOS]
+                            worker.write_data(self._apply_filter(output))
+
+                        except:
+                            print("Input is not JSON")
+                            pass
+                   
+                    worker.write_eos()
+
                 
             elif message.isBOS():
                 stream = message.getStream()
@@ -99,8 +157,9 @@ class QueryExecutorAgent(Agent):
                     # extract path, query
                     path = data['source']
                     query = data['query']
-                    result = self.execute_sql_query(path, query)
-                    return [result, message.EOS]
+                    output = self.execute_sql_query(path, query)
+
+                    return self._apply_filter(output)
                 else:
                     # append to private stream data
                     if worker:

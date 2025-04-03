@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[project]
+name = "blue-platform"
+version = "1.0"
+authors = [
+  { name="Megagon Labs", email="blue@megagon.ai" },
+]
+description = "Streams-based agent orchestration platform for building and deploying applications with agentic workflows for the enterprise"
+readme = "README.md"
+requires-python = ">=3.9"
+classifiers = [
+      "Development Status :: 4 - Beta",
+      "Programming Language :: Python :: 3.9",
+      "Operating System :: OS Independent",
+]
+license = "BSD-3-Clause"
+
+[project.urls]
+Homepage = "https://github.com/megagonlabs/blue"
+Issues = "https://github.com/megagonlabs/blue/issues"
+Discussions = "https://github.com/megagonlabs/blue/discussions"

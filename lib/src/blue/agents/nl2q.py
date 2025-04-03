@@ -4,8 +4,8 @@ import json
 
 
 ###### Blue
-from blue.agent import Agent
 from blue.agents.openai import OpenAIAgent
+from blue.stream import Message
 from blue.data.registry import DataRegistry
 
 # set log level
@@ -69,7 +69,8 @@ agent_properties = {
     "nl2q_force_query_prefixes": ["SELECT"],
     "nl2q_additional_requirements": [],
     "nl2q_context": [],
-    "nl2q_max_results": None,
+    "nl2q_output_filters": ["all"],
+    "nl2q_output_max_results": None,
     "output_transformations": [
         {
             "transformation": "replace",
@@ -343,6 +344,61 @@ class NL2SQLAgent(OpenAIAgent):
 
         return params
 
+    def _apply_filter(self, output):
+        output_filters = ['all']
+
+        if 'nl2q_output_filters' in self.properties:
+            output_filters = self.properties['nl2q_output_filters']
+
+        question = output['question']
+        source = output['source']
+        query = output['query']
+        result = output['result']
+        error = output['error']
+
+        # max results
+        if "nl2q_output_max_results" in self.properties and self.properties['nl2q_output_max_results']:
+            if isinstance(result, list):
+                result = result[:self.properties['nl2q_output_max_results']]
+
+        message = None
+        if 'all' in output_filters:
+            message = {
+                'question': question,
+                'source': source,
+                'query': query,
+                'result': result,
+                'error': error
+            }
+            return message
+            
+        elif len(output_filters) == 1:
+            if 'question' in output_filters:
+                message = question
+            if 'source' in output_filters:
+                message = source
+            if 'query' in output_filters:
+                message = query
+            if 'error' in output_filters:
+                message = error
+            if 'result' in output_filters:
+                message = result
+        else:
+            message = {}
+            if 'question' in output_filters:
+                message['question'] = question
+            if 'source' in output_filters:
+                message['source'] = source
+            if 'query' in output_filters:
+                message['query'] = query
+            if 'result' in output_filters:
+                message['result'] = result
+            if 'error' in output_filters:
+                message['error'] = error
+        
+        return message
+
+            
     def process_output(self, output_data, properties=None):
 
         # get properties, overriding with properties provided
@@ -378,19 +434,21 @@ class NL2SQLAgent(OpenAIAgent):
                 logging.info("collection: " + collection)
                 logging.info("executing query: " + query)
                 result = source_connection.execute_query(query, database=database, collection=collection)
-
-                if "nl2q_max_results" in self.properties and self.properties['nl2q_max_results']:
-                    if isinstance(result, list):
-                        result = result[:self.properties['nl2q_max_results']]
+                logging.info(result)
+               
 
         except Exception as e:
             error = str(e)
 
-        # return results
-        return {
+        # output
+        output = {
             'question': question,
             'source': key,
             'query': query,
             'result': result,
             'error': error
         }
+        logging.info(output)
+        x = self._apply_filter(output)
+        logging.info(str(x))
+        return x
