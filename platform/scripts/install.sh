@@ -1,3 +1,3 @@
 pip uninstall -y blue-py blue-cli
-pip install --no-cache --extra-index-url  http://10.0.160.75:8888/simple/ --trusted-host 10.0.160.75 blue_cli==1.0
+pip install ${BLUE_BUILD_CACHE_ARG} ${BLUE_BUILD_LIB_ARG} blue_cli==1.0
 

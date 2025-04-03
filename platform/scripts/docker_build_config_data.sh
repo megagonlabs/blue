@@ -56,10 +56,10 @@ git clone https://huggingface.co/sentence-transformers/paraphrase-MiniLM-L6-v2 $
 docker cp ${BLUE_INSTALL_DIR}/models/ dummy:/mnt/
 
 # commit
-docker commit dummy ${BLUE_CORE_DOCKER_ORG}/blue-config-data:${BLUE_DEPLOY_VERSION}
+docker commit dummy ${BLUE_CORE_DOCKER_ORG}/blue-config-data${BLUE_BUILD_IMG_SUFFIX}:${BLUE_DEPLOY_VERSION}
 
 # publish
-docker push ${BLUE_CORE_DOCKER_ORG}/blue-config-data:${BLUE_DEPLOY_VERSION}
+docker push ${BLUE_CORE_DOCKER_ORG}/blue-config-data${BLUE_BUILD_IMG_SUFFIX}:${BLUE_DEPLOY_VERSION}
 
 # remove dummy container
 docker rm --force dummy

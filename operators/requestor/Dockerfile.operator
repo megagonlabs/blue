@@ -1,4 +1,6 @@
 FROM --platform=$BUILDPLATFORM python:3.9
+ARG BLUE_BUILD_CACHE_ARG
+ARG BLUE_BUILD_LIB_ARG
 
 # Set workdir
 WORKDIR /app
