@@ -19,7 +19,7 @@ export const useGridStore = create((set) => ({
         set((state) => ({
             containers: { ...state.containers, [key]: { title, content } },
             layout: [
-                { i: key, x: 0, y: 0, w: 12, h: 2, minW: 4, minH: 2 },
+                { i: key, x: 0, y: 0, w: 12, h: 3, minW: 4, minH: 3 },
                 ...state.layout,
             ],
         }));

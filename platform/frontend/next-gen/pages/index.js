@@ -42,7 +42,7 @@ export default function Home() {
                                 fontWeight: 600,
                                 display: "flex",
                                 alignItems: "center",
-                                gap: 20,
+                                gap: 10,
                             }}
                         >
                             <Button
@@ -68,7 +68,7 @@ export default function Home() {
                         </div>
                         <div
                             className="overflow-hidden"
-                            style={{ height: "calc(100% - 34px)" }}
+                            style={{ height: "calc(100% - 44px)" }}
                         >
                             {_.get(containers, [element.i, "content"], null)}
                         </div>

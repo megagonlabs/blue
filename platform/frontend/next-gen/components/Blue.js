@@ -36,7 +36,6 @@ import Authentication from "./Authentication";
 import ExpandingBox from "./ExpandingBox";
 import { FAIcon } from "./FAIcon";
 import FormDesigner from "./tools/FormDesigner";
-
 export default function Blue({ children }) {
     const { showOmnibar, darkMode, omnibarItems } = useAppStore(
         useShallow((state) => ({
@@ -94,7 +93,14 @@ export default function Blue({ children }) {
                         isOpen={showOmnibar}
                         items={omnibarItems}
                     />
-                    <div style={{ position: "absolute", bottom: 20, left: 20 }}>
+                    <div
+                        style={{
+                            position: "absolute",
+                            bottom: 20,
+                            left: 20,
+                            zIndex: 4,
+                        }}
+                    >
                         <ExpandingBox
                             initialWidth={65}
                             initialHeight={65}

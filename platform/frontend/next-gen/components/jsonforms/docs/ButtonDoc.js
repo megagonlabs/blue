@@ -1,0 +1,189 @@
+import JsonViewer from "@/components/JsonViewer";
+import * as docProps from "@/components/jsonforms/docs/constant";
+import {
+    Button,
+    Callout,
+    Classes,
+    Code,
+    H1,
+    H2,
+    HTMLTable,
+    Intent,
+    Pre,
+    Size,
+} from "@blueprintjs/core";
+import classNames from "classnames";
+import CopyDocJsonButton from "./CopyDocJsonButton";
+const docJson = {
+    type: "Button",
+    label: "",
+    props: {
+        large: false,
+        outlined: false,
+        intent: null,
+        style: {},
+        action: null,
+    },
+};
+export default function ButtonDoc() {
+    return (
+        <div
+            className={classNames(
+                "full-parent-dimension",
+                Classes.RUNNING_TEXT
+            )}
+            style={{ padding: 20, overflowY: "auto" }}
+        >
+            <div style={{ marginBottom: 20 }}>
+                <H1 style={{ margin: 0 }}>Button</H1>
+            </div>
+            <Pre style={{ position: "relative", overflow: "hidden" }}>
+                <div style={{ position: "absolute", right: 15, top: 13 }}>
+                    <CopyDocJsonButton
+                        docJson={JSON.stringify(docJson, null, 4)}
+                        copyMessage="Copied Button JSON"
+                    />
+                </div>
+                <JsonViewer json={docJson} enableClipboard={false} />
+            </Pre>
+            <H2>Props</H2>
+            <HTMLTable className="docs-prop-table" style={{ width: "100%" }}>
+                <thead>
+                    <tr>
+                        <th>Props</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <Code>large</Code>
+                        </td>
+                        <td>
+                            <strong>boolean</strong>
+                            <em
+                                className={classNames(
+                                    Classes.TEXT_MUTED,
+                                    "docs-prop-default"
+                                )}
+                            >
+                                false
+                            </em>
+                            <div>
+                                Whether this button should use large styles.
+                            </div>
+                            <Callout
+                                style={{
+                                    margin: 0,
+                                    marginTop: 5,
+                                    display: "flex",
+                                    gap: 10,
+                                    flexWrap: "wrap",
+                                    alignItems: "flex-start",
+                                }}
+                            >
+                                <Button size={Size.LARGE} text="large: true" />
+                                <Button text="large: false" />
+                            </Callout>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <Code>outlined</Code>
+                        </td>
+                        <td>
+                            <strong>boolean</strong>
+                            <em
+                                className={classNames(
+                                    Classes.TEXT_MUTED,
+                                    "docs-prop-default"
+                                )}
+                            >
+                                false
+                            </em>
+                            <div>
+                                Whether this button should use outlined styles.
+                            </div>
+                            <Callout
+                                style={{
+                                    margin: 0,
+                                    marginTop: 5,
+                                    display: "flex",
+                                    gap: 10,
+                                    flexWrap: "wrap",
+                                }}
+                            >
+                                <Button text="outlined: false" />
+                                <Button
+                                    variant="outlined"
+                                    text="outlined: true"
+                                />
+                            </Callout>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <Code>intent</Code>
+                        </td>
+                        <td>
+                            <strong>string</strong>
+                            <em
+                                className={classNames(
+                                    Classes.TEXT_MUTED,
+                                    "docs-prop-default"
+                                )}
+                            >
+                                null
+                            </em>
+                            <div>Visual intent color to apply to element.</div>
+                            <Callout
+                                style={{
+                                    margin: 0,
+                                    marginTop: 5,
+                                    display: "flex",
+                                    gap: 10,
+                                    flexWrap: "wrap",
+                                }}
+                            >
+                                <Button
+                                    intent={Intent.DANGER}
+                                    text='"danger"'
+                                />
+                                <Button
+                                    intent={Intent.WARNING}
+                                    text='"warning"'
+                                />
+                                <Button
+                                    intent={Intent.PRIMARY}
+                                    text='"primary"'
+                                />
+                                <Button
+                                    intent={Intent.SUCCESS}
+                                    text='"success"'
+                                />
+                            </Callout>
+                        </td>
+                    </tr>
+                    {docProps.style}
+                    <tr>
+                        <td>
+                            <Code>action</Code>
+                        </td>
+                        <td>
+                            <strong>string</strong>
+                            <em
+                                className={classNames(
+                                    Classes.TEXT_MUTED,
+                                    "docs-prop-default"
+                                )}
+                            >
+                                null
+                            </em>
+                            <div>Name of the action.</div>
+                        </td>
+                    </tr>
+                </tbody>
+            </HTMLTable>
+        </div>
+    );
+}

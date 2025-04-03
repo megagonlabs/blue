@@ -19,7 +19,9 @@ export const useAuthStore = create((set, get) => ({
     user: null,
     permissions: {},
     initialized: false,
+    isPopupOpen: false,
     signInWithGoogle: () => {
+        set({ isPopupOpen: true });
         signInWithPopup(auth, provider).then((result) =>
             result.user.getIdToken().then((idToken) =>
                 axios
@@ -27,6 +29,9 @@ export const useAuthStore = create((set, get) => ({
                     .then(() => {
                         const { fetchAccountProfile } = get();
                         fetchAccountProfile();
+                    })
+                    .finally(() => {
+                        set({ isPopupOpen: false });
                     })
             )
         );

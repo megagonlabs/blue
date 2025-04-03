@@ -17,11 +17,29 @@
 .overflow-hidden {
     overflow: hidden;
 }
+.border-top {
+    border-top: 1px solid rgba(17, 20, 24, 0.15);
+}
+.bp5-dark .border-top {
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
 .border-bottom {
     border-bottom: 1px solid rgba(17, 20, 24, 0.15);
 }
 .bp5-dark .border-bottom {
     border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+.border-right {
+    border-right: 1px solid rgba(17, 20, 24, 0.15);
+}
+.bp5-dark .border-right {
+    border-right: 1px solid rgba(255, 255, 255, 0.2);
+}
+.border-left {
+    border-left: 1px solid rgba(17, 20, 24, 0.15);
+}
+.bp5-dark .border-left {
+    border-left: 1px solid rgba(255, 255, 255, 0.2);
 }
 .user-selection-none {
     -webkit-user-select: none;

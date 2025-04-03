@@ -4,11 +4,18 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect } from "react";
 import { Col, Container, Hidden, Row } from "react-grid-system";
+import { useShallow } from "zustand/react/shallow";
 
 export default function () {
     const signInWithGoogle = useAuthStore((state) => state.signInWithGoogle);
     const fetchAccountProfile = useAuthStore(
         (state) => state.fetchAccountProfile
+    );
+    const { isPopupOpen, initialized } = useAuthStore(
+        useShallow((state) => ({
+            isPopupOpen: state.isPopupOpen,
+            initialized: state.initialized,
+        }))
     );
     useEffect(() => {
         fetchAccountProfile();
@@ -19,7 +26,7 @@ export default function () {
                 <Hidden xs sm>
                     <Col
                         md={7}
-                        lg={6}
+                        lg={5}
                         className="full-parent-height"
                         style={{ padding: 20 }}
                     >
@@ -58,7 +65,7 @@ export default function () {
                         </div>
                     </Col>
                 </Hidden>
-                <Col xs={12} md={5} lg={6}>
+                <Col xs={12} md={5} lg={7}>
                     <div
                         className="full-parent-height"
                         style={{ textAlign: "center" }}
@@ -67,8 +74,9 @@ export default function () {
                         <H3>Good to see you!</H3>
                         <div>Sign in to your account to continue.</div>
                         <Button
+                            loading={!initialized || isPopupOpen}
                             onClick={signInWithGoogle}
-                            size="large"
+                            size={Size.LARGE}
                             style={{ marginTop: 20 }}
                             variant="outlined"
                             text="Sign in with Google"
