@@ -4,6 +4,7 @@ Below you will find more information on developing your own agents as well as a 
 
 Use below links for quick accces:
 - [Agents](#agents)
+  - [library](#library)
   - [basics](#basics)
   - [data processor](#data-processor)
   - [messages](#messages)
@@ -14,45 +15,54 @@ Use below links for quick accces:
   - [interactive agents](#interactive-agents)
   - [instructable agents](#instructable-agents)
 - [Template Agents](#template-agents)
-  - [template agent](#template-agent)
-  - [template interactive agent](#template-interactive-agent)
-- [Generic Agents](#generic-agents)
+- [Base Agents](#base-agents)
 
 </br>
 </br>
 
 ---
+## library
+
+To install blue-platform (v0.9), you can run:
+```
+pip install ${BLUE_BUILD_CACHE_ARG} ${BLUE_BUILD_LIB_ARG} blue-platform==0.9
+```
+
+Unless you are developing both BLUE_BUILD_CACHE_ARG and BLUE_BUILD_LIB_ARG should be empty, in other words:
+```
+$ pip install blue_cli==0.9
+```
+
+
+It is highly recommended that you use a virtual environment before installing blue-platform.
 
 ## basics
 
 Let's dive into a bit of development of the agents, starting with basics...
 
-The `agents/lib` contains an Agent class that can be used as a base class for developing new agents. While it is often the practice to use Agent class as the base class, however, you do not necessarily need to extend the base class as you can simply use the Agent class directly, and pass in different parameters (such as `processor` function to process data).
+The blue-platform library contains an Agent class that can be used as a base class for developing new agents. While it is often the practice to use Agent class as the base class, however, you do not necessarily need to extend the base class as you can simply use the Agent class directly, and pass in different parameters (such as `processor` function to process data).
 
-Let's first go through an example that basically uses Agent class directly. You can find this example in `agents/test` directory. To setup for this example:
+Let's first go through an example that basically uses Agent class directly. 
 
+We will walk through the source code of the [basic example](/agents/basics).
+
+Once you install the blue-platform, you should pip install other requirements:
 ```
-$ cd agents/test
-$ pip install -r requirements.txt
-$ ./build_agent.sh
+$ cd ${BLUE_INSTALL_DIR}/agents/basics
+$ pip install -r requirements.core
+$ pip install -r requirements.agent
 ```
 
-Then, invoke a python interpreter (in `agents/test` directory):
+Then, you invoke can invoke a python interpreter:
+
 ```
 $ python
 ```
 
-First, to import Agent class, `import sys` so that you can access classes defined in various directories under `lib`. Afterwards, import `Agent` and `Session`:
+First, import `Agent` and `Session`:
 ```
-import sys
-import logging
-
-sys.path.append('./lib/')
-sys.path.append('./lib/agent/')
-sys.path.append('./lib/platform/')
-
-from agent import Agent
-from session import Session
+from blue.agent import Agent
+from blue.session import Session
 ```
 
 Initially, let's turn off a lot of the logging, by settting logging level to `ERROR`:
@@ -65,8 +75,10 @@ In this example, let's first create a session, then have a USER agent, simply us
 # create a session
 session = Session()
 
+prefix = session.cid + ":" + "AGENT"
+
 # create a user agent
-user_agent = Agent(name="USER", session=session)
+user_agent = Agent(name="USER", prefix=prefix, session=session)
 
 # user initiates an interaction
 user_agent.interact("hello world!", eos=False)
@@ -82,6 +94,7 @@ The signature of the `processor` function is `(message, input=None, properties=N
 Let's write below code to create a COUNTER agent with a custom `processor` function as below:
 
 ```
+# sample func to process data for counter
 stream_data = []
 
 def processor(message, input=None, properties=None, worker=None):
@@ -102,7 +115,17 @@ def processor(message, input=None, properties=None, worker=None):
         return None
 
 # create a counter agent in the same session
-counter_agent = Agent(name="COUNTER", session=session, processor=processor)
+properties = {
+    "listens": {
+        "DEFAULT": {
+          "includes": [
+            "USER"
+          ],
+          "excludes": []
+        }
+      }
+}
+counter_agent = Agent(name="COUNTER", prefix=prefix, properties=properties, session=session, processor=processor)
 ```
 
 And run it:
@@ -176,7 +199,7 @@ For `DATA` messages its content is the data itself, for example, 3 or "Hello". F
 For `CONTROL` messages its content is: (1) `code`, specific control code, (2) `args` JSON object containing arguments for the message. `content_type` of `CONTROL` messages is always `JSON`. Besides `BOS` and `EOS`, there are other control codes such as
 `JOIN_SESSION` in platform streams `ADD_AGENT`, `REMOVE_AGENT`, `ADD_STREAM`, in session streams, and `EXECUTE_AGENT`, `CREATE_FORM`, `UPDATE_FORM`, and `CLOSE_FORM` in agent streams.
 
-Message is a python class, that can be imported from `lib/platform/message`. It has a number of utility functions, to determine the type of message, such as `isData`, `isControl`, `isBOS`, `isEOS`, get parts of the message such as `getLabel`, `getData`, `getContents`, `getContentType`, `getCode`, `getArgs`, and `getArg`.
+Message is a python class, that can be imported `from blue.stream import Message`. It has a number of utility functions, to determine the type of message, such as `isData`, `isControl`, `isBOS`, `isEOS`, get parts of the message such as `getLabel`, `getData`, `getContents`, `getContentType`, `getCode`, `getArgs`, and `getArg`.
 
 Additionally when a message is received from the `processor` function it additionally has an `id` and `stream`, capturing id of the message and the id of the stream it resides. These can be obtained through `getID` and `getStream` functions.
 
@@ -227,17 +250,16 @@ Note, as you might recall tags on output streams can also be specified as part o
 ## listeners
 So, you might ask how did the `COUNTER` agent listened to output from the `USER` agent. 
 
-To decide which agents to listen to which streams, each agent defines a `listens` property and `includes` and `excludes` list. The default values are:
+To decide which agents to listen to which streams, each agent defines a `listens` property and `includes` and `excludes` list. In the above example the `COUNTER` agent is made to list to `USER` streams by:
 ```
 "listens": {
    "DEFAULT": {
-      "includes" = [".*"]
+      "includes" = ["USER"]
       "excludes" = []
    }
 }
 ```
 
-Above specification essentially says every agent in the session listens to every stream from any other agents with no exclusions. Internally though an agent is prevented to listen to its own stream to avoid any loops.
 
 To build more complex workflows though the `listens` property can be set more specifically per input parameter of the agent. As you recall `DEFAULT` is the default input parameter. So, in the above specification the `includes` list contains a list of regular expressions that are matched against stream tags. For example, above `.*` matches any sequence of characters, as such `includes` matches any tag. The `excludes` list similarly contains a list of regular expressions. In the above example though the list is empty, as such there are no exclusions.
 
@@ -246,8 +268,6 @@ The mechanism of listening is as follows, with more details:
 Agents tag each stream they create, as you have seen above, `USER` agent tagged its output stream as `USER`. Agents by default tag each stream they produce by their own name. Additional, tags can be provided as a property (`tags`), or at the time of creating a new stream (see [data processor](#data0processor) worker.write function tag parameter).
 
 Other agents in the session check if their `includes` and `excludes` list against the tags of the stream. `includes` and `excludes` lists are ordered lists of regular expressions that are evaluated on stream tags. To decide if a stream should be listened to, first the `includes` list is processed. If none of the regular expressions is matched, the stream with the tags is not listened to. If any of the regular expressions is a match, a further check is made in the `excludes` list. If none of the `excludes` regular expressions is matched, the stream is listened. If any one of `excludes` is matched the stream is not listened to. 
-
-Default `includes` list is ['.*'], i.e. all agents are listened to, and the default `excludes` list is `[]`. Both include and exclude list can include an element that is itself a list, e.g. `["A","B",["C","D"]]` to support conjunctions. For example, previous example is `A or B or (C and D)`.
 
 Once a match is found a worker is initiated to begin processing data on that stream, with the `input` set to the parameter for which a match is found.
 </br>
@@ -368,7 +388,7 @@ An instructable agent essentially means that the agent can be made to process da
 
 Sending an `EXECUTE_AGENT` message, essentially triggers execution. An example of such an instruction is:
 ```
-worker.write_control(ControlCode.EXECUTE_AGENT, {"agent": <agent_name>, "context": <context>, "input": { <param>: <stream> }})
+worker.write_control(ControlCode.EXECUTE_AGENT, {"agent": <agent_name>, "context": <context>, "inputs": { <param>: <stream> }}) 
 ```
 
 The above instruction essentially triggers an execution on Agent with name `<agent_name>`, with `input=<param>` on stream `<stream>`. Context is an additional parameter, typically this can be set to session id but depending on the application logic you may want to set a different id for the context.
@@ -378,32 +398,16 @@ The above instruction essentially triggers an execution on Agent with name `<age
 
 ---
 
-
 # Template Agents
 
-## template agent
-
-Key functionality of the agent is defined in the `processor` function, the rest is template. To help develop agents you can use the [template agent](template) code as starter code.
-
-</br>
-</br>
+See the [template agent](https://github.com/rit-git/blue-examples/tree/v0.9/agents/template) and [template interactive agent](https://github.com/rit-git/blue-examples/tree/v0.9/agents/template_interactive) in the blue-example repo, to get a head-start on writing agents from a template.
 
 ---
 
-## template interactive agent
+# Base Agents
 
-See the `processor` function in the template interactive agent to see how to send interactive forms to render on the web application. To help develop interactive agents you can use the [template-interactive agent](template-interactive) code as starter code.
+Below is a list of agents that you can directly use as they are base agents. Also look for other agents in [agents](/lib/blue/agents) in the blue library to use them as examples.
 
-Build interactive forms using "Form Designer" in the "Dev. Tools" section of the navigation menu. Instructions on the form elements are available within the interface.
-</br>
-</br>
+* [Requestor Agent](requestor) - make requests to any API
+* [OpenAI Agent](openai) - make requests to OpenAI API 
 
----
-
-# Generic Agents
-
-Below is a list of agents that you can directly use as they are generic. Also look for other agents in `agents` directory to use them as examples.
-
-* [API Caller Agent](apicaller) - call any API
-* [Form Agent](form) - present form to collect structured data
-* [OpenAI Agent](openai) - call OpenAI 
