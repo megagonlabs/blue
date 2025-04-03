@@ -19,7 +19,7 @@ Most of blue scripts require configuration of environment variables. Below is th
 - `BLUE_DEPLOY_PLATFORM` - platform name (e.g. `default`)
 - `BLUE_DEPLOY_SECURE` - use HTTP vs HTTPS, False or True (e.g. `False``)
 - `BLUE_DEPLOY_TARGET` - deployment target, `localhost` or `swarm`(e.g. localhost)
-- `BLUE_DEPLOY_VERSION` - deployment version, `v0.9` or `latest`  (e.g. `v0.9`)
+- `BLUE_DEPLOY_VERSION` - deployment version, `v1.0` or `latest`  (e.g. `v1.0`)
 - `BLUE_DEV_DOCKER_ORG` - docker org to push/pull blue agents and services, your own org or `megagonlabs` (e.g. `megagonlabs`)
 - `BLUE_EMAIL_DOMAIN_WHITE_LIST` - allow domain list for web app authentication (e.g. `megagon.ai`)
 - `BLUE_INSTALL_DIR` - directory containing blue source code (e.g. `~/blue`)

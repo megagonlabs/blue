@@ -119,6 +119,9 @@ export default function Index() {
     const [popupOpen, setPopupOpen] = useState(false);
     const signInWithGoogle = () => {
         const server = _.get(profile, "BLUE_PUBLIC_API_SERVER", null);
+        const secure =
+            _.toLower(_.get(profile, "BLUE_DEPLOY_SECURE", "True")) == "true";
+        const port = _.get(profile, "BLUE_PUBLIC_API_SERVER_PORT", null);
         const platformName = _.get(profile, "BLUE_DEPLOY_PLATFORM", null);
         setPopupOpen(true);
         signInWithPopup(auth, provider)
@@ -126,7 +129,9 @@ export default function Index() {
                 result.user.getIdToken().then((idToken) => {
                     axios
                         .post(
-                            `${server}/blue/platform/${platformName}/accounts/sign-in/cli`,
+                            `http${
+                                secure ? "s" : ""
+                            }://${server}:${port}/blue/platform/${platformName}/accounts/sign-in/cli`,
                             { id_token: idToken }
                         )
                         .then((response) => {
