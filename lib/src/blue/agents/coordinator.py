@@ -92,11 +92,74 @@ class CoordinatorAgent(Agent):
         return super().session_listener(message)
 
     def transform_data(self, input_stream, budget, f, t):
-        # TODO: 
+        # from_input = None
+        # from_agent = None
+        # from_agent_param = None
+        # to_agent = None
+        # to_agent_param = None
+        # to_output = None
+
+        # if type(f) == tuple: 
+        #     from_agent, from_agent_param = f
+        # else:
+        #     from_input = f
+
+        # if type(t) == tuple:
+        #     to_agent, to_agent_param = t
+        # else:
+        #     to_output = t
+
+        # logging.info("TRANSFORM DATA:")
+        # logging.info(from_agent + "." + from_agent_param)
+        # logging.info(to_agent + "." + to_agent_param)
+        # logging.info("BUDGET:")
+        # logging.info(json.dumps(budget, indent=3))
+
+        # context = {}
+        # TODO: get registry info on from_agent, from_agent_param
+
+        # TODO: get registry info on to_agent, to_agent_param
+
+        # TODO: TEMPORARY
+
+        # fetch data from stream
+        # input_data = self.fetch_stream_data(input_stream)
+
+        # # TODO: call data planner, plan, optimize given budget
+        # pid = str(hex(uuid.uuid4().fields[0]))[2:]
+        # dp = DataPlanner(id=pid, properties=self.properties)
+        # plan = dp.plan(input_data, "TRANSFORM", context)
+        # plan = dp.optimize(plan, budget)
+
+        # # TODO: execute plan, update budget
+        # pipeline = DataPipeline(id=pid, properties=self.properties)
+        # output_data = pipeline.execute(plan, budget)
+
+        # # # persist data to stream
+        # output_stream = self.persist_stream_data(output_data)
+
+        # # TODO: update session budget
+
+        # # TODO: OVERRIDE TEMPORARILY
         output_stream = input_stream
 
         return output_stream
-    
+
+    # TODO: fetch data from stream
+    def fetch_stream_data(self, input_stream):
+        # get input data 
+        input_data = None 
+
+        return input_data
+
+    # TODO: persist data to stream
+    def persist_stream_data(self, input_data):
+        # return output stream
+        output_stream = None
+
+        return output_stream 
+
+
     # node status progression
     # PLANNED, TRIGGERED, STARTED, FINISHED
     def default_processor(self, message, input="DEFAULT", properties=None, worker=None):
@@ -206,7 +269,7 @@ class CoordinatorAgent(Agent):
                         # transform data utilizing planner/optimizers, if necessary
                         budget = worker.session.get_budget()
 
-                        # set input stream to stream
+                        # override output stream if data is transformed 
                         input_stream = self.transform_data(stream, budget, f, t)
 
                         # set next node stream
