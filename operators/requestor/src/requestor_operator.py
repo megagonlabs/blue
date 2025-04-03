@@ -5,7 +5,7 @@ import json
 
 ###### Blue
 from blue.operator import OperatorFactory
-from blue.operator.requestor import RequestorOperator
+from blue.operators.requestor import RequestorOperator
 
 # set log level
 logging.getLogger().setLevel(logging.INFO)

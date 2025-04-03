@@ -5,7 +5,7 @@ import json
 
 ###### Blue
 from blue.operator import OperatorFactory
-from blue.operator.openai import OpenAIOperator
+from blue.operators.openai import OpenAIOperator
 
 # set log level
 logging.getLogger().setLevel(logging.INFO)
