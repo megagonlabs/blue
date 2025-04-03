@@ -13,7 +13,7 @@ package = {
     "setup_requires": ['setuptools_scm'],
     "include_package_data": True,
     "install_requires": [
-        "blue-py==1.0",
+        "blue-platform==1.0",
         "python-dotenv==1.0.0",
         "click==8.1.7",
         "tabulate==0.9.0",

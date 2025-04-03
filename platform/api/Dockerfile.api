@@ -23,7 +23,7 @@ ADD src/requirements.data /app/requirements.data
 RUN pip install ${BLUE_BUILD_CACHE_ARG} -r requirements.data
 
 ADD src/requirements.registry /app/requirements.registry
-RUN pip install --no-cache-dir --no-cache --extra-index-url https://download.pytorch.org/whl/cpu -r requirements.registry
+RUN pip install ${BLUE_BUILD_CACHE_ARG} --no-cache-dir --no-cache --extra-index-url https://download.pytorch.org/whl/cpu -r requirements.registry
 
 ADD src/requirements.api /app/requirements.api
 RUN pip install ${BLUE_BUILD_CACHE_ARG} -r requirements.api
