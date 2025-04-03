@@ -59,7 +59,7 @@ class ClustererAgent(Agent):
             worker = self.create_worker(None)
 
         # plan
-        p = Plan(prefix=worker.prefix)
+        p = Plan(scope=worker.prefix)
         # set input
         p.define_input(name, value=query)
         # set plan
@@ -72,7 +72,7 @@ class ClustererAgent(Agent):
     def issue_agent_call(self, value, worker, agent, output, input, id=None):
 
         # plan
-        p = Plan(prefix=worker.prefix)
+        p = Plan(scope=worker.prefix)
         # set input
         p.define_input(input, value=value)
         # set plan
