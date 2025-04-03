@@ -109,7 +109,7 @@ export default function LayoutDoc() {
                                 size={Size.LARGE}
                                 intent={Intent.PRIMARY}
                                 minimal
-                                style={{ marginTop: 5 }}
+                                style={{ marginTop: 10 }}
                             >
                                 Applies to <strong>HorizontalLayout</strong>
                                 &nbsp;only

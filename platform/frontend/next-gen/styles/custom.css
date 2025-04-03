@@ -2,7 +2,7 @@
     opacity: 0;
 }
 .react-grid-item.react-grid-placeholder {
-    border-radius: 2px;
+    border-radius: 10px;
     /* Colors.GRAY3 */
     background: #8f99a8 !important;
 }

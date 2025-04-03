@@ -57,6 +57,7 @@ export default function () {
                                 />
                             </Link>
                             <Image
+                                className="border-radius-10"
                                 layout="fill"
                                 objectFit="cover"
                                 src="/images/maximalfocus-HakTxidk36I-unsplash.jpg"

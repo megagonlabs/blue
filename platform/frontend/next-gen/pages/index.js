@@ -32,7 +32,7 @@ export default function Home() {
                 {layout.map((element) => (
                     <Card
                         key={element.i}
-                        className="padding-0 overflow-hidden"
+                        className="padding-0 overflow-hidden border-radius-10"
                         style={{ zIndex: 3 }}
                     >
                         <div

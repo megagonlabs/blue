@@ -28,6 +28,7 @@ export default function AccountPanel({ isExpanded }) {
         <Card
             interactive
             className={classNames({
+                "border-radius-10": true,
                 "full-parent-dimension": true,
                 "overflow-hidden": true,
                 "padding-0": !isExpanded,

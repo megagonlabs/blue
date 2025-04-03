@@ -48,6 +48,6 @@
     -o-user-select: none;
     user-select: none;
 }
-.border-radius-2 {
-    border-radius: 2px !important;
+.border-radius-10 {
+    border-radius: 10px !important;
 }
