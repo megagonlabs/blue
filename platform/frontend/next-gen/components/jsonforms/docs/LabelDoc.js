@@ -73,7 +73,7 @@ export default function LabelDoc() {
                                 false
                             </em>
                             <div>Change text color to a gentler gray.</div>
-                            <Callout style={{ margin: 0, marginTop: 5 }}>
+                            <Callout style={{ margin: 0, marginTop: 10 }}>
                                 <div className={Classes.TEXT_MUTED}>
                                     muted: true
                                 </div>
@@ -96,7 +96,7 @@ export default function LabelDoc() {
                                 false
                             </em>
                             <div>Use a smaller font size.</div>
-                            <Callout style={{ margin: 0, marginTop: 5 }}>
+                            <Callout style={{ margin: 0, marginTop: 10 }}>
                                 <div className={Classes.TEXT_SMALL}>
                                     small: true
                                 </div>
@@ -119,7 +119,7 @@ export default function LabelDoc() {
                                 false
                             </em>
                             <div>Use a larger font size.</div>
-                            <Callout style={{ margin: 0, marginTop: 5 }}>
+                            <Callout style={{ margin: 0, marginTop: 10 }}>
                                 <div className={Classes.TEXT_LARGE}>
                                     large: true
                                 </div>

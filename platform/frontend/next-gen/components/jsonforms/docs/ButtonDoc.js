@@ -75,7 +75,7 @@ export default function ButtonDoc() {
                             <Callout
                                 style={{
                                     margin: 0,
-                                    marginTop: 5,
+                                    marginTop: 10,
                                     display: "flex",
                                     gap: 10,
                                     flexWrap: "wrap",
@@ -107,7 +107,7 @@ export default function ButtonDoc() {
                             <Callout
                                 style={{
                                     margin: 0,
-                                    marginTop: 5,
+                                    marginTop: 10,
                                     display: "flex",
                                     gap: 10,
                                     flexWrap: "wrap",
@@ -139,7 +139,7 @@ export default function ButtonDoc() {
                             <Callout
                                 style={{
                                     margin: 0,
-                                    marginTop: 5,
+                                    marginTop: 10,
                                     display: "flex",
                                     gap: 10,
                                     flexWrap: "wrap",

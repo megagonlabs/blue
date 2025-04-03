@@ -32,6 +32,7 @@ import _ from "lodash";
 import Image from "next/image";
 import { useShallow } from "zustand/react/shallow";
 import AccountPanel from "./AccountPanel";
+import AgentList from "./agents/AgentList";
 import Authentication from "./Authentication";
 import ExpandingBox from "./ExpandingBox";
 import { FAIcon } from "./FAIcon";
@@ -129,7 +130,7 @@ export default function Blue({ children }) {
                             {(isExpanded) => (
                                 <Card
                                     interactive
-                                    className="full-parent-dimension"
+                                    className="full-parent-dimension border-radius-10"
                                     style={{
                                         overflow: isExpanded
                                             ? "auto"
@@ -179,6 +180,12 @@ export default function Blue({ children }) {
                                                 />
                                                 <MenuDivider title="Registries" />
                                                 <MenuItem
+                                                    onClick={() =>
+                                                        addContainer(
+                                                            "Agent Registry",
+                                                            <AgentList />
+                                                        )
+                                                    }
                                                     text="Agent"
                                                     icon={
                                                         <FAIcon
@@ -310,7 +317,7 @@ export default function Blue({ children }) {
                         style={{ padding: "20px 20px 20px 105px" }}
                     >
                         <div
-                            className="border-radius-2 full-parent-dimension overflow-hidden"
+                            className="border-radius-10 full-parent-dimension overflow-hidden"
                             style={{
                                 backgroundColor: darkMode
                                     ? Colors.DARK_GRAY3
