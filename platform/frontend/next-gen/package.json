@@ -18,6 +18,7 @@
         "axios": "^1.8.4",
         "classnames": "^2.5.1",
         "firebase": "^11.6.0",
+        "framer-motion": "^12.6.3",
         "lodash": "^4.17.21",
         "next": "^14.2.24",
         "next-runtime-env": "^1.7.4",

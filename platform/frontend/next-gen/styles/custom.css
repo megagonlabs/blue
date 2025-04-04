@@ -1,5 +1,6 @@
 .react-resizable-handle {
     opacity: 0;
+    z-index: 2;
 }
 .react-grid-item.react-grid-placeholder {
     border-radius: 10px;
@@ -8,4 +9,18 @@
 }
 .react-draggable-dragging {
     z-index: 4 !important;
+}
+.custom-card {
+    border-top: 1px solid rgba(17, 20, 24, 0.15);
+    border-bottom: 1px solid rgba(17, 20, 24, 0.15);
+    border-right: 1px solid rgba(17, 20, 24, 0.15);
+    border-left: 1px solid rgba(17, 20, 24, 0.15);
+    background-color: #ffffff;
+}
+.bp5-dark .custom-card {
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    border-right: 1px solid rgba(255, 255, 255, 0.2);
+    border-left: 1px solid rgba(255, 255, 255, 0.2);
+    background-color: #252a31;
 }
