@@ -3,7 +3,6 @@ import { useGridStore } from "@/stores/grid-layout-store";
 import {
     Button,
     ButtonVariant,
-    Card,
     Classes,
     Intent,
     Size,
@@ -30,9 +29,9 @@ export default function Home() {
                 onLayoutChange={(layout) => setLayout(layout)}
             >
                 {layout.map((element) => (
-                    <Card
+                    <div
                         key={element.i}
-                        className="padding-0 overflow-hidden border-radius-10"
+                        className="padding-0 overflow-hidden border-radius-10 custom-card"
                         style={{ zIndex: 3 }}
                     >
                         <div
@@ -72,7 +71,7 @@ export default function Home() {
                         >
                             {_.get(containers, [element.i, "content"], null)}
                         </div>
-                    </Card>
+                    </div>
                 ))}
             </ReactGridLayout>
         </div>
