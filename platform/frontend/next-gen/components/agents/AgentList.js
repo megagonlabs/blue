@@ -111,8 +111,8 @@ function AgentList({ width, height }) {
                     />
                 </ControlGroup>
                 <div style={{ marginTop: 20 }} className="registry-entity-list">
-                    {agents.map((agent) => (
-                        <div className="registry-entity-card">
+                    {agents.map((agent, index) => (
+                        <div key={index} className="registry-entity-card">
                             <RegistryCard entity={agent} />
                         </div>
                     ))}

@@ -27,7 +27,7 @@
 .registry-entity-list {
     display: flex;
     flex-flow: wrap;
-    --gap: 20px;
+    --gap: 10px;
     gap: var(--gap);
 }
 .registry-entity-list[min-width~="0px"] .registry-entity-card {
