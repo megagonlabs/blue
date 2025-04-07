@@ -11,6 +11,7 @@ import {
     H2,
     HTMLTable,
     Intent,
+    Size,
     Switch,
     Tag,
 } from "@blueprintjs/core";
