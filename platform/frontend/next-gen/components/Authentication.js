@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useEffect } from "react";
 import { Col, Container, Hidden, Row } from "react-grid-system";
 import { useShallow } from "zustand/react/shallow";
-
 export default function () {
     const signInWithGoogle = useAuthStore((state) => state.signInWithGoogle);
     const fetchAccountProfile = useAuthStore(
