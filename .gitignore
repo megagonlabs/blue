@@ -1,4 +1,5 @@
 secrets/*
+*.env
 **/blue/web/auth/out/cache/
 blue-firebase-adminsdk.json
 agents/*/lib
