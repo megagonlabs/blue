@@ -6,7 +6,7 @@
     "description": "Scans streams containing JSON documents to find matching records to given JSONPATH query. Record signatures are declared in the records property where each record with the following properties: variable (name of the variable), query (jsonpath query to match), and single (matching mode). variable is the name to assign to the matched data, query is the JSONPATH query to execute on JSON objects in the stream, and single when set to True only returns a single element, otherwise query returns a JSONArray if matched. If matches are found they are emitted to the output stream as well as recorded in the session memory. ",
     "created_by": null,
     "properties": {
-      "image": "megagonlabs/blue-agent-recorder:v0.9",
+      "image": "megagonlabs/blue-agent-recorder-private:latest",
       "records": [],
       "display_name": "Recorder Agent",
       "categories": [
@@ -31,7 +31,7 @@
     "description": "Coordinates the execution of a plan defined as a directed-acyclic graph of agents by monitoring input and output streams from agents in the plan, issuing instructions to agents to execute. This is a system agent",
     "created_by": null,
     "properties": {
-      "image": "megagonlabs/blue-agent-coordinator:v0.9",
+      "image": "megagonlabs/blue-agent-coordinator-private:latest",
       "tags": {
         "DEFAULT": [
           "INSTRUCTION",
@@ -65,7 +65,7 @@
     "description": "Constructs a prompt from properties and input collected and returns results from executing input prompt through OpenAI models that can be configured in properties.",
     "created_by": null,
     "properties": {
-      "image": "megagonlabs/blue-agent-openai:v0.9",
+      "image": "megagonlabs/blue-agent-openai-private:latest",
       "openai.api": "ChatCompletion",
       "openai.model": "gpt-4o",
       "input_json": "[{\"role\": \"user\"}]",
@@ -151,7 +151,7 @@
     "properties": {
       "form": {},
       "schema": {},
-      "image": "megagonlabs/blue-agent-presenter:v0.9",
+      "image": "megagonlabs/blue-agent-presenter-private:latest",
       "tags": {
         "DEFAULT": [
           "JSON"
@@ -225,7 +225,7 @@
     "description": "Converts a natural language query to SQL, executes, and returns the result, in and end to end manner with steps including data source selection, nl2sql generation, and sql execution. Returns output as a JSON with keys `question`, `source`, `query`, `result` and `error`.",
     "created_by": null,
     "properties": {
-      "image": "megagonlabs/blue-agent-nl2sql:v0.9",
+      "image": "megagonlabs/blue-agent-nl2sql-private:latest",
       "openai.service": "ws://blue_service_openai:8001",
       "listens": {
         "DEFAULT": {
@@ -384,7 +384,7 @@
     "properties": {
       "requestor.service": "",
       "display_name": "Requestor Agent",
-      "image": "megagonlabs/blue-agent-requestor:v0.9",
+      "image": "megagonlabs/blue-agent-requestor-private:latest",
       "tracker.autostart": false,
       "tracker.output": [
         "log.INFO"
@@ -405,7 +405,7 @@
     "description": "Summarizes data by executing queries and retrieving query results, and eventually passing them to OpenAI to summarize",
     "created_by": null,
     "properties": {
-      "image": "megagonlabs/blue-agent-summarizer:v0.9",
+      "image": "megagonlabs/blue-agent-summarizer-private:latest",
       "listens": {
         "DEFAULT": {
           "includes": [],
@@ -470,7 +470,7 @@
     "description": "Executes a query on data source",
     "created_by": null,
     "properties": {
-      "image": "megagonlabs/blue-agent-query_executor:v0.9",
+      "image": "megagonlabs/blue-agent-query_executor-private:latest",
       "listens": {
         "DEFAULT": {
           "includes": [],
@@ -522,7 +522,7 @@
     "description": "Given queries or data, injected into a visualization template, substitute query results, and render a visualization as specified in the template",
     "created_by": null,
     "properties": {
-      "image": "megagonlabs/blue-agent-visualizer:v0.9",
+      "image": "megagonlabs/blue-agent-visualizer-private:latest",
       "template": {},
       "questions": {},
       "queries": {},
@@ -575,7 +575,7 @@
     "description": "Creates a data-driven document, optionally highlighting segments of the document using OpenAI",
     "created_by": null,
     "properties": {
-      "image": "megagonlabs/blue-agent-documenter:v0.9",
+      "image": "megagonlabs/blue-agent-documenter-private:latest",
       "template": "",
       "questions": {},
       "queries": {},
@@ -635,7 +635,7 @@
     "description": "Planner example to demonstrate plan execution",
     "created_by": null,
     "properties": {
-      "image": "megagonlabs/blue-agent-basic_planner:v0.9",
+      "image": "megagonlabs/blue-agent-basic_planner-private:latest",
       "display_name": "Planner Agent - Example",
       "system_agent": false,
       "listens": {
@@ -660,7 +660,7 @@
     "description": "A dialogue manager that detects user intents and invokes matching plan.",
     "created_by": null,
     "properties": {
-      "image": "megagonlabs/blue-agent-dialogue_manager:v0.9",
+      "image": "megagonlabs/blue-agent-dialogue_manager-private:latest",
       "listens": {
         "DEFAULT": {
           "includes": [
@@ -784,7 +784,7 @@
     "description": "Counter agent example to demonstrate data processing",
     "created_by": null,
     "properties": {
-      "image": "megagonlabs/blue-agent-counter:v0.9",
+      "image": "megagonlabs/blue-agent-counter-private:latest",
       "listens": {
         "DEFAULT": {
           "includes": [
