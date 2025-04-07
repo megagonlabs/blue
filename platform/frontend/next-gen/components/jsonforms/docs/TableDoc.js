@@ -85,7 +85,7 @@ export default function TableDoc() {
                     compact={compact}
                     striped={striped}
                     bordered={bordered}
-                    style={{ width: "100%" }}
+                    style={{ width: "100%", maxWidth: 250 }}
                 >
                     <thead>
                         <tr>

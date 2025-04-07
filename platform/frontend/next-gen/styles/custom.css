@@ -24,3 +24,45 @@
     border-left: 1px solid rgba(255, 255, 255, 0.2);
     background-color: #252a31;
 }
+.registry-entity-list {
+    display: flex;
+    flex-flow: wrap;
+    --gap: 20px;
+    gap: var(--gap);
+}
+.registry-entity-list[min-width~="0px"] .registry-entity-card {
+    --columns: 1;
+    width: calc(
+        (100% / var(--columns)) - var(--gap) + (var(--gap) / var(--columns))
+    );
+}
+.registry-entity-list[min-width~="768px"] .registry-entity-card {
+    --columns: 2;
+    width: calc(
+        (100% / var(--columns)) - var(--gap) + (var(--gap) / var(--columns))
+    );
+}
+.registry-entity-list[min-width~="992px"] .registry-entity-card {
+    --columns: 3;
+    width: calc(
+        (100% / var(--columns)) - var(--gap) + (var(--gap) / var(--columns))
+    );
+}
+.registry-entity-list[min-width~="1200px"] .registry-entity-card {
+    --columns: 4;
+    width: calc(
+        (100% / var(--columns)) - var(--gap) + (var(--gap) / var(--columns))
+    );
+}
+.registry-entity-list[min-width~="1600px"] .registry-entity-card {
+    --columns: 5;
+    width: calc(
+        (100% / var(--columns)) - var(--gap) + (var(--gap) / var(--columns))
+    );
+}
+.registry-entity-list[min-width~="1920px"] .registry-entity-card {
+    --columns: 6;
+    width: calc(
+        (100% / var(--columns)) - var(--gap) + (var(--gap) / var(--columns))
+    );
+}
