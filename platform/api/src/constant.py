@@ -8,7 +8,7 @@ from settings import ACL, FIREBASE_CLIENT_ID
 from datetime import timedelta
 
 EMAIL_DOMAIN_ADDRESS_REGEXP = r"@((\w+?\.)+\w+)"
-BANNED_ENTITY_NAMES = ['new']
+RESERVED_ENTITY_NAMES = ['new']
 END_OF_SSE_SIGNAL = 'END_OF_EVENT_SIGNAL'
 
 

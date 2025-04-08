@@ -4,7 +4,7 @@ import sys
 
 from fastapi import Depends, Request
 import pydash
-from constant import BANNED_ENTITY_NAMES, PermissionDenied, account_id_header, acl_enforce
+from constant import RESERVED_ENTITY_NAMES, PermissionDenied, account_id_header, acl_enforce
 
 ###### Parsers, Formats, Utils
 import re
@@ -103,7 +103,7 @@ def get_data_source(request: Request, source_name):
 @router.post("/{source_name}")
 def add_source(request: Request, source_name, data: DataSchema):
     source_db = data_registry.get_source(source_name)
-    if source_name in BANNED_ENTITY_NAMES:
+    if source_name in RESERVED_ENTITY_NAMES:
         return JSONResponse(content={"message": "The name cannot be used."}, status_code=403)
     # if source already exists, return 409 conflict error
     if not pydash.is_empty(source_db):
