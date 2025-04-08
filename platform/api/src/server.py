@@ -90,7 +90,14 @@ web_server_port = PROPERTIES["web.server.port"]
 
 # only allow https or localhost connection; port must be specified
 # local & cloud frontend
-allowed_origins = ["http://localhost:3000", "http://localhost:3001", "http://localhost:25830", "https://" + web_server, "http://" + web_server + ":" + web_server_port]
+allowed_origins = [
+    "http://localhost:3000",
+    "http://localhost:3001",
+    "http://localhost:25830",
+    "https://" + web_server,
+    "http://" + web_server + ":" + web_server_port,
+    "https://" + web_server + ":" + web_server_port,
+]
 
 
 def handle_signal(signum, frame):

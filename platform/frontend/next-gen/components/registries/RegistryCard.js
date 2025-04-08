@@ -1,9 +1,29 @@
-import { Card, Colors, H5, Tag } from "@blueprintjs/core";
+import { Card, Classes, Colors, Intent, Size, Tag } from "@blueprintjs/core";
+import { faCircleDot } from "@fortawesome/sharp-duotone-solid-svg-icons";
+import classNames from "classnames";
 import _ from "lodash";
+import { useEffect, useState } from "react";
+import { DOCKER_CONTAINER_STATUS_LOOKUP } from "../constants";
+import { FAIcon } from "../FAIcon";
 import RegistryEntityIcon from "./RegistryEntityIcon";
 export default function RegistryCard({ entity }) {
+    const type = _.get(entity, "type", null);
     const displayName = _.get(entity, "properties.display_name", entity.name);
-    const categories = _.get(entity, "property.categories", []);
+    const categories = _.get(entity, "property.categories", ["BASE", "HIDDEN"]);
+    const containerStatus = _.get(entity, "container.status", "not exist");
+    const [extra, setExtra] = useState(null);
+    useEffect(() => {
+        if (_.includes(["agent", "operator"], type)) {
+            setExtra(_.toString(_.get(entity, "properties.image")));
+        } else if (_.isEqual("data", type)) {
+            let protocol = _.get(entity, "properties.connection.protocol");
+            let host = _.get(entity, "properties.connection.host");
+            let port = _.get(entity, "properties.connection.port");
+            setExtra(`${protocol}://${host}:${port}`);
+        } else {
+            setExtra(null);
+        }
+    }, [entity.properties]);
     return (
         <Card
             className="full-parent-dimension"
@@ -25,11 +45,37 @@ export default function RegistryCard({ entity }) {
             >
                 <RegistryEntityIcon content={_.get(entity, "icon", null)} />
             </Card>
-            <H5 style={{ marginLeft: 50, lineHeight: "40px" }}>
-                {displayName}
-            </H5>
             <div
-                className="multiline-ellipsis-2"
+                style={{
+                    marginLeft: 60,
+                    display: "flex",
+                    flexDirection: "column",
+                    height: 40,
+                    justifyContent: "space-between",
+                }}
+            >
+                <div
+                    style={{ fontWeight: 600 }}
+                    className={Classes.TEXT_OVERFLOW_ELLIPSIS}
+                >
+                    {displayName}
+                </div>
+                <div
+                    style={_.get(
+                        DOCKER_CONTAINER_STATUS_LOOKUP,
+                        containerStatus,
+                        null
+                    )}
+                >
+                    <FAIcon icon={faCircleDot} style={{ marginRight: 5 }} />
+                    {containerStatus}
+                </div>
+            </div>
+            <div
+                className={classNames(
+                    "multiline-ellipsis-2",
+                    Classes.TEXT_MUTED
+                )}
                 style={{ height: 36, marginTop: 10 }}
             >
                 {entity.description}
@@ -54,6 +100,16 @@ export default function RegistryCard({ entity }) {
                         </Tag>
                     ))}
                 </div>
+            )}
+            {!_.isEmpty(extra) && (
+                <Tag
+                    size={Size.LARGE}
+                    minimal
+                    intent={Intent.PRIMARY}
+                    style={{ marginTop: 10 }}
+                >
+                    {extra}
+                </Tag>
             )}
         </Card>
     );
