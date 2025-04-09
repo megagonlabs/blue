@@ -399,6 +399,164 @@
     "icon": null
   },
   {
+    "name": "NL2CYPHER",
+    "type": "agent",
+    "scope": "/",
+    "description": "Converts a natural language query to Cypher, executes, and returns the result, in and end to end manner with steps including data source selection, nl2cypher generation, and cypher execution. Returns output as a JSON with keys `question`, `source`, `query`, `result` and `error`.",
+    "created_by": null,
+    "properties": {
+      "image": "megagonlabs/blue-agent-nl2cypher-private:latest",
+      "openai.service": "ws://blue_service_openai:8001",
+      "listens": {
+        "DEFAULT": {
+          "includes": [],
+          "excludes": []
+        }
+      },
+      "openai.model": "gpt-4o",
+      "openai.max_tokens": 512,
+      "openai.temperature": 0,
+      "output_cast": "json",
+      "input_context_field": "content",
+      "system_agent": false,
+      "display_name": "NL-to-CYPHER Agent",
+      "tracker.outputs": [
+        "log.INFO"
+      ],
+      "output_path": "$.choices[0].message.content",
+      "input_field": "messages",
+      "input_template": "${nl2q_prompt}",
+      "input_context": "$[0]",
+      "output_transformations": [
+        {
+          "transformation": "replace",
+          "from": "```",
+          "to": ""
+        },
+        {
+          "transformation": "replace",
+          "from": "json",
+          "to": ""
+        }
+      ],
+      "output_strip": true,
+      "openai.api": "ChatCompletion",
+      "input_json": [
+        {
+          "role": "user"
+        }
+      ],
+      "nl2q_valid_query_prefixes": [
+        "MATCH"
+      ],
+      "nl2q_discovery": true,
+      "nl2q_execute": true,
+      "nl2q_force_query_prefixes": [
+        "MATCH"
+      ],
+      "nl2q_source": null,
+      "nl2q_additional_requirements": [],
+      "nl2q_context": [],
+      "nl2q_prompt": "Your task is to translate a natural language question into a Cypher query based on a list of provided data sources.\nFor each source you will be provided with the graph schema that specifies the entities, relations and properties.\n\nHere are the requirements:\n- The output should be a JSON object with the following fields\n- \"question\": the original natural language question\n  - \"source\": the name of the data source that the query will be executed on\n  - \"query\": the Cypher query that is translated from the natural language question\n- When interpreting the \"question\" use additional context provided, if available. Ignore information in the context if the question overrides it.\n- The Cypher query should be compatible with the schema of the datasource.\n- Always do case-${sensitivity} matching for string comparison.\n- The query should starts with any of the following prefixes: ${force_query_prefixes}\n- Output the JSON directly. Do not generate explanation or other additional output.\n${additional_requirements}\n\nProtocol:\n```\n${protocol}\n```\n\nData sources:\n```\n${sources}\n```\n\nContext:\n${context}\n\nQuestion: ${question}\nOutput:",
+      "nl2q_discovery_source_protocols": [
+        "bolt"
+      ],
+      "nl2q_case_insensitive": true,
+      "nl2q_source_database": null,
+      "nl2q_discovery_similarity_threshold": 0.2,
+      "nl2q_output_filters": ["all"],
+      "nl2q_output_max_results": null,
+      "tags": {
+        "DEFAULT": [
+          "QUERY"
+        ]
+      },
+      "categories": [
+        "BASE"
+      ]
+    },
+    "icon": null
+  },
+  {
+    "name": "NL2MONGOQL",
+    "type": "agent",
+    "scope": "/",
+    "description": "Converts a natural language query to MongoQL, executes, and returns the result, in and end to end manner with steps including data source selection, nl2mongoql generation, and mongoql execution. Returns output as a JSON with keys `question`, `source`, `query`, `result` and `error`.",
+    "created_by": null,
+    "properties": {
+      "image": "megagonlabs/blue-agent-nl2mongoql-private:latest",
+      "openai.service": "ws://blue_service_openai:8001",
+      "listens": {
+        "DEFAULT": {
+          "includes": [],
+          "excludes": []
+        }
+      },
+      "openai.model": "gpt-4o",
+      "openai.max_tokens": 512,
+      "openai.temperature": 0,
+      "output_cast": "json",
+      "input_context_field": "content",
+      "system_agent": false,
+      "display_name": "NL-to-MONGOQL Agent",
+      "tracker.outputs": [
+        "log.INFO"
+      ],
+      "output_path": "$.choices[0].message.content",
+      "input_field": "messages",
+      "input_template": "${nl2q_prompt}",
+      "input_context": "$[0]",
+      "output_transformations": [
+        {
+          "transformation": "replace",
+          "from": "```",
+          "to": ""
+        },
+        {
+          "transformation": "replace",
+          "from": "json",
+          "to": ""
+        }
+      ],
+      "output_strip": true,
+      "openai.api": "ChatCompletion",
+      "input_json": [
+        {
+          "role": "user"
+        }
+      ],
+      "nl2q_valid_query_prefixes": [
+        "{"
+      ],
+      "nl2q_discovery": true,
+      "nl2q_execute": true,
+      "nl2q_force_query_prefixes": [
+        "{"
+      ],
+      "nl2q_source": null,
+      "nl2q_additional_requirements": [],
+      "nl2q_context": [],
+      "nl2q_prompt": "Your task is to translate a natural language question into a MongoDB MQL query based on a list of provided data sources.\nFor each source you will be provided with a list of table schemas that specify the columns and their types.\n\nHere are the requirements:\n- The output should be a JSON object with the following fields\n  - \"question\": the original natural language question\n  - \"source\": the name of the data source that the query will be executed on\n  - \"query\": the MongoDB MQL query that is translated from the natural language question, must be a string instead of a JSON object.\n- When interpreting the \"question\" use additional context provided, if available. Ignore information in the context if the question overrides it.\n- The MongoDB MQL query should be compatible with the schema of the datasource.\n- Always do case-${sensitivity} matching for string comparison.\n- Output the JSON directly. Do not generate explanation or other additional output.\n${additional_requirements}\n\nData sources:\n```\n${sources}\n```\n\nContext:\n${context}\n\nQuestion: ${question}\nOutput:",
+      "nl2q_discovery_source_protocols": [
+        "mongodb"
+      ],
+      "nl2q_case_insensitive": true,
+      "nl2q_source_database": null,
+      "nl2q_discovery_similarity_threshold": 0.2,
+      "nl2q_output_filters": ["all"],
+      "nl2q_output_max_results": null,
+      "tags": {
+        "DEFAULT": [
+          "QUERY"
+        ]
+      },
+      "categories": [
+        "BASE"
+      ]
+    },
+    "icon": null
+  },
+  {
     "name": "SUMMARIZER",
     "type": "agent",
     "scope": "/",
