@@ -1,5 +1,6 @@
 import AuthErrorHandler from "@/components/AuthErrorHandler";
 import Blue from "@/components/Blue";
+import SocketHandler from "@/components/SocketHandler";
 import "@/styles/custom.css";
 import "@/styles/docs.css";
 import "@/styles/global.css";
@@ -32,17 +33,19 @@ const App = ({ Component, pageProps }) => {
     if (_.isEqual(typeof window, "object")) {
         return (
             <AuthErrorHandler>
-                <Blue>
-                    <Head>
-                        <title>Blue</title>
-                        <link rel="icon" href="/favicon.ico" />
-                        <meta
-                            name="viewport"
-                            content="width=device-width, initial-scale=1.0"
-                        />
-                    </Head>
-                    <Component {...pageProps} />
-                </Blue>
+                <SocketHandler>
+                    <Blue>
+                        <Head>
+                            <title>Blue</title>
+                            <link rel="icon" href="/favicon.ico" />
+                            <meta
+                                name="viewport"
+                                content="width=device-width, initial-scale=1.0"
+                            />
+                        </Head>
+                        <Component {...pageProps} />
+                    </Blue>
+                </SocketHandler>
             </AuthErrorHandler>
         );
     }

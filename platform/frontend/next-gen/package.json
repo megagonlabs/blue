@@ -31,6 +31,7 @@
         "react-grid-system": "^8.2.1",
         "react-use-error-boundary": "^3.0.0",
         "react-virtualized-auto-sizer": "^1.0.26",
+        "react-window": "^1.8.11",
         "react18-json-view": "^0.2.9",
         "uuid": "^11.1.0",
         "zustand": "^5.0.3"

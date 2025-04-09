@@ -6,19 +6,24 @@ import {
     Classes,
     Colors,
     ControlGroup,
+    hideContextMenu,
     InputGroup,
     Intent,
+    Menu,
+    MenuItem,
     Radio,
     RadioGroup,
+    showContextMenu,
     Size,
 } from "@blueprintjs/core";
 import {
     faArrowLeft,
     faBarsFilter,
+    faBrowsers,
     faSearch,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import { motion } from "framer-motion";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { FAIcon } from "../FAIcon";
 import withAutoSizer from "../hocs/withAutoSizer";
 import RegistryCard from "../registries/RegistryCard";
@@ -34,15 +39,47 @@ function AgentList({ width, height }) {
             transition: { duration: 0.15 },
         },
         closed: {
-            x: -162.727,
+            x: -200,
             transition: { duration: 0.15 },
             display: "none",
         },
-        initial: { x: -162.727, opacity: 1, display: "none" },
+        initial: { x: -200, opacity: 1, display: "none" },
     };
     useEffect(() => {
         getAgents();
     }, []);
+    const handleClose = useCallback(() => {
+        hideContextMenu();
+    }, []);
+    const menu = useMemo(
+        () => (
+            <Menu size={Size.LARGE}>
+                <MenuItem
+                    icon={<FAIcon icon={faBrowsers} />}
+                    text="Open in new window"
+                    onClick={handleClose}
+                />
+            </Menu>
+        ),
+        [handleClose]
+    );
+    const handleContextMenu = useCallback(
+        (event) => {
+            // ensure `preventDefault` is called just before `showContextMenu` and in the same event handler to prevent the
+            // default browser context menu from hiding your custom context menu
+            event.preventDefault();
+            showContextMenu({
+                isDarkTheme: darkMode,
+                content: menu,
+                onClose: handleClose,
+                targetOffset: {
+                    left: event.clientX,
+                    top: event.clientY,
+                },
+            });
+        },
+        [handleClose, menu, darkMode]
+    );
     return (
         <div style={{ width, height }}>
             <div
@@ -61,7 +98,7 @@ function AgentList({ width, height }) {
                         left: 0,
                         zIndex: 1,
                         padding: 20,
-                        borderBottomLeftRadius: 10,
+                        width: 200,
                         backgroundColor: darkMode
                             ? Colors.DARK_GRAY2
                             : Colors.WHITE,
@@ -112,7 +149,12 @@ function AgentList({ width, height }) {
                 </ControlGroup>
                 <div style={{ marginTop: 20 }} className="registry-entity-list">
                     {agents.map((agent, index) => (
-                        <div key={index} className="registry-entity-card">
+                        <div
+                            key={index}
+                            className="registry-entity-card"
+                            onContextMenu={handleContextMenu}
+                            style={{ cursor: "context-menu" }}
+                        >
                             <RegistryCard entity={agent} />
                         </div>
                     ))}

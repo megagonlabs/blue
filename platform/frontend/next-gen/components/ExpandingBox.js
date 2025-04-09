@@ -1,6 +1,5 @@
 import _ from "lodash";
 import { useRef, useState } from "react";
-
 const ExpandingBox = ({
     initialWidth,
     initialHeight,
@@ -39,5 +38,4 @@ const ExpandingBox = ({
         </div>
     );
 };
-
 export default ExpandingBox;

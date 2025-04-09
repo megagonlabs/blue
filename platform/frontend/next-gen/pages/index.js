@@ -12,7 +12,6 @@ import classNames from "classnames";
 import _ from "lodash";
 import RGL, { WidthProvider } from "react-grid-layout";
 const ReactGridLayout = WidthProvider(RGL);
-
 export default function Home() {
     const layout = useGridStore((state) => state.layout);
     const setLayout = useGridStore((state) => state.setLayout);
