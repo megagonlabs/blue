@@ -1,6 +1,7 @@
 import { useAppStore } from "@/stores/app-store";
 import { useAuthStore } from "@/stores/auth-store";
 import { useGridStore } from "@/stores/grid-layout-store";
+import { useSessionStore } from "@/stores/session-store";
 import {
     Card,
     Classes,
@@ -36,19 +37,27 @@ import AgentList from "./agents/AgentList";
 import Authentication from "./Authentication";
 import ExpandingBox from "./ExpandingBox";
 import { FAIcon } from "./FAIcon";
+import SessionList from "./sessions/SessionList";
 import FormDesigner from "./tools/FormDesigner";
 export default function Blue({ children }) {
-    const { showOmnibar, darkMode, omnibarItems } = useAppStore(
+    const {
+        showOmnibar,
+        darkMode,
+        omnibarItems,
+        openOmnibar,
+        setState,
+        closeOmnibar,
+    } = useAppStore(
         useShallow((state) => ({
             showOmnibar: state.showOmnibar,
             darkMode: state.darkMode,
             omnibarItems: state.omnibarItems,
+            openOmnibar: state.openOmnibar,
+            setState: state.setState,
+            closeOmnibar: state.closeOmnibar,
         }))
     );
     const addContainer = useGridStore((state) => state.addContainer);
-    const openOmnibar = useAppStore((state) => state.openOmnibar);
-    const setState = useAppStore((state) => state.setState);
-    const closeOmnibar = useAppStore((state) => state.closeOmnibar);
     const hotkeys = [
         {
             combo: "shift + s",
@@ -66,9 +75,8 @@ export default function Blue({ children }) {
         },
     ];
     const darkModeClassName = darkMode ? Classes.DARK : null;
-    const { user } = useAuthStore(
-        useShallow((state) => ({ user: state.user }))
-    );
+    const user = useAuthStore((state) => state.user);
+    const createNewSession = useSessionStore((state) => state.createNewSession);
     if (_.isNull(user)) return <Authentication />;
     return (
         <HotkeysProvider dialogProps={{ className: darkModeClassName }}>
@@ -156,6 +164,12 @@ export default function Blue({ children }) {
                                             >
                                                 <MenuDivider title="Sessions" />
                                                 <MenuItem
+                                                    onClick={() =>
+                                                        addContainer(
+                                                            "Sessions",
+                                                            <SessionList />
+                                                        )
+                                                    }
                                                     text="All Sessions"
                                                     icon={
                                                         <FAIcon
@@ -169,6 +183,9 @@ export default function Blue({ children }) {
                                                 <MenuItem
                                                     intent={Intent.PRIMARY}
                                                     text="New Session"
+                                                    onClick={() =>
+                                                        createNewSession()
+                                                    }
                                                     icon={
                                                         <FAIcon
                                                             style={{

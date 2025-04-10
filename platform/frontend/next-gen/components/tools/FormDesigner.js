@@ -44,11 +44,9 @@ const DEFAULT_SCHEMA = JSON.stringify(
     4
 );
 const PANE_BUTTON_PROPS = {
-    size: Size.LARGE,
     alignText: Alignment.START,
     fill: true,
     variant: ButtonVariant.MINIMAL,
-    style: { fontWeight: 600 },
 };
 function FormDesigner({ width, height }) {
     const addContainer = useGridStore((state) => state.addContainer);
@@ -189,10 +187,7 @@ function FormDesigner({ width, height }) {
                         >
                             <Button
                                 {...PANE_BUTTON_PROPS}
-                                style={{
-                                    pointerEvents: "none",
-                                    fontWeight: 600,
-                                }}
+                                style={{ pointerEvents: "none" }}
                                 fill={false}
                                 text="Result"
                             />

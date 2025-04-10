@@ -2,8 +2,7 @@ import { useAuthStore } from "@/stores/auth-store";
 import axios from "axios";
 import _ from "lodash";
 import { useEffect } from "react";
-
-const AuthErrorHandler = ({ children }) => {
+export default function AuthErrorHandler({ children }) {
     const clearUser = useAuthStore((state) => state.clearUser);
     useEffect(() => {
         const responseInterceptor = axios.interceptors.response.use(
@@ -19,5 +18,4 @@ const AuthErrorHandler = ({ children }) => {
         };
     }, [clearUser]);
     return children;
-};
-export default AuthErrorHandler;
+}

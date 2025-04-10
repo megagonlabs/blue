@@ -1,5 +1,4 @@
 import Document, { Head, Html, Main, NextScript } from "next/document";
-
 class BlueDocument extends Document {
     render() {
         return (

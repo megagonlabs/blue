@@ -7,7 +7,8 @@
     /* Colors.GRAY3 */
     background: #8f99a8 !important;
 }
-.react-draggable-dragging {
+.react-draggable-dragging,
+.react-grid-item.resizing {
     z-index: 4 !important;
 }
 .custom-card {
@@ -27,42 +28,48 @@
 .registry-entity-list {
     display: flex;
     flex-flow: wrap;
-    --gap: 10px;
-    gap: var(--gap);
+    --blue-gap: 10px;
+    gap: var(--blue-gap);
 }
 .registry-entity-list[min-width~="0px"] .registry-entity-card {
-    --columns: 1;
+    --blue-columns: 1;
     width: calc(
-        (100% / var(--columns)) - var(--gap) + (var(--gap) / var(--columns))
+        (100% / var(--blue-columns)) - var(--blue-gap) +
+            (var(--blue-gap) / var(--blue-columns))
     );
 }
 .registry-entity-list[min-width~="768px"] .registry-entity-card {
-    --columns: 2;
+    --blue-columns: 2;
     width: calc(
-        (100% / var(--columns)) - var(--gap) + (var(--gap) / var(--columns))
+        (100% / var(--blue-columns)) - var(--blue-gap) +
+            (var(--blue-gap) / var(--blue-columns))
     );
 }
 .registry-entity-list[min-width~="992px"] .registry-entity-card {
-    --columns: 3;
+    --blue-columns: 3;
     width: calc(
-        (100% / var(--columns)) - var(--gap) + (var(--gap) / var(--columns))
+        (100% / var(--blue-columns)) - var(--blue-gap) +
+            (var(--blue-gap) / var(--blue-columns))
     );
 }
 .registry-entity-list[min-width~="1200px"] .registry-entity-card {
-    --columns: 4;
+    --blue-columns: 4;
     width: calc(
-        (100% / var(--columns)) - var(--gap) + (var(--gap) / var(--columns))
+        (100% / var(--blue-columns)) - var(--blue-gap) +
+            (var(--blue-gap) / var(--blue-columns))
     );
 }
 .registry-entity-list[min-width~="1600px"] .registry-entity-card {
-    --columns: 5;
+    --blue-columns: 5;
     width: calc(
-        (100% / var(--columns)) - var(--gap) + (var(--gap) / var(--columns))
+        (100% / var(--blue-columns)) - var(--blue-gap) +
+            (var(--blue-gap) / var(--blue-columns))
     );
 }
 .registry-entity-list[min-width~="1920px"] .registry-entity-card {
-    --columns: 6;
+    --blue-columns: 6;
     width: calc(
-        (100% / var(--columns)) - var(--gap) + (var(--gap) / var(--columns))
+        (100% / var(--blue-columns)) - var(--blue-gap) +
+            (var(--blue-gap) / var(--blue-columns))
     );
 }

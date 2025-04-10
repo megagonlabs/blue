@@ -14,25 +14,21 @@ import {
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import classNames from "classnames";
 import Image from "next/image";
-import { useShallow } from "zustand/react/shallow";
 import { FAIcon } from "./FAIcon";
 import { USER_ROLES_LOOKUP } from "./constants";
-
 export default function AccountPanel({ isExpanded }) {
-    const { user } = useAuthStore(
-        useShallow((state) => ({ user: state.user }))
-    );
+    const user = useAuthStore((state) => state.user);
     const logout = useAuthStore((state) => state.logout);
     const userRole = _.get(user, "role", null);
     return (
         <Card
             interactive
-            className={classNames({
-                "border-radius-10": true,
-                "full-parent-dimension": true,
-                "overflow-hidden": true,
-                "padding-0": !isExpanded,
-            })}
+            className={classNames(
+                "border-radius-10",
+                "full-parent-dimension",
+                "overflow-hidden",
+                { "padding-0": !isExpanded }
+            )}
         >
             {!isExpanded && (
                 <Image

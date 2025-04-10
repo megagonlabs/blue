@@ -1,5 +1,5 @@
-import { Card, Classes, Colors, Intent, Size, Tag } from "@blueprintjs/core";
-import { faCircleDot } from "@fortawesome/sharp-duotone-solid-svg-icons";
+import { Card, Classes, Colors, Intent, Tag } from "@blueprintjs/core";
+import { faDocker } from "@fortawesome/free-brands-svg-icons";
 import classNames from "classnames";
 import _ from "lodash";
 import { useEffect, useState } from "react";
@@ -61,14 +61,15 @@ export default function RegistryCard({ entity }) {
                     {displayName}
                 </div>
                 <div
+                    className={Classes.TEXT_DISABLED}
                     style={_.get(
                         DOCKER_CONTAINER_STATUS_LOOKUP,
-                        containerStatus,
+                        [containerStatus, "style"],
                         null
                     )}
                 >
-                    <FAIcon icon={faCircleDot} style={{ marginRight: 5 }} />
-                    {containerStatus}
+                    <FAIcon icon={faDocker} style={{ marginRight: 5 }} />
+                    container:&nbsp;{containerStatus}
                 </div>
             </div>
             <div
@@ -102,12 +103,7 @@ export default function RegistryCard({ entity }) {
                 </div>
             )}
             {!_.isEmpty(extra) && (
-                <Tag
-                    size={Size.LARGE}
-                    minimal
-                    intent={Intent.PRIMARY}
-                    style={{ marginTop: 10 }}
-                >
+                <Tag minimal intent={Intent.PRIMARY} style={{ marginTop: 10 }}>
                     {extra}
                 </Tag>
             )}
