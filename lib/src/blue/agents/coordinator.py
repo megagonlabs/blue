@@ -77,7 +77,8 @@ class CoordinatorAgent(Agent):
             stream = message.getArg("stream")
 
             # check if stream is part of a plan being tracked
-            for plan_id in self.plans:
+            plan_ids = list(self.plans.keys())
+            for plan_id in plan_ids:
                 plan  = self.plans[plan_id]
                 # check if there is a matching node for stream
                 node = plan.match_stream(stream)
