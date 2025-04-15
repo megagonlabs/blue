@@ -1,6 +1,12 @@
 import { AppContext } from "@/components/contexts/app-context";
 import { faIcon } from "@/components/icon";
-import { Button, ButtonGroup, Classes, Dialog } from "@blueprintjs/core";
+import {
+    Alignment,
+    Button,
+    ButtonGroup,
+    Classes,
+    Dialog,
+} from "@blueprintjs/core";
 import {
     faCircleA,
     faFolderTree,
@@ -73,17 +79,17 @@ export default function SessionDetail({ isOpen, setIsSessionDetailOpen }) {
                 setTab("about");
             }}
             isOpen={isOpen}
+            style={{ width: 655.14 }}
         >
-            <div
-                className="border-bottom scrollbar-none"
-                style={{
-                    padding: "5px 15px",
-                    borderRadius: 0,
-                    overflowX: "auto",
-                    overscrollBehavior: "contain",
-                }}
-            >
-                <ButtonGroup variant="minimal" size="large">
+            <div style={{ padding: 0, display: "flex" }}>
+                <ButtonGroup
+                    vertical
+                    alignText={Alignment.START}
+                    className="border-right"
+                    variant="minimal"
+                    size="large"
+                    style={{ padding: 15 }}
+                >
                     {TAB_BUTTONS.map((tabButton) => (
                         <Button
                             key={tabButton.key}
@@ -94,29 +100,37 @@ export default function SessionDetail({ isOpen, setIsSessionDetailOpen }) {
                         />
                     ))}
                 </ButtonGroup>
+                <div style={{ width: 500 }}>
+                    {_.isEqual(tab, "about") && (
+                        <SessionMetadata
+                            setAllowQuickClose={setAllowQuickClose}
+                            loading={loading}
+                            setLoading={setLoading}
+                        />
+                    )}
+                    {_.isEqual(tab, "agents") && (
+                        <SessionAgentsList
+                            loading={loading}
+                            setLoading={setLoading}
+                        />
+                    )}
+                    {_.isEqual(tab, "members") && (
+                        <SessionMembersList
+                            loading={loading}
+                            setLoading={setLoading}
+                        />
+                    )}
+                    {_.isEqual(tab, "budget") && (
+                        <SessionBudget
+                            setAllowQuickClose={setAllowQuickClose}
+                            loading={loading}
+                            setLoading={setLoading}
+                        />
+                    )}
+                    {_.isEqual(tab, "data") && <SessionData />}
+                    {_.isEqual(tab, "settings") && <SessionSettings />}
+                </div>
             </div>
-            {_.isEqual(tab, "about") && (
-                <SessionMetadata
-                    setAllowQuickClose={setAllowQuickClose}
-                    loading={loading}
-                    setLoading={setLoading}
-                />
-            )}
-            {_.isEqual(tab, "agents") && (
-                <SessionAgentsList loading={loading} setLoading={setLoading} />
-            )}
-            {_.isEqual(tab, "members") && (
-                <SessionMembersList loading={loading} setLoading={setLoading} />
-            )}
-            {_.isEqual(tab, "budget") && (
-                <SessionBudget
-                    setAllowQuickClose={setAllowQuickClose}
-                    loading={loading}
-                    setLoading={setLoading}
-                />
-            )}
-            {_.isEqual(tab, "data") && <SessionData />}
-            {_.isEqual(tab, "settings") && <SessionSettings />}
         </Dialog>
     );
 }
