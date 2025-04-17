@@ -13,6 +13,10 @@ function SessionMemberStack({ width, height, sessionId }) {
             "I98zotQIhShIbOBlefGuY6L4tT42",
             "5WgRzdacRdOEvj8JBmCXFZSvWmH3",
             "I98zotQIhShIbOBlefGuY6L4tT42",
+            "5WgRzdacRdOEvj8JBmCXFZSvWmH3",
+            "I98zotQIhShIbOBlefGuY6L4tT42",
+            "5WgRzdacRdOEvj8JBmCXFZSvWmH3",
+            "I98zotQIhShIbOBlefGuY6L4tT42",
         ];
         return Object.entries(_.get(details, "members", {}))
             .filter((user) => user[1])

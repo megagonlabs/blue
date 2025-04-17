@@ -63,10 +63,20 @@
 .responsive-container[min-width~="992px"] [class^="session-row-"] {
     --blue-columns: 3;
 }
-.responsive-container[max-width~="768px"] .session-row-members {
-    margin-top: 5px;
+.responsive-container.session-row-no-message[min-width~="0px"]
+    [class^="session-row-"] {
+    --blue-columns: 1;
+}
+.responsive-container.session-row-no-message[min-width~="768px"]
+    [class^="session-row-"] {
+    --blue-columns: 2;
 }
 .responsive-container[min-width~="992px"] .session-row-members div {
+    justify-content: flex-end;
+}
+.responsive-container.session-row-no-message[min-width~="768px"]
+    .session-row-members
+    div {
     justify-content: flex-end;
 }
 .responsive-container .registry-entity-card,

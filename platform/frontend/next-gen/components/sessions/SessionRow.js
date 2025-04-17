@@ -18,10 +18,15 @@ export default function SessionRow({ sessionId }) {
         return sessionName;
     }, [details]);
     const description = _.get(details, "description", "");
+    const hasMessage = true;
     return (
         <Card
             compact
-            className="full-parent-dimension responsive-container"
+            className={classNames(
+                "full-parent-dimension",
+                "responsive-container",
+                { "session-row-no-message": !hasMessage }
+            )}
             style={{ alignItems: "center", paddingLeft: 20, paddingRight: 20 }}
         >
             <div
@@ -43,11 +48,16 @@ export default function SessionRow({ sessionId }) {
                     {!_.isEmpty(description) ? description : sessionId}
                 </div>
             </div>
-            <div className="session-row-message">
-                <Tag size={Size.LARGE} minimal>
-                    message
-                </Tag>
-            </div>
+            {hasMessage && (
+                <div
+                    className="session-row-message"
+                    style={{ height: 30, lineHeight: "30px" }}
+                >
+                    <Tag size={Size.LARGE} minimal>
+                        message
+                    </Tag>
+                </div>
+            )}
             <div className="session-row-members" style={{ height: 40 }}>
                 <SessionMemberStack sessionId={sessionId} />
             </div>

@@ -89,18 +89,19 @@ function SessionList({ width, height }) {
         getSessions();
     }, []);
     function getRowHeight(index, width) {
+        const hasMessage = true;
         width -= 40; // left & right padding diff
+        let height = 80;
         if (index > 0) {
             const last = _.isEqual(_.size(allSessions), index + 1);
-            let height = 80;
             if (width < 768) {
-                height = 175;
+                height = hasMessage ? 170 : 130;
             } else if (width < 992) {
-                height = 131;
+                height = hasMessage ? 130 : 80;
             }
             return height + (last ? 10 : 0);
         }
-        return 80;
+        return height;
     }
     const variableSizeListRef = useRef();
     useEffect(() => {
