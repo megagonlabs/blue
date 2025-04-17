@@ -413,7 +413,6 @@ export default function SessionMessagePage() {
                             />
                         </Popover>
                         <TextArea
-                            id="session-message-text-area"
                             disabled={!isSocketOpen}
                             inputRef={sessionMessageTextArea}
                             style={{ resize: "none", height: 91 }}

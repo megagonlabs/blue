@@ -31,6 +31,6 @@ async def stream_data():
             if message and message["type"] == "pmessage":
                 data = {'data': json.loads(message['data']), 'channel': message['channel']}
                 yield f"event: message\ndata: {json.dumps(data)}\n\n"
-            await asyncio.sleep(2)  # adjust sleep as needed
+            await asyncio.sleep(0)
 
     return StreamingResponse(generate(), media_type="text/event-stream")
