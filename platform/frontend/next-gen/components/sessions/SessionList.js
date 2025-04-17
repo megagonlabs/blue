@@ -19,7 +19,7 @@ import {
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import { motion } from "framer-motion";
 import _ from "lodash";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import AutoSizer from "react-virtualized-auto-sizer";
 import { VariableSizeList } from "react-window";
 import { useShallow } from "zustand/react/shallow";
@@ -88,34 +88,35 @@ function SessionList({ width, height }) {
     useEffect(() => {
         getSessions();
     }, []);
-    function getRowHeight(index) {
+    function getRowHeight(index, width) {
+        width -= 40; // left & right padding diff
         if (index > 0) {
             const last = _.isEqual(_.size(allSessions), index + 1);
-            return 90 + (last ? 10 : 0);
+            let height = 80;
+            if (width < 768) {
+                height = 175;
+            } else if (width < 992) {
+                height = 131;
+            }
+            return height + (last ? 10 : 0);
         }
         return 80;
     }
-    const SEARCH_CONTROL_GROUP = (
-        <ControlGroup style={{ marginTop: 20 }}>
-            <Button
-                onClick={() => setShowFilter(true)}
-                size={Size.LARGE}
-                icon={<FAIcon icon={faBarsFilter} />}
-                variant={ButtonVariant.OUTLINED}
-                intent={Intent.PRIMARY}
-                text="Filter"
-            />
-            <InputGroup
-                leftIcon={<FAIcon icon={faSearch} />}
-                size={Size.LARGE}
-            />
-        </ControlGroup>
-    );
+    const variableSizeListRef = useRef();
+    useEffect(() => {
+        if (variableSizeListRef.current) {
+            variableSizeListRef.current.resetAfterIndex(0);
+        }
+    }, [width]);
     return (
         <div style={{ width, height }}>
             <div
                 className="full-parent-dimension"
-                style={{ position: "relative", overflowY: "auto" }}
+                style={{
+                    position: "relative",
+                    overflowY: "auto",
+                    backgroundColor: darkMode ? Colors.BLACK : null,
+                }}
             >
                 <motion.div
                     variants={variants}
@@ -173,7 +174,8 @@ function SessionList({ width, height }) {
                             width={width}
                             height={height}
                             itemCount={_.size(allSessions)}
-                            itemSize={getRowHeight}
+                            ref={variableSizeListRef}
+                            itemSize={(index) => getRowHeight(index, width)}
                         >
                             {({ index, style }) => {
                                 const last = _.isEqual(
@@ -194,7 +196,34 @@ function SessionList({ width, height }) {
                                                 sessionId={allSessions[index]}
                                             />
                                         ) : (
-                                            SEARCH_CONTROL_GROUP
+                                            <ControlGroup
+                                                style={{ marginTop: 20 }}
+                                            >
+                                                <Button
+                                                    onClick={() =>
+                                                        setShowFilter(true)
+                                                    }
+                                                    size={Size.LARGE}
+                                                    icon={
+                                                        <FAIcon
+                                                            icon={faBarsFilter}
+                                                        />
+                                                    }
+                                                    variant={
+                                                        ButtonVariant.OUTLINED
+                                                    }
+                                                    intent={Intent.PRIMARY}
+                                                    text="Filter"
+                                                />
+                                                <InputGroup
+                                                    leftIcon={
+                                                        <FAIcon
+                                                            icon={faSearch}
+                                                        />
+                                                    }
+                                                    size={Size.LARGE}
+                                                />
+                                            </ControlGroup>
                                         )}
                                     </div>
                                 );

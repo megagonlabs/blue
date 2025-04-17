@@ -4,70 +4,73 @@
 }
 .react-grid-item.react-grid-placeholder {
     border-radius: 10px;
-    /* Colors.GRAY3 */
-    background: #8f99a8 !important;
+    background: var(--colors-gray-3) !important;
 }
 .react-draggable-dragging,
 .react-grid-item.resizing {
     z-index: 4 !important;
 }
 .custom-card {
-    border-top: 1px solid rgba(17, 20, 24, 0.15);
-    border-bottom: 1px solid rgba(17, 20, 24, 0.15);
-    border-right: 1px solid rgba(17, 20, 24, 0.15);
-    border-left: 1px solid rgba(17, 20, 24, 0.15);
-    background-color: #ffffff;
+    border-top: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
+    border-right: 1px solid var(--border-color);
+    border-left: 1px solid var(--border-color);
+    background-color: var(--colors-white);
 }
 .bp5-dark .custom-card {
-    border-top: 1px solid rgba(255, 255, 255, 0.2);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-    border-right: 1px solid rgba(255, 255, 255, 0.2);
-    border-left: 1px solid rgba(255, 255, 255, 0.2);
-    background-color: #252a31;
+    border-top: 1px solid var(--border-color-dark);
+    border-bottom: 1px solid var(--border-color-dark);
+    border-right: 1px solid var(--border-color-dark);
+    border-left: 1px solid var(--border-color-dark);
+    background-color: var(--colors-dark-gray-2);
 }
-.registry-entity-list {
+.responsive-container {
     display: flex;
     flex-flow: wrap;
     --blue-gap: 10px;
     gap: var(--blue-gap);
 }
-.registry-entity-list[min-width~="0px"] .registry-entity-card {
+/* .responsive-container[min-width~="0px"] {}
+.responsive-container[min-width~="768px"] {}
+.responsive-container[min-width~="992px"] {}
+.responsive-container[min-width~="1200px"] {}
+.responsive-container[min-width~="1600px"] {}
+.responsive-container[min-width~="1920px"] {} */
+.responsive-container[min-width~="0px"] .registry-entity-card {
     --blue-columns: 1;
-    width: calc(
-        (100% / var(--blue-columns)) - var(--blue-gap) +
-            (var(--blue-gap) / var(--blue-columns))
-    );
 }
-.registry-entity-list[min-width~="768px"] .registry-entity-card {
+.responsive-container[min-width~="768px"] .registry-entity-card {
     --blue-columns: 2;
-    width: calc(
-        (100% / var(--blue-columns)) - var(--blue-gap) +
-            (var(--blue-gap) / var(--blue-columns))
-    );
 }
-.registry-entity-list[min-width~="992px"] .registry-entity-card {
+.responsive-container[min-width~="992px"] .registry-entity-card {
     --blue-columns: 3;
-    width: calc(
-        (100% / var(--blue-columns)) - var(--blue-gap) +
-            (var(--blue-gap) / var(--blue-columns))
-    );
 }
-.registry-entity-list[min-width~="1200px"] .registry-entity-card {
+.responsive-container[min-width~="1200px"] .registry-entity-card {
     --blue-columns: 4;
-    width: calc(
-        (100% / var(--blue-columns)) - var(--blue-gap) +
-            (var(--blue-gap) / var(--blue-columns))
-    );
 }
-.registry-entity-list[min-width~="1600px"] .registry-entity-card {
+.responsive-container[min-width~="1600px"] .registry-entity-card {
     --blue-columns: 5;
-    width: calc(
-        (100% / var(--blue-columns)) - var(--blue-gap) +
-            (var(--blue-gap) / var(--blue-columns))
-    );
 }
-.registry-entity-list[min-width~="1920px"] .registry-entity-card {
+.responsive-container[min-width~="1920px"] .registry-entity-card {
     --blue-columns: 6;
+}
+.responsive-container[min-width~="0px"] [class^="session-row-"] {
+    --blue-columns: 1;
+}
+.responsive-container[min-width~="768px"] [class^="session-row-"] {
+    --blue-columns: 2;
+}
+.responsive-container[min-width~="992px"] [class^="session-row-"] {
+    --blue-columns: 3;
+}
+.responsive-container[max-width~="768px"] .session-row-members {
+    margin-top: 5px;
+}
+.responsive-container[min-width~="992px"] .session-row-members div {
+    justify-content: flex-end;
+}
+.responsive-container .registry-entity-card,
+.responsive-container [class^="session-row-"] {
     width: calc(
         (100% / var(--blue-columns)) - var(--blue-gap) +
             (var(--blue-gap) / var(--blue-columns))

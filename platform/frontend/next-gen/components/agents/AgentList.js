@@ -84,7 +84,12 @@ function AgentList({ width, height }) {
         <div style={{ width, height }}>
             <div
                 className="full-parent-dimension"
-                style={{ padding: 20, position: "relative", overflowY: "auto" }}
+                style={{
+                    padding: 20,
+                    position: "relative",
+                    overflowY: "auto",
+                    backgroundColor: darkMode ? Colors.BLACK : null,
+                }}
             >
                 <motion.div
                     variants={variants}
@@ -147,7 +152,7 @@ function AgentList({ width, height }) {
                         size={Size.LARGE}
                     />
                 </ControlGroup>
-                <div style={{ marginTop: 20 }} className="registry-entity-list">
+                <div style={{ marginTop: 20 }} className="responsive-container">
                     {agents.map((agent, index) => (
                         <div
                             key={index}
