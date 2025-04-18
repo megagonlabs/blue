@@ -1,23 +1,13 @@
 import { useDedupStore } from "@/stores/dedup-store";
 import { useSessionStore } from "@/stores/session-store";
 import _ from "lodash";
-import { useEffect, useMemo } from "react";
-import withAutoSizer from "../hocs/withAutoSizer";
+import { createRef, useEffect, useMemo } from "react";
+import { useRefDimensions } from "../hooks/useRefDimensions";
 import UserAvatar from "./UserAvatar";
-function SessionMemberStack({ width, height, sessionId }) {
+export default function SessionMemberStack({ sessionId, style }) {
     const sessions = useSessionStore((state) => state.sessions);
     const details = _.get(sessions, [sessionId, "details"], {});
     const members = useMemo(() => {
-        return [
-            "5WgRzdacRdOEvj8JBmCXFZSvWmH3",
-            "I98zotQIhShIbOBlefGuY6L4tT42",
-            "5WgRzdacRdOEvj8JBmCXFZSvWmH3",
-            "I98zotQIhShIbOBlefGuY6L4tT42",
-            "5WgRzdacRdOEvj8JBmCXFZSvWmH3",
-            "I98zotQIhShIbOBlefGuY6L4tT42",
-            "5WgRzdacRdOEvj8JBmCXFZSvWmH3",
-            "I98zotQIhShIbOBlefGuY6L4tT42",
-        ];
         return Object.entries(_.get(details, "members", {}))
             .filter((user) => user[1])
             .map((user) => user[0]);
@@ -30,23 +20,28 @@ function SessionMemberStack({ width, height, sessionId }) {
             getUserProfile(members[i]);
         }
     }, [members]);
+    const memberStackref = createRef();
+    const { width } = useRefDimensions(memberStackref);
     const size = useMemo(() => {
-        let result = _.floor((width + 5) / 45) - 1;
+        let result = _.floor((width + 5) / 45);
         return result - (result < _.size(members) ? 1 : 0);
     }, [width]);
+    if (_.isEmpty(members)) {
+        return null;
+    }
     return (
         <div
+            ref={memberStackref}
+            className="full-parent-width"
             style={{
-                width,
-                height,
+                ...style,
                 display: "flex",
                 gap: 5,
                 alignItems: "center",
             }}
         >
-            <UserAvatar userId={owner} />
             {_.slice(members, 0, size).map((uid) => {
-                return <UserAvatar userId={uid} />;
+                return <UserAvatar key={uid} userId={uid} />;
             })}
             {size < _.size(members) && (
                 <div style={{ marginLeft: 5 }}>
@@ -56,4 +51,3 @@ function SessionMemberStack({ width, height, sessionId }) {
         </div>
     );
 }
-export default withAutoSizer(SessionMemberStack);

@@ -19,13 +19,11 @@ import {
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import { motion } from "framer-motion";
 import _ from "lodash";
-import { useEffect, useMemo, useRef, useState } from "react";
-import AutoSizer from "react-virtualized-auto-sizer";
-import { VariableSizeList } from "react-window";
+import { useEffect, useMemo, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { FAIcon } from "../FAIcon";
 import withAutoSizer from "../hocs/withAutoSizer";
-import SessionRow from "./SessionRow";
+import SessionCard from "./SessionCard";
 function SessionList({ width, height }) {
     const variants = {
         open: {
@@ -82,38 +80,18 @@ function SessionList({ width, height }) {
                           _.get(sessions, [l, "details", "created_date"])
                     : rPinned - lPinned;
             });
-        return [null, ...result];
+        return result;
     }, [sessionIds, filter, pinnedSessionIds, sessions]);
     const [showFilter, setShowFilter] = useState(false);
     useEffect(() => {
         getSessions();
     }, []);
-    function getRowHeight(index, width) {
-        const hasMessage = true;
-        width -= 40; // left & right padding diff
-        let height = 80;
-        if (index > 0) {
-            const last = _.isEqual(_.size(allSessions), index + 1);
-            if (width < 768) {
-                height = hasMessage ? 170 : 130;
-            } else if (width < 992) {
-                height = hasMessage ? 130 : 80;
-            }
-            return height + (last ? 10 : 0);
-        }
-        return height;
-    }
-    const variableSizeListRef = useRef();
-    useEffect(() => {
-        if (variableSizeListRef.current) {
-            variableSizeListRef.current.resetAfterIndex(0);
-        }
-    }, [width]);
     return (
         <div style={{ width, height }}>
             <div
                 className="full-parent-dimension"
                 style={{
+                    padding: 20,
                     position: "relative",
                     overflowY: "auto",
                     backgroundColor: darkMode ? Colors.BLACK : null,
@@ -169,69 +147,27 @@ function SessionList({ width, height }) {
                         />
                     </RadioGroup>
                 </motion.div>
-                <AutoSizer>
-                    {({ width, height }) => (
-                        <VariableSizeList
-                            width={width}
-                            height={height}
-                            itemCount={_.size(allSessions)}
-                            ref={variableSizeListRef}
-                            itemSize={(index) => getRowHeight(index, width)}
-                        >
-                            {({ index, style }) => {
-                                const last = _.isEqual(
-                                    _.size(allSessions),
-                                    index + 1
-                                );
-                                return (
-                                    <div
-                                        style={{
-                                            ...style,
-                                            paddingBottom: 10 + (last ? 10 : 0),
-                                            paddingLeft: 20,
-                                            paddingRight: 20,
-                                        }}
-                                    >
-                                        {index > 0 ? (
-                                            <SessionRow
-                                                sessionId={allSessions[index]}
-                                            />
-                                        ) : (
-                                            <ControlGroup
-                                                style={{ marginTop: 20 }}
-                                            >
-                                                <Button
-                                                    onClick={() =>
-                                                        setShowFilter(true)
-                                                    }
-                                                    size={Size.LARGE}
-                                                    icon={
-                                                        <FAIcon
-                                                            icon={faBarsFilter}
-                                                        />
-                                                    }
-                                                    variant={
-                                                        ButtonVariant.OUTLINED
-                                                    }
-                                                    intent={Intent.PRIMARY}
-                                                    text="Filter"
-                                                />
-                                                <InputGroup
-                                                    leftIcon={
-                                                        <FAIcon
-                                                            icon={faSearch}
-                                                        />
-                                                    }
-                                                    size={Size.LARGE}
-                                                />
-                                            </ControlGroup>
-                                        )}
-                                    </div>
-                                );
-                            }}
-                        </VariableSizeList>
-                    )}
-                </AutoSizer>
+                <ControlGroup>
+                    <Button
+                        onClick={() => setShowFilter(true)}
+                        size={Size.LARGE}
+                        icon={<FAIcon icon={faBarsFilter} />}
+                        variant={ButtonVariant.OUTLINED}
+                        intent={Intent.PRIMARY}
+                        text="Filter"
+                    />
+                    <InputGroup
+                        leftIcon={<FAIcon icon={faSearch} />}
+                        size={Size.LARGE}
+                    />
+                </ControlGroup>
+                <div style={{ marginTop: 20 }} className="responsive-container">
+                    {allSessions.map((session, index) => (
+                        <div key={index} className="grid-item">
+                            <SessionCard sessionId={session} />
+                        </div>
+                    ))}
+                </div>
             </div>
         </div>
     );

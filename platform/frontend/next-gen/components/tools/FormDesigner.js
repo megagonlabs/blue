@@ -29,10 +29,10 @@ import { Allotment } from "allotment";
 import { createRef, useEffect, useRef, useState } from "react";
 import { useErrorBoundary, withErrorBoundary } from "react-use-error-boundary";
 import { v4 as uuidv4 } from "uuid";
+import { MIN_ALLOTMENT_PANE_SIZE } from "../constants";
 import { FAIcon } from "../FAIcon";
 import withAutoSizer from "../hocs/withAutoSizer";
 import DocContainer from "../jsonforms/docs/DocContainer";
-const MIN_ALLOTMENT_PANE_SIZE = 400;
 const DEFAULT_UI_SCHEMA = JSON.stringify(
     { type: "VerticalLayout", elements: [] },
     null,

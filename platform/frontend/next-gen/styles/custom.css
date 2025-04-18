@@ -36,51 +36,25 @@
 .responsive-container[min-width~="1200px"] {}
 .responsive-container[min-width~="1600px"] {}
 .responsive-container[min-width~="1920px"] {} */
-.responsive-container[min-width~="0px"] .registry-entity-card {
+.responsive-container[min-width~="0px"] .grid-item {
     --blue-columns: 1;
 }
-.responsive-container[min-width~="768px"] .registry-entity-card {
+.responsive-container[min-width~="768px"] .grid-item {
     --blue-columns: 2;
 }
-.responsive-container[min-width~="992px"] .registry-entity-card {
+.responsive-container[min-width~="992px"] .grid-item {
     --blue-columns: 3;
 }
-.responsive-container[min-width~="1200px"] .registry-entity-card {
+.responsive-container[min-width~="1200px"] .grid-item {
     --blue-columns: 4;
 }
-.responsive-container[min-width~="1600px"] .registry-entity-card {
+.responsive-container[min-width~="1600px"] .grid-item {
     --blue-columns: 5;
 }
-.responsive-container[min-width~="1920px"] .registry-entity-card {
+.responsive-container[min-width~="1920px"] .grid-item {
     --blue-columns: 6;
 }
-.responsive-container[min-width~="0px"] [class^="session-row-"] {
-    --blue-columns: 1;
-}
-.responsive-container[min-width~="768px"] [class^="session-row-"] {
-    --blue-columns: 2;
-}
-.responsive-container[min-width~="992px"] [class^="session-row-"] {
-    --blue-columns: 3;
-}
-.responsive-container.session-row-no-message[min-width~="0px"]
-    [class^="session-row-"] {
-    --blue-columns: 1;
-}
-.responsive-container.session-row-no-message[min-width~="768px"]
-    [class^="session-row-"] {
-    --blue-columns: 2;
-}
-.responsive-container[min-width~="992px"] .session-row-members div {
-    justify-content: flex-end;
-}
-.responsive-container.session-row-no-message[min-width~="768px"]
-    .session-row-members
-    div {
-    justify-content: flex-end;
-}
-.responsive-container .registry-entity-card,
-.responsive-container [class^="session-row-"] {
+.responsive-container .grid-item {
     width: calc(
         (100% / var(--blue-columns)) - var(--blue-gap) +
             (var(--blue-gap) / var(--blue-columns))

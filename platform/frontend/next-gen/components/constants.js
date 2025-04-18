@@ -14,4 +14,5 @@ export const USER_ROLES_LOOKUP = {
         exited: { style: { color: Colors.RED3 } },
         removing: { style: { color: Colors.RED3 } },
         dead: { style: { color: Colors.RED3 } },
-    };
+    },
+    MIN_ALLOTMENT_PANE_SIZE = 400;
