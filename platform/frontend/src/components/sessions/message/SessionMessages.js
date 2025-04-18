@@ -141,9 +141,7 @@ const Row = ({ index, data, style }) => {
     }, [rowRef, debugMode, expandMessage, conversationView]); // eslint-disable-line react-hooks/exhaustive-deps
     const streamData = _.get(streams, [stream, "data"], []);
     const contentType = _.get(messages, [index, "contentType"], null);
-    const { ref: resizeRef } = useResizeDetector({
-        onResize: handleResize,
-    });
+    const { ref: resizeRef } = useResizeDetector({ onResize: handleResize });
     const complete = _.get(streams, [stream, "complete"], false);
     const hasError = useRef(false);
     const showActions = useRef(false);
