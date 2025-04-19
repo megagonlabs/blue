@@ -8,8 +8,9 @@ export default function AuthErrorHandler({ children }) {
         const responseInterceptor = axios.interceptors.response.use(
             (response) => response,
             async (error) => {
-                if (error.response && _.isEqual(error.response.status, 401))
+                if (error.response && _.isEqual(error.response.status, 401)) {
                     clearUser();
+                }
                 return Promise.reject(error);
             }
         );

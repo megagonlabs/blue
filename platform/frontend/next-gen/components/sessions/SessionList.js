@@ -61,15 +61,21 @@ function SessionList({ width, height }) {
                 return _.isEqual("all", filter.group) || group;
             })
             .filter((id) => {
-                if (_.includes(id, filter.keyword)) return true;
+                if (_.includes(id, filter.keyword)) {
+                    return true;
+                }
                 const name = _.get(sessions, [id, "details", "name"], id);
-                if (_.includes(name, filter.keyword)) return true;
+                if (_.includes(name, filter.keyword)) {
+                    return true;
+                }
                 const description = _.get(
                     sessions,
                     [id, "details", "description"],
                     id
                 );
-                if (_.includes(description, filter.keyword)) return true;
+                if (_.includes(description, filter.keyword)) {
+                    return true;
+                }
                 return false;
             })
             .sort((l, r) => {

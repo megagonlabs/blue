@@ -58,7 +58,9 @@ function FormDesigner({ width, height }) {
     const [jsonSchema, setJsonSchema] = useState(DEFAULT_SCHEMA);
     const [showData, setShowData] = useState(false);
     useEffect(() => {
-        if (!idRef.current) idRef.current = uuidv4();
+        if (!idRef.current) {
+            idRef.current = uuidv4();
+        }
     }, []);
     return (
         <div style={{ width, height }}>

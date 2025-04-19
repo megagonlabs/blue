@@ -6,6 +6,10 @@ const { NEXT_PUBLIC_AGENT_REGISTRY_NAME } = allEnv();
 export const useAgentStore = create((set) => ({
     setState: ({ key, value }) => set({ [key]: value }),
     agents: [],
+    metadata: {},
+    setMetadata: (key, data) => {
+        set((state) => ({ metadata: { ...state.metadata, [key]: data } }));
+    },
     getAgents: () => {
         axios
             .get(`registry/${NEXT_PUBLIC_AGENT_REGISTRY_NAME}/agents`)

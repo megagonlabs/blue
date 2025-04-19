@@ -1,4 +1,5 @@
 import axios from "axios";
+import clone from "clone";
 import _ from "lodash";
 import { create } from "zustand";
 export const useSessionStore = create((set, get) => ({
@@ -154,66 +155,58 @@ export const useSessionStore = create((set, get) => ({
                         sessionProgress = _.omit(sessionProgress, progressId);
                     }
                     _.set(progress, sessionId, progress);
-                } else if (_.isEqual(messageLabel, "DATA")) {
-                    for (let i = _.size(messages) - 1; i >= 0; i--) {
-                        if (_.isEqual(messages[i].stream, stream)) {
-                            _.set(messages, [i, "contentType"], contentType);
-                            break;
-                        }
+                }
+            } else if (_.isEqual(messageLabel, "DATA")) {
+                for (let i = _.size(messages) - 1; i >= 0; i--) {
+                    if (_.isEqual(messages[i].stream, stream)) {
+                        _.set(messages, [i, "contentType"], contentType);
+                        break;
                     }
-                    for (let i = _.size(workspace) - 1; i >= 0; i--) {
-                        if (_.isEqual(workspace[i].message.stream, stream)) {
-                            _.set(workspace, [i, "loading"], false);
-                            _.set(
-                                workspace,
-                                [i, "message", "contentType"],
-                                contentType
-                            );
-                            break;
-                        }
+                }
+                for (let i = _.size(workspace) - 1; i >= 0; i--) {
+                    if (_.isEqual(workspace[i].message.stream, stream)) {
+                        _.set(workspace, [i, "loading"], false);
+                        _.set(
+                            workspace,
+                            [i, "message", "contentType"],
+                            contentType
+                        );
+                        break;
                     }
-                    _.set(
-                        sessions,
-                        [sessionId, "streams", stream, "contentType"],
-                        contentType
-                    );
-                    streamData.push({
-                        ...baseData,
-                        content: _.get(data, "message.contents", null),
-                    });
                 }
                 _.set(
                     sessions,
-                    [sessionId, "messages"],
-                    _.sortBy(_.unionBy(messages, "stream"), [
-                        "timestamp",
-                        "order",
-                    ])
+                    [sessionId, "streams", stream, "contentType"],
+                    contentType
                 );
-                _.set(
-                    sessions,
-                    [sessionId, "streams", stream, "data"],
-                    _.sortBy(_.uniqBy(streamData, "id"), ["timestamp", "order"])
-                );
-                if (
-                    considerWorkspace &&
-                    (_.get(data, "metadata.tags.WORKSPACE", false) ||
-                        _.get(data, "metadata.tags.WORKSPACE_ONLY", false))
-                ) {
-                    workspace.push({
-                        type: "session",
-                        message: baseMessage,
-                        loading: true,
-                    });
-                }
-                _.set(sessions, [sessionId, "workspace"], workspace);
+                streamData.push({
+                    ...baseData,
+                    content: _.get(data, "message.contents", null),
+                });
             }
-            set({
+            _.set(
                 sessions,
-                jsonforms,
-                progress,
-                sessionIds,
-            });
+                [sessionId, "messages"],
+                _.sortBy(_.unionBy(messages, "stream"), ["timestamp", "order"])
+            );
+            _.set(
+                sessions,
+                [sessionId, "streams", stream, "data"],
+                _.sortBy(_.uniqBy(streamData, "id"), ["timestamp", "order"])
+            );
+            if (
+                considerWorkspace &&
+                (_.get(data, "metadata.tags.WORKSPACE", false) ||
+                    _.get(data, "metadata.tags.WORKSPACE_ONLY", false))
+            ) {
+                workspace.push({
+                    type: "session",
+                    message: baseMessage,
+                    loading: true,
+                });
+            }
+            _.set(sessions, [sessionId, "workspace"], workspace);
         }
+        set(clone({ sessions, jsonforms, progress, sessionIds }));
     },
 }));

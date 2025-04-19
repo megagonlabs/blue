@@ -21,7 +21,9 @@ import "normalize.css/normalize.css";
 import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
 FocusStyleManager.onlyShowFocusOnTabs();
-if (typeof window !== "undefined") ElementQueries.listen();
+if (typeof window !== "undefined") {
+    ElementQueries.listen();
+}
 const { NEXT_PUBLIC_REST_API_SERVER, NEXT_PUBLIC_PLATFORM_NAME } = allEnv();
 axios.defaults.baseURL = `${NEXT_PUBLIC_REST_API_SERVER}/blue/platform/${NEXT_PUBLIC_PLATFORM_NAME}`;
 axios.defaults.withCredentials = true;

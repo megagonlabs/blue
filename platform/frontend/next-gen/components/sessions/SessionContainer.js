@@ -54,6 +54,7 @@ function SessionContainer({ width, height, sessionId }) {
     };
     const controGroupRef = createRef();
     const { height: controlGroupHeight } = useRefDimensions(controGroupRef);
+    const [showWorkspace, setShowWorkspace] = useState(false);
     return (
         <div style={{ width, height }}>
             <div
@@ -65,12 +66,17 @@ function SessionContainer({ width, height, sessionId }) {
                 }}
             >
                 <div style={{ height: `calc(100% - ${controlGroupHeight}px)` }}>
-                    <Allotment>
+                    <Allotment separator={showWorkspace}>
                         <Allotment.Pane
+                            visible={showWorkspace}
                             minSize={MIN_ALLOTMENT_PANE_SIZE}
                         ></Allotment.Pane>
                         <Allotment.Pane minSize={MIN_ALLOTMENT_PANE_SIZE}>
-                            <SessionMessages sessionId={sessionId} />
+                            <SessionMessages
+                                sessionId={sessionId}
+                                showWorkspace={showWorkspace}
+                                setShowWorkspace={setShowWorkspace}
+                            />
                         </Allotment.Pane>
                     </Allotment>
                 </div>

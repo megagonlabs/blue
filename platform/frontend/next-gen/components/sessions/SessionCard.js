@@ -1,4 +1,5 @@
 import { useAppStore } from "@/stores/app-store";
+import { useAuthStore } from "@/stores/auth-store";
 import { useGridStore } from "@/stores/grid-layout-store";
 import { useSessionStore } from "@/stores/session-store";
 import {
@@ -6,6 +7,7 @@ import {
     Card,
     Classes,
     hideContextMenu,
+    Intent,
     Menu,
     MenuItem,
     showContextMenu,
@@ -15,18 +17,24 @@ import { faBrowsers } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import classNames from "classnames";
 import _ from "lodash";
 import { useCallback, useMemo } from "react";
+import { useShallow } from "zustand/react/shallow";
 import { FAIcon } from "../FAIcon";
 import SessionContainer from "./SessionContainer";
 import SessionDisplayName from "./SessionDisplayName";
 import SessionMemberStack from "./SessionMemberStack";
 import UserAvatar from "./UserAvatar";
+import MessageContent from "./messages/MessageContent";
 export default function SessionCard({ sessionId }) {
     const darkMode = useAppStore((state) => state.darkMode);
-    const sessions = useSessionStore((state) => state.sessions);
-    const details = _.get(sessions, [sessionId, "details"], {});
+    const { details, messages, streams } = useSessionStore(
+        useShallow((state) => ({
+            details: _.get(state, ["sessions", sessionId, "details"], {}),
+            messages: _.get(state, ["sessions", sessionId, "messages"], {}),
+            streams: _.get(state, ["sessions", sessionId, "streams"], {}),
+        }))
+    );
     const owner = _.get(details, "created_by");
     const description = _.get(details, "description", "");
-    const messages = _.get(sessions, [sessionId, "messages"], []);
     const handleClose = useCallback(() => {
         hideContextMenu();
     }, []);
@@ -65,6 +73,26 @@ export default function SessionCard({ sessionId }) {
         },
         [handleClose, menu, darkMode]
     );
+    const filteredMessages = messages.filter((message) => {
+        if (_.get(message, "metadata.ags.WORKSPACE_ONLY")) {
+            return false;
+        }
+        return true;
+    });
+    const user = useAuthStore((state) => state.user);
+    const lastMessage = useMemo(() => {
+        if (!_.isEmpty(filteredMessages)) {
+            const last = _.last(filteredMessages);
+            const uid = _.get(last, "metadata.id", null);
+            const createdBy = _.get(last, "metadata.created_by", null);
+            const isUser = _.isEqual(createdBy, "USER");
+            return {
+                contentType: _.get(last, "contentType", null),
+                streamData: _.get(streams, [last.stream, "data"], []),
+                own: isUser && _.isEqual(user.uid, uid),
+            };
+        }
+    }, [user, filteredMessages]);
     return (
         <Card
             onContextMenu={handleContextMenu}
@@ -95,8 +123,10 @@ export default function SessionCard({ sessionId }) {
                     {!_.isEmpty(description) ? description : sessionId}
                 </div>
             </div>
-            {!_.isEmpty(messages) && (
+            {!_.isEmpty(lastMessage) && (
                 <Callout
+                    icon={null}
+                    intent={lastMessage.own ? Intent.PRIMARY : null}
                     className={Classes.TEXT_OVERFLOW_ELLIPSIS}
                     style={{
                         marginTop: 10,
@@ -104,7 +134,10 @@ export default function SessionCard({ sessionId }) {
                         maxWidth: "100%",
                     }}
                 >
-                    message
+                    <MessageContent
+                        contentType={lastMessage.contentType}
+                        streamData={lastMessage.streamData}
+                    />
                 </Callout>
             )}
             <SessionMemberStack

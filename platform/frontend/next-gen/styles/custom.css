@@ -60,3 +60,12 @@
             (var(--blue-gap) / var(--blue-columns))
     );
 }
+.message-bubble-callout-content {
+    max-width: 100%;
+    min-width: 50px;
+    white-space: pre-wrap;
+    word-break: break-word;
+    width: fit-content;
+    min-height: 21px;
+    overflow: hidden;
+}
