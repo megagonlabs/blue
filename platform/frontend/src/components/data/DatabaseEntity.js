@@ -53,33 +53,38 @@ export default function DatabaseEntity() {
                             </tr>
                         </thead>
                         <tbody>
-                            {_.values(entity.contents).map((element, index) => {
-                                if (!_.isEqual(element.type, "collection")) {
-                                    return null;
-                                }
-                                return (
-                                    <tr key={index}>
-                                        <td>
-                                            <Link
-                                                href={`${routerQueryPath}/collection/${element.name}`}
-                                            >
-                                                <Tag
-                                                    style={{
-                                                        pointerEvents: "none",
-                                                    }}
-                                                    minimal
-                                                    interactive
-                                                    size="large"
-                                                    intent={Intent.PRIMARY}
+                            {_.values(_.get(entity, "contents.collection")).map(
+                                (element, index) => {
+                                    if (
+                                        !_.isEqual(element.type, "collection")
+                                    ) {
+                                        return null;
+                                    }
+                                    return (
+                                        <tr key={index}>
+                                            <td>
+                                                <Link
+                                                    href={`${routerQueryPath}/collection/${element.name}`}
                                                 >
-                                                    {element.name}
-                                                </Tag>
-                                            </Link>
-                                        </td>
-                                        <td>{element.description}</td>
-                                    </tr>
-                                );
-                            })}
+                                                    <Tag
+                                                        style={{
+                                                            pointerEvents:
+                                                                "none",
+                                                        }}
+                                                        minimal
+                                                        interactive
+                                                        size="large"
+                                                        intent={Intent.PRIMARY}
+                                                    >
+                                                        {element.name}
+                                                    </Tag>
+                                                </Link>
+                                            </td>
+                                            <td>{element.description}</td>
+                                        </tr>
+                                    );
+                                }
+                            )}
                         </tbody>
                     </HTMLTable>
                 </SectionCard>
