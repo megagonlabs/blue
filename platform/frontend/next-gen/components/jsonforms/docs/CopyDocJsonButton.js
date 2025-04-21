@@ -11,12 +11,7 @@ export default function CopyDocJsonButton({
     copyMessage = "Copied JSON",
 }) {
     return (
-        <Tooltip
-            usePortal={false}
-            minimal
-            placement="bottom-end"
-            content="Copy JSON"
-        >
+        <Tooltip usePortal={false} placement="bottom-end" content="Copy JSON">
             <Button
                 variant="minimal"
                 icon={<FAIcon icon={faCopy} />}

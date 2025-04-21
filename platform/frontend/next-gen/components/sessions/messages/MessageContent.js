@@ -1,6 +1,6 @@
 import { FAIcon } from "@/components/FAIcon";
 import JsonViewer from "@/components/JsonViewer";
-import { Tag } from "@blueprintjs/core";
+import { Classes, Tag } from "@blueprintjs/core";
 import {
     faBracketsCurly,
     faPenLine,
@@ -19,8 +19,11 @@ export default function MessageContent({
     streamData,
     hasError,
 }) {
+    if (_.isEmpty(streamData)) {
+        return <div className={Classes.SKELETON}>-</div>;
+    }
     const lastStreamData = _.last(streamData);
-    if (_.isEqual(contentType, "JSON_FORM") && !_.isEmpty(lastStreamData)) {
+    if (_.isEqual(contentType, "JSON_FORM")) {
         if (isPreview) {
             return <PreviewTag contentType={contentType} icon={faPenLine} />;
         }

@@ -47,6 +47,15 @@ export const useSessionStore = create((set, get) => ({
             }
         });
     },
+    addToWorkspace: ({ type, message, sessionId }) => {
+        console.log(type, message);
+        const stream = _.get(message, "stream", null);
+        const { sessions } = clone(get());
+        let workspaceContents = _.get(sessions, [sessionId, "workspace"], []);
+        workspaceContents.push({ type, message, sessionId });
+        _.set(sessions, [sessionId, "workspace"], workspaceContents);
+        set({ sessions });
+    },
     addSessionMessage: (data) => {
         const messageLabel = _.get(data, "message.label", null);
         const contentType = _.get(data, "message.content_type", null);
@@ -59,7 +68,7 @@ export const useSessionStore = create((set, get) => ({
             stream,
         } = data;
         const tags = Object.entries(_.get(data, "metadata.tags", {}));
-        const { sessions, jsonforms, progress, sessionIds } = get();
+        const { sessions, jsonforms, progress, sessionIds } = clone(get());
         let sessionTags = _.get(sessions, [sessionId, "tags"], []);
         for (let i = 0; i < _.size(tags); i++) {
             const [tag, value] = tags[i];
@@ -154,7 +163,7 @@ export const useSessionStore = create((set, get) => ({
                     if (_.isEqual(value, 1)) {
                         sessionProgress = _.omit(sessionProgress, progressId);
                     }
-                    _.set(progress, sessionId, progress);
+                    _.set(progress, sessionId, sessionProgress);
                 }
             } else if (_.isEqual(messageLabel, "DATA")) {
                 for (let i = _.size(messages) - 1; i >= 0; i--) {
@@ -207,6 +216,6 @@ export const useSessionStore = create((set, get) => ({
             }
             _.set(sessions, [sessionId, "workspace"], workspace);
         }
-        set(clone({ sessions, jsonforms, progress, sessionIds }));
+        set({ sessions, jsonforms, progress, sessionIds });
     },
 }));

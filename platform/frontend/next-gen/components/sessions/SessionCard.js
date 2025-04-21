@@ -92,6 +92,7 @@ export default function SessionCard({ sessionId }) {
                 own: isUser && _.isEqual(user.uid, uid),
             };
         }
+        return null;
     }, [user, filteredMessages]);
     return (
         <Card

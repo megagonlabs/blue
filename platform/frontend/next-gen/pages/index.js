@@ -65,8 +65,8 @@ export default function Home() {
                             </div>
                         </div>
                         <div
-                            className="overflow-hidden"
-                            style={{ height: "calc(100% - 44px)" }}
+                            className="overflow-hidden grid-container-boundary"
+                            style={{ height: "calc(100% - 45px)" }}
                         >
                             {_.get(containers, [element.i, "content"], null)}
                         </div>

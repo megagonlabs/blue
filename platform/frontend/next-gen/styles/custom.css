@@ -2,6 +2,13 @@
     opacity: 0;
     z-index: 2;
 }
+:root {
+    --separator-border: var(--border-color) !important;
+    --focus-border: #2d72d2 !important;
+}
+:root .bp5-dark {
+    --separator-border: var(--border-color-dark) !important;
+}
 .react-grid-item.react-grid-placeholder {
     border-radius: 10px;
     background: var(--colors-gray-3) !important;
@@ -68,4 +75,9 @@
     width: fit-content;
     min-height: 21px;
     overflow: hidden;
+}
+/* remember to add "&lrm;" at the end of the string */
+.reverse-ellipsis {
+    direction: rtl;
+    text-overflow: ellipsis;
 }

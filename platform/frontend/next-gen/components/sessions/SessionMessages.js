@@ -23,6 +23,8 @@ import {
     faArrowLeftToLine,
     faBarsFilter,
     faEllipsisH,
+    faEllipsisV,
+    faSidebar,
     faTableColumns,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import _ from "lodash";
@@ -31,9 +33,13 @@ import { useResizeDetector } from "react-resize-detector";
 import AutoSizer from "react-virtualized-auto-sizer";
 import { VariableSizeList } from "react-window";
 import { useShallow } from "zustand/react/shallow";
+import {
+    MESSAGE_OVERFLOW_THRESHOLD,
+    POPPER_BOTTOM_WITH_MODIFIER_OVERFLOW_10,
+} from "../constants";
 import { FAIcon } from "../FAIcon";
-import { MESSAGE_OVERFLOW_THRESHOLD } from "../constants";
 import MessageContent from "./messages/MessageContent";
+import SessionMemberStack from "./SessionMemberStack";
 const Row = ({ index, data, style }) => {
     const { setRowHeight, sessionId } = data;
     const darkMode = useAppStore((state) => state.darkMode);
@@ -43,6 +49,7 @@ const Row = ({ index, data, style }) => {
             getAgentMetadata: state.getAgentMetadata,
         }))
     );
+    const addToWorkspace = useSessionStore((state) => state.addToWorkspace);
     const { jsonforms, streams, messages } = useSessionStore(
         useShallow((state) => ({
             jsonforms: state.jsonforms,
@@ -108,7 +115,6 @@ const Row = ({ index, data, style }) => {
                 display: "flex",
                 alignItems: "flex-start",
                 padding: "10px 20px",
-                marginTop: 10,
                 backgroundColor: showActions.current
                     ? darkMode
                         ? Colors.DARK_GRAY1
@@ -124,6 +130,30 @@ const Row = ({ index, data, style }) => {
                     flexDirection: own ? "row-reverse" : null,
                 }}
             >
+                <div
+                    style={{
+                        borderRadius: 2,
+                        position: "absolute",
+                        right: 20,
+                        top: 10,
+                        display: showActions.current ? null : "none",
+                    }}
+                >
+                    <ButtonGroup size={Size.LARGE}>
+                        <Tooltip content="Add to Workspace">
+                            <Button
+                                icon={<FAIcon icon={faSidebar} />}
+                                onClick={() =>
+                                    addToWorkspace({
+                                        type: "session",
+                                        message,
+                                        sessionId,
+                                    })
+                                }
+                            />
+                        </Tooltip>
+                    </ButtonGroup>
+                </div>
                 <Callout
                     intent={
                         hasError.current
@@ -202,7 +232,7 @@ export default function SessionMessages({
         return true;
     });
     function getRowHeight(index) {
-        let height = 51 + 10;
+        let height = 71;
         return rowHeights.current[index] || height;
     }
     useEffect(() => {
@@ -217,14 +247,26 @@ export default function SessionMessages({
             });
         }, 0);
     }, [variableSizeListRef]);
+    const elementRef = useRef(null);
+    const popoverBoundary =
+        elementRef.current &&
+        elementRef.current.closest(".grid-container-boundary");
     return (
         <>
-            <div className="border-bottom" style={{ padding: 10 }}>
+            <div
+                ref={elementRef}
+                className="border-bottom"
+                style={{
+                    padding: 10,
+                    display: "flex",
+                    justifyContent: "space-between",
+                }}
+            >
                 <ButtonGroup size={Size.LARGE} variant={ButtonVariant.MINIMAL}>
                     <Tooltip
-                        minimal
-                        placement="bottom-start"
-                        content={`${showWorkspace ? "Hide" : "Show"} workspace`}
+                        {...POPPER_BOTTOM_WITH_MODIFIER_OVERFLOW_10}
+                        content="Workspace"
+                        boundary={popoverBoundary}
                     >
                         <Button
                             icon={
@@ -240,8 +282,9 @@ export default function SessionMessages({
                         />
                     </Tooltip>
                     <Popover
+                        {...POPPER_BOTTOM_WITH_MODIFIER_OVERFLOW_10}
+                        boundary={popoverBoundary}
                         minimal
-                        placement="bottom"
                         content={
                             <Menu size={Size.LARGE}>
                                 <MenuItem text="Clear all" />
@@ -264,8 +307,7 @@ export default function SessionMessages({
                     >
                         <Tooltip
                             openOnTargetFocus={false}
-                            minimal
-                            placement="bottom-start"
+                            placement="bottom"
                             content="Filter"
                         >
                             <Button
@@ -277,6 +319,32 @@ export default function SessionMessages({
                         </Tooltip>
                     </Popover>
                 </ButtonGroup>
+                <div>
+                    <ButtonGroup
+                        size={Size.LARGE}
+                        variant={ButtonVariant.MINIMAL}
+                    >
+                        <Popover
+                            {...POPPER_BOTTOM_WITH_MODIFIER_OVERFLOW_10}
+                            boundary={popoverBoundary}
+                            minimal
+                            content={
+                                <Menu size={Size.LARGE}>
+                                    <MenuItem text="Open session details" />
+                                </Menu>
+                            }
+                        >
+                            <Tooltip
+                                {...POPPER_BOTTOM_WITH_MODIFIER_OVERFLOW_10}
+                                boundary={popoverBoundary}
+                                content="More actions"
+                            >
+                                <Button icon={<FAIcon icon={faEllipsisV} />} />
+                            </Tooltip>
+                        </Popover>
+                    </ButtonGroup>
+                </div>
+                <SessionMemberStack sessionId={sessionId} />
             </div>
             <AutoSizer>
                 {({ width, height }) => (

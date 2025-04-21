@@ -66,13 +66,13 @@ function FormDesigner({ width, height }) {
         <div style={{ width, height }}>
             <div className="border-bottom" style={{ padding: 10 }}>
                 <ButtonGroup size={Size.LARGE} variant={ButtonVariant.MINIMAL}>
-                    <Tooltip placement="bottom-start" minimal content="Re-run">
+                    <Tooltip placement="bottom-start" content="Re-run">
                         <Button
                             intent={Intent.SUCCESS}
                             icon={<FAIcon icon={faPlay} />}
                         />
                     </Tooltip>
-                    <Tooltip placement="bottom" minimal content="Format">
+                    <Tooltip placement="bottom" content="Format">
                         <Button icon={<FAIcon icon={faIndent} />} />
                     </Tooltip>
                     <Popover
@@ -92,7 +92,7 @@ function FormDesigner({ width, height }) {
                             </Menu>
                         }
                     >
-                        <Tooltip placement="bottom" minimal content="Export">
+                        <Tooltip placement="bottom" content="Export">
                             <Button icon={<FAIcon icon={faDownload} />} />
                         </Tooltip>
                     </Popover>
@@ -128,7 +128,6 @@ function FormDesigner({ width, height }) {
                                 >
                                     <Tooltip
                                         fill
-                                        minimal
                                         placement="bottom-start"
                                         content={
                                             "Describes how the form should be rendered"
@@ -155,7 +154,6 @@ function FormDesigner({ width, height }) {
                                 >
                                     <Tooltip
                                         fill
-                                        minimal
                                         placement="bottom-start"
                                         content={
                                             "Describes the format of underlying data"

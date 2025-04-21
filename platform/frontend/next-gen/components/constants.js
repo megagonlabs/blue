@@ -16,4 +16,14 @@ export const USER_ROLES_LOOKUP = {
         dead: { style: { color: Colors.RED3 } },
     },
     MIN_ALLOTMENT_PANE_SIZE = 400,
-    MESSAGE_OVERFLOW_THRESHOLD = 200;
+    MESSAGE_OVERFLOW_THRESHOLD = 200,
+    WORKSAPCE_DRAGGABLE_SYMBOL = Symbol("workspaceDraggable"),
+    POPPER_BOTTOM_WITH_MODIFIER_OVERFLOW_10 = {
+        placement: "bottom",
+        modifiers: {
+            preventOverflow: {
+                enabled: true,
+                options: { padding: 10 },
+            },
+        },
+    };

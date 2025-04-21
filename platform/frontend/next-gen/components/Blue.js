@@ -109,7 +109,7 @@ export default function Blue({ children }) {
                             position: "absolute",
                             bottom: 20,
                             left: 20,
-                            zIndex: 99999,
+                            zIndex: 8999,
                         }}
                     >
                         <ExpandingBox
@@ -128,7 +128,7 @@ export default function Blue({ children }) {
                             position: "absolute",
                             top: 20,
                             left: 20,
-                            zIndex: 99999,
+                            zIndex: 8999,
                         }}
                     >
                         <ExpandingBox

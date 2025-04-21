@@ -20,6 +20,7 @@ import { FAIcon } from "../FAIcon";
 import withAutoSizer from "../hocs/withAutoSizer";
 import { useRefDimensions } from "../hooks/useRefDimensions";
 import SessionMessages from "./SessionMessages";
+import Workspace from "./Workspace";
 function SessionContainer({ width, height, sessionId }) {
     const darkMode = useAppStore((state) => state.darkMode);
     const [userMessage, setUserMessage] = useState("");
@@ -70,7 +71,9 @@ function SessionContainer({ width, height, sessionId }) {
                         <Allotment.Pane
                             visible={showWorkspace}
                             minSize={MIN_ALLOTMENT_PANE_SIZE}
-                        ></Allotment.Pane>
+                        >
+                            <Workspace sessionId={sessionId} />
+                        </Allotment.Pane>
                         <Allotment.Pane minSize={MIN_ALLOTMENT_PANE_SIZE}>
                             <SessionMessages
                                 sessionId={sessionId}
