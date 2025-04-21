@@ -1,8 +1,11 @@
+import { useAppStore } from "@/stores/app-store";
 import {
     Alignment,
     Button,
     ButtonGroup,
     ButtonVariant,
+    Classes,
+    Colors,
     Divider,
     Position,
     Size,
@@ -25,6 +28,7 @@ import {
     faSquareM,
     faTable,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
+import classNames from "classnames";
 import _ from "lodash";
 import { useState } from "react";
 import { FAIcon } from "../../FAIcon";
@@ -95,6 +99,7 @@ const DOCS = {
 };
 function DocContainer({ width, height }) {
     const [focusTab, setFocusTab] = useState("basics");
+    const darkMode = useAppStore((state) => state.darkMode);
     return (
         <div style={{ width, height }}>
             <div className="full-parent-dimension" style={{ display: "flex" }}>
@@ -139,7 +144,19 @@ function DocContainer({ width, height }) {
                         <Button text="Examples" />
                     </ButtonGroup>
                 </div>
-                {_.get(DOCS, focusTab, null)}
+                <div
+                    className={classNames(
+                        "full-parent-dimension",
+                        Classes.RUNNING_TEXT
+                    )}
+                    style={{
+                        backgroundColor: darkMode ? Colors.BLACK : null,
+                        padding: 20,
+                        overflowY: "auto",
+                    }}
+                >
+                    {_.get(DOCS, focusTab, null)}
+                </div>
             </div>
         </div>
     );

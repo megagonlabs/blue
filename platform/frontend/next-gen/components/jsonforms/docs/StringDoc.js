@@ -27,13 +27,7 @@ const docJson = {
 };
 export default function StringDoc() {
     return (
-        <div
-            className={classNames(
-                "full-parent-dimension",
-                Classes.RUNNING_TEXT
-            )}
-            style={{ padding: 20, overflowY: "auto" }}
-        >
+        <div>
             <div
                 style={{
                     display: "flex",

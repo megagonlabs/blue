@@ -36,8 +36,7 @@ export default function Home() {
                         <div
                             className="border-bottom"
                             style={{
-                                padding: "0px 20px",
-                                fontWeight: 600,
+                                padding: "10px 20px",
                                 display: "flex",
                                 alignItems: "center",
                                 gap: 10,
@@ -54,11 +53,12 @@ export default function Home() {
                                 className={classNames(
                                     "react-grid-drag-handle",
                                     "user-selection-none",
+                                    Classes.TEXT_LARGE,
                                     Classes.TEXT_OVERFLOW_ELLIPSIS
                                 )}
                                 style={{
                                     width: "calc(100% - 24px)",
-                                    lineHeight: "44px",
+                                    fontWeight: 600,
                                 }}
                             >
                                 {_.get(containers, [element.i, "title"], null)}

@@ -141,9 +141,7 @@ const Row = ({ index, data, style }) => {
     }, [rowRef, debugMode, expandMessage, conversationView]); // eslint-disable-line react-hooks/exhaustive-deps
     const streamData = _.get(streams, [stream, "data"], []);
     const contentType = _.get(messages, [index, "contentType"], null);
-    const { ref: resizeRef } = useResizeDetector({
-        onResize: handleResize,
-    });
+    const { ref: resizeRef } = useResizeDetector({ onResize: handleResize });
     const complete = _.get(streams, [stream, "complete"], false);
     const hasError = useRef(false);
     const showActions = useRef(false);
@@ -405,78 +403,80 @@ export default function SessionMessages() {
     return (
         <>
             <div className="border-bottom" style={{ padding: "5px 20px" }}>
-                <Popover
-                    minimal
-                    content={
-                        <Menu size="large">
-                            <MenuItem
-                                text="Clear all"
-                                onClick={() =>
-                                    appActions.session.clearSessionMessageFilterTag()
-                                }
-                            />
-                            {!_.isEmpty(sessionMessageTags) && (
-                                <>
-                                    <MenuDivider title="By tag" />
-                                    {_.toArray(sessionMessageTags).map(
-                                        (tag, index) => {
-                                            const selected = _.includes(
-                                                sessionMessageFilterTags,
-                                                tag
-                                            );
-                                            return (
-                                                <MenuItem
-                                                    key={index}
-                                                    icon={
-                                                        selected ? (
-                                                            faIcon({
-                                                                icon: faCheck,
-                                                                style: {
-                                                                    color: Colors.GREEN3,
-                                                                },
-                                                            })
-                                                        ) : (
-                                                            <Icon icon="blank" />
-                                                        )
-                                                    }
-                                                    onClick={() => {
-                                                        if (selected)
-                                                            appActions.session.removeSessionMessageFilterTag(
-                                                                tag
-                                                            );
-                                                        else
-                                                            appActions.session.addSessionMessageFilterTag(
-                                                                tag
-                                                            );
-                                                    }}
-                                                    shouldDismissPopover={false}
-                                                    text={tag}
-                                                />
-                                            );
-                                        }
-                                    )}
-                                </>
-                            )}
-                        </Menu>
-                    }
-                    placement="bottom-start"
-                >
-                    <Tooltip
-                        openOnTargetFocus={false}
+                <ButtonGroup size="large" variant="minimal">
+                    <Popover
                         minimal
+                        content={
+                            <Menu size="large">
+                                <MenuItem
+                                    text="Clear all"
+                                    onClick={() =>
+                                        appActions.session.clearSessionMessageFilterTag()
+                                    }
+                                />
+                                {!_.isEmpty(sessionMessageTags) && (
+                                    <>
+                                        <MenuDivider title="By tag" />
+                                        {_.toArray(sessionMessageTags).map(
+                                            (tag, index) => {
+                                                const selected = _.includes(
+                                                    sessionMessageFilterTags,
+                                                    tag
+                                                );
+                                                return (
+                                                    <MenuItem
+                                                        key={index}
+                                                        icon={
+                                                            selected ? (
+                                                                faIcon({
+                                                                    icon: faCheck,
+                                                                    style: {
+                                                                        color: Colors.GREEN3,
+                                                                    },
+                                                                })
+                                                            ) : (
+                                                                <Icon icon="blank" />
+                                                            )
+                                                        }
+                                                        onClick={() => {
+                                                            if (selected)
+                                                                appActions.session.removeSessionMessageFilterTag(
+                                                                    tag
+                                                                );
+                                                            else
+                                                                appActions.session.addSessionMessageFilterTag(
+                                                                    tag
+                                                                );
+                                                        }}
+                                                        shouldDismissPopover={
+                                                            false
+                                                        }
+                                                        text={tag}
+                                                    />
+                                                );
+                                            }
+                                        )}
+                                    </>
+                                )}
+                            </Menu>
+                        }
                         placement="bottom-start"
-                        content="Filter"
                     >
-                        <ButtonGroup size="large" variant="minimal">
+                        <Tooltip
+                            openOnTargetFocus={false}
+                            minimal
+                            placement="bottom-start"
+                            content="Filter"
+                        >
                             <Button
                                 intent={Intent.PRIMARY}
                                 alignText={Alignment.START}
                                 icon={faIcon({ icon: faBarsFilter })}
                                 text={_.size(sessionMessageFilterTags)}
                             />
-                        </ButtonGroup>
-                    </Tooltip>
-                </Popover>
+                        </Tooltip>
+                    </Popover>
+                </ButtonGroup>
             </div>
             <AutoSizer>
                 {({ width, height }) => (

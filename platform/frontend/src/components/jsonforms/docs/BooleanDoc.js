@@ -11,7 +11,6 @@ import {
     H2,
     HTMLTable,
     Intent,
-    Size,
     Switch,
     Tag,
 } from "@blueprintjs/core";
@@ -157,7 +156,7 @@ export default function BooleanDoc({ closePanel }) {
                                         label="large: false"
                                     />
                                     <Checkbox
-                                        size={Size.LARGE}
+                                        size="large"
                                         name="boolean-doc-check-large-true"
                                         style={{ margin: 0 }}
                                         label="large: true"
@@ -168,7 +167,7 @@ export default function BooleanDoc({ closePanel }) {
                                         label="large: false"
                                     />
                                     <Switch
-                                        size={Size.LARGE}
+                                        size="large"
                                         name="boolean-doc-switch-large-true"
                                         style={{ margin: 0 }}
                                         label="large: true"

@@ -20,12 +20,10 @@ import {
 import { motion } from "framer-motion";
 import _ from "lodash";
 import { useEffect, useMemo, useState } from "react";
-import AutoSizer from "react-virtualized-auto-sizer";
-import { VariableSizeList } from "react-window";
 import { useShallow } from "zustand/react/shallow";
 import { FAIcon } from "../FAIcon";
 import withAutoSizer from "../hocs/withAutoSizer";
-import SessionRow from "./SessionRow";
+import SessionCard from "./SessionCard";
 function SessionList({ width, height }) {
     const variants = {
         open: {
@@ -63,15 +61,21 @@ function SessionList({ width, height }) {
                 return _.isEqual("all", filter.group) || group;
             })
             .filter((id) => {
-                if (_.includes(id, filter.keyword)) return true;
+                if (_.includes(id, filter.keyword)) {
+                    return true;
+                }
                 const name = _.get(sessions, [id, "details", "name"], id);
-                if (_.includes(name, filter.keyword)) return true;
+                if (_.includes(name, filter.keyword)) {
+                    return true;
+                }
                 const description = _.get(
                     sessions,
                     [id, "details", "description"],
                     id
                 );
-                if (_.includes(description, filter.keyword)) return true;
+                if (_.includes(description, filter.keyword)) {
+                    return true;
+                }
                 return false;
             })
             .sort((l, r) => {
@@ -82,40 +86,22 @@ function SessionList({ width, height }) {
                           _.get(sessions, [l, "details", "created_date"])
                     : rPinned - lPinned;
             });
-        return [null, ...result];
+        return result;
     }, [sessionIds, filter, pinnedSessionIds, sessions]);
     const [showFilter, setShowFilter] = useState(false);
     useEffect(() => {
         getSessions();
     }, []);
-    function getRowHeight(index) {
-        if (index > 0) {
-            const last = _.isEqual(_.size(allSessions), index + 1);
-            return 90 + (last ? 10 : 0);
-        }
-        return 80;
-    }
-    const SEARCH_CONTROL_GROUP = (
-        <ControlGroup style={{ marginTop: 20 }}>
-            <Button
-                onClick={() => setShowFilter(true)}
-                size={Size.LARGE}
-                icon={<FAIcon icon={faBarsFilter} />}
-                variant={ButtonVariant.OUTLINED}
-                intent={Intent.PRIMARY}
-                text="Filter"
-            />
-            <InputGroup
-                leftIcon={<FAIcon icon={faSearch} />}
-                size={Size.LARGE}
-            />
-        </ControlGroup>
-    );
     return (
         <div style={{ width, height }}>
             <div
                 className="full-parent-dimension"
-                style={{ position: "relative", overflowY: "auto" }}
+                style={{
+                    padding: 20,
+                    position: "relative",
+                    overflowY: "auto",
+                    backgroundColor: darkMode ? Colors.BLACK : null,
+                }}
             >
                 <motion.div
                     variants={variants}
@@ -167,41 +153,27 @@ function SessionList({ width, height }) {
                         />
                     </RadioGroup>
                 </motion.div>
-                <AutoSizer>
-                    {({ width, height }) => (
-                        <VariableSizeList
-                            width={width}
-                            height={height}
-                            itemCount={_.size(allSessions)}
-                            itemSize={getRowHeight}
-                        >
-                            {({ index, style }) => {
-                                const last = _.isEqual(
-                                    _.size(allSessions),
-                                    index + 1
-                                );
-                                return (
-                                    <div
-                                        style={{
-                                            ...style,
-                                            paddingBottom: 10 + (last ? 10 : 0),
-                                            paddingLeft: 20,
-                                            paddingRight: 20,
-                                        }}
-                                    >
-                                        {index > 0 ? (
-                                            <SessionRow
-                                                sessionId={allSessions[index]}
-                                            />
-                                        ) : (
-                                            SEARCH_CONTROL_GROUP
-                                        )}
-                                    </div>
-                                );
-                            }}
-                        </VariableSizeList>
-                    )}
-                </AutoSizer>
+                <ControlGroup>
+                    <Button
+                        onClick={() => setShowFilter(true)}
+                        size={Size.LARGE}
+                        icon={<FAIcon icon={faBarsFilter} />}
+                        variant={ButtonVariant.OUTLINED}
+                        intent={Intent.PRIMARY}
+                        text="Filter"
+                    />
+                    <InputGroup
+                        leftIcon={<FAIcon icon={faSearch} />}
+                        size={Size.LARGE}
+                    />
+                </ControlGroup>
+                <div style={{ marginTop: 20 }} className="responsive-container">
+                    {allSessions.map((session, index) => (
+                        <div key={index} className="grid-item">
+                            <SessionCard sessionId={session} />
+                        </div>
+                    ))}
+                </div>
             </div>
         </div>
     );

@@ -1,24 +1,8 @@
 import JsonViewer from "@/components/JsonViewer";
-import {
-    Callout,
-    Classes,
-    Code,
-    H1,
-    H2,
-    H3,
-    Intent,
-    Pre,
-} from "@blueprintjs/core";
-import classNames from "classnames";
+import { Callout, Code, H1, H2, H3, Intent, Pre } from "@blueprintjs/core";
 export default function BasicsDoc() {
     return (
-        <div
-            className={classNames(
-                "full-parent-dimension",
-                Classes.RUNNING_TEXT
-            )}
-            style={{ padding: 20, overflowY: "auto" }}
-        >
+        <div>
             <H1 style={{ marginTop: 0 }}>Basics</H1>
             <Callout intent={Intent.PRIMARY} icon={null}>
                 For full documentation on JSONForms, please visit&nbsp;

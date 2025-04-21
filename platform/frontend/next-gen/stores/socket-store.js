@@ -1,3 +1,4 @@
+import { waitForOpenConnection } from "@/components/helper";
 import { AppToaster } from "@/components/toaster";
 import { Intent } from "@blueprintjs/core";
 import axios from "axios";
@@ -12,6 +13,25 @@ export const useSocketStore = create((set, get) => ({
     backoff: BACKOFF,
     connectionId: null,
     setState: ({ key, value }) => set({ [key]: value }),
+    sendMessage: async (message, retry = 0) => {
+        const { socket } = get();
+        try {
+            socket.send(message);
+        } catch (error) {
+            if (retry < 4 && _.isEqual(error.name, "InvalidStateError")) {
+                await waitForOpenConnection(socket);
+                sendMessage(message, retry + 1);
+            } else {
+                console.error(error);
+            }
+        }
+    },
+    observeSession: (sessionId) => {
+        const { sendMessage } = get();
+        sendMessage(
+            JSON.stringify({ type: "OBSERVE_SESSION", session_id: sessionId })
+        );
+    },
     connectWebSocket: (debugMode = false) => {
         const { socket } = get();
         if (!_.isNull(socket)) {
@@ -45,6 +65,9 @@ export const useSocketStore = create((set, get) => ({
                         const data = JSON.parse(event.data);
                         const type = data["type"];
                         if (_.isEqual(type, "SESSION_MESSAGE")) {
+                            const { addSessionMessage } =
+                                useSessionStore.getState();
+                            addSessionMessage(data);
                         } else if (_.isEqual(type, "CONNECTED")) {
                             set({ connectionId: data.connection_id });
                         } else if (_.isEqual(type, "NEW_SESSION_BROADCAST")) {

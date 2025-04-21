@@ -29,10 +29,10 @@ import { Allotment } from "allotment";
 import { createRef, useEffect, useRef, useState } from "react";
 import { useErrorBoundary, withErrorBoundary } from "react-use-error-boundary";
 import { v4 as uuidv4 } from "uuid";
+import { MIN_ALLOTMENT_PANE_SIZE } from "../constants";
 import { FAIcon } from "../FAIcon";
 import withAutoSizer from "../hocs/withAutoSizer";
 import DocContainer from "../jsonforms/docs/DocContainer";
-const MIN_ALLOTMENT_PANE_SIZE = 400;
 const DEFAULT_UI_SCHEMA = JSON.stringify(
     { type: "VerticalLayout", elements: [] },
     null,
@@ -58,7 +58,9 @@ function FormDesigner({ width, height }) {
     const [jsonSchema, setJsonSchema] = useState(DEFAULT_SCHEMA);
     const [showData, setShowData] = useState(false);
     useEffect(() => {
-        if (!idRef.current) idRef.current = uuidv4();
+        if (!idRef.current) {
+            idRef.current = uuidv4();
+        }
     }, []);
     return (
         <div style={{ width, height }}>

@@ -1,7 +1,6 @@
 import _ from "lodash";
 import { v4 as uuidv4 } from "uuid";
 import { create } from "zustand";
-
 export const useGridStore = create((set) => ({
     layout: [],
     containers: {},

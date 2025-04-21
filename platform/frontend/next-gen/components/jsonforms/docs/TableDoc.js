@@ -45,13 +45,7 @@ export default function TableDoc() {
     const [bordered, setBordered] = useState(false);
     const [striped, setStriped] = useState(false);
     return (
-        <div
-            className={classNames(
-                "full-parent-dimension",
-                Classes.RUNNING_TEXT
-            )}
-            style={{ padding: 20, overflowY: "auto" }}
-        >
+        <div>
             <div style={{ marginBottom: 20 }}>
                 <H1 style={{ margin: 0 }}>Table</H1>
             </div>

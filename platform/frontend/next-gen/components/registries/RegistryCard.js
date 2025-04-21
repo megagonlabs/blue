@@ -1,8 +1,21 @@
-import { Card, Classes, Colors, Intent, Tag } from "@blueprintjs/core";
+import { useAppStore } from "@/stores/app-store";
+import {
+    Card,
+    Classes,
+    Colors,
+    hideContextMenu,
+    Intent,
+    Menu,
+    MenuItem,
+    showContextMenu,
+    Size,
+    Tag,
+} from "@blueprintjs/core";
 import { faDocker } from "@fortawesome/free-brands-svg-icons";
+import { faBrowsers } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import classNames from "classnames";
 import _ from "lodash";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { DOCKER_CONTAINER_STATUS_LOOKUP } from "../constants";
 import { FAIcon } from "../FAIcon";
 import RegistryEntityIcon from "./RegistryEntityIcon";
@@ -12,6 +25,7 @@ export default function RegistryCard({ entity }) {
     const categories = _.get(entity, "property.categories", ["BASE", "HIDDEN"]);
     const containerStatus = _.get(entity, "container.status", "not exist");
     const [extra, setExtra] = useState(null);
+    const darkMode = useAppStore((state) => state.darkMode);
     useEffect(() => {
         if (_.includes(["agent", "operator"], type)) {
             setExtra(_.toString(_.get(entity, "properties.image")));
@@ -24,13 +38,42 @@ export default function RegistryCard({ entity }) {
             setExtra(null);
         }
     }, [entity.properties]);
+    const handleClose = useCallback(() => {
+        hideContextMenu();
+    }, []);
+    const menu = useMemo(
+        () => (
+            <Menu size={Size.LARGE} onClick={handleClose}>
+                <MenuItem
+                    icon={<FAIcon icon={faBrowsers} />}
+                    text="Open in new window"
+                />
+            </Menu>
+        ),
+        [handleClose]
+    );
+    const handleContextMenu = useCallback(
+        (event) => {
+            // ensure `preventDefault` is called just before `showContextMenu` and in the same event handler to prevent the
+            // default browser context menu from hiding your custom context menu
+            event.preventDefault();
+            showContextMenu({
+                isDarkTheme: darkMode,
+                content: menu,
+                onClose: handleClose,
+                targetOffset: { left: event.clientX, top: event.clientY },
+            });
+        },
+        [handleClose, menu, darkMode]
+    );
     return (
         <Card
             className="full-parent-dimension"
-            style={{ position: "relative" }}
+            style={{ position: "relative", cursor: "context-menu" }}
+            onContextMenu={handleContextMenu}
         >
-            <Card
-                className="padding-0 overflow-hidden"
+            <div
+                className="padding-0 overflow-hidden custom-card"
                 style={{
                     position: "absolute",
                     left: 20,
@@ -38,13 +81,14 @@ export default function RegistryCard({ entity }) {
                     height: 40,
                     width: 40,
                     display: "flex",
+                    borderRadius: 2,
                     justifyContent: "center",
                     alignItems: "center",
                     backgroundColor: Colors.WHITE,
                 }}
             >
                 <RegistryEntityIcon content={_.get(entity, "icon", null)} />
-            </Card>
+            </div>
             <div
                 style={{
                     marginLeft: 60,

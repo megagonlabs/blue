@@ -1,11 +1,12 @@
 import { AppContext } from "@/components/contexts/app-context";
+import { AuthContext } from "@/components/contexts/auth-context";
 import { faIcon } from "@/components/icon";
 import { AppToaster } from "@/components/toaster";
 import {
     Button,
     Classes,
+    Colors,
     DialogBody,
-    DialogFooter,
     FormGroup,
     InputGroup,
     Intent,
@@ -20,6 +21,8 @@ export default function SessionMetadata({
     setLoading,
 }) {
     const { appState, appActions } = useContext(AppContext);
+    const { settings } = useContext(AuthContext);
+    const darkMode = _.get(settings, "dark_mode", false);
     const sessionIdFocus = appState.session.sessionIdFocus;
     const sessionDetails = _.get(
         appState,
@@ -97,7 +100,16 @@ export default function SessionMetadata({
                     />
                 </FormGroup>
             </DialogBody>
-            <DialogFooter>
+            <div
+                className="border-top"
+                style={{
+                    padding: "10px 15px",
+                    borderBottomRightRadius: 4,
+                    backgroundColor: darkMode
+                        ? Colors.DARK_GRAY4
+                        : Colors.WHITE,
+                }}
+            >
                 <Button
                     disabled={_.isEmpty(_.trim(name))}
                     loading={loading}
@@ -107,7 +119,7 @@ export default function SessionMetadata({
                     intent={Intent.SUCCESS}
                     icon={faIcon({ icon: faCheck })}
                 />
-            </DialogFooter>
+            </div>
         </>
     );
 }

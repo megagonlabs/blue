@@ -25,13 +25,7 @@ const docJson = {
 };
 export default function LabelDoc() {
     return (
-        <div
-            className={classNames(
-                "full-parent-dimension",
-                Classes.RUNNING_TEXT
-            )}
-            style={{ padding: 20, overflowY: "auto" }}
-        >
+        <div>
             <div style={{ marginBottom: 20 }}>
                 <H1 style={{ margin: 0 }}>Label</H1>
             </div>

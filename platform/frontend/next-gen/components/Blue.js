@@ -77,7 +77,9 @@ export default function Blue({ children }) {
     const darkModeClassName = darkMode ? Classes.DARK : null;
     const user = useAuthStore((state) => state.user);
     const createNewSession = useSessionStore((state) => state.createNewSession);
-    if (_.isNull(user)) return <Authentication />;
+    if (_.isNull(user)) {
+        return <Authentication />;
+    }
     return (
         <HotkeysProvider dialogProps={{ className: darkModeClassName }}>
             <HotkeysTarget2 hotkeys={hotkeys}>
@@ -107,7 +109,7 @@ export default function Blue({ children }) {
                             position: "absolute",
                             bottom: 20,
                             left: 20,
-                            zIndex: 4,
+                            zIndex: 99999,
                         }}
                     >
                         <ExpandingBox
@@ -126,7 +128,7 @@ export default function Blue({ children }) {
                             position: "absolute",
                             top: 20,
                             left: 20,
-                            zIndex: 4,
+                            zIndex: 99999,
                         }}
                     >
                         <ExpandingBox

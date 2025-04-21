@@ -26,13 +26,7 @@ const docJSonHorizontal = {
 };
 export default function LayoutDoc() {
     return (
-        <div
-            className={classNames(
-                "full-parent-dimension",
-                Classes.RUNNING_TEXT
-            )}
-            style={{ padding: 20, overflowY: "auto" }}
-        >
+        <div>
             <div style={{ marginBottom: 20 }}>
                 <H1 style={{ margin: 0 }}>Layout</H1>
             </div>

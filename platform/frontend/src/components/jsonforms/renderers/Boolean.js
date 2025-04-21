@@ -1,6 +1,6 @@
 import { convertCss, sendSocketMessage } from "@/components/helper";
 import { useSocket } from "@/components/hooks/useSocket";
-import { Checkbox, Size, Switch } from "@blueprintjs/core";
+import { Checkbox, Switch } from "@blueprintjs/core";
 import { isBooleanControl, rankWith } from "@jsonforms/core";
 import { withJsonFormsControlProps } from "@jsonforms/react";
 import _ from "lodash";
@@ -42,7 +42,7 @@ const BooleanRenderer = ({
                 checked={data}
                 label={labelElement}
                 style={style}
-                size={large ? Size.LARGE : null}
+                size={large ? "large" : null}
                 onChange={handleOnChange}
             />
         );
@@ -53,7 +53,7 @@ const BooleanRenderer = ({
             checked={data}
             label={labelElement}
             style={style}
-            size={large ? Size.LARGE : null}
+            size={large ? "large" : null}
             onChange={handleOnChange}
         />
     );

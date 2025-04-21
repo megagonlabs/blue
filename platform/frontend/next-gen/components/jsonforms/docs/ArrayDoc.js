@@ -1,15 +1,5 @@
 import JsonViewer from "@/components/JsonViewer";
-import {
-    Callout,
-    Classes,
-    H1,
-    H2,
-    Intent,
-    Pre,
-    Size,
-    Tag,
-} from "@blueprintjs/core";
-import classNames from "classnames";
+import { Callout, H1, H2, Intent, Pre, Size, Tag } from "@blueprintjs/core";
 import CopyDocJsonButton from "./CopyDocJsonButton";
 const uiSchemaJson = {
     type: "Control",
@@ -38,13 +28,7 @@ const dataSchemaJson = {
 };
 export default function BasicsDoc() {
     return (
-        <div
-            className={classNames(
-                "full-parent-dimension",
-                Classes.RUNNING_TEXT
-            )}
-            style={{ padding: 20, overflowY: "auto" }}
-        >
+        <div>
             <H1 style={{ marginTop: 0 }}>Array</H1>
             <Callout intent={Intent.WARNING} icon={null}>
                 This is not a type, but an inlined layout configuration.

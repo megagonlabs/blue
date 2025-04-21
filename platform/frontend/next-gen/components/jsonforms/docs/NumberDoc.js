@@ -1,16 +1,6 @@
 import JsonViewer from "@/components/JsonViewer";
 import * as docProps from "@/components/jsonforms/docs/constant";
-import {
-    Classes,
-    H1,
-    H2,
-    HTMLTable,
-    Intent,
-    Pre,
-    Size,
-    Tag,
-} from "@blueprintjs/core";
-import classNames from "classnames";
+import { H1, H2, HTMLTable, Intent, Pre, Size, Tag } from "@blueprintjs/core";
 import CopyDocJsonButton from "./CopyDocJsonButton";
 const docJson = {
     type: "Control",
@@ -24,13 +14,7 @@ const docJson = {
 };
 export default function NumberDoc() {
     return (
-        <div
-            className={classNames(
-                "full-parent-dimension",
-                Classes.RUNNING_TEXT
-            )}
-            style={{ padding: 20, overflowY: "auto" }}
-        >
+        <div>
             <div
                 style={{
                     display: "flex",

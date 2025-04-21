@@ -16,13 +16,7 @@ const docJson = {
 };
 export default function GroupDoc() {
     return (
-        <div
-            className={classNames(
-                "full-parent-dimension",
-                Classes.RUNNING_TEXT
-            )}
-            style={{ padding: 20, overflowY: "auto" }}
-        >
+        <div>
             <div style={{ marginBottom: 20 }}>
                 <H1 style={{ margin: 0 }}>Group</H1>
             </div>

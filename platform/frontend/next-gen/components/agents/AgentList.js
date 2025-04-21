@@ -6,24 +6,19 @@ import {
     Classes,
     Colors,
     ControlGroup,
-    hideContextMenu,
     InputGroup,
     Intent,
-    Menu,
-    MenuItem,
     Radio,
     RadioGroup,
-    showContextMenu,
     Size,
 } from "@blueprintjs/core";
 import {
     faArrowLeft,
     faBarsFilter,
-    faBrowsers,
     faSearch,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import { motion } from "framer-motion";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { FAIcon } from "../FAIcon";
 import withAutoSizer from "../hocs/withAutoSizer";
 import RegistryCard from "../registries/RegistryCard";
@@ -48,43 +43,16 @@ function AgentList({ width, height }) {
     useEffect(() => {
         getAgents();
     }, []);
-    const handleClose = useCallback(() => {
-        hideContextMenu();
-    }, []);
-    const menu = useMemo(
-        () => (
-            <Menu size={Size.LARGE}>
-                <MenuItem
-                    icon={<FAIcon icon={faBrowsers} />}
-                    text="Open in new window"
-                    onClick={handleClose}
-                />
-            </Menu>
-        ),
-        [handleClose]
-    );
-    const handleContextMenu = useCallback(
-        (event) => {
-            // ensure `preventDefault` is called just before `showContextMenu` and in the same event handler to prevent the
-            // default browser context menu from hiding your custom context menu
-            event.preventDefault();
-            showContextMenu({
-                isDarkTheme: darkMode,
-                content: menu,
-                onClose: handleClose,
-                targetOffset: {
-                    left: event.clientX,
-                    top: event.clientY,
-                },
-            });
-        },
-        [handleClose, menu, darkMode]
-    );
     return (
         <div style={{ width, height }}>
             <div
                 className="full-parent-dimension"
-                style={{ padding: 20, position: "relative", overflowY: "auto" }}
+                style={{
+                    padding: 20,
+                    position: "relative",
+                    overflowY: "auto",
+                    backgroundColor: darkMode ? Colors.BLACK : null,
+                }}
             >
                 <motion.div
                     variants={variants}
@@ -147,14 +115,9 @@ function AgentList({ width, height }) {
                         size={Size.LARGE}
                     />
                 </ControlGroup>
-                <div style={{ marginTop: 20 }} className="registry-entity-list">
+                <div style={{ marginTop: 20 }} className="responsive-container">
                     {agents.map((agent, index) => (
-                        <div
-                            key={index}
-                            className="registry-entity-card"
-                            onContextMenu={handleContextMenu}
-                            style={{ cursor: "context-menu" }}
-                        >
+                        <div key={index} className="grid-item">
                             <RegistryCard entity={agent} />
                         </div>
                     ))}

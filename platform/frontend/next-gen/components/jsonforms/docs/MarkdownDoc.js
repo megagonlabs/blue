@@ -1,7 +1,6 @@
 import JsonViewer from "@/components/JsonViewer";
 import * as docProps from "@/components/jsonforms/docs/constant";
-import { Classes, H1, H2, HTMLTable, Pre, Size, Tag } from "@blueprintjs/core";
-import classNames from "classnames";
+import { H1, H2, HTMLTable, Pre, Size, Tag } from "@blueprintjs/core";
 import CopyDocJsonButton from "./CopyDocJsonButton";
 const uiSchemaJson = {
     type: "Markdown",
@@ -15,13 +14,7 @@ const dataJson = {
 };
 export default function MarkdownDoc() {
     return (
-        <div
-            className={classNames(
-                "full-parent-dimension",
-                Classes.RUNNING_TEXT
-            )}
-            style={{ padding: 20, overflowY: "auto" }}
-        >
+        <div>
             <div style={{ marginBottom: 20 }}>
                 <H1 style={{ margin: 0 }}>Markdown</H1>
             </div>

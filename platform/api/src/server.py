@@ -179,15 +179,7 @@ async def session_verification(request: Request, call_next):
                 user_role = p.get_metadata(f'users.{profile["uid"]}.role')
                 profile['role'] = user_role
                 request.state.user = profile
-            except (
-                auth.InvalidSessionCookieError,
-                jwt.ExpiredSignatureError,
-                jwt.InvalidAudienceError,
-                jwt.InvalidIssuerError,
-                jwt.InvalidTokenError,
-                requests.exceptions.RequestException,
-                Exception,
-            ):
+            except (auth.InvalidSessionCookieError, jwt.ExpiredSignatureError, jwt.InvalidAudienceError, jwt.InvalidIssuerError, jwt.InvalidTokenError):
                 # session cookie is invalid, expired or revoked. force user to login.
                 response = JSONResponse(content={"message": "Session cookie is invalid, epxpired or revoked"}, status_code=401)
                 response.set_cookie("session", expires=0, path="/")
@@ -218,6 +210,12 @@ app.add_middleware(CORSMiddleware, allow_origins=allowed_origins, allow_credenti
 @app.exception_handler(InvalidRequestJson)
 async def unicorn_exception_handler_invalid_request_json(request: Request, exc: InvalidRequestJson):
     return JSONResponse(status_code=exc.status_code, content={"json_errors": exc.errors})
+
+
+@app.exception_handler(Exception)
+async def general_exception_handler(request: Request, exc: Exception):
+    logging.exception(str(exc))
+    return JSONResponse(status_code=500, content={"message": "Internal server error"})
 
 
 @app.exception_handler(PermissionDenied)
