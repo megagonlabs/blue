@@ -53,7 +53,7 @@ export default function CollectionEntity() {
                             </tr>
                         </thead>
                         <tbody>
-                            {_.values(_.get(entity, "contents.entity")).map(
+                            {_.values(_.get(entity, "contents.entity", {})).map(
                                 (element, index) => {
                                     if (!_.isEqual(element.type, "entity")) {
                                         return null;
@@ -106,36 +106,35 @@ export default function CollectionEntity() {
                             </tr>
                         </thead>
                         <tbody>
-                            {_.values(_.get(entity, "contents.relation")).map(
-                                (element, index) => {
-                                    if (!_.isEqual(element.type, "relation")) {
-                                        return null;
-                                    }
-                                    return (
-                                        <tr key={index}>
-                                            <td>
-                                                <Link
-                                                    href={`${routerQueryPath}/relation/${element.name}`}
-                                                >
-                                                    <Tag
-                                                        style={{
-                                                            pointerEvents:
-                                                                "none",
-                                                        }}
-                                                        minimal
-                                                        interactive
-                                                        size="large"
-                                                        intent={Intent.PRIMARY}
-                                                    >
-                                                        {element.name}
-                                                    </Tag>
-                                                </Link>
-                                            </td>
-                                            <td>{element.description}</td>
-                                        </tr>
-                                    );
+                            {_.values(
+                                _.get(entity, "contents.relation", {})
+                            ).map((element, index) => {
+                                if (!_.isEqual(element.type, "relation")) {
+                                    return null;
                                 }
-                            )}
+                                return (
+                                    <tr key={index}>
+                                        <td>
+                                            <Link
+                                                href={`${routerQueryPath}/relation/${element.name}`}
+                                            >
+                                                <Tag
+                                                    style={{
+                                                        pointerEvents: "none",
+                                                    }}
+                                                    minimal
+                                                    interactive
+                                                    size="large"
+                                                    intent={Intent.PRIMARY}
+                                                >
+                                                    {element.name}
+                                                </Tag>
+                                            </Link>
+                                        </td>
+                                        <td>{element.description}</td>
+                                    </tr>
+                                );
+                            })}
                         </tbody>
                     </HTMLTable>
                 </SectionCard>

@@ -241,7 +241,7 @@ export default function AgentEntity() {
                             </tr>
                         </thead>
                         <tbody>
-                            {_.values(_.get(entity, "contents.input")).map(
+                            {_.values(_.get(entity, "contents.input", {})).map(
                                 (element, index) => {
                                     if (!_.isEqual(element.type, "input")) {
                                         return null;
@@ -312,7 +312,7 @@ export default function AgentEntity() {
                             </tr>
                         </thead>
                         <tbody>
-                            {_.values(_.get(entity, "contents.output")).map(
+                            {_.values(_.get(entity, "contents.output", {})).map(
                                 (element, index) => {
                                     if (!_.isEqual(element.type, "output")) {
                                         return null;
@@ -383,7 +383,7 @@ export default function AgentEntity() {
                             </tr>
                         </thead>
                         <tbody>
-                            {_.values(_.get(entity, "contents.agent")).map(
+                            {_.values(_.get(entity, "contents.agent", {})).map(
                                 (element, index) => {
                                     if (!_.isEqual(element.type, "agent"))
                                         return null;

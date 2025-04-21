@@ -147,7 +147,7 @@ export default function AgentGroupEntity() {
                             </tr>
                         </thead>
                         <tbody>
-                            {_.values(_.get(entity, "contents.agent")).map(
+                            {_.values(_.get(entity, "contents.agent", {})).map(
                                 (element, index) => {
                                     if (!_.isEqual(element.type, "agent")) {
                                         return null;
