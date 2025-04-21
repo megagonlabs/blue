@@ -1,4 +1,4 @@
-[
+"[
   {
     "name": "RECORDER",
     "type": "agent",
@@ -113,7 +113,7 @@
   {
     "name": "INPUT",
     "type": "input",
-    "scope": "/OPENAI",
+    "scope": "/agent/OPENAI",
     "description": "Text input that will be sent to OPENAI",
     "created_by": null,
     "properties": {
@@ -127,7 +127,7 @@
   {
     "name": "OUTPUT",
     "type": "output",
-    "scope": "/OPENAI",
+    "scope": "/agent/OPENAI",
     "description": "Generated text output from OPENAI",
     "created_by": null,
     "properties": {
@@ -165,7 +165,7 @@
   {
     "name": "DEFAULT",
     "type": "output",
-    "scope": "/PRESENTER",
+    "scope": "/agent/PRESENTER",
     "description": "Form data in structured format (JSON)",
     "created_by": null,
     "properties": {
@@ -179,7 +179,7 @@
   {
     "name": "PRESENTER___EXAMPLE",
     "type": "agent",
-    "scope": "/PRESENTER",
+    "scope": "/agent/PRESENTER",
     "description": "Example Presenter agent that show a form to collect user name in a form-based UI",
     "created_by": null,
     "properties": {
@@ -297,7 +297,7 @@
   {
     "name": "NL2SQL___INTERACTIVE",
     "type": "agent",
-    "scope": "/NL2SQL",
+    "scope": "/agent/NL2SQL",
     "description": "Extends NL2SQL for interactive use, including listening to the USER agent directly.",
     "created_by": null,
     "properties": {
@@ -323,7 +323,7 @@
   {
     "name": "NL2SQL___RESULT_ONLY",
     "type": "agent",
-    "scope": "/NL2SQL",
+    "scope": "/agent/NL2SQL",
     "description": "Extends NL2SQL, returning only results.",
     "created_by": null,
     "properties": {
@@ -335,7 +335,7 @@
   {
     "name": "NL2SQL___INTERACTIVE_RESULT_ONLY",
     "type": "agent",
-    "scope": "/NL2SQL",
+    "scope": "/agent/NL2SQL",
     "description": "Extends NL2SQL for interactive use, including listening to the USER agent directly, returning only results.",
     "created_by": null,
     "properties": {
@@ -355,7 +355,7 @@
   {
     "name": "NL2SQL___DM",
     "type": "agent",
-    "scope": "/NL2SQL",
+    "scope": "/agent/NL2SQL",
     "description": "NL2SQL for dialogue manager example",
     "created_by": null,
     "properties": {
@@ -596,7 +596,7 @@
   {
     "name": "SUMMARIZER___EXAMPLE",
     "type": "agent",
-    "scope": "/SUMMARIZER",
+    "scope": "/agent/SUMMARIZER",
     "description": "Example Summarizer agent to summarize skills for a given job role from user input",
     "created_by": null,
     "properties": {
@@ -653,7 +653,7 @@
   {
     "name": "QUERYEXECUTOR___RESULTS_ONLY",
     "type": "agent",
-    "scope": "/QUERYEXECUTOR",
+    "scope": "/agent/QUERYEXECUTOR",
     "description": "Executes a query on data source, only returning results",
     "created_by": null,
     "properties": {
@@ -701,7 +701,7 @@
   {
     "name": "VISUALIZER___EXAMPLE",
     "type": "agent",
-    "scope": "/VISUALIZER",
+    "scope": "/agent/VISUALIZER",
     "description": "Example Visualizer agent to visualize skills by frequency from a query result",
     "created_by": null,
     "properties": {
@@ -756,7 +756,7 @@
   {
     "name": "DOCUMENTER___EXAMPLE",
     "type": "agent",
-    "scope": "/DOCUMENTER",
+    "scope": "/agent/DOCUMENTER",
     "description": "Example document builder agent to hilite soft skills for a given job role from user input",
     "created_by": null,
     "properties": {
@@ -835,7 +835,7 @@
   {
     "name": "DIALOGUE_MANAGER___EXAMPLE",
     "type": "agent",
-    "scope": "/DIALOGUE_MANAGER",
+    "scope": "/agent/DIALOGUE_MANAGER",
     "description": "Example use case of dialogue manager.",
     "created_by": null,
     "properties": {
@@ -958,7 +958,7 @@
   {
     "name": "OPENAI___INTERACTIVE",
     "type": "agent",
-    "scope": "/OPENAI",
+    "scope": "/agent/OPENAI",
     "description": "Extends OPENAI agent for interactive use, by listening to the USER agent directly.",
     "created_by": null,
     "properties": {
@@ -977,7 +977,7 @@
   {
     "name": "OPENAI___EXTRACTOR",
     "type": "agent",
-    "scope": "/OPENAI",
+    "scope": "/agent/OPENAI",
     "description": "Extracts entities, specified as a property (entities) below, using OpenAI guided by generic instructions for information extraction",
     "created_by": null,
     "properties": {
@@ -1031,7 +1031,7 @@
   {
     "name": "OPENAI___PROMPTGENERATOR",
     "type": "agent",
-    "scope": "/OPENAI",
+    "scope": "/agent/OPENAI",
     "description": "Given a string containing an instruction for task and an input, generate a prompt for an LLM agent to solve the task given the input.",
     "created_by": null,
     "properties": {
@@ -1065,7 +1065,7 @@
   {
     "name": "OPENAI___ROGUEAGENT",
     "type": "agent",
-    "scope": "/OPENAI",
+    "scope": "/agent/OPENAI",
     "description": "An empty LLM agent, which uses the prompt generated from a generated prompt to solve a given task.",
     "created_by": null,
     "properties": {
@@ -1101,7 +1101,7 @@
   {
     "name": "OPENAI___INTENT_CLASSIFIER",
     "type": "agent",
-    "scope": "/OPENAI",
+    "scope": "/agent/OPENAI",
     "description": "Gets results from executing input prompt through OpenAI models that can be configured in properties, as shown below.",
     "created_by": null,
     "properties": {
@@ -1127,7 +1127,7 @@
   {
     "name": "OPENAI___QUERY_EXPLAINER",
     "type": "agent",
-    "scope": "/OPENAI",
+    "scope": "/agent/OPENAI",
     "description": "Explain a query result ",
     "created_by": null,
     "properties": {
@@ -1154,7 +1154,7 @@
   {
     "name": "OPENAI___HILITER",
     "type": "agent",
-    "scope": "/OPENAI",
+    "scope": "/agent/OPENAI",
     "description": "Simple document hiliter using OpenAI",
     "created_by": null,
     "properties": {
@@ -1204,7 +1204,7 @@
   {
     "name": "OPENAI___SEMANTIC_EXTRACTOR",
     "type": "agent",
-    "scope": "/OPENAI",
+    "scope": "/agent/OPENAI",
     "description": "OPENAI Semantic Extractor Agent for extracting semantic entities from input",
     "created_by": null,
     "properties": {
@@ -1242,7 +1242,7 @@
   {
     "name": "OPENAI___SEMANTIC_EXTRACTOR_EXAMPLE",
     "type": "agent",
-    "scope": "/OPENAI",
+    "scope": "/agent/OPENAI",
     "description": "Example Semantic Extractor Agent to extract occupation sector, skill, and certifications",
     "created_by": null,
     "properties": {
@@ -1283,7 +1283,7 @@
 {
   "name": "OPENAI___SEMANTIC_FILTER",
   "type": "agent",
-  "scope": "/OPENAI",
+  "scope": "/agent/OPENAI",
   "description": "OPENAI Semantic Filter",
   "created_by": null,
   "properties": {
@@ -1321,7 +1321,7 @@
 {
   "name": "OPENAI___SEMANTIC_FILTER_EXAMPLE",
   "type": "agent",
-  "scope": "/OPENAI",
+  "scope": "/agent/OPENAI",
   "description": "OPENAI Semantic Filter to filter soft and technical skills",
   "created_by": null,
   "properties": {
@@ -1361,7 +1361,7 @@
   {
     "name": "OPENAI___INTENT_CLASSIFIER",
     "type": "agent",
-    "scope": "/openai_classifier_testing",
+    "scope": "/agent_group/openai_classifier_testing",
     "description": "string",
     "created_by": null,
     "properties": {
@@ -1393,7 +1393,7 @@
   {
     "name": "NL2SQL___INTERACTIVE",
     "type": "agent",
-    "scope": "/nl2sql_demo",
+    "scope": "/agent_group/nl2sql_demo",
     "description": "string",
     "created_by": null,
     "properties": {},
@@ -1411,7 +1411,7 @@
   {
     "name": "OPENAI___EXTRACTOR",
     "type": "agent",
-    "scope": "/dialogue_manager_demo",
+    "scope": "/agent_group/dialogue_manager_demo",
     "description": "",
     "created_by": null,
     "properties": {},
@@ -1420,7 +1420,7 @@
   {
     "name": "OPENAI___ROGUEAGENT",
     "type": "agent",
-    "scope": "/dialogue_manager_demo",
+    "scope": "/agent_group/dialogue_manager_demo",
     "description": "",
     "created_by": null,
     "properties": {},
@@ -1429,7 +1429,7 @@
   {
     "name": "COORDINATOR",
     "type": "agent",
-    "scope": "/dialogue_manager_demo",
+    "scope": "/agent_group/dialogue_manager_demo",
     "description": "",
     "created_by": null,
     "properties": {},
@@ -1438,7 +1438,7 @@
   {
     "name": "OPENAI___INTENT_CLASSIFIER",
     "type": "agent",
-    "scope": "/dialogue_manager_demo",
+    "scope": "/agent_group/dialogue_manager_demo",
     "description": "",
     "created_by": null,
     "properties": {},
@@ -1447,7 +1447,7 @@
   {
     "name": "QUERYEXECUTOR",
     "type": "agent",
-    "scope": "/dialogue_manager_demo",
+    "scope": "/agent_group/dialogue_manager_demo",
     "description": "",
     "created_by": null,
     "properties": {},
@@ -1456,7 +1456,7 @@
   {
     "name": "NL2SQL___DM",
     "type": "agent",
-    "scope": "/dialogue_manager_demo",
+    "scope": "/agent_group/dialogue_manager_demo",
     "description": "",
     "created_by": null,
     "properties": {},
@@ -1465,7 +1465,7 @@
   {
     "name": "DIALOGUE_MANAGER___EXAMPLE",
     "type": "agent",
-    "scope": "/dialogue_manager_demo",
+    "scope": "/agent_group/dialogue_manager_demo",
     "description": "",
     "created_by": null,
     "properties": {},
@@ -1474,10 +1474,11 @@
   {
     "name": "OPENAI___QUERY_EXPLAINER",
     "type": "agent",
-    "scope": "/dialogue_manager_demo",
+    "scope": "/agent_group/dialogue_manager_demo",
     "description": "",
     "created_by": null,
     "properties": {},
     "icon": null
   }
 ]
+"

@@ -493,7 +493,7 @@ class Worker:
 #
 class OperatorRegistry(Registry):
     def __init__(self, name="OPERATOR_REGISTRY", id=None, sid=None, cid=None, prefix=None, suffix=None, properties={}):
-        super().__init__(name=name, id=id, sid=sid, cid=cid, prefix=prefix, suffix=suffix, properties=properties)
+        super().__init__(name=name, type="operator", id=id, sid=sid, cid=cid, prefix=prefix, suffix=suffix, properties=properties)
 
     ###### initialization
 
@@ -512,26 +512,26 @@ class OperatorRegistry(Registry):
         super().deregister(record, rebuild=rebuild)
 
     def get_operator(self, operator):
-        return super().get_record(operator, 'operator')
+        return super().get_record(operator, 'operator', '/')
 
     def get_operator_description(self, operator):
-        return super().get_record_description(operator, '/')
+        return super().get_record_description(operator, 'operator', '/')
 
     def set_operator_description(self, operator, description, rebuild=False):
-        super().set_record_description(operator, '/', description, rebuild=rebuild)
+        super().set_record_description(operator, 'operator', '/', description, rebuild=rebuild)
 
     # operator properties
     def get_operator_properties(self, operator):
-        return super().get_record_properties(operator, '/')
+        return super().get_record_properties(operator, 'operator', '/')
 
     def get_operator_property(self, operator, key):
-        return super().get_record_property(operator, '/', key)
+        return super().get_record_property(operator, 'operator', '/', key)
 
     def set_operator_property(self, operator, key, value, rebuild=False):
-        super().set_record_property(operator, '/', key, value, rebuild=rebuild)
+        super().set_record_property(operator, 'operator', '/', key, value, rebuild=rebuild)
 
     def delete_operator_property(self, operator, key, rebuild=False):
-        super().delete_record_property(operator, '/', key, rebuild=rebuild)
+        super().delete_record_property(operator, 'operator', '/', key, rebuild=rebuild)
 
     # operator image (part of properties)
     def get_operator_image(self, operator):

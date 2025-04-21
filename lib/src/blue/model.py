@@ -3,7 +3,7 @@ from blue.registry import Registry
 
 class ModelRegistry(Registry):
     def __init__(self, name="MODEL_REGISTRY", id=None, sid=None, cid=None, prefix=None, suffix=None, properties={}):
-        super().__init__(name=name, id=id, sid=sid, cid=cid, prefix=prefix, suffix=suffix, properties=properties)
+        super().__init__(name=name, type="model", id=id, sid=sid, cid=cid, prefix=prefix, suffix=suffix, properties=properties)
 
     ###### initialization
 
@@ -22,26 +22,26 @@ class ModelRegistry(Registry):
         super().deregister(record, rebuild=rebuild)
 
     def get_model(self, model):
-        return super().get_record(model, 'model')
+        return super().get_record(model, 'model', '/')
 
     def get_model_description(self, model):
-        return super().get_record_description(model, '/')
+        return super().get_record_description(model, 'model', '/')
 
     def set_model_description(self, model, description, rebuild=False):
-        super().set_record_description(model, '/', description, rebuild=rebuild)
+        super().set_record_description(model, 'model', '/', description, rebuild=rebuild)
 
     # model properties
     def get_model_properties(self, model):
-        return super().get_record_properties(model, '/')
+        return super().get_record_properties(model, 'model', '/')
 
     def get_model_property(self, model, key):
-        return super().get_record_property(model, '/', key)
+        return super().get_record_property(model, 'model', '/', key)
 
     def set_model_property(self, model, key, value, rebuild=False):
-        super().set_record_property(model, '/', key, value, rebuild=rebuild)
+        super().set_record_property(model, 'model', '/', key, value, rebuild=rebuild)
 
     def delete_model_property(self, model, key, rebuild=False):
-        super().delete_record_property(model, '/', key, rebuild=rebuild)
+        super().delete_record_property(model, 'model', '/', key, rebuild=rebuild)
 
     # model location (part of properties)
     def get_model_location(self, model):
