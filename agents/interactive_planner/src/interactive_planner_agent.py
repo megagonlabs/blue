@@ -154,7 +154,7 @@ class InteractivePlannerAgent(OpenAIAgent):
         logging.info("Using agent registry:" + self.properties['registry.name'])
         self.registry = AgentRegistry(id=self.properties['registry.name'], prefix=prefix, properties=self.properties)
 
-        agents = self.registry.list_records()
+        agents = self.registry.get_agents()
         logging.info('Registry contents:')
         logging.info(json.dumps(agents, indent=4))
 
@@ -372,9 +372,13 @@ class InteractivePlannerAgent(OpenAIAgent):
         """
 
         ## set plan schema
-        records = self.registry.list_records()
-        agents = list(records.keys())
-        params = list(set(json_utils.json_query(records, "*.contents.*.name", single=False)))
+        agent_records = self.registry.list_records(type='agent', recursive=True)
+        agents = list(set(json_utils.json_query(agent_records, "*.name", single=False)))
+        input_records = self.registry.list_records(type='input', recursive=True)
+        input_params = list(set(json_utils.json_query(input_records, "*.name", single=False)))
+        output_records = self.registry.list_records(type='output', recursive=True)
+        output_params = list(set(json_utils.json_query(output_records, "*.name", single=False)))
+        params = input_params + output_params
         # convert to json strings
 
         agents = json.dumps(agents)
