@@ -1,4 +1,6 @@
 import { useSessionStore } from "@/stores/session-store";
+import { extractClosestEdge } from "@atlaskit/pragmatic-drag-and-drop-hitbox/closest-edge";
+import { monitorForElements } from "@atlaskit/pragmatic-drag-and-drop/element/adapter";
 import {
     Button,
     ButtonGroup,
@@ -9,9 +11,13 @@ import {
 } from "@blueprintjs/core";
 import { faBan, faLampDesk } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import _ from "lodash";
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useShallow } from "zustand/react/shallow";
 import { FAIcon } from "../FAIcon";
-import { POPPER_BOTTOM_WITH_MODIFIER_OVERFLOW_10 } from "../constants";
+import {
+    POPPER_BOTTOM_WITH_MODIFIER_OVERFLOW_10,
+    WORKSAPCE_DRAGGABLE_SYMBOL,
+} from "../constants";
 import WorkspaceMessage from "./workspace/WorkspaceMessage";
 export default function Workspace({ sessionId }) {
     const elementRef = useRef(null);
@@ -21,6 +27,41 @@ export default function Workspace({ sessionId }) {
     const contents = useSessionStore((state) =>
         _.get(state, ["sessions", sessionId, "workspace"], [])
     );
+    const { reorderWorkspace, clearWorkspace } = useSessionStore(
+        useShallow((state) => ({
+            reorderWorkspace: state.reorderWorkspace,
+            clearWorkspace: state.clearWorkspace,
+        }))
+    );
+    const [extraPadding, setExtraPadding] = useState(false);
+    useEffect(() => {
+        return monitorForElements({
+            canMonitor({ source }) {
+                return source.data[WORKSAPCE_DRAGGABLE_SYMBOL];
+            },
+            onDrop({ location, source }) {
+                const target = location.current.dropTargets[0];
+                if (!target) return;
+                const sourceData = source.data;
+                const targetData = target.data;
+                if (
+                    !sourceData[WORKSAPCE_DRAGGABLE_SYMBOL] ||
+                    !targetData[WORKSAPCE_DRAGGABLE_SYMBOL]
+                )
+                    return;
+                const indexOfSource = sourceData.index;
+                const indexOfTarget = targetData.index;
+                if (indexOfSource < 0 || indexOfTarget < 0) return;
+                const closestEdgeOfTarget = extractClosestEdge(targetData);
+                reorderWorkspace({
+                    sessionId,
+                    indexOfSource,
+                    indexOfTarget,
+                    closestEdgeOfTarget,
+                });
+            },
+        });
+    }, [contents]);
     if (_.isEmpty(contents)) {
         return (
             <NonIdealState
@@ -43,6 +84,7 @@ export default function Workspace({ sessionId }) {
                         boundary={popoverBoundary}
                     >
                         <Button
+                            onClick={() => clearWorkspace(sessionId)}
                             icon={
                                 <FAIcon
                                     icon={faBan}
@@ -59,7 +101,7 @@ export default function Workspace({ sessionId }) {
                 style={{
                     maxHeight: "calc(100% - 61px)",
                     overflowY: "auto",
-                    padding: "10px 20px",
+                    padding: `${extraPadding ? 20 : 10}px 20px`,
                 }}
             >
                 {contents.map((content, index) => {
@@ -71,6 +113,7 @@ export default function Workspace({ sessionId }) {
                                 style={{ marginTop: index > 0 ? 20 : 0 }}
                             >
                                 <WorkspaceMessage
+                                    setExtraPadding={setExtraPadding}
                                     sessionId={sessionId}
                                     content={content}
                                     index={index}

@@ -1,6 +1,8 @@
+import { reorderWithEdge } from "@atlaskit/pragmatic-drag-and-drop-hitbox/util/reorder-with-edge";
 import axios from "axios";
 import clone from "clone";
 import _ from "lodash";
+
 import { create } from "zustand";
 export const useSessionStore = create((set, get) => ({
     sessions: {},
@@ -47,13 +49,45 @@ export const useSessionStore = create((set, get) => ({
             }
         });
     },
+    removeWorkspaceMessage: ({ sessionId, index }) => {
+        const { sessions } = clone(get());
+        let contents = _.get(sessions, [sessionId, "workspace"], []);
+        _.pullAt(contents, [index]);
+        _.set(sessions, [sessionId, "workspace"], contents);
+        set({ sessions });
+    },
+    clearWorkspace: (sessionId) => {
+        const { sessions } = clone(get());
+        _.set(sessions, [sessionId, "workspace"], []);
+        set({ sessions });
+    },
+    reorderWorkspace: ({
+        sessionId,
+        indexOfSource,
+        indexOfTarget,
+        closestEdgeOfTarget,
+    }) => {
+        const { sessions } = clone(get());
+        let contents = _.get(sessions, [sessionId, "workspace"], []);
+        _.set(
+            sessions,
+            [sessionId, "workspace"],
+            reorderWithEdge({
+                list: contents,
+                startIndex: indexOfSource,
+                indexOfTarget,
+                closestEdgeOfTarget,
+                axis: "vertical",
+            })
+        );
+        set({ sessions });
+    },
     addToWorkspace: ({ type, message, sessionId }) => {
-        console.log(type, message);
         const stream = _.get(message, "stream", null);
         const { sessions } = clone(get());
-        let workspaceContents = _.get(sessions, [sessionId, "workspace"], []);
-        workspaceContents.push({ type, message, sessionId });
-        _.set(sessions, [sessionId, "workspace"], workspaceContents);
+        let contents = _.get(sessions, [sessionId, "workspace"], []);
+        contents.push({ type, message, sessionId });
+        _.set(sessions, [sessionId, "workspace"], contents);
         set({ sessions });
     },
     addSessionMessage: (data) => {

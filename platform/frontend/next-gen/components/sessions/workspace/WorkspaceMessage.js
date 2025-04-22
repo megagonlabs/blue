@@ -1,6 +1,11 @@
 import { WORKSAPCE_DRAGGABLE_SYMBOL } from "@/components/constants";
 import { FAIcon } from "@/components/FAIcon";
+import { useAppStore } from "@/stores/app-store";
 import { useSessionStore } from "@/stores/session-store";
+import {
+    attachClosestEdge,
+    extractClosestEdge,
+} from "@atlaskit/pragmatic-drag-and-drop-hitbox/closest-edge";
 import { DropIndicator } from "@atlaskit/pragmatic-drag-and-drop-react-drop-indicator/box";
 import { combine } from "@atlaskit/pragmatic-drag-and-drop/combine";
 import {
@@ -23,21 +28,32 @@ import {
     Tooltip,
 } from "@blueprintjs/core";
 import { faMessage, faTrash } from "@fortawesome/sharp-duotone-solid-svg-icons";
+import classNames from "classnames";
 import _ from "lodash";
 import { useEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import invariant from "tiny-invariant";
+import { useShallow } from "zustand/react/shallow";
 import MessageContent from "../messages/MessageContent";
 const IDLE_STATE = { type: "idle" };
-export default function WorkspaceMessage({ sessionId, content, index }) {
-    const dragging = useRef(false);
+export default function WorkspaceMessage({
+    sessionId,
+    content,
+    index,
+    setExtraPadding,
+}) {
+    const [dragging, setDragging] = useState(false);
     const [state, setState] = useState(IDLE_STATE);
+    const darkMode = useAppStore((state) => state.darkMode);
     const dragData = { index, [WORKSAPCE_DRAGGABLE_SYMBOL]: true };
     const ref = useRef(null);
     const loading = _.get(content, "loading", false);
     const hasError = useRef(false);
-    const streams = useSessionStore((state) =>
-        _.get(state, ["sessions", sessionId, "streams"], {})
+    const { streams, removeWorkspaceMessage } = useSessionStore(
+        useShallow((state) => ({
+            streams: _.get(state, ["sessions", sessionId, "streams"], {}),
+            removeWorkspaceMessage: state.removeWorkspaceMessage,
+        }))
     );
     const stream = _.get(content, "message.stream", null);
     const streamData = _.get(streams, [stream, "data"], []);
@@ -49,8 +65,14 @@ export default function WorkspaceMessage({ sessionId, content, index }) {
             draggable({
                 element: element,
                 getInitialData: () => dragData,
-                onDragStart: () => (dragging.current = true),
-                onDrop: () => (dragging.current = false),
+                onDragStart: () => {
+                    setDragging(true);
+                    setExtraPadding(true);
+                },
+                onDrop: () => {
+                    setDragging(false);
+                    setExtraPadding(false);
+                },
                 onGenerateDragPreview: ({ nativeSetDragImage }) => {
                     setCustomNativeDragPreview({
                         getOffset: pointerOutsideOfPreview({
@@ -60,16 +82,17 @@ export default function WorkspaceMessage({ sessionId, content, index }) {
                         render: ({ container }) => {
                             const root = createRoot(container);
                             root.render(
-                                <div>
+                                <div style={{ padding: 1 }}>
                                     <Card
                                         style={{
                                             maxWidth: 200,
                                             maxHeight: 200,
                                             overflow: "hidden",
                                         }}
-                                        className={
-                                            Classes.TEXT_OVERFLOW_ELLIPSIS
-                                        }
+                                        className={classNames(
+                                            Classes.TEXT_OVERFLOW_ELLIPSIS,
+                                            { [Classes.DARK]: darkMode }
+                                        )}
                                     >
                                         <MessageContent
                                             isPreview={true}
@@ -130,7 +153,7 @@ export default function WorkspaceMessage({ sessionId, content, index }) {
                 },
             })
         );
-    }, [content]);
+    }, [content, darkMode]);
     return (
         <div style={{ position: "relative" }}>
             <div ref={ref}>
@@ -152,18 +175,26 @@ export default function WorkspaceMessage({ sessionId, content, index }) {
                         >
                             Message
                         </Tag>
-                        <div>
+                        {!dragging && (
                             <ButtonGroup
                                 variant={ButtonVariant.MINIMAL}
                                 size={Size.LARGE}
                             >
                                 <Tooltip content="Remove" placement="bottom">
-                                    <Button icon={<FAIcon icon={faTrash} />} />
+                                    <Button
+                                        onClick={() =>
+                                            removeWorkspaceMessage({
+                                                sessionId,
+                                                index,
+                                            })
+                                        }
+                                        icon={<FAIcon icon={faTrash} />}
+                                    />
                                 </Tooltip>
                             </ButtonGroup>
-                        </div>
+                        )}
                     </div>
-                    <Collapse keepChildrenMounted isOpen={!dragging.current}>
+                    <Collapse keepChildrenMounted isOpen={!dragging}>
                         <div
                             className={loading ? Classes.SKELETON : null}
                             style={{ padding: "0px 20px 20px" }}

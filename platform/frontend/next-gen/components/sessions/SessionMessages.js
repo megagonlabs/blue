@@ -20,7 +20,7 @@ import {
     Tooltip,
 } from "@blueprintjs/core";
 import {
-    faArrowLeftToLine,
+    faArrowLeft,
     faBarsFilter,
     faEllipsisH,
     faEllipsisV,
@@ -273,7 +273,7 @@ export default function SessionMessages({
                                 <FAIcon
                                     icon={
                                         showWorkspace
-                                            ? faArrowLeftToLine
+                                            ? faArrowLeft
                                             : faTableColumns
                                     }
                                 />

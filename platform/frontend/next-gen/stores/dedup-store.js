@@ -1,4 +1,5 @@
 import axios from "axios";
+import { differenceInMinutes } from "date-fns";
 import _ from "lodash";
 import { allEnv } from "next-runtime-env";
 import { create } from "zustand";
@@ -7,9 +8,12 @@ const { NEXT_PUBLIC_AGENT_REGISTRY_NAME } = allEnv();
 export const useDedupStore = create((set, get) => ({
     users: {},
     queue: {},
+    cachedTime: {},
     getAgentMetadata: (agent) => {
         const key = `getAgentMetadata ${agent}`;
-        if (!get().queue[key]) {
+        const { queue, cachedTime } = get();
+        const diff = differenceInMinutes(Date.now(), cachedTime[key]);
+        if (!queue[key] && (diff > 5 || _.isNaN(diff))) {
             set((state) => ({ queue: { ...state.queue, [key]: true } }));
             axios
                 .get(
@@ -23,13 +27,16 @@ export const useDedupStore = create((set, get) => ({
                 .finally(() => {
                     set((state) => ({
                         queue: { ...state.queue, [key]: false },
+                        cachedTime: { ...state.cachedTime, [key]: Date.now() },
                     }));
                 });
         }
     },
     getUserProfile: (userId) => {
         const key = `getUserProfile ${userId}`;
-        if (!get().queue[key]) {
+        const { queue, cachedTime } = get();
+        const diff = differenceInMinutes(Date.now(), cachedTime[key]);
+        if (!queue[key] && (diff > 5 || _.isNaN(diff))) {
             set((state) => ({ queue: { ...state.queue, [key]: true } }));
             axios
                 .get(`/accounts/profile/${userId}`)
@@ -44,6 +51,7 @@ export const useDedupStore = create((set, get) => ({
                 .finally(() => {
                     set((state) => ({
                         queue: { ...state.queue, [key]: false },
+                        cachedTime: { ...state.cachedTime, [key]: Date.now() },
                     }));
                 });
         }
