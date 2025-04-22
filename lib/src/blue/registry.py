@@ -460,7 +460,12 @@ class Registry:
 
         # return original and merged
         return original_record, merged_record
-
+    
+    def _extract_shortname(self, name):
+        # use name to identify scope, short name
+        s = name.split(self.SEPARATOR)
+        sn = s[-1]
+        return sn
 
     def _derive_scope_from_name(self, name, full=False):
         # use name to determine scope
