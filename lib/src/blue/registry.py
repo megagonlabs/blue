@@ -417,18 +417,19 @@ class Registry:
         if 'created_by' in record:
             created_by = record['created_by']
 
-        self.register_record(name, type, scope, created_by=created_by, description=description, icon=icon, properties=properties, rebuild=rebuild)
+        if name and type and scope:
+            self.register_record(name, type, scope, created_by=created_by, description=description, icon=icon, properties=properties, rebuild=rebuild)
 
         if recursive:
             contents = {}
             if 'contents' in record:
                 contents = record['contents']
             
-            for type_key in contents:
-                    contents_by_type = contents[type_key]
-                    for record_key in contents_by_type:
-                        r = contents_by_type[record_key]    
-                        self.register_record_json(r, recursive=recursive, rebuild=rebuild)
+                for type_key in contents:
+                        contents_by_type = contents[type_key]
+                        for record_key in contents_by_type:
+                            r = contents_by_type[record_key]    
+                            self.register_record_json(r, recursive=recursive, rebuild=rebuild)
 
     def update_record(self, name, type, scope, description="", icon=None, properties={}, rebuild=False):
         record = {}
@@ -565,7 +566,8 @@ class Registry:
         self.delete_record_data(name, type, scope, 'properties' + '.' + escaped_key, rebuild=rebuild)
 
     def get_record_contents(self, name, type, scope):
-        return self.get_record_data(name, type, scope, 'contents', single=False)
+        return self.get_record_data(name, type, scope, 'contents.*', single=False)
+
 
     def filter_record_contents(self, name, type, scope, filter_type=None, filter_name=None, single=False):
         query = ""
@@ -578,7 +580,7 @@ class Registry:
         if filter_type or filter_name:
             query = '[?(' + query + ')]'
 
-        return self.get_record_data(name, type, scope, 'contents'+query, single=single)
+        return self.get_record_data(name, type, scope, 'contents.*.'+query, single=single)
 
     def get_contents(self):
         data = self.connection.json().get(self._get_data_namespace(), Path('$'))

@@ -133,11 +133,11 @@ class AgentRegistry(Registry):
         super().deregister(record, rebuild=rebuild)
 
     def get_agent_inputs(self, agent):
-        scope = self._derive_scope_from_name(agent, full=True)
+        scope = self._derive_scope_from_name(agent, full=False)
         return super().filter_record_contents(agent, 'agent', scope, filter_type="input")
 
     def get_agent_input(self, agent, parameter):
-        scope = self._derive_scope_from_name(agent, full=True)
+        scope = self._derive_scope_from_name(agent, full=False)
         return super().filter_record_contents(agent, 'agent', scope, filter_type='input', filter_name=parameter, single=True)
 
     def set_agent_input(self, agent, parameter, description, properties={}, rebuild=False):
@@ -161,14 +161,14 @@ class AgentRegistry(Registry):
         super().deregister(record, rebuild=rebuild)
 
     def get_agent_outputs(self, agent):
-        scope = self._derive_scope_from_name(agent, full=True)
+        scope = self._derive_scope_from_name(agent, full=False)
         return super().filter_record_contents(agent, 'agent', scope, filter_type='output')
 
     def get_agent_output(self, agent, parameter):
-        scope = self._derive_scope_from_name(agent, full=True)
+        scope = self._derive_scope_from_name(agent, full=False)
         return super().filter_record_contents(agent, 'agent', scope, filter_type='output', filter_name=parameter, single=True)
 
-    def set_agent_output(self, agent, parameter, description, rebuild=False):
+    def set_agent_output(self, agent, parameter, description, properties={}, rebuild=False):
         scope = self._derive_scope_from_name(agent, full=True)
         super().register_record(parameter, 'output', scope, description=description, properties=properties, rebuild=rebuild)
 
