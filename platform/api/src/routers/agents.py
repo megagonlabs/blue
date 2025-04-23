@@ -211,7 +211,7 @@ def get_agents(request: Request, recursive: bool = False):
     results = []
     agents = agent_registry.list_records(type="agent", recursive=recursive)
     results.extend(agents)
-   
+
     merged_results = merge_container_results(results)
     return JSONResponse(content={"results": merged_results})
 
@@ -255,6 +255,7 @@ def update_agent(request: Request, agent_name, agent: AgentSchema):
 
 
 @router.delete("/agent/{agent_name}")
+@router.delete("/agent/{path:path}/agent/{agent_name}")
 def delete_agent(request: Request, agent_name):
     agent_db = agent_registry.get_agent(agent_name)
     agent_acl_enforce(request, agent_db, write=True)

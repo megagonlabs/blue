@@ -74,19 +74,9 @@ export default function EntityMain({
             .delete(routerQueryPath)
             .then(() => {
                 let params = _.cloneDeep(routerQueryParams);
-                if (
-                    [
-                        "agent",
-                        "agent_group",
-                        "data",
-                        "operator",
-                        "model",
-                    ].includes(_.nth(params, -2))
-                ) {
-                    params.pop();
-                } else {
-                    params.splice(params.length - 2, 2);
-                }
+                const registryType = _.nth(params, 2);
+                params.splice(params.length - 2, 2);
+                _.set(params, [2], registryType);
                 AppToaster.show({
                     intent: Intent.SUCCESS,
                     message: `Deleted ${entity.name} ${entity.type}`,
