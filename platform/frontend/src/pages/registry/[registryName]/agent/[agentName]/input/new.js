@@ -41,7 +41,7 @@ export default function New() {
         if (!router.isReady) return;
         setLoading(true);
         axios[created ? "put" : "post"](`${urlPrefix}/${entity.name}`, {
-            name: `${namePrefix}${entity.name}`,
+            name: entity.name,
             description: entity.description,
         })
             .then(() => {
