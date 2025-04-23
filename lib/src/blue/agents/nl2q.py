@@ -13,8 +13,13 @@ logging.getLogger().setLevel(logging.INFO)
 logging.basicConfig(format="%(asctime)s [%(levelname)s] [%(process)d:%(threadName)s:%(thread)d](%(filename)s:%(lineno)d) %(name)s -  %(message)s", level=logging.ERROR, datefmt="%Y-%m-%d %H:%M:%S")
 
 
+##########################
+### OpenAIAgent.NL2SQLAgent
+#
+class NL2SQLAgent(OpenAIAgent):
 
-NL2SQL_PROMPT = """Your task is to translate a natural language question into a SQL query based on a list of provided data sources.
+    PROMPT = """
+Your task is to translate a natural language question into a SQL query based on a list of provided data sources.
 For each source you will be provided with a list of table schemas that specify the columns and their types.
 
 Here are the requirements:
@@ -47,57 +52,52 @@ Question: ${question}
 Output:
 """
 
-agent_properties = {
-    "openai.api": "ChatCompletion",
-    "openai.model": "gpt-4o",
-    "output_path": "$.choices[0].message.content",
-    "input_json": "[{\"role\":\"user\"}]",
-    "input_context": "$[0]",
-    "input_context_field": "content",
-    "input_field": "messages",
-    "input_template": NL2SQL_PROMPT,
-    "openai.temperature": 0,
-    "openai.max_tokens": 512,
-    "nl2q_source": None,
-    "nl2q_source_database": None,
-    "nl2q_discovery": False,
-    "nl2q_discovery_similarity_threshold": 0.2,
-    "nl2q_discovery_source_protocols": ["postgres","mysql"],
-    "nl2q_execute": True,
-    "nl2q_case_insensitive": True,
-    "nl2q_valid_query_prefixes": ["SELECT"],
-    "nl2q_force_query_prefixes": ["SELECT"],
-    "nl2q_additional_requirements": [],
-    "nl2q_context": [],
-    "nl2q_output_filters": ["all"],
-    "nl2q_output_max_results": None,
-    "output_transformations": [
-        {
-            "transformation": "replace",
-            "from": "```",
-            "to": ""
-        },
-        {
-            "transformation": "replace",
-            "from": "json",
-            "to": ""
-        }
-    ],
-    "output_strip": True,
-    "output_cast": "json",
-    "listens": {
-        "DEFAULT": {
-            "includes": ["USER"],
-            "excludes": []
+    PROPERTIES = {
+        "openai.api": "ChatCompletion",
+        "openai.model": "gpt-4o",
+        "output_path": "$.choices[0].message.content",
+        "input_json": "[{\"role\":\"user\"}]",
+        "input_context": "$[0]",
+        "input_context_field": "content",
+        "input_field": "messages",
+        "input_template": PROMPT,
+        "openai.temperature": 0,
+        "openai.max_tokens": 512,
+        "nl2q_source": None,
+        "nl2q_source_database": None,
+        "nl2q_discovery": False,
+        "nl2q_discovery_similarity_threshold": 0.2,
+        "nl2q_discovery_source_protocols": ["postgres","mysql"],
+        "nl2q_execute": True,
+        "nl2q_case_insensitive": True,
+        "nl2q_valid_query_prefixes": ["SELECT"],
+        "nl2q_force_query_prefixes": ["SELECT"],
+        "nl2q_additional_requirements": [],
+        "nl2q_context": [],
+        "nl2q_output_filters": ["all"],
+        "nl2q_output_max_results": None,
+        "output_transformations": [
+            {
+                "transformation": "replace",
+                "from": "```",
+                "to": ""
+            },
+            {
+                "transformation": "replace",
+                "from": "json",
+                "to": ""
+            }
+        ],
+        "output_strip": True,
+        "output_cast": "json",
+        "listens": {
+            "DEFAULT": {
+                "includes": ["USER"],
+                "excludes": []
+            }
         }
     }
-}
-
-
-##########################
-### OpenAIAgent.NL2SQLAgent
-#
-class NL2SQLAgent(OpenAIAgent):
+    
     def __init__(self, **kwargs):
         if 'name' not in kwargs:
             kwargs['name'] = "NL2SQL"
@@ -108,8 +108,8 @@ class NL2SQLAgent(OpenAIAgent):
         super()._initialize_properties()
 
         # intialize defatult properties
-        for key in agent_properties:
-            self.properties[key] = agent_properties[key]
+        for key in NL2SQLAgent.PROPERTIES:
+            self.properties[key] = NL2SQLAgent.PROPERTIES[key]
 
     def _start(self):
         super()._start()
@@ -452,3 +452,161 @@ class NL2SQLAgent(OpenAIAgent):
         x = self._apply_filter(output)
         logging.info(str(x))
         return x
+
+
+
+##########################
+### NL2SQLAgent.Nl2CypherAgent
+#
+class Nl2CypherAgent(NL2SQLAgent):
+    
+    PROMPT = """
+Your task is to translate a natural language question into a Cypher query based on a list of provided data sources.
+For each source you will be provided with the graph schema that specifies the entities, relations and properties.
+
+Here are the requirements:
+- The output should be a JSON object with the following fields
+  - "question": the original natural language question
+  - "source": the name of the data source that the query will be executed on
+  - "query": the Cypher query that is translated from the natural language question
+- When interpreting the "question" use additional context provided, if available. Ignore information in the context if the question overrides it.
+- The Cypher query should be compatible with the schema of the datasource.
+- Always do case-${sensitivity} matching for string comparison.
+- The query should starts with any of the following prefixes: ${force_query_prefixes}
+- Output the JSON directly. Do not generate explanation or other additional output.
+${additional_requirements}
+
+Protocol:
+```
+${protocol}
+```
+
+Data sources:
+```
+${sources}
+```
+
+Context:
+${context}
+
+Question: ${question}
+Output:
+"""
+
+    PROPERTIES = {
+        "input_template": PROMPT,
+        "nl2q_prompt": PROMPT,
+        "nl2q_source": None,
+        "nl2q_source_database": None,
+        "nl2q_discovery": True,
+        "nl2q_discovery_similarity_threshold": 0.2,
+        "nl2q_discovery_source_protocols": ["bolt"],
+        "nl2q_execute": True,
+        "nl2q_case_insensitive": True,
+        "nl2q_valid_query_prefixes": ["MATCH"],
+        "nl2q_force_query_prefixes": ["MATCH"]
+    }
+
+    def __init__(self, **kwargs):
+        if 'name' not in kwargs:
+            kwargs['name'] = "NL2CYPHER"
+        super().__init__(**kwargs)
+
+    def _initialize_properties(self):
+        super()._initialize_properties()
+
+        # intialize defatult properties
+        for key in Nl2CypherAgent.PROPERTIES:
+            self.properties[key] = Nl2CypherAgent.PROPERTIES[key]
+
+    def _format_schema(self, schema):
+        logging.info(f"Formatting schema: {schema}")
+        return schema
+
+    def _set_schemas(self, schemas, source=None, database=None, collection=None):
+        if source and database and collection:
+            entities = self.registry.get_source_database_collection_entities(source, database, collection)
+            relations = self.registry.get_source_database_collection_relations(source, database, collection)
+            if entities:
+                key = f'/{source}/{database}/{collection}'
+                schemas[key] = {
+                    'entities': entities,
+                    'relations': relations
+                }
+        else:
+            super()._set_schemas(schemas, source, database, collection)
+
+
+##########################
+### NL2SQLAgent.NL2MongoQL
+#
+class NL2MongoQL(NL2SQLAgent):
+
+    PROMPT = """
+Your task is to translate a natural language question into a MongoDB MQL query based on a list of provided data sources.
+For each source you will be provided with a list of table schemas that specify the columns and their types.
+
+Here are the requirements:
+- The output should be a JSON object with the following fields
+  - "question": the original natural language question
+  - "source": the name of the data source that the query will be executed on
+  - "query": the MongoDB MQL query that is translated from the natural language question, must be a string instead of a JSON object.
+- When interpreting the "question" use additional context provided, if available. Ignore information in the context if the question overrides it.
+- The MongoDB MQL query should be compatible with the schema of the datasource.
+- Always do case-${sensitivity} matching for string comparison.
+- Output the JSON directly. Do not generate explanation or other additional output.
+${additional_requirements}
+
+Data sources:
+```
+${sources}
+```
+
+Context:
+${context}
+
+Question: ${question}
+Output:
+"""
+
+    PROPERTIES = {
+        "input_template": PROMPT,
+        "nl2q_prompt": PROMPT,
+        "nl2q_source": None,
+        "nl2q_source_database": None,
+        "nl2q_discovery": True,
+        "nl2q_discovery_similarity_threshold": 0.2,
+        "nl2q_discovery_source_protocols": ["mongodb"],
+        "nl2q_execute": True,
+        "nl2q_valid_query_prefixes": ["{"],
+        "nl2q_force_query_prefixes": ["{"]
+    }
+
+    def __init__(self, **kwargs):
+        if 'name' not in kwargs:
+            kwargs['name'] = "NL2MONGOQL"
+        super().__init__(**kwargs)
+
+    def _initialize_properties(self):
+        super()._initialize_properties()
+
+        # intialize defatult properties
+        for key in NL2MongoQL.PROPERTIES:
+            self.properties[key] = NL2MongoQL.PROPERTIES[key]
+
+    def _format_schema(self, schema):
+        logging.info(f"Formatting schema: {schema}")
+        return schema
+
+    def _set_schemas(self, schemas, source=None, database=None, collection=None):
+        if source and database and collection:
+            entities = self.registry.get_source_database_collection_entities(source, database, collection)
+            relations = self.registry.get_source_database_collection_relations(source, database, collection)
+            if entities:
+                key = f'/{source}/{database}/{collection}'
+                schemas[key] = {
+                    'entities': entities,
+                    'relations': relations
+                }
+        else:
+            super()._set_schemas(schemas, source, database, collection)
