@@ -29,6 +29,17 @@ export const useSessionStore = create((set, get) => ({
             },
         }));
     },
+    setSessionDetails: ({ sessionId, fields }) => {
+        // fields: list of objects
+        // elements:  { path, value }
+        const { sessions } = clone(get());
+        let details = _.get(sessions, [sessionId, "details"], {});
+        for (let i = 0; i < _.size(fields); i++) {
+            _.set(details, fields[i].path, fields[i].value);
+        }
+        _.set(sessions, [sessionId, "details"], details);
+        set({ sessions });
+    },
     createNewSession: (agentGroup = null) => {
         let url = "/sessions/session";
         if (!_.isEmpty(agentGroup)) {

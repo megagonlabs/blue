@@ -210,6 +210,7 @@ export default function SessionMessages({
     sessionId,
     showWorkspace,
     setShowWorkspace,
+    setShowDetails,
 }) {
     const variableSizeListRef = useRef();
     const rowHeights = useRef({});
@@ -319,7 +320,13 @@ export default function SessionMessages({
                         </Tooltip>
                     </Popover>
                 </ButtonGroup>
-                <div>
+                <div
+                    style={{
+                        display: "flex",
+                        flexDirection: "row-reverse",
+                        gap: 10,
+                    }}
+                >
                     <ButtonGroup
                         size={Size.LARGE}
                         variant={ButtonVariant.MINIMAL}
@@ -330,7 +337,10 @@ export default function SessionMessages({
                             minimal
                             content={
                                 <Menu size={Size.LARGE}>
-                                    <MenuItem text="Open session details" />
+                                    <MenuItem
+                                        onClick={() => setShowDetails(true)}
+                                        text="Open session details"
+                                    />
                                 </Menu>
                             }
                         >
@@ -343,8 +353,13 @@ export default function SessionMessages({
                             </Tooltip>
                         </Popover>
                     </ButtonGroup>
+                    <div style={{ width: 100, height: 40 }}>
+                        <SessionMemberStack
+                            style={{ justifyContent: "flex-end" }}
+                            sessionId={sessionId}
+                        />
+                    </div>
                 </div>
-                <SessionMemberStack sessionId={sessionId} />
             </div>
             <AutoSizer>
                 {({ width, height }) => (

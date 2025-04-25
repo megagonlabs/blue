@@ -14,10 +14,7 @@ import _ from "lodash";
 import { useEffect, useRef, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { FAIcon } from "../FAIcon";
-import {
-    POPPER_BOTTOM_WITH_MODIFIER_OVERFLOW_10,
-    WORKSAPCE_DRAGGABLE_SYMBOL,
-} from "../constants";
+import { WORKSAPCE_DRAGGABLE_SYMBOL } from "../constants";
 import WorkspaceMessage from "./workspace/WorkspaceMessage";
 export default function Workspace({ sessionId }) {
     const elementRef = useRef(null);
@@ -78,11 +75,7 @@ export default function Workspace({ sessionId }) {
                 style={{ padding: 10 }}
             >
                 <ButtonGroup size={Size.LARGE} variant={ButtonVariant.MINIMAL}>
-                    <Tooltip
-                        {...POPPER_BOTTOM_WITH_MODIFIER_OVERFLOW_10}
-                        content="Clear workspace"
-                        boundary={popoverBoundary}
-                    >
+                    <Tooltip content="Clear workspace" placement="bottom-start">
                         <Button
                             onClick={() => clearWorkspace(sessionId)}
                             icon={
