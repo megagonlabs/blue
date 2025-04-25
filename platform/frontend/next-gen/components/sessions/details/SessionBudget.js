@@ -202,7 +202,6 @@ export default function SessionBudget({ sessionId }) {
                                     !_.isNil(allocationCost) &&
                                     allocationCost >= 0 && (
                                         <Tooltip
-                                            placement="top"
                                             content={`${useCost} / ${allocationCost}`}
                                         >
                                             <ProgressBar
