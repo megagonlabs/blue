@@ -624,7 +624,7 @@ class Registry:
         if type:
             sp = sp + '[?(@.type=="' + type + '")]'
         else:
-            sp = sp + '[?(@.type)]'
+            sp = sp + '*.[?(@.type)]'
 
         records = self.connection.json().get(self._get_data_namespace(), Path(sp))
 

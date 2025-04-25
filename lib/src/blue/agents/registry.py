@@ -25,7 +25,8 @@ class AgentRegistry(Registry):
 
     def remove_agent_group(self, agent_group, rebuild=False):
         record = self.get_agent_group(agent_group)
-        super().deregister(record, rebuild=rebuild)
+        if record:
+            super().deregister(record, rebuild=rebuild)
 
     def get_agent_groups(self):
         return self.list_records(type='agent_group', scope='/')
@@ -53,7 +54,8 @@ class AgentRegistry(Registry):
 
     def remove_agent_from_agent_group(self, agent_group, agent, rebuild=False):
         record = self.get_agent_group_agent(agent_group, agent)
-        super().deregister(record, rebuild=rebuild)
+        if record:
+           super().deregister(record, rebuild=rebuild)
 
     def get_agent_group_agent_properties(self, agent_group, agent):
         return super().get_record_properties(agent, 'agent', f'/agent_group/{agent_group}')
@@ -78,7 +80,8 @@ class AgentRegistry(Registry):
 
     def remove_agent(self, agent, rebuild=False):
         record = self.get_agent(agent)
-        super().deregister(record, rebuild=rebuild)
+        if record:
+            super().deregister(record, rebuild=rebuild)
 
     def get_agents(self, scope='/', recursive=False):
         return self.list_records(type='agent', scope=scope, recursive=recursive)
@@ -128,10 +131,6 @@ class AgentRegistry(Registry):
         scope = self._derive_scope_from_name(agent, full=True)
         super().update_record(parameter, "input", scope, description=description, properties=properties, rebuild=rebuild)
 
-    def remove_agent_input(self, agent, parameter, rebuild=False):
-        record = self.get_agent_input(agent, parameter)
-        super().deregister(record, rebuild=rebuild)
-
     def get_agent_inputs(self, agent):
         scope = self._derive_scope_from_name(agent, full=False)
         return super().filter_record_contents(agent, 'agent', scope, filter_type="input")
@@ -146,7 +145,8 @@ class AgentRegistry(Registry):
 
     def del_agent_input(self, agent, parameter, rebuild=False):
         record = self.get_agent_input(agent, parameter)
-        super().deregister(record, rebuild=rebuild)
+        if record:
+            super().deregister(record, rebuild=rebuild)
 
     def add_agent_output(self, agent, parameter, description='', properties={}, rebuild=False):
         scope = self._derive_scope_from_name(agent, full=True)
@@ -155,10 +155,6 @@ class AgentRegistry(Registry):
     def update_agent_output(self, agent, parameter, description='', properties={}, rebuild=False):
         scope = self._derive_scope_from_name(agent, full=True)
         super().update_record(parameter, "output", scope, description=description, properties=properties, rebuild=rebuild)
-
-    def remove_agent_output(self, agent, parameter, rebuild=False):
-        record = self.get_agent_output(agent, parameter)
-        super().deregister(record, rebuild=rebuild)
 
     def get_agent_outputs(self, agent):
         scope = self._derive_scope_from_name(agent, full=False)
@@ -174,7 +170,8 @@ class AgentRegistry(Registry):
 
     def del_agent_output(self, agent, parameter, rebuild=False):
         record = self.get_agent_output(agent, parameter)
-        super().deregister(record, rebuild=rebuild)
+        if record:
+            super().deregister(record, rebuild=rebuild)
 
     # agent input properties
     def get_agent_input_properties(self, agent, input):
