@@ -9,7 +9,7 @@ import {
     faCircleA,
     faCog,
     faDatabase,
-    faMoneyBills,
+    faMoneyBillsSimple,
     faSquareInfo,
     faUserGroup,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
@@ -18,6 +18,7 @@ import { useState } from "react";
 import { FAIcon } from "../FAIcon";
 import SessionAbout from "./details/SessionAbout";
 import SessionAgents from "./details/SessionAgents";
+import SessionBudget from "./details/SessionBudget";
 import SessionMemberList from "./details/SessionMemberList";
 export default function SessionDetails({ sessionId }) {
     const [focusTab, setFocusTab] = useState("about");
@@ -54,7 +55,7 @@ export default function SessionDetails({ sessionId }) {
                         <Button
                             onClick={() => setFocusTab("budget")}
                             active={_.isEqual(focusTab, "budget")}
-                            icon={<FAIcon icon={faMoneyBills} />}
+                            icon={<FAIcon icon={faMoneyBillsSimple} />}
                         />
                     </Tooltip>
                     <Tooltip placement="right" content="Data">
@@ -73,7 +74,7 @@ export default function SessionDetails({ sessionId }) {
                     </Tooltip>
                 </ButtonGroup>
             </div>
-            <div style={{ width: "calc(100% - 81px)", overflowY: "auto" }}>
+            <div style={{ width: "calc(100% - 81px)" }}>
                 {_.isEqual(focusTab, "about") && (
                     <SessionAbout sessionId={sessionId} />
                 )}
@@ -82,6 +83,9 @@ export default function SessionDetails({ sessionId }) {
                 )}
                 {_.isEqual(focusTab, "members") && (
                     <SessionMemberList sessionId={sessionId} />
+                )}
+                {_.isEqual(focusTab, "budget") && (
+                    <SessionBudget sessionId={sessionId} />
                 )}
             </div>
         </div>

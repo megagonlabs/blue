@@ -54,7 +54,7 @@ export default function SessionAgents({ sessionId }) {
             });
     }, []);
     return (
-        <div className="full-parent-dimension">
+        <div className="full-parent-dimension" style={{ overflowY: "auto" }}>
             {_.isEmpty(agents) ? (
                 <NonIdealState
                     title="No Agent"

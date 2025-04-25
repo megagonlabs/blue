@@ -1,12 +1,35 @@
 const {
     faExclamation,
     faCopy,
+    faPenSwirl,
 } = require("@fortawesome/sharp-duotone-solid-svg-icons");
-const { AppToaster } = require("./toaster");
+const { AppToaster, ProgressToaster } = require("./toaster");
+const classNames = require("classnames");
 const { FAIcon } = require("./FAIcon");
-const { Intent } = require("@blueprintjs/core");
+const { Intent, ProgressBar, Classes } = require("@blueprintjs/core");
 const copy = require("copy-to-clipboard");
-
+const renderProgress = (progress = 0, requestError = false) => {
+    return {
+        icon: <FAIcon icon={faPenSwirl} />,
+        isCloseButtonShown: false,
+        message: (
+            <ProgressBar
+                style={{ marginTop: 5 }}
+                className={classNames({
+                    [Classes.PROGRESS_NO_STRIPES]: progress >= 100,
+                })}
+                intent={
+                    requestError
+                        ? Intent.DANGER
+                        : progress < 100
+                        ? Intent.PRIMARY
+                        : Intent.SUCCESS
+                }
+                value={progress / 100}
+            />
+        ),
+    };
+};
 module.exports = {
     waitForOpenConnection: (socket) => {
         return new Promise((resolve, reject) => {
@@ -48,5 +71,31 @@ module.exports = {
                 text: "Copy",
             },
         });
+    },
+    settlePromises: (tasks, callback) => {
+        (async () => {
+            let error = false;
+            const key = ProgressToaster.show(
+                renderProgress(_.isEmpty(tasks) ? 100 : 0)
+            );
+            let count = 0;
+            const promises = tasks.map((task) => {
+                return task
+                    .catch((reason) => {
+                        error = true;
+                        return new Promise((resolve, reject) => reject(reason));
+                    })
+                    .finally(() => {
+                        const progress = (++count / tasks.length) * 100;
+                        ProgressToaster.show(
+                            renderProgress(progress, error),
+                            key
+                        );
+                    });
+            });
+            Promise.allSettled(promises).then((results) => {
+                callback({ results, error });
+            });
+        })();
     },
 };

@@ -117,7 +117,10 @@ export default function SessionMemberList({ sessionId }) {
         });
     }, []);
     return (
-        <div className="full-parent-dimension" style={{ padding: 20 }}>
+        <div
+            className="full-parent-dimension"
+            style={{ padding: 20, overflowY: "auto" }}
+        >
             <Popover
                 autoFocus={false}
                 enforceFocus={false}
