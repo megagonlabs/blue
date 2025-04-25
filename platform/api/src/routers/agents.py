@@ -234,7 +234,7 @@ def add_agent(request: Request, agent_name, agent: AgentSchema):
         return JSONResponse(content={"message": f"\"{agent_name}\" cannot be used"}, status_code=403)
     # if agent already exists, return 409 conflict error
     if not pydash.is_empty(agent_db):
-        return JSONResponse(content={"message": f"\"{agent_db}\" already exists."}, status_code=409)
+        return JSONResponse(content={"message": f"\"{agent_db}\" already exists"}, status_code=409)
     acl_enforce(request.state.user['role'], 'agent_registry', ['write_all', 'write_own'])
     # TODO: properties
     agent_registry.add_agent(agent_name, request.state.user['uid'], description=agent.description, properties={}, rebuild=True)
@@ -329,7 +329,7 @@ def add_agent_input(request: Request, agent_name, param_name, parameter: Paramet
         return JSONResponse(content={"message": f"\"{param_name}\" cannot be used"}, status_code=403)
     # if name already exists, return 409 conflict error
     if not pydash.is_empty(input):
-        return JSONResponse(content={"message": f"\"{input}\" already exists."}, status_code=409)
+        return JSONResponse(content={"message": f"\"{input}\" already exists"}, status_code=409)
     agent_db = agent_registry.get_agent(agent_name)
     agent_acl_enforce(request, agent_db, write=True)
     # TODO: properties
@@ -422,7 +422,7 @@ def add_agent_output(request: Request, agent_name, param_name, parameter: Parame
         return JSONResponse(content={"message": f"\"{param_name}\" cannot be used"}, status_code=403)
     # if name already exists, return 409 conflict error
     if not pydash.is_empty(output):
-        return JSONResponse(content={"message": f"\"{output}\" already exists."}, status_code=409)
+        return JSONResponse(content={"message": f"\"{output}\" already exists"}, status_code=409)
     agent_db = agent_registry.get_agent(agent_name)
     agent_acl_enforce(request, agent_db, write=True)
     # TODO: properties
@@ -549,7 +549,7 @@ def add_agent_group(request: Request, group_name, group: AgentGroupSchema):
         return JSONResponse(content={"message": f"\"{group_name}\" cannot be used"}, status_code=403)
     # if agent already exists, return 409 conflict error
     if not pydash.is_empty(agent_group_db):
-        return JSONResponse(content={"message": f"\"{agent_group_db}\" already exists."}, status_code=409)
+        return JSONResponse(content={"message": f"\"{agent_group_db}\" already exists"}, status_code=409)
     acl_enforce(request.state.user['role'], 'agent_registry', ['write_all', 'write_own'])
     # TODO: properties
     agent_registry.add_agent_group(group_name, request.state.user['uid'], description=group.description, properties={}, rebuild=True)
@@ -574,7 +574,7 @@ def add_agent_to_agent_group(request: Request, group_name, agent_name, agent: Ag
         return JSONResponse(content={"message": f"\"{agent_name}\" cannot be used"}, status_code=403)
     # if name already exists, return 409 conflict error
     if not pydash.is_empty(agent_existing):
-        return JSONResponse(content={"message": f"\"{agent_name}\" already exists."}, status_code=409)
+        return JSONResponse(content={"message": f"\"{agent_name}\" already exists"}, status_code=409)
     agent_group_db = agent_registry.get_agent_group(group_name)
     agent_group_acl_enforce(request, agent_group_db, write=True)
     # TODO: properties

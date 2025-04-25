@@ -105,7 +105,7 @@ def add_model(request: Request, model_name, model: ModelSchema):
         return JSONResponse(content={"message": f"\"{model_name}\" cannot be used"}, status_code=403)
     # if model already exists, return 409 conflict error
     if not pydash.is_empty(model_db):
-        return JSONResponse(content={"message": f"\"{model_db}\" already exists."}, status_code=409)
+        return JSONResponse(content={"message": f"\"{model_db}\" already exists"}, status_code=409)
     acl_enforce(request.state.user['role'], 'model_registry', ['write_all', 'write_own'])
     # TODO: properties
     model_registry.add_model(model_name, request.state.user['uid'], description=model.description, properties={}, rebuild=True)
