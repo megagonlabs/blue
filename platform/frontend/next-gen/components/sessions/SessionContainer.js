@@ -78,7 +78,7 @@ function SessionContainer({ width, height, sessionId }) {
                     <div
                         className="custom-card center-center"
                         style={{
-                            width: 500,
+                            width: 650,
                             height: "calc(100% - 40px)",
                             maxWidth: "calc(100% - 40px)",
                         }}
@@ -123,7 +123,7 @@ function SessionContainer({ width, height, sessionId }) {
                                             icon={
                                                 <FAIcon
                                                     icon={faCircleA}
-                                                    style={{ marginRight: 5 }}
+                                                    style={{ marginRight: 3 }}
                                                 />
                                             }
                                             text="Agents"

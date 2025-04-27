@@ -10,8 +10,20 @@ import {
 import { faXmark } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import classNames from "classnames";
 import _ from "lodash";
+import { forwardRef } from "react";
 import RGL, { WidthProvider } from "react-grid-layout";
 const ReactGridLayout = WidthProvider(RGL);
+const CustomResizeHandle = forwardRef(
+    ({ handleAxis, className, ...props }, ref) => {
+        return (
+            <div
+                ref={ref}
+                className={`react-resizable-handle react-resizable-handle-${handleAxis} z-index-21`}
+                {...props}
+            />
+        );
+    }
+);
 export default function Home() {
     const layout = useGridStore((state) => state.layout);
     const setLayout = useGridStore((state) => state.setLayout);
@@ -20,6 +32,9 @@ export default function Home() {
     return (
         <div className="full-parent-dimension" style={{ overflowY: "auto" }}>
             <ReactGridLayout
+                resizeHandle={(handleAxis, ref) => (
+                    <CustomResizeHandle ref={ref} handleAxis={handleAxis} />
+                )}
                 draggableHandle=".react-grid-drag-handle"
                 layout={layout}
                 resizeHandles={["sw", "nw", "se", "ne"]}

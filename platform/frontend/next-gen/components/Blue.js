@@ -179,7 +179,7 @@ export default function Blue({ children }) {
                                                         icon={
                                                             <FAIcon
                                                                 style={{
-                                                                    marginRight: 5,
+                                                                    marginRight: 3,
                                                                 }}
                                                                 icon={
                                                                     faInboxFull
@@ -196,7 +196,7 @@ export default function Blue({ children }) {
                                                         icon={
                                                             <FAIcon
                                                                 style={{
-                                                                    marginRight: 5,
+                                                                    marginRight: 3,
                                                                 }}
                                                                 icon={
                                                                     faInboxOut
@@ -216,7 +216,7 @@ export default function Blue({ children }) {
                                                         icon={
                                                             <FAIcon
                                                                 style={{
-                                                                    marginRight: 5,
+                                                                    marginRight: 3,
                                                                 }}
                                                                 icon={faCircleA}
                                                             />
@@ -227,7 +227,7 @@ export default function Blue({ children }) {
                                                         icon={
                                                             <FAIcon
                                                                 style={{
-                                                                    marginRight: 5,
+                                                                    marginRight: 3,
                                                                 }}
                                                                 icon={faServer}
                                                             />
@@ -238,7 +238,7 @@ export default function Blue({ children }) {
                                                         icon={
                                                             <FAIcon
                                                                 style={{
-                                                                    marginRight: 5,
+                                                                    marginRight: 3,
                                                                 }}
                                                                 icon={
                                                                     faFunction
@@ -251,7 +251,7 @@ export default function Blue({ children }) {
                                                         icon={
                                                             <FAIcon
                                                                 style={{
-                                                                    marginRight: 5,
+                                                                    marginRight: 3,
                                                                 }}
                                                                 icon={faCube}
                                                             />
@@ -269,7 +269,7 @@ export default function Blue({ children }) {
                                                         icon={
                                                             <FAIcon
                                                                 style={{
-                                                                    marginRight: 5,
+                                                                    marginRight: 3,
                                                                 }}
                                                                 icon={
                                                                     faPencilRuler
@@ -283,7 +283,7 @@ export default function Blue({ children }) {
                                                         icon={
                                                             <FAIcon
                                                                 style={{
-                                                                    marginRight: 5,
+                                                                    marginRight: 3,
                                                                 }}
                                                                 icon={
                                                                     faWavePulse
@@ -296,7 +296,7 @@ export default function Blue({ children }) {
                                                         icon={
                                                             <FAIcon
                                                                 style={{
-                                                                    marginRight: 5,
+                                                                    marginRight: 3,
                                                                 }}
                                                                 icon={faCircleA}
                                                             />
@@ -307,7 +307,7 @@ export default function Blue({ children }) {
                                                         icon={
                                                             <FAIcon
                                                                 style={{
-                                                                    marginRight: 5,
+                                                                    marginRight: 3,
                                                                 }}
                                                                 icon={
                                                                     faLayerGroup
@@ -320,7 +320,7 @@ export default function Blue({ children }) {
                                                         icon={
                                                             <FAIcon
                                                                 style={{
-                                                                    marginRight: 5,
+                                                                    marginRight: 3,
                                                                 }}
                                                                 icon={
                                                                     faUserGroup
@@ -333,7 +333,7 @@ export default function Blue({ children }) {
                                                         icon={
                                                             <FAIcon
                                                                 style={{
-                                                                    marginRight: 5,
+                                                                    marginRight: 3,
                                                                 }}
                                                                 icon={
                                                                     faScrewdriverWrench

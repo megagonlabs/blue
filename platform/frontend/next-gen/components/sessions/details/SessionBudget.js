@@ -3,14 +3,13 @@ import { settlePromises, showAxiosErrorToast } from "@/components/helper";
 import { useSessionStore } from "@/stores/session-store";
 import {
     Button,
+    Card,
     Classes,
-    Colors,
     FormGroup,
+    H3,
     InputGroup,
     Intent,
     ProgressBar,
-    Section,
-    SectionCard,
     Size,
     Tag,
     Tooltip,
@@ -158,167 +157,154 @@ export default function SessionBudget({ sessionId }) {
             className="full-parent-dimension"
             style={{ padding: 20, overflowY: "auto" }}
         >
-            <Section style={{ marginBottom: 15 }} compact title="Cost">
-                <SectionCard>
-                    <div style={{ display: "flex", gap: 15 }}>
-                        <FormGroup
-                            style={{ maxWidth: 200 }}
-                            label="Allocation"
-                            className="full-parent-width margin-0"
-                        >
-                            <InputGroup
-                                readOnly={loading}
-                                intent={costError ? Intent.DANGER : null}
-                                value={cost}
-                                onValueChange={(value) => setCost(value)}
-                                leftIcon={
-                                    <FAIcon icon={faMoneySimpleFromBracket} />
-                                }
-                                size={Size.LARGE}
-                            />
-                        </FormGroup>
-                        <FormGroup
-                            label="Used"
-                            className="full-parent-width margin-0"
-                        >
-                            <div
-                                style={{
-                                    display: "flex",
-                                    alignItems: "center",
-                                    gap: 5,
-                                    height: 40,
-                                }}
-                            >
-                                <div
-                                    style={{ fontWeight: 600 }}
-                                    className={Classes.TEXT_LARGE}
-                                >
-                                    {!_.isNil(useCost) && useCost >= 0
-                                        ? useCost
-                                        : "-"}
-                                </div>
-                                {!_.isNil(useCost) &&
-                                    useCost >= 0 &&
-                                    !_.isNil(allocationCost) &&
-                                    allocationCost >= 0 && (
-                                        <Tooltip
-                                            content={`${useCost} / ${allocationCost}`}
-                                        >
-                                            <ProgressBar
-                                                style={{ width: 40 }}
-                                                intent={Intent.PRIMARY}
-                                                stripes={false}
-                                                value={useCost / allocationCost}
-                                            />
-                                        </Tooltip>
-                                    )}
-                            </div>
-                        </FormGroup>
-                    </div>
-                </SectionCard>
-            </Section>
-            <Section style={{ marginBottom: 15 }} compact title="Accuracy">
-                <SectionCard>
-                    <div style={{ display: "flex", gap: 15 }}>
-                        <FormGroup
-                            style={{ maxWidth: 200 }}
-                            label="Target"
-                            className="full-parent-width margin-0"
-                        >
-                            <InputGroup
-                                readOnly={loading}
-                                intent={accuracyError ? Intent.DANGER : null}
-                                value={accuracy}
-                                onValueChange={(value) => setAccuracy(value)}
-                                rightElement={
-                                    <Tag
-                                        minimal
-                                        icon={<FAIcon icon={faPercent} />}
-                                    />
-                                }
-                                leftIcon={<FAIcon icon={faBullseyeArrow} />}
-                                size={Size.LARGE}
-                            />
-                        </FormGroup>
-                        <FormGroup
-                            label="Worst"
-                            className="full-parent-width margin-0"
+            <H3>Cost</H3>
+            <Card style={{ marginBottom: 20, overflow: "hidden" }} compact>
+                <div style={{ display: "flex", gap: 15 }}>
+                    <FormGroup
+                        style={{ maxWidth: 200 }}
+                        label="Allocation"
+                        className="full-parent-width margin-0"
+                    >
+                        <InputGroup
+                            readOnly={loading}
+                            intent={costError ? Intent.DANGER : null}
+                            value={cost}
+                            onValueChange={(value) => setCost(value)}
+                            leftIcon={
+                                <FAIcon icon={faMoneySimpleFromBracket} />
+                            }
+                            size={Size.LARGE}
+                        />
+                    </FormGroup>
+                    <FormGroup
+                        label="Used"
+                        className="full-parent-width margin-0"
+                    >
+                        <div
+                            style={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 5,
+                                height: 40,
+                            }}
                         >
                             <div
-                                style={{
-                                    fontWeight: 600,
-                                    display: "flex",
-                                    alignItems: "center",
-                                    gap: 5,
-                                    height: 40,
-                                    color:
-                                        (useAccuracy * 100).toFixed(10) >=
-                                        accuracyNumber
-                                            ? Colors.GREEN3
-                                            : null,
-                                }}
+                                style={{ fontWeight: 600 }}
                                 className={Classes.TEXT_LARGE}
                             >
-                                <div>
-                                    {!_.isNil(useAccuracy) && useAccuracy >= 0
-                                        ? (useAccuracy * 100).toFixed(10)
-                                        : "-"}
-                                </div>
-                                <FAIcon
-                                    icon={faPercent}
-                                    className={Classes.TEXT_MUTED}
-                                />
-                            </div>
-                        </FormGroup>
-                    </div>
-                </SectionCard>
-            </Section>
-            <Section style={{ marginBottom: 15 }} compact title="Latency">
-                <SectionCard>
-                    <div style={{ display: "flex", gap: 15 }}>
-                        <FormGroup
-                            style={{ maxWidth: 200 }}
-                            label="Target"
-                            className="full-parent-width margin-0"
-                        >
-                            <InputGroup
-                                readOnly={loading}
-                                intent={latencyError ? Intent.DANGER : null}
-                                value={latency}
-                                onValueChange={(value) => setLatency(value)}
-                                rightElement={<Tag minimal>ms</Tag>}
-                                leftIcon={<FAIcon icon={faStopwatch} />}
-                                size={Size.LARGE}
-                            />
-                        </FormGroup>
-                        <FormGroup
-                            label="Slowest"
-                            className="full-parent-width margin-0"
-                        >
-                            <div
-                                style={{
-                                    fontWeight: 600,
-                                    display: "flex",
-                                    gap: 5,
-                                    alignItems: "center",
-                                    height: 40,
-                                    color:
-                                        (useLatency * 1000).toFixed(0) <=
-                                        latencyNumber
-                                            ? Colors.GREEN3
-                                            : null,
-                                }}
-                                className={Classes.TEXT_LARGE}
-                            >
-                                {!_.isNil(useLatency) && useLatency >= 0
-                                    ? (useLatency * 1000).toFixed(0)
+                                {!_.isNil(useCost) && useCost >= 0
+                                    ? useCost
                                     : "-"}
-                                <label className={Classes.TEXT_MUTED}>ms</label>
                             </div>
-                        </FormGroup>
-                    </div>
-                </SectionCard>
-            </Section>
+                            {!_.isNil(useCost) &&
+                                useCost >= 0 &&
+                                !_.isNil(allocationCost) &&
+                                allocationCost >= 0 && (
+                                    <Tooltip
+                                        content={`${useCost} / ${allocationCost}`}
+                                    >
+                                        <ProgressBar
+                                            style={{ width: 40 }}
+                                            intent={Intent.PRIMARY}
+                                            stripes={false}
+                                            value={useCost / allocationCost}
+                                        />
+                                    </Tooltip>
+                                )}
+                        </div>
+                    </FormGroup>
+                </div>
+            </Card>
+            <H3>Accuracy</H3>
+            <Card style={{ marginBottom: 20, overflow: "hidden" }} compact>
+                <div style={{ display: "flex", gap: 15 }}>
+                    <FormGroup
+                        style={{ maxWidth: 200 }}
+                        label="Target"
+                        className="full-parent-width margin-0"
+                    >
+                        <InputGroup
+                            readOnly={loading}
+                            intent={accuracyError ? Intent.DANGER : null}
+                            value={accuracy}
+                            onValueChange={(value) => setAccuracy(value)}
+                            rightElement={
+                                <Tag
+                                    minimal
+                                    icon={<FAIcon icon={faPercent} />}
+                                />
+                            }
+                            leftIcon={<FAIcon icon={faBullseyeArrow} />}
+                            size={Size.LARGE}
+                        />
+                    </FormGroup>
+                    <FormGroup
+                        label="Worst"
+                        className="full-parent-width margin-0"
+                    >
+                        <div
+                            style={{
+                                fontWeight: 600,
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 5,
+                                height: 40,
+                            }}
+                            className={Classes.TEXT_LARGE}
+                        >
+                            <div>
+                                {!_.isNil(useAccuracy) && useAccuracy >= 0
+                                    ? (useAccuracy * 100).toFixed(10)
+                                    : "-"}
+                            </div>
+                            <FAIcon
+                                icon={faPercent}
+                                className={Classes.TEXT_MUTED}
+                            />
+                        </div>
+                    </FormGroup>
+                </div>
+            </Card>
+            <H3>Latency</H3>
+            <Card style={{ marginBottom: 20, overflow: "hidden" }} compact>
+                <div style={{ display: "flex", gap: 15 }}>
+                    <FormGroup
+                        style={{ maxWidth: 200 }}
+                        label="Objective"
+                        className="full-parent-width margin-0"
+                    >
+                        <InputGroup
+                            readOnly={loading}
+                            intent={latencyError ? Intent.DANGER : null}
+                            value={latency}
+                            onValueChange={(value) => setLatency(value)}
+                            rightElement={<Tag minimal>ms</Tag>}
+                            leftIcon={<FAIcon icon={faStopwatch} />}
+                            size={Size.LARGE}
+                        />
+                    </FormGroup>
+                    <FormGroup
+                        label="Slowest"
+                        className="full-parent-width margin-0"
+                    >
+                        <div
+                            style={{
+                                fontWeight: 600,
+                                display: "flex",
+                                gap: 5,
+                                alignItems: "center",
+                                height: 40,
+                            }}
+                            className={Classes.TEXT_LARGE}
+                        >
+                            {!_.isNil(useLatency) && useLatency >= 0
+                                ? (useLatency * 1000).toFixed(0)
+                                : "-"}
+                            <label className={Classes.TEXT_MUTED}>ms</label>
+                        </div>
+                    </FormGroup>
+                </div>
+            </Card>
             <Button
                 loading={loading}
                 disabled={costError || accuracyError || latencyError}

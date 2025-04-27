@@ -30,6 +30,30 @@ const renderProgress = (progress = 0, requestError = false) => {
         ),
     };
 };
+const showAxiosErrorToast = (error) => {
+    let message = "";
+    try {
+        message = `${error.name}: ${error.message}`;
+        // the request was made and the server responded with a status code
+        // that falls out of the range of 2xx
+        if (error.response)
+            message = `[${error.response.status} ${
+                error.response.statusText
+            }]: ${_.get(error, "response.data.message", "-")}`;
+    } catch (error) {
+        message = "Request Error";
+    }
+    AppToaster.show({
+        icon: <FAIcon icon={faExclamation} />,
+        intent: Intent.DANGER,
+        message: <div className="multiline-ellipsis-5">{message}</div>,
+        action: {
+            icon: <FAIcon icon={faCopy} />,
+            onClick: () => copy(message),
+            text: "Copy",
+        },
+    });
+};
 module.exports = {
     waitForOpenConnection: (socket) => {
         return new Promise((resolve, reject) => {
@@ -48,30 +72,46 @@ module.exports = {
             }, intervalTime);
         });
     },
-    showAxiosErrorToast: (error) => {
-        let message = "";
-        try {
-            message = `${error.name}: ${error.message}`;
-            // the request was made and the server responded with a status code
-            // that falls out of the range of 2xx
-            if (error.response)
-                message = `[${error.response.status} ${
-                    error.response.statusText
-                }]: ${_.get(error, "response.data.message", "-")}`;
-        } catch (error) {
-            message = "Request Error";
+    getUpdatePropertyPromises: ({ axios, url, diffs, properties }) => {
+        let tasks = [];
+        const { updated, deleted, added } = diffs;
+        for (let i = 0; i < _.size(deleted); i++) {
+            tasks.push(
+                new Promise((resolve, reject) => {
+                    axios
+                        .delete(`${url}/${deleted[i]}`)
+                        .then(() => {
+                            resolve(true);
+                        })
+                        .catch((error) => {
+                            showAxiosErrorToast(error);
+                            reject(false);
+                        });
+                })
+            );
         }
-        AppToaster.show({
-            icon: <FAIcon icon={faExclamation} />,
-            intent: Intent.DANGER,
-            message: <div className="multiline-ellipsis-5">{message}</div>,
-            action: {
-                icon: <FAIcon icon={faCopy} />,
-                onClick: () => copy(message),
-                text: "Copy",
-            },
-        });
+        const posts = [...updated, ...added];
+        for (let i = 0; i < _.size(posts); i++) {
+            const key = posts[i];
+            tasks.push(
+                new Promise((resolve, reject) => {
+                    axios
+                        .post(`${url}/${key}`, {
+                            [key]: _.get(properties, key, null),
+                        })
+                        .then(() => {
+                            resolve(true);
+                        })
+                        .catch((error) => {
+                            showAxiosErrorToast(error);
+                            reject(false);
+                        });
+                })
+            );
+        }
+        return tasks;
     },
+    showAxiosErrorToast,
     settlePromises: (tasks, callback) => {
         (async () => {
             let error = false;
