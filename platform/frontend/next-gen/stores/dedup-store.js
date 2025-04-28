@@ -49,7 +49,11 @@ export const useDedupStore = create((set, get) => ({
         const key = `getUserProfile ${userId}`;
         const { queue, cachedTime, addUserProfile } = get();
         const diff = differenceInMinutes(Date.now(), cachedTime[key]);
-        if (!queue[key] && (diff > CACHE_DURATION_MINUTES || _.isNaN(diff))) {
+        if (
+            !queue[key] &&
+            (diff > CACHE_DURATION_MINUTES || _.isNaN(diff)) &&
+            _.isString(userId)
+        ) {
             set((state) => ({ queue: { ...state.queue, [key]: true } }));
             axios
                 .get(`/accounts/profile/${userId}`)

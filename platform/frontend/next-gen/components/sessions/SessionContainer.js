@@ -1,4 +1,5 @@
 import { useAppStore } from "@/stores/app-store";
+import { useGridStore } from "@/stores/grid-layout-store";
 import { useSessionStore } from "@/stores/session-store";
 import { useSocketStore } from "@/stores/socket-store";
 import {
@@ -17,6 +18,7 @@ import { Allotment } from "allotment";
 import _ from "lodash";
 import { createRef, useEffect, useMemo, useState } from "react";
 import { MIN_ALLOTMENT_PANE_SIZE } from "../constants";
+import { useContainerContext } from "../contexts/ContainerContext";
 import { FAIcon } from "../FAIcon";
 import withAutoSizer from "../hocs/withAutoSizer";
 import { useRefDimensions } from "../hooks/useRefDimensions";
@@ -31,6 +33,8 @@ function SessionContainer({ width, height, sessionId }) {
     const observeSession = useSocketStore((state) => state.observeSession);
     const details = _.get(sessions, [sessionId, "details"], {});
     const sessionName = _.get(details, "name", sessionId);
+    const { containerId } = useContainerContext();
+    const removeContainer = useGridStore((state) => state.removeContainer);
     const displayName = useMemo(() => {
         if (_.isEqual(sessionId, sessionName)) {
             const utcSeconds = _.get(details, "created_date");
@@ -43,6 +47,11 @@ function SessionContainer({ width, height, sessionId }) {
     useEffect(() => {
         observeSession(sessionId);
     }, []);
+    useEffect(() => {
+        if (!_.has(sessions, sessionId)) {
+            removeContainer(containerId);
+        }
+    }, [sessions]);
     const sendSessionMessage = () => {
         const trimmedUserMessage = _.trim(userMessage);
         if (_.isEmpty(trimmedUserMessage)) return;
@@ -73,6 +82,7 @@ function SessionContainer({ width, height, sessionId }) {
                     onClose={() => setShowDetails(false)}
                     isOpen={showDetails}
                     usePortal={false}
+                    enforceFocus={false}
                     transitionDuration={0}
                 >
                     <div

@@ -11,21 +11,19 @@ import {
 } from "@blueprintjs/core";
 import { faBan, faLampDesk } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import _ from "lodash";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { FAIcon } from "../FAIcon";
-import { WORKSAPCE_DRAGGABLE_SYMBOL } from "../constants";
+import { EMPTY_ARRAY, WORKSAPCE_DRAGGABLE_SYMBOL } from "../constants";
 import WorkspaceMessage from "./workspace/WorkspaceMessage";
 export default function Workspace({ sessionId }) {
-    const elementRef = useRef(null);
-    const popoverBoundary =
-        elementRef.current &&
-        elementRef.current.closest(".grid-container-boundary");
-    const contents = useSessionStore((state) =>
-        _.get(state, ["sessions", sessionId, "workspace"], [])
-    );
-    const { reorderWorkspace, clearWorkspace } = useSessionStore(
+    const { reorderWorkspace, clearWorkspace, contents } = useSessionStore(
         useShallow((state) => ({
+            contents: _.get(
+                state,
+                ["sessions", sessionId, "workspace"],
+                EMPTY_ARRAY
+            ),
             reorderWorkspace: state.reorderWorkspace,
             clearWorkspace: state.clearWorkspace,
         }))
@@ -69,11 +67,7 @@ export default function Workspace({ sessionId }) {
     }
     return (
         <>
-            <div
-                ref={elementRef}
-                className="border-bottom"
-                style={{ padding: 10 }}
-            >
+            <div className="border-bottom" style={{ padding: 10 }}>
                 <ButtonGroup size={Size.LARGE} variant={ButtonVariant.MINIMAL}>
                     <Tooltip content="Clear workspace" placement="bottom-start">
                         <Button

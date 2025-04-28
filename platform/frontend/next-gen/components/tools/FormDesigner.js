@@ -21,28 +21,21 @@ import {
     faBookOpenCover,
     faBrowsers,
     faDownload,
-    faIndent,
     faPlay,
     faTrash,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import { Allotment } from "allotment";
+import { clone } from "lodash";
 import { createRef, useEffect, useRef, useState } from "react";
 import { useErrorBoundary, withErrorBoundary } from "react-use-error-boundary";
 import { v4 as uuidv4 } from "uuid";
+import JsonEditor from "../codemirror/JSONEditor";
 import { MIN_ALLOTMENT_PANE_SIZE } from "../constants";
 import { FAIcon } from "../FAIcon";
 import withAutoSizer from "../hocs/withAutoSizer";
 import DocContainer from "../jsonforms/docs/DocContainer";
-const DEFAULT_UI_SCHEMA = JSON.stringify(
-    { type: "VerticalLayout", elements: [] },
-    null,
-    4
-);
-const DEFAULT_SCHEMA = JSON.stringify(
-    { type: "object", properties: {} },
-    null,
-    4
-);
+const DEFAULT_UI_SCHEMA = { type: "VerticalLayout", elements: [] };
+const DEFAULT_SCHEMA = { type: "object", properties: {} };
 const PANE_BUTTON_PROPS = {
     alignText: Alignment.START,
     fill: true,
@@ -53,10 +46,11 @@ function FormDesigner({ width, height }) {
     const idRef = useRef(null);
     const [error, resetError] = useErrorBoundary();
     const leftPaneRef = createRef();
-    const [jsonData, setJsonData] = useState("{}");
-    const [jsonUischema, setJsonUischema] = useState(DEFAULT_UI_SCHEMA);
-    const [jsonSchema, setJsonSchema] = useState(DEFAULT_SCHEMA);
+    const [uischema, setUischema] = useState(clone(DEFAULT_UI_SCHEMA));
+    const [schema, setSchema] = useState(clone(DEFAULT_SCHEMA));
+    const [data, setData] = useState({});
     const [showData, setShowData] = useState(false);
+    const [reset, setReset] = useState(false);
     useEffect(() => {
         if (!idRef.current) {
             idRef.current = uuidv4();
@@ -71,9 +65,6 @@ function FormDesigner({ width, height }) {
                             intent={Intent.SUCCESS}
                             icon={<FAIcon icon={faPlay} />}
                         />
-                    </Tooltip>
-                    <Tooltip placement="bottom" content="Format">
-                        <Button icon={<FAIcon icon={faIndent} />} />
                     </Tooltip>
                     <Popover
                         minimal
@@ -111,6 +102,12 @@ function FormDesigner({ width, height }) {
                         intent={Intent.DANGER}
                         icon={<FAIcon icon={faTrash} />}
                         text="Reset all"
+                        onClick={() => {
+                            setReset(true);
+                            setData({});
+                            setSchema(clone(DEFAULT_SCHEMA));
+                            setUischema(clone(DEFAULT_UI_SCHEMA));
+                        }}
                     />
                 </ButtonGroup>
             </div>
@@ -146,6 +143,15 @@ function FormDesigner({ width, height }) {
                                         />
                                     </Tooltip>
                                 </div>
+                                <div
+                                    className="full-parent-height"
+                                    style={{ maxHeight: "calc(100% - 51px)" }}
+                                >
+                                    <JsonEditor
+                                        reset={reset}
+                                        jsonObject={uischema}
+                                    />
+                                </div>
                             </Allotment.Pane>
                             <Allotment.Pane minSize={200}>
                                 <div
@@ -171,6 +177,15 @@ function FormDesigner({ width, height }) {
                                             text="Data Schema"
                                         />
                                     </Tooltip>
+                                </div>
+                                <div
+                                    className="full-parent-height"
+                                    style={{ maxHeight: "calc(100% - 51px)" }}
+                                >
+                                    <JsonEditor
+                                        reset={reset}
+                                        jsonObject={schema}
+                                    />
                                 </div>
                             </Allotment.Pane>
                         </Allotment>

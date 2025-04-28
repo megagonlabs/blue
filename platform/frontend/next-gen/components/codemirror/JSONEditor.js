@@ -5,7 +5,6 @@ import {
     ButtonVariant,
     Colors,
     Intent,
-    Size,
     Tooltip,
 } from "@blueprintjs/core";
 import { closeBrackets } from "@codemirror/autocomplete";
@@ -18,6 +17,7 @@ import { oneDark } from "@codemirror/theme-one-dark";
 import { EditorView, keymap, lineNumbers } from "@codemirror/view";
 import { faCheck, faIndent } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import { showMinimap } from "@replit/codemirror-minimap";
+import classNames from "classnames";
 import { minimalSetup } from "codemirror";
 import { jsonSchema } from "codemirror-json-schema";
 import jsonFormatter from "json-string-formatter";
@@ -29,10 +29,14 @@ const TAB_INDENT = "    ";
 export default function JsonEditor({
     jsonObject,
     loading,
+    controlStrip = {},
+    className = [],
     onSave = null,
     schema = null,
     useMinimap = true,
+    reset = false,
 }) {
+    const original = useRef(jsonObject);
     const jsonString = JSON.stringify(jsonObject, null, 4);
     const editor = useRef();
     const [editorView, setEditorView] = useState(null);
@@ -49,7 +53,6 @@ export default function JsonEditor({
                       borderRight: "1px solid rgba(255, 255, 255, 0.2)",
                   },
                   ".cm-minimap-gutter": { borderRight: 0 },
-                  ".cm-content": {},
               },
               oneDark
           )
@@ -85,12 +88,18 @@ export default function JsonEditor({
     const overwrite = (value) => {
         if (_.isNull(editorView)) return;
         editorView.dispatch({
-            changes: { from: 0, to: _.size(doc), insert: value },
+            changes: {
+                from: 0,
+                to: _.size(editorView.state.doc),
+                insert: value,
+            },
         });
     };
     useEffect(() => {
-        overwrite(jsonString);
-    }, [jsonString]);
+        if (jsonObject !== original.current) {
+            overwrite(jsonString);
+        }
+    }, [jsonObject, reset]);
     useEffect(() => {
         let create = (view) => {
             const dom = document.createElement("div");
@@ -131,13 +140,16 @@ export default function JsonEditor({
     }, []);
     const elementRef = useRef(null);
     return (
-        <div className="custom-card full-parent-dimension">
+        <div className={classNames(className, "full-parent-dimension")}>
             <div
                 ref={elementRef}
                 className="border-bottom"
                 style={{ padding: 10 }}
             >
-                <ButtonGroup size={Size.LARGE} variant={ButtonVariant.MINIMAL}>
+                <ButtonGroup
+                    size={_.get(controlStrip, "size", null)}
+                    variant={ButtonVariant.MINIMAL}
+                >
                     {_.isFunction(onSave) && (
                         <Button
                             loading={loading}

@@ -29,6 +29,12 @@ export const useSessionStore = create((set, get) => ({
             },
         }));
     },
+    removeSession: (sessionId) => {
+        const { sessions, sessionIds } = clone(get());
+        _.unset(sessions, sessionId);
+        _.pull(sessionIds, sessionId);
+        set({ sessions, sessionIds });
+    },
     setSessionDetails: ({ sessionId, fields }) => {
         // fields: list of objects
         // elements:  { path, value }

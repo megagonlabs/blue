@@ -34,6 +34,7 @@ import AutoSizer from "react-virtualized-auto-sizer";
 import { VariableSizeList } from "react-window";
 import { useShallow } from "zustand/react/shallow";
 import {
+    EMPTY_ARRAY,
     MESSAGE_OVERFLOW_THRESHOLD,
     POPPER_BOTTOM_WITH_MODIFIER_OVERFLOW_10,
 } from "../constants";
@@ -222,8 +223,12 @@ export default function SessionMessages({
     }
     const { messages, tags } = useSessionStore(
         useShallow((state) => ({
-            messages: _.get(state, ["sessions", sessionId, "messages"], []),
-            tags: _.get(state, ["sessions", sessionId, "tags"], []),
+            messages: _.get(
+                state,
+                ["sessions", sessionId, "messages"],
+                EMPTY_ARRAY
+            ),
+            tags: _.get(state, ["sessions", sessionId, "tags"], EMPTY_ARRAY),
         }))
     );
     const filteredMessages = messages.filter((message) => {

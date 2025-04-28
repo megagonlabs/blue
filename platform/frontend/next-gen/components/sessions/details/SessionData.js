@@ -1,5 +1,6 @@
 import JsonEditor from "@/components/codemirror/JSONEditor";
 import { getUpdatePropertyPromises, settlePromises } from "@/components/helper";
+import { Size } from "@blueprintjs/core";
 import axios from "axios";
 import _ from "lodash";
 import { useEffect, useState } from "react";
@@ -36,7 +37,13 @@ export default function SessionData({ sessionId }) {
     };
     return (
         <div className="full-parent-dimension" style={{ padding: 20 }}>
-            <JsonEditor loading={loading} jsonObject={data} onSave={onSave} />
+            <JsonEditor
+                className="custom-card"
+                loading={loading}
+                controlStrip={{ size: Size.LARGE }}
+                jsonObject={data}
+                onSave={onSave}
+            />
         </div>
     );
 }

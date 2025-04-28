@@ -122,6 +122,9 @@ export default function SessionMemberList({ sessionId }) {
             style={{ padding: 20, overflowY: "auto" }}
         >
             <Popover
+                modifiers={{
+                    offset: { enabled: true, options: { offset: [0, 10] } },
+                }}
                 autoFocus={false}
                 enforceFocus={false}
                 minimal
@@ -217,13 +220,12 @@ export default function SessionMemberList({ sessionId }) {
                             event.stopPropagation();
                         }
                     }}
-                    style={{ marginBottom: 10 }}
                     onValueChange={handleKeywordChange}
                     leftIcon={<FAIcon icon={faSearch} />}
                     size={Size.LARGE}
                 />
             </Popover>
-            <CardList bordered={false}>
+            <CardList bordered={false} style={{ marginTop: 10 }}>
                 <Card interactive style={{ position: "relative" }}>
                     <UserAvatar userId={owner} />
                     <div

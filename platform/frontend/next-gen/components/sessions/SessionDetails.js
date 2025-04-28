@@ -21,6 +21,7 @@ import SessionAgents from "./details/SessionAgents";
 import SessionBudget from "./details/SessionBudget";
 import SessionData from "./details/SessionData";
 import SessionMemberList from "./details/SessionMemberList";
+import SessionSettings from "./details/SessionSettings";
 export default function SessionDetails({ sessionId }) {
     const [focusTab, setFocusTab] = useState("about");
     return (
@@ -85,6 +86,9 @@ export default function SessionDetails({ sessionId }) {
                 )}
                 {_.isEqual(focusTab, "data") && (
                     <SessionData sessionId={sessionId} />
+                )}
+                {_.isEqual(focusTab, "settings") && (
+                    <SessionSettings sessionId={sessionId} />
                 )}
             </div>
         </div>
