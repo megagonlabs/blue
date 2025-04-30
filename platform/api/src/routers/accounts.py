@@ -114,7 +114,7 @@ async def signin(request: Request):
         email = decoded_claims["email"]
         email_domain = re.search(EMAIL_DOMAIN_ADDRESS_REGEXP, email).group(1)
         if email_domain not in allowed_domains and not isEmailInWhitelist(email):
-            return JSONResponse(content={"message": "Invalid email account"}, status_code=403)
+            return JSONResponse(content={"message": "Invalid account"}, status_code=403)
         # Only process if the user signed in within the last 5 minutes.
         if time.time() - decoded_claims["auth_time"] < 5 * 60:
             # Set session expiration to 14 days.
@@ -172,7 +172,7 @@ async def signin_cli(request: Request):
         email = decoded_claims["email"]
         email_domain = re.search(EMAIL_DOMAIN_ADDRESS_REGEXP, email).group(1)
         if email_domain not in allowed_domains and not isEmailInWhitelist(email):
-            return JSONResponse(content={"message": "Invalid email account"}, status_code=403)
+            return JSONResponse(content={"message": "Invalid account"}, status_code=403)
         if time.time() - decoded_claims["auth_time"] < 5 * 60:
             expires_in = datetime.timedelta(hours=10)
             if not pydash.is_empty(FIREBASE_SERVICE_CRED):
