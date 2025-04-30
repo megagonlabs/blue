@@ -16,7 +16,7 @@ from fastapi.responses import JSONResponse
 import firebase_admin
 from firebase_admin import auth, credentials, exceptions
 
-from constant import EMAIL_DOMAIN_ADDRESS_REGEXP, account_id_header, acl_enforce, verify_google_id_token
+from constant import EMAIL_DOMAIN_ADDRESS_REGEXP, account_id_header, acl_enforce, is_email_allowed, verify_google_id_token
 from fastapi import Depends, Request
 from APIRouter import APIRouter
 from fastapi.responses import JSONResponse
@@ -41,12 +41,6 @@ if not pydash.is_empty(FIREBASE_SERVICE_CRED):
     cred = credentials.Certificate(cert)
     firebase_admin.initialize_app(cred)
 allowed_domains = EMAIL_DOMAIN_WHITE_LIST.split(",")
-
-
-def isEmailInWhitelist(email: str) -> bool:
-    urlsafe_encoded_string = encode_websafe_no_padding(email)
-    result = p.get_metadata(f'settings.allowed_emails.{urlsafe_encoded_string}.allow')
-    return isinstance(result, bool) and result
 
 
 @router.get('/websocket-ticket')
@@ -112,8 +106,7 @@ async def signin(request: Request):
         #     "uid": "firebase_uid",
         # }
         email = decoded_claims["email"]
-        email_domain = re.search(EMAIL_DOMAIN_ADDRESS_REGEXP, email).group(1)
-        if email_domain not in allowed_domains and not isEmailInWhitelist(email):
+        if not is_email_allowed(email):
             return JSONResponse(content={"message": "Invalid account"}, status_code=403)
         # Only process if the user signed in within the last 5 minutes.
         if time.time() - decoded_claims["auth_time"] < 5 * 60:
@@ -126,6 +119,7 @@ async def signin(request: Request):
             else:
                 session_cookie = id_token
                 expires_in = datetime.timedelta(hours=1)
+            email_domain = re.search(EMAIL_DOMAIN_ADDRESS_REGEXP, email).group(1)
             response = JSONResponse(
                 content={
                     "result": {
@@ -170,8 +164,7 @@ async def signin_cli(request: Request):
             except Exception:
                 return ERROR_RESPONSE
         email = decoded_claims["email"]
-        email_domain = re.search(EMAIL_DOMAIN_ADDRESS_REGEXP, email).group(1)
-        if email_domain not in allowed_domains and not isEmailInWhitelist(email):
+        if not is_email_allowed(email):
             return JSONResponse(content={"message": "Invalid account"}, status_code=403)
         if time.time() - decoded_claims["auth_time"] < 5 * 60:
             expires_in = datetime.timedelta(hours=10)

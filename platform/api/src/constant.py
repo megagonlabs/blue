@@ -1,15 +1,22 @@
+import re
+from blue.platform import Platform
+from blue.utils.string_utils import encode_websafe_no_padding
 from fastapi import Header
 from jsonschema.validators import Draft7Validator
 import pydash
 import jwt
 from jwt.algorithms import RSAAlgorithm
 import requests
-from settings import ACL, FIREBASE_CLIENT_ID
+from settings import ACL, EMAIL_DOMAIN_WHITE_LIST, FIREBASE_CLIENT_ID, PROPERTIES
 from datetime import timedelta
 
 EMAIL_DOMAIN_ADDRESS_REGEXP = r"@((\w+?\.)+\w+)"
 RESERVED_ENTITY_NAMES = ['new']
 END_OF_SSE_SIGNAL = 'END_OF_EVENT_SIGNAL'
+
+platform_id = PROPERTIES["platform.name"]
+p = Platform(id=platform_id, properties=PROPERTIES)
+allowed_domains = EMAIL_DOMAIN_WHITE_LIST.split(",")
 
 
 def account_id_header(X_accountId: str = Header(None)):
@@ -22,6 +29,13 @@ class InvalidRequestJson(Exception):
     def __init__(self, errors):
         super().__init__()
         self.errors = errors
+
+
+def is_email_allowed(email: str) -> bool:
+    email_domain = re.search(EMAIL_DOMAIN_ADDRESS_REGEXP, email).group(1)
+    urlsafe_encoded_string = encode_websafe_no_padding(email)
+    result = p.get_metadata(f'settings.allowed_emails.{urlsafe_encoded_string}.allow')
+    return email_domain in allowed_domains or (isinstance(result, bool) and result)
 
 
 def verify_google_id_token(id_token, client_id, issuer):
