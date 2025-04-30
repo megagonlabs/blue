@@ -1,5 +1,6 @@
 import string
 from jinja2 import Environment, BaseLoader
+import re
 
 def camel_case(string):
     words = string.split("_")
