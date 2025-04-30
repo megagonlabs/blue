@@ -168,7 +168,7 @@ async def session_verification(request: Request, call_next):
                     decoded_claims = verify_google_id_token(session_cookie, client_id=FIREBASE_CLIENT_ID, issuer=f'https://securetoken.google.com/{FIREBASE_CLIENT_ID}')
                 email = decoded_claims["email"]
                 if not is_email_allowed(email):
-                    return JSONResponse(content={"message": "Invalid account"}, status_code=403)
+                    raise auth.InvalidSessionCookieError("Invalid account")
                 email_domain = re.search(EMAIL_DOMAIN_ADDRESS_REGEXP, email).group(1)
                 profile = {
                     "name": decoded_claims["name"],
