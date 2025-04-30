@@ -3,6 +3,7 @@ import base64
 import re
 import pydash
 from jinja2 import Environment, BaseLoader
+import re
 
 
 def camel_case(string):
