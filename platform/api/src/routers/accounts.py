@@ -263,7 +263,7 @@ def get_users(request: Request, keyword: str = ""):
         }
         if re.search(rx, user['name']) is not None:
             # add user role value when querying with administrator role
-            if request.state.user['role'] == 'administrator':
+            if request.state.user['role'] == 'admin':
                 temp['role'] = user['role']
             result.append(temp)
     return JSONResponse(content={"users": result})
