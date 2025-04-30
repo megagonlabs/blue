@@ -73,6 +73,12 @@
     left: 50%;
     transform: translate(-50%, -50%);
 }
+.vertical-center {
+    position: absolute;
+    top: 50%;
+    -ms-transform: translateY(-50%);
+    transform: translateY(-50%);
+}
 .message-bubble-callout-content {
     max-width: 100%;
     min-width: 50px;

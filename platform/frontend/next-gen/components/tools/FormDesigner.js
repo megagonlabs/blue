@@ -94,7 +94,10 @@ function FormDesigner({ width, height }) {
                         icon={<FAIcon icon={faBookOpenCover} />}
                         text="Docs."
                         onClick={() =>
-                            addContainer("Form Docs.", <DocContainer />)
+                            addContainer({
+                                content: "Form Docs.",
+                                title: <DocContainer />,
+                            })
                         }
                     />
                     <Divider />
@@ -123,25 +126,15 @@ function FormDesigner({ width, height }) {
                                     className="border-bottom"
                                     style={{ padding: 10 }}
                                 >
-                                    <Tooltip
-                                        fill
-                                        placement="bottom-start"
-                                        content={
-                                            "Describes how the form should be rendered"
+                                    <Button
+                                        {...PANE_BUTTON_PROPS}
+                                        endIcon={
+                                            <FAIcon
+                                                icon={faArrowsFromDottedLine}
+                                            />
                                         }
-                                    >
-                                        <Button
-                                            {...PANE_BUTTON_PROPS}
-                                            endIcon={
-                                                <FAIcon
-                                                    icon={
-                                                        faArrowsFromDottedLine
-                                                    }
-                                                />
-                                            }
-                                            text="UI Schema"
-                                        />
-                                    </Tooltip>
+                                        text="UI Schema"
+                                    />
                                 </div>
                                 <div
                                     className="full-parent-height"
@@ -158,25 +151,15 @@ function FormDesigner({ width, height }) {
                                     className="border-bottom"
                                     style={{ padding: 10 }}
                                 >
-                                    <Tooltip
-                                        fill
-                                        placement="bottom-start"
-                                        content={
-                                            "Describes the format of underlying data"
+                                    <Button
+                                        {...PANE_BUTTON_PROPS}
+                                        endIcon={
+                                            <FAIcon
+                                                icon={faArrowsFromDottedLine}
+                                            />
                                         }
-                                    >
-                                        <Button
-                                            {...PANE_BUTTON_PROPS}
-                                            endIcon={
-                                                <FAIcon
-                                                    icon={
-                                                        faArrowsFromDottedLine
-                                                    }
-                                                />
-                                            }
-                                            text="Data Schema"
-                                        />
-                                    </Tooltip>
+                                        text="Data Schema"
+                                    />
                                 </div>
                                 <div
                                     className="full-parent-height"

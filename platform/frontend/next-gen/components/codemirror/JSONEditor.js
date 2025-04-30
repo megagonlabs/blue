@@ -5,6 +5,7 @@ import {
     ButtonVariant,
     Colors,
     Intent,
+    Size,
     Tooltip,
 } from "@blueprintjs/core";
 import { closeBrackets } from "@codemirror/autocomplete";
@@ -139,6 +140,7 @@ export default function JsonEditor({
         };
     }, []);
     const elementRef = useRef(null);
+    const controlStripSize = _.get(controlStrip, "size", null);
     return (
         <div className={classNames(className, "full-parent-dimension")}>
             <div
@@ -147,7 +149,7 @@ export default function JsonEditor({
                 style={{ padding: 10 }}
             >
                 <ButtonGroup
-                    size={_.get(controlStrip, "size", null)}
+                    size={controlStripSize}
                     variant={ButtonVariant.MINIMAL}
                 >
                     {_.isFunction(onSave) && (
@@ -182,7 +184,13 @@ export default function JsonEditor({
                     </Tooltip>
                 </ButtonGroup>
             </div>
-            <div style={{ height: "calc(100% - 61px)" }}>
+            <div
+                style={{
+                    height: `calc(100% - ${
+                        _.isEqual(controlStripSize, Size.LARGE) ? 61 : 51
+                    }px)`,
+                }}
+            >
                 <div className="full-parent-height" ref={editor} />
             </div>
         </div>

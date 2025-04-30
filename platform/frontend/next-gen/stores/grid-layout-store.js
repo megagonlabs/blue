@@ -13,7 +13,7 @@ export const useGridStore = create((set) => ({
             ),
         }));
     },
-    addContainer: (title, content) => {
+    addContainer: ({ title, content }) => {
         const key = uuidv4();
         set((state) => ({
             containers: { ...state.containers, [key]: { title, content } },

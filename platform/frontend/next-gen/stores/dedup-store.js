@@ -28,7 +28,7 @@ export const useDedupStore = create((set, get) => ({
                         null
                     );
                     const { setMetadata } = useAgentStore.getState();
-                    setMetadata(agent, { icon, displayName });
+                    setMetadata({ key: agent, data: { icon, displayName } });
                 })
                 .finally(() => {
                     set((state) => ({
