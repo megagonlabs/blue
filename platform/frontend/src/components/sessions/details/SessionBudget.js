@@ -203,10 +203,7 @@ export default function SessionBudget({
                     </Card>
                     <Card compact style={{ width: "calc(50% - 7.5px)" }}>
                         <H5 style={{ marginBottom: 10 }}>Accuracy</H5>
-                        <FormGroup
-                            label="Allocation"
-                            style={{ marginBottom: 10 }}
-                        >
+                        <FormGroup label="Target" style={{ marginBottom: 10 }}>
                             <NumericInput
                                 className={loading ? Classes.SKELETON : null}
                                 intent={accuracyError ? Intent.DANGER : null}
@@ -238,10 +235,7 @@ export default function SessionBudget({
                     </Card>
                     <Card compact style={{ width: "calc(50% - 7.5px)" }}>
                         <H5 style={{ marginBottom: 10 }}>Latency</H5>
-                        <FormGroup
-                            label="Allocation"
-                            style={{ marginBottom: 10 }}
-                        >
+                        <FormGroup label="Target" style={{ marginBottom: 10 }}>
                             <NumericInput
                                 className={loading ? Classes.SKELETON : null}
                                 intent={latencyError ? Intent.DANGER : null}

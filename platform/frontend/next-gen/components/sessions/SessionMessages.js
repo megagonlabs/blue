@@ -34,6 +34,7 @@ import AutoSizer from "react-virtualized-auto-sizer";
 import { VariableSizeList } from "react-window";
 import { useShallow } from "zustand/react/shallow";
 import {
+    EMPTY_ARRAY,
     MESSAGE_OVERFLOW_THRESHOLD,
     POPPER_BOTTOM_WITH_MODIFIER_OVERFLOW_10,
 } from "../constants";
@@ -210,6 +211,7 @@ export default function SessionMessages({
     sessionId,
     showWorkspace,
     setShowWorkspace,
+    setShowDetails,
 }) {
     const variableSizeListRef = useRef();
     const rowHeights = useRef({});
@@ -221,8 +223,12 @@ export default function SessionMessages({
     }
     const { messages, tags } = useSessionStore(
         useShallow((state) => ({
-            messages: _.get(state, ["sessions", sessionId, "messages"], []),
-            tags: _.get(state, ["sessions", sessionId, "tags"], []),
+            messages: _.get(
+                state,
+                ["sessions", sessionId, "messages"],
+                EMPTY_ARRAY
+            ),
+            tags: _.get(state, ["sessions", sessionId, "tags"], EMPTY_ARRAY),
         }))
     );
     const filteredMessages = messages.filter((message) => {
@@ -319,7 +325,13 @@ export default function SessionMessages({
                         </Tooltip>
                     </Popover>
                 </ButtonGroup>
-                <div>
+                <div
+                    style={{
+                        display: "flex",
+                        flexDirection: "row-reverse",
+                        gap: 10,
+                    }}
+                >
                     <ButtonGroup
                         size={Size.LARGE}
                         variant={ButtonVariant.MINIMAL}
@@ -330,7 +342,10 @@ export default function SessionMessages({
                             minimal
                             content={
                                 <Menu size={Size.LARGE}>
-                                    <MenuItem text="Open session details" />
+                                    <MenuItem
+                                        onClick={() => setShowDetails(true)}
+                                        text="Open session details"
+                                    />
                                 </Menu>
                             }
                         >
@@ -343,8 +358,13 @@ export default function SessionMessages({
                             </Tooltip>
                         </Popover>
                     </ButtonGroup>
+                    <div style={{ width: 100, height: 40 }}>
+                        <SessionMemberStack
+                            style={{ justifyContent: "flex-end" }}
+                            sessionId={sessionId}
+                        />
+                    </div>
                 </div>
-                <SessionMemberStack sessionId={sessionId} />
             </div>
             <AutoSizer>
                 {({ width, height }) => (

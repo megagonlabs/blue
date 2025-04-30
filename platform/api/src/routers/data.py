@@ -104,10 +104,10 @@ def get_data_source(request: Request, source_name):
 def add_source(request: Request, source_name, data: DataSchema):
     source_db = data_registry.get_source(source_name)
     if source_name in RESERVED_ENTITY_NAMES:
-        return JSONResponse(content={"message": "The name cannot be used."}, status_code=403)
+        return JSONResponse(content={"message": f"\"{source_name}\" cannot be used"}, status_code=403)
     # if source already exists, return 409 conflict error
     if not pydash.is_empty(source_db):
-        return JSONResponse(content={"message": "The name already exists."}, status_code=409)
+        return JSONResponse(content={"message": f"\"{source_db}\" already exists"}, status_code=409)
     acl_enforce(request.state.user['role'], 'data_registry', ['write_all', 'write_own'])
     # TODO: properties
     data_registry.register_source(source_name, request.state.user['uid'], description=data.description, properties={}, rebuild=True)

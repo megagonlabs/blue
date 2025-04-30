@@ -26,4 +26,5 @@ export const USER_ROLES_LOOKUP = {
                 options: { padding: 10 },
             },
         },
-    };
+    },
+    EMPTY_ARRAY = [];

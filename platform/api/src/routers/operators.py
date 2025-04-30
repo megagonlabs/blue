@@ -102,10 +102,10 @@ def get_operator(request: Request, operator_name):
 def add_operator(request: Request, operator_name, operator: OperatorSchema):
     operator_db = operator_registry.get_operator(operator_name)
     if operator_name in RESERVED_ENTITY_NAMES:
-        return JSONResponse(content={"message": "The name cannot be used."}, status_code=403)
+        return JSONResponse(content={"message": f"\"{operator_name}\" cannot be used"}, status_code=403)
     # if operator already exists, return 409 conflict error
     if not pydash.is_empty(operator_db):
-        return JSONResponse(content={"message": "The name already exists."}, status_code=409)
+        return JSONResponse(content={"message": f"\"{operator_db}\" already exists"}, status_code=409)
     acl_enforce(request.state.user['role'], 'operator_registry', ['write_all', 'write_own'])
     # TODO: properties
     operator_registry.add_operator(operator_name, request.state.user['uid'], description=operator.description, properties={}, rebuild=True)

@@ -1,4 +1,5 @@
 import { useAppStore } from "@/stores/app-store";
+import { useGridStore } from "@/stores/grid-layout-store";
 import { useSessionStore } from "@/stores/session-store";
 import { useSocketStore } from "@/stores/socket-store";
 import {
@@ -7,6 +8,7 @@ import {
     Colors,
     Menu,
     MenuItem,
+    Overlay2,
     Popover,
     Size,
     TextArea,
@@ -16,9 +18,11 @@ import { Allotment } from "allotment";
 import _ from "lodash";
 import { createRef, useEffect, useMemo, useState } from "react";
 import { MIN_ALLOTMENT_PANE_SIZE } from "../constants";
+import { useContainerContext } from "../contexts/ContainerContext";
 import { FAIcon } from "../FAIcon";
 import withAutoSizer from "../hocs/withAutoSizer";
 import { useRefDimensions } from "../hooks/useRefDimensions";
+import SessionDetails from "./SessionDetails";
 import SessionMessages from "./SessionMessages";
 import Workspace from "./Workspace";
 function SessionContainer({ width, height, sessionId }) {
@@ -29,6 +33,8 @@ function SessionContainer({ width, height, sessionId }) {
     const observeSession = useSocketStore((state) => state.observeSession);
     const details = _.get(sessions, [sessionId, "details"], {});
     const sessionName = _.get(details, "name", sessionId);
+    const { containerId } = useContainerContext();
+    const removeContainer = useGridStore((state) => state.removeContainer);
     const displayName = useMemo(() => {
         if (_.isEqual(sessionId, sessionName)) {
             const utcSeconds = _.get(details, "created_date");
@@ -41,6 +47,11 @@ function SessionContainer({ width, height, sessionId }) {
     useEffect(() => {
         observeSession(sessionId);
     }, []);
+    useEffect(() => {
+        if (!_.has(sessions, sessionId)) {
+            removeContainer(containerId);
+        }
+    }, [sessions]);
     const sendSessionMessage = () => {
         const trimmedUserMessage = _.trim(userMessage);
         if (_.isEmpty(trimmedUserMessage)) return;
@@ -56,6 +67,7 @@ function SessionContainer({ width, height, sessionId }) {
     const controGroupRef = createRef();
     const { height: controlGroupHeight } = useRefDimensions(controGroupRef);
     const [showWorkspace, setShowWorkspace] = useState(false);
+    const [showDetails, setShowDetails] = useState(false);
     return (
         <div style={{ width, height }}>
             <div
@@ -66,6 +78,24 @@ function SessionContainer({ width, height, sessionId }) {
                     backgroundColor: darkMode ? Colors.BLACK : null,
                 }}
             >
+                <Overlay2
+                    onClose={() => setShowDetails(false)}
+                    isOpen={showDetails}
+                    usePortal={false}
+                    enforceFocus={false}
+                    transitionDuration={0}
+                >
+                    <div
+                        className="custom-card center-center"
+                        style={{
+                            width: 650,
+                            height: "calc(100% - 40px)",
+                            maxWidth: "calc(100% - 40px)",
+                        }}
+                    >
+                        <SessionDetails sessionId={sessionId} />
+                    </div>
+                </Overlay2>
                 <div style={{ height: `calc(100% - ${controlGroupHeight}px)` }}>
                     <Allotment separator={showWorkspace}>
                         <Allotment.Pane
@@ -76,6 +106,7 @@ function SessionContainer({ width, height, sessionId }) {
                         </Allotment.Pane>
                         <Allotment.Pane minSize={MIN_ALLOTMENT_PANE_SIZE}>
                             <SessionMessages
+                                setShowDetails={setShowDetails}
                                 sessionId={sessionId}
                                 showWorkspace={showWorkspace}
                                 setShowWorkspace={setShowWorkspace}
@@ -102,7 +133,7 @@ function SessionContainer({ width, height, sessionId }) {
                                             icon={
                                                 <FAIcon
                                                     icon={faCircleA}
-                                                    style={{ marginRight: 5 }}
+                                                    style={{ marginRight: 3 }}
                                                 />
                                             }
                                             text="Agents"

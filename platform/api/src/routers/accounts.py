@@ -60,7 +60,7 @@ def signout(request: Request):
         return response
     except auth.InvalidSessionCookieError:
         return JSONResponse(
-            content={"message": "Session cookie is invalid, epxpired or revoked"},
+            content={"message": "Session cookie is invalid, epxpired or revoked."},
             status_code=401,
         )
 
@@ -74,7 +74,7 @@ async def signin(request: Request):
         status_code=401,
     )
     if pydash.is_empty(id_token):
-        return JSONResponse(content={"message": "Illegal ID token provided: ID token must be a non-empty string."}, status_code=400)
+        return JSONResponse(content={"message": "Illegal ID token provided: ID token must be a non-empty string"}, status_code=400)
     try:
         if not pydash.is_empty(FIREBASE_SERVICE_CRED):
             decoded_claims = auth.verify_id_token(id_token)
@@ -139,7 +139,7 @@ async def signin(request: Request):
             return response
         return ERROR_RESPONSE
     except auth.InvalidIdTokenError:
-        return JSONResponse(content={"message": "The provided ID token is not a valid Firebase ID token."}, status_code=401)
+        return JSONResponse(content={"message": "ID token is not a valid Firebase ID token."}, status_code=401)
     except exceptions.FirebaseError:
         return ERROR_RESPONSE
 
@@ -149,11 +149,11 @@ async def signin_cli(request: Request):
     payload = await request.json()
     id_token = pydash.objects.get(payload, "id_token", "")
     ERROR_RESPONSE = JSONResponse(
-        content={"message": "Failed to create a session cookie"},
+        content={"message": "Failed to create session cookie"},
         status_code=401,
     )
     if pydash.is_empty(id_token):
-        return JSONResponse(content={"message": "Illegal ID token provided: ID token must be a non-empty string."}, status_code=400)
+        return JSONResponse(content={"message": "Illegal ID token provided: ID token must be a non-empty string"}, status_code=400)
     try:
         if not pydash.is_empty(FIREBASE_SERVICE_CRED):
             decoded_claims = auth.verify_id_token(id_token)
@@ -176,7 +176,7 @@ async def signin_cli(request: Request):
             return JSONResponse(content={"cookie": session_cookie, "uid": decoded_claims['uid']})
         return ERROR_RESPONSE
     except auth.InvalidIdTokenError:
-        return JSONResponse(content={"message": "The provided ID token is not a valid Firebase ID token."}, status_code=401)
+        return JSONResponse(content={"message": "ID token is not a valid Firebase ID token."}, status_code=401)
     except exceptions.FirebaseError:
         return ERROR_RESPONSE
 
@@ -249,6 +249,6 @@ def update_user_role(request: Request, uid, role_name):
     acl_enforce(request.state.user['role'], 'platform_users', 'write_all')
     # preventive measure
     if pydash.is_equal(uid, pydash.objects.get(request, 'state.user.uid', None)):
-        return JSONResponse(content={"message": "Unable to change the role."}, status_code=400)
+        return JSONResponse(content={"message": "Unable to change role"}, status_code=400)
     p.set_metadata(f'users.{uid}.role', role_name)
     return JSONResponse(content={"message": "Success"})

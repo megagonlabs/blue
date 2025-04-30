@@ -34,10 +34,10 @@ export default function SessionMemberStack({ sessionId, style }) {
             ref={memberStackref}
             className="full-parent-width"
             style={{
-                ...style,
                 display: "flex",
                 gap: 5,
                 alignItems: "center",
+                ...style,
             }}
         >
             {_.slice(members, 0, size).map((uid) => {

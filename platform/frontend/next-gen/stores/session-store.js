@@ -14,7 +14,7 @@ export const useSessionStore = create((set, get) => ({
     addNewSession: (session) => {
         const sessionId = _.get(session, "id", null);
         const { sessionIds } = get();
-        if (_.includes(sessionIds, sessionId)) return;
+        if ((!_.isNull(sessionId), _.includes(sessionIds, sessionId))) return;
         set((state) => ({
             sessionIds: [sessionId, ...state.sessionIds],
             sessions: {
@@ -28,6 +28,23 @@ export const useSessionStore = create((set, get) => ({
                 },
             },
         }));
+    },
+    removeSession: (sessionId) => {
+        const { sessions, sessionIds } = clone(get());
+        _.unset(sessions, sessionId);
+        _.pull(sessionIds, sessionId);
+        set({ sessions, sessionIds });
+    },
+    setSessionDetails: ({ sessionId, fields }) => {
+        // fields: list of objects
+        // elements:  { path, value }
+        const { sessions } = clone(get());
+        let details = _.get(sessions, [sessionId, "details"], {});
+        for (let i = 0; i < _.size(fields); i++) {
+            _.set(details, fields[i].path, fields[i].value);
+        }
+        _.set(sessions, [sessionId, "details"], details);
+        set({ sessions });
     },
     createNewSession: (agentGroup = null) => {
         let url = "/sessions/session";
@@ -44,9 +61,23 @@ export const useSessionStore = create((set, get) => ({
         );
         axios.get("/sessions", { params: { my_sessions } }).then((response) => {
             const sessions = _.get(response, "data.results", []);
+            let responseSessionIds = [];
             for (let i = 0; i < _.size(sessions); i++) {
+                const sessionId = _.get(sessions[i], "id", null);
+                if (!_.isNull(sessionId)) {
+                    responseSessionIds.push(sessionId);
+                }
                 addNewSession(sessions[i]);
             }
+            const { sessions: stateSessions, sessionIds } = clone(get());
+            const deletedSessionIds = _.difference(
+                sessionIds,
+                responseSessionIds
+            );
+            for (let i = 0; i < _.size(deletedSessionIds); i++) {
+                _.unset(stateSessions, deletedSessionIds[i]);
+            }
+            set({ sessions: stateSessions, sessionIds: responseSessionIds });
         });
     },
     removeWorkspaceMessage: ({ sessionId, index }) => {

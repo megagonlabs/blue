@@ -1,3 +1,4 @@
+import { ContainerContextProvider } from "@/components/contexts/ContainerContext";
 import { FAIcon } from "@/components/FAIcon";
 import { useGridStore } from "@/stores/grid-layout-store";
 import {
@@ -10,16 +11,36 @@ import {
 import { faXmark } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import classNames from "classnames";
 import _ from "lodash";
+import { forwardRef } from "react";
 import RGL, { WidthProvider } from "react-grid-layout";
+import { useShallow } from "zustand/react/shallow";
 const ReactGridLayout = WidthProvider(RGL);
+const CustomResizeHandle = forwardRef(
+    ({ handleAxis, className, ...props }, ref) => {
+        return (
+            <div
+                ref={ref}
+                className={`react-resizable-handle react-resizable-handle-${handleAxis} z-index-21`}
+                {...props}
+            />
+        );
+    }
+);
 export default function Home() {
-    const layout = useGridStore((state) => state.layout);
-    const setLayout = useGridStore((state) => state.setLayout);
-    const containers = useGridStore((state) => state.containers);
-    const removeContainer = useGridStore((state) => state.removeContainer);
+    const { layout, setLayout, containers, removeContainer } = useGridStore(
+        useShallow((state) => ({
+            layout: state.layout,
+            setLayout: state.setLayout,
+            containers: state.containers,
+            removeContainer: state.removeContainer,
+        }))
+    );
     return (
         <div className="full-parent-dimension" style={{ overflowY: "auto" }}>
             <ReactGridLayout
+                resizeHandle={(handleAxis, ref) => (
+                    <CustomResizeHandle ref={ref} handleAxis={handleAxis} />
+                )}
                 draggableHandle=".react-grid-drag-handle"
                 layout={layout}
                 resizeHandles={["sw", "nw", "se", "ne"]}
@@ -68,7 +89,15 @@ export default function Home() {
                             className="overflow-hidden grid-container-boundary"
                             style={{ height: "calc(100% - 45px)" }}
                         >
-                            {_.get(containers, [element.i, "content"], null)}
+                            <ContainerContextProvider
+                                value={{ containerId: element.i }}
+                            >
+                                {_.get(
+                                    containers,
+                                    [element.i, "content"],
+                                    null
+                                )}
+                            </ContainerContextProvider>
                         </div>
                     </div>
                 ))}

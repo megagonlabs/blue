@@ -223,9 +223,9 @@ def add_member_to_session(request: Request, session_id, uid):
     session = p.get_session(session_id)
     session_dict = session.to_dict()
     session_acl_enforce(request, session_dict, write=True)
-    owner = pydash.objects.get(session_dict, 'owner', None)
+    owner = pydash.objects.get(session_dict, 'created_by', None)
     if pydash.is_equal(owner, uid):
-        return JSONResponse(status_code=400, content={"message": "Unable to add the owner as a member."})
+        return JSONResponse(status_code=400, content={"message": "Unable to add owner as member"})
     session.set_metadata(f'members.{uid}', True)
     p.set_metadata(f'users.{uid}.sessions.member.{session_id}', True)
     return JSONResponse(content={"message": "Success"})
