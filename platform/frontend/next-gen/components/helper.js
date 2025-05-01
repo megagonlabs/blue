@@ -8,6 +8,7 @@ const classNames = require("classnames");
 const { FAIcon } = require("./FAIcon");
 const { Intent, ProgressBar, Classes } = require("@blueprintjs/core");
 const copy = require("copy-to-clipboard");
+const { default: transform } = require("css-to-react-native");
 const renderProgress = (progress = 0, requestError = false) => {
     return {
         icon: <FAIcon icon={faPenSwirl} />,
@@ -112,6 +113,13 @@ module.exports = {
         return tasks;
     },
     showAxiosErrorToast,
+    convertCss: (style) => {
+        try {
+            return transform(Object.entries(style));
+        } catch (error) {
+            return style;
+        }
+    },
     settlePromises: (tasks, callback) => {
         (async () => {
             let error = false;

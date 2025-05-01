@@ -81,7 +81,6 @@ export default function RegistryCard({ entity }) {
                     height: 40,
                     width: 40,
                     display: "flex",
-                    borderRadius: 2,
                     justifyContent: "center",
                     alignItems: "center",
                     backgroundColor: Colors.WHITE,

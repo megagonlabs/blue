@@ -33,17 +33,24 @@ export default function JsonEditor({
     controlStrip = {},
     className = [],
     onSave = null,
+    setBack = null,
     schema = null,
     useMinimap = true,
-    reset = false,
+    breaker = true,
 }) {
-    const original = useRef(jsonObject);
     const jsonString = JSON.stringify(jsonObject, null, 4);
     const editor = useRef();
     const [editorView, setEditorView] = useState(null);
     const darkMode = useAppStore((state) => state.darkMode);
     const [error, setError] = useState(false);
     const [doc, setDoc] = useState(jsonString);
+    useEffect(() => {
+        try {
+            if (_.isFunction(setBack)) {
+                setBack(JSON.parse(doc));
+            }
+        } catch (error) {}
+    }, [doc]);
     const themeCompartment = useRef(new Compartment());
     const readOnlyCompartment = useRef(new Compartment());
     const theme = darkMode
@@ -86,21 +93,24 @@ export default function JsonEditor({
             ],
         });
     }, [darkMode, loading]);
-    const overwrite = (value) => {
+    const overwrite = (object, string) => {
         if (_.isNull(editorView)) return;
         editorView.dispatch({
             changes: {
                 from: 0,
                 to: _.size(editorView.state.doc),
-                insert: value,
+                insert: string,
             },
         });
     };
     useEffect(() => {
-        if (jsonObject !== original.current) {
-            overwrite(jsonString);
-        }
-    }, [jsonObject, reset]);
+        try {
+            if (!breaker.current || !_.isEqual(jsonObject, JSON.parse(doc))) {
+                breaker.current = true;
+                overwrite(jsonObject, jsonString);
+            }
+        } catch (error) {}
+    }, [jsonObject, breaker]);
     useEffect(() => {
         let create = (view) => {
             const dom = document.createElement("div");
@@ -174,6 +184,7 @@ export default function JsonEditor({
                             onClick={() => {
                                 try {
                                     overwrite(
+                                        JSON.stringify(doc),
                                         jsonFormatter.format(doc, TAB_INDENT)
                                     );
                                 } catch (error) {

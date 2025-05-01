@@ -9,6 +9,7 @@ import {
     H2,
     HTMLTable,
     Pre,
+    Size,
 } from "@blueprintjs/core";
 import classNames from "classnames";
 import { useState } from "react";
@@ -101,20 +102,20 @@ export default function TableDoc() {
                 <Card style={{ padding: 10 }}>
                     <Checkbox
                         onChange={(event) => setCompact(event.target.checked)}
-                        size="large"
+                        size={Size.LARGE}
                     >
                         Compact
                     </Checkbox>
                     <Checkbox
                         onChange={(event) => setBordered(event.target.checked)}
-                        size="large"
+                        size={Size.LARGE}
                     >
                         Bordered
                     </Checkbox>
                     <Checkbox
                         className="margin-0"
                         onChange={(event) => setStriped(event.target.checked)}
-                        size="large"
+                        size={Size.LARGE}
                     >
                         Striped
                     </Checkbox>

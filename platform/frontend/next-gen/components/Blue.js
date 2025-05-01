@@ -284,7 +284,7 @@ export default function Blue({ children }) {
                                                             />
                                                         }
                                                     />
-                                                    <MenuDivider title="Administrator" />
+                                                    <MenuDivider title="Platform" />
                                                     <MenuItem
                                                         onClick={() =>
                                                             addContainer({
