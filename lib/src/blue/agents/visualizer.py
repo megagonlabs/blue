@@ -105,8 +105,26 @@ class VisualizerAgent(Agent):
         # submit plan
         p.submit(worker)
 
+    def generate_template(self, query_results, name=None, worker=None, to_param_prefix="VIS_RESULTS_"):
+        if worker == None:
+            worker = self.create_worker(None)
+
+        # progress
+        worker.write_progress(progress_id=worker.sid, label='Visualizing :' + str(query_results), value=self.current_step/self.num_steps)
+
+        # plan
+        p = Plan(scope=worker.prefix)
+        # set input
+        p.define_input(name, value=query_results)
+        # set plan
+        p.connect_input_to_agent(from_input=name, to_agent="OPENAI___VISUALIZER")
+        p.connect_agent_to_agent(from_agent="OPENAI___VISUALIZER", to_agent=self.name, to_agent_input=to_param_prefix + name)
+        
+        # submit plan
+        p.submit(worker)      
+
     
-    def render_vis(self, properties=None, worker=None):
+    def render_vis(self, template=None, properties=None, worker=None):
 
         if worker == None:
             worker = self.create_worker(None)
@@ -121,7 +139,9 @@ class VisualizerAgent(Agent):
         if session_data is None:
             session_data = {}
 
-        template = self.properties['template']
+        if template is None:
+            template = self.properties['template']
+
         if type(template) is dict:
             template = json.dumps(template)
 
@@ -233,12 +253,21 @@ class VisualizerAgent(Agent):
 
                     worker.write_progress(progress_id=worker.sid, label='Received query results: ' + q, value=self.current_step/self.num_steps)
 
-                    if len(self.todos) == 0:
-                        if len(query_results) == 0:
-                            self.write_to_new_stream(worker, "No results...", "TEXT")
-                            worker.write_progress(progress_id=worker.sid, label='Done...', value=1.0)
-                        else:
-                            self.render_vis(properties=properties, worker=worker)
+                    # for auto-template create a vis for each question/query
+                    auto_template = False 
+
+                    if "auto_template" in properties:
+                        auto_template = properties["auto_template"]
+
+                    if auto_template:
+                        self.generate_template(data, name=query)
+                    else:
+                        if len(self.todos) == 0:
+                            if len(query_results) == 0:
+                                self.write_to_new_stream(worker, "No results...", "TEXT")
+                                worker.write_progress(progress_id=worker.sid, label='Done...', value=1.0)
+                            else:
+                                self.render_vis(properties=properties, worker=worker)
                 else:
                     logging.info("nothing found")
         elif input.find("QUESTION_RESULTS_") == 0:
@@ -265,11 +294,31 @@ class VisualizerAgent(Agent):
 
                     worker.write_progress(progress_id=worker.sid, label='Received question results: ' + q, value=self.current_step/self.num_steps)
 
-                    if len(self.todos) == 0:
-                        if len(question_results) == 0:
-                            self.write_to_new_stream(worker, "No results...", "TEXT")
-                            worker.write_progress(progress_id=worker.sid, label='Done...', value=1.0)
-                        else:
-                            self.render_vis(properties=properties, worker=worker)
+                    # for auto-template create a vis for each question/query
+                    auto_template = False 
+
+                    if "auto_template" in properties:
+                        auto_template = properties["auto_template"]
+
+                    if auto_template:
+                        self.generate_template(data, name=question)
+                    else:
+                        if len(self.todos) == 0:
+                            if len(question_results) == 0:
+                                self.write_to_new_stream(worker, "No results...", "TEXT")
+                                worker.write_progress(progress_id=worker.sid, label='Done...', value=1.0)
+                            else:
+                                self.render_vis(properties=properties, worker=worker)
                 else:
                     logging.info("nothing found")
+
+        elif input.find("VIS_RESULTS_") == 0:
+            if message.isData():
+                stream = message.getStream()
+                
+                # get q 
+                q = input[len("VIS_RESULTS_"):]
+
+                template = message.getData()
+
+                self.render_vis(template=template, properties=properties, worker=worker)
