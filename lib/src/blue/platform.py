@@ -198,7 +198,7 @@ class Platform:
         self.connection.json().set(
             self._get_metadata_namespace(),
             "$",
-            {'users': {}, "settings": {}},
+            {'users': {}, "settings": {"allowed_emails": {}}},
             nx=True,
         )
 

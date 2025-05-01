@@ -1,15 +1,24 @@
+import EmailAllowlist from "@/components/admin/configs/EmailAllowlist";
 import SessionConfigs from "@/components/admin/configs/SessionConfigs";
 import { faIcon } from "@/components/icon";
-import { Button, ButtonGroup, Card, H4 } from "@blueprintjs/core";
-import { faInboxFull } from "@fortawesome/sharp-duotone-solid-svg-icons";
+import { Alignment, Button, ButtonGroup, Card, H4 } from "@blueprintjs/core";
+import {
+    faEnvelopes,
+    faInboxFull,
+} from "@fortawesome/sharp-duotone-solid-svg-icons";
 import axios from "axios";
 import _ from "lodash";
 import { useEffect, useState } from "react";
 const INDEXES = [
     {
-        key: "session",
+        key: "sessions",
         text: "Sessions",
         icon: faInboxFull,
+    },
+    {
+        key: "email-allowlist",
+        text: "Email Allowlist",
+        icon: faEnvelopes,
     },
 ];
 export default function Configs() {
@@ -44,7 +53,12 @@ export default function Configs() {
             <Card
                 style={{ padding: 5, position: "absolute", top: 70, left: 20 }}
             >
-                <ButtonGroup vertical size="large" variant="minimal">
+                <ButtonGroup
+                    alignText={Alignment.START}
+                    vertical
+                    size="large"
+                    variant="minimal"
+                >
                     {INDEXES.map(({ key, text, icon }) => (
                         <Button
                             icon={faIcon({
@@ -74,18 +88,20 @@ export default function Configs() {
                 style={{
                     overflowY: "auto",
                     height: "calc(100% - 50px)",
-                    padding: "20px 20px 20px 170.55px",
+                    padding: "20px 20px 20px 208.61px",
                 }}
             >
                 <div
-                    className="admin-configs-session"
+                    className="admin-configs-sessions"
                     style={{ scrollMargin: 20 }}
                 >
-                    <SessionConfigs
-                        loading={loading}
-                        configs={configs}
-                        setLoading={setLoading}
-                    />
+                    <SessionConfigs loading={loading} configs={configs} />
+                </div>
+                <div
+                    className="admin-configs-email-allowlist"
+                    style={{ scrollMargin: 20, marginTop: 20 }}
+                >
+                    <EmailAllowlist loading={loading} configs={configs} />
                 </div>
             </div>
         </>

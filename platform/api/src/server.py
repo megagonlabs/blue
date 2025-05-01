@@ -33,7 +33,7 @@ db_port = PROPERTIES['db.port']
 connection = redis.Redis(host=db_host, port=db_port, decode_responses=True)
 
 ###### API Routers
-from constant import EMAIL_DOMAIN_ADDRESS_REGEXP, InvalidRequestJson, PermissionDenied, verify_google_id_token
+from constant import EMAIL_DOMAIN_ADDRESS_REGEXP, InvalidRequestJson, PermissionDenied, is_email_allowed, verify_google_id_token
 from routers import agents, data, models, operators, sessions, containers, platform, accounts, status
 
 from ConnectionManager import ConnectionManager
@@ -167,6 +167,8 @@ async def session_verification(request: Request, call_next):
                 else:
                     decoded_claims = verify_google_id_token(session_cookie, client_id=FIREBASE_CLIENT_ID, issuer=f'https://securetoken.google.com/{FIREBASE_CLIENT_ID}')
                 email = decoded_claims["email"]
+                if not is_email_allowed(email):
+                    raise auth.InvalidSessionCookieError("Invalid account")
                 email_domain = re.search(EMAIL_DOMAIN_ADDRESS_REGEXP, email).group(1)
                 profile = {
                     "name": decoded_claims["name"],

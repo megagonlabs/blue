@@ -19,7 +19,6 @@ import {
     ButtonGroup,
     ButtonVariant,
     Callout,
-    Card,
     Classes,
     Collapse,
     Intent,
@@ -82,25 +81,25 @@ export default function WorkspaceMessage({
                         render: ({ container }) => {
                             const root = createRoot(container);
                             root.render(
-                                <div style={{ padding: 1 }}>
-                                    <Card
-                                        style={{
-                                            maxWidth: 200,
-                                            maxHeight: 200,
-                                            overflow: "hidden",
-                                        }}
-                                        className={classNames(
-                                            Classes.TEXT_OVERFLOW_ELLIPSIS,
-                                            { [Classes.DARK]: darkMode }
-                                        )}
-                                    >
-                                        <MessageContent
-                                            isPreview={true}
-                                            contentType={contentType}
-                                            streamData={streamData}
-                                            hasError={hasError}
-                                        />
-                                    </Card>
+                                <div
+                                    style={{
+                                        maxWidth: 200,
+                                        maxHeight: 200,
+                                        padding: 20,
+                                        overflow: "hidden",
+                                    }}
+                                    className={classNames(
+                                        "custom-card",
+                                        Classes.TEXT_OVERFLOW_ELLIPSIS,
+                                        { [Classes.DARK]: darkMode }
+                                    )}
+                                >
+                                    <MessageContent
+                                        isPreview={true}
+                                        contentType={contentType}
+                                        streamData={streamData}
+                                        hasError={hasError}
+                                    />
                                 </div>
                             );
                             return () => root.unmount();
@@ -171,7 +170,12 @@ export default function WorkspaceMessage({
                             style={{ backgroundColor: "transparent" }}
                             intent={Intent.PRIMARY}
                             size={Size.LARGE}
-                            icon={<FAIcon icon={faMessage} />}
+                            icon={
+                                <FAIcon
+                                    icon={faMessage}
+                                    style={{ marginRight: 10 }}
+                                />
+                            }
                         >
                             Message
                         </Tag>

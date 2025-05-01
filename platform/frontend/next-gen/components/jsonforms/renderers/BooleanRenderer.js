@@ -1,6 +1,5 @@
-import { convertCss, sendSocketMessage } from "@/components/helper";
-import { useSocket } from "@/components/hooks/useSocket";
-import { Checkbox, Switch } from "@blueprintjs/core";
+import { convertCss } from "@/components/helper";
+import { Checkbox, Size, Switch } from "@blueprintjs/core";
 import { isBooleanControl, rankWith } from "@jsonforms/core";
 import { withJsonFormsControlProps } from "@jsonforms/react";
 import _ from "lodash";
@@ -12,29 +11,14 @@ const BooleanRenderer = ({
     required,
     id,
 }) => {
-    const { socket } = useSocket();
     const style = convertCss(_.get(uischema, "props.style", {}));
     const label = _.get(uischema, "label", null);
-    const large = _.get(uischema, "props.large", null);
+    const large = _.get(uischema, "props.large", false);
     const labelElement = _.isString(label) ? (
         <label className={required ? "required" : null}>{label}</label>
     ) : null;
     const handleOnChange = (event) => {
         handleChange(path, event.target.checked);
-        if (!_.isEqual(socket.readyState, WebSocket.OPEN)) return;
-        setTimeout(() => {
-            sendSocketMessage(
-                socket,
-                JSON.stringify({
-                    type: "INTERACTIVE_EVENT_MESSAGE",
-                    stream_id: _.get(uischema, "props.streamId", null),
-                    path: path,
-                    form_id: _.get(uischema, "props.formId", null),
-                    value: event.target.checked,
-                    timestamp: performance.timeOrigin + performance.now(),
-                })
-            );
-        }, 0);
     };
     if (_.get(uischema, "props.switch", false)) {
         return (
@@ -42,7 +26,7 @@ const BooleanRenderer = ({
                 checked={data}
                 label={labelElement}
                 style={style}
-                size={large ? "large" : null}
+                size={large ? Size.LARGE : null}
                 onChange={handleOnChange}
             />
         );
@@ -53,7 +37,7 @@ const BooleanRenderer = ({
             checked={data}
             label={labelElement}
             style={style}
-            size={large ? "large" : null}
+            size={large ? Size.LARGE : null}
             onChange={handleOnChange}
         />
     );

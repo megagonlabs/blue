@@ -32,11 +32,7 @@ export default function SessionSettings({ sessionId }) {
             <H3>Danger Zone</H3>
             <div
                 className="custom-card"
-                style={{
-                    border: `1px solid ${Colors.RED3}`,
-                    padding: 20,
-                    borderRadius: 2,
-                }}
+                style={{ border: `1px solid ${Colors.RED3}`, padding: 20 }}
             >
                 <div>
                     <div style={{ fontWeight: 600 }}>Delete this session</div>

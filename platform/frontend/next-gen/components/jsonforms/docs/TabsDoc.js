@@ -3,6 +3,7 @@ import * as docProps from "@/components/jsonforms/docs/constant";
 import {
     Button,
     ButtonGroup,
+    ButtonVariant,
     Callout,
     Card,
     Classes,
@@ -12,8 +13,6 @@ import {
     HTMLTable,
     Intent,
     Pre,
-    Section,
-    SectionCard,
 } from "@blueprintjs/core";
 import classNames from "classnames";
 import { useState } from "react";
@@ -80,7 +79,7 @@ export default function TabsDoc() {
                         overscrollBehavior: "contain",
                     }}
                 >
-                    <ButtonGroup variant="minimal">
+                    <ButtonGroup variant={ButtonVariant.MINIMAL}>
                         <Button
                             active={_.isEqual(tab, "tab1")}
                             text="Tab 1"
@@ -93,11 +92,12 @@ export default function TabsDoc() {
                         />
                     </ButtonGroup>
                 </Card>
-                <Section>
-                    <SectionCard>
-                        Tab {_.isEqual(tab, "tab1") ? 1 : 2} content
-                    </SectionCard>
-                </Section>
+                <div
+                    className="full-parent-width custom-card"
+                    style={{ padding: 20 }}
+                >
+                    Tab {_.isEqual(tab, "tab1") ? 1 : 2} content
+                </div>
             </Callout>
             <Callout
                 style={{
@@ -107,7 +107,7 @@ export default function TabsDoc() {
                 }}
             >
                 <Card style={{ padding: 5 }}>
-                    <ButtonGroup vertical variant="minimal">
+                    <ButtonGroup vertical variant={ButtonVariant.MINIMAL}>
                         <Button
                             ellipsizeText
                             active={_.isEqual(tab, "tab1")}
@@ -122,11 +122,12 @@ export default function TabsDoc() {
                         />
                     </ButtonGroup>
                 </Card>
-                <Section>
-                    <SectionCard>
-                        Tab {_.isEqual(tab, "tab1") ? 1 : 2} content
-                    </SectionCard>
-                </Section>
+                <div
+                    className="full-parent-width custom-card"
+                    style={{ padding: 20 }}
+                >
+                    Tab {_.isEqual(tab, "tab1") ? 1 : 2} content
+                </div>
             </Callout>
             <H2>Props</H2>
             <HTMLTable className="docs-prop-table" style={{ width: "100%" }}>

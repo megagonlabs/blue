@@ -7,6 +7,7 @@ import json
 import base64
 import time
 import datetime
+from blue.utils.string_utils import encode_websafe_no_padding
 import pydash
 
 ###### FastAPI, Auth, Web
@@ -15,7 +16,7 @@ from fastapi.responses import JSONResponse
 import firebase_admin
 from firebase_admin import auth, credentials, exceptions
 
-from constant import EMAIL_DOMAIN_ADDRESS_REGEXP, account_id_header, acl_enforce, verify_google_id_token
+from constant import EMAIL_DOMAIN_ADDRESS_REGEXP, account_id_header, acl_enforce, is_email_allowed, verify_google_id_token
 from fastapi import Depends, Request
 from APIRouter import APIRouter
 from fastapi.responses import JSONResponse
@@ -105,9 +106,8 @@ async def signin(request: Request):
         #     "uid": "firebase_uid",
         # }
         email = decoded_claims["email"]
-        email_domain = re.search(EMAIL_DOMAIN_ADDRESS_REGEXP, email).group(1)
-        if email_domain not in allowed_domains:
-            return JSONResponse(content={"message": "Invalid email domain"}, status_code=403)
+        if not is_email_allowed(email):
+            return JSONResponse(content={"message": "Invalid account"}, status_code=403)
         # Only process if the user signed in within the last 5 minutes.
         if time.time() - decoded_claims["auth_time"] < 5 * 60:
             # Set session expiration to 14 days.
@@ -119,6 +119,7 @@ async def signin(request: Request):
             else:
                 session_cookie = id_token
                 expires_in = datetime.timedelta(hours=1)
+            email_domain = re.search(EMAIL_DOMAIN_ADDRESS_REGEXP, email).group(1)
             response = JSONResponse(
                 content={
                     "result": {
@@ -163,9 +164,8 @@ async def signin_cli(request: Request):
             except Exception:
                 return ERROR_RESPONSE
         email = decoded_claims["email"]
-        email_domain = re.search(EMAIL_DOMAIN_ADDRESS_REGEXP, email).group(1)
-        if email_domain not in allowed_domains:
-            return JSONResponse(content={"message": "Invalid email domain"}, status_code=403)
+        if not is_email_allowed(email):
+            return JSONResponse(content={"message": "Invalid account"}, status_code=403)
         if time.time() - decoded_claims["auth_time"] < 5 * 60:
             expires_in = datetime.timedelta(hours=10)
             if not pydash.is_empty(FIREBASE_SERVICE_CRED):
@@ -203,7 +203,25 @@ def get_profile(request: Request):
     )
 
 
-@router.get('/profile/{uid}')
+@router.get('/profile/email/{email}')
+def get_profile_by_email(request: Request, email):
+    acl_enforce(request.state.user['role'], 'platform_users', 'read_all')
+    user = {}
+    try:
+        if email is not None:
+            if not pydash.is_empty(FIREBASE_SERVICE_CRED):
+                user_record = auth.get_user_by_email(email)
+                user.update({'uid': user_record.uid, 'email': user_record.email, 'picture': user_record.photo_url, 'name': user_record.display_name})
+            else:
+                return JSONResponse(status_code=501, content={"message": 'The server lacks the ability to fulfill the request because environment variable "FIREBASE_SERVICE_CRED" is not configured.'})
+    except auth.UserNotFoundError as ex:
+        return JSONResponse(content={"message": "No user record found for the given identifier."}, status_code=400)
+    except ValueError as ex:
+        print(ex)
+    return JSONResponse(content={"user": user})
+
+
+@router.get('/profile/uid/{uid}')
 def get_profile_by_uid(request: Request, uid):
     acl_enforce(request.state.user['role'], 'platform_users', 'read_all')
     user = {}
@@ -237,7 +255,7 @@ def get_users(request: Request, keyword: str = ""):
             'picture': user['picture'],
         }
         if re.search(rx, user['name']) is not None:
-            # add user role value when querying with admin role
+            # add user role value when querying with administrator role
             if request.state.user['role'] == 'admin':
                 temp['role'] = user['role']
             result.append(temp)

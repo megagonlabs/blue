@@ -1,4 +1,5 @@
 import { useAppStore } from "@/stores/app-store";
+import { useAuthStore } from "@/stores/auth-store";
 import { useSessionStore } from "@/stores/session-store";
 import {
     Button,
@@ -38,17 +39,16 @@ function SessionList({ width, height }) {
         },
         initial: { x: -200, opacity: 1, display: "none" },
     };
+    const user = useAuthStore((state) => state.user);
     const darkMode = useAppStore((state) => state.darkMode);
-    const { sessionIds, getSessions, sessions, filter, pinnedSessionIds } =
-        useSessionStore(
-            useShallow((state) => ({
-                sessionIds: state.sessionIds,
-                getSessions: state.getSessions,
-                sessions: state.sessions,
-                filter: state.filter,
-                pinnedSessionIds: state.pinnedSessionIds,
-            }))
-        );
+    const { sessionIds, getSessions, sessions, filter } = useSessionStore(
+        useShallow((state) => ({
+            sessionIds: state.sessionIds,
+            getSessions: state.getSessions,
+            sessions: state.sessions,
+            filter: state.filter,
+        }))
+    );
     const allSessions = useMemo(() => {
         let result = sessionIds
             .filter((id) => {
@@ -78,16 +78,24 @@ function SessionList({ width, height }) {
                 }
                 return false;
             })
-            .sort((l, r) => {
-                let lPinned = pinnedSessionIds.has(l),
-                    rPinned = pinnedSessionIds.has(r);
-                return _.isEqual(lPinned, rPinned)
-                    ? _.get(sessions, [r, "details", "created_date"]) -
-                          _.get(sessions, [l, "details", "created_date"])
-                    : rPinned - lPinned;
+            .sort((left, right) => {
+                const leftPinned = _.get(
+                    sessions,
+                    [left, "details", "pinned", user.uid],
+                    false
+                );
+                const rightPinned = _.get(
+                    sessions,
+                    [right, "details", "pinned", user.uid],
+                    false
+                );
+                return _.isEqual(leftPinned, rightPinned)
+                    ? _.get(sessions, [right, "details", "created_date"]) -
+                          _.get(sessions, [left, "details", "created_date"])
+                    : rightPinned - leftPinned;
             });
         return result;
-    }, [sessionIds, filter, pinnedSessionIds, sessions]);
+    }, [sessionIds, filter, sessions]);
     const [showFilter, setShowFilter] = useState(false);
     useEffect(() => {
         getSessions();

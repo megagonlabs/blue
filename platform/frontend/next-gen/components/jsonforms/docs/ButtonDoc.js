@@ -2,6 +2,7 @@ import JsonViewer from "@/components/JsonViewer";
 import * as docProps from "@/components/jsonforms/docs/constant";
 import {
     Button,
+    ButtonVariant,
     Callout,
     Classes,
     Code,
@@ -109,7 +110,7 @@ export default function ButtonDoc() {
                             >
                                 <Button text="outlined: false" />
                                 <Button
-                                    variant="outlined"
+                                    variant={ButtonVariant.MINIMAL}
                                     text="outlined: true"
                                 />
                             </Callout>

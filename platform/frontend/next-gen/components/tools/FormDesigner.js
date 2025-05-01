@@ -4,7 +4,9 @@ import {
     Button,
     ButtonGroup,
     ButtonVariant,
+    Callout,
     Checkbox,
+    Colors,
     Divider,
     Intent,
     Menu,
@@ -12,6 +14,7 @@ import {
     MenuItem,
     Popover,
     Size,
+    Tag,
     Tooltip,
 } from "@blueprintjs/core";
 import {
@@ -24,6 +27,8 @@ import {
     faPlay,
     faTrash,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
+import { JsonForms } from "@jsonforms/react";
+import { vanillaCells } from "@jsonforms/vanilla-renderers";
 import { Allotment } from "allotment";
 import { clone } from "lodash";
 import { createRef, useEffect, useRef, useState } from "react";
@@ -34,6 +39,7 @@ import { MIN_ALLOTMENT_PANE_SIZE } from "../constants";
 import { FAIcon } from "../FAIcon";
 import withAutoSizer from "../hocs/withAutoSizer";
 import DocContainer from "../jsonforms/docs/DocContainer";
+import { JSONFORMS_RENDERERS } from "../jsonforms/renderers";
 const DEFAULT_UI_SCHEMA = { type: "VerticalLayout", elements: [] };
 const DEFAULT_SCHEMA = { type: "object", properties: {} };
 const PANE_BUTTON_PROPS = {
@@ -50,7 +56,7 @@ function FormDesigner({ width, height }) {
     const [schema, setSchema] = useState(clone(DEFAULT_SCHEMA));
     const [data, setData] = useState({});
     const [showData, setShowData] = useState(false);
-    const [reset, setReset] = useState(false);
+    const breaker = useRef(true);
     useEffect(() => {
         if (!idRef.current) {
             idRef.current = uuidv4();
@@ -62,7 +68,9 @@ function FormDesigner({ width, height }) {
                 <ButtonGroup size={Size.LARGE} variant={ButtonVariant.MINIMAL}>
                     <Tooltip placement="bottom-start" content="Re-run">
                         <Button
+                            disabled={!error}
                             intent={Intent.SUCCESS}
+                            onClick={resetError}
                             icon={<FAIcon icon={faPlay} />}
                         />
                     </Tooltip>
@@ -94,7 +102,10 @@ function FormDesigner({ width, height }) {
                         icon={<FAIcon icon={faBookOpenCover} />}
                         text="Docs."
                         onClick={() =>
-                            addContainer("Form Docs.", <DocContainer />)
+                            addContainer({
+                                title: "Form Docs.",
+                                content: <DocContainer />,
+                            })
                         }
                     />
                     <Divider />
@@ -103,7 +114,7 @@ function FormDesigner({ width, height }) {
                         icon={<FAIcon icon={faTrash} />}
                         text="Reset all"
                         onClick={() => {
-                            setReset(true);
+                            breaker.current = false;
                             setData({});
                             setSchema(clone(DEFAULT_SCHEMA));
                             setUischema(clone(DEFAULT_UI_SCHEMA));
@@ -123,33 +134,26 @@ function FormDesigner({ width, height }) {
                                     className="border-bottom"
                                     style={{ padding: 10 }}
                                 >
-                                    <Tooltip
-                                        fill
-                                        placement="bottom-start"
-                                        content={
-                                            "Describes how the form should be rendered"
+                                    <Button
+                                        {...PANE_BUTTON_PROPS}
+                                        endIcon={
+                                            <FAIcon
+                                                icon={faArrowsFromDottedLine}
+                                            />
                                         }
-                                    >
-                                        <Button
-                                            {...PANE_BUTTON_PROPS}
-                                            endIcon={
-                                                <FAIcon
-                                                    icon={
-                                                        faArrowsFromDottedLine
-                                                    }
-                                                />
-                                            }
-                                            text="UI Schema"
-                                        />
-                                    </Tooltip>
+                                        text="UI Schema"
+                                    />
                                 </div>
                                 <div
                                     className="full-parent-height"
                                     style={{ maxHeight: "calc(100% - 51px)" }}
                                 >
                                     <JsonEditor
-                                        reset={reset}
+                                        breaker={breaker}
                                         jsonObject={uischema}
+                                        setBack={(object) => {
+                                            setUischema(object);
+                                        }}
                                     />
                                 </div>
                             </Allotment.Pane>
@@ -158,33 +162,26 @@ function FormDesigner({ width, height }) {
                                     className="border-bottom"
                                     style={{ padding: 10 }}
                                 >
-                                    <Tooltip
-                                        fill
-                                        placement="bottom-start"
-                                        content={
-                                            "Describes the format of underlying data"
+                                    <Button
+                                        {...PANE_BUTTON_PROPS}
+                                        endIcon={
+                                            <FAIcon
+                                                icon={faArrowsFromDottedLine}
+                                            />
                                         }
-                                    >
-                                        <Button
-                                            {...PANE_BUTTON_PROPS}
-                                            endIcon={
-                                                <FAIcon
-                                                    icon={
-                                                        faArrowsFromDottedLine
-                                                    }
-                                                />
-                                            }
-                                            text="Data Schema"
-                                        />
-                                    </Tooltip>
+                                        text="Data Schema"
+                                    />
                                 </div>
                                 <div
                                     className="full-parent-height"
                                     style={{ maxHeight: "calc(100% - 51px)" }}
                                 >
                                     <JsonEditor
-                                        reset={reset}
+                                        breaker={breaker}
                                         jsonObject={schema}
+                                        setBack={(object) => {
+                                            setSchema(object);
+                                        }}
                                     />
                                 </div>
                             </Allotment.Pane>
@@ -219,7 +216,81 @@ function FormDesigner({ width, height }) {
                         <div
                             className="full-parent-dimension"
                             style={{ maxHeight: "calc(100% - 51px)" }}
-                        ></div>
+                        >
+                            <div
+                                className="border-bottom"
+                                style={{
+                                    height: 200,
+                                    overflow: "hidden",
+                                    display: showData ? null : "none",
+                                }}
+                            >
+                                <JsonEditor
+                                    breaker={breaker}
+                                    jsonObject={data}
+                                    setBack={(object) => {
+                                        setData(object);
+                                    }}
+                                />
+                            </div>
+                            <div
+                                style={{
+                                    padding: 20,
+                                    overflowY: "scroll",
+                                    height: `calc(100% - ${
+                                        showData ? 200 : 0
+                                    }px)`,
+                                }}
+                            >
+                                <Callout
+                                    icon={null}
+                                    intent={error ? Intent.DANGER : null}
+                                    style={{
+                                        maxWidth: "100%",
+                                        width: "fit-content",
+                                    }}
+                                >
+                                    <div className="message-bubble-callout-content">
+                                        {!error ? (
+                                            <JsonForms
+                                                schema={schema}
+                                                uischema={uischema}
+                                                data={data}
+                                                cells={vanillaCells}
+                                                renderers={JSONFORMS_RENDERERS}
+                                                onChange={({
+                                                    data,
+                                                    errors,
+                                                }) => {
+                                                    console.log(data, errors);
+                                                    setData(data);
+                                                }}
+                                            />
+                                        ) : (
+                                            <>
+                                                <div>{String(error)}</div>
+                                                <Tag
+                                                    style={{ marginTop: 10 }}
+                                                    minimal
+                                                    size={Size.LARGE}
+                                                >
+                                                    Click
+                                                    <FAIcon
+                                                        icon={faPlay}
+                                                        style={{
+                                                            color: Colors.GREEN2,
+                                                            marginLeft: 10,
+                                                            marginRight: 10,
+                                                        }}
+                                                    />
+                                                    to re-run
+                                                </Tag>
+                                            </>
+                                        )}
+                                    </div>
+                                </Callout>
+                            </div>
+                        </div>
                     </Allotment.Pane>
                 </Allotment>
             </div>

@@ -3,6 +3,9 @@ import { useAuthStore } from "@/stores/auth-store";
 import { useGridStore } from "@/stores/grid-layout-store";
 import { useSessionStore } from "@/stores/session-store";
 import {
+    Button,
+    ButtonGroup,
+    ButtonVariant,
     Callout,
     Card,
     Classes,
@@ -13,12 +16,18 @@ import {
     showContextMenu,
     Size,
 } from "@blueprintjs/core";
-import { faBrowsers } from "@fortawesome/sharp-duotone-solid-svg-icons";
+import {
+    faBrowsers,
+    faThumbTack,
+    faThumbTackSlash,
+} from "@fortawesome/sharp-duotone-solid-svg-icons";
+import axios from "axios";
 import classNames from "classnames";
 import _ from "lodash";
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { FAIcon } from "../FAIcon";
+import { AppToaster } from "../toaster";
 import SessionContainer from "./SessionContainer";
 import SessionDisplayName from "./SessionDisplayName";
 import SessionMemberStack from "./SessionMemberStack";
@@ -35,26 +44,23 @@ export default function SessionCard({ sessionId }) {
     );
     const owner = _.get(details, "created_by");
     const description = _.get(details, "description", "");
-    const handleClose = useCallback(() => {
-        hideContextMenu();
-    }, []);
     const addContainer = useGridStore((state) => state.addContainer);
-    const addSessionContainer = () =>
-        addContainer(
-            <SessionDisplayName sessionId={sessionId} />,
-            <SessionContainer sessionId={sessionId} />
-        );
     const menu = useMemo(
         () => (
-            <Menu size={Size.LARGE} onClick={handleClose}>
+            <Menu size={Size.LARGE} onClick={hideContextMenu}>
                 <MenuItem
                     icon={<FAIcon icon={faBrowsers} />}
                     text="Open in new window"
-                    onClick={addSessionContainer}
+                    onClick={() =>
+                        addContainer({
+                            title: <SessionDisplayName sessionId={sessionId} />,
+                            content: <SessionContainer sessionId={sessionId} />,
+                        })
+                    }
                 />
             </Menu>
         ),
-        [handleClose]
+        [sessionId]
     );
     const handleContextMenu = useCallback(
         (event) => {
@@ -64,14 +70,14 @@ export default function SessionCard({ sessionId }) {
             showContextMenu({
                 isDarkTheme: darkMode,
                 content: menu,
-                onClose: handleClose,
+                onClose: hideContextMenu,
                 targetOffset: {
                     left: event.clientX,
                     top: event.clientY,
                 },
             });
         },
-        [handleClose, menu, darkMode]
+        [darkMode, sessionId]
     );
     const filteredMessages = messages.filter((message) => {
         if (_.get(message, "metadata.ags.WORKSPACE_ONLY")) {
@@ -80,6 +86,8 @@ export default function SessionCard({ sessionId }) {
         return true;
     });
     const user = useAuthStore((state) => state.user);
+    const pinned = _.get(details, ["pinned", owner], false);
+    const [loading, setLoading] = useState(false);
     const lastMessage = useMemo(() => {
         if (!_.isEmpty(filteredMessages)) {
             const last = _.last(filteredMessages);
@@ -94,12 +102,71 @@ export default function SessionCard({ sessionId }) {
         }
         return null;
     }, [user, filteredMessages]);
+    const setSessionDetails = useSessionStore(
+        (state) => state.setSessionDetails
+    );
+    const handlePinSession = () => {
+        setLoading(true);
+        axios
+            .put(`/sessions/session/${sessionId}/${pinned ? "un" : ""}pin`)
+            .then(() => {
+                setSessionDetails({
+                    sessionId,
+                    fields: [{ path: ["pinned", user.uid], value: !pinned }],
+                });
+                AppToaster.show({
+                    icon: (
+                        <FAIcon
+                            icon={!pinned ? faThumbTackSlash : faThumbTack}
+                        />
+                    ),
+                    message: `Session ${pinned ? "un" : ""}pinned`,
+                });
+            })
+            .finally(() => {
+                setLoading(false);
+            });
+    };
     return (
         <Card
             onContextMenu={handleContextMenu}
             className="full-parent-dimension"
             style={{ position: "relative", cursor: "context-menu" }}
         >
+            <div
+                className="full-parent-height session-card-actions"
+                style={{
+                    position: "absolute",
+                    maxHeight: "calc(100% - 2px)",
+                    maxWidth: "calc(100% - 2px)",
+                    right: 1,
+                    top: 1,
+                    width: 200,
+                    zIndex: 1,
+                    padding: 20,
+                    background: darkMode
+                        ? "linear-gradient(to left,  rgba(37,42,49,1) 0%,rgba(37,42,49,1) 100px,rgba(255,255,255,0) 99%,rgba(255,255,255,0) 100%)"
+                        : "linear-gradient(to left,  rgba(255,255,255,1) 0%,rgba(255,255,255,1) 100px,rgba(255,255,255,0) 99%,rgba(255,255,255,0) 100%)",
+                }}
+            >
+                <ButtonGroup
+                    className="vertical-center"
+                    style={{ right: 19 }}
+                    size={Size.LARGE}
+                    variant={ButtonVariant.MINIMAL}
+                >
+                    <Button
+                        loading={loading}
+                        onClick={handlePinSession}
+                        icon={
+                            <FAIcon
+                                icon={pinned ? faThumbTackSlash : faThumbTack}
+                                size={pinned ? 20 : 16}
+                            />
+                        }
+                    />
+                </ButtonGroup>
+            </div>
             <div style={{ position: "absolute", left: 20, top: 20 }}>
                 <UserAvatar userId={owner} />
             </div>

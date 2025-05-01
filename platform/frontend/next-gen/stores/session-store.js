@@ -8,7 +8,6 @@ export const useSessionStore = create((set, get) => ({
     sessions: {},
     sessionIds: [],
     filter: { group: "owner", keyword: "" },
-    pinnedSessionIds: new Set(),
     jsonforms: {},
     progress: {},
     addNewSession: (session) => {

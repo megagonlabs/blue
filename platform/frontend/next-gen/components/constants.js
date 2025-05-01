@@ -1,6 +1,6 @@
 import { Colors } from "@blueprintjs/core";
 export const USER_ROLES_LOOKUP = {
-        admin: { text: "Administrator" },
+        administrator: { text: "Administrator" },
         member: { text: "Member" },
         guest: { text: "Guest" },
         developer: { text: "Developer" },

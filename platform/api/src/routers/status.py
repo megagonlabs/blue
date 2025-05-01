@@ -1,10 +1,10 @@
 import json
 import time
-from fastapi import Depends
+from fastapi import Depends, Request
 from fastapi.responses import StreamingResponse
 from redis import Redis
 from APIRouter import APIRouter
-from constant import END_OF_SSE_SIGNAL, account_id_header
+from constant import END_OF_SSE_SIGNAL, account_id_header, acl_enforce
 from settings import PROPERTIES
 from blue.connection import PooledConnectionFactory
 import asyncio
@@ -17,7 +17,8 @@ connection: Redis = PooledConnectionFactory(properties={'db.host': PROPERTIES["d
 
 
 @router.get("/")
-async def stream_data():
+async def stream_data(request: Request):
+    acl_enforce(request.state.user['role'], 'platform_status', ['read_all'])
 
     async def generate():
         pubsub = connection.pubsub()

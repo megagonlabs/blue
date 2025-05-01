@@ -7,7 +7,7 @@ export const useAgentStore = create((set) => ({
     setState: ({ key, value }) => set({ [key]: value }),
     agents: [],
     metadata: {},
-    setMetadata: (key, data) => {
+    setMetadata: ({ key, data }) => {
         set((state) => ({ metadata: { ...state.metadata, [key]: data } }));
     },
     getAgents: () => {

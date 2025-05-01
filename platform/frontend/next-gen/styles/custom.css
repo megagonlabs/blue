@@ -23,6 +23,7 @@
     border-right: 1px solid var(--border-color);
     border-left: 1px solid var(--border-color);
     background-color: var(--colors-white);
+    border-radius: 2px;
 }
 .bp5-dark .custom-card {
     border-top: 1px solid var(--border-color-dark);
@@ -30,6 +31,7 @@
     border-right: 1px solid var(--border-color-dark);
     border-left: 1px solid var(--border-color-dark);
     background-color: var(--colors-dark-gray-2);
+    border-radius: 2px;
 }
 .responsive-container {
     display: flex;
@@ -72,6 +74,12 @@
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
+}
+.vertical-center {
+    position: absolute;
+    top: 50%;
+    -ms-transform: translateY(-50%);
+    transform: translateY(-50%);
 }
 .message-bubble-callout-content {
     max-width: 100%;

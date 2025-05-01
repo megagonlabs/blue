@@ -78,7 +78,7 @@ export default function () {
                             onClick={signInWithGoogle}
                             size={Size.LARGE}
                             style={{ marginTop: 20 }}
-                            variant="outlined"
+                            variant={ButtonVariant.OUTLINED}
                             text="Sign in with Google"
                             icon={
                                 <svg

@@ -34,6 +34,7 @@ import _ from "lodash";
 import Image from "next/image";
 import { useShallow } from "zustand/react/shallow";
 import AccountPanel from "./AccountPanel";
+import SystemStatusContainer from "./administrator/SystemStatusContainer";
 import AgentList from "./agents/AgentList";
 import Authentication from "./Authentication";
 import ExpandingBox from "./ExpandingBox";
@@ -170,10 +171,12 @@ export default function Blue({ children }) {
                                                     <MenuDivider title="Sessions" />
                                                     <MenuItem
                                                         onClick={() =>
-                                                            addContainer(
-                                                                "Sessions",
-                                                                <SessionList />
-                                                            )
+                                                            addContainer({
+                                                                title: "Sessions",
+                                                                content: (
+                                                                    <SessionList />
+                                                                ),
+                                                            })
                                                         }
                                                         text="All Sessions"
                                                         icon={
@@ -207,10 +210,12 @@ export default function Blue({ children }) {
                                                     <MenuDivider title="Registries" />
                                                     <MenuItem
                                                         onClick={() =>
-                                                            addContainer(
-                                                                "Agent Registry",
-                                                                <AgentList />
-                                                            )
+                                                            addContainer({
+                                                                title: "Agent Registry",
+                                                                content: (
+                                                                    <AgentList />
+                                                                ),
+                                                            })
                                                         }
                                                         text="Agent"
                                                         icon={
@@ -260,10 +265,12 @@ export default function Blue({ children }) {
                                                     <MenuDivider title="Tools" />
                                                     <MenuItem
                                                         onClick={() =>
-                                                            addContainer(
-                                                                "Form Designer",
-                                                                <FormDesigner />
-                                                            )
+                                                            addContainer({
+                                                                title: "Form Designer",
+                                                                content: (
+                                                                    <FormDesigner />
+                                                                ),
+                                                            })
                                                         }
                                                         text="Form Designer"
                                                         icon={
@@ -277,8 +284,16 @@ export default function Blue({ children }) {
                                                             />
                                                         }
                                                     />
-                                                    <MenuDivider title="Administrator" />
+                                                    <MenuDivider title="Platform" />
                                                     <MenuItem
+                                                        onClick={() =>
+                                                            addContainer({
+                                                                title: "Sessions",
+                                                                content: (
+                                                                    <SystemStatusContainer />
+                                                                ),
+                                                            })
+                                                        }
                                                         text="System Status"
                                                         icon={
                                                             <FAIcon

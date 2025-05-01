@@ -4,6 +4,9 @@ p, admin, platform_agents, read_all
 p, admin, platform_agents, write_all
 p, admin, platform_services, read_all
 p, admin, platform_services, write_own
+p, admin, platform_settings, read_all
+p, admin, platform_settings, write_all
+p, admin, platform_status, read_all
 p, admin, sessions, read_all
 p, admin, sessions, write_all
 p, admin, agent_registry, read_all

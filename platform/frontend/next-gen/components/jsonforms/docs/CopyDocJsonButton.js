@@ -1,6 +1,6 @@
 import { FAIcon } from "@/components/FAIcon";
 import { AppToaster } from "@/components/toaster";
-import { Button, Size, Tooltip } from "@blueprintjs/core";
+import { Button, ButtonVariant, Size, Tooltip } from "@blueprintjs/core";
 import {
     faClipboard,
     faCopy,
@@ -13,7 +13,7 @@ export default function CopyDocJsonButton({
     return (
         <Tooltip usePortal={false} placement="bottom-end" content="Copy JSON">
             <Button
-                variant="minimal"
+                variant={ButtonVariant.MINIMAL}
                 icon={<FAIcon icon={faCopy} />}
                 size={Size.LARGE}
                 onClick={() => {

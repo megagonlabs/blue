@@ -28,7 +28,7 @@ export const useDedupStore = create((set, get) => ({
                         null
                     );
                     const { setMetadata } = useAgentStore.getState();
-                    setMetadata(agent, { icon, displayName });
+                    setMetadata({ key: agent, data: { icon, displayName } });
                 })
                 .finally(() => {
                     set((state) => ({
@@ -56,7 +56,7 @@ export const useDedupStore = create((set, get) => ({
         ) {
             set((state) => ({ queue: { ...state.queue, [key]: true } }));
             axios
-                .get(`/accounts/profile/${userId}`)
+                .get(`/accounts/profile/uid/${userId}`)
                 .then((response) => {
                     const user = _.get(response, "data.user", null);
                     addUserProfile(user);
