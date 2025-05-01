@@ -23,6 +23,7 @@ export default function BooleanDoc({ closePanel }) {
         label: "",
         props: {
             switch: false,
+            large: false,
             style: {},
         },
         scope: "#/properties/...",
