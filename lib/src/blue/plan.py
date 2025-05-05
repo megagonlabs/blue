@@ -472,6 +472,31 @@ class Plan:
     def get_nodes(self):
         return self._plan_spec['nodes']
 
+    def count_nodes(self, filter_node_type=None, filter_hasPrev=None, filter_hasNext=None):
+        count = 0
+        nodes = self.get_nodes()
+        for node_id in nodes:
+            node = self.get_node_by_id(node_id)
+            node_type = node['type']
+            prev = node['prev']
+            next = node['next']
+            
+            if filter_node_type:
+                if node_type not in filter_node_type:
+                    continue
+            
+            if filter_hasPrev:
+                if len(prev) == 0:
+                    continue
+            
+            if filter_hasNext:
+                if len(next) == 0:
+                    continue
+
+            count = count + 1
+
+        return count
+
     def is_node_leaf(self, n):
         node = self.get_node(n)
         prev = node['prev']
@@ -485,6 +510,21 @@ class Plan:
     def get_streams(self):
         return self._plan_spec['streams']
     
+    def count_streams(self, filter_status=None):
+        count = 0
+        streams = self.get_streams()
+        for stream_id in streams:
+            stream = streams[stream_id]
+            status = stream['status']
+
+            if filter_status:
+                if status not in filter_status:
+                    continue
+            
+            count = count + 1
+
+        return count
+    
     def get_node_value(self, n):
         node = self.get_node(n)
         if node is None:
@@ -493,7 +533,7 @@ class Plan:
         value = node['value']
 
         if value is None:
-            return fetch_node_value_from_stream(n)
+            return self.fetch_node_value_from_stream(n)
 
     def set_node_value_from_stream(self, n, save=False):
         node = self.get_node(n)
@@ -714,6 +754,7 @@ class Plan:
             self.save(path="$.nodes['" + from_id + "'].next") 
             self.save(path="$.nodes['" + to_id + "'].prev") 
 
+
     def _resolve_input_output_node_id(self, input=None, output=None):
         n = None
         if input:
@@ -851,6 +892,7 @@ class Plan:
                 break
 
         self.set_status(status, save=save)
+        return status
 
 
     def submit(self, worker):
