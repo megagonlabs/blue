@@ -1,4 +1,4 @@
-import JsonViewer from "@/components/JsonViewer";
+import JSONViewer from "@/components/JSONViewer";
 import { Callout, Code, H1, H2, H3, Intent, Pre } from "@blueprintjs/core";
 export default function BasicsDoc() {
     return (
@@ -43,7 +43,7 @@ export default function BasicsDoc() {
                 control for the name property in this schema:
             </div>
             <Pre>
-                <JsonViewer
+                <JSONViewer
                     enableClipboard={false}
                     json={{
                         properties: {
@@ -60,7 +60,7 @@ export default function BasicsDoc() {
                 point to the name property from the JSON schema as follows:
             </div>
             <Pre>
-                <JsonViewer
+                <JSONViewer
                     enableClipboard={false}
                     json={{
                         type: "Control",

@@ -95,3 +95,13 @@
     direction: rtl;
     text-overflow: ellipsis;
 }
+
+table.bp5-html-table.table-header-sticky tbody tr:first-child td {
+    box-shadow: none;
+}
+.bp5-dark table.bp5-html-table.table-header-sticky tbody tr:first-child td {
+    box-shadow: none;
+}
+.session-list-card:hover .session-card-actions {
+    display: block !important;
+}

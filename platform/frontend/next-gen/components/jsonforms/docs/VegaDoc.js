@@ -1,4 +1,4 @@
-import JsonViewer from "@/components/JsonViewer";
+import JSONViewer from "@/components/JSONViewer";
 import * as docProps from "@/components/jsonforms/docs/constant";
 import {
     Callout,
@@ -11,7 +11,7 @@ import {
     Size,
     Tag,
 } from "@blueprintjs/core";
-import CopyDocJsonButton from "./CopyDocJsonButton";
+import CopyDocJSONButton from "./CopyDocJSONButton";
 const uiSchemaJson = {
     type: "Vega",
     scope: "#/properties/vega-spec",
@@ -66,7 +66,7 @@ export default function VegaDoc() {
             <H2>Example</H2>
             <Pre style={{ position: "relative", overflow: "hidden" }}>
                 <div style={{ position: "absolute", right: 15, top: 13 }}>
-                    <CopyDocJsonButton
+                    <CopyDocJSONButton
                         docJson={JSON.stringify(uiSchemaJson, null, 4)}
                     />
                 </div>
@@ -75,11 +75,11 @@ export default function VegaDoc() {
                         UI Schema
                     </Tag>
                 </div>
-                <JsonViewer json={uiSchemaJson} enableClipboard={false} />
+                <JSONViewer json={uiSchemaJson} enableClipboard={false} />
             </Pre>
             <Pre style={{ position: "relative", overflow: "hidden" }}>
                 <div style={{ position: "absolute", right: 15, top: 13 }}>
-                    <CopyDocJsonButton
+                    <CopyDocJSONButton
                         docJson={JSON.stringify(dataJson, null, 4)}
                     />
                 </div>
@@ -88,7 +88,7 @@ export default function VegaDoc() {
                         Data
                     </Tag>
                 </div>
-                <JsonViewer json={dataJson} enableClipboard={false} />
+                <JSONViewer json={dataJson} enableClipboard={false} />
             </Pre>
             <H2>Props</H2>
             <HTMLTable className="docs-prop-table" style={{ width: "100%" }}>

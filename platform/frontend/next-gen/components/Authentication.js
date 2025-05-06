@@ -6,16 +6,15 @@ import { useEffect } from "react";
 import { Col, Container, Hidden, Row } from "react-grid-system";
 import { useShallow } from "zustand/react/shallow";
 export default function () {
-    const signInWithGoogle = useAuthStore((state) => state.signInWithGoogle);
-    const fetchAccountProfile = useAuthStore(
-        (state) => state.fetchAccountProfile
-    );
-    const { isPopupOpen, initialized } = useAuthStore(
-        useShallow((state) => ({
-            isPopupOpen: state.isPopupOpen,
-            initialized: state.initialized,
-        }))
-    );
+    const { isPopupOpen, initialized, signInWithGoogle, fetchAccountProfile } =
+        useAuthStore(
+            useShallow((state) => ({
+                isPopupOpen: state.isPopupOpen,
+                initialized: state.initialized,
+                signInWithGoogle: state.signInWithGoogle,
+                fetchAccountProfile: state.fetchAccountProfile,
+            }))
+        );
     useEffect(() => {
         fetchAccountProfile();
     }, []);

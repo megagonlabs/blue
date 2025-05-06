@@ -22,7 +22,9 @@ export const useRefDimensions = (ref) => {
         // call handler right away so state gets updated with initial window size
         handleResize();
         // remove event listener on cleanup
-        return () => window.removeEventListener("resize", handleResize);
+        return () => {
+            window.removeEventListener("resize", handleResize);
+        };
     }, [ref, dimensions]);
     return dimensions;
 };

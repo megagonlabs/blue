@@ -79,7 +79,9 @@ function SessionContainer({ width, height, sessionId }) {
                 }}
             >
                 <Overlay2
-                    onClose={() => setShowDetails(false)}
+                    onClose={() => {
+                        setShowDetails(false);
+                    }}
                     isOpen={showDetails}
                     usePortal={false}
                     enforceFocus={false}

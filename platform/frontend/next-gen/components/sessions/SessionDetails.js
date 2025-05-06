@@ -35,37 +35,49 @@ export default function SessionDetails({ sessionId }) {
                 >
                     <Button
                         text="About"
-                        onClick={() => setFocusTab("about")}
+                        onClick={() => {
+                            setFocusTab("about");
+                        }}
                         active={_.isEqual(focusTab, "about")}
                         icon={<FAIcon icon={faSquareInfo} />}
                     />
                     <Button
                         text="Agents"
-                        onClick={() => setFocusTab("agents")}
+                        onClick={() => {
+                            setFocusTab("agents");
+                        }}
                         active={_.isEqual(focusTab, "agents")}
                         icon={<FAIcon icon={faCircleA} />}
                     />
                     <Button
                         text="Members"
-                        onClick={() => setFocusTab("members")}
+                        onClick={() => {
+                            setFocusTab("members");
+                        }}
                         active={_.isEqual(focusTab, "members")}
                         icon={<FAIcon icon={faUserGroup} />}
                     />
                     <Button
                         text="Budget"
-                        onClick={() => setFocusTab("budget")}
+                        onClick={() => {
+                            setFocusTab("budget");
+                        }}
                         active={_.isEqual(focusTab, "budget")}
                         icon={<FAIcon icon={faMoneyBillsSimple} />}
                     />
                     <Button
                         text="Data"
-                        onClick={() => setFocusTab("data")}
+                        onClick={() => {
+                            setFocusTab("data");
+                        }}
                         active={_.isEqual(focusTab, "data")}
                         icon={<FAIcon icon={faDatabase} />}
                     />
                     <Button
                         text="Settings"
-                        onClick={() => setFocusTab("settings")}
+                        onClick={() => {
+                            setFocusTab("settings");
+                        }}
                         active={_.isEqual(focusTab, "settings")}
                         icon={<FAIcon icon={faCog} />}
                     />

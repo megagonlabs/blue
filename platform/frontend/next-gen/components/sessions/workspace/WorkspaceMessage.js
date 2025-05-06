@@ -63,7 +63,9 @@ export default function WorkspaceMessage({
         return combine(
             draggable({
                 element: element,
-                getInitialData: () => dragData,
+                getInitialData: () => {
+                    return dragData;
+                },
                 onDragStart: () => {
                     setDragging(true);
                     setExtraPadding(true);
@@ -102,7 +104,9 @@ export default function WorkspaceMessage({
                                     />
                                 </div>
                             );
-                            return () => root.unmount();
+                            return () => {
+                                root.unmount();
+                            };
                         },
                         nativeSetDragImage,
                     });

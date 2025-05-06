@@ -101,14 +101,19 @@ function SessionList({ width, height }) {
         getSessions();
     }, []);
     return (
-        <div style={{ width, height }}>
+        <div
+            style={{
+                width,
+                height,
+                backgroundColor: darkMode ? Colors.BLACK : null,
+            }}
+        >
             <div
                 className="full-parent-dimension"
                 style={{
                     padding: 20,
                     position: "relative",
                     overflowY: "auto",
-                    backgroundColor: darkMode ? Colors.BLACK : null,
                 }}
             >
                 <motion.div
@@ -145,7 +150,9 @@ function SessionList({ width, height }) {
                         icon={<FAIcon icon={faArrowLeft} />}
                         size={Size.LARGE}
                         variant={ButtonVariant.MINIMAL}
-                        onClick={() => setShowFilter(false)}
+                        onClick={() => {
+                            setShowFilter(false);
+                        }}
                     />
                     <RadioGroup
                         selectedValue={filter.group}
@@ -163,7 +170,9 @@ function SessionList({ width, height }) {
                 </motion.div>
                 <ControlGroup>
                     <Button
-                        onClick={() => setShowFilter(true)}
+                        onClick={() => {
+                            setShowFilter(true);
+                        }}
                         size={Size.LARGE}
                         icon={<FAIcon icon={faBarsFilter} />}
                         variant={ButtonVariant.OUTLINED}

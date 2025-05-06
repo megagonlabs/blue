@@ -73,7 +73,9 @@ export default function Blue({ children }) {
             combo: "shift + d",
             global: true,
             label: "Toggle theme",
-            onKeyDown: () => setState({ key: "darkMode", value: !darkMode }),
+            onKeyDown: () => {
+                setState({ key: "darkMode", value: !darkMode });
+            },
         },
     ];
     const darkModeClassName = darkMode ? Classes.DARK : null;
@@ -211,6 +213,7 @@ export default function Blue({ children }) {
                                                     <MenuItem
                                                         onClick={() =>
                                                             addContainer({
+                                                                icon: faCircleA,
                                                                 title: "Agent Registry",
                                                                 content: (
                                                                     <AgentList />

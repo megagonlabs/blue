@@ -1,4 +1,4 @@
-import JsonViewer from "@/components/JsonViewer";
+import JSONViewer from "@/components/JSONViewer";
 import * as docProps from "@/components/jsonforms/docs/constant";
 import {
     Button,
@@ -16,7 +16,7 @@ import {
 } from "@blueprintjs/core";
 import classNames from "classnames";
 import { useState } from "react";
-import CopyDocJsonButton from "./CopyDocJsonButton";
+import CopyDocJSONButton from "./CopyDocJSONButton";
 const docJson = {
     type: "Tabs",
     scope: "#/properties/...",
@@ -53,21 +53,21 @@ export default function TabsDoc() {
             </Callout>
             <Pre style={{ position: "relative", overflow: "hidden" }}>
                 <div style={{ position: "absolute", right: 15, top: 13 }}>
-                    <CopyDocJsonButton
+                    <CopyDocJSONButton
                         docJson={JSON.stringify(docJson, null, 4)}
                         copyMessage="Copied Tab JSON"
                     />
                 </div>
-                <JsonViewer json={docJson} enableClipboard={false} />
+                <JSONViewer json={docJson} enableClipboard={false} />
             </Pre>
             <H2>Example</H2>
             <Pre style={{ position: "relative", overflow: "hidden" }}>
                 <div style={{ position: "absolute", right: 15, top: 13 }}>
-                    <CopyDocJsonButton
+                    <CopyDocJSONButton
                         docJson={JSON.stringify(exampleJson, null, 4)}
                     />
                 </div>
-                <JsonViewer json={exampleJson} enableClipboard={false} />
+                <JSONViewer json={exampleJson} enableClipboard={false} />
             </Pre>
             <H2>Horizontal vs. Vertical</H2>
             <Callout>
@@ -83,12 +83,16 @@ export default function TabsDoc() {
                         <Button
                             active={_.isEqual(tab, "tab1")}
                             text="Tab 1"
-                            onClick={() => setTab("tab1")}
+                            onClick={() => {
+                                setTab("tab1");
+                            }}
                         />
                         <Button
                             active={_.isEqual(tab, "tab2")}
                             text="Tab 2"
-                            onClick={() => setTab("tab2")}
+                            onClick={() => {
+                                setTab("tab2");
+                            }}
                         />
                     </ButtonGroup>
                 </Card>
@@ -112,13 +116,17 @@ export default function TabsDoc() {
                             ellipsizeText
                             active={_.isEqual(tab, "tab1")}
                             text="Tab 1"
-                            onClick={() => setTab("tab1")}
+                            onClick={() => {
+                                setTab("tab1");
+                            }}
                         />
                         <Button
                             ellipsizeText
                             active={_.isEqual(tab, "tab2")}
                             text="Tab 2"
-                            onClick={() => setTab("tab2")}
+                            onClick={() => {
+                                setTab("tab2");
+                            }}
                         />
                     </ButtonGroup>
                 </Card>

@@ -1,6 +1,7 @@
 import { useAppStore } from "@/stores/app-store";
 import { useAuthStore } from "@/stores/auth-store";
 import { useDedupStore } from "@/stores/dedup-store";
+import { useGridStore } from "@/stores/grid-layout-store";
 import { useSessionStore } from "@/stores/session-store";
 import {
     Alignment,
@@ -22,8 +23,10 @@ import {
 import {
     faArrowLeft,
     faBarsFilter,
+    faBrowsers,
     faEllipsisH,
     faEllipsisV,
+    faRectangleTerminal,
     faSidebar,
     faTableColumns,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
@@ -39,7 +42,9 @@ import {
     POPPER_BOTTOM_WITH_MODIFIER_OVERFLOW_10,
 } from "../constants";
 import { FAIcon } from "../FAIcon";
+import DebuggerContainer from "./debuggers/DebuggerContainer";
 import MessageContent from "./messages/MessageContent";
+import SessionDisplayName from "./SessionDisplayName";
 import SessionMemberStack from "./SessionMemberStack";
 const Row = ({ index, data, style }) => {
     const { setRowHeight, sessionId } = data;
@@ -51,9 +56,8 @@ const Row = ({ index, data, style }) => {
         }))
     );
     const addToWorkspace = useSessionStore((state) => state.addToWorkspace);
-    const { jsonforms, streams, messages } = useSessionStore(
+    const { streams, messages } = useSessionStore(
         useShallow((state) => ({
-            jsonforms: state.jsonforms,
             streams: _.get(state, ["sessions", sessionId, "streams"], {}),
             messages: _.get(state, ["sessions", sessionId, "messages"], []),
         }))
@@ -67,7 +71,7 @@ const Row = ({ index, data, style }) => {
     const rowRef = useRef({});
     const user = useAuthStore((state) => state.user);
     const own = useMemo(() => {
-        const uid = _.get(filteredMessages, [index, "metadata", "id"], null);
+        const id = _.get(filteredMessages, [index, "metadata", "id"], null);
         const createdBy = _.get(
             filteredMessages,
             [index, "metadata", "created_by"],
@@ -75,11 +79,11 @@ const Row = ({ index, data, style }) => {
         );
         const isUser = _.isEqual(createdBy, "USER");
         if (isUser) {
-            getUserProfile(uid);
+            getUserProfile(id);
         } else {
             getAgentMetadata(createdBy);
         }
-        return isUser && _.isEqual(user.uid, uid);
+        return isUser && _.isEqual(user.uid, id);
     }, [user, filteredMessages]);
     const isOverflow = useRef(false);
     const message = filteredMessages[index];
@@ -109,8 +113,12 @@ const Row = ({ index, data, style }) => {
     return (
         <div
             key={index}
-            onMouseLeave={() => (showActions.current = false)}
-            onMouseEnter={() => (showActions.current = true)}
+            onMouseLeave={() => {
+                showActions.current = false;
+            }}
+            onMouseEnter={() => {
+                showActions.current = true;
+            }}
             style={{
                 ...style,
                 display: "flex",
@@ -241,6 +249,7 @@ export default function SessionMessages({
         let height = 71;
         return rowHeights.current[index] || height;
     }
+    const addContainer = useGridStore((state) => state.addContainer);
     useEffect(() => {
         setTimeout(() => {
             requestAnimationFrame(() => {
@@ -284,7 +293,9 @@ export default function SessionMessages({
                                     }
                                 />
                             }
-                            onClick={() => setShowWorkspace(!showWorkspace)}
+                            onClick={() => {
+                                setShowWorkspace(!showWorkspace);
+                            }}
                         />
                     </Tooltip>
                     <Popover
@@ -343,8 +354,40 @@ export default function SessionMessages({
                             content={
                                 <Menu size={Size.LARGE}>
                                     <MenuItem
-                                        onClick={() => setShowDetails(true)}
+                                        onClick={() => {
+                                            setShowDetails(true);
+                                        }}
                                         text="Open session details"
+                                    />
+                                    <MenuItem
+                                        labelElement={
+                                            <FAIcon
+                                                icon={faBrowsers}
+                                                style={{ marginLeft: 3 }}
+                                            />
+                                        }
+                                        icon={
+                                            <FAIcon
+                                                icon={faRectangleTerminal}
+                                                style={{ marginRight: 3 }}
+                                            />
+                                        }
+                                        onClick={() => {
+                                            addContainer({
+                                                icon: faRectangleTerminal,
+                                                title: (
+                                                    <SessionDisplayName
+                                                        sessionId={sessionId}
+                                                    />
+                                                ),
+                                                content: (
+                                                    <DebuggerContainer
+                                                        sessionId={sessionId}
+                                                    />
+                                                ),
+                                            });
+                                        }}
+                                        text="Start debugger"
                                     />
                                 </Menu>
                             }

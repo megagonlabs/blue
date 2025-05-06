@@ -6,7 +6,7 @@ import {
     faCopy,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import copy from "copy-to-clipboard";
-export default function CopyDocJsonButton({
+export default function CopyDocJSONButton({
     docJson,
     copyMessage = "Copied JSON",
 }) {

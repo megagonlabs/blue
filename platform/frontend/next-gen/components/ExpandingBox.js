@@ -18,7 +18,9 @@ const ExpandingBox = ({
         setHeight(expandedHeight);
     };
     const handleReset = () => {
-        timeoutIdRef.current = setTimeout(() => setIsExpanded(false), 150);
+        timeoutIdRef.current = setTimeout(() => {
+            setIsExpanded(false);
+        }, 150);
         setWidth(initialWidth);
         setHeight(initialHeight);
     };

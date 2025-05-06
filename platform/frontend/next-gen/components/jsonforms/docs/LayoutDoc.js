@@ -1,4 +1,4 @@
-import JsonViewer from "@/components/JsonViewer";
+import JSONViewer from "@/components/JSONViewer";
 import * as docProps from "@/components/jsonforms/docs/constant";
 import {
     Callout,
@@ -14,7 +14,7 @@ import {
     Tag,
 } from "@blueprintjs/core";
 import classNames from "classnames";
-import CopyDocJsonButton from "./CopyDocJsonButton";
+import CopyDocJSONButton from "./CopyDocJSONButton";
 const docJsonVertical = {
     type: "VerticalLayout",
     elements: [],
@@ -32,21 +32,21 @@ export default function LayoutDoc() {
             </div>
             <Pre style={{ position: "relative", overflow: "hidden" }}>
                 <div style={{ position: "absolute", right: 15, top: 13 }}>
-                    <CopyDocJsonButton
+                    <CopyDocJSONButton
                         docJson={JSON.stringify(docJsonVertical, null, 4)}
                         copyMessage="Copied Layout JSON"
                     />
                 </div>
-                <JsonViewer json={docJsonVertical} enableClipboard={false} />
+                <JSONViewer json={docJsonVertical} enableClipboard={false} />
             </Pre>
             <Pre style={{ position: "relative", overflow: "hidden" }}>
                 <div style={{ position: "absolute", right: 15, top: 13 }}>
-                    <CopyDocJsonButton
+                    <CopyDocJSONButton
                         docJson={JSON.stringify(docJSonHorizontal, null, 4)}
                         copyMessage="Copied Layout JSON"
                     />
                 </div>
-                <JsonViewer json={docJSonHorizontal} enableClipboard={false} />
+                <JSONViewer json={docJSonHorizontal} enableClipboard={false} />
             </Pre>
             <H2>Vertical vs. Horizontal</H2>
             <Callout

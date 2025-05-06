@@ -2,13 +2,12 @@ import { reorderWithEdge } from "@atlaskit/pragmatic-drag-and-drop-hitbox/util/r
 import axios from "axios";
 import clone from "clone";
 import _ from "lodash";
-
 import { create } from "zustand";
 export const useSessionStore = create((set, get) => ({
     sessions: {},
     sessionIds: [],
     filter: { group: "owner", keyword: "" },
-    jsonforms: {},
+    forms: {},
     progress: {},
     addNewSession: (session) => {
         const sessionId = _.get(session, "id", null);
@@ -131,8 +130,8 @@ export const useSessionStore = create((set, get) => ({
             order,
             stream,
         } = data;
-        const tags = Object.entries(_.get(data, "metadata.tags", {}));
-        const { sessions, jsonforms, progress, sessionIds } = clone(get());
+        const tags = _.entries(_.get(data, "metadata.tags", {}));
+        const { sessions, forms, progress, sessionIds } = clone(get());
         let sessionTags = _.get(sessions, [sessionId, "tags"], []);
         for (let i = 0; i < _.size(tags); i++) {
             const [tag, value] = tags[i];
@@ -157,6 +156,7 @@ export const useSessionStore = create((set, get) => ({
                 order,
                 id: data.id,
                 dataType: contentType,
+                label: messageLabel,
             };
             const baseMessage = { stream, metadata, timestamp, order };
             let workspace = _.get(sessions, [sessionId, "workspace"], []);
@@ -216,9 +216,9 @@ export const useSessionStore = create((set, get) => ({
                     }
                     streamData.push({ ...baseData, content: { formId } });
                     // create or update forms
-                    _.set(jsonforms, [formId, "content"], messageContentsArgs);
+                    _.set(forms, [formId, "content"], messageContentsArgs);
                 } else if (_.isEqual(messageContentsCode, "CLOSE_FORM")) {
-                    _.set(jsonforms, [formId, "closed"], true);
+                    _.set(forms, [formId, "closed"], true);
                 } else if (_.isEqual(messageContentsCode, "PROGRESS")) {
                     const { progress_id: progressId, value } =
                         messageContentsArgs;
@@ -280,6 +280,6 @@ export const useSessionStore = create((set, get) => ({
             }
             _.set(sessions, [sessionId, "workspace"], workspace);
         }
-        set({ sessions, jsonforms, progress, sessionIds });
+        set({ sessions, forms, progress, sessionIds });
     },
 }));

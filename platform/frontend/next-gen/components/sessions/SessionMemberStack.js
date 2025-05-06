@@ -8,7 +8,7 @@ export default function SessionMemberStack({ sessionId, style }) {
     const sessions = useSessionStore((state) => state.sessions);
     const details = _.get(sessions, [sessionId, "details"], {});
     const members = useMemo(() => {
-        return Object.entries(_.get(details, "members", {}))
+        return _.entries(_.get(details, "members", {}))
             .filter((user) => user[1])
             .map((user) => user[0]);
     }, [sessionId, details]);

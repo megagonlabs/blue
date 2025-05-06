@@ -1,7 +1,7 @@
-import JsonViewer from "@/components/JsonViewer";
+import JSONViewer from "@/components/JSONViewer";
 import * as docProps from "@/components/jsonforms/docs/constant";
 import { H1, H2, HTMLTable, Intent, Pre, Size, Tag } from "@blueprintjs/core";
-import CopyDocJsonButton from "./CopyDocJsonButton";
+import CopyDocJSONButton from "./CopyDocJSONButton";
 const docJson = {
     type: "Control",
     label: "",
@@ -36,12 +36,12 @@ export default function EnumDoc() {
             </div>
             <Pre style={{ position: "relative", overflow: "hidden" }}>
                 <div style={{ position: "absolute", right: 15, top: 13 }}>
-                    <CopyDocJsonButton
+                    <CopyDocJSONButton
                         docJson={JSON.stringify(docJson, null, 4)}
                         copyMessage="Copied Enum (Control) JSON"
                     />
                 </div>
-                <JsonViewer json={docJson} enableClipboard={false} />
+                <JSONViewer json={docJson} enableClipboard={false} />
             </Pre>
             <H2>Props</H2>
             <HTMLTable className="docs-prop-table" style={{ width: "100%" }}>

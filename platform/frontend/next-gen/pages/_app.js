@@ -13,6 +13,8 @@ import * as Icons from "@fortawesome/sharp-duotone-solid-svg-icons";
 import "allotment/dist/style.css";
 import axios from "axios";
 import { ElementQueries } from "css-element-queries";
+import TimeAgo from "javascript-time-ago";
+import en from "javascript-time-ago/locale/en";
 import _ from "lodash";
 import { allEnv } from "next-runtime-env";
 import dynamic from "next/dynamic";
@@ -20,6 +22,7 @@ import Head from "next/head";
 import "normalize.css/normalize.css";
 import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
+TimeAgo.addDefaultLocale(en);
 FocusStyleManager.onlyShowFocusOnTabs();
 if (typeof window !== "undefined") {
     ElementQueries.listen();
@@ -53,4 +56,9 @@ const App = ({ Component, pageProps }) => {
     }
     return null;
 };
-export default dynamic(() => Promise.resolve(App), { ssr: true });
+export default dynamic(
+    () => {
+        return Promise.resolve(App);
+    },
+    { ssr: true }
+);

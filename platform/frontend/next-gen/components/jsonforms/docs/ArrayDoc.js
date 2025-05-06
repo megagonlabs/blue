@@ -1,6 +1,6 @@
-import JsonViewer from "@/components/JsonViewer";
+import JSONViewer from "@/components/JSONViewer";
 import { Callout, H1, H2, Intent, Pre, Size, Tag } from "@blueprintjs/core";
-import CopyDocJsonButton from "./CopyDocJsonButton";
+import CopyDocJSONButton from "./CopyDocJSONButton";
 const uiSchemaJson = {
     type: "Control",
     scope: "#/properties/shopping_list",
@@ -36,7 +36,7 @@ export default function BasicsDoc() {
             <H2>Example</H2>
             <Pre style={{ position: "relative", overflow: "hidden" }}>
                 <div style={{ position: "absolute", right: 15, top: 13 }}>
-                    <CopyDocJsonButton
+                    <CopyDocJSONButton
                         docJson={JSON.stringify(uiSchemaJson, null, 4)}
                     />
                 </div>
@@ -45,11 +45,11 @@ export default function BasicsDoc() {
                         UI Schema
                     </Tag>
                 </div>
-                <JsonViewer json={uiSchemaJson} enableClipboard={false} />
+                <JSONViewer json={uiSchemaJson} enableClipboard={false} />
             </Pre>
             <Pre style={{ position: "relative", overflow: "hidden" }}>
                 <div style={{ position: "absolute", right: 15, top: 13 }}>
-                    <CopyDocJsonButton
+                    <CopyDocJSONButton
                         docJson={JSON.stringify(dataSchemaJson, null, 4)}
                     />
                 </div>
@@ -58,7 +58,7 @@ export default function BasicsDoc() {
                         Data Schema
                     </Tag>
                 </div>
-                <JsonViewer json={dataSchemaJson} enableClipboard={false} />
+                <JSONViewer json={dataSchemaJson} enableClipboard={false} />
             </Pre>
         </div>
     );

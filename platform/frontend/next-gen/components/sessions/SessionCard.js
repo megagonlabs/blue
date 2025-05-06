@@ -18,6 +18,7 @@ import {
 } from "@blueprintjs/core";
 import {
     faBrowsers,
+    faMessages,
     faThumbTack,
     faThumbTackSlash,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
@@ -53,6 +54,7 @@ export default function SessionCard({ sessionId }) {
                     text="Open in new window"
                     onClick={() =>
                         addContainer({
+                            icon: faMessages,
                             title: <SessionDisplayName sessionId={sessionId} />,
                             content: <SessionContainer sessionId={sessionId} />,
                         })
@@ -118,6 +120,7 @@ export default function SessionCard({ sessionId }) {
                     icon: (
                         <FAIcon
                             icon={!pinned ? faThumbTackSlash : faThumbTack}
+                            size={!pinned ? 20 : 16}
                         />
                     ),
                     message: `Session ${pinned ? "un" : ""}pinned`,
@@ -130,7 +133,7 @@ export default function SessionCard({ sessionId }) {
     return (
         <Card
             onContextMenu={handleContextMenu}
-            className="full-parent-dimension"
+            className="full-parent-dimension session-list-card"
             style={{ position: "relative", cursor: "context-menu" }}
         >
             <div
@@ -139,6 +142,7 @@ export default function SessionCard({ sessionId }) {
                     position: "absolute",
                     maxHeight: "calc(100% - 2px)",
                     maxWidth: "calc(100% - 2px)",
+                    display: "none",
                     right: 1,
                     top: 1,
                     width: 200,

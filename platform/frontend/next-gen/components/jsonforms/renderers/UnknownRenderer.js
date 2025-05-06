@@ -1,21 +1,18 @@
-import { Callout, Colors, Intent } from "@blueprintjs/core";
+import { FAIcon } from "@/components/FAIcon";
+import { NonIdealState } from "@blueprintjs/core";
+import { faCompassDrafting } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import { rankWith } from "@jsonforms/core";
 import { withJsonFormsCellProps } from "@jsonforms/react";
 const UnknownRenderer = ({ uischema }) => {
     return (
-        <div
-            style={{
-                backgroundColor: Colors.WHITE,
-                border: `1px dashed ${Colors.RED3}`,
-                borderRadius: 2,
-                wordWrap: "break-word",
-            }}
-        >
-            <Callout icon={null} intent={Intent.DANGER}>
-                No applicable renderer found for {JSON.stringify(uischema)}.
-            </Callout>
-        </div>
+        <NonIdealState
+            icon={<FAIcon icon={faCompassDrafting} size={50} />}
+            title="No applicable renderer found"
+            description={JSON.stringify(uischema)}
+        />
     );
 };
 export default withJsonFormsCellProps(UnknownRenderer);
-export const UnknownTester = rankWith(0, () => true);
+export const UnknownTester = rankWith(0, () => {
+    return true;
+});

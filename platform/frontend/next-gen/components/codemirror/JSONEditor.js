@@ -27,7 +27,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { FAIcon } from "../FAIcon";
 import { POPPER_BOTTOM_WITH_MODIFIER_OVERFLOW_10 } from "../constants";
 const TAB_INDENT = "    ";
-export default function JsonEditor({
+export default function JSONEditor({
     jsonObject,
     loading,
     controlStrip = {},

@@ -50,7 +50,9 @@ const showAxiosErrorToast = (error) => {
         message: <div className="multiline-ellipsis-5">{message}</div>,
         action: {
             icon: <FAIcon icon={faCopy} />,
-            onClick: () => copy(message),
+            onClick: () => {
+                copy(message);
+            },
             text: "Copy",
         },
     });
@@ -115,7 +117,7 @@ module.exports = {
     showAxiosErrorToast,
     convertCss: (style) => {
         try {
-            return transform(Object.entries(style));
+            return transform(_.entries(style));
         } catch (error) {
             return style;
         }

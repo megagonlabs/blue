@@ -21,7 +21,7 @@ import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { FAIcon } from "../FAIcon";
 import withAutoSizer from "../hocs/withAutoSizer";
-import RegistryCard from "../registries/RegistryCard";
+import RegistryEntityCard from "../registries/RegistryEntityCard";
 function AgentList({ width, height }) {
     const agents = useAgentStore((state) => state.agents);
     const getAgents = useAgentStore((state) => state.getAgents);
@@ -88,7 +88,9 @@ function AgentList({ width, height }) {
                         icon={<FAIcon icon={faArrowLeft} />}
                         size={Size.LARGE}
                         variant={ButtonVariant.MINIMAL}
-                        onClick={() => setShowFilter(false)}
+                        onClick={() => {
+                            setShowFilter(false);
+                        }}
                     />
                     <RadioGroup label="Keyword">
                         <Radio size={Size.LARGE} label="Hybrid" />
@@ -103,7 +105,9 @@ function AgentList({ width, height }) {
                 </motion.div>
                 <ControlGroup>
                     <Button
-                        onClick={() => setShowFilter(true)}
+                        onClick={() => {
+                            setShowFilter(true);
+                        }}
                         size={Size.LARGE}
                         icon={<FAIcon icon={faBarsFilter} />}
                         variant={ButtonVariant.OUTLINED}
@@ -118,7 +122,7 @@ function AgentList({ width, height }) {
                 <div style={{ marginTop: 20 }} className="responsive-container">
                     {agents.map((agent, index) => (
                         <div key={index} className="grid-item">
-                            <RegistryCard entity={agent} />
+                            <RegistryEntityCard entity={agent} />
                         </div>
                     ))}
                 </div>

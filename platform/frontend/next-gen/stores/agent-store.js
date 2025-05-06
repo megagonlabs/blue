@@ -13,8 +13,8 @@ export const useAgentStore = create((set) => ({
     getAgents: () => {
         axios
             .get(`registry/${NEXT_PUBLIC_AGENT_REGISTRY_NAME}/agents`)
-            .then((response) =>
-                set({ agents: _.get(response, "data.results", []) })
-            );
+            .then((response) => {
+                set({ agents: _.get(response, "data.results", []) });
+            });
     },
 }));

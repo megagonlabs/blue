@@ -1,5 +1,5 @@
 import * as docProps from "@/components/jsonforms/docs/constant";
-import JsonViewer from "@/components/JsonViewer";
+import JSONViewer from "@/components/JSONViewer";
 import {
     Callout,
     Checkbox,
@@ -15,7 +15,7 @@ import {
     Tag,
 } from "@blueprintjs/core";
 import classNames from "classnames";
-import CopyDocJsonButton from "./CopyDocJsonButton";
+import CopyDocJSONButton from "./CopyDocJSONButton";
 const docJson = {
     type: "Control",
     label: "",
@@ -49,12 +49,12 @@ export default function BooleanDoc() {
             </div>
             <Pre style={{ position: "relative", overflow: "hidden" }}>
                 <div style={{ position: "absolute", right: 15, top: 13 }}>
-                    <CopyDocJsonButton
+                    <CopyDocJSONButton
                         docJson={JSON.stringify(docJson, null, 4)}
                         copyMessage="Copied Boolean (Control) JSON"
                     />
                 </div>
-                <JsonViewer enableClipboard={false} json={docJson} />
+                <JSONViewer enableClipboard={false} json={docJson} />
             </Pre>
             <H2>Props</H2>
             <HTMLTable className="docs-prop-table" style={{ width: "100%" }}>

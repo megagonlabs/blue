@@ -3,6 +3,7 @@ import { initializeApp } from "firebase/app";
 import { GoogleAuthProvider, getAuth, signInWithPopup } from "firebase/auth";
 import _ from "lodash";
 import { create } from "zustand";
+import { useSocketStore } from "./socket-store";
 const firebaseConfig = {
     apiKey: "AIzaSyAkVp-dj3o1yf89mL3wMUtEidUHjzqyWCQ",
     authDomain: "blue-9d597.firebaseapp.com",
@@ -36,9 +37,20 @@ export const useAuthStore = create((set, get) => ({
         );
     },
     logout: () => {
-        axios.post("/accounts/sign-out").then(() => set({ user: null }));
+        axios.post("/accounts/sign-out").then(() => {
+            set({ user: null });
+            const { socket } = useSocketStore.getState();
+            if (!_.isNull(socket)) {
+                // close existing ws connection
+                if (!_.isEqual(WebSocket.CLOSED, socket.readyState)) {
+                    socket.close();
+                }
+            }
+        });
     },
-    clearUser: () => set({ user: null }),
+    clearUser: () => {
+        set({ user: null });
+    },
     fetchAccountProfile: () => {
         axios
             .get("/accounts/profile")

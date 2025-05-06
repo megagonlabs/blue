@@ -34,7 +34,7 @@ import { clone } from "lodash";
 import { createRef, useEffect, useRef, useState } from "react";
 import { useErrorBoundary, withErrorBoundary } from "react-use-error-boundary";
 import { v4 as uuidv4 } from "uuid";
-import JsonEditor from "../codemirror/JSONEditor";
+import JSONEditor from "../codemirror/JSONEditor";
 import { MIN_ALLOTMENT_PANE_SIZE } from "../constants";
 import { FAIcon } from "../FAIcon";
 import withAutoSizer from "../hocs/withAutoSizer";
@@ -46,6 +46,7 @@ const PANE_BUTTON_PROPS = {
     alignText: Alignment.START,
     fill: true,
     variant: ButtonVariant.MINIMAL,
+    style: { fontWeight: 600 },
 };
 function FormDesigner({ width, height }) {
     const addContainer = useGridStore((state) => state.addContainer);
@@ -148,7 +149,7 @@ function FormDesigner({ width, height }) {
                                     className="full-parent-height"
                                     style={{ maxHeight: "calc(100% - 51px)" }}
                                 >
-                                    <JsonEditor
+                                    <JSONEditor
                                         breaker={breaker}
                                         jsonObject={uischema}
                                         setBack={(object) => {
@@ -176,7 +177,7 @@ function FormDesigner({ width, height }) {
                                     className="full-parent-height"
                                     style={{ maxHeight: "calc(100% - 51px)" }}
                                 >
-                                    <JsonEditor
+                                    <JSONEditor
                                         breaker={breaker}
                                         jsonObject={schema}
                                         setBack={(object) => {
@@ -199,7 +200,10 @@ function FormDesigner({ width, height }) {
                         >
                             <Button
                                 {...PANE_BUTTON_PROPS}
-                                style={{ pointerEvents: "none" }}
+                                style={{
+                                    pointerEvents: "none",
+                                    fontWeight: 600,
+                                }}
                                 fill={false}
                                 text="Result"
                             />
@@ -225,7 +229,7 @@ function FormDesigner({ width, height }) {
                                     display: showData ? null : "none",
                                 }}
                             >
-                                <JsonEditor
+                                <JSONEditor
                                     breaker={breaker}
                                     jsonObject={data}
                                     setBack={(object) => {

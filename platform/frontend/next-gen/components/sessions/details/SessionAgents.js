@@ -1,15 +1,10 @@
+import { REGISTRY_ENTITY_ICON_WRAPPER_STYLES } from "@/components/constants";
 import { FAIcon } from "@/components/FAIcon";
 import RegistryEntityIcon from "@/components/registries/RegistryEntityIcon";
 import { useAgentStore } from "@/stores/agent-store";
 import { useDedupStore } from "@/stores/dedup-store";
 import { useSessionStore } from "@/stores/session-store";
-import {
-    Card,
-    CardList,
-    Classes,
-    Colors,
-    NonIdealState,
-} from "@blueprintjs/core";
+import { Card, CardList, Classes, NonIdealState } from "@blueprintjs/core";
 import { faScreenUsers } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import axios from "axios";
 import _ from "lodash";
@@ -21,7 +16,7 @@ export default function SessionAgents({ sessionId }) {
         (state) => state.setSessionDetails
     );
     const getAgentMetadata = useDedupStore((state) => state.getAgentMetadata);
-    const metadata = useAgentStore((state) => state.metadata);
+    const agentMetadata = useAgentStore((state) => state.metadata);
     const details = _.get(sessions, [sessionId, "details"], {});
     const [loading, setLoading] = useState(false);
     const [agents, setAgents] = useState(_.get(details, "agents", []));
@@ -64,7 +59,7 @@ export default function SessionAgents({ sessionId }) {
                 <CardList bordered={false} style={{ padding: "10px 20px" }}>
                     {agents.map((agent, index) => {
                         const displayName = _.get(
-                            metadata,
+                            agentMetadata,
                             [agent.name, "displayName"],
                             agent.name
                         );
@@ -76,20 +71,15 @@ export default function SessionAgents({ sessionId }) {
                                 <div
                                     className="padding-0 overflow-hidden custom-card"
                                     style={{
+                                        ...REGISTRY_ENTITY_ICON_WRAPPER_STYLES,
                                         position: "absolute",
                                         left: 0,
                                         top: 10,
-                                        height: 40,
-                                        width: 40,
-                                        display: "flex",
-                                        justifyContent: "center",
-                                        alignItems: "center",
-                                        backgroundColor: Colors.WHITE,
                                     }}
                                 >
                                     <RegistryEntityIcon
                                         content={_.get(
-                                            metadata,
+                                            agentMetadata,
                                             [agent.name, "icon"],
                                             null
                                         )}

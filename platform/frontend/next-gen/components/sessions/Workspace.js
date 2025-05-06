@@ -71,7 +71,9 @@ export default function Workspace({ sessionId }) {
                 <ButtonGroup size={Size.LARGE} variant={ButtonVariant.MINIMAL}>
                     <Tooltip content="Clear workspace" placement="bottom-start">
                         <Button
-                            onClick={() => clearWorkspace(sessionId)}
+                            onClick={() => {
+                                clearWorkspace(sessionId);
+                            }}
                             icon={
                                 <FAIcon
                                     icon={faBan}

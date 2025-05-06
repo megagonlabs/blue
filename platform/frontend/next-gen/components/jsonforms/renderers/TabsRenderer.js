@@ -44,7 +44,7 @@ const TabsRenderer = ({
     const large = _.get(uischema, "props.large", false);
     const compact = _.get(uischema, "props.compact", false);
     const vertical = _.get(uischema, "props.vertical", false);
-    const TAB_STYLE = !vertical
+    const TAB_STYLES = !vertical
         ? {
               padding: `5px ${compact ? 15 : 20}px`,
               overflowX: "auto",
@@ -61,7 +61,7 @@ const TabsRenderer = ({
                 ...style,
             }}
         >
-            <Card style={{ ...TAB_STYLE }}>
+            <Card style={{ ...TAB_STYLES }}>
                 <ButtonGroup
                     vertical={vertical}
                     variant="minimal"

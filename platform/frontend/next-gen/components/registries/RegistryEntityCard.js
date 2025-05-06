@@ -1,8 +1,8 @@
 import { useAppStore } from "@/stores/app-store";
+import { useGridStore } from "@/stores/grid-layout-store";
 import {
     Card,
     Classes,
-    Colors,
     hideContextMenu,
     Intent,
     Menu,
@@ -16,10 +16,14 @@ import { faBrowsers } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import classNames from "classnames";
 import _ from "lodash";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { DOCKER_CONTAINER_STATUS_LOOKUP } from "../constants";
+import {
+    DOCKER_CONTAINER_STATUS_LOOKUP,
+    REGISTRY_ENTITY_ICON_WRAPPER_STYLES,
+} from "../constants";
 import { FAIcon } from "../FAIcon";
+import RegistryEntityContainer from "./RegistryEntityContainer";
 import RegistryEntityIcon from "./RegistryEntityIcon";
-export default function RegistryCard({ entity }) {
+export default function RegistryEntityCard({ entity }) {
     const type = _.get(entity, "type", null);
     const displayName = _.get(entity, "properties.display_name", entity.name);
     const categories = _.get(entity, "property.categories", ["BASE", "HIDDEN"]);
@@ -41,16 +45,24 @@ export default function RegistryCard({ entity }) {
     const handleClose = useCallback(() => {
         hideContextMenu();
     }, []);
+    const addContainer = useGridStore((state) => state.addContainer);
     const menu = useMemo(
         () => (
             <Menu size={Size.LARGE} onClick={handleClose}>
                 <MenuItem
                     icon={<FAIcon icon={faBrowsers} />}
                     text="Open in new window"
+                    onClick={() => {
+                        addContainer({
+                            content: (
+                                <RegistryEntityContainer entity={entity} />
+                            ),
+                        });
+                    }}
                 />
             </Menu>
         ),
-        [handleClose]
+        [handleClose, entity]
     );
     const handleContextMenu = useCallback(
         (event) => {
@@ -75,15 +87,10 @@ export default function RegistryCard({ entity }) {
             <div
                 className="padding-0 overflow-hidden custom-card"
                 style={{
+                    ...REGISTRY_ENTITY_ICON_WRAPPER_STYLES,
                     position: "absolute",
                     left: 20,
                     top: 20,
-                    height: 40,
-                    width: 40,
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    backgroundColor: Colors.WHITE,
                 }}
             >
                 <RegistryEntityIcon content={_.get(entity, "icon", null)} />

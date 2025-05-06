@@ -1,4 +1,4 @@
-import JsonViewer from "@/components/JsonViewer";
+import JSONViewer from "@/components/JSONViewer";
 import * as docProps from "@/components/jsonforms/docs/constant";
 import {
     Button,
@@ -14,7 +14,7 @@ import {
     Size,
 } from "@blueprintjs/core";
 import classNames from "classnames";
-import CopyDocJsonButton from "./CopyDocJsonButton";
+import CopyDocJSONButton from "./CopyDocJSONButton";
 const docJson = {
     type: "Button",
     label: "",
@@ -34,12 +34,12 @@ export default function ButtonDoc() {
             </div>
             <Pre style={{ position: "relative", overflow: "hidden" }}>
                 <div style={{ position: "absolute", right: 15, top: 13 }}>
-                    <CopyDocJsonButton
+                    <CopyDocJSONButton
                         docJson={JSON.stringify(docJson, null, 4)}
                         copyMessage="Copied Button JSON"
                     />
                 </div>
-                <JsonViewer json={docJson} enableClipboard={false} />
+                <JSONViewer json={docJson} enableClipboard={false} />
             </Pre>
             <H2>Props</H2>
             <HTMLTable className="docs-prop-table" style={{ width: "100%" }}>

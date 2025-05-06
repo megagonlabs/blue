@@ -25,7 +25,7 @@ import {
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import axios from "axios";
 import _, { debounce } from "lodash";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
 import UserAvatar from "../UserAvatar";
 export default function SessionMemberList({ sessionId }) {
@@ -39,7 +39,7 @@ export default function SessionMemberList({ sessionId }) {
     const details = _.get(sessions, [sessionId, "details"], {});
     const owner = details.created_by;
     const members = useMemo(() => {
-        return Object.entries(_.get(details, "members", {}))
+        return _.entries(_.get(details, "members", {}))
             .filter((user) => user[1] && !_.isEqual(user[0], owner))
             .map((user) => user[0]);
     }, [sessionId, details]);
@@ -116,8 +116,13 @@ export default function SessionMemberList({ sessionId }) {
             setSessionDetails({ sessionId, fields });
         });
     }, []);
+    const elementRef = useRef(null);
+    const popoverBoundary =
+        elementRef.current &&
+        elementRef.current.closest(".grid-container-boundary");
     return (
         <div
+            ref={elementRef}
             className="full-parent-dimension"
             style={{ padding: 20, overflowY: "auto" }}
         >
@@ -131,6 +136,7 @@ export default function SessionMemberList({ sessionId }) {
                 onInteraction={(state) => {
                     setShowSearch(state);
                 }}
+                boundary={popoverBoundary}
                 className="full-parent-width"
                 matchTargetWidth
                 isOpen={showSearch}

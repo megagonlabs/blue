@@ -25,7 +25,9 @@ export default function SessionSettings({ sessionId }) {
                     message: "Session deleted",
                 });
             })
-            .finally(() => setLoading(false));
+            .finally(() => {
+                setLoading(false);
+            });
     };
     return (
         <div className="full-parent-dimension" style={{ padding: 20 }}>
@@ -44,6 +46,7 @@ export default function SessionSettings({ sessionId }) {
                     </div>
                     <div style={{ marginTop: 20 }}></div>
                     <Popover
+                        placement="right"
                         content={
                             <div style={{ padding: 10 }}>
                                 <Button

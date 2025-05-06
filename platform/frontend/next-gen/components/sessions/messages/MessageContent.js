@@ -1,11 +1,12 @@
 import { FAIcon } from "@/components/FAIcon";
-import JsonViewer from "@/components/JsonViewer";
+import JSONViewer from "@/components/JSONViewer";
 import { Classes, Tag } from "@blueprintjs/core";
 import {
     faBracketsCurly,
     faPenLine,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import _ from "lodash";
+import JSONForm from "./renderers/JSONForm";
 const PreviewTag = ({ contentType, icon }) => {
     return (
         <Tag minimal icon={<FAIcon icon={icon} />}>
@@ -27,7 +28,9 @@ export default function MessageContent({
         if (isPreview) {
             return <PreviewTag contentType={contentType} icon={faPenLine} />;
         }
-        return null;
+        return (
+            <JSONForm content={lastStreamData.content} hasError={hasError} />
+        );
     }
     return streamData.map((data, index) => {
         const { dataType, content, id } = data;
@@ -42,7 +45,7 @@ export default function MessageContent({
                     />
                 );
             }
-            return <JsonViewer key={id} json={content} />;
+            return <JSONViewer key={id} json={content} />;
         }
         return null;
     });
