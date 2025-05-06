@@ -71,6 +71,12 @@ class CoordinatorAgent(Agent):
             # process nodes with streams 
             self.create_worker(stream, input=plan_id)
 
+    def get_plan_progress(self, plan):
+        num_connections = plan.count_nodes(filter_hasPrev=True)
+        num_finished_streams = plan.count_streams(filter_status=[Status.FINISHED])
+        return num_finished_streams / num_connections
+
+
     def session_listener(self, message):
         ### check if stream is in stream watch list
         if message.getCode() == ControlCode.ADD_STREAM:
@@ -181,6 +187,9 @@ class CoordinatorAgent(Agent):
                 if plan:
                     # start plan
                     self.initialize_plan(plan, worker=worker)
+                    # status
+                    worker.write_progress(progress_id=plan_id, label='Initialized', value=0.0)
+
         else:
             # get stream
             stream = message.getStream()
@@ -284,6 +293,8 @@ class CoordinatorAgent(Agent):
                                 to_agent_properties = plan.get_node_properties(to_agent_id)
                                 # issue instruction
                                 worker.write_control(ControlCode.EXECUTE_AGENT, {"agent": to_agent, "context": context, "properties": to_agent_properties, "inputs": {to_agent_param: input_stream}})
+                                # progress
+                                worker.write_progress(progress_id=plan_id, label='Executing: ' + to_agent, value=self.get_plan_progress(plan))
                             elif to_output:
                                 # nothing to do
                                 pass
@@ -297,7 +308,10 @@ class CoordinatorAgent(Agent):
                         plan.set_node_value_from_stream(node_id, save=True)
 
                     # check, update plan status
-                    plan.check_status(save=True)
+                    plan_status = plan.check_status(save=True)
+
+                    if plan_status == Status.FINISHED:
+                        worker.write_progress(progress_id=plan_id, label='Finished', value=1.0)
                     
 
         return None

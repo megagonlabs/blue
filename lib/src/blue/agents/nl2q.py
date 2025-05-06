@@ -186,7 +186,7 @@ Output:
                 if collection:
                     entities = self.registry.get_source_database_collection_entities(source, database, collection)
                     if entities:
-                        key = f'/{source}/{database}/{collection}'
+                        key = f'/source/{source}/database/{database}/collection/{collection}'
                         schemas[key] = entities
                 else:
                     # get collections
@@ -224,16 +224,16 @@ Output:
 
         if scope:
             sa = scope.split("/")
-            if len(sa) > 1:
-                source = sa[1]
+            if len(sa) > 2:
+                source = sa[2]
                 if source == '':
                     source = None
-            if len(sa) > 2:
-                database = sa[2]
+            if len(sa) > 4:
+                database = sa[4]
                 if database == '':
                     database = None
-            if len(sa) > 3:
-                collection = sa[3]
+            if len(sa) > 6:
+                collection = sa[6]
                 if collection == '':
                     collection = None 
 
@@ -528,7 +528,7 @@ Output:
             entities = self.registry.get_source_database_collection_entities(source, database, collection)
             relations = self.registry.get_source_database_collection_relations(source, database, collection)
             if entities:
-                key = f'/{source}/{database}/{collection}'
+                key = f'/source/{source}/database/{database}/collection/{collection}'
                 schemas[key] = {
                     'entities': entities,
                     'relations': relations
@@ -603,7 +603,7 @@ Output:
             entities = self.registry.get_source_database_collection_entities(source, database, collection)
             relations = self.registry.get_source_database_collection_relations(source, database, collection)
             if entities:
-                key = f'/{source}/{database}/{collection}'
+                key = f'/source/{source}/database/{database}/collection/{collection}'
                 schemas[key] = {
                     'entities': entities,
                     'relations': relations
