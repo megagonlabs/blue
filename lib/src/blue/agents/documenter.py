@@ -52,13 +52,16 @@ class DocumenterAgent(Agent):
         super()._initialize_properties()
 
 
-    def issue_nl_query(self, question, name=None, worker=None, to_param_prefix="QUESTION_RESULTS_"):
+    def issue_nl_query(self, question, progress_id=None, name=None, worker=None, to_param_prefix="QUESTION_RESULTS_"):
 
         if worker == None:
             worker = self.create_worker(None)
 
+        if progress_id is None:
+            progress_id = worker.sid
+
         # progress
-        worker.write_progress(progress_id=worker.sid, label='Issuing question:' + question, value=self.current_step/self.num_steps)
+        worker.write_progress(progress_id=progress_id, label='Issuing question:' + question, value=self.current_step/self.num_steps)
 
         # plan
         p = Plan(scope=worker.prefix)
@@ -71,13 +74,16 @@ class DocumenterAgent(Agent):
         # submit plan
         p.submit(worker)
 
-    def issue_sql_query(self, query, name=None, worker=None, to_param_prefix="QUERY_RESULTS_"):
+    def issue_sql_query(self, query, progress_id=None, name=None, worker=None, to_param_prefix="QUERY_RESULTS_"):
 
         if worker == None:
             worker = self.create_worker(None)
 
+        if progress_id is None:
+            progress_id = worker.sid
+
         # progress
-        worker.write_progress(progress_id=worker.sid, label='Issuing query:' + query, value=self.current_step/self.num_steps)
+        worker.write_progress(progress_id=progress_id, label='Issuing query:' + query, value=self.current_step/self.num_steps)
 
         # plan
         p = Plan(scope=worker.prefix)
@@ -90,18 +96,21 @@ class DocumenterAgent(Agent):
         # submit plan
         p.submit(worker)
     
-    def hilite_doc(self, doc, properties=None, worker=None):
+    def hilite_doc(self, doc, progress_id=None, properties=None, worker=None):
         if 'hilite' in properties:
             hilite = properties['hilite']
 
             if worker == None:
                 worker = self.create_worker(None)
 
+            if progress_id is None:
+                progress_id = worker.sid
+
             if properties is None:
                 properties = self.properties
 
             # progress
-            worker.write_progress(progress_id=worker.sid, label='Highlighting document...', value=self.current_step/self.num_steps)
+            worker.write_progress(progress_id=progress_id, label='Highlighting document...', value=self.current_step/self.num_steps)
 
             session_data = worker.get_all_session_data()
 
@@ -128,23 +137,26 @@ class DocumenterAgent(Agent):
             # submit plan
             p.submit(worker)
 
-    def process_doc(self, properties=None, input="", worker=None):
+    def process_doc(self, progress_id=None, properties=None, input="", worker=None):
 
         if worker == None:
             worker = self.create_worker(None)
+
+        if progress_id is None:
+            progress_id = worker.sid
 
         if properties is None:
             properties = self.properties
 
         # progress
-        worker.write_progress(progress_id=worker.sid, label='Processing document...', value=self.current_step/self.num_steps)
+        worker.write_progress(progress_id=progress_id, label='Processing document...', value=self.current_step/self.num_steps)
 
         doc = self.substitute_doc(worker, self.results, properties, input)
 
         if 'hilite' in properties:
-            self.hilite_doc(doc, properties=properties, worker=worker)
+            self.hilite_doc(doc, properties=properties, worker=worker, progress_id=progress_id)
         else:
-            self.render_doc(doc, properties=properties, worker=worker)
+            self.render_doc(doc, properties=properties, worker=worker, progress_id=progress_id)
 
     def substitute_doc(self, worker, results, properties, input):
         session_data = worker.get_all_session_data()
@@ -159,9 +171,12 @@ class DocumenterAgent(Agent):
 
         return processed_template
 
-    def render_doc(self, doc, properties=None, worker=None):
+    def render_doc(self, doc, progress_id=None, properties=None, worker=None):
         if worker == None:
             worker = self.create_worker(None)
+
+        if progress_id is None:
+            progress_id = worker.sid
 
         if properties is None:
             properties = self.properties
@@ -174,7 +189,7 @@ class DocumenterAgent(Agent):
         )
 
         # progress, done
-        worker.write_progress(progress_id=worker.sid, label='Done...', value=1.0)
+        worker.write_progress(progress_id=progress_id, label='Done...', value=1.0)
 
     def default_processor(self, message, input="DEFAULT", properties=None, worker=None):
     
@@ -183,6 +198,8 @@ class DocumenterAgent(Agent):
             if message.isEOS():
                 # get all data received from user stream
                 stream = message.getStream()
+
+                self.progress_id = stream
 
                 stream_data = worker.get_data(stream)
                 input_data = " ".join(stream_data)
@@ -216,7 +233,7 @@ class DocumenterAgent(Agent):
                             q = questions[question_name]
                             question = string_utils.safe_substitute(q, **self.properties, **session_data, input=input_data)
                             self.todos.add(question_name)
-                            self.issue_nl_query(question, name=question_name, worker=worker)
+                            self.issue_nl_query(question, name=question_name, worker=worker, progress_id=self.progress_id)
                     # db queries
                     if 'queries' in self.properties:
                         queries = self.properties['queries']
@@ -228,9 +245,9 @@ class DocumenterAgent(Agent):
                                 q = str(q) 
                             query = string_utils.safe_substitute(q, **self.properties, **session_data, input=input_data)
                             self.todos.add(query_name)
-                            self.issue_sql_query(query, name=query_name, worker=worker)
+                            self.issue_sql_query(query, name=query_name, worker=worker, progress_id=self.progress_id)
                     if 'questions' not in self.properties and 'queries' not in self.properties:
-                        self.process_doc(properties=properties, input=input_data, worker=None)
+                        self.process_doc(properties=properties, input=input_data, worker=None, progress_id=self.progress_id)
 
                     return
 
@@ -272,13 +289,13 @@ class DocumenterAgent(Agent):
                     if 'query' in data and data['query']:
                         q = data['query']
 
-                    worker.write_progress(progress_id=worker.sid, label='Received query results: ' + q, value=self.current_step/self.num_steps)
+                    worker.write_progress(progress_id=self.progress_id, label='Received query results: ' + q, value=self.current_step/self.num_steps)
 
                     if len(self.todos) == 0:
                         input_data = worker.get_data("input")
                         if input_data is None:
                             input_data = ""
-                        self.process_doc(properties=properties, input=input_data, worker=worker)
+                        self.process_doc(properties=properties, input=input_data, worker=worker, progress_id=self.progress_id)
                 else:
                     logging.info("nothing found")
         elif input.find("QUESTION_RESULTS_") == 0:
@@ -305,13 +322,13 @@ class DocumenterAgent(Agent):
                     if 'question' in data and data['question']:
                         q = data['question']
 
-                    worker.write_progress(progress_id=worker.sid, label='Received question results: ' + q, value=self.current_step/self.num_steps)
+                    worker.write_progress(progress_id=self.progress_id, label='Received question results: ' + q, value=self.current_step/self.num_steps)
 
                     if len(self.todos) == 0:
                         input_data = worker.get_data("input")
                         if input_data is None:
                             input_data = ""
-                        self.process_doc(properties=properties, input=input_data, worker=worker)
+                        self.process_doc(properties=properties, input=input_data, worker=worker, progress_id=self.progress_id)
                 else:
                     logging.info("nothing found")
         elif input == "DOC":
@@ -320,7 +337,7 @@ class DocumenterAgent(Agent):
 
                 # progress
                 self.current_step = self.num_steps - 1
-                worker.write_progress(progress_id=worker.sid, label='Received highlighted document...', value=self.current_step/self.num_steps)
+                worker.write_progress(progress_id=self.progress_id, label='Received highlighted document...', value=self.current_step/self.num_steps)
 
                 doc = str(data)
-                self.render_doc(doc, properties=properties, worker=worker)
+                self.render_doc(doc, properties=properties, worker=worker, progress_id=self.progress_id)

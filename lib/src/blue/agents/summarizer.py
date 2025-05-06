@@ -58,13 +58,16 @@ class SummarizerAgent(OpenAIAgent):
         for key in agent_properties:
             self.properties[key] = agent_properties[key]
 
-    def issue_nl_query(self, question, name=None, worker=None, to_param_prefix="QUESTION_RESULTS_"):
+    def issue_nl_query(self, question, progress_id=None, name=None, worker=None, to_param_prefix="QUESTION_RESULTS_"):
 
         if worker == None:
             worker = self.create_worker(None)
 
+        if progress_id is None:
+            progress_id = worker.sid
+
         # progress
-        worker.write_progress(progress_id=worker.sid, label='Issuing question:' + question, value=self.current_step/self.num_steps)
+        worker.write_progress(progress_id=progress_id, label='Issuing question:' + question, value=self.current_step/self.num_steps)
 
         # plan
         p = Plan(scope=worker.prefix)
@@ -77,13 +80,16 @@ class SummarizerAgent(OpenAIAgent):
         # submit plan
         p.submit(worker)
 
-    def issue_sql_query(self, query, name=None, worker=None, to_param_prefix="QUERY_RESULTS_"):
+    def issue_sql_query(self, query, progress_id=None, name=None, worker=None, to_param_prefix="QUERY_RESULTS_"):
 
         if worker == None:
             worker = self.create_worker(None)
 
+        if progress_id is None:
+            progress_id = worker.sid
+
         # progress
-        worker.write_progress(progress_id=worker.sid, label='Issuing query:' + query, value=self.current_step/self.num_steps)
+        worker.write_progress(progress_id=progress_id, label='Issuing query:' + query, value=self.current_step/self.num_steps)
 
         # plan
         p = Plan(scope=worker.prefix)
@@ -96,16 +102,19 @@ class SummarizerAgent(OpenAIAgent):
         # submit plan
         p.submit(worker)
 
-    def summarize_doc(self, properties=None, input="", worker=None):
+    def summarize_doc(self, progress_id=None, properties=None, input="", worker=None):
 
         if worker == None:
             worker = self.create_worker(None)
+
+        if progress_id is None:
+            progress_id = worker.sid
 
         if properties is None:
             properties = self.properties
 
         # progress
-        worker.write_progress(progress_id=worker.sid, label='Summarizing doc...', value=self.current_step/self.num_steps)
+        worker.write_progress(progress_id=progress_id, label='Summarizing doc...', value=self.current_step/self.num_steps)
 
         session_data = worker.get_all_session_data()
         
@@ -120,7 +129,7 @@ class SummarizerAgent(OpenAIAgent):
 
         if 'rephrase' in properties and properties['rephrase']:
             # progress 
-            worker.write_progress(progress_id=worker.sid, label='Rephrasing doc...', value=self.current_step/self.num_steps)
+            worker.write_progress(progress_id=progress_id, label='Rephrasing doc...', value=self.current_step/self.num_steps)
             
             #### call api to rephrase summary
             worker.write_data(self.handle_api_call([summary], properties=properties))
@@ -131,7 +140,7 @@ class SummarizerAgent(OpenAIAgent):
             worker.write_eos()
 
         # progress, done
-        worker.write_progress(progress_id=worker.sid, label='Done...', value=1.0)
+        worker.write_progress(progress_id=progress_id, label='Done...', value=1.0)
 
     def default_processor(self, message, input="DEFAULT", properties=None, worker=None):
     
@@ -140,6 +149,8 @@ class SummarizerAgent(OpenAIAgent):
             if message.isEOS():
                 # get all data received from user stream
                 stream = message.getStream()
+
+                self.progress_id = stream
 
                 stream_data = worker.get_data(stream)
                 input_data = " ".join(stream_data)
@@ -170,7 +181,7 @@ class SummarizerAgent(OpenAIAgent):
                             q = questions[question_name]
                             question = string_utils.safe_substitute(q, **self.properties, **session_data, input=input_data)
                             self.todos.add(question_name)
-                            self.issue_nl_query(question, name=question_name, worker=worker)
+                            self.issue_nl_query(question, name=question_name, worker=worker, progress_id=self.progress_id)
 
                     # db queries
                     if 'queries' in self.properties:
@@ -183,7 +194,7 @@ class SummarizerAgent(OpenAIAgent):
                                 q = str(q)
                             query = string_utils.safe_substitute(q, **self.properties, **session_data, input=input_data)
                             self.todos.add(query_name)
-                            self.issue_sql_query(query, name=query_name, worker=worker)
+                            self.issue_sql_query(query, name=query_name, worker=worker, progress_id=self.progress_id)
                     return
 
             elif message.isBOS():
@@ -222,7 +233,7 @@ class SummarizerAgent(OpenAIAgent):
                         input_data = worker.get_data("input")
                         if input_data is None:
                             input_data = ""
-                        self.summarize_doc(properties=properties, input=input_data, worker=worker)
+                        self.summarize_doc(properties=properties, input=input_data, worker=worker, progress_id=self.progress_id)
                 else:
                     logging.info("nothing found")
         elif input.find("QUESTION_RESULTS_") == 0:
@@ -245,7 +256,7 @@ class SummarizerAgent(OpenAIAgent):
                         input_data = worker.get_data("input")
                         if input_data is None:
                             input_data = ""
-                        self.summarize_doc(properties=properties, input=input_data, worker=worker)
+                        self.summarize_doc(properties=properties, input=input_data, worker=worker, progress_id=self.progress_id)
                 else:
                     logging.info("nothing found")
 
