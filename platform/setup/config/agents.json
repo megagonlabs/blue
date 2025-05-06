@@ -738,6 +738,31 @@
     "icon": null
   },
   {
+    "name": "VISUALIZER___AUTO_EXAMPLE",
+    "type": "agent",
+    "scope": "/agent/VISUALIZER",
+    "description": "Example Visualizer agent to visualize skills by frequency from a query result, using auto templating.",
+    "created_by": null,
+    "properties": {
+      "template": "{\"$schema\":\"https://vega.github.io/schema/vega-lite/v5.json\",\"description\":\"Top skills required by frequency\",\"data\":{\"values\":${skills_by_frequency}},\"mark\":\"bar\",\"encoding\":{\"x\":{\"field\":\"skill_required\",\"type\":\"nominal\",\"sort\":\"-y\",\"axis\":{\"title\":\"Skill Required\"}},\"y\":{\"field\":\"frequency\",\"type\":\"quantitative\",\"axis\":{\"title\":\"Frequency\"}}},\"title\":\"Top skills required by frequency\"}",
+      "questions": {
+        "skills_by_frequency": "What are the top 10 skills for project manager role by frequency?"
+      },
+      "auto_template": true,
+      "tags": {},
+      "listens": {
+        "DEFAULT": {
+          "includes": [
+            "USER"
+          ],
+          "excludes": []
+        }
+      },
+      "display_name": "Visualizer Agent - Automatic Example"
+    },
+    "icon": null
+  },
+  {
     "name": "DOCUMENTER",
     "type": "agent",
     "scope": "/",
