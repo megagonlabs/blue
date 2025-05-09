@@ -425,7 +425,7 @@ export default function AgentEntity() {
                                                     : null
                                             }
                                             icon={faIcon({ icon: faPlus })}
-                                            outlined
+                                            variant="outlined"
                                             text="Add agent"
                                             onClick={() => {
                                                 addEntityRouterPush("agent");

@@ -278,7 +278,7 @@ export default function EntityMain({
                             {entity.type}
                         </div>
                     </div>
-                    {showActionMenu ? (
+                    {showActionMenu && (
                         <div
                             style={{
                                 position: "absolute",
@@ -345,19 +345,21 @@ export default function EntityMain({
                                         content={
                                             <Menu size="large">
                                                 {_.isFunction(setEdit) &&
-                                                canEditEntity ? (
-                                                    <MenuItem
-                                                        onClick={() =>
-                                                            setEdit(true)
-                                                        }
-                                                        intent={Intent.PRIMARY}
-                                                        icon={faIcon({
-                                                            icon: faPen,
-                                                        })}
-                                                        text="Edit"
-                                                    />
-                                                ) : null}
-                                                {canDuplicateEntity ? (
+                                                    canEditEntity && (
+                                                        <MenuItem
+                                                            onClick={() =>
+                                                                setEdit(true)
+                                                            }
+                                                            intent={
+                                                                Intent.PRIMARY
+                                                            }
+                                                            icon={faIcon({
+                                                                icon: faPen,
+                                                            })}
+                                                            text="Edit"
+                                                        />
+                                                    )}
+                                                {canDuplicateEntity && (
                                                     <MenuItem
                                                         icon={faIcon({
                                                             icon: faClone,
@@ -367,8 +369,8 @@ export default function EntityMain({
                                                             duplicateEntity
                                                         }
                                                     />
-                                                ) : null}
-                                                {canSyncData ? (
+                                                )}
+                                                {canSyncData && (
                                                     <MenuItem
                                                         intent={Intent.SUCCESS}
                                                         icon={faIcon({
@@ -377,7 +379,7 @@ export default function EntityMain({
                                                         text="Sync"
                                                         onClick={syncData}
                                                     />
-                                                ) : null}
+                                                )}
                                                 {(canPullImage ||
                                                     canDeployAgent) && (
                                                     <MenuDivider title="Docker" />
@@ -489,7 +491,7 @@ export default function EntityMain({
                                 </ButtonGroup>
                             )}
                         </div>
-                    ) : null}
+                    )}
                 </SectionCard>
             </Section>
         </>
