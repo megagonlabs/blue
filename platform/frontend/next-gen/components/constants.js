@@ -27,6 +27,14 @@ export const USER_ROLES_LOOKUP = {
             },
         },
     },
+    ENTITY_MAIN_INFO_PROPERTY_KEYS = [
+        "system_agent",
+        "image",
+        "display_name",
+        "listens",
+        "tags",
+        "categories",
+    ],
     REGISTRY_ENTITY_ICON_WRAPPER_STYLES = {
         height: 40,
         width: 40,

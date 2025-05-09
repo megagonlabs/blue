@@ -1,3 +1,4 @@
+import { hasIntersection } from "@/components/helper";
 import axios from "axios";
 import { initializeApp } from "firebase/app";
 import { GoogleAuthProvider, getAuth, signInWithPopup } from "firebase/auth";
@@ -55,7 +56,30 @@ export const useAuthStore = create((set, get) => ({
         axios
             .get("/accounts/profile")
             .then((response) => {
-                set({ user: _.get(response, "data.profile", null) });
+                const user = _.get(response, "data.profile", null);
+                const permissions = {
+                    canWriteAgentRegistry: hasIntersection(
+                        _.get(user, "permissions.agent_registry", []),
+                        ["write_all", "write_own"]
+                    ),
+                    canWriteDataRegistry: hasIntersection(
+                        _.get(user, "permissions.data_registry", []),
+                        ["write_all", "write_own"]
+                    ),
+                    canWriteOperatorRegistry: hasIntersection(
+                        _.get(user, "permissions.operator_registry", []),
+                        ["write_all", "write_own"]
+                    ),
+                    canWriteModelRegistry: hasIntersection(
+                        _.get(user, "permissions.model_registry", []),
+                        ["write_all", "write_own"]
+                    ),
+                    canWritePlatformAgents: hasIntersection(
+                        _.get(user, "permissions.platform_agents", []),
+                        ["write_all", "write_own"]
+                    ),
+                };
+                set({ user, permissions });
             })
             .catch((error) => {})
             .finally(() => {

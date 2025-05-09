@@ -26,7 +26,7 @@ import RegistryEntityIcon from "./RegistryEntityIcon";
 export default function RegistryEntityCard({ entity }) {
     const type = _.get(entity, "type", null);
     const displayName = _.get(entity, "properties.display_name", entity.name);
-    const categories = _.get(entity, "property.categories", ["BASE", "HIDDEN"]);
+    const categories = _.get(entity, "properties.categories", []);
     const containerStatus = _.get(entity, "container.status", "not exist");
     const [extra, setExtra] = useState(null);
     const darkMode = useAppStore((state) => state.darkMode);

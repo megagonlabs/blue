@@ -3,6 +3,7 @@ import { useAppStore } from "@/stores/app-store";
 import {
     Button,
     ButtonVariant,
+    Card,
     Classes,
     Colors,
     ControlGroup,
@@ -125,6 +126,11 @@ function AgentList({ width, height }) {
                             <RegistryEntityCard entity={agent} />
                         </div>
                     ))}
+                    <div className="grid-item">
+                        <Card className="full-parent-dimension" interactive>
+                            add
+                        </Card>
+                    </div>
                 </div>
             </div>
         </div>

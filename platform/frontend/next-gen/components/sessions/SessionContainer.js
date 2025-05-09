@@ -132,12 +132,7 @@ function SessionContainer({ width, height, sessionId }) {
                                 content={
                                     <Menu size={Size.LARGE}>
                                         <MenuItem
-                                            icon={
-                                                <FAIcon
-                                                    icon={faCircleA}
-                                                    style={{ marginRight: 3 }}
-                                                />
-                                            }
+                                            icon={<FAIcon icon={faCircleA} />}
                                             text="Agents"
                                         />
                                     </Menu>

@@ -43,7 +43,7 @@ export default function SessionData({ sessionId }) {
                 className="custom-card"
                 loading={loading}
                 breaker={breaker}
-                controlStrip={{ size: Size.LARGE }}
+                controlStripProps={{ size: Size.LARGE }}
                 jsonObject={data}
                 onSave={onSave}
             />

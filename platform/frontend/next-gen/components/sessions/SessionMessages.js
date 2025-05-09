@@ -369,7 +369,6 @@ export default function SessionMessages({
                                         icon={
                                             <FAIcon
                                                 icon={faRectangleTerminal}
-                                                style={{ marginRight: 3 }}
                                             />
                                         }
                                         onClick={() => {

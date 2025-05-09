@@ -105,3 +105,6 @@ table.bp5-html-table.table-header-sticky tbody tr:first-child td {
 .session-list-card:hover .session-card-actions {
     display: block !important;
 }
+span.bp5-menu-item-icon {
+    margin-right: 10px !important;
+}

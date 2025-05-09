@@ -75,6 +75,9 @@ module.exports = {
             }, intervalTime);
         });
     },
+    hasIntersection: (left, right) => {
+        return _.some(left, _.ary(_.partial(_.includes, right), 1));
+    },
     getUpdatePropertyPromises: ({ axios, url, diffs, properties }) => {
         let tasks = [];
         const { updated, deleted, added } = diffs;

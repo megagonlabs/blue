@@ -14,7 +14,7 @@ import {
     Tag,
 } from "@blueprintjs/core";
 import {
-    faCircleCheck,
+    faCheckCircle,
     faCopy,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import copy from "copy-to-clipboard";
@@ -95,7 +95,9 @@ export default function MessageViewer({ sessionId, message }) {
                 <div className={Classes.TEXT_MUTED}>Tags</div>
                 <div style={{ display: "flex", gap: 5 }}>
                     {tags.map((tag) => (
-                        <Tag minimal>{tag}</Tag>
+                        <Tag key={tag} minimal>
+                            {tag}
+                        </Tag>
                     ))}
                 </div>
             </div>
@@ -113,8 +115,8 @@ export default function MessageViewer({ sessionId, message }) {
                     </tr>
                 </thead>
                 <tbody>
-                    {streamData.map((data) => (
-                        <tr>
+                    {streamData.map((data, index) => (
+                        <tr key={index}>
                             <td>
                                 <div style={{ maxWidth: 200 }}>
                                     <div>
@@ -147,7 +149,7 @@ export default function MessageViewer({ sessionId, message }) {
                                         marginLeft: 10,
                                         color: Colors.GREEN3,
                                     }}
-                                    icon={faCircleCheck}
+                                    icon={faCheckCircle}
                                 />
                             </td>
                         </tr>

@@ -18,7 +18,7 @@ import {
     Tag,
 } from "@blueprintjs/core";
 import {
-    faCircleCheck,
+    faCheckCircle,
     faSearch,
     faTrash,
     faUserPlus,
@@ -185,7 +185,7 @@ export default function SessionMemberList({ sessionId }) {
                                             {_.includes(members, user.uid) ||
                                             _.isEqual(owner, user.uid) ? (
                                                 <FAIcon
-                                                    icon={faCircleCheck}
+                                                    icon={faCheckCircle}
                                                     style={{
                                                         color: Colors.GREEN3,
                                                     }}
@@ -258,7 +258,11 @@ export default function SessionMemberList({ sessionId }) {
                     </Tag>
                 </Card>
                 {members.map((member) => (
-                    <Card interactive style={{ position: "relative" }}>
+                    <Card
+                        interactive
+                        style={{ position: "relative" }}
+                        key={member}
+                    >
                         <UserAvatar userId={member} />
                         <div
                             style={{

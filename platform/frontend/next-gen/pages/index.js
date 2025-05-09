@@ -1,4 +1,3 @@
-import { POPPER_BOTTOM_WITH_MODIFIER_OVERFLOW_10 } from "@/components/constants";
 import { ContainerContextProvider } from "@/components/contexts/ContainerContext";
 import { FAIcon } from "@/components/FAIcon";
 import { useGridStore } from "@/stores/grid-layout-store";
@@ -14,8 +13,8 @@ import {
     MenuDivider,
     MenuItem,
     Popover,
-    PopoverInteractionKind,
     Size,
+    Tooltip,
 } from "@blueprintjs/core";
 import {
     faExpand,
@@ -23,7 +22,7 @@ import {
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import classNames from "classnames";
 import _ from "lodash";
-import { forwardRef, useRef } from "react";
+import { forwardRef } from "react";
 import RGL, { WidthProvider } from "react-grid-layout";
 import { useShallow } from "zustand/react/shallow";
 const ReactGridLayout = WidthProvider(RGL);
@@ -54,10 +53,6 @@ export default function Home() {
             resizeContainerWidth: state.resizeContainerWidth,
         }))
     );
-    const elementRef = useRef(null);
-    const popoverBoundary =
-        elementRef.current &&
-        elementRef.current.closest(".grid-container-boundary");
     return (
         <div className="full-parent-dimension" style={{ overflowY: "auto" }}>
             <ReactGridLayout
@@ -78,7 +73,6 @@ export default function Home() {
                         style={{ zIndex: 3 }}
                     >
                         <div
-                            ref={elementRef}
                             className="border-bottom"
                             style={{
                                 padding: "10px 20px",
@@ -101,11 +95,13 @@ export default function Home() {
                                 />
                                 <Divider className="visibility-hidden" />
                                 <Popover
-                                    {...POPPER_BOTTOM_WITH_MODIFIER_OVERFLOW_10}
-                                    boundary={popoverBoundary}
-                                    interactionKind={
-                                        PopoverInteractionKind.HOVER
-                                    }
+                                    placement="bottom"
+                                    modifiers={{
+                                        offset: {
+                                            enabled: true,
+                                            options: { offset: [40, 14] },
+                                        },
+                                    }}
                                     content={
                                         <Menu>
                                             <MenuDivider title="Resize" />
@@ -152,10 +148,15 @@ export default function Home() {
                                         </Menu>
                                     }
                                 >
-                                    <Button
-                                        intent={Intent.SUCCESS}
-                                        icon={<FAIcon icon={faExpand} />}
-                                    />
+                                    <Tooltip
+                                        content="Resize"
+                                        placement="bottom"
+                                    >
+                                        <Button
+                                            intent={Intent.SUCCESS}
+                                            icon={<FAIcon icon={faExpand} />}
+                                        />
+                                    </Tooltip>
                                 </Popover>
                             </ButtonGroup>
                             <div

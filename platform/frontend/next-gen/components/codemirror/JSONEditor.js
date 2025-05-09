@@ -30,13 +30,13 @@ const TAB_INDENT = "    ";
 export default function JSONEditor({
     jsonObject,
     loading,
-    controlStrip = {},
+    controlStripProps = {},
     className = [],
     onSave = null,
     setBack = null,
     schema = null,
     useMinimap = true,
-    breaker = true,
+    breaker = null,
 }) {
     const jsonString = JSON.stringify(jsonObject, null, 4);
     const editor = useRef();
@@ -60,11 +60,25 @@ export default function JSONEditor({
                       backgroundColor: Colors.DARK_GRAY1,
                       borderRight: "1px solid rgba(255, 255, 255, 0.2)",
                   },
+                  ".cm-minimap-inner": {
+                      backgroundColor: Colors.DARK_GRAY1,
+                      borderLeft: "1px solid rgba(255, 255, 255, 0.2)",
+                  },
                   ".cm-minimap-gutter": { borderRight: 0 },
               },
               oneDark
           )
-        : [];
+        : EditorView.theme({
+              ".cm-gutters": {
+                  backgroundColor: Colors.LIGHT_GRAY5,
+                  borderRight: "1px solid rgba(17, 20, 24, 0.15)",
+              },
+              ".cm-minimap-inner": {
+                  backgroundColor: Colors.LIGHT_GRAY5,
+                  borderLeft: "1px solid rgba(17, 20, 24, 0.15)",
+              },
+              ".cm-minimap-gutter": { borderRight: 0 },
+          });
     const onUpdate = EditorView.updateListener.of((v) => {
         // v.docChanged
         debounced(v);
@@ -93,7 +107,7 @@ export default function JSONEditor({
             ],
         });
     }, [darkMode, loading]);
-    const overwrite = (object, string) => {
+    const overwrite = (string) => {
         if (_.isNull(editorView)) return;
         editorView.dispatch({
             changes: {
@@ -105,9 +119,16 @@ export default function JSONEditor({
     };
     useEffect(() => {
         try {
-            if (!breaker.current || !_.isEqual(jsonObject, JSON.parse(doc))) {
-                breaker.current = true;
-                overwrite(jsonObject, jsonString);
+            // if breaker is set to false, trigger forced update
+            // or the object being edited is out of sync with doc
+            if (
+                (!_.isNull(breaker) && !breaker.current) ||
+                !_.isEqual(jsonObject, JSON.parse(doc))
+            ) {
+                if (!_.isNull(breaker)) {
+                    breaker.current = true;
+                }
+                overwrite(jsonString);
             }
         } catch (error) {}
     }, [jsonObject, breaker]);
@@ -150,7 +171,7 @@ export default function JSONEditor({
         };
     }, []);
     const elementRef = useRef(null);
-    const controlStripSize = _.get(controlStrip, "size", null);
+    const controlStripSize = _.get(controlStripProps, "size", null);
     return (
         <div className={classNames(className, "full-parent-dimension")}>
             <div
@@ -184,7 +205,6 @@ export default function JSONEditor({
                             onClick={() => {
                                 try {
                                     overwrite(
-                                        JSON.stringify(doc),
                                         jsonFormatter.format(doc, TAB_INDENT)
                                     );
                                 } catch (error) {

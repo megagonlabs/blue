@@ -183,9 +183,6 @@ export default function Blue({ children }) {
                                                         text="All Sessions"
                                                         icon={
                                                             <FAIcon
-                                                                style={{
-                                                                    marginRight: 3,
-                                                                }}
                                                                 icon={
                                                                     faInboxFull
                                                                 }
@@ -200,9 +197,6 @@ export default function Blue({ children }) {
                                                         }
                                                         icon={
                                                             <FAIcon
-                                                                style={{
-                                                                    marginRight: 3,
-                                                                }}
                                                                 icon={
                                                                     faInboxOut
                                                                 }
@@ -223,9 +217,6 @@ export default function Blue({ children }) {
                                                         text="Agent"
                                                         icon={
                                                             <FAIcon
-                                                                style={{
-                                                                    marginRight: 3,
-                                                                }}
                                                                 icon={faCircleA}
                                                             />
                                                         }
@@ -234,9 +225,6 @@ export default function Blue({ children }) {
                                                         text="Data"
                                                         icon={
                                                             <FAIcon
-                                                                style={{
-                                                                    marginRight: 3,
-                                                                }}
                                                                 icon={faServer}
                                                             />
                                                         }
@@ -245,9 +233,6 @@ export default function Blue({ children }) {
                                                         text="Operator"
                                                         icon={
                                                             <FAIcon
-                                                                style={{
-                                                                    marginRight: 3,
-                                                                }}
                                                                 icon={
                                                                     faFunction
                                                                 }
@@ -258,9 +243,6 @@ export default function Blue({ children }) {
                                                         text="Model"
                                                         icon={
                                                             <FAIcon
-                                                                style={{
-                                                                    marginRight: 3,
-                                                                }}
                                                                 icon={faCube}
                                                             />
                                                         }
@@ -278,9 +260,6 @@ export default function Blue({ children }) {
                                                         text="Form Designer"
                                                         icon={
                                                             <FAIcon
-                                                                style={{
-                                                                    marginRight: 3,
-                                                                }}
                                                                 icon={
                                                                     faPencilRuler
                                                                 }
@@ -300,9 +279,6 @@ export default function Blue({ children }) {
                                                         text="System Status"
                                                         icon={
                                                             <FAIcon
-                                                                style={{
-                                                                    marginRight: 3,
-                                                                }}
                                                                 icon={
                                                                     faWavePulse
                                                                 }
@@ -313,9 +289,6 @@ export default function Blue({ children }) {
                                                         text="Agents"
                                                         icon={
                                                             <FAIcon
-                                                                style={{
-                                                                    marginRight: 3,
-                                                                }}
                                                                 icon={faCircleA}
                                                             />
                                                         }
@@ -324,9 +297,6 @@ export default function Blue({ children }) {
                                                         text="Services"
                                                         icon={
                                                             <FAIcon
-                                                                style={{
-                                                                    marginRight: 3,
-                                                                }}
                                                                 icon={
                                                                     faLayerGroup
                                                                 }
@@ -337,9 +307,6 @@ export default function Blue({ children }) {
                                                         text="Users"
                                                         icon={
                                                             <FAIcon
-                                                                style={{
-                                                                    marginRight: 3,
-                                                                }}
                                                                 icon={
                                                                     faUserGroup
                                                                 }
@@ -350,9 +317,6 @@ export default function Blue({ children }) {
                                                         text="Configurations"
                                                         icon={
                                                             <FAIcon
-                                                                style={{
-                                                                    marginRight: 3,
-                                                                }}
                                                                 icon={
                                                                     faScrewdriverWrench
                                                                 }
