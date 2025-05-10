@@ -21,11 +21,11 @@ import {
     REGISTRY_ENTITY_ICON_WRAPPER_STYLES,
 } from "../constants";
 import { FAIcon } from "../FAIcon";
+import EntityDisplayName from "./EntityDisplayName";
 import RegistryEntityContainer from "./RegistryEntityContainer";
 import RegistryEntityIcon from "./RegistryEntityIcon";
 export default function RegistryEntityCard({ entity }) {
     const type = _.get(entity, "type", null);
-    const displayName = _.get(entity, "properties.display_name", entity.name);
     const categories = _.get(entity, "properties.categories", []);
     const containerStatus = _.get(entity, "container.status", "not exist");
     const [extra, setExtra] = useState(null);
@@ -33,7 +33,7 @@ export default function RegistryEntityCard({ entity }) {
     useEffect(() => {
         if (_.includes(["agent", "operator"], type)) {
             setExtra(_.toString(_.get(entity, "properties.image")));
-        } else if (_.isEqual("data", type)) {
+        } else if (_.isEqual("source", type)) {
             let protocol = _.get(entity, "properties.connection.protocol");
             let host = _.get(entity, "properties.connection.host");
             let port = _.get(entity, "properties.connection.port");
@@ -108,19 +108,21 @@ export default function RegistryEntityCard({ entity }) {
                     style={{ fontWeight: 600 }}
                     className={Classes.TEXT_OVERFLOW_ELLIPSIS}
                 >
-                    {displayName}
+                    <EntityDisplayName entity={entity} />
                 </div>
-                <div
-                    className={Classes.TEXT_DISABLED}
-                    style={_.get(
-                        DOCKER_CONTAINER_STATUS_LOOKUP,
-                        [containerStatus, "style"],
-                        null
-                    )}
-                >
-                    <FAIcon icon={faDocker} style={{ marginRight: 5 }} />
-                    container:&nbsp;{containerStatus}
-                </div>
+                {_.isEqual(type, "agent") && (
+                    <div
+                        className={Classes.TEXT_DISABLED}
+                        style={_.get(
+                            DOCKER_CONTAINER_STATUS_LOOKUP,
+                            [containerStatus, "style"],
+                            null
+                        )}
+                    >
+                        <FAIcon icon={faDocker} style={{ marginRight: 5 }} />
+                        container:&nbsp;{containerStatus}
+                    </div>
+                )}
             </div>
             <div
                 className={classNames(

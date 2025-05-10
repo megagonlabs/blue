@@ -1,4 +1,4 @@
-import { CompoundTag, OverflowList, Size } from "@blueprintjs/core";
+import { CompoundTag, Intent, OverflowList, Size } from "@blueprintjs/core";
 import { faAngleRight } from "@fortawesome/sharp-duotone-solid-svg-icons";
 const { FAIcon } = require("../FAIcon");
 const HYPHEN_ICON = (
@@ -6,19 +6,27 @@ const HYPHEN_ICON = (
 );
 const BREADCRUMB_STYLES = { display: "flex", alignItems: "center" };
 const TAG_PROPS = { size: Size.LARGE, minimal: true };
-export default function Breadcrumbs({ crumbs }) {
+export default function Breadcrumbs({ crumbs, toCrumb }) {
     return (
         <OverflowList
             items={crumbs}
             visibleItemRenderer={(item) => {
-                const { name, type, start, end } = item;
+                const { name, type, start, end, index } = item;
                 return (
                     <div style={BREADCRUMB_STYLES}>
                         {!start ? HYPHEN_ICON : null}
                         <CompoundTag
                             {...TAG_PROPS}
                             leftContent={type}
-                            interactive={!end}
+                            intent={!end ? Intent.PRIMARY : null}
+                            onClick={
+                                !end
+                                    ? () => {
+                                          toCrumb(index);
+                                      }
+                                    : null
+                            }
+                            style={{ cursor: !end ? "pointer" : null }}
                         >
                             {name}
                         </CompoundTag>

@@ -1,10 +1,12 @@
 import { FAIcon } from "@/components/FAIcon";
+import { useAppStore } from "@/stores/app-store";
 import {
+    Alignment,
     Button,
     ButtonVariant,
     Callout,
-    Card,
     Classes,
+    Colors,
     EditableText,
     EntityTitle,
     H3,
@@ -13,11 +15,13 @@ import {
     Intent,
     Size,
     Tag,
+    Tooltip,
 } from "@blueprintjs/core";
 import {
     faArrowTurnDownLeft,
     faMemo,
     faPlus,
+    faTrash,
     faXmark,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import _ from "lodash";
@@ -77,7 +81,7 @@ function Categories({ properties, loading, isEditing, updateMainProperties }) {
                         size={Size.LARGE}
                         minimal
                         endIcon={
-                            isEditing && (
+                            isEditing ? (
                                 <div
                                     onClick={() => {
                                         handleRemove(category);
@@ -85,7 +89,7 @@ function Categories({ properties, loading, isEditing, updateMainProperties }) {
                                 >
                                     {TAG_REMOVE_ICON}
                                 </div>
-                            )
+                            ) : null
                         }
                     >
                         {category}
@@ -114,6 +118,7 @@ function InputListeners({
     isEditing,
     updateMainProperties,
 }) {
+    const darkMode = useAppStore((state) => state.darkMode);
     const inputListeners = useMemo(() => {
         return _.isArray(properties.listens) ? properties.listens : [];
     }, [properties.listens]);
@@ -155,6 +160,11 @@ function InputListeners({
         },
         [tags]
     );
+    const handleRemove = (index) => {
+        let next = _.cloneDeep(inputListeners);
+        _.pullAt(next, index);
+        updateMainProperties({ path: "listens", value: next });
+    };
     return (
         <>
             <H5>Input listeners</H5>
@@ -164,8 +174,38 @@ function InputListeners({
             >
                 {!isEditing && _.isEmpty(inputListeners) && "-"}
                 {inputListeners.map((inputListener, index) => (
-                    <div key={index}>
-                        <Card style={{ marginTop: 10, padding: 15 }}>
+                    <div key={index} style={{ position: "relative" }}>
+                        {isEditing && (
+                            <div
+                                style={{
+                                    position: "absolute",
+                                    right: 15,
+                                    top: 15,
+                                }}
+                            >
+                                <Tooltip placement="left" content="Remove">
+                                    <Button
+                                        onClick={() => {
+                                            handleRemove(index);
+                                        }}
+                                        intent={Intent.DANGER}
+                                        size={Size.LARGE}
+                                        variant={ButtonVariant.MINIMAL}
+                                        icon={<FAIcon icon={faTrash} />}
+                                    />
+                                </Tooltip>
+                            </div>
+                        )}
+                        <div
+                            style={{
+                                marginTop: 10,
+                                padding: 15,
+                                paddingRight: isEditing ? 70 : 15,
+                                backgroundColor: darkMode
+                                    ? Colors.DARK_GRAY1
+                                    : Colors.LIGHT_GRAY5,
+                            }}
+                        >
                             {_.isEmpty(_.trim(inputListener.key)) && (
                                 <Callout
                                     icon={null}
@@ -213,7 +253,13 @@ function InputListeners({
                                     >
                                         {_.capitalize(type)}
                                     </div>
-                                    <div style={{ display: "flex", gap: 10 }}>
+                                    <div
+                                        style={{
+                                            display: "flex",
+                                            gap: 10,
+                                            flexWrap: "wrap",
+                                        }}
+                                    >
                                         {!isEditing &&
                                             _.isEmpty(inputListener[type]) && (
                                                 <div
@@ -228,7 +274,7 @@ function InputListeners({
                                             <Tag
                                                 minimal
                                                 endIcon={
-                                                    isEditing && (
+                                                    isEditing ? (
                                                         <div
                                                             onClick={() => {
                                                                 removeTag(
@@ -240,7 +286,7 @@ function InputListeners({
                                                         >
                                                             {TAG_REMOVE_ICON}
                                                         </div>
-                                                    )
+                                                    ) : null
                                                 }
                                                 size={Size.LARGE}
                                                 key={tag}
@@ -280,7 +326,7 @@ function InputListeners({
                                     </div>
                                 </div>
                             ))}
-                        </Card>
+                        </div>
                     </div>
                 ))}
                 {isEditing && (
@@ -298,7 +344,9 @@ function InputListeners({
                                 ],
                             });
                         }}
-                        variant={ButtonVariant.OUTLINED}
+                        fill
+                        alignText={Alignment.START}
+                        variant={ButtonVariant.MINIMAL}
                         text="Add input listener"
                     />
                 )}
@@ -348,6 +396,12 @@ function OutputTags({ isEditing, loading, properties, updateMainProperties }) {
         _.set(newAddTags, index, tag);
         setAddTags(newAddTags);
     };
+    const handleRemove = (index) => {
+        let next = _.cloneDeep(outputTags);
+        _.pullAt(next, index);
+        updateMainProperties({ path: "tags", value: next });
+    };
+    const darkMode = useAppStore((state) => state.darkMode);
     return (
         <>
             <H5>Output tags</H5>
@@ -357,8 +411,38 @@ function OutputTags({ isEditing, loading, properties, updateMainProperties }) {
             >
                 {!isEditing && _.isEmpty(outputTags) && "-"}
                 {outputTags.map((outputTag, index) => (
-                    <div key={index}>
-                        <Card style={{ marginTop: 10, padding: 15 }}>
+                    <div key={index} style={{ position: "relative" }}>
+                        {isEditing && (
+                            <div
+                                style={{
+                                    position: "absolute",
+                                    right: 15,
+                                    top: 15,
+                                }}
+                            >
+                                <Tooltip placement="left" content="Remove">
+                                    <Button
+                                        onClick={() => {
+                                            handleRemove(index);
+                                        }}
+                                        intent={Intent.DANGER}
+                                        size={Size.LARGE}
+                                        variant={ButtonVariant.MINIMAL}
+                                        icon={<FAIcon icon={faTrash} />}
+                                    />
+                                </Tooltip>
+                            </div>
+                        )}
+                        <div
+                            style={{
+                                marginTop: 10,
+                                padding: 15,
+                                paddingRight: isEditing ? 70 : 15,
+                                backgroundColor: darkMode
+                                    ? Colors.DARK_GRAY1
+                                    : Colors.LIGHT_GRAY5,
+                            }}
+                        >
                             {_.isEmpty(_.trim(outputTag.key)) && (
                                 <Callout
                                     icon={null}
@@ -405,7 +489,13 @@ function OutputTags({ isEditing, loading, properties, updateMainProperties }) {
                                 >
                                     Tags
                                 </div>
-                                <div style={{ display: "flex", gap: 10 }}>
+                                <div
+                                    style={{
+                                        display: "flex",
+                                        gap: 10,
+                                        flexWrap: "wrap",
+                                    }}
+                                >
                                     {!isEditing &&
                                         _.isEmpty(outputTag.tags) && (
                                             <div
@@ -422,7 +512,7 @@ function OutputTags({ isEditing, loading, properties, updateMainProperties }) {
                                             size={Size.LARGE}
                                             key={tag}
                                             endIcon={
-                                                isEditing && (
+                                                isEditing ? (
                                                     <div
                                                         onClick={() => {
                                                             removeTag(
@@ -433,7 +523,7 @@ function OutputTags({ isEditing, loading, properties, updateMainProperties }) {
                                                     >
                                                         {TAG_REMOVE_ICON}
                                                     </div>
-                                                )
+                                                ) : null
                                             }
                                         >
                                             {tag}
@@ -460,7 +550,7 @@ function OutputTags({ isEditing, loading, properties, updateMainProperties }) {
                                     )}
                                 </div>
                             </div>
-                        </Card>
+                        </div>
                     </div>
                 ))}
                 {isEditing && (
@@ -475,7 +565,9 @@ function OutputTags({ isEditing, loading, properties, updateMainProperties }) {
                                 value: [...outputTags, { key: "", tags: [] }],
                             });
                         }}
-                        variant={ButtonVariant.OUTLINED}
+                        fill
+                        alignText={Alignment.START}
+                        variant={ButtonVariant.MINIMAL}
                         text="Add output tag"
                     />
                 )}
@@ -498,34 +590,32 @@ export default function AgentMainProperties({
                     title="Main"
                 />
             </div>
-            {!_.isEmpty(properties) && (
-                <>
-                    <div>
-                        <InputListeners
-                            updateMainProperties={updateMainProperties}
-                            isEditing={isEditing}
-                            properties={properties}
-                            loading={loading}
-                        />
-                    </div>
-                    <div style={{ marginTop: 15 }}>
-                        <OutputTags
-                            updateMainProperties={updateMainProperties}
-                            isEditing={isEditing}
-                            properties={properties}
-                            loading={loading}
-                        />
-                    </div>
-                    <div style={{ marginTop: 15 }}>
-                        <Categories
-                            updateMainProperties={updateMainProperties}
-                            isEditing={isEditing}
-                            properties={properties}
-                            loading={loading}
-                        />
-                    </div>
-                </>
-            )}
+            <div className="split-pane-container">
+                <div className="pane-item">
+                    <InputListeners
+                        updateMainProperties={updateMainProperties}
+                        isEditing={isEditing}
+                        properties={properties}
+                        loading={loading}
+                    />
+                </div>
+                <div className="pane-item">
+                    <OutputTags
+                        updateMainProperties={updateMainProperties}
+                        isEditing={isEditing}
+                        properties={properties}
+                        loading={loading}
+                    />
+                </div>
+            </div>
+            <div style={{ marginTop: 10 }}>
+                <Categories
+                    updateMainProperties={updateMainProperties}
+                    isEditing={isEditing}
+                    properties={properties}
+                    loading={loading}
+                />
+            </div>
         </div>
     );
 }

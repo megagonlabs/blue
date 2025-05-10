@@ -184,7 +184,10 @@ function SessionList({ width, height }) {
                         size={Size.LARGE}
                     />
                 </ControlGroup>
-                <div style={{ marginTop: 20 }} className="responsive-container">
+                <div
+                    style={{ marginTop: 20 }}
+                    className="responsive-grid-container"
+                >
                     {allSessions.map((session, index) => (
                         <div key={index} className="grid-item">
                             <SessionCard sessionId={session} />

@@ -33,6 +33,7 @@ export default function EntityActions({
     setIsEditing,
     handleSave,
     handleDiscard,
+    loading,
 }) {
     const { user, permissions } = useAuthStore(
         useShallow((state) => ({
@@ -97,7 +98,8 @@ export default function EntityActions({
         return (
             _.isEqual(entity.type, "agent") &&
             (own || writeAll) &&
-            !_.isEqual(containerStatus, "running")
+            !_.isEqual(containerStatus, "running") &&
+            canPullImage
         );
     }, [user, permissions, containerStatus]);
     if (isEditing) {
@@ -117,6 +119,7 @@ export default function EntityActions({
                     >
                         <Tooltip content="Discard" placement="bottom">
                             <Button
+                                disabled={loading}
                                 variant={ButtonVariant.MINIMAL}
                                 icon={<FAIcon icon={faClockRotateLeft} />}
                             />
@@ -124,6 +127,7 @@ export default function EntityActions({
                     </Popover>
                 )}
                 <Button
+                    disabled={loading}
                     text="Save"
                     intent={Intent.SUCCESS}
                     onClick={handleSave}
@@ -223,6 +227,7 @@ export default function EntityActions({
         >
             <Tooltip>
                 <Button
+                    disabled={loading}
                     intent={Intent.PRIMARY}
                     size={Size.LARGE}
                     icon={<FAIcon icon={faEllipsisV} />}

@@ -1,12 +1,20 @@
 import {
     ENTITY_MAIN_INFO_PROPERTY_KEYS,
+    ENTITY_TYPE_LOOKUP,
     HEX_TRANSPARENCY,
+    MAIN_INFO_STYLES,
     REGISTRY_ENTITY_ICON_WRAPPER_STYLES,
 } from "@/components/constants";
 import { FAIcon } from "@/components/FAIcon";
 import { getUpdatePropertyPromises, settlePromises } from "@/components/helper";
 import { useAppStore } from "@/stores/app-store";
-import { Classes, Colors, EditableText } from "@blueprintjs/core";
+import {
+    Classes,
+    Colors,
+    EditableText,
+    EntityTitle,
+    H3,
+} from "@blueprintjs/core";
 import { faCheckCircle } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import axios from "axios";
 import classNames from "classnames";
@@ -17,41 +25,17 @@ import shallowDiff from "shallow-diff";
 import EntityDescription from "../attributes/EntityDescription";
 import EntityProperties from "../attributes/EntityProperties";
 import EntityActions from "../EntityActions";
+import Leaves from "../Leaves";
+import MainPropertyBlock from "../MainPropertyBlock";
 import RegistryEntityIcon from "../RegistryEntityIcon";
 import AgentMainProperties from "./AgentMainProperties";
 const { NEXT_PUBLIC_AGENT_REGISTRY_NAME } = allEnv();
-const MAIN_INFO_STYLES = {
-    height: 40,
-    display: "flex",
-    flexDirection: "column",
-    justifyContent: "space-between",
-    maxWidth: "100%",
-};
-function MAIN_INFO_BLOCK({ loading, label, children }) {
-    return (
-        <div style={MAIN_INFO_STYLES}>
-            <div
-                className={classNames(
-                    Classes.TEXT_MUTED,
-                    Classes.TEXT_OVERFLOW_ELLIPSIS
-                )}
-            >
-                {label}
-            </div>
-            <div
-                className={loading ? Classes.SKELETON : null}
-                style={{ fontWeight: 600 }}
-            >
-                {children}
-            </div>
-        </div>
-    );
-}
-export default function AgentEntity({ name }) {
+export default function AgentEntity({ entity, addCrumb }) {
+    const { name, scope, type } = entity;
     const [agent, setAgent] = useState(null);
     const [isEditing, setIsEditing] = useState(false);
     const [editedAgent, setEditedAgent] = useState(null);
-    const [mainProperties, setMainProperties] = useState(null);
+    const [mainProperties, setMainProperties] = useState({});
     const [loading, setLoading] = useState(false);
     const updateMainProperties = ({ path, value }) => {
         let newProperties = _.cloneDeep(mainProperties);
@@ -67,7 +51,10 @@ export default function AgentEntity({ name }) {
     const systemAgent = _.get(mainProperties, "system_agent", false);
     const displayName = _.get(mainProperties, "display_name", "");
     const image = _.get(mainProperties, "image", "");
-    const url = `/registry/${NEXT_PUBLIC_AGENT_REGISTRY_NAME}/agent/${name}`;
+    const path = [scope.substring(1), type, name]
+        .filter((str) => !_.isEmpty(str))
+        .join("/");
+    const url = `/registry/${NEXT_PUBLIC_AGENT_REGISTRY_NAME}/${path}`;
     const getMainProperties = (properties) => {
         let next = _.cloneDeep(properties);
         _.set(
@@ -111,7 +98,7 @@ export default function AgentEntity({ name }) {
             .finally(() => {
                 setLoading(false);
             });
-    }, [name]);
+    }, [entity]);
     const handleDiscard = () => {
         setEditedAgent(agent);
         const properties = _.pick(
@@ -204,6 +191,7 @@ export default function AgentEntity({ name }) {
                         style={{ position: "absolute", right: 20 }}
                     >
                         <EntityActions
+                            loading={loading}
                             handleSave={handleSave}
                             handleDiscard={handleDiscard}
                             entity={agent}
@@ -252,7 +240,7 @@ export default function AgentEntity({ name }) {
                             {_.get(editedAgent, "name")}
                         </div>
                     </div>
-                    <MAIN_INFO_BLOCK loading={loading} label="System agent">
+                    <MainPropertyBlock loading={loading} label="System agent">
                         {systemAgent ? (
                             <FAIcon
                                 style={{ color: Colors.GREEN3 }}
@@ -261,8 +249,8 @@ export default function AgentEntity({ name }) {
                         ) : (
                             "-"
                         )}
-                    </MAIN_INFO_BLOCK>
-                    <MAIN_INFO_BLOCK loading={loading} label="Display name">
+                    </MainPropertyBlock>
+                    <MainPropertyBlock loading={loading} label="Display name">
                         {isEditing ? (
                             <EditableText
                                 alwaysRenderInput
@@ -279,8 +267,8 @@ export default function AgentEntity({ name }) {
                                 {!_.isEmpty(displayName) ? displayName : "-"}
                             </div>
                         )}
-                    </MAIN_INFO_BLOCK>
-                    <MAIN_INFO_BLOCK loading={loading} label="Docker image">
+                    </MainPropertyBlock>
+                    <MainPropertyBlock loading={loading} label="Docker image">
                         {isEditing ? (
                             <EditableText
                                 alwaysRenderInput
@@ -297,32 +285,115 @@ export default function AgentEntity({ name }) {
                                 {!_.isEmpty(image) ? image : "-"}
                             </div>
                         )}
-                    </MAIN_INFO_BLOCK>
+                    </MainPropertyBlock>
                 </div>
             </div>
             <div style={{ marginTop: 20 }}>
-                <AgentMainProperties
-                    updateMainProperties={updateMainProperties}
-                    isEditing={isEditing}
-                    properties={mainProperties}
-                    loading={loading}
-                />
-            </div>
-            <div style={{ marginTop: 20 }}>
-                <EntityDescription
-                    isEditing={isEditing}
-                    updateEntity={updateAgent}
-                    entity={editedAgent}
-                    loading={loading}
-                />
-            </div>
-            <div style={{ marginTop: 20 }}>
-                <EntityProperties
-                    isEditing={isEditing}
-                    updateEntity={updateAgent}
-                    entity={editedAgent}
-                    loading={loading}
-                />
+                <div>
+                    <AgentMainProperties
+                        updateMainProperties={updateMainProperties}
+                        isEditing={isEditing}
+                        properties={mainProperties}
+                        loading={loading}
+                    />
+                </div>
+                <div style={{ marginTop: 20 }}>
+                    <EntityDescription
+                        isEditing={isEditing}
+                        updateEntity={updateAgent}
+                        entity={editedAgent}
+                        loading={loading}
+                    />
+                </div>
+                <div style={{ marginTop: 20 }}>
+                    <EntityProperties
+                        isEditing={isEditing}
+                        updateEntity={updateAgent}
+                        entity={editedAgent}
+                        loading={loading}
+                    />
+                </div>
+                <div style={{ marginTop: 20 }} className="split-pane-container">
+                    <div className="pane-item">
+                        <div style={{ marginBottom: 10 }}>
+                            <EntityTitle
+                                icon={
+                                    <FAIcon
+                                        icon={ENTITY_TYPE_LOOKUP["input"].icon}
+                                        size={25}
+                                    />
+                                }
+                                heading={H3}
+                                title="Inputs"
+                            />
+                        </div>
+                        <div
+                            style={{
+                                display: "flex",
+                                gap: 10,
+                                flexDirection: "column",
+                            }}
+                        >
+                            <Leaves
+                                loading={loading}
+                                addCrumb={addCrumb}
+                                list={_.values(
+                                    _.get(agent, "contents.input", {})
+                                )}
+                            />
+                        </div>
+                    </div>
+                    <div className="pane-item">
+                        <div style={{ marginBottom: 10 }}>
+                            <EntityTitle
+                                icon={
+                                    <FAIcon
+                                        icon={ENTITY_TYPE_LOOKUP["output"].icon}
+                                        size={25}
+                                    />
+                                }
+                                heading={H3}
+                                title="Outputs"
+                            />
+                        </div>
+                        <div
+                            style={{
+                                display: "flex",
+                                gap: 10,
+                                flexDirection: "column",
+                            }}
+                        >
+                            <Leaves
+                                loading={loading}
+                                addCrumb={addCrumb}
+                                list={_.values(
+                                    _.get(agent, "contents.output", {})
+                                )}
+                            />
+                        </div>
+                    </div>
+                </div>
+                <div style={{ marginTop: 20 }}>
+                    <div style={{ marginBottom: 10 }}>
+                        <EntityTitle
+                            icon={
+                                <FAIcon
+                                    icon={ENTITY_TYPE_LOOKUP["agent"].icon}
+                                    size={25}
+                                />
+                            }
+                            heading={H3}
+                            title="Derived Agents"
+                        />
+                    </div>
+                    <div className="responsive-grid-container">
+                        <Leaves
+                            loading={loading}
+                            addCrumb={addCrumb}
+                            list={_.values(_.get(agent, "contents.agent", {}))}
+                        />
+                    </div>
+                </div>
             </div>
         </div>
     );

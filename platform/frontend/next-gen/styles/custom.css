@@ -33,40 +33,58 @@
     background-color: var(--colors-dark-gray-2);
     border-radius: 2px;
 }
-.responsive-container {
+.responsive-grid-container {
     display: flex;
     flex-flow: wrap;
     --blue-gap: 10px;
     gap: var(--blue-gap);
 }
-/* .responsive-container[min-width~="0px"] {}
-.responsive-container[min-width~="768px"] {}
-.responsive-container[min-width~="992px"] {}
-.responsive-container[min-width~="1200px"] {}
-.responsive-container[min-width~="1600px"] {}
-.responsive-container[min-width~="1920px"] {} */
-.responsive-container[min-width~="0px"] .grid-item {
+/* .classname[min-width~="0px"] {}
+.classname[min-width~="768px"] {}
+.classname[min-width~="992px"] {}
+.classname[min-width~="1200px"] {}
+.classname[min-width~="1600px"] {}
+.classname[min-width~="1920px"] {} */
+.responsive-grid-container[min-width~="0px"] .grid-item {
     --blue-columns: 1;
 }
-.responsive-container[min-width~="768px"] .grid-item {
+.responsive-grid-container[min-width~="768px"] .grid-item {
     --blue-columns: 2;
 }
-.responsive-container[min-width~="992px"] .grid-item {
+.responsive-grid-container[min-width~="992px"] .grid-item {
     --blue-columns: 3;
 }
-.responsive-container[min-width~="1200px"] .grid-item {
+.responsive-grid-container[min-width~="1200px"] .grid-item {
     --blue-columns: 4;
 }
-.responsive-container[min-width~="1600px"] .grid-item {
+.responsive-grid-container[min-width~="1600px"] .grid-item {
     --blue-columns: 5;
 }
-.responsive-container[min-width~="1920px"] .grid-item {
+.responsive-grid-container[min-width~="1920px"] .grid-item {
     --blue-columns: 6;
 }
-.responsive-container .grid-item {
+.responsive-grid-container .grid-item {
     width: calc(
         (100% / var(--blue-columns)) - var(--blue-gap) +
             (var(--blue-gap) / var(--blue-columns))
+    );
+}
+.split-pane-container {
+    display: flex;
+    flex-flow: wrap;
+    --blue-column-gap: 20px;
+    gap: 10px var(--blue-column-gap);
+}
+.split-pane-container[min-width~="0px"] .pane-item {
+    --blue-columns: 1;
+}
+.split-pane-container[min-width~="768px"] .pane-item {
+    --blue-columns: 2;
+}
+.split-pane-container .pane-item {
+    width: calc(
+        (100% / var(--blue-columns)) - var(--blue-column-gap) +
+            (var(--blue-column-gap) / var(--blue-columns))
     );
 }
 .center-center {

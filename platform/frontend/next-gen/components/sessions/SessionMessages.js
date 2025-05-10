@@ -22,11 +22,11 @@ import {
 } from "@blueprintjs/core";
 import {
     faArrowLeft,
+    faBarcodeRead,
     faBarsFilter,
     faBrowsers,
     faEllipsisH,
     faEllipsisV,
-    faRectangleTerminal,
     faSidebar,
     faTableColumns,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
@@ -366,14 +366,10 @@ export default function SessionMessages({
                                                 style={{ marginLeft: 3 }}
                                             />
                                         }
-                                        icon={
-                                            <FAIcon
-                                                icon={faRectangleTerminal}
-                                            />
-                                        }
+                                        icon={<FAIcon icon={faBarcodeRead} />}
                                         onClick={() => {
                                             addContainer({
-                                                icon: faRectangleTerminal,
+                                                icon: faBarcodeRead,
                                                 title: (
                                                     <SessionDisplayName
                                                         sessionId={sessionId}
@@ -386,7 +382,7 @@ export default function SessionMessages({
                                                 ),
                                             });
                                         }}
-                                        text="Start debugger"
+                                        text="Inspect"
                                     />
                                 </Menu>
                             }

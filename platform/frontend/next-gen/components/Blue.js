@@ -35,10 +35,12 @@ import Image from "next/image";
 import { useShallow } from "zustand/react/shallow";
 import AccountPanel from "./AccountPanel";
 import SystemStatusContainer from "./administrator/SystemStatusContainer";
-import AgentList from "./agents/AgentList";
 import Authentication from "./Authentication";
+import { ENTITY_TYPE_LOOKUP } from "./constants";
 import ExpandingBox from "./ExpandingBox";
 import { FAIcon } from "./FAIcon";
+import AgentList from "./registries/agents/AgentList";
+import SourceList from "./registries/data/SourceList";
 import SessionList from "./sessions/SessionList";
 import FormDesigner from "./tools/FormDesigner";
 export default function Blue({ children }) {
@@ -207,7 +209,9 @@ export default function Blue({ children }) {
                                                     <MenuItem
                                                         onClick={() =>
                                                             addContainer({
-                                                                icon: faCircleA,
+                                                                icon: ENTITY_TYPE_LOOKUP[
+                                                                    "agent"
+                                                                ].icon,
                                                                 title: "Agent Registry",
                                                                 content: (
                                                                     <AgentList />
@@ -222,6 +226,17 @@ export default function Blue({ children }) {
                                                         }
                                                     />
                                                     <MenuItem
+                                                        onClick={() =>
+                                                            addContainer({
+                                                                icon: ENTITY_TYPE_LOOKUP[
+                                                                    "source"
+                                                                ].icon,
+                                                                title: "Data Registry",
+                                                                content: (
+                                                                    <SourceList />
+                                                                ),
+                                                            })
+                                                        }
                                                         text="Data"
                                                         icon={
                                                             <FAIcon
