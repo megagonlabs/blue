@@ -41,6 +41,8 @@ import ExpandingBox from "./ExpandingBox";
 import { FAIcon } from "./FAIcon";
 import AgentList from "./registries/agents/AgentList";
 import SourceList from "./registries/data/SourceList";
+import ModelList from "./registries/models/ModelList";
+import OperatorList from "./registries/operators/OperatorList";
 import SessionList from "./sessions/SessionList";
 import FormDesigner from "./tools/FormDesigner";
 export default function Blue({ children }) {
@@ -54,7 +56,7 @@ export default function Blue({ children }) {
     } = useAppStore(
         useShallow((state) => ({
             showOmnibar: state.showOmnibar,
-            darkMode: state.darkMode,
+            darkMode: state.dark_mode,
             omnibarItems: state.omnibarItems,
             openOmnibar: state.openOmnibar,
             setState: state.setState,
@@ -76,7 +78,7 @@ export default function Blue({ children }) {
             global: true,
             label: "Toggle theme",
             onKeyDown: () => {
-                setState({ key: "darkMode", value: !darkMode });
+                setState({ key: "dark_mode", value: !darkMode });
             },
         },
     ];
@@ -245,6 +247,17 @@ export default function Blue({ children }) {
                                                         }
                                                     />
                                                     <MenuItem
+                                                        onClick={() =>
+                                                            addContainer({
+                                                                icon: ENTITY_TYPE_LOOKUP[
+                                                                    "operator"
+                                                                ].icon,
+                                                                title: "Operator Registry",
+                                                                content: (
+                                                                    <OperatorList />
+                                                                ),
+                                                            })
+                                                        }
                                                         text="Operator"
                                                         icon={
                                                             <FAIcon
@@ -255,6 +268,17 @@ export default function Blue({ children }) {
                                                         }
                                                     />
                                                     <MenuItem
+                                                        onClick={() =>
+                                                            addContainer({
+                                                                icon: ENTITY_TYPE_LOOKUP[
+                                                                    "model"
+                                                                ].icon,
+                                                                title: "Model Registry",
+                                                                content: (
+                                                                    <ModelList />
+                                                                ),
+                                                            })
+                                                        }
                                                         text="Model"
                                                         icon={
                                                             <FAIcon

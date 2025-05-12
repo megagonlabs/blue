@@ -1,98 +1,66 @@
 import {
-    ENTITY_MAIN_INFO_PROPERTY_KEYS,
     HEX_TRANSPARENCY,
     MAIN_INFO_STYLES,
     REGISTRY_ENTITY_ICON_WRAPPER_STYLES,
 } from "@/components/constants";
-import { getUpdatePropertyPromises, settlePromises } from "@/components/helper";
 import { useAppStore } from "@/stores/app-store";
-import { Classes, Colors, EditableText } from "@blueprintjs/core";
+import { Classes, Colors } from "@blueprintjs/core";
 import axios from "axios";
 import classNames from "classnames";
 import _ from "lodash";
 import { allEnv } from "next-runtime-env";
 import { useEffect, useState } from "react";
-import shallowDiff from "shallow-diff";
 import EntityDescription from "../attributes/EntityDescription";
 import EntityProperties from "../attributes/EntityProperties";
 import EntityActions from "../EntityActions";
-import MainPropertyBlock from "../MainPropertyBlock";
 import RegistryEntityIcon from "../RegistryEntityIcon";
-const { NEXT_PUBLIC_AGENT_REGISTRY_NAME } = allEnv();
-export default function InputEntity({ entity }) {
+const { NEXT_PUBLIC_DATA_REGISTRY_NAME } = allEnv();
+export default function EntityEntity({ entity }) {
     const { name, scope, type } = entity;
-    const [input, setInput] = useState(null);
+    const [element, setElement] = useState(null);
     const [isEditing, setIsEditing] = useState(false);
-    const [editedInput, setEditedInput] = useState(null);
-    const [mainProperties, setMainProperties] = useState({});
+    const [editedElement, setEditedElement] = useState(null);
     const [loading, setLoading] = useState(false);
-    const updateMainProperties = ({ path, value }) => {
-        let newProperties = _.cloneDeep(mainProperties);
-        _.set(newProperties, path, value);
-        setMainProperties(newProperties);
-    };
-    const updateInput = ({ path, value }) => {
-        let newInput = _.cloneDeep(editedInput);
-        _.set(newInput, path, value);
-        setEditedInput(newInput);
+    const updateElement = ({ path, value }) => {
+        let newElement = _.cloneDeep(editedElement);
+        _.set(newElement, path, value);
+        setEditedElement(newElement);
     };
     const darkMode = useAppStore((state) => state.dark_mode);
-    const displayName = _.get(mainProperties, "display_name", "");
     const path = [scope.substring(1), type, name]
         .filter((str) => !_.isEmpty(str))
         .join("/");
-    const url = `/registry/${NEXT_PUBLIC_AGENT_REGISTRY_NAME}/${path}`;
+    const url = _.replace(
+        `/registry/${NEXT_PUBLIC_DATA_REGISTRY_NAME}/${path}`,
+        "/source/",
+        "/data/"
+    );
     useEffect(() => {
         setLoading(true);
         axios
             .get(url)
             .then((response) => {
                 const result = _.get(response, "data.result", null);
-                setInput(result);
-                setEditedInput(result);
-                const properties = _.pick(
-                    _.get(result, "properties", {}),
-                    ENTITY_MAIN_INFO_PROPERTY_KEYS
-                );
-                setMainProperties(properties);
+                setElement(result);
+                setEditedElement(result);
             })
             .finally(() => {
                 setLoading(false);
             });
     }, [entity]);
     const handleDiscard = () => {
-        setEditedInput(input);
+        setEditedElement(element);
         setIsEditing(false);
     };
     const handleSave = () => {
         setLoading(true);
         axios
             .put(url, {
-                name: editedInput.name,
-                description: editedInput.description,
+                name: editedElement.name,
+                description: editedElement.description,
             })
-            .then(() => {
-                const properties = {
-                    ...editedInput.properties,
-                    ...mainProperties,
-                };
-                const diffs = shallowDiff(input.properties, properties);
-                const tasks = getUpdatePropertyPromises({
-                    axios,
-                    url: `${url}/property`,
-                    diffs,
-                    properties,
-                });
-                settlePromises(tasks, ({ error }) => {
-                    if (!error) {
-                        const newInput = { ...editedInput, properties };
-                        setInput(newInput);
-                        setEditedInput(newInput);
-                        setMainProperties(properties);
-                        setIsEditing(false);
-                    }
-                    setLoading(false);
-                });
+            .finally(() => {
+                setLoading(false);
             });
     };
     return (
@@ -107,7 +75,7 @@ export default function InputEntity({ entity }) {
                     position: "relative",
                 }}
             >
-                {!_.isEmpty(input) && (
+                {!_.isEmpty(element) && (
                     <div
                         className={loading ? Classes.SKELETON : null}
                         style={{ position: "absolute", right: 20 }}
@@ -116,7 +84,7 @@ export default function InputEntity({ entity }) {
                             loading={loading}
                             handleSave={handleSave}
                             handleDiscard={handleDiscard}
-                            entity={input}
+                            entity={element}
                             isEditing={isEditing}
                             setIsEditing={setIsEditing}
                         />
@@ -137,7 +105,7 @@ export default function InputEntity({ entity }) {
                     }}
                 >
                     <RegistryEntityIcon
-                        content={_.get(editedInput, "icon", null)}
+                        content={_.get(editedElement, "icon", null)}
                     />
                 </div>
                 <div
@@ -154,47 +122,29 @@ export default function InputEntity({ entity }) {
                         className={loading ? Classes.SKELETON : null}
                         style={MAIN_INFO_STYLES}
                     >
-                        <div>{_.get(editedInput, "type")}</div>
+                        <div>{_.get(editedElement, "type")}</div>
                         <div
                             className={Classes.TEXT_OVERFLOW_ELLIPSIS}
                             style={{ fontWeight: 600 }}
                         >
-                            {_.get(editedInput, "name")}
+                            {_.get(editedElement, "name")}
                         </div>
                     </div>
-                    <MainPropertyBlock loading={loading} label="Display name">
-                        {isEditing ? (
-                            <EditableText
-                                alwaysRenderInput
-                                value={displayName}
-                                onChange={(value) => {
-                                    updateMainProperties({
-                                        path: "display_name",
-                                        value,
-                                    });
-                                }}
-                            />
-                        ) : (
-                            <div className={Classes.TEXT_OVERFLOW_ELLIPSIS}>
-                                {!_.isEmpty(displayName) ? displayName : "-"}
-                            </div>
-                        )}
-                    </MainPropertyBlock>
                 </div>
             </div>
             <div style={{ marginTop: 20 }}>
                 <EntityDescription
                     isEditing={isEditing}
-                    updateEntity={updateInput}
-                    entity={editedInput}
+                    updateEntity={updateElement}
+                    entity={editedElement}
                     loading={loading}
                 />
             </div>
             <div style={{ marginTop: 20 }}>
                 <EntityProperties
-                    isEditing={isEditing}
-                    updateEntity={updateInput}
-                    entity={editedInput}
+                    isEditing={false}
+                    updateEntity={updateElement}
+                    entity={editedElement}
                     loading={loading}
                 />
             </div>

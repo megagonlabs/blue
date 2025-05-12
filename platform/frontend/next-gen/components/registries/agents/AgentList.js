@@ -24,7 +24,7 @@ function AgentList({ width, height }) {
     const agents = useAgentStore((state) => state.agents);
     const getAgents = useAgentStore((state) => state.getAgents);
     const [showFilter, setShowFilter] = useState(false);
-    const darkMode = useAppStore((state) => state.darkMode);
+    const darkMode = useAppStore((state) => state.dark_mode);
     useEffect(() => {
         getAgents();
     }, []);

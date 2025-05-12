@@ -83,7 +83,6 @@ export default function EntityActions({
         ["source", "database", "collection"],
         entity.type
     );
-    const canDeregister = _.isEqual("database", entity.type);
     const canPullImage =
         _.isEqual(entity.type, "agent") &&
         _.has(entity.properties, "image") &&
@@ -102,6 +101,13 @@ export default function EntityActions({
             canPullImage
         );
     }, [user, permissions, containerStatus]);
+    const showActionMenu =
+        canEditEntity ||
+        canDuplicateEntity ||
+        canSyncData ||
+        canPullImage ||
+        canDeployAgent;
+    if (!showActionMenu) return null;
     if (isEditing) {
         return (
             <ButtonGroup size={Size.LARGE}>

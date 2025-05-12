@@ -41,7 +41,7 @@ export default function JSONEditor({
     const jsonString = JSON.stringify(jsonObject, null, 4);
     const editor = useRef();
     const [editorView, setEditorView] = useState(null);
-    const darkMode = useAppStore((state) => state.darkMode);
+    const darkMode = useAppStore((state) => state.dark_mode);
     const [error, setError] = useState(false);
     const [doc, setDoc] = useState(jsonString);
     useEffect(() => {

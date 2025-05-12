@@ -6,13 +6,19 @@ import { useContainerContext } from "../contexts/ContainerContext";
 import withAutoSizer from "../hocs/withAutoSizer";
 import Breadcrumbs from "./Breadcrumbs";
 import AgentEntity from "./agents/AgentEntity";
+import CollectionEntity from "./data/CollectionEntity";
+import DatabaseEntity from "./data/DatabaseEntity";
+import EntityEntity from "./data/EntityEntity";
+import RelationEntity from "./data/RelationEntity";
 import SourceEntity from "./data/SourceEntity";
 import InputEntity from "./inputs/InputEntity";
+import ModelEntity from "./models/ModelEntity";
+import OperatorEntity from "./operators/OperatorEntity";
 import OutputEntity from "./outputs/OutputEntity";
 function RegistryEntityContainer({ width, height, entity }) {
     const [breadcrumbs, setBreadcrumbs] = useState([]);
     const { containerId } = useContainerContext();
-    const darkMode = useAppStore((state) => state.darkMode);
+    const darkMode = useAppStore((state) => state.dark_mode);
     useEffect(() => {
         const { name, type, scope } = entity;
         let crumbs = [{ name, type, scope }];
@@ -69,6 +75,27 @@ function RegistryEntityContainer({ width, height, entity }) {
                     )}
                     {_.isEqual(type, "source") && (
                         <SourceEntity addCrumb={addCrumb} entity={current} />
+                    )}
+                    {_.isEqual(type, "database") && (
+                        <DatabaseEntity addCrumb={addCrumb} entity={current} />
+                    )}
+                    {_.isEqual(type, "collection") && (
+                        <CollectionEntity
+                            addCrumb={addCrumb}
+                            entity={current}
+                        />
+                    )}
+                    {_.isEqual(type, "entity") && (
+                        <EntityEntity entity={current} />
+                    )}
+                    {_.isEqual(type, "relation") && (
+                        <RelationEntity entity={current} />
+                    )}
+                    {_.isEqual(type, "operator") && (
+                        <OperatorEntity entity={current} />
+                    )}
+                    {_.isEqual(type, "model") && (
+                        <ModelEntity entity={current} />
                     )}
                 </div>
             </div>

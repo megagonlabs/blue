@@ -28,7 +28,7 @@
     margin: 0px !important;
 }
 .overflow-hidden {
-    overflow: hidden;
+    overflow: hidden !important;
 }
 .border-top {
     border-top: 1px solid var(--border-color);

@@ -4,7 +4,7 @@ import classNames from "classnames";
 import _ from "lodash";
 import EntityDisplayName from "./EntityDisplayName";
 export default function Leaves({ list, addCrumb, loading }) {
-    const darkMode = useAppStore((state) => state.darkMode);
+    const darkMode = useAppStore((state) => state.dark_mode);
     return (
         <div
             className={classNames("full-parent-width", {

@@ -1,20 +1,12 @@
 import {
     ENTITY_MAIN_INFO_PROPERTY_KEYS,
-    ENTITY_TYPE_LOOKUP,
     HEX_TRANSPARENCY,
     MAIN_INFO_STYLES,
     REGISTRY_ENTITY_ICON_WRAPPER_STYLES,
 } from "@/components/constants";
-import { FAIcon } from "@/components/FAIcon";
 import { getUpdatePropertyPromises, settlePromises } from "@/components/helper";
 import { useAppStore } from "@/stores/app-store";
-import {
-    Classes,
-    Colors,
-    EditableText,
-    EntityTitle,
-    H3,
-} from "@blueprintjs/core";
+import { Classes, Colors, EditableText } from "@blueprintjs/core";
 import axios from "axios";
 import classNames from "classnames";
 import _ from "lodash";
@@ -24,15 +16,14 @@ import shallowDiff from "shallow-diff";
 import EntityDescription from "../attributes/EntityDescription";
 import EntityProperties from "../attributes/EntityProperties";
 import EntityActions from "../EntityActions";
-import Leaves from "../Leaves";
 import MainPropertyBlock from "../MainPropertyBlock";
 import RegistryEntityIcon from "../RegistryEntityIcon";
-const { NEXT_PUBLIC_DATA_REGISTRY_NAME } = allEnv();
-export default function SourceEntity({ entity, addCrumb }) {
+const { NEXT_PUBLIC_MODEL_REGISTRY_NAME } = allEnv();
+export default function ModelEntity({ entity }) {
     const { name, scope, type } = entity;
-    const [source, setSource] = useState(null);
+    const [model, setModel] = useState(null);
     const [isEditing, setIsEditing] = useState(false);
-    const [editedSource, setEditedSource] = useState(null);
+    const [editedModel, setEditedModel] = useState(null);
     const [mainProperties, setMainProperties] = useState({});
     const [loading, setLoading] = useState(false);
     const updateMainProperties = ({ path, value }) => {
@@ -40,29 +31,25 @@ export default function SourceEntity({ entity, addCrumb }) {
         _.set(newProperties, path, value);
         setMainProperties(newProperties);
     };
-    const updateSource = ({ path, value }) => {
-        let newSource = _.cloneDeep(editedSource);
-        _.set(newSource, path, value);
-        setEditedSource(newSource);
+    const updateModel = ({ path, value }) => {
+        let newModel = _.cloneDeep(editedModel);
+        _.set(newModel, path, value);
+        setEditedModel(newModel);
     };
     const darkMode = useAppStore((state) => state.dark_mode);
     const displayName = _.get(mainProperties, "display_name", "");
     const path = [scope.substring(1), type, name]
         .filter((str) => !_.isEmpty(str))
         .join("/");
-    const url = _.replace(
-        `/registry/${NEXT_PUBLIC_DATA_REGISTRY_NAME}/${path}`,
-        "/source/",
-        "/data/"
-    );
+    const url = `/registry/${NEXT_PUBLIC_MODEL_REGISTRY_NAME}/${path}`;
     useEffect(() => {
         setLoading(true);
         axios
             .get(url)
             .then((response) => {
                 const result = _.get(response, "data.result", null);
-                setSource(result);
-                setEditedSource(result);
+                setModel(result);
+                setEditedModel(result);
                 const properties = _.pick(
                     _.get(result, "properties", {}),
                     ENTITY_MAIN_INFO_PROPERTY_KEYS
@@ -74,9 +61,9 @@ export default function SourceEntity({ entity, addCrumb }) {
             });
     }, [entity]);
     const handleDiscard = () => {
-        setEditedSource(source);
+        setEditedModel(model);
         const properties = _.pick(
-            _.get(source, "properties", {}),
+            _.get(model, "properties", {}),
             ENTITY_MAIN_INFO_PROPERTY_KEYS
         );
         setMainProperties(properties);
@@ -86,15 +73,15 @@ export default function SourceEntity({ entity, addCrumb }) {
         setLoading(true);
         axios
             .put(url, {
-                name: editedSource.name,
-                description: editedSource.description,
+                name: editedModel.name,
+                description: editedModel.description,
             })
             .then(() => {
                 const properties = {
-                    ...editedSource.properties,
+                    ...editedModel.properties,
                     ...mainProperties,
                 };
-                const diffs = shallowDiff(source.properties, properties);
+                const diffs = shallowDiff(model.properties, properties);
                 const tasks = getUpdatePropertyPromises({
                     axios,
                     url: `${url}/property`,
@@ -103,9 +90,9 @@ export default function SourceEntity({ entity, addCrumb }) {
                 });
                 settlePromises(tasks, ({ error }) => {
                     if (!error) {
-                        const newSource = { ...editedSource, properties };
-                        setSource(newSource);
-                        setEditedSource(newSource);
+                        const newModel = { ...editedModel, properties };
+                        setModel(newModel);
+                        setEditedModel(newModel);
                         setMainProperties(properties);
                         setIsEditing(false);
                     }
@@ -125,7 +112,7 @@ export default function SourceEntity({ entity, addCrumb }) {
                     position: "relative",
                 }}
             >
-                {!_.isEmpty(source) && (
+                {!_.isEmpty(model) && (
                     <div
                         className={loading ? Classes.SKELETON : null}
                         style={{ position: "absolute", right: 20 }}
@@ -134,7 +121,7 @@ export default function SourceEntity({ entity, addCrumb }) {
                             loading={loading}
                             handleSave={handleSave}
                             handleDiscard={handleDiscard}
-                            entity={source}
+                            entity={model}
                             isEditing={isEditing}
                             setIsEditing={setIsEditing}
                         />
@@ -155,7 +142,7 @@ export default function SourceEntity({ entity, addCrumb }) {
                     }}
                 >
                     <RegistryEntityIcon
-                        content={_.get(editedSource, "icon", null)}
+                        content={_.get(editedModel, "icon", null)}
                     />
                 </div>
                 <div
@@ -172,12 +159,12 @@ export default function SourceEntity({ entity, addCrumb }) {
                         className={loading ? Classes.SKELETON : null}
                         style={MAIN_INFO_STYLES}
                     >
-                        <div>{_.get(editedSource, "type")}</div>
+                        <div>{_.get(editedModel, "type")}</div>
                         <div
                             className={Classes.TEXT_OVERFLOW_ELLIPSIS}
                             style={{ fontWeight: 600 }}
                         >
-                            {_.get(editedSource, "name")}
+                            {_.get(editedModel, "name")}
                         </div>
                     </div>
                     <MainPropertyBlock loading={loading} label="Display name">
@@ -203,45 +190,18 @@ export default function SourceEntity({ entity, addCrumb }) {
             <div style={{ marginTop: 20 }}>
                 <EntityDescription
                     isEditing={isEditing}
-                    updateEntity={updateSource}
-                    entity={editedSource}
+                    updateEntity={updateModel}
+                    entity={editedModel}
                     loading={loading}
                 />
             </div>
             <div style={{ marginTop: 20 }}>
                 <EntityProperties
                     isEditing={isEditing}
-                    updateEntity={updateSource}
-                    entity={editedSource}
+                    updateEntity={updateModel}
+                    entity={editedModel}
                     loading={loading}
                 />
-            </div>
-            <div style={{ marginTop: 20 }}>
-                <div style={{ marginBottom: 10 }}>
-                    <EntityTitle
-                        icon={
-                            <FAIcon
-                                icon={ENTITY_TYPE_LOOKUP["database"].icon}
-                                size={25}
-                            />
-                        }
-                        heading={H3}
-                        title="Databases"
-                    />
-                </div>
-                <div
-                    style={{
-                        display: "flex",
-                        gap: 10,
-                        flexDirection: "column",
-                    }}
-                >
-                    <Leaves
-                        loading={loading}
-                        addCrumb={addCrumb}
-                        list={_.values(_.get(source, "contents.database", {}))}
-                    />
-                </div>
             </div>
         </div>
     );

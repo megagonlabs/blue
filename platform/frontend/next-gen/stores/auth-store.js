@@ -4,6 +4,7 @@ import { initializeApp } from "firebase/app";
 import { GoogleAuthProvider, getAuth, signInWithPopup } from "firebase/auth";
 import _ from "lodash";
 import { create } from "zustand";
+import { useAppStore } from "./app-store";
 import { useSocketStore } from "./socket-store";
 const firebaseConfig = {
     apiKey: "AIzaSyAkVp-dj3o1yf89mL3wMUtEidUHjzqyWCQ",
@@ -79,6 +80,14 @@ export const useAuthStore = create((set, get) => ({
                         ["write_all", "write_own"]
                     ),
                 };
+                const { setState } = useAppStore.getState();
+                const KEYS = ["dark_mode", "show_workspace", "expand_message"];
+                for (let i = 0; i < _.size(KEYS); i++) {
+                    setState({
+                        key: KEYS[i],
+                        value: _.get(user, ["settings", KEYS[i]], false),
+                    });
+                }
                 set({ user, permissions });
             })
             .catch((error) => {})

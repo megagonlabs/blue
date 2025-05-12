@@ -28,7 +28,7 @@ export default function OutputEntity({ entity }) {
         _.set(newOutput, path, value);
         setEditedOutput(newOutput);
     };
-    const darkMode = useAppStore((state) => state.darkMode);
+    const darkMode = useAppStore((state) => state.dark_mode);
     const path = [scope.substring(1), type, name]
         .filter((str) => !_.isEmpty(str))
         .join("/");

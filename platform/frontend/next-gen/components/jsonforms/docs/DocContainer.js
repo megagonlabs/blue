@@ -99,7 +99,7 @@ const DOCS = {
 };
 function DocContainer({ width, height }) {
     const [focusTab, setFocusTab] = useState("basics");
-    const darkMode = useAppStore((state) => state.darkMode);
+    const darkMode = useAppStore((state) => state.dark_mode);
     return (
         <div style={{ width, height }}>
             <div className="full-parent-dimension" style={{ display: "flex" }}>

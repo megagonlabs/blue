@@ -118,7 +118,7 @@ function InputListeners({
     isEditing,
     updateMainProperties,
 }) {
-    const darkMode = useAppStore((state) => state.darkMode);
+    const darkMode = useAppStore((state) => state.dark_mode);
     const inputListeners = useMemo(() => {
         return _.isArray(properties.listens) ? properties.listens : [];
     }, [properties.listens]);
@@ -401,7 +401,7 @@ function OutputTags({ isEditing, loading, properties, updateMainProperties }) {
         _.pullAt(next, index);
         updateMainProperties({ path: "tags", value: next });
     };
-    const darkMode = useAppStore((state) => state.darkMode);
+    const darkMode = useAppStore((state) => state.dark_mode);
     return (
         <>
             <H5>Output tags</H5>

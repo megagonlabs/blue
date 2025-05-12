@@ -47,7 +47,7 @@ export default function AgentEntity({ entity, addCrumb }) {
         _.set(newAgent, path, value);
         setEditedAgent(newAgent);
     };
-    const darkMode = useAppStore((state) => state.darkMode);
+    const darkMode = useAppStore((state) => state.dark_mode);
     const systemAgent = _.get(mainProperties, "system_agent", false);
     const displayName = _.get(mainProperties, "display_name", "");
     const image = _.get(mainProperties, "image", "");

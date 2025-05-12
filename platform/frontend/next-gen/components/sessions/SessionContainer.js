@@ -17,6 +17,7 @@ import { faCircleA, faPlus } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import { Allotment } from "allotment";
 import _ from "lodash";
 import { createRef, useEffect, useMemo, useState } from "react";
+import { useShallow } from "zustand/react/shallow";
 import { MIN_ALLOTMENT_PANE_SIZE } from "../constants";
 import { useContainerContext } from "../contexts/ContainerContext";
 import { FAIcon } from "../FAIcon";
@@ -26,7 +27,7 @@ import SessionDetails from "./SessionDetails";
 import SessionMessages from "./SessionMessages";
 import Workspace from "./Workspace";
 function SessionContainer({ width, height, sessionId }) {
-    const darkMode = useAppStore((state) => state.darkMode);
+    const darkMode = useAppStore((state) => state.dark_mode);
     const [userMessage, setUserMessage] = useState("");
     const sessions = useSessionStore((state) => state.sessions);
     const sendMessage = useSocketStore((state) => state.sendMessage);
@@ -66,7 +67,10 @@ function SessionContainer({ width, height, sessionId }) {
     };
     const controGroupRef = createRef();
     const { height: controlGroupHeight } = useRefDimensions(controGroupRef);
-    const [showWorkspace, setShowWorkspace] = useState(false);
+    const { showWorkspace: defaultShowWorkspace } = useAppStore(
+        useShallow((state) => ({ showWorkspace: state.show_workspace }))
+    );
+    const [showWorkspace, setShowWorkspace] = useState(defaultShowWorkspace);
     const [showDetails, setShowDetails] = useState(false);
     return (
         <div style={{ width, height }}>

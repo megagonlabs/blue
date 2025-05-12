@@ -170,6 +170,10 @@ export default function Home() {
                                 }}
                             >
                                 <div
+                                    style={{
+                                        display: "flex",
+                                        alignItems: "center",
+                                    }}
                                     className={classNames(
                                         Classes.TEXT_OVERFLOW_ELLIPSIS,
                                         Classes.TEXT_LARGE

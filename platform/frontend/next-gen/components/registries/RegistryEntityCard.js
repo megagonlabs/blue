@@ -3,6 +3,7 @@ import { useGridStore } from "@/stores/grid-layout-store";
 import {
     Card,
     Classes,
+    Colors,
     hideContextMenu,
     Intent,
     Menu,
@@ -21,6 +22,7 @@ import {
     REGISTRY_ENTITY_ICON_WRAPPER_STYLES,
 } from "../constants";
 import { FAIcon } from "../FAIcon";
+import HorizontalScrollable from "../HorizontalScrollable";
 import EntityDisplayName from "./EntityDisplayName";
 import RegistryEntityContainer from "./RegistryEntityContainer";
 import RegistryEntityIcon from "./RegistryEntityIcon";
@@ -29,7 +31,7 @@ export default function RegistryEntityCard({ entity }) {
     const categories = _.get(entity, "properties.categories", []);
     const containerStatus = _.get(entity, "container.status", "not exist");
     const [extra, setExtra] = useState(null);
-    const darkMode = useAppStore((state) => state.darkMode);
+    const darkMode = useAppStore((state) => state.dark_mode);
     useEffect(() => {
         if (_.includes(["agent", "operator"], type)) {
             setExtra(_.toString(_.get(entity, "properties.image")));
@@ -134,24 +136,24 @@ export default function RegistryEntityCard({ entity }) {
                 {entity.description}
             </div>
             {!_.isEmpty(categories) && (
-                <div
-                    className="full-parent-width scrollbar-none"
-                    style={{
-                        display: "inline-flex",
-                        gap: 10,
-                        marginTop: 10,
-                        overflowX: "auto",
-                    }}
-                >
-                    {categories.map((category, index) => (
-                        <Tag
-                            key={index}
-                            style={{ display: "inline-table" }}
-                            minimal
-                        >
-                            {category}
-                        </Tag>
-                    ))}
+                <div style={{ height: 20, marginTop: 10 }}>
+                    <HorizontalScrollable
+                        backgroundColor={
+                            darkMode ? Colors.DARK_GRAY2 : Colors.WHITE
+                        }
+                    >
+                        <div style={{ display: "inline-flex", gap: 10 }}>
+                            {categories.map((category, index) => (
+                                <Tag
+                                    key={index}
+                                    style={{ display: "inline-table" }}
+                                    minimal
+                                >
+                                    {category}
+                                </Tag>
+                            ))}
+                        </div>
+                    </HorizontalScrollable>
                 </div>
             )}
             {!_.isEmpty(extra) && (

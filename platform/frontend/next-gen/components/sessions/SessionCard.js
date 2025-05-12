@@ -35,7 +35,7 @@ import SessionMemberStack from "./SessionMemberStack";
 import UserAvatar from "./UserAvatar";
 import MessageContent from "./messages/MessageContent";
 export default function SessionCard({ sessionId }) {
-    const darkMode = useAppStore((state) => state.darkMode);
+    const darkMode = useAppStore((state) => state.dark_mode);
     const { details, messages, streams } = useSessionStore(
         useShallow((state) => ({
             details: _.get(state, ["sessions", sessionId, "details"], {}),
@@ -149,8 +149,8 @@ export default function SessionCard({ sessionId }) {
                     zIndex: 1,
                     padding: 20,
                     background: darkMode
-                        ? "linear-gradient(to left,  rgba(37,42,49,1) 0%,rgba(37,42,49,1) 100px,rgba(255,255,255,0) 99%,rgba(255,255,255,0) 100%)"
-                        : "linear-gradient(to left,  rgba(255,255,255,1) 0%,rgba(255,255,255,1) 100px,rgba(255,255,255,0) 99%,rgba(255,255,255,0) 100%)",
+                        ? "linear-gradient(to left, rgba(37,42,49,1) 0%, rgba(37,42,49,1) 100px, rgba(255,255,255,0) 99%, rgba(255,255,255,0) 100%)"
+                        : "linear-gradient(to left, rgba(255,255,255,1) 0%, rgba(255,255,255,1) 100px, rgba(255,255,255,0) 99%, rgba(255,255,255,0) 100%)",
                 }}
             >
                 <ButtonGroup

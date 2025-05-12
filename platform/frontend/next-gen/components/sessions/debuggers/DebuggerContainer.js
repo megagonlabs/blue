@@ -26,7 +26,7 @@ function DebuggerContainer({ width, height, sessionId }) {
         }))
     );
     const { messages } = session;
-    const darkMode = useAppStore((state) => state.darkMode);
+    const darkMode = useAppStore((state) => state.dark_mode);
     const elementRef = useRef(null);
     const popoverBoundary =
         elementRef.current &&

@@ -1,3 +1,4 @@
+import { useAppStore } from "@/stores/app-store";
 import { useGridStore } from "@/stores/grid-layout-store";
 import {
     Alignment,
@@ -50,6 +51,7 @@ const PANE_BUTTON_PROPS = {
 };
 function FormDesigner({ width, height }) {
     const addContainer = useGridStore((state) => state.addContainer);
+    const darkMode = useAppStore((state) => state.dark_mode);
     const idRef = useRef(null);
     const [error, resetError] = useErrorBoundary();
     const leftPaneRef = createRef();
@@ -219,7 +221,10 @@ function FormDesigner({ width, height }) {
                         </div>
                         <div
                             className="full-parent-dimension"
-                            style={{ maxHeight: "calc(100% - 51px)" }}
+                            style={{
+                                maxHeight: "calc(100% - 51px)",
+                                backgroundColor: darkMode ? Colors.BLACK : null,
+                            }}
                         >
                             <div
                                 className="border-bottom"

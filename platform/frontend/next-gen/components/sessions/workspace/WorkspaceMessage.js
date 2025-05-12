@@ -43,7 +43,7 @@ export default function WorkspaceMessage({
 }) {
     const [dragging, setDragging] = useState(false);
     const [state, setState] = useState(IDLE_STATE);
-    const darkMode = useAppStore((state) => state.darkMode);
+    const darkMode = useAppStore((state) => state.dark_mode);
     const dragData = { index, [WORKSAPCE_DRAGGABLE_SYMBOL]: true };
     const ref = useRef(null);
     const loading = _.get(content, "loading", false);

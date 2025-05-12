@@ -40,7 +40,7 @@ function SessionList({ width, height }) {
         initial: { x: -200, opacity: 1, display: "none" },
     };
     const user = useAuthStore((state) => state.user);
-    const darkMode = useAppStore((state) => state.darkMode);
+    const darkMode = useAppStore((state) => state.dark_mode);
     const { sessionIds, getSessions, sessions, filter } = useSessionStore(
         useShallow((state) => ({
             sessionIds: state.sessionIds,

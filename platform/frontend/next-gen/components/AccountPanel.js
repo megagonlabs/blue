@@ -1,4 +1,5 @@
 import { useAuthStore } from "@/stores/auth-store";
+import { useGridStore } from "@/stores/grid-layout-store";
 import {
     Button,
     ButtonVariant,
@@ -17,6 +18,7 @@ import Image from "next/image";
 import { useShallow } from "zustand/react/shallow";
 import { FAIcon } from "./FAIcon";
 import { USER_ROLES_LOOKUP } from "./constants";
+import SettingsContainer from "./settings/SettingsContainer";
 export default function AccountPanel({ isExpanded }) {
     const { user, logout } = useAuthStore(
         useShallow((state) => ({
@@ -25,6 +27,7 @@ export default function AccountPanel({ isExpanded }) {
         }))
     );
     const userRole = _.get(user, "role", null);
+    const addContainer = useGridStore((state) => state.addContainer);
     return (
         <Card
             interactive
@@ -84,6 +87,13 @@ export default function AccountPanel({ isExpanded }) {
                     }}
                 >
                     <Button
+                        onClick={() =>
+                            addContainer({
+                                icon: faCog,
+                                title: "Account Settings",
+                                content: <SettingsContainer />,
+                            })
+                        }
                         variant={ButtonVariant.OUTLINED}
                         icon={<FAIcon icon={faCog} />}
                         text="Settings"

@@ -7,7 +7,7 @@ import { vanillaCells } from "@jsonforms/vanilla-renderers";
 import { useErrorBoundary } from "react-use-error-boundary";
 export default function JSONForm({ content, hasError }) {
     const forms = useSessionStore((state) => state.forms);
-    const darkMode = useAppStore((state) => state.darkMode);
+    const darkMode = useAppStore((state) => state.dark_mode);
     const id = _.get(content, "form_id", null);
     const specifications = _.get(forms, [id, "content"], {});
     const closed = _.get(forms, [id, "closed"], {});

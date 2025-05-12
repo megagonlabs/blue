@@ -35,7 +35,7 @@ export default function SessionMemberList({ sessionId }) {
             setSessionDetails: state.setSessionDetails,
         }))
     );
-    const darkMode = useAppStore((state) => state.darkMode);
+    const darkMode = useAppStore((state) => state.dark_mode);
     const details = _.get(sessions, [sessionId, "details"], {});
     const owner = details.created_by;
     const members = useMemo(() => {

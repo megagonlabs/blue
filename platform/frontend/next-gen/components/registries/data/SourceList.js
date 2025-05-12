@@ -22,7 +22,7 @@ import FilterPane from "../FilterPane";
 import RegistryEntityCard from "../RegistryEntityCard";
 function SourceList({ width, height }) {
     const [showFilter, setShowFilter] = useState(false);
-    const darkMode = useAppStore((state) => state.darkMode);
+    const darkMode = useAppStore((state) => state.dark_mode);
     const data = useSourceStore((state) => state.sources);
     const getSources = useSourceStore((state) => state.getSources);
     useEffect(() => {

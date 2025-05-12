@@ -48,7 +48,7 @@ import SessionDisplayName from "./SessionDisplayName";
 import SessionMemberStack from "./SessionMemberStack";
 const Row = ({ index, data, style }) => {
     const { setRowHeight, sessionId } = data;
-    const darkMode = useAppStore((state) => state.darkMode);
+    const darkMode = useAppStore((state) => state.dark_mode);
     const { getUserProfile, getAgentMetadata } = useDedupStore(
         useShallow((state) => ({
             getUserProfile: state.getUserProfile,
