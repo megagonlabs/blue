@@ -178,8 +178,7 @@ export default function EntityMain({
         ["source", "database", "collection"],
         entity.type
     );
-    const canDeregister = _.isEqual("database", entity.type);
-    const showActionMenu = canEditEntity || canSyncData || canDeregister;
+    const showActionMenu = canEditEntity || canSyncData;
     return (
         <>
             <EntityIconEditor
