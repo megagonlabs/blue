@@ -126,3 +126,13 @@ table.bp5-html-table.table-header-sticky tbody tr:first-child td {
 span.bp5-menu-item-icon {
     margin-right: 10px !important;
 }
+.bp5-running-text .bp5-entity-title {
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+        margin: 0 !important;
+    }
+}

@@ -1,15 +1,18 @@
+import { FAIcon } from "@/components/FAIcon";
 import JSONViewer from "@/components/JSONViewer";
 import * as docProps from "@/components/jsonforms/docs/constant";
 import {
     Callout,
     Classes,
     Code,
+    EntityTitle,
     H1,
     H2,
     HTMLTable,
     Intent,
     Pre,
 } from "@blueprintjs/core";
+import { faQuoteLeft } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import classNames from "classnames";
 import CopyDocJSONButton from "./CopyDocJSONButton";
 const docJson = {
@@ -25,7 +28,11 @@ export default function CalloutDoc() {
     return (
         <div>
             <div style={{ marginBottom: 20 }}>
-                <H1 style={{ margin: 0 }}>Callout</H1>
+                <EntityTitle
+                    title="Callout"
+                    heading={H1}
+                    icon={<FAIcon icon={faQuoteLeft} size={30} />}
+                />
             </div>
             <Pre style={{ position: "relative", overflow: "hidden" }}>
                 <div style={{ position: "absolute", right: 15, top: 13 }}>

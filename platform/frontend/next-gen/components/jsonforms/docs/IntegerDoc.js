@@ -1,6 +1,17 @@
+import { FAIcon } from "@/components/FAIcon";
 import JSONViewer from "@/components/JSONViewer";
 import * as docProps from "@/components/jsonforms/docs/constant";
-import { H1, H2, HTMLTable, Intent, Pre, Size, Tag } from "@blueprintjs/core";
+import {
+    EntityTitle,
+    H1,
+    H2,
+    HTMLTable,
+    Intent,
+    Pre,
+    Size,
+    Tag,
+} from "@blueprintjs/core";
+import { faInputNumeric } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import CopyDocJSONButton from "./CopyDocJSONButton";
 const docJson = {
     type: "Control",
@@ -15,22 +26,17 @@ const docJson = {
 export default function IntegerDoc() {
     return (
         <div>
-            <div
-                style={{
-                    display: "flex",
-                    alignItems: "center",
-                    marginBottom: 20,
-                }}
-            >
-                <H1 style={{ margin: 0 }}>Integer</H1>
-                <Tag
-                    size={Size.LARGE}
-                    style={{ marginLeft: 10 }}
-                    minimal
-                    intent={Intent.PRIMARY}
-                >
-                    Control
-                </Tag>
+            <div style={{ marginBottom: 20 }}>
+                <EntityTitle
+                    title="Integer"
+                    heading={H1}
+                    tags={
+                        <Tag size={Size.LARGE} minimal intent={Intent.PRIMARY}>
+                            Control
+                        </Tag>
+                    }
+                    icon={<FAIcon icon={faInputNumeric} size={30} />}
+                />
             </div>
             <Pre style={{ position: "relative", overflow: "hidden" }}>
                 <div style={{ position: "absolute", right: 15, top: 13 }}>

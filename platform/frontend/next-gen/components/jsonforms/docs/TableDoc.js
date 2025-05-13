@@ -1,3 +1,4 @@
+import { FAIcon } from "@/components/FAIcon";
 import JSONViewer from "@/components/JSONViewer";
 import * as docProps from "@/components/jsonforms/docs/constant";
 import {
@@ -5,12 +6,14 @@ import {
     Checkbox,
     Classes,
     Code,
+    EntityTitle,
     H1,
     H2,
     HTMLTable,
     Pre,
     Size,
 } from "@blueprintjs/core";
+import { faTable } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import classNames from "classnames";
 import { useState } from "react";
 import CopyDocJSONButton from "./CopyDocJSONButton";
@@ -48,7 +51,11 @@ export default function TableDoc() {
     return (
         <div>
             <div style={{ marginBottom: 20 }}>
-                <H1 style={{ margin: 0 }}>Table</H1>
+                <EntityTitle
+                    title="Table"
+                    heading={H1}
+                    icon={<FAIcon icon={faTable} size={30} />}
+                />
             </div>
             <Pre style={{ position: "relative", overflow: "hidden" }}>
                 <div style={{ position: "absolute", right: 15, top: 13 }}>

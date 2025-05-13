@@ -1,8 +1,10 @@
+import { FAIcon } from "@/components/FAIcon";
 import JSONViewer from "@/components/JSONViewer";
 import * as docProps from "@/components/jsonforms/docs/constant";
 import {
     Classes,
     Code,
+    EntityTitle,
     H1,
     H2,
     HTMLTable,
@@ -11,6 +13,7 @@ import {
     Size,
     Tag,
 } from "@blueprintjs/core";
+import { faInputText } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import classNames from "classnames";
 import CopyDocJSONButton from "./CopyDocJSONButton";
 const docJson = {
@@ -28,22 +31,17 @@ const docJson = {
 export default function StringDoc() {
     return (
         <div>
-            <div
-                style={{
-                    display: "flex",
-                    alignItems: "center",
-                    marginBottom: 20,
-                }}
-            >
-                <H1 style={{ margin: 0 }}>String</H1>
-                <Tag
-                    size={Size.LARGE}
-                    style={{ marginLeft: 10 }}
-                    minimal
-                    intent={Intent.PRIMARY}
-                >
-                    Control
-                </Tag>
+            <div style={{ marginBottom: 20 }}>
+                <EntityTitle
+                    title="String"
+                    heading={H1}
+                    tags={
+                        <Tag size={Size.LARGE} minimal intent={Intent.PRIMARY}>
+                            Control
+                        </Tag>
+                    }
+                    icon={<FAIcon icon={faInputText} size={30} />}
+                />
             </div>
             <Pre style={{ position: "relative", overflow: "hidden" }}>
                 <div style={{ position: "absolute", right: 15, top: 13 }}>

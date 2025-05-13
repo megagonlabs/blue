@@ -1,3 +1,4 @@
+import { FAIcon } from "@/components/FAIcon";
 import JSONViewer from "@/components/JSONViewer";
 import * as docProps from "@/components/jsonforms/docs/constant";
 import {
@@ -6,6 +7,7 @@ import {
     Callout,
     Classes,
     Code,
+    EntityTitle,
     H1,
     H2,
     HTMLTable,
@@ -13,6 +15,7 @@ import {
     Pre,
     Size,
 } from "@blueprintjs/core";
+import { faPlay } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import classNames from "classnames";
 import CopyDocJSONButton from "./CopyDocJSONButton";
 const docJson = {
@@ -30,7 +33,11 @@ export default function ButtonDoc() {
     return (
         <div>
             <div style={{ marginBottom: 20 }}>
-                <H1 style={{ margin: 0 }}>Button</H1>
+                <EntityTitle
+                    title="Button"
+                    heading={H1}
+                    icon={<FAIcon icon={faPlay} size={30} />}
+                />
             </div>
             <Pre style={{ position: "relative", overflow: "hidden" }}>
                 <div style={{ position: "absolute", right: 15, top: 13 }}>

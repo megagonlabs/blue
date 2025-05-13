@@ -1,5 +1,16 @@
+import { FAIcon } from "@/components/FAIcon";
 import JSONViewer from "@/components/JSONViewer";
-import { Callout, H1, H2, Intent, Pre, Size, Tag } from "@blueprintjs/core";
+import {
+    Callout,
+    EntityTitle,
+    H1,
+    H2,
+    Intent,
+    Pre,
+    Size,
+    Tag,
+} from "@blueprintjs/core";
+import { faListUl } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import CopyDocJSONButton from "./CopyDocJSONButton";
 const uiSchemaJson = {
     type: "Control",
@@ -29,7 +40,11 @@ const dataSchemaJson = {
 export default function BasicsDoc() {
     return (
         <div>
-            <H1 style={{ marginTop: 0 }}>Array</H1>
+            <EntityTitle
+                title="Array"
+                heading={H1}
+                icon={<FAIcon icon={faListUl} size={30} />}
+            />
             <Callout intent={Intent.WARNING} icon={null}>
                 This is not a type, but an inlined layout configuration.
             </Callout>

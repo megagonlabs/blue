@@ -1,8 +1,10 @@
+import { FAIcon } from "@/components/FAIcon";
 import JSONViewer from "@/components/JSONViewer";
 import * as docProps from "@/components/jsonforms/docs/constant";
 import {
     Callout,
     Code,
+    EntityTitle,
     H1,
     H2,
     HTMLTable,
@@ -11,6 +13,7 @@ import {
     Size,
     Tag,
 } from "@blueprintjs/core";
+import { faPresentationScreen } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import CopyDocJSONButton from "./CopyDocJSONButton";
 const uiSchemaJson = {
     type: "Vega",
@@ -57,7 +60,11 @@ export default function VegaDoc() {
     return (
         <div>
             <div style={{ marginBottom: 20 }}>
-                <H1 style={{ margin: 0 }}>Vega</H1>
+                <EntityTitle
+                    title="Vega"
+                    heading={H1}
+                    icon={<FAIcon icon={faPresentationScreen} size={30} />}
+                />
             </div>
             <Callout icon={null} intent={Intent.SUCCESS}>
                 It is recommended to set <Code>width</Code> &#40;integer, in

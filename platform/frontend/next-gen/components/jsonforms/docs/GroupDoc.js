@@ -1,6 +1,16 @@
+import { FAIcon } from "@/components/FAIcon";
 import JSONViewer from "@/components/JSONViewer";
 import * as docProps from "@/components/jsonforms/docs/constant";
-import { Classes, Code, H1, H2, HTMLTable, Pre } from "@blueprintjs/core";
+import {
+    Classes,
+    Code,
+    EntityTitle,
+    H1,
+    H2,
+    HTMLTable,
+    Pre,
+} from "@blueprintjs/core";
+import { faObjectGroup } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import classNames from "classnames";
 import CopyDocJSONButton from "./CopyDocJSONButton";
 const docJson = {
@@ -18,7 +28,11 @@ export default function GroupDoc() {
     return (
         <div>
             <div style={{ marginBottom: 20 }}>
-                <H1 style={{ margin: 0 }}>Group</H1>
+                <EntityTitle
+                    title="Group"
+                    heading={H1}
+                    icon={<FAIcon icon={faObjectGroup} size={30} />}
+                />
             </div>
             <Pre style={{ position: "relative", overflow: "hidden" }}>
                 <div style={{ position: "absolute", right: 15, top: 13 }}>

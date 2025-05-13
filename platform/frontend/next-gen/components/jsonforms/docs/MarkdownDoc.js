@@ -1,6 +1,16 @@
+import { FAIcon } from "@/components/FAIcon";
 import JSONViewer from "@/components/JSONViewer";
 import * as docProps from "@/components/jsonforms/docs/constant";
-import { H1, H2, HTMLTable, Pre, Size, Tag } from "@blueprintjs/core";
+import {
+    EntityTitle,
+    H1,
+    H2,
+    HTMLTable,
+    Pre,
+    Size,
+    Tag,
+} from "@blueprintjs/core";
+import { faSquareM } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import CopyDocJSONButton from "./CopyDocJSONButton";
 const uiSchemaJson = {
     type: "Markdown",
@@ -16,7 +26,11 @@ export default function MarkdownDoc() {
     return (
         <div>
             <div style={{ marginBottom: 20 }}>
-                <H1 style={{ margin: 0 }}>Markdown</H1>
+                <EntityTitle
+                    title="Markdown"
+                    heading={H1}
+                    icon={<FAIcon icon={faSquareM} size={30} />}
+                />
             </div>
             <H2>Example</H2>
             <Pre style={{ position: "relative", overflow: "hidden" }}>

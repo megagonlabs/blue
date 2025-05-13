@@ -39,6 +39,7 @@ import Authentication from "./Authentication";
 import { ENTITY_TYPE_LOOKUP } from "./constants";
 import ExpandingBox from "./ExpandingBox";
 import { FAIcon } from "./FAIcon";
+import Configurations from "./platforms/Configurations";
 import AgentList from "./registries/agents/AgentList";
 import SourceList from "./registries/data/SourceList";
 import ModelList from "./registries/models/ModelList";
@@ -353,6 +354,15 @@ export default function Blue({ children }) {
                                                         }
                                                     />
                                                     <MenuItem
+                                                        onClick={() =>
+                                                            addContainer({
+                                                                icon: faScrewdriverWrench,
+                                                                title: "Platform Configurations",
+                                                                content: (
+                                                                    <Configurations />
+                                                                ),
+                                                            })
+                                                        }
                                                         text="Configurations"
                                                         icon={
                                                             <FAIcon

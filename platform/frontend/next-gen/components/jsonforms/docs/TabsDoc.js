@@ -1,3 +1,4 @@
+import { FAIcon } from "@/components/FAIcon";
 import JSONViewer from "@/components/JSONViewer";
 import * as docProps from "@/components/jsonforms/docs/constant";
 import {
@@ -8,12 +9,14 @@ import {
     Card,
     Classes,
     Code,
+    EntityTitle,
     H1,
     H2,
     HTMLTable,
     Intent,
     Pre,
 } from "@blueprintjs/core";
+import { faPause } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import classNames from "classnames";
 import { useState } from "react";
 import CopyDocJSONButton from "./CopyDocJSONButton";
@@ -44,7 +47,17 @@ export default function TabsDoc() {
     return (
         <div>
             <div style={{ marginBottom: 20 }}>
-                <H1 style={{ margin: 0 }}>Tabs</H1>
+                <EntityTitle
+                    title="Tabs"
+                    heading={H1}
+                    icon={
+                        <FAIcon
+                            className="fa-rotate-90"
+                            icon={faPause}
+                            size={30}
+                        />
+                    }
+                />
             </div>
             <Callout intent={Intent.SUCCESS} icon={null}>
                 For clearer visual separation, it is recommended to use{" "}

@@ -1,15 +1,18 @@
+import { FAIcon } from "@/components/FAIcon";
 import JSONViewer from "@/components/JSONViewer";
 import * as docProps from "@/components/jsonforms/docs/constant";
 import {
     Callout,
     Classes,
     Code,
+    EntityTitle,
     H1,
     H2,
     HTMLTable,
     Intent,
     Pre,
 } from "@blueprintjs/core";
+import { faParagraph } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import classNames from "classnames";
 import CopyDocJSONButton from "./CopyDocJSONButton";
 const docJson = {
@@ -27,7 +30,11 @@ export default function LabelDoc() {
     return (
         <div>
             <div style={{ marginBottom: 20 }}>
-                <H1 style={{ margin: 0 }}>Label</H1>
+                <EntityTitle
+                    title="Label"
+                    heading={H1}
+                    icon={<FAIcon icon={faParagraph} size={30} />}
+                />
             </div>
             <Callout icon={null} intent={Intent.WARNING}>
                 <Code>label</Code> and <Code>scope</Code> are mutually

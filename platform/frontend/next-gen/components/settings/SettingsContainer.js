@@ -7,7 +7,6 @@ import {
     CardList,
     Classes,
     Colors,
-    Divider,
     EntityTitle,
     H3,
     Intent,
@@ -88,40 +87,44 @@ function SettingsContainer({ width, height }) {
                     }}
                 >
                     <div className="setting-container-section-1">
-                        <EntityTitle
-                            icon={<FAIcon icon={faPaintRoller} size={25} />}
-                            heading={H3}
-                            title="Appearance"
-                        />
-                        <Divider style={{ margin: "10px 0px" }} />
-                        <SwitchCard
-                            onChange={(event) => {
-                                saveSetting({
-                                    key: "dark_mode",
-                                    value: event.target.checked,
-                                });
-                            }}
-                            checked={darkMode}
-                            compact
-                            alignIndicator={Alignment.START}
-                            showAsSelectedWhenChecked={false}
-                        >
-                            Dark mode
-                            <Subtext>
-                                Change the color scheme from light to dark
-                            </Subtext>
-                        </SwitchCard>
+                        <div style={{ marginBottom: 10 }}>
+                            <EntityTitle
+                                icon={<FAIcon icon={faPaintRoller} size={20} />}
+                                heading={H3}
+                                title="Appearance"
+                            />
+                        </div>
+                        <CardList className="overflow-hidden">
+                            <SwitchCard
+                                onChange={(event) => {
+                                    saveSetting({
+                                        key: "dark_mode",
+                                        value: event.target.checked,
+                                    });
+                                }}
+                                checked={darkMode}
+                                compact
+                                alignIndicator={Alignment.START}
+                                showAsSelectedWhenChecked={false}
+                            >
+                                Dark mode
+                                <Subtext>
+                                    Change the color scheme from light to dark
+                                </Subtext>
+                            </SwitchCard>
+                        </CardList>
                     </div>
                     <div
                         className="setting-container-section-2"
                         style={{ marginTop: 20 }}
                     >
-                        <EntityTitle
-                            icon={<FAIcon icon={faMessages} size={25} />}
-                            heading={H3}
-                            title="Sessions & Messages"
-                        />
-                        <Divider style={{ margin: "10px 0px" }} />
+                        <div style={{ marginBottom: 10 }}>
+                            <EntityTitle
+                                icon={<FAIcon icon={faMessages} size={20} />}
+                                heading={H3}
+                                title="Sessions & Messages"
+                            />
+                        </div>
                         <CardList className="overflow-hidden">
                             <SwitchCard
                                 onChange={(event) => {

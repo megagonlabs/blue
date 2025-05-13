@@ -1,9 +1,26 @@
+import { FAIcon } from "@/components/FAIcon";
 import JSONViewer from "@/components/JSONViewer";
-import { Callout, Code, H1, H2, H3, Intent, Pre } from "@blueprintjs/core";
+import {
+    Callout,
+    Code,
+    EntityTitle,
+    H1,
+    H2,
+    H3,
+    Intent,
+    Pre,
+} from "@blueprintjs/core";
+import { faBookOpen } from "@fortawesome/sharp-duotone-solid-svg-icons";
 export default function BasicsDoc() {
     return (
         <div>
-            <H1 style={{ marginTop: 0 }}>Basics</H1>
+            <div style={{ marginBottom: 20 }}>
+                <EntityTitle
+                    title="Basics"
+                    heading={H1}
+                    icon={<FAIcon icon={faBookOpen} size={30} />}
+                />
+            </div>
             <Callout intent={Intent.PRIMARY} icon={null}>
                 For full documentation on JSONForms, please visit&nbsp;
                 <a
