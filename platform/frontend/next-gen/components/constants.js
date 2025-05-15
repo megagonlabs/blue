@@ -78,6 +78,7 @@ export const USER_ROLES_LOOKUP = {
         backgroundColor: Colors.WHITE,
     },
     EMPTY_ARRAY = [],
+    EMPTY_OBJECT = {},
     HEX_TRANSPARENCY = {
         100: "FF",
         99: "FC",

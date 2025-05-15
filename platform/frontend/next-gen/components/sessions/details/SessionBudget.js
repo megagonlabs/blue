@@ -92,7 +92,7 @@ export default function SessionBudget({ sessionId }) {
     const handleSave = () => {
         if (costError || accuracyError || latencyError) return;
         setLoading(true);
-        let tasks = [
+        let promises = [
             new Promise((resolve, reject) => {
                 const url = `/sessions/session/${sessionId}/budget/allocation/cost/${costNumber}`;
                 axios
@@ -134,7 +134,7 @@ export default function SessionBudget({ sessionId }) {
                     });
             }),
         ];
-        settlePromises(tasks, () => {
+        settlePromises(promises, () => {
             setLoading(false);
             setSessionDetails({
                 sessionId,

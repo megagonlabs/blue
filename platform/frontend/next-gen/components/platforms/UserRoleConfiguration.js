@@ -13,6 +13,7 @@ import {
     RadioCard,
     Size,
     Tag,
+    Tooltip,
     UL,
 } from "@blueprintjs/core";
 import { faCheck, faIdBadge } from "@fortawesome/sharp-duotone-solid-svg-icons";
@@ -248,6 +249,7 @@ export default function UserRoleConfiguration({
                     {["administrator", "developer", "member", "guest"].map(
                         (role) => (
                             <RadioCard
+                                inputProps={{ large: true }}
                                 compact
                                 checked={_.isEqual(selectedRole, role)}
                                 showAsSelectedWhenChecked={false}
@@ -256,21 +258,30 @@ export default function UserRoleConfiguration({
                                 onChange={handleRoleChange}
                             >
                                 {_.get(USER_ROLES_LOOKUP, [role, "text"], role)}
-                                <Button
-                                    intent={Intent.PRIMARY}
+                                <div
                                     style={{
                                         position: "absolute",
-                                        right: 20,
-                                        top: 12,
+                                        right: 15,
+                                        top: 13.285,
                                     }}
-                                    icon={<FAIcon icon={faIdBadge} />}
-                                    size={Size.SMALL}
-                                    variant={ButtonVariant.MINIMAL}
-                                    onClick={() => {
-                                        togglePermissionVisibility(role);
-                                    }}
-                                    text="Permissions"
-                                />
+                                >
+                                    <Tooltip
+                                        content="Permissions"
+                                        placement="left"
+                                    >
+                                        <Button
+                                            intent={Intent.PRIMARY}
+                                            size={Size.SMALL}
+                                            icon={<FAIcon icon={faIdBadge} />}
+                                            variant={ButtonVariant.MINIMAL}
+                                            onClick={() => {
+                                                togglePermissionVisibility(
+                                                    role
+                                                );
+                                            }}
+                                        />
+                                    </Tooltip>
+                                </div>
                                 <Collapse
                                     isOpen={_.get(
                                         permissionVisibility,
@@ -279,6 +290,7 @@ export default function UserRoleConfiguration({
                                     )}
                                 >
                                     <div
+                                        style={{ paddingRight: 34 }}
                                         className={classNames(
                                             "user-role-configuration-permission-list",
                                             Classes.TEXT_MUTED,

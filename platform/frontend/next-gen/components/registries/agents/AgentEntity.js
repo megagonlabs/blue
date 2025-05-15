@@ -155,13 +155,13 @@ export default function AgentEntity({ entity, addCrumb }) {
                 }
                 const properties = { ...editedAgent.properties, ...updated };
                 const diffs = shallowDiff(agent.properties, properties);
-                const tasks = getUpdatePropertyPromises({
+                const promises = getUpdatePropertyPromises({
                     axios,
                     url: `${url}/property`,
                     diffs,
                     properties,
                 });
-                settlePromises(tasks, ({ error }) => {
+                settlePromises(promises, ({ error }) => {
                     if (!error) {
                         const newAgent = { ...editedAgent, properties };
                         setEditedAgent(newAgent);

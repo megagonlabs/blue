@@ -95,13 +95,13 @@ export default function SourceEntity({ entity, addCrumb }) {
                     ...mainProperties,
                 };
                 const diffs = shallowDiff(source.properties, properties);
-                const tasks = getUpdatePropertyPromises({
+                const promises = getUpdatePropertyPromises({
                     axios,
                     url: `${url}/property`,
                     diffs,
                     properties,
                 });
-                settlePromises(tasks, ({ error }) => {
+                settlePromises(promises, ({ error }) => {
                     if (!error) {
                         const newSource = { ...editedSource, properties };
                         setSource(newSource);

@@ -138,4 +138,9 @@ span.bp5-menu-item-icon {
 }
 .user-role-configuration-permission-list li span.bp5-tag {
     margin-right: 5px;
+    font-size: 12px;
+    line-height: 16px;
+    min-height: 20px;
+    min-width: 20px;
+    padding: 2px 6px;
 }

@@ -82,13 +82,13 @@ export default function ModelEntity({ entity }) {
                     ...mainProperties,
                 };
                 const diffs = shallowDiff(model.properties, properties);
-                const tasks = getUpdatePropertyPromises({
+                const promises = getUpdatePropertyPromises({
                     axios,
                     url: `${url}/property`,
                     diffs,
                     properties,
                 });
-                settlePromises(tasks, ({ error }) => {
+                settlePromises(promises, ({ error }) => {
                     if (!error) {
                         const newModel = { ...editedModel, properties };
                         setModel(newModel);

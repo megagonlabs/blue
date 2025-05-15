@@ -60,13 +60,13 @@ export default function OutputEntity({ entity }) {
             .then(() => {
                 const properties = editedOutput.properties;
                 const diffs = shallowDiff(output.properties, properties);
-                const tasks = getUpdatePropertyPromises({
+                const promises = getUpdatePropertyPromises({
                     axios,
                     url: `${url}/property`,
                     diffs,
                     properties,
                 });
-                settlePromises(tasks, ({ error }) => {
+                settlePromises(promises, ({ error }) => {
                     if (!error) {
                         setOutput(editedOutput);
                         setIsEditing(false);

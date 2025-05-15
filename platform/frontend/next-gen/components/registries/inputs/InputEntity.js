@@ -77,13 +77,13 @@ export default function InputEntity({ entity }) {
                     ...mainProperties,
                 };
                 const diffs = shallowDiff(input.properties, properties);
-                const tasks = getUpdatePropertyPromises({
+                const promises = getUpdatePropertyPromises({
                     axios,
                     url: `${url}/property`,
                     diffs,
                     properties,
                 });
-                settlePromises(tasks, ({ error }) => {
+                settlePromises(promises, ({ error }) => {
                     if (!error) {
                         const newInput = { ...editedInput, properties };
                         setInput(newInput);

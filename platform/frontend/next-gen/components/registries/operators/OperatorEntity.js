@@ -82,13 +82,13 @@ export default function OperatorEntity({ entity }) {
                     ...mainProperties,
                 };
                 const diffs = shallowDiff(operator.properties, properties);
-                const tasks = getUpdatePropertyPromises({
+                const promises = getUpdatePropertyPromises({
                     axios,
                     url: `${url}/property`,
                     diffs,
                     properties,
                 });
-                settlePromises(tasks, ({ error }) => {
+                settlePromises(promises, ({ error }) => {
                     if (!error) {
                         const newOperator = { ...editedOperator, properties };
                         setOperator(newOperator);

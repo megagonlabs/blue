@@ -79,10 +79,10 @@ module.exports = {
         return _.some(left, _.ary(_.partial(_.includes, right), 1));
     },
     getUpdatePropertyPromises: ({ axios, url, diffs, properties }) => {
-        let tasks = [];
+        let promises = [];
         const { updated, deleted, added } = diffs;
         for (let i = 0; i < _.size(deleted); i++) {
-            tasks.push(
+            promises.push(
                 new Promise((resolve, reject) => {
                     axios
                         .delete(`${url}/${deleted[i]}`)
@@ -99,7 +99,7 @@ module.exports = {
         const posts = [...updated, ...added];
         for (let i = 0; i < _.size(posts); i++) {
             const key = posts[i];
-            tasks.push(
+            promises.push(
                 new Promise((resolve, reject) => {
                     axios
                         .post(`${url}/${key}`, {
@@ -115,7 +115,7 @@ module.exports = {
                 })
             );
         }
-        return tasks;
+        return promises;
     },
     showAxiosErrorToast,
     convertCss: (style) => {
@@ -125,28 +125,28 @@ module.exports = {
             return style;
         }
     },
-    settlePromises: (tasks, callback) => {
+    settlePromises: (promises, callback) => {
         (async () => {
             let error = false;
             const key = ProgressToaster.show(
-                renderProgress(_.isEmpty(tasks) ? 100 : 0)
+                renderProgress(_.isEmpty(promises) ? 100 : 0)
             );
             let count = 0;
-            const promises = tasks.map((task) => {
-                return task
+            const mappedPromises = promises.map((promise) => {
+                return promise
                     .catch((reason) => {
                         error = true;
                         return new Promise((resolve, reject) => reject(reason));
                     })
                     .finally(() => {
-                        const progress = (++count / tasks.length) * 100;
+                        const progress = (++count / _.size(promises)) * 100;
                         ProgressToaster.show(
                             renderProgress(progress, error),
                             key
                         );
                     });
             });
-            Promise.allSettled(promises).then((results) => {
+            Promise.allSettled(mappedPromises).then((results) => {
                 callback({ results, error });
             });
         })();

@@ -24,13 +24,13 @@ export default function SessionData({ sessionId }) {
     const onSave = (value) => {
         setLoading(true);
         const diffs = shallowDiff(data, value);
-        const tasks = getUpdatePropertyPromises({
+        const promises = getUpdatePropertyPromises({
             axios,
             url: `/sessions/session/${sessionId}/data`,
             diffs,
             properties: value,
         });
-        settlePromises(tasks, ({ error }) => {
+        settlePromises(promises, ({ error }) => {
             if (!error) {
                 setData(value);
             }
