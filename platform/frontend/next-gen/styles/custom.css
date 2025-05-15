@@ -136,3 +136,6 @@ span.bp5-menu-item-icon {
         margin: 0 !important;
     }
 }
+.user-role-configuration-permission-list li span.bp5-tag {
+    margin-right: 5px;
+}

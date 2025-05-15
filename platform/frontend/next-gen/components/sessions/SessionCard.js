@@ -183,7 +183,10 @@ export default function SessionCard({ sessionId }) {
                     justifyContent: "space-between",
                 }}
             >
-                <div style={{ fontWeight: 600 }}>
+                <div
+                    className={Classes.TEXT_OVERFLOW_ELLIPSIS}
+                    style={{ fontWeight: 600 }}
+                >
                     <SessionDisplayName sessionId={sessionId} />
                 </div>
                 <div

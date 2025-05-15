@@ -189,7 +189,7 @@ async def session_verification(request: Request, call_next):
         return await call_next(request)
     else:
         # when authentication is disabled: upstream needs to handle all identity and access verifications
-        # all requests operates with administrator role
+        # all requests operate with administrator role
         uid = request.headers.get('X-accountId')
         if pydash.is_empty(uid):
             return JSONResponse(status_code=401, content={"message": "Account ID is unavailable"})

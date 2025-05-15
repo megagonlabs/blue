@@ -27,7 +27,7 @@ import { showAxiosErrorToast } from "../helper";
 import withAutoSizer from "../hocs/withAutoSizer";
 import { AppToaster } from "../toaster";
 const SECTIONS = [{ icon: faInboxFull, text: "Sessions" }];
-function Configurations({ width, height }) {
+function PlatformConfigurations({ width, height }) {
     const darkMode = useAppStore((state) => state.dark_mode);
     const [loading, setLoading] = useState(false);
     const [configurations, setConfigurations] = useState({});
@@ -192,4 +192,4 @@ function Configurations({ width, height }) {
         </div>
     );
 }
-export default withAutoSizer(Configurations);
+export default withAutoSizer(PlatformConfigurations);

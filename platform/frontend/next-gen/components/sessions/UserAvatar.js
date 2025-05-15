@@ -3,7 +3,7 @@ import { Classes, Colors } from "@blueprintjs/core";
 import classNames from "classnames";
 import _ from "lodash";
 import Image from "next/image";
-export default function UserAvatar({ userId }) {
+export default function UserAvatar({ userId, size = 40 }) {
     const users = useDedupStore((state) => state.users);
     return (
         <div
@@ -14,8 +14,8 @@ export default function UserAvatar({ userId }) {
                 { [Classes.SKELETON]: !_.has(users, userId) }
             )}
             style={{
-                height: 40,
-                width: 40,
+                height: size,
+                width: size,
                 borderRadius: "50%",
                 display: "flex",
                 justifyContent: "center",
@@ -26,8 +26,8 @@ export default function UserAvatar({ userId }) {
             <Image
                 alt=""
                 src={_.get(users, [userId, "picture"], "")}
-                width={40}
-                height={40}
+                width={size}
+                height={size}
             />
         </div>
     );

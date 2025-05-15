@@ -108,9 +108,14 @@ function SettingsContainer({ width, height }) {
                                 showAsSelectedWhenChecked={false}
                             >
                                 Dark mode
-                                <Subtext>
+                                <div
+                                    className={classNames(
+                                        Classes.TEXT_MUTED,
+                                        Classes.TEXT_SMALL
+                                    )}
+                                >
                                     Change the color scheme from light to dark
-                                </Subtext>
+                                </div>
                             </SwitchCard>
                         </CardList>
                     </div>
@@ -139,9 +144,14 @@ function SettingsContainer({ width, height }) {
                                 showAsSelectedWhenChecked={false}
                             >
                                 Show workspace
-                                <Subtext>
+                                <div
+                                    className={classNames(
+                                        Classes.TEXT_MUTED,
+                                        Classes.TEXT_SMALL
+                                    )}
+                                >
                                     Default show session workspace
-                                </Subtext>
+                                </div>
                             </SwitchCard>
                             <SwitchCard
                                 onChange={(event) => {
@@ -156,10 +166,15 @@ function SettingsContainer({ width, height }) {
                                 showAsSelectedWhenChecked={false}
                             >
                                 Expand message
-                                <Subtext>
+                                <div
+                                    className={classNames(
+                                        Classes.TEXT_MUTED,
+                                        Classes.TEXT_SMALL
+                                    )}
+                                >
                                     Automatically expand session messages to
                                     show full content
-                                </Subtext>
+                                </div>
                             </SwitchCard>
                         </CardList>
                     </div>

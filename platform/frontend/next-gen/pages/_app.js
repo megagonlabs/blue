@@ -8,6 +8,7 @@ import { FocusStyleManager } from "@blueprintjs/core";
 import "@blueprintjs/core/lib/css/blueprint.css";
 import "@blueprintjs/icons/lib/css/blueprint-icons.css";
 import "@blueprintjs/select/lib/css/blueprint-select.css";
+import "@blueprintjs/table/lib/css/table.css";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import * as Icons from "@fortawesome/sharp-duotone-solid-svg-icons";
 import "allotment/dist/style.css";

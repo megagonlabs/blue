@@ -18,15 +18,12 @@ import {
 import { Omnibar } from "@blueprintjs/select";
 import {
     faCircleA,
-    faCube,
-    faFunction,
     faInboxFull,
     faInboxOut,
     faLayerGroup,
     faMagnifyingGlass,
     faPencilRuler,
     faScrewdriverWrench,
-    faServer,
     faUserGroup,
     faWavePulse,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
@@ -34,18 +31,29 @@ import _ from "lodash";
 import Image from "next/image";
 import { useShallow } from "zustand/react/shallow";
 import AccountPanel from "./AccountPanel";
-import SystemStatusContainer from "./administrator/SystemStatusContainer";
 import Authentication from "./Authentication";
 import { ENTITY_TYPE_LOOKUP } from "./constants";
 import ExpandingBox from "./ExpandingBox";
 import { FAIcon } from "./FAIcon";
-import Configurations from "./platforms/Configurations";
+import PlatformConfigurations from "./platforms/PlatformConfigurations";
+import PlatformUsers from "./platforms/PlatformUsers";
+import SystemStatusContainer from "./platforms/SystemStatusContainer";
 import AgentList from "./registries/agents/AgentList";
 import SourceList from "./registries/data/SourceList";
 import ModelList from "./registries/models/ModelList";
 import OperatorList from "./registries/operators/OperatorList";
 import SessionList from "./sessions/SessionList";
 import FormDesigner from "./tools/FormDesigner";
+const REGISTRY_MENU_ITEMS = {
+    agent: { title: "Agent Registry", text: "Agent", content: <AgentList /> },
+    source: { title: "Data Registry", text: "Data", content: <SourceList /> },
+    operator: {
+        title: "Operator Registry",
+        text: "Operator",
+        content: <OperatorList />,
+    },
+    model: { title: "Model Registry", text: "Model", content: <ModelList /> },
+};
 export default function Blue({ children }) {
     const {
         showOmnibar,
@@ -209,84 +217,46 @@ export default function Blue({ children }) {
                                                         }
                                                     />
                                                     <MenuDivider title="Registries" />
-                                                    <MenuItem
-                                                        onClick={() =>
-                                                            addContainer({
-                                                                icon: ENTITY_TYPE_LOOKUP[
-                                                                    "agent"
-                                                                ].icon,
-                                                                title: "Agent Registry",
-                                                                content: (
-                                                                    <AgentList />
-                                                                ),
-                                                            })
-                                                        }
-                                                        text="Agent"
-                                                        icon={
-                                                            <FAIcon
-                                                                icon={faCircleA}
-                                                            />
-                                                        }
-                                                    />
-                                                    <MenuItem
-                                                        onClick={() =>
-                                                            addContainer({
-                                                                icon: ENTITY_TYPE_LOOKUP[
-                                                                    "source"
-                                                                ].icon,
-                                                                title: "Data Registry",
-                                                                content: (
-                                                                    <SourceList />
-                                                                ),
-                                                            })
-                                                        }
-                                                        text="Data"
-                                                        icon={
-                                                            <FAIcon
-                                                                icon={faServer}
-                                                            />
-                                                        }
-                                                    />
-                                                    <MenuItem
-                                                        onClick={() =>
-                                                            addContainer({
-                                                                icon: ENTITY_TYPE_LOOKUP[
-                                                                    "operator"
-                                                                ].icon,
-                                                                title: "Operator Registry",
-                                                                content: (
-                                                                    <OperatorList />
-                                                                ),
-                                                            })
-                                                        }
-                                                        text="Operator"
-                                                        icon={
-                                                            <FAIcon
+                                                    {[
+                                                        "agent",
+                                                        "source",
+                                                        "operator",
+                                                        "model",
+                                                    ].map((type) => {
+                                                        const {
+                                                            title,
+                                                            text,
+                                                            content,
+                                                        } =
+                                                            REGISTRY_MENU_ITEMS[
+                                                                type
+                                                            ];
+                                                        const { icon } =
+                                                            ENTITY_TYPE_LOOKUP[
+                                                                type
+                                                            ];
+                                                        return (
+                                                            <MenuItem
+                                                                onClick={() => {
+                                                                    addContainer(
+                                                                        {
+                                                                            icon,
+                                                                            title,
+                                                                            content,
+                                                                        }
+                                                                    );
+                                                                }}
+                                                                text={text}
                                                                 icon={
-                                                                    faFunction
+                                                                    <FAIcon
+                                                                        icon={
+                                                                            icon
+                                                                        }
+                                                                    />
                                                                 }
                                                             />
-                                                        }
-                                                    />
-                                                    <MenuItem
-                                                        onClick={() =>
-                                                            addContainer({
-                                                                icon: ENTITY_TYPE_LOOKUP[
-                                                                    "model"
-                                                                ].icon,
-                                                                title: "Model Registry",
-                                                                content: (
-                                                                    <ModelList />
-                                                                ),
-                                                            })
-                                                        }
-                                                        text="Model"
-                                                        icon={
-                                                            <FAIcon
-                                                                icon={faCube}
-                                                            />
-                                                        }
-                                                    />
+                                                        );
+                                                    })}
                                                     <MenuDivider title="Tools" />
                                                     <MenuItem
                                                         onClick={() =>
@@ -310,7 +280,7 @@ export default function Blue({ children }) {
                                                     <MenuItem
                                                         onClick={() =>
                                                             addContainer({
-                                                                title: "Sessions",
+                                                                title: "System Status",
                                                                 content: (
                                                                     <SystemStatusContainer />
                                                                 ),
@@ -344,6 +314,15 @@ export default function Blue({ children }) {
                                                         }
                                                     />
                                                     <MenuItem
+                                                        onClick={() =>
+                                                            addContainer({
+                                                                icon: faUserGroup,
+                                                                title: "Platform Users",
+                                                                content: (
+                                                                    <PlatformUsers />
+                                                                ),
+                                                            })
+                                                        }
                                                         text="Users"
                                                         icon={
                                                             <FAIcon
@@ -359,7 +338,7 @@ export default function Blue({ children }) {
                                                                 icon: faScrewdriverWrench,
                                                                 title: "Platform Configurations",
                                                                 content: (
-                                                                    <Configurations />
+                                                                    <PlatformConfigurations />
                                                                 ),
                                                             })
                                                         }

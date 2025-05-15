@@ -161,7 +161,9 @@ export default function SessionMemberList({ sessionId }) {
                                         interactive
                                         style={{ position: "relative" }}
                                     >
-                                        <UserAvatar userId={user.uid} />
+                                        <div style={{ width: 40 }}>
+                                            <UserAvatar userId={user.uid} />
+                                        </div>
                                         <div
                                             style={{
                                                 height: 40,
@@ -186,6 +188,7 @@ export default function SessionMemberList({ sessionId }) {
                                             _.isEqual(owner, user.uid) ? (
                                                 <FAIcon
                                                     icon={faCheckCircle}
+                                                    size={20}
                                                     style={{
                                                         color: Colors.GREEN3,
                                                     }}
@@ -233,7 +236,9 @@ export default function SessionMemberList({ sessionId }) {
             </Popover>
             <CardList bordered={false} style={{ marginTop: 10 }}>
                 <Card interactive style={{ position: "relative" }}>
-                    <UserAvatar userId={owner} />
+                    <div style={{ width: 40 }}>
+                        <UserAvatar userId={owner} />
+                    </div>
                     <div
                         style={{
                             height: 40,

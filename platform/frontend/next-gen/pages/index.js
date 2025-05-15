@@ -137,7 +137,7 @@ export default function Home() {
                                             />
                                             <MenuItem
                                                 text="12"
-                                                labelElement="Full Width"
+                                                labelElement="Full width"
                                                 onClick={() => {
                                                     resizeContainerWidth({
                                                         id: element.i,
