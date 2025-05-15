@@ -256,7 +256,7 @@ def get_users(request: Request, keyword: str = ""):
         }
         if re.search(rx, user['name']) is not None:
             # add user role value when querying with administrator role
-            if request.state.user['role'] == 'admin':
+            if pydash.is_equal(request.state.user['role'], 'administrator'):
                 temp['role'] = user['role']
             result.append(temp)
     return JSONResponse(content={"users": result})
@@ -267,6 +267,6 @@ def update_user_role(request: Request, uid, role_name):
     acl_enforce(request.state.user['role'], 'platform_users', 'write_all')
     # preventive measure
     if pydash.is_equal(uid, pydash.objects.get(request, 'state.user.uid', None)):
-        return JSONResponse(content={"message": "Unable to change role"}, status_code=400)
+        return JSONResponse(content={"message": "Unable to change your own role"}, status_code=400)
     p.set_metadata(f'users.{uid}.role', role_name)
     return JSONResponse(content={"message": "Success"})

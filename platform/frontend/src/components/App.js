@@ -163,13 +163,13 @@ export default function App({ children }) {
             href: "/admin/status",
             text: "Status",
             icon: faWavePulse,
-            visible: _.isEqual(userRole, "admin"),
+            visible: _.isEqual(userRole, "administrator"),
         },
         admin_configurations: {
             href: "/admin/configs",
             text: "Configs",
             icon: faScrewdriverWrench,
-            visible: _.isEqual(userRole, "admin"),
+            visible: _.isEqual(userRole, "administrator"),
         },
     };
     const NUMBER_TO_ICON = {

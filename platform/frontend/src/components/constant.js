@@ -136,7 +136,7 @@ export const ENTITY_TYPE_LOOKUP = {
     },
     MIN_ALLOTMENT_PANE = 321.094,
     USER_ROLES_LOOKUP = {
-        admin: {
+        administrator: {
             text: "Administrator",
         },
         member: { text: "Member" },

@@ -31,7 +31,7 @@ const WRITE_TAG = (
     </Tag>
 );
 const ROLE_PERMISSIONS = {
-    admin: (
+    administrator: (
         <>
             <ul className={Classes.LIST}>
                 <li>
@@ -236,7 +236,7 @@ export default function RoleConfigurationPopover({
         >
             <DialogBody>
                 <p>Select a new role</p>
-                {["admin", "developer", "member", "demo", "guest"].map(
+                {["administrator", "developer", "member", "demo", "guest"].map(
                     (role) => (
                         <div style={{ display: "flex" }} key={role}>
                             <Radio

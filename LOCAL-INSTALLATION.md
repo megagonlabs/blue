@@ -149,13 +149,13 @@ cc0670acfc76   postgres:16.0                             "docker-entrypoint.s…
 
 #### change user role
 
-As you are trying out blue to see full functionality of blue it is recommended that you run it in admin mode, which will give you rights to deploy agents, add/remove users, monitor system performance, and more. To do so:
+As you are trying out blue to see full functionality of blue it is recommended that you run it in administrator mode, which will give you rights to deploy agents, add/remove users, monitor system performance, and more. To do so:
 
 ```
-$ blue platform config BLUE_USER_ROLE admin
+$ blue platform config BLUE_USER_ROLE administrator
 ```
 
-This would launch a web browser for you to sign in. Once signed in your role will be changed to `admin`.
+This would launch a web browser for you to sign in. Once signed in your role will be changed to `administrator`.
 
 #### start services
 

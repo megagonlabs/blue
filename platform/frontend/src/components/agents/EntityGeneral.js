@@ -133,7 +133,7 @@ export default function EntityGeneral({
                     />
                 </div>
                 <div style={{ display: "flex", alignItems: "center" }}>
-                    {edit && _.isEqual(userRole, "admin") ? (
+                    {edit && _.isEqual(userRole, "administrator") ? (
                         <Switch
                             checked={systemAgent}
                             className={classNames({
@@ -162,7 +162,9 @@ export default function EntityGeneral({
                     <div
                         style={{
                             marginLeft:
-                                edit && _.isEqual(userRole, "admin") ? 5 : 15,
+                                edit && _.isEqual(userRole, "administrator")
+                                    ? 5
+                                    : 15,
                         }}
                     >
                         <div>System agent</div>
