@@ -144,3 +144,9 @@ span.bp5-menu-item-icon {
     min-width: 20px;
     padding: 2px 6px;
 }
+.background-color-on-hover:hover {
+    background-color: #d3d8de !important;
+}
+.bp5-dark .background-color-on-hover:hover {
+    background-color: #404854 !important;
+}

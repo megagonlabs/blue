@@ -1,7 +1,8 @@
 import { useAppStore } from "@/stores/app-store";
-import { Colors } from "@blueprintjs/core";
+import { Colors, Overlay2 } from "@blueprintjs/core";
 import _ from "lodash";
 import { useEffect, useState } from "react";
+import IconEditor from "../IconEditor";
 import { useContainerContext } from "../contexts/ContainerContext";
 import withAutoSizer from "../hocs/withAutoSizer";
 import Breadcrumbs from "./Breadcrumbs";
@@ -46,14 +47,41 @@ function RegistryEntityContainer({ width, height, entity }) {
     };
     const current = _.last(breadcrumbs);
     const type = _.get(current, "type", null);
+    const [icon, setIcon] = useState(null);
+    const [showIconEditor, setShowIconEditor] = useState(false);
     return (
         <div
             style={{
                 width,
                 height,
+                position: "relative",
                 backgroundColor: darkMode ? Colors.BLACK : null,
             }}
         >
+            <Overlay2
+                onClose={() => {
+                    setShowIconEditor(false);
+                }}
+                isOpen={showIconEditor}
+                usePortal={false}
+                enforceFocus={false}
+                transitionDuration={0}
+            >
+                <div
+                    className="custom-card center-center"
+                    style={{
+                        width: 650,
+                        height: "calc(100% - 40px)",
+                        maxWidth: "calc(100% - 40px)",
+                    }}
+                >
+                    <IconEditor
+                        setShowIconEditor={setShowIconEditor}
+                        content={icon}
+                        setIcon={setIcon}
+                    />
+                </div>
+            </Overlay2>
             <div
                 className="full-parent-dimension"
                 style={{
@@ -65,7 +93,13 @@ function RegistryEntityContainer({ width, height, entity }) {
                 <Breadcrumbs crumbs={breadcrumbs} toCrumb={toCrumb} />
                 <div style={{ marginTop: 20 }}>
                     {_.isEqual(type, "agent") && (
-                        <AgentEntity addCrumb={addCrumb} entity={current} />
+                        <AgentEntity
+                            icon={icon}
+                            setIcon={setIcon}
+                            addCrumb={addCrumb}
+                            entity={current}
+                            setShowIconEditor={setShowIconEditor}
+                        />
                     )}
                     {_.isEqual(type, "input") && (
                         <InputEntity entity={current} />

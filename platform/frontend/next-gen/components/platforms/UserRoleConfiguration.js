@@ -310,7 +310,7 @@ export default function UserRoleConfiguration({
                     style={{ marginTop: 15 }}
                     size={Size.LARGE}
                     intent={Intent.SUCCESS}
-                    text="Save"
+                    text="Update"
                     onClick={handleRoleSave}
                     icon={<FAIcon icon={faCheck} />}
                 />

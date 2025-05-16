@@ -30,7 +30,13 @@ import MainPropertyBlock from "../MainPropertyBlock";
 import RegistryEntityIcon from "../RegistryEntityIcon";
 import AgentMainProperties from "./AgentMainProperties";
 const { NEXT_PUBLIC_AGENT_REGISTRY_NAME } = allEnv();
-export default function AgentEntity({ entity, addCrumb }) {
+export default function AgentEntity({
+    entity,
+    addCrumb,
+    setShowIconEditor,
+    icon,
+    setIcon,
+}) {
     const { name, scope, type } = entity;
     const [agent, setAgent] = useState(null);
     const [isEditing, setIsEditing] = useState(false);
@@ -77,6 +83,9 @@ export default function AgentEntity({ entity, addCrumb }) {
         return next;
     };
     useEffect(() => {
+        updateAgent({ path: "icon", value: icon });
+    }, [icon]);
+    useEffect(() => {
         setLoading(true);
         axios
             .get(url)
@@ -85,9 +94,11 @@ export default function AgentEntity({ entity, addCrumb }) {
                 if (_.isEmpty(result)) {
                     setAgent(null);
                     setEditedAgent(null);
+                    setIcon(null);
                 } else {
                     setAgent(result);
                     setEditedAgent(result);
+                    setIcon(_.get(result, "icon", null));
                     const properties = _.pick(
                         _.get(result, "properties", {}),
                         ENTITY_MAIN_INFO_PROPERTY_KEYS
@@ -107,6 +118,7 @@ export default function AgentEntity({ entity, addCrumb }) {
         );
         setMainProperties(getMainProperties(properties));
         setIsEditing(false);
+        setIcon(_.get(agent, "icon", null));
     };
     const handleSave = () => {
         setLoading(true);
@@ -207,9 +219,18 @@ export default function AgentEntity({ entity, addCrumb }) {
                         "custom-card",
                         { [Classes.SKELETON]: loading }
                     )}
+                    onClick={() => {
+                        if (_.isFunction(setShowIconEditor)) {
+                            setShowIconEditor(isEditing);
+                        }
+                    }}
                     style={{
                         ...REGISTRY_ENTITY_ICON_WRAPPER_STYLES,
                         position: "absolute",
+                        cursor:
+                            isEditing && _.isFunction(setIcon)
+                                ? "pointer"
+                                : null,
                         left: 20,
                         top: 20,
                     }}

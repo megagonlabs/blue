@@ -227,7 +227,7 @@ async def unicorn_exception_handler_permission_denied(request: Request, exc: Per
 
 @app.websocket(f"{PLATFORM_PREFIX}/sessions/ws")
 async def websocket_endpoint(websocket: WebSocket, ticket: str = None, debug_mode: bool = False):
-    # Accept the connection from the client
+    # accept the connection from the client
     await connection_manager.connect(websocket, ticket, debug_mode)
     try:
         while True:
@@ -246,5 +246,5 @@ async def websocket_endpoint(websocket: WebSocket, ticket: str = None, debug_mod
             elif json_data["type"] == "OBSERVER_SESSION_MESSAGE":
                 await connection_manager.observer_session_message(json_data["connection_id"], json_data)
     except WebSocketDisconnect:
-        # Remove the connection from the list of active connections
+        # remove the connection from the list of active connections
         connection_manager.disconnect(websocket)
