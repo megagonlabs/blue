@@ -51,7 +51,7 @@ export default function SessionConfigurations() {
         setSaving(true);
         axios
             .put("/platform/settings/session_expiration_duration", {
-                value: duration,
+                value: durationNumber,
             })
             .then(() => {
                 AppToaster.show({

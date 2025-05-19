@@ -1,5 +1,6 @@
 import { useAgentStore } from "@/stores/agent-store";
 import { useAppStore } from "@/stores/app-store";
+import { useGridStore } from "@/stores/grid-layout-store";
 import {
     Button,
     ButtonVariant,
@@ -13,6 +14,7 @@ import {
 } from "@blueprintjs/core";
 import {
     faBarsFilter,
+    faPlus,
     faSearch,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import { useEffect, useState } from "react";
@@ -20,11 +22,13 @@ import { FAIcon } from "../../FAIcon";
 import withAutoSizer from "../../hocs/withAutoSizer";
 import FilterPane from "../FilterPane";
 import RegistryEntityCard from "../RegistryEntityCard";
+import RegistryEntityContainer from "../RegistryEntityContainer";
 function AgentList({ width, height }) {
     const agents = useAgentStore((state) => state.agents);
     const getAgents = useAgentStore((state) => state.getAgents);
     const [showFilter, setShowFilter] = useState(false);
     const darkMode = useAppStore((state) => state.dark_mode);
+    const addContainer = useGridStore((state) => state.addContainer);
     useEffect(() => {
         getAgents();
     }, []);
@@ -75,6 +79,23 @@ function AgentList({ width, height }) {
                             <RegistryEntityCard entity={agent} />
                         </div>
                     ))}
+                    <Button
+                        onClick={() => {
+                            addContainer({
+                                content: (
+                                    <RegistryEntityContainer
+                                        entity={{ scope: "/", type: "agent" }}
+                                        create={true}
+                                    />
+                                ),
+                            });
+                        }}
+                        icon={<FAIcon icon={faPlus} />}
+                        size={Size.LARGE}
+                        fill
+                        variant={ButtonVariant.MINIMAL}
+                        text="Add agent"
+                    />
                 </div>
             </div>
         </div>

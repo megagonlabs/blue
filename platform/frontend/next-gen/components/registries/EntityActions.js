@@ -34,6 +34,7 @@ export default function EntityActions({
     handleSave,
     handleDiscard,
     loading,
+    onDelete,
 }) {
     const { user, permissions } = useAuthStore(
         useShallow((state) => ({
@@ -212,6 +213,7 @@ export default function EntityActions({
                                 content={
                                     <div style={{ padding: 10 }}>
                                         <Button
+                                            onClick={onDelete}
                                             className={Classes.POPOVER_DISMISS}
                                             intent={Intent.DANGER}
                                             text="Confirm"

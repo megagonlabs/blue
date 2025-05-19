@@ -9,6 +9,7 @@ const { FAIcon } = require("./FAIcon");
 const { Intent, ProgressBar, Classes } = require("@blueprintjs/core");
 const copy = require("copy-to-clipboard");
 const { default: transform } = require("css-to-react-native");
+const { ENTITY_MAIN_INFO_PROPERTY_KEYS } = require("./constants");
 const renderProgress = (progress = 0, requestError = false) => {
     return {
         icon: <FAIcon icon={faPenSwirl} />,
@@ -58,6 +59,57 @@ const showAxiosErrorToast = (error) => {
     });
 };
 module.exports = {
+    getEntityMainProperties: (properties) => {
+        let filtered = _.cloneDeep(
+            _.pick(properties, ENTITY_MAIN_INFO_PROPERTY_KEYS)
+        );
+        if (_.has(filtered, "listens")) {
+            _.set(
+                filtered,
+                "listens",
+                _.entries(_.get(filtered, "listens", {})).map((listen) => ({
+                    key: listen[0],
+                    includes: _.get(listen, "1.includes", []),
+                    excludes: _.get(listen, "1.excludes", []),
+                }))
+            );
+        }
+        if (_.has(filtered, "tags")) {
+            _.set(
+                filtered,
+                "tags",
+                _.entries(_.get(filtered, "tags", {})).map((tag) => ({
+                    key: tag[0],
+                    tags: _.get(tag, "1", []),
+                }))
+            );
+        }
+        return filtered;
+    },
+    shallowDiff: (base, compared) => {
+        let updated = [],
+            deleted = [],
+            added = [];
+        const comparedKeys = _.keys(compared);
+        for (let i = 0; i < _.size(comparedKeys); i++) {
+            const key = comparedKeys[i];
+            // check for updated
+            if (_.has(base, key)) {
+                if (!_.isEqual(base[key], compared[key])) updated.push(key);
+            } else {
+                added.push(key);
+            }
+        }
+        const baseKeys = _.keys(base);
+        for (let i = 0; i < _.size(baseKeys); i++) {
+            const key = baseKeys[i];
+            // check for deleted
+            if (!_.has(compared, key)) {
+                deleted.push(key);
+            }
+        }
+        return { updated, deleted, added };
+    },
     waitForOpenConnection: (socket) => {
         return new Promise((resolve, reject) => {
             const maxNumberOfAttempts = 10;

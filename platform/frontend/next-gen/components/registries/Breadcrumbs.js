@@ -11,6 +11,7 @@ import {
     faAngleRight,
     faBars,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
+import _ from "lodash";
 const { FAIcon } = require("../FAIcon");
 const HYPHEN_ICON = (
     <FAIcon icon={faAngleRight} style={{ marginLeft: 5, marginRight: 5 }} />
@@ -18,6 +19,9 @@ const HYPHEN_ICON = (
 const BREADCRUMB_STYLES = { display: "flex", alignItems: "center" };
 const TAG_PROPS = { size: Size.LARGE, minimal: true };
 export default function Breadcrumbs({ crumbs, toCrumb }) {
+    if (_.isEmpty(crumbs)) {
+        return null;
+    }
     return (
         <OverflowList
             items={crumbs}

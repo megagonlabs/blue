@@ -1,13 +1,20 @@
 import {
-    ENTITY_MAIN_INFO_PROPERTY_KEYS,
+    ENTITY_TYPE_CONVERSION,
     ENTITY_TYPE_LOOKUP,
     HEX_TRANSPARENCY,
     MAIN_INFO_STYLES,
     REGISTRY_ENTITY_ICON_WRAPPER_STYLES,
 } from "@/components/constants";
+import { useContainerContext } from "@/components/contexts/ContainerContext";
 import { FAIcon } from "@/components/FAIcon";
-import { getUpdatePropertyPromises, settlePromises } from "@/components/helper";
+import {
+    getEntityMainProperties,
+    getUpdatePropertyPromises,
+    settlePromises,
+    shallowDiff,
+} from "@/components/helper";
 import { useAppStore } from "@/stores/app-store";
+import { useGridStore } from "@/stores/grid-layout-store";
 import {
     Classes,
     Colors,
@@ -20,21 +27,35 @@ import classNames from "classnames";
 import _ from "lodash";
 import { allEnv } from "next-runtime-env";
 import { useEffect, useState } from "react";
-import shallowDiff from "shallow-diff";
+import { useShallow } from "zustand/react/shallow";
 import EntityDescription from "../attributes/EntityDescription";
 import EntityProperties from "../attributes/EntityProperties";
 import EntityActions from "../EntityActions";
+import EntityDisplayName from "../EntityDisplayName";
 import Leaves from "../Leaves";
 import MainPropertyBlock from "../MainPropertyBlock";
 import RegistryEntityIcon from "../RegistryEntityIcon";
 const { NEXT_PUBLIC_DATA_REGISTRY_NAME } = allEnv();
-export default function SourceEntity({ entity, addCrumb }) {
+export default function SourceEntity({
+    entity,
+    addCrumb,
+    setShowIconEditor,
+    icon,
+    setIcon,
+}) {
     const { name, scope, type } = entity;
     const [source, setSource] = useState(null);
     const [isEditing, setIsEditing] = useState(false);
     const [editedSource, setEditedSource] = useState(null);
     const [mainProperties, setMainProperties] = useState({});
     const [loading, setLoading] = useState(false);
+    const { containerId } = useContainerContext();
+    const { removeContainer, setContainerHeader } = useGridStore(
+        useShallow((state) => ({
+            removeContainer: state.removeContainer,
+            setContainerHeader: state.setContainerHeader,
+        }))
+    );
     const updateMainProperties = ({ path, value }) => {
         let newProperties = _.cloneDeep(mainProperties);
         _.set(newProperties, path, value);
@@ -47,14 +68,18 @@ export default function SourceEntity({ entity, addCrumb }) {
     };
     const darkMode = useAppStore((state) => state.dark_mode);
     const displayName = _.get(mainProperties, "display_name", "");
-    const path = [scope.substring(1), type, name]
-        .filter((str) => !_.isEmpty(str))
-        .join("/");
-    const url = _.replace(
-        `/registry/${NEXT_PUBLIC_DATA_REGISTRY_NAME}/${path}`,
-        "/source/",
-        "/data/"
-    );
+    const url = `/registry/${NEXT_PUBLIC_DATA_REGISTRY_NAME}/${_.get(
+        ENTITY_TYPE_CONVERSION,
+        type,
+        type
+    )}/${name}`;
+    useEffect(() => {
+        setContainerHeader({
+            id: containerId,
+            title: <EntityDisplayName entity={source} />,
+            icon: _.get(ENTITY_TYPE_LOOKUP, [type, "icon"], null),
+        });
+    }, [source]);
     useEffect(() => {
         setLoading(true);
         axios
@@ -63,24 +88,24 @@ export default function SourceEntity({ entity, addCrumb }) {
                 const result = _.get(response, "data.result", null);
                 setSource(result);
                 setEditedSource(result);
-                const properties = _.pick(
-                    _.get(result, "properties", {}),
-                    ENTITY_MAIN_INFO_PROPERTY_KEYS
+                setMainProperties(
+                    getEntityMainProperties(_.get(result, "properties", {}))
                 );
-                setMainProperties(properties);
             })
             .finally(() => {
                 setLoading(false);
             });
     }, [entity]);
+    useEffect(() => {
+        updateSource({ path: "icon", value: icon });
+    }, [icon]);
     const handleDiscard = () => {
         setEditedSource(source);
-        const properties = _.pick(
-            _.get(source, "properties", {}),
-            ENTITY_MAIN_INFO_PROPERTY_KEYS
+        setMainProperties(
+            getEntityMainProperties(_.get(source, "properties", {}))
         );
-        setMainProperties(properties);
         setIsEditing(false);
+        setIcon(_.get(source, "icon", null));
     };
     const handleSave = () => {
         setLoading(true);
@@ -88,6 +113,7 @@ export default function SourceEntity({ entity, addCrumb }) {
             .put(url, {
                 name: editedSource.name,
                 description: editedSource.description,
+                icon: editedSource.icon,
             })
             .then(() => {
                 const properties = {
@@ -106,12 +132,19 @@ export default function SourceEntity({ entity, addCrumb }) {
                         const newSource = { ...editedSource, properties };
                         setSource(newSource);
                         setEditedSource(newSource);
-                        setMainProperties(properties);
+                        setMainProperties(getEntityMainProperties(properties));
                         setIsEditing(false);
                     }
                     setLoading(false);
                 });
             });
+    };
+    const onDelete = () => {
+        setLoading(true);
+        axios.delete(url).finally(() => {
+            setLoading(false);
+            removeContainer(containerId);
+        });
     };
     return (
         <div>
@@ -137,6 +170,7 @@ export default function SourceEntity({ entity, addCrumb }) {
                             entity={source}
                             isEditing={isEditing}
                             setIsEditing={setIsEditing}
+                            onDelete={onDelete}
                         />
                     </div>
                 )}
@@ -147,11 +181,20 @@ export default function SourceEntity({ entity, addCrumb }) {
                         "custom-card",
                         { [Classes.SKELETON]: loading }
                     )}
+                    onClick={() => {
+                        if (_.isFunction(setShowIconEditor)) {
+                            setShowIconEditor(isEditing);
+                        }
+                    }}
                     style={{
                         ...REGISTRY_ENTITY_ICON_WRAPPER_STYLES,
                         position: "absolute",
                         left: 20,
                         top: 20,
+                        cursor:
+                            isEditing && _.isFunction(setIcon)
+                                ? "pointer"
+                                : null,
                     }}
                 >
                     <RegistryEntityIcon

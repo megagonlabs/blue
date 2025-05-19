@@ -8,12 +8,18 @@ export const useGridStore = create((set, get) => ({
     setLayout: (layout) => {
         set(() => ({ layout }));
     },
-    removeContainer: (key) => {
+    setContainerHeader: ({ id, title, icon }) => {
         set((state) => ({
-            containers: _.omit(state.containers, [key]),
-            layout: state.layout.filter(
-                (element) => !_.isEqual(element.i, key)
-            ),
+            containers: {
+                ...state.containers,
+                [id]: { ..._.get(state.containers, id, {}), title, icon },
+            },
+        }));
+    },
+    removeContainer: (id) => {
+        set((state) => ({
+            containers: _.omit(state.containers, [id]),
+            layout: state.layout.filter((element) => !_.isEqual(element.i, id)),
         }));
     },
     resizeContainerWidth: ({ id, width = 12 }) => {
@@ -27,14 +33,14 @@ export const useGridStore = create((set, get) => ({
         set({ layout });
     },
     addContainer: ({ title, content, icon }) => {
-        const key = uuidv4();
+        const id = uuidv4();
         set((state) => ({
             containers: {
                 ...state.containers,
-                [key]: { title, content, icon },
+                [id]: { title, content, icon },
             },
             layout: [
-                { i: key, x: 0, y: 0, w: 12, h: 3, minW: 4, minH: 3 },
+                { i: id, x: 0, y: 0, w: 12, h: 3, minW: 4, minH: 3 },
                 ...state.layout,
             ],
         }));

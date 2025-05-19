@@ -1,10 +1,13 @@
 import JSONEditor from "@/components/codemirror/JSONEditor";
-import { getUpdatePropertyPromises, settlePromises } from "@/components/helper";
+import {
+    getUpdatePropertyPromises,
+    settlePromises,
+    shallowDiff,
+} from "@/components/helper";
 import { Size } from "@blueprintjs/core";
 import axios from "axios";
 import _ from "lodash";
 import { useEffect, useRef, useState } from "react";
-import shallowDiff from "shallow-diff";
 export default function SessionData({ sessionId }) {
     const [loading, setLoading] = useState(false);
     const [data, setData] = useState({});

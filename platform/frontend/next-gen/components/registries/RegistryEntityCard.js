@@ -95,7 +95,10 @@ export default function RegistryEntityCard({ entity }) {
                     top: 20,
                 }}
             >
-                <RegistryEntityIcon content={_.get(entity, "icon", null)} />
+                <RegistryEntityIcon
+                    type={type}
+                    content={_.get(entity, "icon", null)}
+                />
             </div>
             <div
                 style={{

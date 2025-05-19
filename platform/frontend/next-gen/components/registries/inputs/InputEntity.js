@@ -1,10 +1,14 @@
 import {
-    ENTITY_MAIN_INFO_PROPERTY_KEYS,
     HEX_TRANSPARENCY,
     MAIN_INFO_STYLES,
     REGISTRY_ENTITY_ICON_WRAPPER_STYLES,
 } from "@/components/constants";
-import { getUpdatePropertyPromises, settlePromises } from "@/components/helper";
+import {
+    getEntityMainProperties,
+    getUpdatePropertyPromises,
+    settlePromises,
+    shallowDiff,
+} from "@/components/helper";
 import { useAppStore } from "@/stores/app-store";
 import { Classes, Colors, EditableText } from "@blueprintjs/core";
 import axios from "axios";
@@ -12,7 +16,6 @@ import classNames from "classnames";
 import _ from "lodash";
 import { allEnv } from "next-runtime-env";
 import { useEffect, useState } from "react";
-import shallowDiff from "shallow-diff";
 import EntityDescription from "../attributes/EntityDescription";
 import EntityProperties from "../attributes/EntityProperties";
 import EntityActions from "../EntityActions";
@@ -50,11 +53,9 @@ export default function InputEntity({ entity }) {
                 const result = _.get(response, "data.result", null);
                 setInput(result);
                 setEditedInput(result);
-                const properties = _.pick(
-                    _.get(result, "properties", {}),
-                    ENTITY_MAIN_INFO_PROPERTY_KEYS
+                setMainProperties(
+                    getEntityMainProperties(_.get(result, "properties", {}))
                 );
-                setMainProperties(properties);
             })
             .finally(() => {
                 setLoading(false);
@@ -88,7 +89,7 @@ export default function InputEntity({ entity }) {
                         const newInput = { ...editedInput, properties };
                         setInput(newInput);
                         setEditedInput(newInput);
-                        setMainProperties(properties);
+                        setMainProperties(getEntityMainProperties(properties));
                         setIsEditing(false);
                     }
                     setLoading(false);
@@ -137,6 +138,7 @@ export default function InputEntity({ entity }) {
                     }}
                 >
                     <RegistryEntityIcon
+                        type={type}
                         content={_.get(editedInput, "icon", null)}
                     />
                 </div>

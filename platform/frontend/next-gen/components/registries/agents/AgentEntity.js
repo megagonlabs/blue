@@ -1,13 +1,19 @@
 import {
-    ENTITY_MAIN_INFO_PROPERTY_KEYS,
     ENTITY_TYPE_LOOKUP,
     HEX_TRANSPARENCY,
     MAIN_INFO_STYLES,
     REGISTRY_ENTITY_ICON_WRAPPER_STYLES,
 } from "@/components/constants";
+import { useContainerContext } from "@/components/contexts/ContainerContext";
 import { FAIcon } from "@/components/FAIcon";
-import { getUpdatePropertyPromises, settlePromises } from "@/components/helper";
+import {
+    getEntityMainProperties,
+    getUpdatePropertyPromises,
+    settlePromises,
+    shallowDiff,
+} from "@/components/helper";
 import { useAppStore } from "@/stores/app-store";
+import { useGridStore } from "@/stores/grid-layout-store";
 import {
     Classes,
     Colors,
@@ -21,10 +27,11 @@ import classNames from "classnames";
 import _ from "lodash";
 import { allEnv } from "next-runtime-env";
 import { useEffect, useState } from "react";
-import shallowDiff from "shallow-diff";
+import { useShallow } from "zustand/react/shallow";
 import EntityDescription from "../attributes/EntityDescription";
 import EntityProperties from "../attributes/EntityProperties";
 import EntityActions from "../EntityActions";
+import EntityDisplayName from "../EntityDisplayName";
 import Leaves from "../Leaves";
 import MainPropertyBlock from "../MainPropertyBlock";
 import RegistryEntityIcon from "../RegistryEntityIcon";
@@ -37,7 +44,14 @@ export default function AgentEntity({
     icon,
     setIcon,
 }) {
-    const { name, scope, type } = entity;
+    const { name, type } = entity;
+    const { containerId } = useContainerContext();
+    const { removeContainer, setContainerHeader } = useGridStore(
+        useShallow((state) => ({
+            removeContainer: state.removeContainer,
+            setContainerHeader: state.setContainerHeader,
+        }))
+    );
     const [agent, setAgent] = useState(null);
     const [isEditing, setIsEditing] = useState(false);
     const [editedAgent, setEditedAgent] = useState(null);
@@ -57,66 +71,39 @@ export default function AgentEntity({
     const systemAgent = _.get(mainProperties, "system_agent", false);
     const displayName = _.get(mainProperties, "display_name", "");
     const image = _.get(mainProperties, "image", "");
-    const path = [scope.substring(1), type, name]
-        .filter((str) => !_.isEmpty(str))
-        .join("/");
-    const url = `/registry/${NEXT_PUBLIC_AGENT_REGISTRY_NAME}/${path}`;
-    const getMainProperties = (properties) => {
-        let next = _.cloneDeep(properties);
-        _.set(
-            next,
-            "listens",
-            _.entries(_.get(next, "listens", {})).map((listen) => ({
-                key: listen[0],
-                includes: _.get(listen, "1.includes", []),
-                excludes: _.get(listen, "1.excludes", []),
-            }))
-        );
-        _.set(
-            next,
-            "tags",
-            _.entries(_.get(next, "tags", {})).map((tag) => ({
-                key: tag[0],
-                tags: _.get(tag, "1", []),
-            }))
-        );
-        return next;
-    };
+    const url = `/registry/${NEXT_PUBLIC_AGENT_REGISTRY_NAME}/${type}/${name}`;
     useEffect(() => {
-        updateAgent({ path: "icon", value: icon });
-    }, [icon]);
+        setContainerHeader({
+            id: containerId,
+            title: <EntityDisplayName entity={agent} />,
+            icon: _.get(ENTITY_TYPE_LOOKUP, [type, "icon"], null),
+        });
+    }, [agent]);
     useEffect(() => {
         setLoading(true);
         axios
             .get(url)
             .then((response) => {
                 const result = _.get(response, "data.result", null);
-                if (_.isEmpty(result)) {
-                    setAgent(null);
-                    setEditedAgent(null);
-                    setIcon(null);
-                } else {
-                    setAgent(result);
-                    setEditedAgent(result);
-                    setIcon(_.get(result, "icon", null));
-                    const properties = _.pick(
-                        _.get(result, "properties", {}),
-                        ENTITY_MAIN_INFO_PROPERTY_KEYS
-                    );
-                    setMainProperties(getMainProperties(properties));
-                }
+                setAgent(result);
+                setEditedAgent(result);
+                setIcon(_.get(result, "icon", null));
+                setMainProperties(
+                    getEntityMainProperties(_.get(result, "properties", {}))
+                );
             })
             .finally(() => {
                 setLoading(false);
             });
     }, [entity]);
+    useEffect(() => {
+        updateAgent({ path: "icon", value: icon });
+    }, [icon]);
     const handleDiscard = () => {
         setEditedAgent(agent);
-        const properties = _.pick(
-            _.get(agent, "properties", {}),
-            ENTITY_MAIN_INFO_PROPERTY_KEYS
+        setMainProperties(
+            getEntityMainProperties(_.get(agent, "properties", {}))
         );
-        setMainProperties(getMainProperties(properties));
         setIsEditing(false);
         setIcon(_.get(agent, "icon", null));
     };
@@ -178,12 +165,19 @@ export default function AgentEntity({
                         const newAgent = { ...editedAgent, properties };
                         setEditedAgent(newAgent);
                         setAgent(newAgent);
-                        setMainProperties(getMainProperties(properties));
+                        setMainProperties(getEntityMainProperties(properties));
                         setIsEditing(false);
                     }
                     setLoading(false);
                 });
             });
+    };
+    const onDelete = () => {
+        setLoading(true);
+        axios.delete(url).finally(() => {
+            setLoading(false);
+            removeContainer(containerId);
+        });
     };
     return (
         <div>
@@ -209,6 +203,7 @@ export default function AgentEntity({
                             entity={agent}
                             isEditing={isEditing}
                             setIsEditing={setIsEditing}
+                            onDelete={onDelete}
                         />
                     </div>
                 )}
@@ -227,15 +222,16 @@ export default function AgentEntity({
                     style={{
                         ...REGISTRY_ENTITY_ICON_WRAPPER_STYLES,
                         position: "absolute",
+                        left: 20,
+                        top: 20,
                         cursor:
                             isEditing && _.isFunction(setIcon)
                                 ? "pointer"
                                 : null,
-                        left: 20,
-                        top: 20,
                     }}
                 >
                     <RegistryEntityIcon
+                        type={type}
                         content={_.get(editedAgent, "icon", null)}
                     />
                 </div>

@@ -1,31 +1,51 @@
 import {
-    ENTITY_MAIN_INFO_PROPERTY_KEYS,
+    ENTITY_TYPE_LOOKUP,
     HEX_TRANSPARENCY,
     MAIN_INFO_STYLES,
     REGISTRY_ENTITY_ICON_WRAPPER_STYLES,
 } from "@/components/constants";
-import { getUpdatePropertyPromises, settlePromises } from "@/components/helper";
+import { useContainerContext } from "@/components/contexts/ContainerContext";
+import {
+    getEntityMainProperties,
+    getUpdatePropertyPromises,
+    settlePromises,
+    shallowDiff,
+} from "@/components/helper";
 import { useAppStore } from "@/stores/app-store";
+import { useGridStore } from "@/stores/grid-layout-store";
 import { Classes, Colors, EditableText } from "@blueprintjs/core";
 import axios from "axios";
 import classNames from "classnames";
 import _ from "lodash";
 import { allEnv } from "next-runtime-env";
 import { useEffect, useState } from "react";
-import shallowDiff from "shallow-diff";
+import { useShallow } from "zustand/react/shallow";
 import EntityDescription from "../attributes/EntityDescription";
 import EntityProperties from "../attributes/EntityProperties";
 import EntityActions from "../EntityActions";
+import EntityDisplayName from "../EntityDisplayName";
 import MainPropertyBlock from "../MainPropertyBlock";
 import RegistryEntityIcon from "../RegistryEntityIcon";
 const { NEXT_PUBLIC_MODEL_REGISTRY_NAME } = allEnv();
-export default function ModelEntity({ entity }) {
-    const { name, scope, type } = entity;
+export default function ModelEntity({
+    entity,
+    setShowIconEditor,
+    icon,
+    setIcon,
+}) {
+    const { name, type } = entity;
     const [model, setModel] = useState(null);
     const [isEditing, setIsEditing] = useState(false);
     const [editedModel, setEditedModel] = useState(null);
     const [mainProperties, setMainProperties] = useState({});
     const [loading, setLoading] = useState(false);
+    const { containerId } = useContainerContext();
+    const { removeContainer, setContainerHeader } = useGridStore(
+        useShallow((state) => ({
+            removeContainer: state.removeContainer,
+            setContainerHeader: state.setContainerHeader,
+        }))
+    );
     const updateMainProperties = ({ path, value }) => {
         let newProperties = _.cloneDeep(mainProperties);
         _.set(newProperties, path, value);
@@ -38,10 +58,14 @@ export default function ModelEntity({ entity }) {
     };
     const darkMode = useAppStore((state) => state.dark_mode);
     const displayName = _.get(mainProperties, "display_name", "");
-    const path = [scope.substring(1), type, name]
-        .filter((str) => !_.isEmpty(str))
-        .join("/");
-    const url = `/registry/${NEXT_PUBLIC_MODEL_REGISTRY_NAME}/${path}`;
+    const url = `/registry/${NEXT_PUBLIC_MODEL_REGISTRY_NAME}/${type}/${name}`;
+    useEffect(() => {
+        setContainerHeader({
+            id: containerId,
+            title: <EntityDisplayName entity={model} />,
+            icon: _.get(ENTITY_TYPE_LOOKUP, [type, "icon"], null),
+        });
+    }, [model]);
     useEffect(() => {
         setLoading(true);
         axios
@@ -50,24 +74,24 @@ export default function ModelEntity({ entity }) {
                 const result = _.get(response, "data.result", null);
                 setModel(result);
                 setEditedModel(result);
-                const properties = _.pick(
-                    _.get(result, "properties", {}),
-                    ENTITY_MAIN_INFO_PROPERTY_KEYS
+                setMainProperties(
+                    getEntityMainProperties(_.get(result, "properties", {}))
                 );
-                setMainProperties(properties);
             })
             .finally(() => {
                 setLoading(false);
             });
     }, [entity]);
+    useEffect(() => {
+        updateModel({ path: "icon", value: icon });
+    }, [icon]);
     const handleDiscard = () => {
         setEditedModel(model);
-        const properties = _.pick(
-            _.get(model, "properties", {}),
-            ENTITY_MAIN_INFO_PROPERTY_KEYS
+        setMainProperties(
+            getEntityMainProperties(_.get(model, "properties", {}))
         );
-        setMainProperties(properties);
         setIsEditing(false);
+        setIcon(_.get(source, "icon", null));
     };
     const handleSave = () => {
         setLoading(true);
@@ -75,6 +99,7 @@ export default function ModelEntity({ entity }) {
             .put(url, {
                 name: editedModel.name,
                 description: editedModel.description,
+                icon: editedModel.icon,
             })
             .then(() => {
                 const properties = {
@@ -93,12 +118,19 @@ export default function ModelEntity({ entity }) {
                         const newModel = { ...editedModel, properties };
                         setModel(newModel);
                         setEditedModel(newModel);
-                        setMainProperties(properties);
+                        setMainProperties(getEntityMainProperties(properties));
                         setIsEditing(false);
                     }
                     setLoading(false);
                 });
             });
+    };
+    const onDelete = () => {
+        setLoading(true);
+        axios.delete(url).finally(() => {
+            setLoading(false);
+            removeContainer(containerId);
+        });
     };
     return (
         <div>
@@ -124,6 +156,7 @@ export default function ModelEntity({ entity }) {
                             entity={model}
                             isEditing={isEditing}
                             setIsEditing={setIsEditing}
+                            onDelete={onDelete}
                         />
                     </div>
                 )}
@@ -134,14 +167,24 @@ export default function ModelEntity({ entity }) {
                         "custom-card",
                         { [Classes.SKELETON]: loading }
                     )}
+                    onClick={() => {
+                        if (_.isFunction(setShowIconEditor)) {
+                            setShowIconEditor(isEditing);
+                        }
+                    }}
                     style={{
                         ...REGISTRY_ENTITY_ICON_WRAPPER_STYLES,
                         position: "absolute",
                         left: 20,
                         top: 20,
+                        cursor:
+                            isEditing && _.isFunction(setIcon)
+                                ? "pointer"
+                                : null,
                     }}
                 >
                     <RegistryEntityIcon
+                        type={type}
                         content={_.get(editedModel, "icon", null)}
                     />
                 </div>

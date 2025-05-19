@@ -3,9 +3,9 @@ import { Colors, Overlay2 } from "@blueprintjs/core";
 import _ from "lodash";
 import { useEffect, useState } from "react";
 import IconEditor from "../IconEditor";
-import { useContainerContext } from "../contexts/ContainerContext";
 import withAutoSizer from "../hocs/withAutoSizer";
 import Breadcrumbs from "./Breadcrumbs";
+import NewEntity from "./NewEntity";
 import AgentEntity from "./agents/AgentEntity";
 import CollectionEntity from "./data/CollectionEntity";
 import DatabaseEntity from "./data/DatabaseEntity";
@@ -16,15 +16,18 @@ import InputEntity from "./inputs/InputEntity";
 import ModelEntity from "./models/ModelEntity";
 import OperatorEntity from "./operators/OperatorEntity";
 import OutputEntity from "./outputs/OutputEntity";
-function RegistryEntityContainer({ width, height, entity }) {
+function RegistryEntityContainer({ width, height, entity, create = false }) {
     const [breadcrumbs, setBreadcrumbs] = useState([]);
-    const { containerId } = useContainerContext();
+    const [created, setCreated] = useState(false);
     const darkMode = useAppStore((state) => state.dark_mode);
     useEffect(() => {
         const { name, type, scope } = entity;
         let crumbs = [{ name, type, scope }];
         _.set(crumbs, [0, "start"], true);
         _.set(crumbs, [0, "end"], true);
+        if (create) {
+            crumbs.pop();
+        }
         setBreadcrumbs(crumbs);
     }, [entity]);
     const normalizeCrumbs = (list) => {
@@ -91,45 +94,74 @@ function RegistryEntityContainer({ width, height, entity }) {
                 }}
             >
                 <Breadcrumbs crumbs={breadcrumbs} toCrumb={toCrumb} />
-                <div style={{ marginTop: 20 }}>
-                    {_.isEqual(type, "agent") && (
-                        <AgentEntity
-                            icon={icon}
-                            setIcon={setIcon}
+                <div style={{ marginTop: !_.isEmpty(breadcrumbs) && 20 }}>
+                    {create && !created ? (
+                        <NewEntity
+                            setCreated={setCreated}
+                            entity={entity}
                             addCrumb={addCrumb}
-                            entity={current}
-                            setShowIconEditor={setShowIconEditor}
                         />
-                    )}
-                    {_.isEqual(type, "input") && (
-                        <InputEntity entity={current} />
-                    )}
-                    {_.isEqual(type, "output") && (
-                        <OutputEntity entity={current} />
-                    )}
-                    {_.isEqual(type, "source") && (
-                        <SourceEntity addCrumb={addCrumb} entity={current} />
-                    )}
-                    {_.isEqual(type, "database") && (
-                        <DatabaseEntity addCrumb={addCrumb} entity={current} />
-                    )}
-                    {_.isEqual(type, "collection") && (
-                        <CollectionEntity
-                            addCrumb={addCrumb}
-                            entity={current}
-                        />
-                    )}
-                    {_.isEqual(type, "entity") && (
-                        <EntityEntity entity={current} />
-                    )}
-                    {_.isEqual(type, "relation") && (
-                        <RelationEntity entity={current} />
-                    )}
-                    {_.isEqual(type, "operator") && (
-                        <OperatorEntity entity={current} />
-                    )}
-                    {_.isEqual(type, "model") && (
-                        <ModelEntity entity={current} />
+                    ) : (
+                        <>
+                            {_.isEqual(type, "agent") && (
+                                <AgentEntity
+                                    icon={icon}
+                                    setIcon={setIcon}
+                                    setShowIconEditor={setShowIconEditor}
+                                    addCrumb={addCrumb}
+                                    entity={current}
+                                />
+                            )}
+                            {_.isEqual(type, "input") && (
+                                <InputEntity entity={current} />
+                            )}
+                            {_.isEqual(type, "output") && (
+                                <OutputEntity entity={current} />
+                            )}
+                            {_.isEqual(type, "source") && (
+                                <SourceEntity
+                                    icon={icon}
+                                    setIcon={setIcon}
+                                    setShowIconEditor={setShowIconEditor}
+                                    addCrumb={addCrumb}
+                                    entity={current}
+                                />
+                            )}
+                            {_.isEqual(type, "database") && (
+                                <DatabaseEntity
+                                    addCrumb={addCrumb}
+                                    entity={current}
+                                />
+                            )}
+                            {_.isEqual(type, "collection") && (
+                                <CollectionEntity
+                                    addCrumb={addCrumb}
+                                    entity={current}
+                                />
+                            )}
+                            {_.isEqual(type, "entity") && (
+                                <EntityEntity entity={current} />
+                            )}
+                            {_.isEqual(type, "relation") && (
+                                <RelationEntity entity={current} />
+                            )}
+                            {_.isEqual(type, "operator") && (
+                                <OperatorEntity
+                                    icon={icon}
+                                    setIcon={setIcon}
+                                    setShowIconEditor={setShowIconEditor}
+                                    entity={current}
+                                />
+                            )}
+                            {_.isEqual(type, "model") && (
+                                <ModelEntity
+                                    icon={icon}
+                                    setIcon={setIcon}
+                                    setShowIconEditor={setShowIconEditor}
+                                    entity={current}
+                                />
+                            )}
+                        </>
                     )}
                 </div>
             </div>

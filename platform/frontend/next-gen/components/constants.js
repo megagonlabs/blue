@@ -69,6 +69,7 @@ export const USER_ROLES_LOOKUP = {
         "tags",
         "categories",
     ],
+    ENTITY_TYPE_CONVERSION = { source: "data" },
     REGISTRY_ENTITY_ICON_WRAPPER_STYLES = {
         height: 40,
         width: 40,
