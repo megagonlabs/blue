@@ -18,6 +18,7 @@ import numpy as np
 from blue.connection import PooledConnectionFactory
 from blue.utils import json_utils, uuid_utils
 
+
 ###############
 ### Registry
 #
@@ -30,7 +31,7 @@ class Registry:
 
         if type == None:
             type = "record"
-        self.type = type 
+        self.type = type
 
         if id:
             self.id = id
@@ -110,7 +111,6 @@ class Registry:
         # create registry-specific registry
         self.connection.json().set(self._get_data_namespace(), '$', {'contents': {}}, nx=True)
 
-
     def _set_json(self, name, path, obj):
         result = self.connection.json().set(name, path, obj)
         if result is None:
@@ -120,8 +120,6 @@ class Registry:
                 result = self.connection.json().set(name, path, obj, nx=True)
                 if result is None:
                     raise Exception("Failed to set: " + str(name) + " " + str(path))
-        
-
 
     def _get_index_name(self):
         return self.cid
@@ -238,7 +236,10 @@ class Registry:
             self._init_search_index()
 
         # TODO: Identify the best way to compute embedding vector, for now name + description
-        vector = self._compute_embedding_vector(name + " " + description)
+        text = name
+        if description:
+            text += ' ' + description
+        vector = self._compute_embedding_vector(text)
 
         doc = {'name': name, 'type': type, 'scope': scope, 'description': description, 'vector': vector}
 
@@ -271,11 +272,11 @@ class Registry:
         contents = record['contents']
 
         for type_key in contents:
-                contents_by_type = contents[type_key]
-                for record_key in contents_by_type:
-                    r = contents_by_type[record_key]
+            contents_by_type = contents[type_key]
+            for record_key in contents_by_type:
+                r = contents_by_type[record_key]
 
-                    self._delete_index_record(r, pipe=pipe)
+                self._delete_index_record(r, pipe=pipe)
 
     def _delete_index_doc(self, name, type, scope, pipe=None):
 
@@ -333,7 +334,6 @@ class Registry:
         logging.info('searching: ' + keywords + ', ' + 'approximate=' + str(approximate) + ', ' + 'hybrid=' + str(hybrid))
         logging.info('using search query: ' + q)
         results = self.connection.ft(index_name).search(query, query_params).docs
-        
 
         # field', 'id', 'name', 'payload', 'score', 'type
         if approximate or hybrid:
@@ -424,12 +424,12 @@ class Registry:
             contents = {}
             if 'contents' in record:
                 contents = record['contents']
-            
+
                 for type_key in contents:
-                        contents_by_type = contents[type_key]
-                        for record_key in contents_by_type:
-                            r = contents_by_type[record_key]    
-                            self.register_record_json(r, recursive=recursive, rebuild=rebuild)
+                    contents_by_type = contents[type_key]
+                    for record_key in contents_by_type:
+                        r = contents_by_type[record_key]
+                        self.register_record_json(r, recursive=recursive, rebuild=rebuild)
 
     def update_record(self, name, type, scope, description="", icon=None, properties={}, rebuild=False):
         record = {}
@@ -461,7 +461,7 @@ class Registry:
 
         # return original and merged
         return original_record, merged_record
-    
+
     def _extract_shortname(self, name):
         # use name to identify scope, short name
         s = name.split(self.SEPARATOR)
@@ -474,18 +474,18 @@ class Registry:
         if not full:
             s = s[:-1]
         t = "/" + self.type + "/"
-        scope = "/" 
+        scope = "/"
         if len(s) > 0:
             scope = scope + self.type + "/"
         scope = scope + t.join(s)
-        return scope    
+        return scope
 
     def _get_record_path(self, name, type, scope):
         sp = self._get_scope_path(scope)
 
-        rp = sp + type + "." + name 
+        rp = sp + type + "." + name
         return rp
-    
+
     def _get_scope_path(self, scope, type=None, recursive=False):
         # remove leading and trailing /s
         if len(scope) >= 1 and scope[0] == "/":
@@ -494,7 +494,7 @@ class Registry:
             scope = scope[:-1]
         # add final /
         scope = scope + "/"
-        # compute json path 
+        # compute json path
         sa = scope.split("/")
         p = "$."
         for i, si in enumerate(sa):
@@ -513,7 +513,7 @@ class Registry:
 
     def get_record(self, name, type, scope):
         sp = self._get_record_path(name, type, scope)
-        
+
         record = self.connection.json().get(self._get_data_namespace(), Path(sp))
         if len(record) == 0:
             return {}
@@ -568,7 +568,6 @@ class Registry:
     def get_record_contents(self, name, type, scope):
         return self.get_record_data(name, type, scope, 'contents.*', single=False)
 
-
     def filter_record_contents(self, name, type, scope, filter_type=None, filter_name=None, single=False):
         query = ""
         if filter_type:
@@ -580,7 +579,7 @@ class Registry:
         if filter_type or filter_name:
             query = '[?(' + query + ')]'
 
-        return self.get_record_data(name, type, scope, 'contents.*.'+query, single=single)
+        return self.get_record_data(name, type, scope, 'contents.*.' + query, single=single)
 
     def get_contents(self):
         data = self.connection.json().get(self._get_data_namespace(), Path('$'))
@@ -629,7 +628,6 @@ class Registry:
         records = self.connection.json().get(self._get_data_namespace(), Path(sp))
 
         return records
-
 
     ######
     def _start(self):
@@ -686,4 +684,3 @@ class Registry:
         for k, v in encodings.items():
             s = s.replace(v, k)
         return s
-

@@ -324,6 +324,7 @@ class SessionCleanupScheduler(Scheduler):
         # default 3 days
         if pydash.is_empty(session_expiration_duration):
             session_expiration_duration = 3
+        session_expiration_duration = pydash.to_integer(session_expiration_duration)
         session_expiration_duration = max(3, session_expiration_duration)
         for session in sessions:
             try:
