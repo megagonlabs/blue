@@ -11,7 +11,6 @@ from settings import ACL, EMAIL_DOMAIN_WHITE_LIST, FIREBASE_CLIENT_ID, PROPERTIE
 from datetime import timedelta
 
 EMAIL_DOMAIN_ADDRESS_REGEXP = r"@((\w+?\.)+\w+)"
-RESERVED_ENTITY_NAMES = ['new']
 END_OF_SSE_SIGNAL = 'END_OF_EVENT_SIGNAL'
 
 platform_id = PROPERTIES["platform.name"]

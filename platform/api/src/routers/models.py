@@ -4,7 +4,7 @@ import sys
 
 from fastapi import Depends, Request
 import pydash
-from constant import RESERVED_ENTITY_NAMES, PermissionDenied, account_id_header, acl_enforce
+from constant import PermissionDenied, account_id_header, acl_enforce
 
 ###### Parsers, Formats, Utils
 import re
@@ -101,8 +101,6 @@ def get_model(request: Request, model_name):
 @router.post("/model/{model_name}")
 def add_model(request: Request, model_name, model: ModelSchema):
     model_db = model_registry.get_model(model_name)
-    if model_name in RESERVED_ENTITY_NAMES:
-        return JSONResponse(content={"message": f"\"{model_name}\" cannot be used"}, status_code=403)
     # if model already exists, return 409 conflict error
     if not pydash.is_empty(model_db):
         return JSONResponse(content={"message": f"\"{model_db}\" already exists"}, status_code=409)

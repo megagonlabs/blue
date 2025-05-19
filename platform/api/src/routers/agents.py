@@ -4,7 +4,7 @@ from curses import noecho
 from fastapi import Depends, Request
 import pydash
 
-from constant import RESERVED_ENTITY_NAMES, PermissionDenied, account_id_header, acl_enforce
+from constant import PermissionDenied, account_id_header, acl_enforce
 
 
 ###### Parsers, Formats, Utils
@@ -230,11 +230,9 @@ def get_agent(request: Request, agent_name):
 @router.post("/agent/{agent_name}")
 def add_agent(request: Request, agent_name, agent: AgentSchema):
     agent_db = agent_registry.get_agent(agent_name)
-    if agent_registry._extract_shortname(agent_name) in RESERVED_ENTITY_NAMES:
-        return JSONResponse(content={"message": f"\"{agent_name}\" cannot be used"}, status_code=403)
     # if agent already exists, return 409 conflict error
     if not pydash.is_empty(agent_db):
-        return JSONResponse(content={"message": f"\"{agent_db}\" already exists"}, status_code=409)
+        return JSONResponse(content={"message": f"\"{agent_name}\" already exists"}, status_code=409)
     acl_enforce(request.state.user['role'], 'agent_registry', ['write_all', 'write_own'])
     # TODO: properties
     agent_registry.add_agent(agent_name, request.state.user['uid'], description=agent.description, properties={}, rebuild=True)
@@ -325,11 +323,9 @@ def get_agent_input(request: Request, agent_name, param_name):
 @router.post("/agent/{agent_name}/input/{param_name}")
 def add_agent_input(request: Request, agent_name, param_name, parameter: ParameterSchema):
     input = agent_registry.get_agent_input(agent_name, param_name)
-    if agent_registry._extract_shortname(param_name) in RESERVED_ENTITY_NAMES:
-        return JSONResponse(content={"message": f"\"{param_name}\" cannot be used"}, status_code=403)
     # if name already exists, return 409 conflict error
     if not pydash.is_empty(input):
-        return JSONResponse(content={"message": f"\"{input}\" already exists"}, status_code=409)
+        return JSONResponse(content={"message": f"\"{param_name}\" already exists"}, status_code=409)
     agent_db = agent_registry.get_agent(agent_name)
     agent_acl_enforce(request, agent_db, write=True)
     # TODO: properties
@@ -418,11 +414,9 @@ def get_agent_output(request: Request, agent_name, param_name):
 @router.post("/agent/{agent_name}/output/{param_name}")
 def add_agent_output(request: Request, agent_name, param_name, parameter: ParameterSchema):
     output = agent_registry.get_agent_output(agent_name, param_name)
-    if agent_registry._extract_shortname(param_name) in RESERVED_ENTITY_NAMES:
-        return JSONResponse(content={"message": f"\"{param_name}\" cannot be used"}, status_code=403)
     # if name already exists, return 409 conflict error
     if not pydash.is_empty(output):
-        return JSONResponse(content={"message": f"\"{output}\" already exists"}, status_code=409)
+        return JSONResponse(content={"message": f"\"{param_name}\" already exists"}, status_code=409)
     agent_db = agent_registry.get_agent(agent_name)
     agent_acl_enforce(request, agent_db, write=True)
     # TODO: properties
@@ -545,11 +539,9 @@ def delete_agent_group(request: Request, group_name):
 @router.post("/agent_group/{group_name}")
 def add_agent_group(request: Request, group_name, group: AgentGroupSchema):
     agent_group_db = agent_registry.get_agent_group(group_name)
-    if agent_registry._extract_shortname(group_name) in RESERVED_ENTITY_NAMES:
-        return JSONResponse(content={"message": f"\"{group_name}\" cannot be used"}, status_code=403)
     # if agent already exists, return 409 conflict error
     if not pydash.is_empty(agent_group_db):
-        return JSONResponse(content={"message": f"\"{agent_group_db}\" already exists"}, status_code=409)
+        return JSONResponse(content={"message": f"\"{group_name}\" already exists"}, status_code=409)
     acl_enforce(request.state.user['role'], 'agent_registry', ['write_all', 'write_own'])
     # TODO: properties
     agent_registry.add_agent_group(group_name, request.state.user['uid'], description=group.description, properties={}, rebuild=True)
@@ -570,8 +562,6 @@ def get_agent_group_agents(request: Request, group_name):
 @router.post("/agent_group/{group_name}/agent/{agent_name}")
 def add_agent_to_agent_group(request: Request, group_name, agent_name, agent: AgentSchema):
     agent_existing = agent_registry.get_agent_group_agent(group_name, agent_name)
-    if agent_registry._extract_shortname(agent_name) in RESERVED_ENTITY_NAMES:
-        return JSONResponse(content={"message": f"\"{agent_name}\" cannot be used"}, status_code=403)
     # if name already exists, return 409 conflict error
     if not pydash.is_empty(agent_existing):
         return JSONResponse(content={"message": f"\"{agent_name}\" already exists"}, status_code=409)
