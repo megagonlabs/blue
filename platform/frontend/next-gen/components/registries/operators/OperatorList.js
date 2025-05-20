@@ -9,10 +9,12 @@ import {
     Colors,
     ControlGroup,
     InputGroup,
+    Overlay2,
     Size,
 } from "@blueprintjs/core";
 import { faPlus, faSearch } from "@fortawesome/sharp-duotone-solid-svg-icons";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import NewEntity from "../NewEntity";
 import RegistryEntityCard from "../RegistryEntityCard";
 import RegistryEntityContainer from "../RegistryEntityContainer";
 function OperatorList({ width, height }) {
@@ -20,11 +22,40 @@ function OperatorList({ width, height }) {
     const operators = useOperatorStore((state) => state.operators);
     const getOperators = useOperatorStore((state) => state.getOperators);
     const addContainer = useGridStore((state) => state.addContainer);
+    const [showNewEntity, setShowNewEntity] = useState(false);
     useEffect(() => {
         getOperators();
     }, []);
+    const callback = (entity) => {
+        setShowNewEntity(false);
+        addContainer({
+            content: <RegistryEntityContainer entity={entity} />,
+        });
+    };
     return (
         <div style={{ width, height }}>
+            <Overlay2
+                onClose={() => {
+                    setShowNewEntity(false);
+                }}
+                isOpen={showNewEntity}
+                usePortal={false}
+                enforceFocus={false}
+                transitionDuration={0}
+            >
+                <div
+                    className="custom-card center-center"
+                    style={{
+                        width: 800,
+                        padding: 20,
+                        overflowY: "auto",
+                        height: "calc(100% - 40px)",
+                        maxWidth: "calc(100% - 40px)",
+                    }}
+                >
+                    <NewEntity callback={callback} type="operator" />
+                </div>
+            </Overlay2>
             <div
                 className="full-parent-dimension"
                 style={{
@@ -51,17 +82,7 @@ function OperatorList({ width, height }) {
                     ))}
                     <Button
                         onClick={() => {
-                            addContainer({
-                                content: (
-                                    <RegistryEntityContainer
-                                        entity={{
-                                            scope: "/",
-                                            type: "operator",
-                                        }}
-                                        create={true}
-                                    />
-                                ),
-                            });
+                            setShowNewEntity(true);
                         }}
                         size={Size.LARGE}
                         fill

@@ -8,6 +8,7 @@ import {
     ControlGroup,
     InputGroup,
     Intent,
+    Overlay2,
     Radio,
     RadioGroup,
     Size,
@@ -21,6 +22,7 @@ import { useEffect, useState } from "react";
 import { FAIcon } from "../../FAIcon";
 import withAutoSizer from "../../hocs/withAutoSizer";
 import FilterPane from "../FilterPane";
+import NewEntity from "../NewEntity";
 import RegistryEntityCard from "../RegistryEntityCard";
 import RegistryEntityContainer from "../RegistryEntityContainer";
 function AgentList({ width, height }) {
@@ -28,12 +30,41 @@ function AgentList({ width, height }) {
     const getAgents = useAgentStore((state) => state.getAgents);
     const [showFilter, setShowFilter] = useState(false);
     const darkMode = useAppStore((state) => state.dark_mode);
+    const [showNewEntity, setShowNewEntity] = useState(false);
     const addContainer = useGridStore((state) => state.addContainer);
     useEffect(() => {
         getAgents();
     }, []);
+    const callback = (entity) => {
+        setShowNewEntity(false);
+        addContainer({
+            content: <RegistryEntityContainer entity={entity} />,
+        });
+    };
     return (
         <div style={{ width, height }}>
+            <Overlay2
+                onClose={() => {
+                    setShowNewEntity(false);
+                }}
+                isOpen={showNewEntity}
+                usePortal={false}
+                enforceFocus={false}
+                transitionDuration={0}
+            >
+                <div
+                    className="custom-card center-center"
+                    style={{
+                        width: 800,
+                        padding: 20,
+                        overflowY: "auto",
+                        height: "calc(100% - 40px)",
+                        maxWidth: "calc(100% - 40px)",
+                    }}
+                >
+                    <NewEntity callback={callback} type="agent" />
+                </div>
+            </Overlay2>
             <div
                 className="full-parent-dimension"
                 style={{
@@ -81,14 +112,7 @@ function AgentList({ width, height }) {
                     ))}
                     <Button
                         onClick={() => {
-                            addContainer({
-                                content: (
-                                    <RegistryEntityContainer
-                                        entity={{ scope: "/", type: "agent" }}
-                                        create={true}
-                                    />
-                                ),
-                            });
+                            setShowNewEntity(true);
                         }}
                         icon={<FAIcon icon={faPlus} />}
                         size={Size.LARGE}

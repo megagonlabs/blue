@@ -15,19 +15,23 @@ import {
 import { useAppStore } from "@/stores/app-store";
 import { useGridStore } from "@/stores/grid-layout-store";
 import {
+    Button,
+    ButtonVariant,
     Classes,
     Colors,
     EditableText,
     EntityTitle,
     H3,
 } from "@blueprintjs/core";
-import { faCheckCircle } from "@fortawesome/sharp-duotone-solid-svg-icons";
+import {
+    faCheckCircle,
+    faPlus,
+} from "@fortawesome/sharp-duotone-solid-svg-icons";
 import axios from "axios";
 import classNames from "classnames";
 import _ from "lodash";
 import { allEnv } from "next-runtime-env";
 import { useEffect, useState } from "react";
-import { useShallow } from "zustand/react/shallow";
 import EntityDescription from "../attributes/EntityDescription";
 import EntityProperties from "../attributes/EntityProperties";
 import EntityActions from "../EntityActions";
@@ -43,14 +47,14 @@ export default function AgentEntity({
     setShowIconEditor,
     icon,
     setIcon,
+    setShowNewEntity,
+    setNewEntityType,
+    backCrumb,
 }) {
-    const { name, type } = entity;
+    const { name, type, scope } = entity;
     const { containerId } = useContainerContext();
-    const { removeContainer, setContainerHeader } = useGridStore(
-        useShallow((state) => ({
-            removeContainer: state.removeContainer,
-            setContainerHeader: state.setContainerHeader,
-        }))
+    const setContainerHeader = useGridStore(
+        (state) => state.setContainerHeader
     );
     const [agent, setAgent] = useState(null);
     const [isEditing, setIsEditing] = useState(false);
@@ -176,7 +180,7 @@ export default function AgentEntity({
         setLoading(true);
         axios.delete(url).finally(() => {
             setLoading(false);
-            removeContainer(containerId);
+            backCrumb();
         });
     };
     return (
@@ -330,87 +334,140 @@ export default function AgentEntity({
                         loading={loading}
                     />
                 </div>
-                <div style={{ marginTop: 20 }} className="split-pane-container">
-                    <div className="pane-item">
-                        <div style={{ marginBottom: 10 }}>
-                            <EntityTitle
-                                icon={
-                                    <FAIcon
-                                        icon={ENTITY_TYPE_LOOKUP["input"].icon}
-                                        size={25}
-                                    />
-                                }
-                                heading={H3}
-                                title="Inputs"
-                            />
-                        </div>
+                {_.isEqual(scope, "/") && (
+                    <>
                         <div
-                            style={{
-                                display: "flex",
-                                gap: 10,
-                                flexDirection: "column",
-                            }}
+                            style={{ marginTop: 20 }}
+                            className="split-pane-container"
                         >
-                            <Leaves
-                                loading={loading}
-                                addCrumb={addCrumb}
-                                list={_.values(
-                                    _.get(agent, "contents.input", {})
-                                )}
-                            />
-                        </div>
-                    </div>
-                    <div className="pane-item">
-                        <div style={{ marginBottom: 10 }}>
-                            <EntityTitle
-                                icon={
-                                    <FAIcon
-                                        icon={ENTITY_TYPE_LOOKUP["output"].icon}
-                                        size={25}
+                            <div className="pane-item">
+                                <div style={{ marginBottom: 10 }}>
+                                    <EntityTitle
+                                        icon={
+                                            <FAIcon
+                                                icon={
+                                                    ENTITY_TYPE_LOOKUP["input"]
+                                                        .icon
+                                                }
+                                                size={25}
+                                            />
+                                        }
+                                        heading={H3}
+                                        title="Inputs"
                                     />
-                                }
-                                heading={H3}
-                                title="Outputs"
-                            />
+                                </div>
+                                <div
+                                    style={{
+                                        display: "flex",
+                                        gap: 10,
+                                        flexDirection: "column",
+                                    }}
+                                >
+                                    <Leaves
+                                        loading={loading}
+                                        addCrumb={addCrumb}
+                                        list={_.values(
+                                            _.get(agent, "contents.input", {})
+                                        )}
+                                    />
+                                    {!isEditing && (
+                                        <Button
+                                            variant={ButtonVariant.MINIMAL}
+                                            icon={<FAIcon icon={faPlus} />}
+                                            fill
+                                            text="Add input"
+                                            onClick={() => {
+                                                setShowNewEntity(true);
+                                                setNewEntityType("input");
+                                            }}
+                                        />
+                                    )}
+                                </div>
+                            </div>
+                            <div className="pane-item">
+                                <div style={{ marginBottom: 10 }}>
+                                    <EntityTitle
+                                        icon={
+                                            <FAIcon
+                                                icon={
+                                                    ENTITY_TYPE_LOOKUP["output"]
+                                                        .icon
+                                                }
+                                                size={25}
+                                            />
+                                        }
+                                        heading={H3}
+                                        title="Outputs"
+                                    />
+                                </div>
+                                <div
+                                    style={{
+                                        display: "flex",
+                                        gap: 10,
+                                        flexDirection: "column",
+                                    }}
+                                >
+                                    <Leaves
+                                        loading={loading}
+                                        addCrumb={addCrumb}
+                                        list={_.values(
+                                            _.get(agent, "contents.output", {})
+                                        )}
+                                    />
+                                    {!isEditing && (
+                                        <Button
+                                            variant={ButtonVariant.MINIMAL}
+                                            icon={<FAIcon icon={faPlus} />}
+                                            fill
+                                            text="Add output"
+                                            onClick={() => {
+                                                setShowNewEntity(true);
+                                                setNewEntityType("output");
+                                            }}
+                                        />
+                                    )}
+                                </div>
+                            </div>
                         </div>
-                        <div
-                            style={{
-                                display: "flex",
-                                gap: 10,
-                                flexDirection: "column",
-                            }}
-                        >
-                            <Leaves
-                                loading={loading}
-                                addCrumb={addCrumb}
-                                list={_.values(
-                                    _.get(agent, "contents.output", {})
-                                )}
-                            />
-                        </div>
-                    </div>
-                </div>
-                <div style={{ marginTop: 20 }}>
-                    <div style={{ marginBottom: 10 }}>
-                        <EntityTitle
-                            icon={
-                                <FAIcon
-                                    icon={ENTITY_TYPE_LOOKUP["agent"].icon}
-                                    size={25}
+                        <div style={{ marginTop: 20 }}>
+                            <div style={{ marginBottom: 10 }}>
+                                <EntityTitle
+                                    icon={
+                                        <FAIcon
+                                            icon={
+                                                ENTITY_TYPE_LOOKUP["agent"].icon
+                                            }
+                                            size={25}
+                                        />
+                                    }
+                                    heading={H3}
+                                    title="Derived Agents"
                                 />
-                            }
-                            heading={H3}
-                            title="Derived Agents"
-                        />
-                    </div>
-                    <div className="responsive-grid-container">
-                        <Leaves
-                            loading={loading}
-                            addCrumb={addCrumb}
-                            list={_.values(_.get(agent, "contents.agent", {}))}
-                        />
-                    </div>
-                </div>
+                            </div>
+                            <div className="responsive-grid-container">
+                                <Leaves
+                                    loading={loading}
+                                    addCrumb={addCrumb}
+                                    list={_.values(
+                                        _.get(agent, "contents.agent", {})
+                                    )}
+                                />
+                                {!isEditing && (
+                                    <Button
+                                        variant={ButtonVariant.MINIMAL}
+                                        icon={<FAIcon icon={faPlus} />}
+                                        fill
+                                        text="Add derived agent"
+                                        onClick={() => {
+                                            setShowNewEntity(true);
+                                            setNewEntityType("agent");
+                                        }}
+                                    />
+                                )}
+                            </div>
+                        </div>
+                    </>
+                )}
             </div>
         </div>
     );

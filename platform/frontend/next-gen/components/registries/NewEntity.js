@@ -8,12 +8,16 @@ import {
     Intent,
     Size,
 } from "@blueprintjs/core";
-import { faCheck } from "@fortawesome/sharp-duotone-solid-svg-icons";
+import { faGrid2Plus } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import axios from "axios";
 import _ from "lodash";
 import { allEnv } from "next-runtime-env";
 import { useState } from "react";
-import { ENTITY_TYPE_CONVERSION, HEX_TRANSPARENCY } from "../constants";
+import {
+    ENTITY_NAME_SEPARATOR,
+    ENTITY_TYPE_CONVERSION,
+    HEX_TRANSPARENCY,
+} from "../constants";
 import { FAIcon } from "../FAIcon";
 import {
     getUpdatePropertyPromises,
@@ -31,16 +35,14 @@ const {
     NEXT_PUBLIC_OPERATOR_REGISTRY_NAME,
     NEXT_PUBLIC_MODEL_REGISTRY_NAME,
 } = allEnv();
-export default function NewEntity({ entity, addCrumb, setCreated }) {
-    const type = _.get(entity, "type", null);
-    const [newEntity, setNewEntity] = useState({
-        ...entity,
-        type,
-        description: "",
-    });
+export default function NewEntity({
+    type = null,
+    callback = null,
+    parent = null,
+}) {
+    const [newEntity, setNewEntity] = useState({ type, description: "" });
     const darkMode = useAppStore((state) => state.dark_mode);
     const [loading, setLoading] = useState(false);
-    const [namePrefix, setNamePrefix] = useState("");
     const [mainProperties, setMainProperties] = useState({});
     const updateMainProperties = ({ path, value }) => {
         let newProperties = _.cloneDeep(mainProperties);
@@ -54,18 +56,26 @@ export default function NewEntity({ entity, addCrumb, setCreated }) {
     };
     const onSave = () => {
         setLoading(true);
-        const fullName = `${namePrefix}${newEntity.name}`;
+        let fullName = newEntity.name;
+        const prefix = _.get(parent, "name", "");
+        if (_.isEqual(type, "agent")) {
+            fullName = `${prefix}${ENTITY_NAME_SEPARATOR}${newEntity.name}`;
+        }
         const REGISTRY_NAME_LOOKUP = {
             agent: NEXT_PUBLIC_AGENT_REGISTRY_NAME,
+            input: NEXT_PUBLIC_AGENT_REGISTRY_NAME,
+            output: NEXT_PUBLIC_AGENT_REGISTRY_NAME,
             source: NEXT_PUBLIC_DATA_REGISTRY_NAME,
             operator: NEXT_PUBLIC_OPERATOR_REGISTRY_NAME,
             model: NEXT_PUBLIC_MODEL_REGISTRY_NAME,
         };
-        const url = `/registry/${REGISTRY_NAME_LOOKUP[type]}/${_.get(
-            ENTITY_TYPE_CONVERSION,
-            type,
-            type
-        )}/${fullName}`;
+        let url = `/registry/${REGISTRY_NAME_LOOKUP[type]}`;
+        const convertedType = _.get(ENTITY_TYPE_CONVERSION, type, type);
+        if (_.includes(["input", "output"], type)) {
+            url += `/agent/${prefix}/${convertedType}/${fullName}`;
+        } else {
+            url += `/${convertedType}/${fullName}`;
+        }
         axios
             .post(url, {
                 name: fullName,
@@ -89,15 +99,22 @@ export default function NewEntity({ entity, addCrumb, setCreated }) {
                 });
                 settlePromises(promises, ({ error }) => {
                     if (!error) {
-                        addCrumb(newEntity);
-                        setCreated(true);
+                        if (_.isFunction(callback)) {
+                            let scope = _.get(parent, "scope", "/");
+                            if (_.includes(["input", "output"], type)) {
+                                if (!_.isEqual(scope.slice(-1), "/")) {
+                                    scope += "/";
+                                }
+                                scope += `${_.get(parent, "type")}/${prefix}`;
+                            }
+                            callback({ name: fullName, type, scope });
+                            setLoading(false);
+                        }
                     }
                 });
             })
             .catch((error) => {
                 showAxiosErrorToast(error);
-            })
-            .finally(() => {
                 setLoading(false);
             });
     };
@@ -121,10 +138,10 @@ export default function NewEntity({ entity, addCrumb, setCreated }) {
                     <Button
                         disabled={_.isEmpty(newEntity.name)}
                         onClick={onSave}
-                        icon={<FAIcon icon={faCheck} />}
+                        icon={<FAIcon icon={faGrid2Plus} />}
                         size={Size.LARGE}
                         intent={Intent.SUCCESS}
-                        text="Save"
+                        text="Create"
                     />
                 </div>
                 <div

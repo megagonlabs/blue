@@ -19,6 +19,7 @@ export const USER_ROLES_LOOKUP = {
         developer: { text: "Developer" },
         demo: { text: "Demo" },
     },
+    ENTITY_NAME_SEPARATOR = "___",
     MAIN_INFO_STYLES = {
         height: 40,
         display: "flex",
