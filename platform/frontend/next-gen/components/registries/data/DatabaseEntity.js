@@ -18,7 +18,7 @@ import EntityActions from "../EntityActions";
 import Leaves from "../Leaves";
 import RegistryEntityIcon from "../RegistryEntityIcon";
 const { NEXT_PUBLIC_DATA_REGISTRY_NAME } = allEnv();
-export default function DatabaseEntity({ entity, addCrumb }) {
+export default function DatabaseEntity({ entity, addCrumb, backCrumb }) {
     const { name, scope, type } = entity;
     const [database, setDatabase] = useState(null);
     const [isEditing, setIsEditing] = useState(false);
@@ -66,6 +66,19 @@ export default function DatabaseEntity({ entity, addCrumb }) {
                 setLoading(false);
             });
     };
+    const onDelete = () => {
+        setLoading(true);
+        axios.delete(url).finally(() => {
+            setLoading(false);
+            backCrumb();
+        });
+    };
+    const onSynchronize = () => {
+        setLoading(true);
+        axios.put(`${url}/sync`).finally(() => {
+            setLoading(false);
+        });
+    };
     return (
         <div>
             <div
@@ -90,6 +103,8 @@ export default function DatabaseEntity({ entity, addCrumb }) {
                             entity={database}
                             isEditing={isEditing}
                             setIsEditing={setIsEditing}
+                            onDelete={onDelete}
+                            onSynchronize={onSynchronize}
                         />
                     </div>
                 )}

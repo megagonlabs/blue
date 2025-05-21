@@ -334,7 +334,7 @@ export default function AgentEntity({
                         loading={loading}
                     />
                 </div>
-                {_.isEqual(scope, "/") && (
+                {!_.isEmpty(scope) && _.isEqual(scope, "/") && (
                     <>
                         <div
                             style={{ marginTop: 20 }}

@@ -59,7 +59,11 @@ export default function NewEntity({
         let fullName = newEntity.name;
         const prefix = _.get(parent, "name", "");
         if (_.isEqual(type, "agent")) {
-            fullName = `${prefix}${ENTITY_NAME_SEPARATOR}${newEntity.name}`;
+            fullName = prefix;
+            if (!_.isEmpty(fullName)) {
+                fullName += ENTITY_NAME_SEPARATOR;
+            }
+            fullName += newEntity.name;
         }
         const REGISTRY_NAME_LOOKUP = {
             agent: NEXT_PUBLIC_AGENT_REGISTRY_NAME,
@@ -101,7 +105,10 @@ export default function NewEntity({
                     if (!error) {
                         if (_.isFunction(callback)) {
                             let scope = _.get(parent, "scope", "/");
-                            if (_.includes(["input", "output"], type)) {
+                            if (
+                                !_.isEmpty(parent) &&
+                                _.includes(["agent", "input", "output"], type)
+                            ) {
                                 if (!_.isEqual(scope.slice(-1), "/")) {
                                     scope += "/";
                                 }

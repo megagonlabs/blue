@@ -38,6 +38,12 @@ export default function CollectionEntity({ entity, addCrumb }) {
         "/source/",
         "/data/"
     );
+    const onSynchronize = () => {
+        setLoading(true);
+        axios.put(`${url}/sync`).finally(() => {
+            setLoading(false);
+        });
+    };
     useEffect(() => {
         setLoading(true);
         axios
@@ -90,6 +96,7 @@ export default function CollectionEntity({ entity, addCrumb }) {
                             entity={collection}
                             isEditing={isEditing}
                             setIsEditing={setIsEditing}
+                            onSynchronize={onSynchronize}
                         />
                     </div>
                 )}

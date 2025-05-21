@@ -36,10 +36,14 @@ export default function RegistryEntityCard({ entity }) {
         if (_.includes(["agent", "operator"], type)) {
             setExtra(_.toString(_.get(entity, "properties.image")));
         } else if (_.isEqual("source", type)) {
-            let protocol = _.get(entity, "properties.connection.protocol");
-            let host = _.get(entity, "properties.connection.host");
-            let port = _.get(entity, "properties.connection.port");
-            setExtra(`${protocol}://${host}:${port}`);
+            let protocol = _.toString(
+                _.get(entity, "properties.connection.protocol")
+            );
+            let host = _.toString(_.get(entity, "properties.connection.host"));
+            let port = _.toString(_.get(entity, "properties.connection.port"));
+            if (!_.some([protocol, host, port], _.isEmpty)) {
+                setExtra(`${protocol}://${host}:${port}`);
+            }
         } else {
             setExtra(null);
         }

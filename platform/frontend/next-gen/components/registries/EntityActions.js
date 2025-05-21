@@ -35,7 +35,9 @@ export default function EntityActions({
     handleDiscard,
     loading,
     onDelete,
+    onSynchronize,
 }) {
+    const { type, properties } = entity;
     const { user, permissions } = useAuthStore(
         useShallow((state) => ({
             user: state.user,
@@ -55,24 +57,21 @@ export default function EntityActions({
             operator: "operator_registry",
         };
         const writeAll = _.includes(
-            _.get(user, ["permissions", TYPE_PERMISSION_KEY[entity.type]], []),
+            _.get(user, ["permissions", TYPE_PERMISSION_KEY[type]], []),
             "write_all"
         );
         return own || writeAll;
     }, [user, permissions]);
     const canDuplicateEntity = useMemo(() => {
         const duplicateAgent =
-            _.includes(["agent", "agent_group"], entity.type) &&
+            _.includes(["agent", "agent_group"], type) &&
             permissions.canWriteAgentRegistry;
         const duplicateData =
-            _.isEqual("source", entity.type) &&
-            permissions.canWriteDataRegistry;
+            _.isEqual("source", type) && permissions.canWriteDataRegistry;
         const duplicateOperator =
-            _.isEqual("operator", entity.type) &&
-            permissions.canWriteOperatorRegistry;
+            _.isEqual("operator", type) && permissions.canWriteOperatorRegistry;
         const duplicateModel =
-            _.isEqual("model", entity.type) &&
-            permissions.canWriteModelRegistry;
+            _.isEqual("model", type) && permissions.canWriteModelRegistry;
         return (
             duplicateAgent ||
             duplicateData ||
@@ -80,14 +79,13 @@ export default function EntityActions({
             duplicateModel
         );
     }, [permissions]);
-    const canSyncData = _.includes(
-        ["source", "database", "collection"],
-        entity.type
-    );
+    const canSyncData =
+        _.includes(["source", "database", "collection"], type) &&
+        _.isFunction(onSynchronize);
     const canPullImage =
-        _.isEqual(entity.type, "agent") &&
-        _.has(entity.properties, "image") &&
-        !_.isEmpty(_.get(entity, "properties.image"));
+        _.isEqual(type, "agent") &&
+        _.has(properties, "image") &&
+        !_.isEmpty(_.get(properties, "image"));
     const containerStatus = _.get(entity, "container.status", "not exist");
     const canDeployAgent = useMemo(() => {
         // write_all
@@ -96,19 +94,22 @@ export default function EntityActions({
             "write_all"
         );
         return (
-            _.isEqual(entity.type, "agent") &&
+            _.isEqual(type, "agent") &&
             (own || writeAll) &&
             !_.isEqual(containerStatus, "running") &&
             canPullImage
         );
     }, [user, permissions, containerStatus]);
-    const showActionMenu =
-        canEditEntity ||
-        canDuplicateEntity ||
-        canSyncData ||
-        canPullImage ||
-        canDeployAgent;
-    if (!showActionMenu) return null;
+    const showActionMenu = _.some([
+        canEditEntity,
+        canDuplicateEntity,
+        canSyncData,
+        canPullImage,
+        canDeployAgent,
+    ]);
+    if (!showActionMenu) {
+        return null;
+    }
     if (isEditing) {
         return (
             <ButtonGroup size={Size.LARGE}>
@@ -170,6 +171,7 @@ export default function EntityActions({
                             intent={Intent.SUCCESS}
                             icon={<FAIcon icon={faRefresh} />}
                             text="Synchronize"
+                            onClick={onSynchronize}
                         />
                     )}
                     {(canPullImage || canDeployAgent) && (

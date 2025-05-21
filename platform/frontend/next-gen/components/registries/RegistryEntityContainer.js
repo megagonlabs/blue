@@ -94,7 +94,6 @@ function RegistryEntityContainer({ width, height, entity }) {
                         callback={callback}
                         parent={current}
                         type={newEntityType}
-                        addCrumb={addCrumb}
                     />
                 </div>
             </Overlay2>
@@ -156,11 +155,16 @@ function RegistryEntityContainer({ width, height, entity }) {
                             setIcon={setIcon}
                             setShowIconEditor={setShowIconEditor}
                             addCrumb={addCrumb}
+                            backCrumb={backCrumb}
                             entity={current}
                         />
                     )}
                     {_.isEqual(type, "database") && (
-                        <DatabaseEntity addCrumb={addCrumb} entity={current} />
+                        <DatabaseEntity
+                            addCrumb={addCrumb}
+                            entity={current}
+                            backCrumb={backCrumb}
+                        />
                     )}
                     {_.isEqual(type, "collection") && (
                         <CollectionEntity

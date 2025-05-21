@@ -22,7 +22,7 @@ import EntityActions from "../EntityActions";
 import MainPropertyBlock from "../MainPropertyBlock";
 import RegistryEntityIcon from "../RegistryEntityIcon";
 const { NEXT_PUBLIC_AGENT_REGISTRY_NAME } = allEnv();
-export default function InputEntity({ entity }) {
+export default function InputEntity({ entity, backCrumb }) {
     const { name, scope, type } = entity;
     const [input, setInput] = useState(null);
     const [isEditing, setIsEditing] = useState(false);
@@ -96,6 +96,13 @@ export default function InputEntity({ entity }) {
                 });
             });
     };
+    const onDelete = () => {
+        setLoading(true);
+        axios.delete(url).finally(() => {
+            setLoading(false);
+            backCrumb();
+        });
+    };
     return (
         <div>
             <div
@@ -120,6 +127,7 @@ export default function InputEntity({ entity }) {
                             entity={input}
                             isEditing={isEditing}
                             setIsEditing={setIsEditing}
+                            onDelete={onDelete}
                         />
                     </div>
                 )}

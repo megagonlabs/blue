@@ -42,15 +42,16 @@ export default function SourceEntity({
     setShowIconEditor,
     icon,
     setIcon,
+    backCrumb,
 }) {
-    const { name, scope, type } = entity;
+    const { name, type } = entity;
     const [source, setSource] = useState(null);
     const [isEditing, setIsEditing] = useState(false);
     const [editedSource, setEditedSource] = useState(null);
     const [mainProperties, setMainProperties] = useState({});
     const [loading, setLoading] = useState(false);
     const { containerId } = useContainerContext();
-    const { removeContainer, setContainerHeader } = useGridStore(
+    const { setContainerHeader } = useGridStore(
         useShallow((state) => ({
             removeContainer: state.removeContainer,
             setContainerHeader: state.setContainerHeader,
@@ -73,6 +74,12 @@ export default function SourceEntity({
         type,
         type
     )}/${name}`;
+    const onSynchronize = () => {
+        setLoading(true);
+        axios.put(`${url}/sync`).finally(() => {
+            setLoading(false);
+        });
+    };
     useEffect(() => {
         setContainerHeader({
             id: containerId,
@@ -143,7 +150,7 @@ export default function SourceEntity({
         setLoading(true);
         axios.delete(url).finally(() => {
             setLoading(false);
-            removeContainer(containerId);
+            backCrumb();
         });
     };
     return (
@@ -171,6 +178,7 @@ export default function SourceEntity({
                             isEditing={isEditing}
                             setIsEditing={setIsEditing}
                             onDelete={onDelete}
+                            onSynchronize={onSynchronize}
                         />
                     </div>
                 )}
