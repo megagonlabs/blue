@@ -25,6 +25,7 @@ import EntityProperties from "../attributes/EntityProperties";
 import EntityActions from "../EntityActions";
 import EntityDisplayName from "../EntityDisplayName";
 import MainPropertyBlock from "../MainPropertyBlock";
+import RegistryEntityContainer from "../RegistryEntityContainer";
 import RegistryEntityIcon from "../RegistryEntityIcon";
 const { NEXT_PUBLIC_OPERATOR_REGISTRY_NAME } = allEnv();
 export default function OperatorEntity({
@@ -40,9 +41,11 @@ export default function OperatorEntity({
     const [mainProperties, setMainProperties] = useState({});
     const [loading, setLoading] = useState(false);
     const { containerId } = useContainerContext();
-    const { removeContainer, setContainerHeader } = useGridStore(
+    const [template, setTemplate] = useState(null);
+    const { removeContainer, setContainerHeader, addContainer } = useGridStore(
         useShallow((state) => ({
             removeContainer: state.removeContainer,
+            addContainer: state.addContainer,
             setContainerHeader: state.setContainerHeader,
         }))
     );
@@ -74,6 +77,7 @@ export default function OperatorEntity({
                 const result = _.get(response, "data.result", null);
                 setOperator(result);
                 setEditedOperator(result);
+                setTemplate(result);
                 setMainProperties(
                     getEntityMainProperties(_.get(result, "properties", {}))
                 );
@@ -118,6 +122,7 @@ export default function OperatorEntity({
                         const newOperator = { ...editedOperator, properties };
                         setOperator(newOperator);
                         setEditedOperator(newOperator);
+                        setTemplate(newOperator);
                         setMainProperties(getEntityMainProperties(properties));
                         setIsEditing(false);
                     }
@@ -130,6 +135,13 @@ export default function OperatorEntity({
         axios.delete(url).finally(() => {
             setLoading(false);
             removeContainer(containerId);
+        });
+    };
+    const onDuplicate = () => {
+        addContainer({
+            content: (
+                <RegistryEntityContainer entity={template} duplicate={true} />
+            ),
         });
     };
     return (
@@ -157,6 +169,7 @@ export default function OperatorEntity({
                             isEditing={isEditing}
                             setIsEditing={setIsEditing}
                             onDelete={onDelete}
+                            onDuplicate={onDuplicate}
                         />
                     </div>
                 )}

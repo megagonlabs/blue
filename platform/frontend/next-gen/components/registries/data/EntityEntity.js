@@ -105,6 +105,7 @@ export default function EntityEntity({ entity }) {
                     }}
                 >
                     <RegistryEntityIcon
+                        type={type}
                         content={_.get(editedElement, "icon", null)}
                     />
                 </div>

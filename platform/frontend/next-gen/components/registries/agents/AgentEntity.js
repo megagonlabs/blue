@@ -38,6 +38,7 @@ import EntityActions from "../EntityActions";
 import EntityDisplayName from "../EntityDisplayName";
 import Leaves from "../Leaves";
 import MainPropertyBlock from "../MainPropertyBlock";
+import RegistryEntityContainer from "../RegistryEntityContainer";
 import RegistryEntityIcon from "../RegistryEntityIcon";
 import AgentMainProperties from "./AgentMainProperties";
 const { NEXT_PUBLIC_AGENT_REGISTRY_NAME } = allEnv();
@@ -61,6 +62,8 @@ export default function AgentEntity({
     const [editedAgent, setEditedAgent] = useState(null);
     const [mainProperties, setMainProperties] = useState({});
     const [loading, setLoading] = useState(false);
+    const [template, setTemplate] = useState(null);
+    const addContainer = useGridStore((state) => state.addContainer);
     const updateMainProperties = ({ path, value }) => {
         let newProperties = _.cloneDeep(mainProperties);
         _.set(newProperties, path, value);
@@ -91,6 +94,7 @@ export default function AgentEntity({
                 const result = _.get(response, "data.result", null);
                 setAgent(result);
                 setEditedAgent(result);
+                setTemplate(result);
                 setIcon(_.get(result, "icon", null));
                 setMainProperties(
                     getEntityMainProperties(_.get(result, "properties", {}))
@@ -169,6 +173,7 @@ export default function AgentEntity({
                         const newAgent = { ...editedAgent, properties };
                         setEditedAgent(newAgent);
                         setAgent(newAgent);
+                        setTemplate(newAgent);
                         setMainProperties(getEntityMainProperties(properties));
                         setIsEditing(false);
                     }
@@ -181,6 +186,13 @@ export default function AgentEntity({
         axios.delete(url).finally(() => {
             setLoading(false);
             backCrumb();
+        });
+    };
+    const onDuplicate = () => {
+        addContainer({
+            content: (
+                <RegistryEntityContainer entity={template} duplicate={true} />
+            ),
         });
     };
     return (
@@ -208,6 +220,7 @@ export default function AgentEntity({
                             isEditing={isEditing}
                             setIsEditing={setIsEditing}
                             onDelete={onDelete}
+                            onDuplicate={onDuplicate}
                         />
                     </div>
                 )}

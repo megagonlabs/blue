@@ -36,6 +36,7 @@ export default function EntityActions({
     loading,
     onDelete,
     onSynchronize,
+    onDuplicate,
 }) {
     const { type, properties } = entity;
     const { user, permissions } = useAuthStore(
@@ -73,12 +74,13 @@ export default function EntityActions({
         const duplicateModel =
             _.isEqual("model", type) && permissions.canWriteModelRegistry;
         return (
-            duplicateAgent ||
-            duplicateData ||
-            duplicateOperator ||
-            duplicateModel
+            (duplicateAgent ||
+                duplicateData ||
+                duplicateOperator ||
+                duplicateModel) &&
+            _.isFunction(onDuplicate)
         );
-    }, [permissions]);
+    }, [permissions, onDuplicate]);
     const canSyncData =
         _.includes(["source", "database", "collection"], type) &&
         _.isFunction(onSynchronize);
@@ -164,6 +166,7 @@ export default function EntityActions({
                         <MenuItem
                             text="Duplicate"
                             icon={<FAIcon icon={faClone} />}
+                            onClick={onDuplicate}
                         />
                     )}
                     {canSyncData && (

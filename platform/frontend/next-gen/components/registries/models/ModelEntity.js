@@ -25,6 +25,7 @@ import EntityProperties from "../attributes/EntityProperties";
 import EntityActions from "../EntityActions";
 import EntityDisplayName from "../EntityDisplayName";
 import MainPropertyBlock from "../MainPropertyBlock";
+import RegistryEntityContainer from "../RegistryEntityContainer";
 import RegistryEntityIcon from "../RegistryEntityIcon";
 const { NEXT_PUBLIC_MODEL_REGISTRY_NAME } = allEnv();
 export default function ModelEntity({
@@ -40,9 +41,11 @@ export default function ModelEntity({
     const [mainProperties, setMainProperties] = useState({});
     const [loading, setLoading] = useState(false);
     const { containerId } = useContainerContext();
-    const { removeContainer, setContainerHeader } = useGridStore(
+    const [template, setTemplate] = useState(null);
+    const { removeContainer, setContainerHeader, addContainer } = useGridStore(
         useShallow((state) => ({
             removeContainer: state.removeContainer,
+            addContainer: state.addContainer,
             setContainerHeader: state.setContainerHeader,
         }))
     );
@@ -74,6 +77,7 @@ export default function ModelEntity({
                 const result = _.get(response, "data.result", null);
                 setModel(result);
                 setEditedModel(result);
+                setTemplate(result);
                 setMainProperties(
                     getEntityMainProperties(_.get(result, "properties", {}))
                 );
@@ -91,7 +95,7 @@ export default function ModelEntity({
             getEntityMainProperties(_.get(model, "properties", {}))
         );
         setIsEditing(false);
-        setIcon(_.get(source, "icon", null));
+        setIcon(_.get(model, "icon", null));
     };
     const handleSave = () => {
         setLoading(true);
@@ -118,6 +122,7 @@ export default function ModelEntity({
                         const newModel = { ...editedModel, properties };
                         setModel(newModel);
                         setEditedModel(newModel);
+                        setTemplate(newModel);
                         setMainProperties(getEntityMainProperties(properties));
                         setIsEditing(false);
                     }
@@ -130,6 +135,13 @@ export default function ModelEntity({
         axios.delete(url).finally(() => {
             setLoading(false);
             removeContainer(containerId);
+        });
+    };
+    const onDuplicate = () => {
+        addContainer({
+            content: (
+                <RegistryEntityContainer entity={template} duplicate={true} />
+            ),
         });
     };
     return (
@@ -157,6 +169,7 @@ export default function ModelEntity({
                             isEditing={isEditing}
                             setIsEditing={setIsEditing}
                             onDelete={onDelete}
+                            onDuplicate={onDuplicate}
                         />
                     </div>
                 )}

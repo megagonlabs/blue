@@ -18,8 +18,9 @@ import InputEntity from "./inputs/InputEntity";
 import ModelEntity from "./models/ModelEntity";
 import OperatorEntity from "./operators/OperatorEntity";
 import OutputEntity from "./outputs/OutputEntity";
-function RegistryEntityContainer({ width, height, entity }) {
+function RegistryEntityContainer({ width, height, entity, duplicate = false }) {
     const [breadcrumbs, setBreadcrumbs] = useState([]);
+    const [duplicated, setDuplicated] = useState(false);
     const darkMode = useAppStore((state) => state.dark_mode);
     const { containerId } = useContainerContext();
     const removeContainer = useGridStore((state) => state.removeContainer);
@@ -61,6 +62,13 @@ function RegistryEntityContainer({ width, height, entity }) {
     const callback = (entity) => {
         setShowNewEntity(false);
         addCrumb(entity);
+    };
+    const onDuplicate = (entity) => {
+        setDuplicated(true);
+        let crumbs = [entity];
+        _.set(crumbs, [0, "start"], true);
+        _.set(crumbs, [0, "end"], true);
+        setBreadcrumbs(crumbs);
     };
     return (
         <div
@@ -129,72 +137,89 @@ function RegistryEntityContainer({ width, height, entity }) {
                     overflowY: "auto",
                 }}
             >
-                <Breadcrumbs crumbs={breadcrumbs} toCrumb={toCrumb} />
-                <div style={{ marginTop: !_.isEmpty(breadcrumbs) && 20 }}>
-                    {_.isEqual(type, "agent") && (
-                        <AgentEntity
-                            setShowNewEntity={setShowNewEntity}
-                            setNewEntityType={setNewEntityType}
-                            icon={icon}
-                            setIcon={setIcon}
-                            setShowIconEditor={setShowIconEditor}
-                            addCrumb={addCrumb}
-                            backCrumb={backCrumb}
-                            entity={current}
-                        />
-                    )}
-                    {_.isEqual(type, "input") && (
-                        <InputEntity entity={current} backCrumb={backCrumb} />
-                    )}
-                    {_.isEqual(type, "output") && (
-                        <OutputEntity entity={current} backCrumb={backCrumb} />
-                    )}
-                    {_.isEqual(type, "source") && (
-                        <SourceEntity
-                            icon={icon}
-                            setIcon={setIcon}
-                            setShowIconEditor={setShowIconEditor}
-                            addCrumb={addCrumb}
-                            backCrumb={backCrumb}
-                            entity={current}
-                        />
-                    )}
-                    {_.isEqual(type, "database") && (
-                        <DatabaseEntity
-                            addCrumb={addCrumb}
-                            entity={current}
-                            backCrumb={backCrumb}
-                        />
-                    )}
-                    {_.isEqual(type, "collection") && (
-                        <CollectionEntity
-                            addCrumb={addCrumb}
-                            entity={current}
-                        />
-                    )}
-                    {_.isEqual(type, "entity") && (
-                        <EntityEntity entity={current} />
-                    )}
-                    {_.isEqual(type, "relation") && (
-                        <RelationEntity entity={current} />
-                    )}
-                    {_.isEqual(type, "operator") && (
-                        <OperatorEntity
-                            icon={icon}
-                            setIcon={setIcon}
-                            setShowIconEditor={setShowIconEditor}
-                            entity={current}
-                        />
-                    )}
-                    {_.isEqual(type, "model") && (
-                        <ModelEntity
-                            icon={icon}
-                            setIcon={setIcon}
-                            setShowIconEditor={setShowIconEditor}
-                            entity={current}
-                        />
-                    )}
-                </div>
+                {duplicate && !duplicated ? (
+                    <NewEntity
+                        duplicateEntity={entity}
+                        callback={onDuplicate}
+                    />
+                ) : (
+                    <>
+                        <Breadcrumbs crumbs={breadcrumbs} toCrumb={toCrumb} />
+                        <div
+                            style={{ marginTop: !_.isEmpty(breadcrumbs) && 20 }}
+                        >
+                            {_.isEqual(type, "agent") && (
+                                <AgentEntity
+                                    setShowNewEntity={setShowNewEntity}
+                                    setNewEntityType={setNewEntityType}
+                                    icon={icon}
+                                    setIcon={setIcon}
+                                    setShowIconEditor={setShowIconEditor}
+                                    addCrumb={addCrumb}
+                                    backCrumb={backCrumb}
+                                    entity={current}
+                                />
+                            )}
+                            {_.isEqual(type, "input") && (
+                                <InputEntity
+                                    entity={current}
+                                    backCrumb={backCrumb}
+                                />
+                            )}
+                            {_.isEqual(type, "output") && (
+                                <OutputEntity
+                                    entity={current}
+                                    backCrumb={backCrumb}
+                                />
+                            )}
+                            {_.isEqual(type, "source") && (
+                                <SourceEntity
+                                    icon={icon}
+                                    setIcon={setIcon}
+                                    setShowIconEditor={setShowIconEditor}
+                                    addCrumb={addCrumb}
+                                    backCrumb={backCrumb}
+                                    entity={current}
+                                />
+                            )}
+                            {_.isEqual(type, "database") && (
+                                <DatabaseEntity
+                                    addCrumb={addCrumb}
+                                    entity={current}
+                                    backCrumb={backCrumb}
+                                />
+                            )}
+                            {_.isEqual(type, "collection") && (
+                                <CollectionEntity
+                                    addCrumb={addCrumb}
+                                    entity={current}
+                                />
+                            )}
+                            {_.isEqual(type, "entity") && (
+                                <EntityEntity entity={current} />
+                            )}
+                            {_.isEqual(type, "relation") && (
+                                <RelationEntity entity={current} />
+                            )}
+                            {_.isEqual(type, "operator") && (
+                                <OperatorEntity
+                                    icon={icon}
+                                    setIcon={setIcon}
+                                    setShowIconEditor={setShowIconEditor}
+                                    entity={current}
+                                />
+                            )}
+                            {_.isEqual(type, "model") && (
+                                <ModelEntity
+                                    icon={icon}
+                                    setIcon={setIcon}
+                                    setShowIconEditor={setShowIconEditor}
+                                    entity={current}
+                                />
+                            )}
+                        </div>
+                    </>
+                )}
             </div>
         </div>
     );

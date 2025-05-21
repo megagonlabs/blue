@@ -34,6 +34,7 @@ import EntityActions from "../EntityActions";
 import EntityDisplayName from "../EntityDisplayName";
 import Leaves from "../Leaves";
 import MainPropertyBlock from "../MainPropertyBlock";
+import RegistryEntityContainer from "../RegistryEntityContainer";
 import RegistryEntityIcon from "../RegistryEntityIcon";
 const { NEXT_PUBLIC_DATA_REGISTRY_NAME } = allEnv();
 export default function SourceEntity({
@@ -51,9 +52,10 @@ export default function SourceEntity({
     const [mainProperties, setMainProperties] = useState({});
     const [loading, setLoading] = useState(false);
     const { containerId } = useContainerContext();
-    const { setContainerHeader } = useGridStore(
+    const [template, setTemplate] = useState(null);
+    const { setContainerHeader, addContainer } = useGridStore(
         useShallow((state) => ({
-            removeContainer: state.removeContainer,
+            addContainer: state.addContainer,
             setContainerHeader: state.setContainerHeader,
         }))
     );
@@ -95,6 +97,7 @@ export default function SourceEntity({
                 const result = _.get(response, "data.result", null);
                 setSource(result);
                 setEditedSource(result);
+                setTemplate(result);
                 setMainProperties(
                     getEntityMainProperties(_.get(result, "properties", {}))
                 );
@@ -139,6 +142,7 @@ export default function SourceEntity({
                         const newSource = { ...editedSource, properties };
                         setSource(newSource);
                         setEditedSource(newSource);
+                        setTemplate(newSource);
                         setMainProperties(getEntityMainProperties(properties));
                         setIsEditing(false);
                     }
@@ -151,6 +155,13 @@ export default function SourceEntity({
         axios.delete(url).finally(() => {
             setLoading(false);
             backCrumb();
+        });
+    };
+    const onDuplicate = () => {
+        addContainer({
+            content: (
+                <RegistryEntityContainer entity={template} duplicate={true} />
+            ),
         });
     };
     return (
@@ -179,6 +190,7 @@ export default function SourceEntity({
                             setIsEditing={setIsEditing}
                             onDelete={onDelete}
                             onSynchronize={onSynchronize}
+                            onDuplicate={onDuplicate}
                         />
                     </div>
                 )}
@@ -206,6 +218,7 @@ export default function SourceEntity({
                     }}
                 >
                     <RegistryEntityIcon
+                        type={type}
                         content={_.get(editedSource, "icon", null)}
                     />
                 </div>

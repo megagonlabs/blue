@@ -12,7 +12,7 @@ import { faGrid2Plus } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import axios from "axios";
 import _ from "lodash";
 import { allEnv } from "next-runtime-env";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
     ENTITY_NAME_SEPARATOR,
     ENTITY_TYPE_CONVERSION,
@@ -35,12 +35,16 @@ const {
     NEXT_PUBLIC_OPERATOR_REGISTRY_NAME,
     NEXT_PUBLIC_MODEL_REGISTRY_NAME,
 } = allEnv();
-export default function NewEntity({
-    type = null,
-    callback = null,
-    parent = null,
-}) {
+export default function NewEntity({ type, callback, parent, duplicateEntity }) {
     const [newEntity, setNewEntity] = useState({ type, description: "" });
+    const calculatedType = !_.isEmpty(duplicateEntity)
+        ? duplicateEntity.type
+        : type;
+    useEffect(() => {
+        if (!_.isEmpty(duplicateEntity)) {
+            setNewEntity(duplicateEntity);
+        }
+    }, [duplicateEntity]);
     const darkMode = useAppStore((state) => state.dark_mode);
     const [loading, setLoading] = useState(false);
     const [mainProperties, setMainProperties] = useState({});
@@ -58,7 +62,7 @@ export default function NewEntity({
         setLoading(true);
         let fullName = newEntity.name;
         const prefix = _.get(parent, "name", "");
-        if (_.isEqual(type, "agent")) {
+        if (_.isEqual(calculatedType, "agent")) {
             fullName = prefix;
             if (!_.isEmpty(fullName)) {
                 fullName += ENTITY_NAME_SEPARATOR;
@@ -73,9 +77,13 @@ export default function NewEntity({
             operator: NEXT_PUBLIC_OPERATOR_REGISTRY_NAME,
             model: NEXT_PUBLIC_MODEL_REGISTRY_NAME,
         };
-        let url = `/registry/${REGISTRY_NAME_LOOKUP[type]}`;
-        const convertedType = _.get(ENTITY_TYPE_CONVERSION, type, type);
-        if (_.includes(["input", "output"], type)) {
+        let url = `/registry/${REGISTRY_NAME_LOOKUP[calculatedType]}`;
+        const convertedType = _.get(
+            ENTITY_TYPE_CONVERSION,
+            calculatedType,
+            calculatedType
+        );
+        if (_.includes(["input", "output"], calculatedType)) {
             url += `/agent/${prefix}/${convertedType}/${fullName}`;
         } else {
             url += `/${convertedType}/${fullName}`;
@@ -88,7 +96,7 @@ export default function NewEntity({
             .then(() => {
                 AppToaster.show({
                     intent: Intent.SUCCESS,
-                    message: `Created ${newEntity.name} ${type}`,
+                    message: `Created ${newEntity.name} ${calculatedType}`,
                 });
                 const properties = {
                     ...newEntity.properties,
@@ -107,14 +115,21 @@ export default function NewEntity({
                             let scope = _.get(parent, "scope", "/");
                             if (
                                 !_.isEmpty(parent) &&
-                                _.includes(["agent", "input", "output"], type)
+                                _.includes(
+                                    ["agent", "input", "output"],
+                                    calculatedType
+                                )
                             ) {
                                 if (!_.isEqual(scope.slice(-1), "/")) {
                                     scope += "/";
                                 }
                                 scope += `${_.get(parent, "type")}/${prefix}`;
                             }
-                            callback({ name: fullName, type, scope });
+                            callback({
+                                name: fullName,
+                                type: calculatedType,
+                                scope,
+                            });
                             setLoading(false);
                         }
                     }
@@ -127,7 +142,7 @@ export default function NewEntity({
     };
     return (
         <div>
-            <H3 style={{ marginBottom: 20 }}>Create {type}</H3>
+            <H3 style={{ marginBottom: 20 }}>Create {calculatedType}</H3>
             <div
                 style={{
                     backgroundColor: `${Colors.BLUE3}${
@@ -180,7 +195,7 @@ export default function NewEntity({
                             }}
                         />
                     </MainPropertyBlock>
-                    {_.isEqual(type, "agent") && (
+                    {_.isEqual(calculatedType, "agent") && (
                         <MainPropertyBlock
                             loading={loading}
                             label="Docker image"

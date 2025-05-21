@@ -115,6 +115,7 @@ export default function CollectionEntity({ entity, addCrumb }) {
                     }}
                 >
                     <RegistryEntityIcon
+                        type={type}
                         content={_.get(editedCollection, "icon", null)}
                     />
                 </div>

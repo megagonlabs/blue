@@ -123,6 +123,7 @@ export default function DatabaseEntity({ entity, addCrumb, backCrumb }) {
                     }}
                 >
                     <RegistryEntityIcon
+                        type={type}
                         content={_.get(editedDatabase, "icon", null)}
                     />
                 </div>

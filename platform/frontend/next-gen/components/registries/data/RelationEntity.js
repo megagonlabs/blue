@@ -105,6 +105,7 @@ export default function RelationEntity({ entity }) {
                     }}
                 >
                     <RegistryEntityIcon
+                        type={type}
                         content={_.get(editedRelation, "icon", null)}
                     />
                 </div>
