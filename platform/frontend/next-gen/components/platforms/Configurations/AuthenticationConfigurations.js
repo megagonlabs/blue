@@ -38,10 +38,12 @@ import {
     ColumnHeaderCell,
     RowHeaderCell,
     Table2,
+    TableLoadingOption,
 } from "@blueprintjs/table";
 import {
     faAt,
     faIdCardClip,
+    faRefresh,
     faTrash,
     faUser,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
@@ -55,6 +57,7 @@ export default function AuthenticationConfigurations() {
     const {
         defaultUserRoleValue,
         loading,
+        emailsLoading,
         updateConfigurationValues,
         defaultUserSettingValues,
         allowedDomains,
@@ -63,6 +66,7 @@ export default function AuthenticationConfigurations() {
         selectedEmails,
         updateEmailTableSelected,
         removeAllowedEmail,
+        getAllowedEmails,
     } = usePlatformStore(
         useShallow((state) => ({
             defaultUserRoleValue: _.get(
@@ -86,11 +90,13 @@ export default function AuthenticationConfigurations() {
                 EMPTY_OBJECT
             ),
             updateEmailTableSelected: state.updateEmailTableSelected,
+            getAllowedEmails: state.getAllowedEmails,
             addAllowedEmail: state.addAllowedEmail,
             selectedEmails: state.configurations.selectedEmails,
             removeAllowedEmail: state.removeAllowedEmail,
             updateConfigurationValues: state.updateConfigurationValues,
             loading: state.configurations.loading,
+            emailsLoading: state.configurations.emailsLoading,
         }))
     );
     const [defaultUserRole, setDefaultUserRole] =
@@ -299,7 +305,10 @@ export default function AuthenticationConfigurations() {
             });
     };
     return (
-        <div ref={elementRef} className="setting-container-section-2">
+        <div
+            ref={elementRef}
+            className="setting-container-section-2 scroll-margin-20"
+        >
             <EntityTitle
                 icon={<FAIcon icon={faIdCardClip} size={20} />}
                 heading={H3}
@@ -428,7 +437,10 @@ export default function AuthenticationConfigurations() {
                     label="Allowed email domains"
                     subLabel='Email domains can only be configured through server environment variable "BLUE_EMAIL_DOMAIN_WHITE_LIST".'
                 >
-                    <div style={{ marginTop: 10 }}>
+                    <div
+                        className={loading ? Classes.SKELETON : null}
+                        style={{ marginTop: 10 }}
+                    >
                         {_.isEmpty(domainsFiltered) && "-"}
                         {domainsFiltered.map((domain) => (
                             <Tag size="large" minimal>
@@ -454,7 +466,10 @@ export default function AuthenticationConfigurations() {
                     subLabel="Google account with email address
                     whitelisted below can sign in on the platform regardless of its domain."
                 >
-                    <div style={{ marginTop: 10 }}>
+                    <div
+                        className={loading ? Classes.SKELETON : null}
+                        style={{ marginTop: 10 }}
+                    >
                         <ControlGroup>
                             <InputGroup
                                 leftIcon={<FAIcon icon={faAt} />}
@@ -466,7 +481,10 @@ export default function AuthenticationConfigurations() {
                             />
                             <Button
                                 onClick={whitelistEmail}
-                                disabled={_.isEmpty(emailAddress)}
+                                disabled={
+                                    _.isEmpty(emailAddress) ||
+                                    !_.includes(emailAddress, "@")
+                                }
                                 loading={adding}
                                 size={Size.LARGE}
                                 intent={Intent.SUCCESS}
@@ -486,9 +504,14 @@ export default function AuthenticationConfigurations() {
                                     size={Size.LARGE}
                                     variant={ButtonVariant.MINIMAL}
                                 >
+                                    <Button
+                                        onClick={getAllowedEmails}
+                                        icon={<FAIcon icon={faRefresh} />}
+                                    />
+                                    <Divider />
                                     <Tooltip
                                         content="Remove"
-                                        placement="bottom-start"
+                                        placement="bottom"
                                     >
                                         <Button
                                             disabled={_.isEmpty(selectedEmails)}
@@ -501,6 +524,14 @@ export default function AuthenticationConfigurations() {
                             </div>
                             <div style={{ height: MESSAGE_OVERFLOW_THRESHOLD }}>
                                 <Table2
+                                    loadingOptions={
+                                        emailsLoading
+                                            ? [
+                                                  TableLoadingOption.CELLS,
+                                                  TableLoadingOption.ROW_HEADERS,
+                                              ]
+                                            : []
+                                    }
                                     key={tableKey}
                                     enableRowResizing={false}
                                     numRows={_.size(emailsSorted)}

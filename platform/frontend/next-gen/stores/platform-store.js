@@ -4,7 +4,12 @@ import { create } from "zustand";
 export const usePlatformStore = create((set, get) => ({
     setState: ({ key, value }) => set({ [key]: value }),
     users: { list: [], order: {}, loading: false, selected: new Set() },
-    configurations: { values: {}, loading: false, selectedEmails: new Set() },
+    configurations: {
+        values: {},
+        loading: false,
+        emailsLoading: false,
+        selectedEmails: new Set(),
+    },
     setUserTableOrder: (order) => {
         set((state) => ({ users: { ...state.users, order } }));
     },
@@ -77,6 +82,26 @@ export const usePlatformStore = create((set, get) => ({
                     ...state.configurations,
                     values: _.get(response, "data.settings", {}),
                     loading: false,
+                    selectedEmails: new Set(),
+                },
+            }));
+        });
+    },
+    getAllowedEmails: () => {
+        set((state) => ({
+            configurations: { ...state.configurations, emailsLoading: true },
+        }));
+        axios.get("/platform/settings").then((response) => {
+            const allowed_emails = _.get(
+                response,
+                "data.settings.allowed_emails",
+                {}
+            );
+            set((state) => ({
+                configurations: {
+                    ...state.configurations,
+                    values: { ...state.configurations.values, allowed_emails },
+                    emailsLoading: false,
                     selectedEmails: new Set(),
                 },
             }));

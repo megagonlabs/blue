@@ -13,6 +13,7 @@ import {
     faInboxFull,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import { useState } from "react";
+import { useContainerContext } from "../contexts/ContainerContext";
 import { FAIcon } from "../FAIcon";
 import withAutoSizer from "../hocs/withAutoSizer";
 import AuthenticationConfigurations from "./Configurations/AuthenticationConfigurations";
@@ -22,6 +23,7 @@ const SECTIONS = [
     { icon: faIdCardClip, text: "Authentication" },
 ];
 function PlatformConfigurations({ width, height }) {
+    const { containerId } = useContainerContext();
     const darkMode = useAppStore((state) => state.dark_mode);
     const getConfigurations = usePlatformStore(
         (state) => state.getConfigurations
@@ -47,16 +49,30 @@ function PlatformConfigurations({ width, height }) {
                         alignText={Alignment.START}
                         variant={ButtonVariant.MINIMAL}
                     >
-                        {SECTIONS.map((section) => (
+                        {SECTIONS.map((section, index) => (
                             <Button
                                 icon={<FAIcon icon={section.icon} />}
                                 text={section.text}
+                                onClick={() => {
+                                    const element = _.first(
+                                        document.querySelectorAll(
+                                            `.container-${containerId} .setting-container-section-${
+                                                index + 1
+                                            }`
+                                        )
+                                    );
+                                    if (element) {
+                                        element.scrollIntoView({
+                                            behavior: "smooth",
+                                        });
+                                    }
+                                }}
                             />
                         ))}
                     </ButtonGroup>
                 </div>
                 <div
-                    className="full-parent-dimension"
+                    className={`full-parent-dimension container-${containerId}`}
                     style={{
                         backgroundColor: darkMode ? Colors.BLACK : null,
                         padding: 20,

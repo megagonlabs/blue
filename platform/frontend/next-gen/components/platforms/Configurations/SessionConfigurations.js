@@ -71,7 +71,7 @@ export default function SessionConfigurations() {
             });
     };
     return (
-        <div className="setting-container-section-1">
+        <div className="setting-container-section-1 scroll-margin-20">
             <EntityTitle
                 icon={<FAIcon icon={faInboxFull} size={20} />}
                 heading={H3}
