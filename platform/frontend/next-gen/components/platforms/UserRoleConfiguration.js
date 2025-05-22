@@ -176,23 +176,26 @@ export default function UserRoleConfiguration({
             );
         }
         setLoading(true);
-        Promise.allSettled(promises).then((results) => {
-            let updated = new Set();
-            for (let i = 0; i < _.size(results); i++) {
-                if (_.isEqual("fulfilled", results[i].status)) {
-                    updated.add(results[i].value);
-                    updateUserTableSelected({
-                        uid: results[i].value,
-                        checked: false,
-                    });
+        Promise.allSettled(promises)
+            .then((results) => {
+                let updated = new Set();
+                for (let i = 0; i < _.size(results); i++) {
+                    if (_.isEqual("fulfilled", results[i].status)) {
+                        updated.add(results[i].value);
+                        updateUserTableSelected({
+                            uid: results[i].value,
+                            checked: false,
+                        });
+                    }
                 }
-            }
-            updateUserTableRole({ uids: updated, role: selectedRole });
-            if (_.isEqual(_.size(updated), _.size(selected))) {
-                setShowUserRoleConfiguration(false);
-            }
-            setLoading(false);
-        });
+                updateUserTableRole({ uids: updated, role: selectedRole });
+                if (_.isEqual(_.size(updated), _.size(selected))) {
+                    setShowUserRoleConfiguration(false);
+                }
+            })
+            .finally(() => {
+                setLoading(false);
+            });
     };
     return (
         <div className="full-parent-dimension" style={{ display: "flex" }}>

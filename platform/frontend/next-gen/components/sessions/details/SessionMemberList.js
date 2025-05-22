@@ -43,9 +43,9 @@ export default function SessionMemberList({ sessionId }) {
             .filter((user) => user[1] && !_.isEqual(user[0], owner))
             .map((user) => user[0]);
     }, [sessionId, details]);
-    const { getUserProfile, addUserProfile, users } = useDedupStore(
+    const { getUserProfileById, addUserProfile, users } = useDedupStore(
         useShallow((state) => ({
-            getUserProfile: state.getUserProfile,
+            getUserProfileById: state.getUserProfileById,
             addUserProfile: state.addUserProfile,
             users: state.users,
         }))
@@ -53,9 +53,9 @@ export default function SessionMemberList({ sessionId }) {
 
     const [searchKeyword, setSearchKeyword] = useState("");
     useEffect(() => {
-        getUserProfile(owner);
+        getUserProfileById(owner);
         for (let i = 0; i < _.size(members); i++) {
-            getUserProfile(members[i]);
+            getUserProfileById(members[i]);
         }
     }, [members]);
     const [showSearch, setShowSearch] = useState(false);

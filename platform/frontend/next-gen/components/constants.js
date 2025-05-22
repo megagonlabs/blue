@@ -19,6 +19,7 @@ export const USER_ROLES_LOOKUP = {
         developer: { text: "Developer" },
         demo: { text: "Demo" },
     },
+    TABLE_CELL_HEIGHT = 40,
     ENTITY_NAME_SEPARATOR = "___",
     MAIN_INFO_STYLES = {
         height: 40,

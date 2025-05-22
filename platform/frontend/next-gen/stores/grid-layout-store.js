@@ -1,4 +1,3 @@
-import clone from "clone";
 import _ from "lodash";
 import { v4 as uuidv4 } from "uuid";
 import { create } from "zustand";
@@ -23,7 +22,7 @@ export const useGridStore = create((set, get) => ({
         }));
     },
     resizeContainerWidth: ({ id, width = 12 }) => {
-        const { layout } = clone(get());
+        const { layout } = _.cloneDeep(get());
         for (let i = 0; i < _.size(layout); i++) {
             if (_.isEqual(_.get(layout, [i, "i"]), id)) {
                 _.set(layout, [i, "w"], width);

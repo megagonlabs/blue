@@ -27,6 +27,7 @@ import {
     faUserGroup,
     faWavePulse,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
+import axios from "axios";
 import _ from "lodash";
 import Image from "next/image";
 import { useShallow } from "zustand/react/shallow";
@@ -87,6 +88,9 @@ export default function Blue({ children }) {
             global: true,
             label: "Toggle theme",
             onKeyDown: () => {
+                axios.put(`/accounts/profile/settings/dark_mode`, {
+                    value: !darkMode,
+                });
                 setState({ key: "dark_mode", value: !darkMode });
             },
         },

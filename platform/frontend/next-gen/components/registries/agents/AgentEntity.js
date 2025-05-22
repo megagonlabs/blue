@@ -57,6 +57,7 @@ export default function AgentEntity({
     const setContainerHeader = useGridStore(
         (state) => state.setContainerHeader
     );
+    const baseAgent = !_.isEmpty(scope) && _.isEqual(scope, "/");
     const [agent, setAgent] = useState(null);
     const [isEditing, setIsEditing] = useState(false);
     const [editedAgent, setEditedAgent] = useState(null);
@@ -220,7 +221,7 @@ export default function AgentEntity({
                             isEditing={isEditing}
                             setIsEditing={setIsEditing}
                             onDelete={onDelete}
-                            onDuplicate={onDuplicate}
+                            onDuplicate={baseAgent && onDuplicate}
                         />
                     </div>
                 )}
@@ -347,7 +348,7 @@ export default function AgentEntity({
                         loading={loading}
                     />
                 </div>
-                {!_.isEmpty(scope) && _.isEqual(scope, "/") && (
+                {baseAgent && (
                     <>
                         <div
                             style={{ marginTop: 20 }}

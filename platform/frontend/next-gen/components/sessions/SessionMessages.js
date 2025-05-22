@@ -49,9 +49,9 @@ import SessionMemberStack from "./SessionMemberStack";
 const Row = ({ index, data, style }) => {
     const { setRowHeight, sessionId } = data;
     const darkMode = useAppStore((state) => state.dark_mode);
-    const { getUserProfile, getAgentMetadata } = useDedupStore(
+    const { getUserProfileById, getAgentMetadata } = useDedupStore(
         useShallow((state) => ({
-            getUserProfile: state.getUserProfile,
+            getUserProfileById: state.getUserProfileById,
             getAgentMetadata: state.getAgentMetadata,
         }))
     );
@@ -79,7 +79,7 @@ const Row = ({ index, data, style }) => {
         );
         const isUser = _.isEqual(createdBy, "USER");
         if (isUser) {
-            getUserProfile(id);
+            getUserProfileById(id);
         } else {
             getAgentMetadata(createdBy);
         }

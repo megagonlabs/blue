@@ -12,12 +12,14 @@ export default function SessionMemberStack({ sessionId, style }) {
             .filter((user) => user[1])
             .map((user) => user[0]);
     }, [sessionId, details]);
-    const getUserProfile = useDedupStore((state) => state.getUserProfile);
+    const getUserProfileById = useDedupStore(
+        (state) => state.getUserProfileById
+    );
     const owner = _.get(details, "created_by");
     useEffect(() => {
-        getUserProfile(owner);
+        getUserProfileById(owner);
         for (let i = 0; i < _.size(members); i++) {
-            getUserProfile(members[i]);
+            getUserProfileById(members[i]);
         }
     }, [members]);
     const memberStackref = createRef();

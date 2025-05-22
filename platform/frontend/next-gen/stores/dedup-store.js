@@ -39,14 +39,43 @@ export const useDedupStore = create((set, get) => ({
         }
     },
     addUserProfile: (user) => {
+        let newProfile = {};
         if (_.has(user, "uid")) {
-            set((state) => ({
-                users: { ...state.users, [user.uid]: user },
-            }));
+            _.set(newProfile, user.uid, user);
+        }
+        if (_.has(user, "email")) {
+            _.set(newProfile, [user.email], user);
+        }
+        set((state) => ({
+            users: { ...state.users, ...newProfile },
+        }));
+    },
+    getUserProfileByEmail: (email) => {
+        const key = `getUserProfileByEmail ${email}`;
+        const { queue, cachedTime, addUserProfile } = get();
+        const diff = differenceInMinutes(Date.now(), cachedTime[key]);
+        if (
+            !queue[key] &&
+            (diff > CACHE_DURATION_MINUTES || _.isNaN(diff)) &&
+            _.isString(email)
+        ) {
+            set((state) => ({ queue: { ...state.queue, [key]: true } }));
+            axios
+                .get(`/accounts/profile/email/${email}`)
+                .then((response) => {
+                    const user = _.get(response, "data.user", null);
+                    addUserProfile(user);
+                })
+                .finally(() => {
+                    set((state) => ({
+                        queue: { ...state.queue, [key]: false },
+                        cachedTime: { ...state.cachedTime, [key]: Date.now() },
+                    }));
+                });
         }
     },
-    getUserProfile: (userId) => {
-        const key = `getUserProfile ${userId}`;
+    getUserProfileById: (userId) => {
+        const key = `getUserProfileById ${userId}`;
         const { queue, cachedTime, addUserProfile } = get();
         const diff = differenceInMinutes(Date.now(), cachedTime[key]);
         if (

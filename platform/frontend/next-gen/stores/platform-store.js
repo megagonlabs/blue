@@ -4,13 +4,13 @@ import { create } from "zustand";
 export const usePlatformStore = create((set, get) => ({
     setState: ({ key, value }) => set({ [key]: value }),
     users: { list: [], order: {}, loading: false, selected: new Set() },
-    configurations: { values: {}, loading: false },
+    configurations: { values: {}, loading: false, selectedEmails: new Set() },
     setUserTableOrder: (order) => {
         set((state) => ({ users: { ...state.users, order } }));
     },
     updateUserTableSelected: ({ uid, checked = false }) => {
         const { users } = get();
-        let newSelected = _.clone(users.selected);
+        let newSelected = _.cloneDeep(users.selected);
         if (checked) {
             newSelected.add(uid);
         } else {
@@ -18,9 +18,40 @@ export const usePlatformStore = create((set, get) => ({
         }
         set((state) => ({ users: { ...state.users, selected: newSelected } }));
     },
+    updateEmailTableSelected: ({ email, checked = false }) => {
+        const { configurations } = get();
+        let newSelected = _.cloneDeep(configurations.selectedEmails);
+        if (checked) {
+            newSelected.add(email);
+        } else {
+            newSelected.delete(email);
+        }
+        set((state) => ({
+            configurations: {
+                ...state.configurations,
+                selectedEmails: newSelected,
+            },
+        }));
+    },
+    addAllowedEmail: (email) => {
+        const { configurations } = get();
+        let newValues = _.cloneDeep(configurations.values);
+        _.set(newValues, ["allowed_emails", email], { email, allow: true });
+        set((state) => ({
+            configurations: { ...state.configurations, values: newValues },
+        }));
+    },
+    removeAllowedEmail: (email) => {
+        const { configurations } = get();
+        let newValues = _.cloneDeep(configurations.values);
+        _.unset(newValues, ["allowed_emails", email]);
+        set((state) => ({
+            configurations: { ...state.configurations, values: newValues },
+        }));
+    },
     updateUserTableRole: ({ uids, role }) => {
         const { users } = get();
-        let newList = _.clone(users.list);
+        let newList = _.cloneDeep(users.list);
         for (let i = 0; i < _.size(newList); i++) {
             if (_.isSet(uids) && uids.has(newList[i].uid)) {
                 _.set(newList[i], "role", role);
@@ -30,7 +61,7 @@ export const usePlatformStore = create((set, get) => ({
     },
     updateConfigurationValues: ({ key, value }) => {
         const { configurations } = get();
-        let newValues = _.clone(configurations.values);
+        let newValues = _.cloneDeep(configurations.values);
         _.set(newValues, key, value);
         set((state) => ({
             configurations: { ...state.configurations, values: newValues },
@@ -40,21 +71,16 @@ export const usePlatformStore = create((set, get) => ({
         set((state) => ({
             configurations: { ...state.configurations, loading: true },
         }));
-        axios
-            .get("/platform/settings")
-            .then((response) => {
-                set((state) => ({
-                    configurations: {
-                        ...state.configurations,
-                        values: _.get(response, "data.settings", {}),
-                    },
-                }));
-            })
-            .finally(() => {
-                set((state) => ({
-                    configurations: { ...state.configurations, loading: false },
-                }));
-            });
+        axios.get("/platform/settings").then((response) => {
+            set((state) => ({
+                configurations: {
+                    ...state.configurations,
+                    values: _.get(response, "data.settings", {}),
+                    loading: false,
+                    selectedEmails: new Set(),
+                },
+            }));
+        });
     },
     getUsers: () => {
         set((state) => ({ users: { ...state.users, loading: true } }));

@@ -10,16 +10,16 @@ export default function MessageIcon({ metadata }) {
     const createdBy = _.get(metadata, "created_by", null);
     const id = _.get(metadata, "id", null);
     const isUser = _.isEqual(createdBy, "USER");
-    const { getUserProfile, getAgentMetadata } = useDedupStore(
+    const { getUserProfileById, getAgentMetadata } = useDedupStore(
         useShallow((state) => ({
-            getUserProfile: state.getUserProfile,
+            getUserProfileById: state.getUserProfileById,
             getAgentMetadata: state.getAgentMetadata,
         }))
     );
     const agentMetadata = useAgentStore((state) => state.metadata);
     useEffect(() => {
         if (isUser) {
-            getUserProfile(id);
+            getUserProfileById(id);
         } else {
             getAgentMetadata(createdBy);
         }

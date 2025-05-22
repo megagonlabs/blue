@@ -1,6 +1,5 @@
 import { reorderWithEdge } from "@atlaskit/pragmatic-drag-and-drop-hitbox/util/reorder-with-edge";
 import axios from "axios";
-import clone from "clone";
 import _ from "lodash";
 import { create } from "zustand";
 export const useSessionStore = create((set, get) => ({
@@ -28,7 +27,7 @@ export const useSessionStore = create((set, get) => ({
         }));
     },
     removeSession: (sessionId) => {
-        const { sessions, sessionIds } = clone(get());
+        const { sessions, sessionIds } = _.cloneDeep(get());
         _.unset(sessions, sessionId);
         _.pull(sessionIds, sessionId);
         set({ sessions, sessionIds });
@@ -36,7 +35,7 @@ export const useSessionStore = create((set, get) => ({
     setSessionDetails: ({ sessionId, fields }) => {
         // fields: list of objects
         // elements:  { path, value }
-        const { sessions } = clone(get());
+        const { sessions } = _.cloneDeep(get());
         let details = _.get(sessions, [sessionId, "details"], {});
         for (let i = 0; i < _.size(fields); i++) {
             _.set(details, fields[i].path, fields[i].value);
@@ -67,7 +66,7 @@ export const useSessionStore = create((set, get) => ({
                 }
                 addNewSession(sessions[i]);
             }
-            const { sessions: stateSessions, sessionIds } = clone(get());
+            const { sessions: stateSessions, sessionIds } = _.cloneDeep(get());
             const deletedSessionIds = _.difference(
                 sessionIds,
                 responseSessionIds
@@ -79,14 +78,14 @@ export const useSessionStore = create((set, get) => ({
         });
     },
     removeWorkspaceMessage: ({ sessionId, index }) => {
-        const { sessions } = clone(get());
+        const { sessions } = _.cloneDeep(get());
         let contents = _.get(sessions, [sessionId, "workspace"], []);
         _.pullAt(contents, [index]);
         _.set(sessions, [sessionId, "workspace"], contents);
         set({ sessions });
     },
     clearWorkspace: (sessionId) => {
-        const { sessions } = clone(get());
+        const { sessions } = _.cloneDeep(get());
         _.set(sessions, [sessionId, "workspace"], []);
         set({ sessions });
     },
@@ -96,7 +95,7 @@ export const useSessionStore = create((set, get) => ({
         indexOfTarget,
         closestEdgeOfTarget,
     }) => {
-        const { sessions } = clone(get());
+        const { sessions } = _.cloneDeep(get());
         let contents = _.get(sessions, [sessionId, "workspace"], []);
         _.set(
             sessions,
@@ -113,7 +112,7 @@ export const useSessionStore = create((set, get) => ({
     },
     addToWorkspace: ({ type, message, sessionId }) => {
         const stream = _.get(message, "stream", null);
-        const { sessions } = clone(get());
+        const { sessions } = _.cloneDeep(get());
         let contents = _.get(sessions, [sessionId, "workspace"], []);
         contents.push({ type, message, sessionId });
         _.set(sessions, [sessionId, "workspace"], contents);
@@ -131,7 +130,7 @@ export const useSessionStore = create((set, get) => ({
             stream,
         } = data;
         const tags = _.entries(_.get(data, "metadata.tags", {}));
-        const { sessions, forms, progress, sessionIds } = clone(get());
+        const { sessions, forms, progress, sessionIds } = _.cloneDeep(get());
         let sessionTags = _.get(sessions, [sessionId, "tags"], []);
         for (let i = 0; i < _.size(tags); i++) {
             const [tag, value] = tags[i];

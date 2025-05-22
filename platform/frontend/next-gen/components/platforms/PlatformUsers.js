@@ -24,13 +24,12 @@ import { faRefresh, faStamp } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import _ from "lodash";
 import { useEffect, useMemo, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
-import { USER_ROLES_LOOKUP } from "../constants";
+import { TABLE_CELL_HEIGHT, USER_ROLES_LOOKUP } from "../constants";
 import { FAIcon } from "../FAIcon";
 import withAutoSizer from "../hocs/withAutoSizer";
 import UserAvatar from "../sessions/UserAvatar";
 import UserCheckbox from "./UserCheckbox";
 import UserRoleConfiguration from "./UserRoleConfiguration";
-const TABLE_CELL_HEIGHT = 40;
 function PlatformUsers({ width, height }) {
     const { list, getUsers, loading, setUserTableOrder, order, selected } =
         usePlatformStore(
@@ -43,7 +42,9 @@ function PlatformUsers({ width, height }) {
                 setUserTableOrder: state.setUserTableOrder,
             }))
         );
-    const getUserProfile = useDedupStore((state) => state.getUserProfile);
+    const getUserProfileById = useDedupStore(
+        (state) => state.getUserProfileById
+    );
     const columns = useMemo(() => {
         return _.sortBy(
             [
@@ -64,7 +65,7 @@ function PlatformUsers({ width, height }) {
                     key: "name",
                     cellRenderer: (rowIndex) => {
                         const uid = _.get(list, [rowIndex, "uid"], null);
-                        getUserProfile(uid);
+                        getUserProfileById(uid);
                         const name = _.get(list, [rowIndex, "name"], "-");
                         return (
                             <Cell
@@ -226,7 +227,7 @@ function PlatformUsers({ width, height }) {
                         const defaultCellRenderer = (rowIndex) => (
                             <Cell
                                 style={{
-                                    lineHeight: `${TABLE_CELL_HEIGHT - 1}px`,
+                                    lineHeight: `${TABLE_CELL_HEIGHT}px`,
                                 }}
                             >
                                 {_.get(list, [rowIndex, key], "-")}
