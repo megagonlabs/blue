@@ -164,9 +164,6 @@ export default function Home() {
                                                         content="Full width"
                                                     >
                                                         <Button
-                                                            intent={
-                                                                Intent.PRIMARY
-                                                            }
                                                             text="12"
                                                             onClick={() => {
                                                                 resizeContainerWidth(
@@ -185,7 +182,6 @@ export default function Home() {
                                                 label="Height"
                                             >
                                                 <Button
-                                                    intent={Intent.PRIMARY}
                                                     fill
                                                     text="Full height"
                                                     onClick={() => {

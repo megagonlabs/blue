@@ -513,6 +513,7 @@ export default function AuthenticationConfigurations() {
                                         placement="bottom"
                                     >
                                         <Button
+                                            loading={deleting}
                                             disabled={_.isEmpty(selectedEmails)}
                                             onClick={onEmailRemove}
                                             intent={Intent.DANGER}

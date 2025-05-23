@@ -13,6 +13,7 @@ import {
 } from "@blueprintjs/core";
 import {
     faBookOpenCover,
+    faBoxTaped,
     faInputNumeric,
     faInputText,
     faList,
@@ -39,6 +40,7 @@ import BooleanDoc from "./BooleanDoc";
 import ButtonDoc from "./ButtonDoc";
 import CalloutDoc from "./CalloutDoc";
 import EnumDoc from "./EnumDoc";
+import ExamplesDoc from "./ExamplesDoc";
 import GroupDoc from "./GroupDoc";
 import IntegerDoc from "./IntegerDoc";
 import LabelDoc from "./LabelDoc";
@@ -96,6 +98,7 @@ const DOCS = {
     table: <TableDoc />,
     tabs: <TabsDoc />,
     vega: <VegaDoc />,
+    examples: <ExamplesDoc />,
 };
 function DocContainer({ width, height }) {
     const [focusTab, setFocusTab] = useState("basics");
@@ -141,7 +144,15 @@ function DocContainer({ width, height }) {
                             </Tooltip>
                         ))}
                         <Divider />
-                        <Button text="Examples" />
+                        <Button
+                            active={_.isEqual(
+                                _.lowerCase("examples"),
+                                focusTab
+                            )}
+                            onClick={() => setFocusTab(_.lowerCase("examples"))}
+                            text="Examples"
+                            icon={<FAIcon icon={faBoxTaped} />}
+                        />
                     </ButtonGroup>
                 </div>
                 <div

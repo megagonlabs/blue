@@ -24,6 +24,7 @@ import {
     faBinarySlash,
     faBookOpenCover,
     faBrowsers,
+    faClipboard,
     faDownload,
     faPlay,
     faTrash,
@@ -31,16 +32,21 @@ import {
 import { JsonForms } from "@jsonforms/react";
 import { vanillaCells } from "@jsonforms/vanilla-renderers";
 import { Allotment } from "allotment";
+import copy from "copy-to-clipboard";
 import { clone } from "lodash";
 import { createRef, useEffect, useRef, useState } from "react";
 import { useErrorBoundary, withErrorBoundary } from "react-use-error-boundary";
 import { v4 as uuidv4 } from "uuid";
 import JSONEditor from "../codemirror/JSONEditor";
-import { MIN_ALLOTMENT_PANE_SIZE } from "../constants";
+import {
+    MIN_ALLOTMENT_PANE_SIZE,
+    POPPER_BOTTOM_WITH_MODIFIER_OVERFLOW_10,
+} from "../constants";
 import { FAIcon } from "../FAIcon";
 import withAutoSizer from "../hocs/withAutoSizer";
 import DocContainer from "../jsonforms/docs/DocContainer";
 import { JSONFORMS_RENDERERS } from "../jsonforms/renderers";
+import { AppToaster } from "../toaster";
 const DEFAULT_UI_SCHEMA = { type: "VerticalLayout", elements: [] };
 const DEFAULT_SCHEMA = { type: "object", properties: {} };
 const PANE_BUTTON_PROPS = {
@@ -60,13 +66,28 @@ function FormDesigner({ width, height }) {
     const [data, setData] = useState({});
     const [showData, setShowData] = useState(false);
     const breaker = useRef(true);
+    const handleExport = (withData) => {
+        let result = { schema: schema, uischema: uischema };
+        if (withData) {
+            _.set(result, "data", data);
+        }
+        copy(JSON.stringify(result));
+        AppToaster.show({
+            icon: <FAIcon icon={faClipboard} />,
+            message: `Copied schemas (with${withData ? "" : "out"}  data)`,
+        });
+    };
     useEffect(() => {
         if (!idRef.current) {
             idRef.current = uuidv4();
         }
     }, []);
+    const elementRef = useRef(null);
+    const popoverBoundary =
+        elementRef.current &&
+        elementRef.current.closest(".grid-container-boundary");
     return (
-        <div style={{ width, height }}>
+        <div ref={elementRef} style={{ width, height }}>
             <div className="border-bottom" style={{ padding: 10 }}>
                 <ButtonGroup size={Size.LARGE} variant={ButtonVariant.MINIMAL}>
                     <Tooltip placement="bottom-start" content="Re-run">
@@ -78,18 +99,25 @@ function FormDesigner({ width, height }) {
                         />
                     </Tooltip>
                     <Popover
+                        {...POPPER_BOTTOM_WITH_MODIFIER_OVERFLOW_10}
+                        boundary={popoverBoundary}
                         minimal
-                        placement="bottom"
                         content={
                             <Menu size={Size.LARGE}>
                                 <MenuDivider title="Export" />
                                 <MenuItem
                                     icon={<FAIcon icon={faBinaryCircleCheck} />}
                                     text="With data"
+                                    onClick={() => {
+                                        handleExport(true);
+                                    }}
                                 />
                                 <MenuItem
                                     icon={<FAIcon icon={faBinarySlash} />}
                                     text="Without data"
+                                    onClick={() => {
+                                        handleExport(false);
+                                    }}
                                 />
                             </Menu>
                         }
@@ -106,7 +134,7 @@ function FormDesigner({ width, height }) {
                         text="Docs."
                         onClick={() =>
                             addContainer({
-                                title: "Form Docs.",
+                                title: "Form Documentation",
                                 content: <DocContainer />,
                             })
                         }
