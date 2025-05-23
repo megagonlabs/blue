@@ -61,11 +61,11 @@ function SessionList({ width, height }) {
                 return _.isEqual("all", filter.group) || group;
             })
             .filter((id) => {
-                if (_.includes(id, filter.keyword)) {
+                if (_.includes(id, filter.keywords)) {
                     return true;
                 }
                 const name = _.get(sessions, [id, "details", "name"], id);
-                if (_.includes(name, filter.keyword)) {
+                if (_.includes(name, filter.keywords)) {
                     return true;
                 }
                 const description = _.get(
@@ -73,7 +73,7 @@ function SessionList({ width, height }) {
                     [id, "details", "description"],
                     id
                 );
-                if (_.includes(description, filter.keyword)) {
+                if (_.includes(description, filter.keywords)) {
                     return true;
                 }
                 return false;

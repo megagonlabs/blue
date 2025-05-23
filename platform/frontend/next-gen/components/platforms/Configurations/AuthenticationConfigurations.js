@@ -406,7 +406,6 @@ export default function AuthenticationConfigurations() {
                                         [defaultUserRole, "text"],
                                         defaultUserRole
                                     )}
-                                    variant={ButtonVariant.OUTLINED}
                                     size={Size.LARGE}
                                 />
                             </Select>

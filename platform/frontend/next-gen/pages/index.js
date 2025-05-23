@@ -8,10 +8,8 @@ import {
     Classes,
     Colors,
     Divider,
+    FormGroup,
     Intent,
-    Menu,
-    MenuDivider,
-    MenuItem,
     Popover,
     Size,
     Tooltip,
@@ -22,7 +20,7 @@ import {
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import classNames from "classnames";
 import _ from "lodash";
-import { forwardRef } from "react";
+import { forwardRef, useRef } from "react";
 import RGL, { WidthProvider } from "react-grid-layout";
 import { useShallow } from "zustand/react/shallow";
 const ReactGridLayout = WidthProvider(RGL);
@@ -44,6 +42,7 @@ export default function Home() {
         containers,
         removeContainer,
         resizeContainerWidth,
+        resizeContainerFullHeight,
     } = useGridStore(
         useShallow((state) => ({
             layout: state.layout,
@@ -51,10 +50,16 @@ export default function Home() {
             containers: state.containers,
             removeContainer: state.removeContainer,
             resizeContainerWidth: state.resizeContainerWidth,
+            resizeContainerFullHeight: state.resizeContainerFullHeight,
         }))
     );
+    const gridRef = useRef();
     return (
-        <div className="full-parent-dimension" style={{ overflowY: "auto" }}>
+        <div
+            ref={gridRef}
+            className="full-parent-dimension"
+            style={{ overflowY: "auto" }}
+        >
             <ReactGridLayout
                 resizeHandle={(handleAxis, ref) => (
                     <CustomResizeHandle ref={ref} handleAxis={handleAxis} />
@@ -103,49 +108,97 @@ export default function Home() {
                                         },
                                     }}
                                     content={
-                                        <Menu>
-                                            <MenuDivider title="Resize" />
-                                            <MenuItem
-                                                text="5"
-                                                labelElement="42%"
-                                                onClick={() => {
-                                                    resizeContainerWidth({
-                                                        id: element.i,
-                                                        width: 5,
-                                                    });
-                                                }}
-                                            />
-                                            <MenuItem
-                                                text="6"
-                                                labelElement="50%"
-                                                onClick={() => {
-                                                    resizeContainerWidth({
-                                                        id: element.i,
-                                                        width: 6,
-                                                    });
-                                                }}
-                                            />
-                                            <MenuItem
-                                                text="7"
-                                                labelElement="58%"
-                                                onClick={() => {
-                                                    resizeContainerWidth({
-                                                        id: element.i,
-                                                        width: 7,
-                                                    });
-                                                }}
-                                            />
-                                            <MenuItem
-                                                text="12"
-                                                labelElement="Full width"
-                                                onClick={() => {
-                                                    resizeContainerWidth({
-                                                        id: element.i,
-                                                        width: 12,
-                                                    });
-                                                }}
-                                            />
-                                        </Menu>
+                                        <div style={{ padding: 10 }}>
+                                            <FormGroup label="Width">
+                                                <ButtonGroup fill>
+                                                    <Tooltip
+                                                        placement="bottom-start"
+                                                        content="42%"
+                                                    >
+                                                        <Button
+                                                            text="5"
+                                                            onClick={() => {
+                                                                resizeContainerWidth(
+                                                                    {
+                                                                        id: element.i,
+                                                                        width: 5,
+                                                                    }
+                                                                );
+                                                            }}
+                                                        />
+                                                    </Tooltip>
+                                                    <Tooltip
+                                                        placement="bottom"
+                                                        content="50%"
+                                                    >
+                                                        <Button
+                                                            text="6"
+                                                            onClick={() => {
+                                                                resizeContainerWidth(
+                                                                    {
+                                                                        id: element.i,
+                                                                        width: 6,
+                                                                    }
+                                                                );
+                                                            }}
+                                                        />
+                                                    </Tooltip>
+                                                    <Tooltip
+                                                        placement="bottom"
+                                                        content="58%"
+                                                    >
+                                                        <Button
+                                                            text="7"
+                                                            onClick={() => {
+                                                                resizeContainerWidth(
+                                                                    {
+                                                                        id: element.i,
+                                                                        width: 7,
+                                                                    }
+                                                                );
+                                                            }}
+                                                        />
+                                                    </Tooltip>
+                                                    <Tooltip
+                                                        placement="bottom-end"
+                                                        content="Full width"
+                                                    >
+                                                        <Button
+                                                            intent={
+                                                                Intent.PRIMARY
+                                                            }
+                                                            text="12"
+                                                            onClick={() => {
+                                                                resizeContainerWidth(
+                                                                    {
+                                                                        id: element.i,
+                                                                        width: 12,
+                                                                    }
+                                                                );
+                                                            }}
+                                                        />
+                                                    </Tooltip>
+                                                </ButtonGroup>
+                                            </FormGroup>
+                                            <FormGroup
+                                                className="margin-0"
+                                                label="Height"
+                                            >
+                                                <Button
+                                                    intent={Intent.PRIMARY}
+                                                    fill
+                                                    text="Full height"
+                                                    onClick={() => {
+                                                        resizeContainerFullHeight(
+                                                            {
+                                                                id: element.i,
+                                                                grid: gridRef,
+                                                            }
+                                                        );
+                                                    }}
+                                                />
+                                            </FormGroup>
+                                        </div>
                                     }
                                 >
                                     <Tooltip

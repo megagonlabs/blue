@@ -21,6 +21,22 @@ export const useGridStore = create((set, get) => ({
             layout: state.layout.filter((element) => !_.isEqual(element.i, id)),
         }));
     },
+    resizeContainerFullHeight: ({ id, grid }) => {
+        const { layout } = _.cloneDeep(get());
+        try {
+            const gridHeight = _.get(grid, "current.clientHeight", null);
+            const calculatedHeight = _.floor((gridHeight - 40 + 20) / 170);
+            if (_.isInteger(calculatedHeight)) {
+                for (let i = 0; i < _.size(layout); i++) {
+                    if (_.isEqual(_.get(layout, [i, "i"]), id)) {
+                        _.set(layout, [i, "h"], calculatedHeight);
+                        break;
+                    }
+                }
+            }
+        } catch (error) {}
+        set({ layout });
+    },
     resizeContainerWidth: ({ id, width = 12 }) => {
         const { layout } = _.cloneDeep(get());
         for (let i = 0; i < _.size(layout); i++) {

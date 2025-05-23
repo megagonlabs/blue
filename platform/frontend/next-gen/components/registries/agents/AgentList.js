@@ -1,3 +1,7 @@
+import {
+    HEX_TRANSPARENCY,
+    POPPER_BOTTOM_WITH_MODIFIER_OVERFLOW_10,
+} from "@/components/constants";
 import { useAgentStore } from "@/stores/agent-store";
 import { useAppStore } from "@/stores/app-store";
 import { useGridStore } from "@/stores/grid-layout-store";
@@ -12,22 +16,34 @@ import {
     Radio,
     RadioGroup,
     Size,
+    Tooltip,
 } from "@blueprintjs/core";
 import {
     faBarsFilter,
+    faEraser,
     faPlus,
     faSearch,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
-import { useEffect, useState } from "react";
+import _, { debounce } from "lodash";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useShallow } from "zustand/react/shallow";
 import { FAIcon } from "../../FAIcon";
 import withAutoSizer from "../../hocs/withAutoSizer";
 import FilterPane from "../FilterPane";
 import NewEntity from "../NewEntity";
 import RegistryEntityCard from "../RegistryEntityCard";
 import RegistryEntityContainer from "../RegistryEntityContainer";
+import SearchResultCard from "../SearchResultCard";
 function AgentList({ width, height }) {
-    const agents = useAgentStore((state) => state.agents);
-    const getAgents = useAgentStore((state) => state.getAgents);
+    const { agents, getAgents, filter, setFilterValue, search } = useAgentStore(
+        useShallow((state) => ({
+            agents: state.agents,
+            getAgents: state.getAgents,
+            filter: state.filter,
+            search: state.search,
+            setFilterValue: state.setFilterValue,
+        }))
+    );
     const [showFilter, setShowFilter] = useState(false);
     const darkMode = useAppStore((state) => state.dark_mode);
     const [showNewEntity, setShowNewEntity] = useState(false);
@@ -35,14 +51,36 @@ function AgentList({ width, height }) {
     useEffect(() => {
         getAgents();
     }, []);
+    const debounced = useCallback(debounce(getAgents, 800), [getAgents]);
+    useEffect(() => {
+        debounced();
+    }, [filter]);
     const callback = (entity) => {
         setShowNewEntity(false);
         addContainer({
             content: <RegistryEntityContainer entity={entity} />,
         });
     };
+    const elementRef = useRef(null);
+    const popoverBoundary =
+        elementRef.current &&
+        elementRef.current.closest(".grid-container-boundary");
     return (
-        <div style={{ width, height }}>
+        <div ref={elementRef} style={{ width, height }}>
+            {showFilter && (
+                <div
+                    className="full-parent-dimension"
+                    onClick={() => {
+                        setShowFilter(false);
+                    }}
+                    style={{
+                        position: "absolute",
+                        zIndex: 1,
+                        maxHeight: "calc(100% - 45px)",
+                        backgroundColor: `${Colors.BLACK}${HEX_TRANSPARENCY[70]}`,
+                    }}
+                />
+            )}
             <Overlay2
                 onClose={() => {
                     setShowNewEntity(false);
@@ -78,11 +116,50 @@ function AgentList({ width, height }) {
                     showFilter={showFilter}
                     setShowFilter={setShowFilter}
                 >
-                    <RadioGroup label="Type" style={{ marginTop: 20 }}>
-                        <Radio size={Size.LARGE} label="All" />
-                        <Radio size={Size.LARGE} label="Agent" />
-                        <Radio size={Size.LARGE} label="Input" />
-                        <Radio size={Size.LARGE} label="Output" />
+                    <RadioGroup
+                        style={{ marginTop: 20 }}
+                        selectedValue={_.get(
+                            filter,
+                            "searchType",
+                            "approximate"
+                        )}
+                        onChange={(event) => {
+                            setFilterValue({
+                                key: "searchType",
+                                value: event.currentTarget.value,
+                            });
+                        }}
+                    >
+                        <Radio
+                            size={Size.LARGE}
+                            label="Hybrid"
+                            value="hybrid"
+                        />
+                        <Radio
+                            size={Size.LARGE}
+                            label="Approximate"
+                            value="approximate"
+                        />
+                    </RadioGroup>
+                    <RadioGroup
+                        label="Type"
+                        style={{ marginTop: 20 }}
+                        selectedValue={_.get(filter, "type", "")}
+                        onChange={(event) => {
+                            setFilterValue({
+                                key: "type",
+                                value: event.currentTarget.value,
+                            });
+                        }}
+                    >
+                        <Radio size={Size.LARGE} label="All" value="" />
+                        <Radio size={Size.LARGE} label="Agent" value="agent" />
+                        <Radio size={Size.LARGE} label="Input" value="input" />
+                        <Radio
+                            size={Size.LARGE}
+                            label="Output"
+                            value="output"
+                        />
                     </RadioGroup>
                 </FilterPane>
                 <ControlGroup>
@@ -97,6 +174,28 @@ function AgentList({ width, height }) {
                         text="Filter"
                     />
                     <InputGroup
+                        rightElement={
+                            <Tooltip
+                                {...POPPER_BOTTOM_WITH_MODIFIER_OVERFLOW_10}
+                                boundary={popoverBoundary}
+                                content="Clear search"
+                            >
+                                <Button
+                                    onClick={() => {
+                                        setFilterValue({
+                                            key: "keywords",
+                                            value: "",
+                                        });
+                                    }}
+                                    variant={ButtonVariant.MINIMAL}
+                                    icon={<FAIcon icon={faEraser} />}
+                                />
+                            </Tooltip>
+                        }
+                        value={_.get(filter, "keywords", "")}
+                        onValueChange={(value) => {
+                            setFilterValue({ key: "keywords", value });
+                        }}
                         leftIcon={<FAIcon icon={faSearch} />}
                         size={Size.LARGE}
                     />
@@ -107,7 +206,11 @@ function AgentList({ width, height }) {
                 >
                     {agents.map((agent, index) => (
                         <div key={index} className="grid-item">
-                            <RegistryEntityCard entity={agent} />
+                            {search ? (
+                                <SearchResultCard entity={agent} />
+                            ) : (
+                                <RegistryEntityCard entity={agent} />
+                            )}
                         </div>
                     ))}
                     <Button
