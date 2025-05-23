@@ -386,6 +386,7 @@ export default function AgentEntity({
                                     />
                                     {!isEditing && (
                                         <Button
+                                            disabled={loading}
                                             variant={ButtonVariant.MINIMAL}
                                             icon={<FAIcon icon={faPlus} />}
                                             fill
@@ -430,6 +431,7 @@ export default function AgentEntity({
                                     />
                                     {!isEditing && (
                                         <Button
+                                            disabled={loading}
                                             variant={ButtonVariant.MINIMAL}
                                             icon={<FAIcon icon={faPlus} />}
                                             fill
@@ -468,6 +470,7 @@ export default function AgentEntity({
                                 />
                                 {!isEditing && (
                                     <Button
+                                        disabled={loading}
                                         variant={ButtonVariant.MINIMAL}
                                         icon={<FAIcon icon={faPlus} />}
                                         fill

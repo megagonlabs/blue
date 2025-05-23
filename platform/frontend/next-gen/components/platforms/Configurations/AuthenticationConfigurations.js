@@ -434,7 +434,7 @@ export default function AuthenticationConfigurations() {
                 <FormGroup
                     className="margin-0"
                     label="Allowed email domains"
-                    subLabel='Email domains can only be configured through server environment variable "BLUE_EMAIL_DOMAIN_WHITE_LIST".'
+                    subLabel='Email domains can only be configured through server environment variable: "BLUE_EMAIL_DOMAIN_WHITE_LIST".'
                 >
                     <div
                         className={loading ? Classes.SKELETON : null}

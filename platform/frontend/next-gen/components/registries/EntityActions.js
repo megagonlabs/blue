@@ -23,10 +23,13 @@ import {
     faRefresh,
     faTrash,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
+import axios from "axios";
 import _ from "lodash";
 import { useMemo } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { FAIcon } from "../FAIcon";
+import { showAxiosErrorToast } from "../helper";
+import { AppToaster } from "../toaster";
 export default function EntityActions({
     entity,
     isEditing,
@@ -38,7 +41,7 @@ export default function EntityActions({
     onSynchronize,
     onDuplicate,
 }) {
-    const { type, properties } = entity;
+    const { name, type, properties } = entity;
     const { user, permissions } = useAuthStore(
         useShallow((state) => ({
             user: state.user,
@@ -102,6 +105,33 @@ export default function EntityActions({
             canPullImage
         );
     }, [user, permissions, containerStatus]);
+    const onDeploy = () => {
+        axios
+            .post(`/containers/agents/agent/${name}`)
+            .then(() => {
+                AppToaster.show({
+                    intent: Intent.SUCCESS,
+                    message: `Deployed ${name} ${type}`,
+                });
+            })
+            .catch((error) => {
+                showAxiosErrorToast(error);
+            });
+    };
+    const onPull = () => {
+        axios
+            .put(`/containers/agents/agent/${name}`)
+            .then((response) => {
+                AppToaster.show({
+                    message: _.get(response, "data.message", "-"),
+                    icon: <FAIcon icon={faArrowDownToLine} />,
+                    intent: Intent.PRIMARY,
+                });
+            })
+            .catch((error) => {
+                showAxiosErrorToast(error);
+            });
+    };
     const showActionMenu = _.some([
         canEditEntity,
         canDuplicateEntity,
@@ -182,6 +212,7 @@ export default function EntityActions({
                     )}
                     {canPullImage && (
                         <MenuItem
+                            onClick={onPull}
                             intent={Intent.PRIMARY}
                             icon={<FAIcon icon={faArrowDownToLine} />}
                             text="Pull"
@@ -196,6 +227,7 @@ export default function EntityActions({
                                     <Button
                                         className={Classes.POPOVER_DISMISS}
                                         intent={Intent.SUCCESS}
+                                        onClick={onDeploy}
                                         text="Confirm"
                                     />
                                 </div>

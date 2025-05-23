@@ -58,7 +58,13 @@ const showAxiosErrorToast = (error) => {
         },
     });
 };
+function base64ToWebsafe(base64) {
+    return base64.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
 module.exports = {
+    encodeWebsafeBase64: (payload) => {
+        return base64ToWebsafe(btoa(payload));
+    },
     getEntityMainProperties: (properties) => {
         let filtered = _.cloneDeep(
             _.pick(properties, ENTITY_MAIN_INFO_PROPERTY_KEYS)

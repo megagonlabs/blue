@@ -1,3 +1,4 @@
+import { encodeWebsafeBase64 } from "@/components/helper";
 import axios from "axios";
 import _ from "lodash";
 import { create } from "zustand";
@@ -41,7 +42,11 @@ export const usePlatformStore = create((set, get) => ({
     addAllowedEmail: (email) => {
         const { configurations } = get();
         let newValues = _.cloneDeep(configurations.values);
-        _.set(newValues, ["allowed_emails", email], { email, allow: true });
+        const encodedEmail = encodeWebsafeBase64(email);
+        _.set(newValues, ["allowed_emails", encodedEmail], {
+            email,
+            allow: true,
+        });
         set((state) => ({
             configurations: { ...state.configurations, values: newValues },
         }));
@@ -49,7 +54,8 @@ export const usePlatformStore = create((set, get) => ({
     removeAllowedEmail: (email) => {
         const { configurations } = get();
         let newValues = _.cloneDeep(configurations.values);
-        _.unset(newValues, ["allowed_emails", email]);
+        const encodedEmail = encodeWebsafeBase64(email);
+        _.unset(newValues, ["allowed_emails", encodedEmail]);
         set((state) => ({
             configurations: { ...state.configurations, values: newValues },
         }));

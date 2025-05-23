@@ -215,7 +215,7 @@ def get_profile_by_email(request: Request, email):
             else:
                 return JSONResponse(status_code=501, content={"message": 'The server lacks the ability to fulfill the request because environment variable "FIREBASE_SERVICE_CRED" is not configured.'})
     except auth.UserNotFoundError as ex:
-        return JSONResponse(content={"message": "No user record found for the given identifier."}, status_code=400)
+        return JSONResponse(content={"message": f'No user record found for the given identifier: "{email}".'}, status_code=400)
     except ValueError as ex:
         print(ex)
     return JSONResponse(content={"user": user})
@@ -234,7 +234,7 @@ def get_profile_by_uid(request: Request, uid):
                 user_metadata = p.get_metadata(f'users.{request.state.user["uid"]}')
                 user = pydash.pick(user_metadata, ['uid', 'email', 'picture', 'name'])
     except auth.UserNotFoundError as ex:
-        return JSONResponse(content={"message": "No user record found for the given identifier."}, status_code=400)
+        return JSONResponse(content={"message": f'No user record found for the given identifier: "{uid}".'}, status_code=400)
     except ValueError as ex:
         print(ex)
     return JSONResponse(content={"user": user})

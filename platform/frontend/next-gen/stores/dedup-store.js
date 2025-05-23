@@ -1,3 +1,4 @@
+import { showAxiosErrorToast } from "@/components/helper";
 import axios from "axios";
 import { differenceInMinutes } from "date-fns";
 import _ from "lodash";
@@ -66,6 +67,9 @@ export const useDedupStore = create((set, get) => ({
                     const user = _.get(response, "data.user", null);
                     addUserProfile(user);
                 })
+                .catch((error) => {
+                    showAxiosErrorToast(error);
+                })
                 .finally(() => {
                     set((state) => ({
                         queue: { ...state.queue, [key]: false },
@@ -89,6 +93,9 @@ export const useDedupStore = create((set, get) => ({
                 .then((response) => {
                     const user = _.get(response, "data.user", null);
                     addUserProfile(user);
+                })
+                .catch((error) => {
+                    showAxiosErrorToast(error);
                 })
                 .finally(() => {
                     set((state) => ({

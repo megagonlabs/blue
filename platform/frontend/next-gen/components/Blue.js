@@ -33,7 +33,7 @@ import Image from "next/image";
 import { useShallow } from "zustand/react/shallow";
 import AccountPanel from "./AccountPanel";
 import Authentication from "./Authentication";
-import { ENTITY_TYPE_LOOKUP } from "./constants";
+import { ENTITY_TYPE_CONVERSION, ENTITY_TYPE_LOOKUP } from "./constants";
 import ExpandingBox from "./ExpandingBox";
 import { FAIcon } from "./FAIcon";
 import PlatformConfigurations from "./platforms/PlatformConfigurations";
@@ -96,7 +96,12 @@ export default function Blue({ children }) {
         },
     ];
     const darkModeClassName = darkMode ? Classes.DARK : null;
-    const user = useAuthStore((state) => state.user);
+    const { user, permissions } = useAuthStore(
+        useShallow((state) => ({
+            user: state.user,
+            permissions: state.permissions,
+        }))
+    );
     const createNewSession = useSessionStore((state) => state.createNewSession);
     if (_.isNull(user)) {
         return <Authentication />;
@@ -187,174 +192,251 @@ export default function Blue({ children }) {
                                                     }}
                                                     size={Size.LARGE}
                                                 >
-                                                    <MenuDivider title="Sessions" />
-                                                    <MenuItem
-                                                        onClick={() =>
-                                                            addContainer({
-                                                                title: "Sessions",
-                                                                content: (
-                                                                    <SessionList />
-                                                                ),
-                                                            })
-                                                        }
-                                                        text="All Sessions"
-                                                        icon={
-                                                            <FAIcon
-                                                                icon={
-                                                                    faInboxFull
-                                                                }
-                                                            />
-                                                        }
-                                                    />
-                                                    <MenuItem
-                                                        intent={Intent.PRIMARY}
-                                                        text="New Session"
-                                                        onClick={() =>
-                                                            createNewSession()
-                                                        }
-                                                        icon={
-                                                            <FAIcon
-                                                                icon={
-                                                                    faInboxOut
-                                                                }
-                                                            />
-                                                        }
-                                                    />
-                                                    <MenuDivider title="Registries" />
-                                                    {[
-                                                        "agent",
-                                                        "source",
-                                                        "operator",
-                                                        "model",
-                                                    ].map((type) => {
-                                                        const {
-                                                            title,
-                                                            text,
-                                                            content,
-                                                        } =
-                                                            REGISTRY_MENU_ITEMS[
-                                                                type
-                                                            ];
-                                                        const { icon } =
-                                                            ENTITY_TYPE_LOOKUP[
-                                                                type
-                                                            ];
-                                                        return (
+                                                    {_.some([
+                                                        permissions.canReadSessions,
+                                                        permissions.canWriteSessions,
+                                                    ]) && (
+                                                        <>
+                                                            <MenuDivider title="Sessions" />
                                                             <MenuItem
-                                                                onClick={() => {
+                                                                onClick={() =>
                                                                     addContainer(
                                                                         {
-                                                                            icon,
-                                                                            title,
-                                                                            content,
+                                                                            title: "Sessions",
+                                                                            content:
+                                                                                (
+                                                                                    <SessionList />
+                                                                                ),
                                                                         }
-                                                                    );
-                                                                }}
-                                                                text={text}
+                                                                    )
+                                                                }
+                                                                text="All Sessions"
                                                                 icon={
                                                                     <FAIcon
                                                                         icon={
-                                                                            icon
+                                                                            faInboxFull
                                                                         }
                                                                     />
                                                                 }
                                                             />
-                                                        );
-                                                    })}
-                                                    <MenuDivider title="Tools" />
-                                                    <MenuItem
-                                                        onClick={() =>
-                                                            addContainer({
-                                                                title: "Form Designer",
-                                                                content: (
-                                                                    <FormDesigner />
-                                                                ),
-                                                            })
-                                                        }
-                                                        text="Form Designer"
-                                                        icon={
-                                                            <FAIcon
-                                                                icon={
-                                                                    faPencilRuler
-                                                                }
-                                                            />
-                                                        }
-                                                    />
-                                                    <MenuDivider title="Platform" />
-                                                    <MenuItem
-                                                        onClick={() =>
-                                                            addContainer({
-                                                                title: "System Status",
-                                                                content: (
-                                                                    <SystemStatusContainer />
-                                                                ),
-                                                            })
-                                                        }
-                                                        text="System Status"
-                                                        icon={
-                                                            <FAIcon
-                                                                icon={
-                                                                    faWavePulse
-                                                                }
-                                                            />
-                                                        }
-                                                    />
-                                                    <MenuItem
-                                                        text="Agents"
-                                                        icon={
-                                                            <FAIcon
-                                                                icon={faCircleA}
-                                                            />
-                                                        }
-                                                    />
-                                                    <MenuItem
-                                                        text="Services"
-                                                        icon={
-                                                            <FAIcon
-                                                                icon={
-                                                                    faLayerGroup
-                                                                }
-                                                            />
-                                                        }
-                                                    />
-                                                    <MenuItem
-                                                        onClick={() =>
-                                                            addContainer({
-                                                                icon: faUserGroup,
-                                                                title: "Platform Users",
-                                                                content: (
-                                                                    <PlatformUsers />
-                                                                ),
-                                                            })
-                                                        }
-                                                        text="Users"
-                                                        icon={
-                                                            <FAIcon
-                                                                icon={
-                                                                    faUserGroup
-                                                                }
-                                                            />
-                                                        }
-                                                    />
-                                                    <MenuItem
-                                                        onClick={() =>
-                                                            addContainer({
-                                                                icon: faScrewdriverWrench,
-                                                                title: "Platform Configurations",
-                                                                content: (
-                                                                    <PlatformConfigurations />
-                                                                ),
-                                                            })
-                                                        }
-                                                        text="Configurations"
-                                                        icon={
-                                                            <FAIcon
-                                                                icon={
-                                                                    faScrewdriverWrench
-                                                                }
-                                                            />
-                                                        }
-                                                    />
+                                                            {permissions.canWriteSessions && (
+                                                                <MenuItem
+                                                                    intent={
+                                                                        Intent.PRIMARY
+                                                                    }
+                                                                    text="New Session"
+                                                                    onClick={() =>
+                                                                        createNewSession()
+                                                                    }
+                                                                    icon={
+                                                                        <FAIcon
+                                                                            icon={
+                                                                                faInboxOut
+                                                                            }
+                                                                        />
+                                                                    }
+                                                                />
+                                                            )}
+                                                        </>
+                                                    )}
+                                                    {_.some([
+                                                        permissions.canReadAgentRegistry,
+                                                        permissions.canReadDataRegistry,
+                                                        permissions.canReadOperatorRegistry,
+                                                        permissions.canReadModelRegistry,
+                                                    ]) && (
+                                                        <>
+                                                            <MenuDivider title="Registries" />
+                                                            {[
+                                                                "agent",
+                                                                "source",
+                                                                "operator",
+                                                                "model",
+                                                            ].map((type) => {
+                                                                const {
+                                                                    title,
+                                                                    text,
+                                                                    content,
+                                                                } =
+                                                                    REGISTRY_MENU_ITEMS[
+                                                                        type
+                                                                    ];
+                                                                const { icon } =
+                                                                    ENTITY_TYPE_LOOKUP[
+                                                                        type
+                                                                    ];
+                                                                return (
+                                                                    permissions[
+                                                                        `canRead${_.capitalize(
+                                                                            _.get(
+                                                                                ENTITY_TYPE_CONVERSION,
+                                                                                type,
+                                                                                type
+                                                                            )
+                                                                        )}Registry`
+                                                                    ] && (
+                                                                        <MenuItem
+                                                                            onClick={() => {
+                                                                                addContainer(
+                                                                                    {
+                                                                                        icon,
+                                                                                        title,
+                                                                                        content,
+                                                                                    }
+                                                                                );
+                                                                            }}
+                                                                            text={
+                                                                                text
+                                                                            }
+                                                                            icon={
+                                                                                <FAIcon
+                                                                                    icon={
+                                                                                        icon
+                                                                                    }
+                                                                                />
+                                                                            }
+                                                                        />
+                                                                    )
+                                                                );
+                                                            })}
+                                                        </>
+                                                    )}
+                                                    {_.some([
+                                                        permissions.showFormDesigner,
+                                                    ]) && (
+                                                        <>
+                                                            <MenuDivider title="Tools" />
+                                                            {permissions.showFormDesigner && (
+                                                                <MenuItem
+                                                                    onClick={() =>
+                                                                        addContainer(
+                                                                            {
+                                                                                title: "Form Designer",
+                                                                                content:
+                                                                                    (
+                                                                                        <FormDesigner />
+                                                                                    ),
+                                                                            }
+                                                                        )
+                                                                    }
+                                                                    text="Form Designer"
+                                                                    icon={
+                                                                        <FAIcon
+                                                                            icon={
+                                                                                faPencilRuler
+                                                                            }
+                                                                        />
+                                                                    }
+                                                                />
+                                                            )}
+                                                        </>
+                                                    )}
+                                                    {_.some([
+                                                        permissions.canReadPlatformStatus,
+                                                        permissions.canReadPlatformAgents,
+                                                        permissions.canReadPlatformServices,
+                                                        permissions.canWritePlatformUsers,
+                                                        permissions.canWritePlatformSettings,
+                                                    ]) && (
+                                                        <>
+                                                            <MenuDivider title="Platform" />
+                                                            {permissions.canReadPlatformStatus && (
+                                                                <MenuItem
+                                                                    onClick={() =>
+                                                                        addContainer(
+                                                                            {
+                                                                                title: "System Status",
+                                                                                content:
+                                                                                    (
+                                                                                        <SystemStatusContainer />
+                                                                                    ),
+                                                                            }
+                                                                        )
+                                                                    }
+                                                                    text="System Status"
+                                                                    icon={
+                                                                        <FAIcon
+                                                                            icon={
+                                                                                faWavePulse
+                                                                            }
+                                                                        />
+                                                                    }
+                                                                />
+                                                            )}
+                                                            {permissions.canReadPlatformAgents && (
+                                                                <MenuItem
+                                                                    text="Agents"
+                                                                    icon={
+                                                                        <FAIcon
+                                                                            icon={
+                                                                                faCircleA
+                                                                            }
+                                                                        />
+                                                                    }
+                                                                />
+                                                            )}
+                                                            {permissions.canReadPlatformServices && (
+                                                                <MenuItem
+                                                                    text="Services"
+                                                                    icon={
+                                                                        <FAIcon
+                                                                            icon={
+                                                                                faLayerGroup
+                                                                            }
+                                                                        />
+                                                                    }
+                                                                />
+                                                            )}
+                                                            {permissions.canWritePlatformUsers && (
+                                                                <MenuItem
+                                                                    onClick={() =>
+                                                                        addContainer(
+                                                                            {
+                                                                                icon: faUserGroup,
+                                                                                title: "Platform Users",
+                                                                                content:
+                                                                                    (
+                                                                                        <PlatformUsers />
+                                                                                    ),
+                                                                            }
+                                                                        )
+                                                                    }
+                                                                    text="Users"
+                                                                    icon={
+                                                                        <FAIcon
+                                                                            icon={
+                                                                                faUserGroup
+                                                                            }
+                                                                        />
+                                                                    }
+                                                                />
+                                                            )}
+                                                            {permissions.canWritePlatformSettings && (
+                                                                <MenuItem
+                                                                    onClick={() =>
+                                                                        addContainer(
+                                                                            {
+                                                                                icon: faScrewdriverWrench,
+                                                                                title: "Platform Configurations",
+                                                                                content:
+                                                                                    (
+                                                                                        <PlatformConfigurations />
+                                                                                    ),
+                                                                            }
+                                                                        )
+                                                                    }
+                                                                    text="Configurations"
+                                                                    icon={
+                                                                        <FAIcon
+                                                                            icon={
+                                                                                faScrewdriverWrench
+                                                                            }
+                                                                        />
+                                                                    }
+                                                                />
+                                                            )}
+                                                        </>
+                                                    )}
                                                 </Menu>
                                             </div>
                                         )}
