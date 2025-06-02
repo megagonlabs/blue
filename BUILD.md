@@ -126,7 +126,7 @@ repository = https://upload.pypi.org/legacy/
 repository = http://1.2.3.4:8888/
 ```
 
-And set `BLUE_BUILD_LIB_SERVER` to `mypypi`
+And set `BLUE_BUILD_LIB_SERVER` to `mypypi`. Contact your local administrator if your organization already has a pypi server.
 
 ##### building agents
 
