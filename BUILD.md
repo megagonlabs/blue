@@ -102,9 +102,35 @@ $ cd $BLUE_INSTALL_DIR/platform/scripts
 
 #### build
 
-Even when running blue locally during development, many components of blue should be run as docker containers. As such it is important to build the various docker images first.
+##### building libs
+Many of the blue components, including agents, platform api server, etc. use `blue-platform` library. `blue-platform` library can be built in `lib` directory by running the scripts:
+```
+$ cd lib
+$ ./scripts/build.sh
+$ ./scripts/publish.sh
+```
+
+`publish.sh` uses the pypi configuration in `~/.pypirc`. Ideally, during development you should use your own [pypiserver](https://pypi.org/project/pypiserver/) and add your configuration in the `.pypirc` file:
+e.g.
+
+```
+[distutils] 
+index-servers = 
+   pypi
+   mypypi
+
+[pypi]
+repository = https://upload.pypi.org/legacy/ 
+
+[mypypi]
+repository = http://1.2.3.4:8888/
+```
+
+And set `BLUE_BUILD_LIB_SERVER` to `mypypi`
 
 ##### building agents
+
+Even when running blue locally during development, many components of blue should be run as docker containers. As such it is important to build the various docker images first.
 
 To build docker images for all agents, run:
 ```
