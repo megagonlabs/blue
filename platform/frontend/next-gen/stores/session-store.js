@@ -5,7 +5,7 @@ import { create } from "zustand";
 export const useSessionStore = create((set, get) => ({
     sessions: {},
     sessionIds: [],
-    filter: { group: "owner", keyword: "" },
+    filter: { group: "owner", keywords: "" },
     forms: {},
     progress: {},
     addNewSession: (session) => {
