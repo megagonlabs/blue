@@ -19,6 +19,7 @@ Below is the list of environment varibles and brief descriptions:
 - `BLUE_BUILD_LIB_ARG`, specific index-url settings for blue lib, for public set to empty, for private set to `--extra-index-url <private_pypi_server> --trusted-host <private_pypy_server_ip>`
 - `BLUE_BUILD_CACHE_ARG`, cache option, set to empty or `--no-cache`
 - `BLUE_BUILD_IMG_SUFFIX`, additional image suffix, set to empty or `-private`
+- `BLUE_BUILD_PUBLISH`, if you want to push to docker hub set to `--push` otherwise leave empty
 - `BLUE_BUILD_PLATFORM` - list of platforms to build for (e.g. `linux/arm64/v8,linux/arm64,linux/arm/v7,linux/amd64,linux/amd64/v2,linux/amd64/v3,linux/amd64/v4,linux/386`)
 - `BLUE_CORE_DOCKER_ORG` - docker org to push/pull core blue components (e.g. `megagonlabs`)
 - `BLUE_DEV_DOCKER_ORG` - docker org to push/pull blue agents and services, your own org or `megagonlabs` (e.g. `megagonlabs`)
