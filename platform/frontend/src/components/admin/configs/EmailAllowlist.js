@@ -53,8 +53,7 @@ export default function EmailAllowlist({ loading, configs }) {
             let mappings = {};
             for (let i = 0; i < _.size(results); i++) {
                 if (
-                    (_.isEqual(_.get(results, [i, "status"], null)),
-                    "fulfilled")
+                    _.isEqual(_.get(results, [i, "status"], null), "fulfilled")
                 ) {
                     const user = _.get(
                         results,
@@ -200,9 +199,12 @@ export default function EmailAllowlist({ loading, configs }) {
                     Can only be configured through server environment
                     variable:&nbsp;<Code>BLUE_EMAIL_DOMAIN_WHITE_LIST</Code>.
                 </div>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
-                    {allowedDomains.map((domain) => (
-                        <Tag size="large" minimal>
+                <div
+                    style={{ display: "flex", flexWrap: "wrap", gap: 10 }}
+                    className={loading ? Classes.SKELETON : null}
+                >
+                    {allowedDomains.map((domain, index) => (
+                        <Tag size="large" minimal key={index}>
                             {domain}
                         </Tag>
                     ))}
@@ -220,7 +222,7 @@ export default function EmailAllowlist({ loading, configs }) {
                     In addition to allowed domains, Google accounts with emails
                     whitelisted here can also sign in on the platform.
                 </div>
-                <div>
+                <div className={loading ? Classes.SKELETON : null}>
                     <ControlGroup>
                         <InputGroup
                             onValueChange={(value) => {
