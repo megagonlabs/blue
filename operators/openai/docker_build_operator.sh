@@ -4,7 +4,7 @@ echo "${BLUE_CORE_DOCKER_ORG}/blue-operator-openai${BLUE_BUILD_IMG_SUFFIX}:${BLU
 echo "plaforms: ${BLUE_BUILD_PLATFORM}"
 
 # build docker
-docker buildx build  --platform ${BLUE_BUILD_PLATFORM} ${BLUE_BUILD_CACHE_ARG} --build-arg BLUE_BUILD_CACHE_ARG --build-arg BLUE_BUILD_LIB_ARG --push -t ${BLUE_DEV_DOCKER_ORG}/blue-operator-openai${BLUE_BUILD_IMG_SUFFIX}:${BLUE_DEPLOY_VERSION} -f Dockerfile.operator .
+docker buildx build  --platform ${BLUE_BUILD_PLATFORM} ${BLUE_BUILD_CACHE_ARG} --build-arg BLUE_BUILD_CACHE_ARG --build-arg BLUE_BUILD_LIB_ARG ${BLUE_BUILD_PUBLISH} -t ${BLUE_DEV_DOCKER_ORG}/blue-operator-openai${BLUE_BUILD_IMG_SUFFIX}:${BLUE_DEPLOY_VERSION} -f Dockerfile.operator .
 
 echo 'Done...'
 
