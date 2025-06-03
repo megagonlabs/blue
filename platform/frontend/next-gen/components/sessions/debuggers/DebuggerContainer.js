@@ -37,9 +37,20 @@ const FOLDER_CLOSED_ICON = (
 const FOLDER_OPEN_ICON = (
     <FAIcon icon={faFolderOpen} size={18} style={{ marginRight: 7 }} />
 );
-function parseRedisStreamKeysToTree(messageMap, keys) {
-    const tree = [];
-    const nodeMap = {};
+function parseRedisStreamKeysToTree(keys, previousTree = [], messageMap) {
+    const newTree = [...previousTree]; // Start with a copy of the previous tree
+    const newNodeMap = {}; // Map for new nodes based on their ID
+    const previousNodeMap = {}; // Map for previous nodes for quick lookup
+    // Create a map of the previous tree nodes for efficient lookup
+    function mapPreviousTree(nodes) {
+        nodes.forEach((node) => {
+            previousNodeMap[node.id] = node;
+            if (node.childNodes) {
+                mapPreviousTree(node.childNodes);
+            }
+        });
+    }
+    mapPreviousTree(previousTree);
     for (let i = 0; i < _.size(keys); i++) {
         const key = keys[i];
         const parts = key.split(":");
@@ -49,7 +60,8 @@ function parseRedisStreamKeysToTree(messageMap, keys) {
             const part = parts[j];
             const id = currentPath ? `${currentPath}:${part}` : part;
             const label = part;
-            let existingNode = nodeMap[id];
+            let existingNode = newNodeMap[id] || previousNodeMap[id];
+            let isNewNode = false;
             if (!existingNode) {
                 existingNode = {
                     id: id,
@@ -57,37 +69,139 @@ function parseRedisStreamKeysToTree(messageMap, keys) {
                     childNodes: [],
                     icon: FOLDER_CLOSED_ICON,
                 };
-                if (_.includes(["STREAM"], part)) {
-                    _.set(
-                        existingNode,
-                        "secondaryLabel",
-                        <Tag minimal intent={Intent.PRIMARY}>
-                            {messageMap[id].contentType}
-                        </Tag>
-                    );
+                newNodeMap[id] = existingNode;
+                isNewNode = true;
+            }
+            if (_.includes(["STREAM"], part)) {
+                _.set(
+                    existingNode,
+                    "secondaryLabel",
+                    <Tag minimal intent={Intent.PRIMARY}>
+                        {messageMap[id].contentType}
+                    </Tag>
+                );
+            }
+            if (!_.isNull(parentId)) {
+                const parentNode =
+                    newNodeMap[parentId] || previousNodeMap[parentId];
+                if (
+                    parentNode &&
+                    !parentNode.childNodes.some((child) =>
+                        _.isEqual(child.id, id)
+                    )
+                ) {
+                    parentNode.childNodes.push(existingNode);
+                    parentNode.hasCaret = true;
+                    parentNode.icon = parentNode.icon || FOLDER_CLOSED_ICON;
                 }
-                nodeMap[id] = existingNode;
-                if (!_.isNull(parentId)) {
-                    const parentNode = nodeMap[parentId];
-                    if (parentNode) {
-                        parentNode.childNodes.push(existingNode);
-                        parentNode.hasCaret = true;
-                    }
-                } else {
-                    tree.push(existingNode);
-                }
+            } else if (
+                !newTree.some((rootNode) => _.isEqual(rootNode.id, id))
+            ) {
+                newTree.push(existingNode);
             }
             currentPath = id;
             parentId = id;
+            // Inherit properties from the previous tree if the node existed
+            if (!isNewNode && previousNodeMap[id]) {
+                existingNode.isExpanded = previousNodeMap[id].isExpanded;
+                existingNode.secondaryLabel =
+                    previousNodeMap[id].secondaryLabel;
+                // Add other status-related properties you want to preserve here
+            }
         }
-        // after processing all parts of the key, ensure the final node is a leaf
-        if (nodeMap[currentPath]) {
-            delete nodeMap[currentPath].childNodes; // remove childNodes if it's a leaf
-            delete nodeMap[currentPath].hasCaret;
-            delete nodeMap[currentPath].icon;
+        // Post-process the final node (leaf)
+        if (newNodeMap[currentPath] || previousNodeMap[currentPath]) {
+            const finalNode =
+                newNodeMap[currentPath] || previousNodeMap[currentPath];
+            if (
+                finalNode &&
+                !keys.some((k) => k.startsWith(currentPath + ":"))
+            ) {
+                delete finalNode.childNodes;
+                delete finalNode.hasCaret;
+                delete finalNode.icon;
+            }
         }
     }
-    return tree;
+    // Post-process new nodes to ensure folders have correct icons
+    for (const nodeId in newNodeMap) {
+        const node = newNodeMap[nodeId];
+        if (node.childNodes && node.childNodes.length > 0) {
+            node.icon = FOLDER_CLOSED_ICON;
+            node.hasCaret = true;
+        }
+    }
+    // Merge updates into the previous tree structure
+    function mergeUpdates(newNodes, previousNodes) {
+        const merged = [];
+        const previousMap = {};
+        previousNodes.forEach((node) => (previousMap[node.id] = node));
+        newNodes.forEach((newNode) => {
+            const existingNode = previousMap[newNode.id];
+            if (existingNode) {
+                merged.push({
+                    ...existingNode,
+                    label: newNode.label, // Always update label if it exists in new data
+                    childNodes: mergeUpdates(
+                        newNode.childNodes || [],
+                        existingNode.childNodes || []
+                    ),
+                    hasCaret: !_.isUndefined(newNode.hasCaret)
+                        ? newNode.hasCaret
+                        : existingNode.hasCaret,
+                    icon: newNode.icon || existingNode.icon,
+                    secondaryLabel:
+                        newNode.secondaryLabel || existingNode.secondaryLabel,
+                    // Keep existing status properties
+                    isExpanded: existingNode.isExpanded,
+                    // Add other status properties to preserve
+                });
+            } else {
+                merged.push(newNode);
+            }
+        });
+        return merged;
+    }
+    // Handle cases where keys might have been removed
+    const allKeysProcessed = new Set(
+        keys
+            .map((key) => {
+                const parts = key.split(":");
+                let path = "";
+                return parts.map(
+                    (part) => (path = path ? `${path}:${part}` : part)
+                );
+            })
+            .flat()
+    );
+    function filterOutdatedNodes(nodes) {
+        return nodes.filter((node) => {
+            const isStillPresent =
+                allKeysProcessed.has(node.id) ||
+                (node.childNodes &&
+                    node.childNodes.some((child) =>
+                        allKeysProcessed.has(child.id)
+                    ));
+            if (node.childNodes) {
+                node.childNodes = filterOutdatedNodes(node.childNodes);
+                if (node.childNodes.length > 0) {
+                    node.hasCaret = true;
+                } else if (!keys.some((key) => key.startsWith(node.id + ":"))) {
+                    delete node.childNodes;
+                    delete node.hasCaret;
+                    node.icon = node.icon;
+                }
+            }
+            return (
+                isStillPresent ||
+                node.hasCaret ||
+                _.isEqual(node.icon, FOLDER_CLOSED_ICON)
+            ); // Keep folders or leaves
+        });
+    }
+    const updatedTree = mergeUpdates(newTree, previousTree);
+    const finalTree = filterOutdatedNodes(updatedTree);
+    return finalTree;
 }
 function DebuggerContainer({ width, height, sessionId }) {
     const { session } = useSessionStore(
@@ -125,7 +239,9 @@ function DebuggerContainer({ width, height, sessionId }) {
             streams.push(stream);
             messageMap[stream] = { contentType: messages[i].contentType };
         }
-        setTreeContents(parseRedisStreamKeysToTree(messageMap, streams));
+        setTreeContents(
+            parseRedisStreamKeysToTree(streams, treeContents, messageMap)
+        );
     }, [messages]);
     const onNodeClick = (node, nodePath, e) => {
         let contents = _.cloneDeep(treeContents);
@@ -214,6 +330,7 @@ function DebuggerContainer({ width, height, sessionId }) {
                                     <HTMLTable
                                         interactive
                                         striped
+                                        style={{ width: tableWidth }}
                                         className="table-header-sticky"
                                     >
                                         <thead
