@@ -18,8 +18,8 @@ PROPERTIES["data_registry.name"] = os.getenv("BLUE_DATA_REGISTRY")
 PROPERTIES["model_registry.name"] = os.getenv("BLUE_MODEL_REGISTRY")
 PROPERTIES["operator_registry.name"] = os.getenv("BLUE_OPERATOR_REGISTRY")
 PROPERTIES["embeddings_model"] = os.getenv("BLUE_AGENT_REGISTRY_MODEL")
-PROPERTIES["db.host"] = os.getenv("BLUE_PUBLIC_DB_SERVER", 'blue_db_redis')
-PROPERTIES["db.port"] = os.getenv("BLUE_PUBLIC_DB_SERVER_PORT", '6379')
+PROPERTIES["db.host"] = 'blue_db_redis' # private network ip never changes
+PROPERTIES["db.port"] = '6379' 
 PROPERTIES["rbac.config.folder"] = os.getenv("BLUE_RBAC_CONFIG_FOLDER")
 
 ##### Other Settings
