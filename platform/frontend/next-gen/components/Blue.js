@@ -3,6 +3,7 @@ import { useAuthStore } from "@/stores/auth-store";
 import { useGridStore } from "@/stores/grid-layout-store";
 import { useSessionStore } from "@/stores/session-store";
 import {
+    Alert,
     Card,
     Classes,
     Colors,
@@ -96,13 +97,16 @@ export default function Blue({ children }) {
         },
     ];
     const darkModeClassName = darkMode ? Classes.DARK : null;
-    const { user, permissions } = useAuthStore(
+    const { user, permissions, logout } = useAuthStore(
         useShallow((state) => ({
             user: state.user,
             permissions: state.permissions,
+            logout: state.logout,
         }))
     );
     const createNewSession = useSessionStore((state) => state.createNewSession);
+    const userProfileError =
+        !_.isEmpty(user) && _.isEmpty(_.get(user, "role", null));
     if (_.isNull(user)) {
         return <Authentication />;
     }
@@ -444,6 +448,15 @@ export default function Blue({ children }) {
                                 )}
                             </ExpandingBox>
                         </div>
+                        <Alert
+                            isOpen={userProfileError}
+                            intent={Intent.DANGER}
+                            confirmButtonText="Sign out"
+                            onConfirm={logout}
+                        >
+                            There seems to be an issue with your account
+                            information. Please log in again to continue.
+                        </Alert>
                         <div
                             className="full-parent-dimension"
                             style={{ padding: "20px 20px 20px 105px" }}

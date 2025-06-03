@@ -1,24 +1,208 @@
 import { MIN_ALLOTMENT_PANE_SIZE } from "@/components/constants";
+import { FAIcon } from "@/components/FAIcon";
+import { insertBetween } from "@/components/helper";
 import withAutoSizer from "@/components/hocs/withAutoSizer";
 import Timestamp from "@/components/Timestamp";
 import { useAppStore } from "@/stores/app-store";
 import { useSessionStore } from "@/stores/session-store";
 import {
     Alignment,
+    Button,
+    ButtonGroup,
+    ButtonVariant,
     Classes,
     Colors,
     HTMLTable,
     Intent,
     Tag,
     Tooltip,
+    Tree,
 } from "@blueprintjs/core";
+import {
+    faFolder,
+    faFolderOpen,
+    faFolderTree,
+    faList,
+} from "@fortawesome/sharp-duotone-solid-svg-icons";
 import { Allotment } from "allotment";
 import classNames from "classnames";
 import _ from "lodash";
-import { useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import AutoSizer from "react-virtualized-auto-sizer";
 import { useShallow } from "zustand/react/shallow";
 import MessageViewer from "./MessageViewer";
+const FOLDER_CLOSED_ICON = (
+    <FAIcon icon={faFolder} style={{ marginRight: 7 }} />
+);
+const FOLDER_OPEN_ICON = (
+    <FAIcon icon={faFolderOpen} size={18} style={{ marginRight: 7 }} />
+);
+function parseRedisStreamKeysToTree(keys, previousTree = [], messageMap) {
+    const newTree = [...previousTree]; // Start with a copy of the previous tree
+    const newNodeMap = {}; // Map for new nodes based on their ID
+    const previousNodeMap = {}; // Map for previous nodes for quick lookup
+    // Create a map of the previous tree nodes for efficient lookup
+    function mapPreviousTree(nodes) {
+        nodes.forEach((node) => {
+            previousNodeMap[node.id] = node;
+            if (node.childNodes) {
+                mapPreviousTree(node.childNodes);
+            }
+        });
+    }
+    mapPreviousTree(previousTree);
+    for (let i = 0; i < _.size(keys); i++) {
+        const key = keys[i];
+        const parts = key.split(":");
+        let currentPath = "";
+        let parentId = null;
+        for (let j = 0; j < parts.length; j++) {
+            const part = parts[j];
+            const id = currentPath ? `${currentPath}:${part}` : part;
+            const label = part;
+            let existingNode = newNodeMap[id] || previousNodeMap[id];
+            let isNewNode = false;
+            if (!existingNode) {
+                existingNode = {
+                    id: id,
+                    label: label,
+                    childNodes: [],
+                    icon: FOLDER_CLOSED_ICON,
+                };
+                newNodeMap[id] = existingNode;
+                isNewNode = true;
+            }
+            if (_.includes(["STREAM"], part)) {
+                _.set(
+                    existingNode,
+                    "secondaryLabel",
+                    <Tag minimal intent={Intent.PRIMARY}>
+                        {messageMap[id].contentType}
+                    </Tag>
+                );
+            }
+            if (!_.isNull(parentId)) {
+                const parentNode =
+                    newNodeMap[parentId] || previousNodeMap[parentId];
+                if (
+                    parentNode &&
+                    !parentNode.childNodes.some((child) =>
+                        _.isEqual(child.id, id)
+                    )
+                ) {
+                    parentNode.childNodes.push(existingNode);
+                    parentNode.hasCaret = true;
+                    parentNode.icon = parentNode.icon || FOLDER_CLOSED_ICON;
+                }
+            } else if (
+                !newTree.some((rootNode) => _.isEqual(rootNode.id, id))
+            ) {
+                newTree.push(existingNode);
+            }
+            currentPath = id;
+            parentId = id;
+            // Inherit properties from the previous tree if the node existed
+            if (!isNewNode && previousNodeMap[id]) {
+                existingNode.isExpanded = previousNodeMap[id].isExpanded;
+                existingNode.secondaryLabel =
+                    previousNodeMap[id].secondaryLabel;
+                // Add other status-related properties you want to preserve here
+            }
+        }
+        // Post-process the final node (leaf)
+        if (newNodeMap[currentPath] || previousNodeMap[currentPath]) {
+            const finalNode =
+                newNodeMap[currentPath] || previousNodeMap[currentPath];
+            if (
+                finalNode &&
+                !keys.some((k) => k.startsWith(currentPath + ":"))
+            ) {
+                delete finalNode.childNodes;
+                delete finalNode.hasCaret;
+                delete finalNode.icon;
+            }
+        }
+    }
+    // Post-process new nodes to ensure folders have correct icons
+    for (const nodeId in newNodeMap) {
+        const node = newNodeMap[nodeId];
+        if (node.childNodes && node.childNodes.length > 0) {
+            node.icon = FOLDER_CLOSED_ICON;
+            node.hasCaret = true;
+        }
+    }
+    // Merge updates into the previous tree structure
+    function mergeUpdates(newNodes, previousNodes) {
+        const merged = [];
+        const previousMap = {};
+        previousNodes.forEach((node) => (previousMap[node.id] = node));
+        newNodes.forEach((newNode) => {
+            const existingNode = previousMap[newNode.id];
+            if (existingNode) {
+                merged.push({
+                    ...existingNode,
+                    label: newNode.label, // Always update label if it exists in new data
+                    childNodes: mergeUpdates(
+                        newNode.childNodes || [],
+                        existingNode.childNodes || []
+                    ),
+                    hasCaret: !_.isUndefined(newNode.hasCaret)
+                        ? newNode.hasCaret
+                        : existingNode.hasCaret,
+                    icon: newNode.icon || existingNode.icon,
+                    secondaryLabel:
+                        newNode.secondaryLabel || existingNode.secondaryLabel,
+                    // Keep existing status properties
+                    isExpanded: existingNode.isExpanded,
+                    // Add other status properties to preserve
+                });
+            } else {
+                merged.push(newNode);
+            }
+        });
+        return merged;
+    }
+    // Handle cases where keys might have been removed
+    const allKeysProcessed = new Set(
+        keys
+            .map((key) => {
+                const parts = key.split(":");
+                let path = "";
+                return parts.map(
+                    (part) => (path = path ? `${path}:${part}` : part)
+                );
+            })
+            .flat()
+    );
+    function filterOutdatedNodes(nodes) {
+        return nodes.filter((node) => {
+            const isStillPresent =
+                allKeysProcessed.has(node.id) ||
+                (node.childNodes &&
+                    node.childNodes.some((child) =>
+                        allKeysProcessed.has(child.id)
+                    ));
+            if (node.childNodes) {
+                node.childNodes = filterOutdatedNodes(node.childNodes);
+                if (node.childNodes.length > 0) {
+                    node.hasCaret = true;
+                } else if (!keys.some((key) => key.startsWith(node.id + ":"))) {
+                    delete node.childNodes;
+                    delete node.hasCaret;
+                    node.icon = node.icon;
+                }
+            }
+            return (
+                isStillPresent ||
+                node.hasCaret ||
+                _.isEqual(node.icon, FOLDER_CLOSED_ICON)
+            ); // Keep folders or leaves
+        });
+    }
+    const updatedTree = mergeUpdates(newTree, previousTree);
+    const finalTree = filterOutdatedNodes(updatedTree);
+    return finalTree;
+}
 function DebuggerContainer({ width, height, sessionId }) {
     const { session } = useSessionStore(
         useShallow((state) => ({
@@ -31,11 +215,71 @@ function DebuggerContainer({ width, height, sessionId }) {
     const popoverBoundary =
         elementRef.current &&
         elementRef.current.closest(".grid-container-boundary");
-    const [focusIndex, setFocusIndex] = useState(null);
+    const [focusStream, setFocusStream] = useState(null);
+    const focusIndex = useMemo(() => {
+        for (let i = 0; i < _.size(messages); i++) {
+            if (_.isEqual(focusStream, messages[i].stream)) {
+                return i;
+            }
+        }
+        return null;
+    }, [focusStream]);
     const CELL_CONTENT_STYLES = {
         height: 22,
         display: "flex",
         alignItems: "center",
+    };
+    const [viewType, setViewType] = useState("list");
+    const [treeContents, setTreeContents] = useState([]);
+    useEffect(() => {
+        let streams = [];
+        let messageMap = {};
+        for (let i = 0; i < _.size(messages); i++) {
+            const stream = messages[i].stream;
+            streams.push(stream);
+            messageMap[stream] = { contentType: messages[i].contentType };
+        }
+        setTreeContents(
+            parseRedisStreamKeysToTree(streams, treeContents, messageMap)
+        );
+    }, [messages]);
+    const onNodeClick = (node, nodePath, e) => {
+        let contents = _.cloneDeep(treeContents);
+        const path = insertBetween(nodePath, "childNodes");
+        let current = _.get(contents, path);
+        if (_.has(current, "childNodes")) {
+            const isExpanded = !_.get(current, "isExpanded", false);
+            _.set(contents, path, {
+                ...current,
+                isExpanded,
+                icon: isExpanded ? FOLDER_OPEN_ICON : FOLDER_CLOSED_ICON,
+            });
+            setTreeContents(contents);
+        } else {
+            setFocusStream(node.id);
+        }
+    };
+    const onNodeExpand = (node, nodePath, e) => {
+        let contents = _.cloneDeep(treeContents);
+        const path = insertBetween(nodePath, "childNodes");
+        let current = _.get(contents, path);
+        _.set(contents, path, {
+            ...current,
+            isExpanded: true,
+            icon: FOLDER_OPEN_ICON,
+        });
+        setTreeContents(contents);
+    };
+    const onNodeCollapse = (node, nodePath, e) => {
+        let contents = _.cloneDeep(treeContents);
+        const path = insertBetween(nodePath, "childNodes");
+        let current = _.get(contents, path);
+        _.set(contents, path, {
+            ...current,
+            isExpanded: false,
+            icon: FOLDER_CLOSED_ICON,
+        });
+        setTreeContents(contents);
     };
     return (
         <div
@@ -49,142 +293,191 @@ function DebuggerContainer({ width, height, sessionId }) {
             <Allotment>
                 <Allotment.Pane minSize={MIN_ALLOTMENT_PANE_SIZE}>
                     <div
-                        className="full-parent-dimension"
-                        style={{ overflowY: "auto" }}
+                        className="border-bottom"
+                        style={{ padding: 10, textAlign: "end" }}
                     >
-                        <AutoSizer>
-                            {({ width: tableWidth }) => (
-                                <HTMLTable
-                                    interactive
-                                    striped
-                                    className="table-header-sticky"
-                                >
-                                    <thead
-                                        style={{
-                                            position: "sticky",
-                                            top: 0,
-                                            backgroundColor: darkMode
-                                                ? Colors.BLACK
-                                                : Colors.WHITE,
-                                            zIndex: 1,
-                                        }}
+                        <ButtonGroup variant={ButtonVariant.MINIMAL}>
+                            <Tooltip content="List View" placement="bottom">
+                                <Button
+                                    onClick={() => {
+                                        setViewType("list");
+                                    }}
+                                    active={_.isEqual(viewType, "list")}
+                                    icon={<FAIcon icon={faList} />}
+                                />
+                            </Tooltip>
+                            <Tooltip content="Tree View" placement="bottom">
+                                <Button
+                                    onClick={() => {
+                                        setViewType("tree");
+                                    }}
+                                    active={_.isEqual(viewType, "tree")}
+                                    icon={<FAIcon icon={faFolderTree} />}
+                                />
+                            </Tooltip>
+                        </ButtonGroup>
+                    </div>
+                    <div
+                        className="full-parent-dimension"
+                        style={{
+                            overflowY: "auto",
+                            maxHeight: "calc(100% - 51px)",
+                        }}
+                    >
+                        {_.isEqual(viewType, "list") ? (
+                            <AutoSizer>
+                                {({ width: tableWidth }) => (
+                                    <HTMLTable
+                                        interactive
+                                        striped
+                                        style={{ width: tableWidth }}
+                                        className="table-header-sticky"
                                     >
-                                        <tr>
-                                            <th className="border-bottom">
-                                                <div style={{ paddingLeft: 9 }}>
-                                                    Type
-                                                </div>
-                                            </th>
-                                            <th className="border-bottom">
-                                                Stream
-                                            </th>
-                                            <th
-                                                className="border-bottom"
-                                                style={{
-                                                    textAlign: Alignment.END,
-                                                }}
-                                            >
-                                                <div
-                                                    style={{ paddingRight: 9 }}
-                                                >
-                                                    Time
-                                                </div>
-                                            </th>
-                                        </tr>
-                                    </thead>
-                                    <tbody style={{ overflowY: "auto" }}>
-                                        {messages.map((message, index) => (
-                                            <tr
-                                                onClick={() => {
-                                                    setFocusIndex(index);
-                                                }}
-                                            >
-                                                <td>
+                                        <thead
+                                            style={{
+                                                position: "sticky",
+                                                top: 0,
+                                                backgroundColor: darkMode
+                                                    ? Colors.BLACK
+                                                    : Colors.WHITE,
+                                                zIndex: 1,
+                                            }}
+                                        >
+                                            <tr>
+                                                <th className="border-bottom">
                                                     <div
                                                         style={{
-                                                            ...CELL_CONTENT_STYLES,
-                                                            width: 80,
                                                             paddingLeft: 9,
                                                         }}
                                                     >
-                                                        <Tag
-                                                            minimal
-                                                            intent={
-                                                                Intent.PRIMARY
+                                                        Type
+                                                    </div>
+                                                </th>
+                                                <th className="border-bottom">
+                                                    Stream
+                                                </th>
+                                                <th
+                                                    className="border-bottom"
+                                                    style={{
+                                                        textAlign:
+                                                            Alignment.END,
+                                                    }}
+                                                >
+                                                    <div
+                                                        style={{
+                                                            paddingRight: 9,
+                                                        }}
+                                                    >
+                                                        Time
+                                                    </div>
+                                                </th>
+                                            </tr>
+                                        </thead>
+                                        <tbody style={{ overflowY: "auto" }}>
+                                            {messages.map((message, index) => (
+                                                <tr
+                                                    onClick={() => {
+                                                        setFocusStream(
+                                                            message.stream
+                                                        );
+                                                    }}
+                                                >
+                                                    <td>
+                                                        <div
+                                                            style={{
+                                                                ...CELL_CONTENT_STYLES,
+                                                                width: 80,
+                                                                paddingLeft: 9,
+                                                            }}
+                                                        >
+                                                            <Tag
+                                                                minimal
+                                                                intent={
+                                                                    Intent.PRIMARY
+                                                                }
+                                                            >
+                                                                {
+                                                                    message.contentType
+                                                                }
+                                                            </Tag>
+                                                        </div>
+                                                    </td>
+                                                    <td>
+                                                        <Tooltip
+                                                            placement="bottom"
+                                                            boundary={
+                                                                popoverBoundary
+                                                            }
+                                                            content={
+                                                                <div
+                                                                    style={{
+                                                                        width: 300,
+                                                                        wordBreak:
+                                                                            "break-all",
+                                                                    }}
+                                                                >
+                                                                    {
+                                                                        message.stream
+                                                                    }
+                                                                </div>
                                                             }
                                                         >
-                                                            {
-                                                                message.contentType
-                                                            }
-                                                        </Tag>
-                                                    </div>
-                                                </td>
-                                                <td>
-                                                    <Tooltip
-                                                        placement="bottom"
-                                                        boundary={
-                                                            popoverBoundary
-                                                        }
-                                                        content={
                                                             <div
+                                                                className={classNames(
+                                                                    "full-parent-width",
+                                                                    Classes.TEXT_OVERFLOW_ELLIPSIS
+                                                                )}
                                                                 style={{
-                                                                    width: 300,
-                                                                    wordBreak:
-                                                                        "break-all",
+                                                                    lineHeight:
+                                                                        "22px",
+                                                                    width: `${
+                                                                        tableWidth -
+                                                                        66 -
+                                                                        180
+                                                                    }px`,
                                                                 }}
                                                             >
                                                                 {message.stream}
                                                             </div>
-                                                        }
-                                                    >
+                                                        </Tooltip>
+                                                    </td>
+                                                    <td>
                                                         <div
-                                                            className={classNames(
-                                                                "full-parent-width",
-                                                                Classes.TEXT_OVERFLOW_ELLIPSIS
-                                                            )}
                                                             style={{
-                                                                lineHeight:
-                                                                    "22px",
-                                                                width: `${
-                                                                    tableWidth -
-                                                                    66 -
-                                                                    180
-                                                                }px`,
+                                                                ...CELL_CONTENT_STYLES,
+                                                                width: 100,
+                                                                paddingRight: 9,
+                                                                justifyContent:
+                                                                    "end",
+                                                                textAlign:
+                                                                    Alignment.END,
                                                             }}
                                                         >
-                                                            {message.stream}
+                                                            <Timestamp
+                                                                boundary={
+                                                                    popoverBoundary
+                                                                }
+                                                                placement="bottom"
+                                                                date={
+                                                                    message.timestamp
+                                                                }
+                                                            />
                                                         </div>
-                                                    </Tooltip>
-                                                </td>
-                                                <td>
-                                                    <div
-                                                        style={{
-                                                            ...CELL_CONTENT_STYLES,
-                                                            width: 100,
-                                                            paddingRight: 9,
-                                                            justifyContent:
-                                                                "end",
-                                                            textAlign:
-                                                                Alignment.END,
-                                                        }}
-                                                    >
-                                                        <Timestamp
-                                                            boundary={
-                                                                popoverBoundary
-                                                            }
-                                                            placement="bottom"
-                                                            date={
-                                                                message.timestamp
-                                                            }
-                                                        />
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </HTMLTable>
-                            )}
-                        </AutoSizer>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </HTMLTable>
+                                )}
+                            </AutoSizer>
+                        ) : (
+                            <Tree
+                                onNodeCollapse={onNodeCollapse}
+                                onNodeExpand={onNodeExpand}
+                                contents={treeContents}
+                                onNodeClick={onNodeClick}
+                            />
+                        )}
                     </div>
                 </Allotment.Pane>
                 <Allotment.Pane minSize={MIN_ALLOTMENT_PANE_SIZE}>

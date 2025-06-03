@@ -62,6 +62,13 @@ function base64ToWebsafe(base64) {
     return base64.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
 module.exports = {
+    insertBetween: (list, element) => {
+        let array = _.cloneDeep(list);
+        for (let i = 1; i < _.size(array); i += 2) {
+            array.splice(i, 0, element);
+        }
+        return array;
+    },
     encodeWebsafeBase64: (payload) => {
         return base64ToWebsafe(btoa(payload));
     },
