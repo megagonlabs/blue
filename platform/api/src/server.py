@@ -34,7 +34,7 @@ connection = redis.Redis(host=db_host, port=db_port, decode_responses=True)
 
 ###### API Routers
 from constant import EMAIL_DOMAIN_ADDRESS_REGEXP, InvalidRequestJson, PermissionDenied, is_email_allowed, verify_google_id_token
-from routers import agents, data, models, operators, sessions, containers, platform, accounts, status
+from routers import agents, data, models, operators, tools, sessions, containers, platform, accounts, status
 
 from ConnectionManager import ConnectionManager
 
@@ -45,6 +45,7 @@ from blue.agents.registry import AgentRegistry
 from blue.data.registry import DataRegistry
 from blue.model import ModelRegistry
 from blue.operator import OperatorRegistry
+from blue.tools import ToolRegistry
 from blue.tracker import SystemPerformanceTracker
 
 ### Assign from platform properties
@@ -54,6 +55,7 @@ agent_registry_id = PROPERTIES["agent_registry.name"]
 data_registry_id = PROPERTIES["data_registry.name"]
 model_registry_id = PROPERTIES["model_registry.name"]
 operator_registry_id = PROPERTIES["operator_registry.name"]
+tool_registry_id = PROPERTIES["tool_registry.name"]
 PLATFORM_PREFIX = f'/blue/platform/{platform_id}'
 
 ####### Version
@@ -80,6 +82,9 @@ model_registry.load("/blue_data/config/" + model_registry_id + ".models.json")
 
 operator_registry = OperatorRegistry(id=operator_registry_id, prefix=prefix, properties=PROPERTIES)
 operator_registry.load("/blue_data/config/" + operator_registry_id + ".operators.json")
+
+tool_registry = ToolRegistry(id=tool_registry_id, prefix=prefix, properties=PROPERTIES)
+tool_registry.load("/blue_data/config/" + tool_registry_id + ".tools.json")
 
 ###  Get API server address from properties to white list
 api_server = PROPERTIES["api.server"]
@@ -139,6 +144,7 @@ app.include_router(agents.router)
 app.include_router(data.router)
 app.include_router(models.router)
 app.include_router(operators.router)
+app.include_router(tools.router)
 app.include_router(sessions.router)
 app.include_router(containers.router)
 app.include_router(platform.router)
