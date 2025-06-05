@@ -45,7 +45,7 @@ from blue.agents.registry import AgentRegistry
 from blue.data.registry import DataRegistry
 from blue.model import ModelRegistry
 from blue.operator import OperatorRegistry
-from blue.tools import ToolRegistry
+from blue.tools.registry import ToolRegistry
 from blue.tracker import SystemPerformanceTracker
 
 ### Assign from platform properties

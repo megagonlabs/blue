@@ -9,8 +9,8 @@ from blue.utils import json_utils
 from blue.registry import Registry
 
 ###### Supported Tool Servers
-from blue.tools.servers import RayServer
-from blue.tools.servers import MCPServer
+from blue.tools.servers.ray_server import RayServer
+from blue.tools.servers.mcp_server import MCPServer
 
 
 ###############

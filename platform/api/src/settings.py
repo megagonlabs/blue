@@ -17,6 +17,7 @@ PROPERTIES["agent_registry.name"] = os.getenv("BLUE_AGENT_REGISTRY")
 PROPERTIES["data_registry.name"] = os.getenv("BLUE_DATA_REGISTRY")
 PROPERTIES["model_registry.name"] = os.getenv("BLUE_MODEL_REGISTRY")
 PROPERTIES["operator_registry.name"] = os.getenv("BLUE_OPERATOR_REGISTRY")
+PROPERTIES["tool_registry.name"] = os.getenv("BLUE_TOOL_REGISTRY")
 PROPERTIES["embeddings_model"] = os.getenv("BLUE_AGENT_REGISTRY_MODEL")
 PROPERTIES["db.host"] = 'blue_db_redis' # private network ip never changes
 PROPERTIES["db.port"] = '6379' 
