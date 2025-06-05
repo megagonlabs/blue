@@ -150,7 +150,7 @@ $ ./docker_build_agent.sh
 To build docker images for all services that agents use, run:
 ```
 $ cd services
-$ ./docker_build_all_services.sh.
+$ ./docker_build_all_services.sh
 ```
 
 Or if you can also build images for certain services, you can do so by first changing to the directory for the service, for example, to build openai service only:
