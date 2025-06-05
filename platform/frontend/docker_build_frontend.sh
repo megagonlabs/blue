@@ -13,7 +13,7 @@ if [ -z "$fa_token" ]
 fi
 
 # build docker
-docker buildx build  --platform ${BLUE_BUILD_PLATFORM} ${BLUE_BUILD_CACHE_ARG} --build-arg BLUE_BUILD_CACHE_ARG --build-arg BLUE_BUILD_LIB_ARG --push -t ${BLUE_CORE_DOCKER_ORG}/blue-platform-frontend${BLUE_BUILD_IMG_SUFFIX}:${BLUE_DEPLOY_VERSION} -f Dockerfile.frontend \
+docker buildx build  --platform ${BLUE_BUILD_PLATFORM} ${BLUE_BUILD_CACHE_ARG} --build-arg BLUE_BUILD_CACHE_ARG --build-arg BLUE_BUILD_LIB_ARG ${BLUE_BUILD_PUBLISH} -t ${BLUE_CORE_DOCKER_ORG}/blue-platform-frontend${BLUE_BUILD_IMG_SUFFIX}:${BLUE_DEPLOY_VERSION} -f Dockerfile.frontend \
     --build-arg git_short=$(git rev-parse --short HEAD) \
     --build-arg git_long=$(git rev-parse HEAD) \
     --build-arg git_branch=$(git rev-parse --abbrev-ref HEAD) \
