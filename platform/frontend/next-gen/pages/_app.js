@@ -1,6 +1,7 @@
 import AuthErrorHandler from "@/components/AuthErrorHandler";
 import Blue from "@/components/Blue";
 import SocketHandler from "@/components/SocketHandler";
+import SystemStatusHandler from "@/components/SystemStatusHandler";
 import "@/styles/custom.css";
 import "@/styles/docs.css";
 import "@/styles/global.css";
@@ -9,7 +10,8 @@ import "@blueprintjs/core/lib/css/blueprint.css";
 import "@blueprintjs/icons/lib/css/blueprint-icons.css";
 import "@blueprintjs/select/lib/css/blueprint-select.css";
 import "@blueprintjs/table/lib/css/table.css";
-import { library } from "@fortawesome/fontawesome-svg-core";
+import { config, library } from "@fortawesome/fontawesome-svg-core";
+import "@fortawesome/fontawesome-svg-core/styles.css";
 import * as Icons from "@fortawesome/sharp-duotone-solid-svg-icons";
 import "allotment/dist/style.css";
 import axios from "axios";
@@ -23,6 +25,7 @@ import Head from "next/head";
 import "normalize.css/normalize.css";
 import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
+config.autoAddCss = false;
 TimeAgo.addDefaultLocale(en);
 FocusStyleManager.onlyShowFocusOnTabs();
 if (typeof window !== "undefined") {
@@ -48,9 +51,11 @@ const App = ({ Component, pageProps }) => {
                     />
                 </Head>
                 <SocketHandler>
-                    <Blue>
-                        <Component {...pageProps} />
-                    </Blue>
+                    <SystemStatusHandler>
+                        <Blue>
+                            <Component {...pageProps} />
+                        </Blue>
+                    </SystemStatusHandler>
                 </SocketHandler>
             </AuthErrorHandler>
         );

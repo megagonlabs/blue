@@ -11,7 +11,6 @@ import {
     FormGroup,
     Intent,
     Popover,
-    PopoverInteractionKind,
     Size,
     Tooltip,
 } from "@blueprintjs/core";
@@ -36,6 +35,12 @@ const CustomResizeHandle = forwardRef(
         );
     }
 );
+const WIDTH_ADJUSTMENT_BUTTONS = [
+    { width: 5, tooltip: { content: "42%", placement: "bottom-start" } },
+    { width: 6, tooltip: { content: "50%", placement: "bottom" } },
+    { width: 7, tooltip: { content: "58%", placement: "bottom" } },
+    { width: 12, tooltip: { content: "Full width", placement: "bottom-end" } },
+];
 export default function Home() {
     const {
         layout,
@@ -101,84 +106,46 @@ export default function Home() {
                                 />
                                 <Divider className="visibility-hidden" />
                                 <Popover
-                                    interactionKind={
-                                        PopoverInteractionKind.HOVER
-                                    }
                                     placement="bottom"
                                     modifiers={{
                                         offset: {
                                             enabled: true,
-                                            options: { offset: [10, 14] },
+                                            options: { offset: [15.5, 14] },
                                         },
                                     }}
                                     content={
                                         <div style={{ padding: 10 }}>
                                             <FormGroup label="Width">
-                                                <ButtonGroup fill>
-                                                    <Tooltip
-                                                        placement="bottom-start"
-                                                        content="42%"
-                                                    >
-                                                        <Button
-                                                            text="5"
-                                                            onClick={() => {
-                                                                resizeContainerWidth(
-                                                                    {
-                                                                        id: element.i,
-                                                                        width: 5,
+                                                <ButtonGroup
+                                                    fill
+                                                    variant={
+                                                        ButtonVariant.MINIMAL
+                                                    }
+                                                >
+                                                    {WIDTH_ADJUSTMENT_BUTTONS.map(
+                                                        (spec) => (
+                                                            <Tooltip
+                                                                {...spec.tooltip}
+                                                            >
+                                                                <Button
+                                                                    intent={
+                                                                        Intent.PRIMARY
                                                                     }
-                                                                );
-                                                            }}
-                                                        />
-                                                    </Tooltip>
-                                                    <Tooltip
-                                                        placement="bottom"
-                                                        content="50%"
-                                                    >
-                                                        <Button
-                                                            text="6"
-                                                            onClick={() => {
-                                                                resizeContainerWidth(
-                                                                    {
-                                                                        id: element.i,
-                                                                        width: 6,
+                                                                    onClick={() => {
+                                                                        resizeContainerWidth(
+                                                                            {
+                                                                                id: element.i,
+                                                                                width: spec.width,
+                                                                            }
+                                                                        );
+                                                                    }}
+                                                                    text={
+                                                                        spec.width
                                                                     }
-                                                                );
-                                                            }}
-                                                        />
-                                                    </Tooltip>
-                                                    <Tooltip
-                                                        placement="bottom"
-                                                        content="58%"
-                                                    >
-                                                        <Button
-                                                            text="7"
-                                                            onClick={() => {
-                                                                resizeContainerWidth(
-                                                                    {
-                                                                        id: element.i,
-                                                                        width: 7,
-                                                                    }
-                                                                );
-                                                            }}
-                                                        />
-                                                    </Tooltip>
-                                                    <Tooltip
-                                                        placement="bottom-end"
-                                                        content="Full width"
-                                                    >
-                                                        <Button
-                                                            text="12"
-                                                            onClick={() => {
-                                                                resizeContainerWidth(
-                                                                    {
-                                                                        id: element.i,
-                                                                        width: 12,
-                                                                    }
-                                                                );
-                                                            }}
-                                                        />
-                                                    </Tooltip>
+                                                                />
+                                                            </Tooltip>
+                                                        )
+                                                    )}
                                                 </ButtonGroup>
                                             </FormGroup>
                                             <FormGroup
@@ -186,8 +153,12 @@ export default function Home() {
                                                 label="Height"
                                             >
                                                 <Button
+                                                    variant={
+                                                        ButtonVariant.MINIMAL
+                                                    }
                                                     fill
                                                     text="Full height"
+                                                    intent={Intent.PRIMARY}
                                                     onClick={() => {
                                                         resizeContainerFullHeight(
                                                             {
@@ -201,10 +172,12 @@ export default function Home() {
                                         </div>
                                     }
                                 >
-                                    <Button
-                                        intent={Intent.SUCCESS}
-                                        icon={<FAIcon icon={faExpand} />}
-                                    />
+                                    <Tooltip content="Resize">
+                                        <Button
+                                            intent={Intent.SUCCESS}
+                                            icon={<FAIcon icon={faExpand} />}
+                                        />
+                                    </Tooltip>
                                 </Popover>
                             </ButtonGroup>
                             <div
@@ -213,6 +186,7 @@ export default function Home() {
                                     width: "calc(100% - 79px)",
                                     fontWeight: 600,
                                     display: "flex",
+                                    paddingRight: 79,
                                     alignItems: "center",
                                     justifyContent: "center",
                                 }}

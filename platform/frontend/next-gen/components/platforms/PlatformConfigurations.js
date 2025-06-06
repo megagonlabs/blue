@@ -16,8 +16,8 @@ import { useState } from "react";
 import { useContainerContext } from "../contexts/ContainerContext";
 import { FAIcon } from "../FAIcon";
 import withAutoSizer from "../hocs/withAutoSizer";
-import AuthenticationConfigurations from "./Configurations/AuthenticationConfigurations";
-import SessionConfigurations from "./Configurations/SessionConfigurations";
+import AuthenticationConfigurations from "./configurations/AuthenticationConfigurations";
+import SessionConfigurations from "./configurations/SessionConfigurations";
 const SECTIONS = [
     { icon: faInboxFull, text: "Sessions" },
     { icon: faIdCardClip, text: "Authentication" },
@@ -64,6 +64,8 @@ function PlatformConfigurations({ width, height }) {
                                     if (element) {
                                         element.scrollIntoView({
                                             behavior: "smooth",
+                                            block: "nearest",
+                                            inline: "nearest",
                                         });
                                     }
                                 }}
