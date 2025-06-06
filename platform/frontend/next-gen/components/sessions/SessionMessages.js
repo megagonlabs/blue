@@ -38,6 +38,7 @@ import { VariableSizeList } from "react-window";
 import { useShallow } from "zustand/react/shallow";
 import {
     EMPTY_ARRAY,
+    EMPTY_OBJECT,
     MESSAGE_OVERFLOW_THRESHOLD,
     POPPER_BOTTOM_WITH_MODIFIER_OVERFLOW_10,
 } from "../constants";
@@ -47,7 +48,7 @@ import MessageContent from "./messages/MessageContent";
 import SessionDisplayName from "./SessionDisplayName";
 import SessionMemberStack from "./SessionMemberStack";
 const Row = ({ index, data, style }) => {
-    const { setRowHeight, sessionId } = data;
+    const { setRowHeight, sessionId, addInspectionContainer } = data;
     const darkMode = useAppStore((state) => state.dark_mode);
     const { getUserProfileById, getAgentMetadata } = useDedupStore(
         useShallow((state) => ({
@@ -55,13 +56,23 @@ const Row = ({ index, data, style }) => {
             getAgentMetadata: state.getAgentMetadata,
         }))
     );
-    const addToWorkspace = useSessionStore((state) => state.addToWorkspace);
-    const { streams, messages } = useSessionStore(
-        useShallow((state) => ({
-            streams: _.get(state, ["sessions", sessionId, "streams"], {}),
-            messages: _.get(state, ["sessions", sessionId, "messages"], []),
-        }))
-    );
+    const { streams, messages, addToWorkspace, setInspectionFocusStream } =
+        useSessionStore(
+            useShallow((state) => ({
+                streams: _.get(
+                    state,
+                    ["sessions", sessionId, "streams"],
+                    EMPTY_OBJECT
+                ),
+                messages: _.get(
+                    state,
+                    ["sessions", sessionId, "messages"],
+                    EMPTY_ARRAY
+                ),
+                addToWorkspace: state.addToWorkspace,
+                setInspectionFocusStream: state.setInspectionFocusStream,
+            }))
+        );
     const filteredMessages = messages.filter((message) => {
         if (_.get(message, "metadata.ags.WORKSPACE_ONLY")) {
             return false;
@@ -149,7 +160,7 @@ const Row = ({ index, data, style }) => {
                     }}
                 >
                     <ButtonGroup size={Size.LARGE}>
-                        <Tooltip content="Add to Workspace">
+                        <Tooltip placement="bottom" content="Add to Workspace">
                             <Button
                                 icon={<FAIcon icon={faSidebar} />}
                                 onClick={() =>
@@ -159,6 +170,15 @@ const Row = ({ index, data, style }) => {
                                         sessionId,
                                     })
                                 }
+                            />
+                        </Tooltip>
+                        <Tooltip placement="bottom-end" content="Inspect">
+                            <Button
+                                onClick={() => {
+                                    addInspectionContainer();
+                                    setInspectionFocusStream(sessionId, stream);
+                                }}
+                                icon={<FAIcon icon={faBarcodeRead} />}
                             />
                         </Tooltip>
                     </ButtonGroup>
@@ -250,6 +270,14 @@ export default function SessionMessages({
         return rowHeights.current[index] || height;
     }
     const addContainer = useGridStore((state) => state.addContainer);
+    const addInspectionContainer = () => {
+        addContainer({
+            icon: faBarcodeRead,
+            title: <SessionDisplayName sessionId={sessionId} />,
+            content: <DebuggerContainer sessionId={sessionId} />,
+            uid: `DebuggerContainer-${sessionId}`,
+        });
+    };
     useEffect(() => {
         setTimeout(() => {
             requestAnimationFrame(() => {
@@ -367,21 +395,7 @@ export default function SessionMessages({
                                             />
                                         }
                                         icon={<FAIcon icon={faBarcodeRead} />}
-                                        onClick={() => {
-                                            addContainer({
-                                                icon: faBarcodeRead,
-                                                title: (
-                                                    <SessionDisplayName
-                                                        sessionId={sessionId}
-                                                    />
-                                                ),
-                                                content: (
-                                                    <DebuggerContainer
-                                                        sessionId={sessionId}
-                                                    />
-                                                ),
-                                            });
-                                        }}
+                                        onClick={addInspectionContainer}
                                         text="Inspect"
                                     />
                                 </Menu>
@@ -407,7 +421,11 @@ export default function SessionMessages({
             <AutoSizer>
                 {({ width, height }) => (
                     <VariableSizeList
-                        itemData={{ setRowHeight, sessionId }}
+                        itemData={{
+                            setRowHeight,
+                            sessionId,
+                            addInspectionContainer,
+                        }}
                         itemSize={getRowHeight}
                         itemCount={_.size(filteredMessages)}
                         width={width}

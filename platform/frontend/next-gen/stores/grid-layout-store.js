@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from "uuid";
 import { create } from "zustand";
 export const useGridStore = create((set, get) => ({
     layout: [],
+    layoutData: [],
     containers: {},
     setLayout: (layout) => {
         set(() => ({ layout }));
@@ -16,9 +17,12 @@ export const useGridStore = create((set, get) => ({
         }));
     },
     removeContainer: (id) => {
-        set((state) => ({
+        const uid = set((state) => ({
             containers: _.omit(state.containers, [id]),
             layout: state.layout.filter((element) => !_.isEqual(element.i, id)),
+            layoutData: state.layoutData.filter(
+                (element) => !_.isEqual(element.id, id)
+            ),
         }));
     },
     resizeContainerFullHeight: ({ id, grid }) => {
@@ -47,17 +51,27 @@ export const useGridStore = create((set, get) => ({
         }
         set({ layout });
     },
-    addContainer: ({ title, content, icon }) => {
+    addContainer: ({ title, content, icon, uid = null }) => {
         const id = uuidv4();
-        set((state) => ({
-            containers: {
-                ...state.containers,
-                [id]: { title, content, icon },
-            },
-            layout: [
-                { i: id, x: 0, y: 0, w: 12, h: 3, minW: 4, minH: 3 },
-                ...state.layout,
-            ],
-        }));
+        const { layoutData } = get();
+        let exist = false;
+        for (let i = 0; i < _.size(layoutData); i++) {
+            if (!_.isNull(uid) && _.isEqual(uid, layoutData[i].uid)) {
+                exist = true;
+            }
+        }
+        if (!exist) {
+            set((state) => ({
+                containers: {
+                    ...state.containers,
+                    [id]: { title, content, icon },
+                },
+                layout: [
+                    { i: id, x: 0, y: 0, w: 12, h: 3, minW: 4, minH: 3 },
+                    ...state.layout,
+                ],
+                layoutData: [...state.layoutData, { id, uid }],
+            }));
+        }
     },
 }));

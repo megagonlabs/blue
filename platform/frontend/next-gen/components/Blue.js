@@ -2,6 +2,7 @@ import { useAppStore } from "@/stores/app-store";
 import { useAuthStore } from "@/stores/auth-store";
 import { useGridStore } from "@/stores/grid-layout-store";
 import { useSessionStore } from "@/stores/session-store";
+import { useSystemStatusStore } from "@/stores/system-status-store";
 import {
     Alert,
     Card,
@@ -19,6 +20,7 @@ import {
 import { Omnibar } from "@blueprintjs/select";
 import {
     faCircleA,
+    faCircleDot,
     faInboxFull,
     faInboxOut,
     faLayerGroup,
@@ -74,6 +76,7 @@ export default function Blue({ children }) {
             closeOmnibar: state.closeOmnibar,
         }))
     );
+    const isSystemStatusLive = useSystemStatusStore((state) => state.live);
     const addContainer = useGridStore((state) => state.addContainer);
     const hotkeys = [
         {
@@ -364,6 +367,21 @@ export default function Blue({ children }) {
                                                                                 faWavePulse
                                                                             }
                                                                         />
+                                                                    }
+                                                                    labelElement={
+                                                                        isSystemStatusLive && (
+                                                                            <FAIcon
+                                                                                icon={
+                                                                                    faCircleDot
+                                                                                }
+                                                                                className="fa-fade"
+                                                                                style={{
+                                                                                    "--fa-animation-duration":
+                                                                                        "2s",
+                                                                                    color: Colors.GREEN3,
+                                                                                }}
+                                                                            />
+                                                                        )
                                                                     }
                                                                 />
                                                             )}

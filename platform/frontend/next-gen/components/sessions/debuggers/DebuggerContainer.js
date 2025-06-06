@@ -1,4 +1,4 @@
-import { MIN_ALLOTMENT_PANE_SIZE } from "@/components/constants";
+import { EMPTY_OBJECT, MIN_ALLOTMENT_PANE_SIZE } from "@/components/constants";
 import { FAIcon } from "@/components/FAIcon";
 import { insertBetween } from "@/components/helper";
 import withAutoSizer from "@/components/hocs/withAutoSizer";
@@ -204,18 +204,22 @@ function parseRedisStreamKeysToTree(keys, previousTree = [], messageMap) {
     return finalTree;
 }
 function DebuggerContainer({ width, height, sessionId }) {
-    const { session } = useSessionStore(
+    const { session, inspection } = useSessionStore(
         useShallow((state) => ({
-            session: _.get(state, ["sessions", sessionId], {}),
+            session: _.get(state, ["sessions", sessionId], EMPTY_OBJECT),
+            inspection: state.inspection,
         }))
     );
     const { messages } = session;
     const darkMode = useAppStore((state) => state.dark_mode);
     const elementRef = useRef(null);
-    const popoverBoundary =
-        elementRef.current &&
-        elementRef.current.closest(".grid-container-boundary");
     const [focusStream, setFocusStream] = useState(null);
+    useEffect(() => {
+        const current = _.get(inspection, [sessionId, "focusStream"], null);
+        if (!_.isNull(current)) {
+            setFocusStream(current);
+        }
+    }, [inspection]);
     const focusIndex = useMemo(() => {
         for (let i = 0; i < _.size(messages); i++) {
             if (_.isEqual(focusStream, messages[i].stream)) {
@@ -406,7 +410,7 @@ function DebuggerContainer({ width, height, sessionId }) {
                                                         <Tooltip
                                                             placement="bottom"
                                                             boundary={
-                                                                popoverBoundary
+                                                                elementRef.current
                                                             }
                                                             content={
                                                                 <div
@@ -455,7 +459,7 @@ function DebuggerContainer({ width, height, sessionId }) {
                                                         >
                                                             <Timestamp
                                                                 boundary={
-                                                                    popoverBoundary
+                                                                    elementRef.current
                                                                 }
                                                                 placement="bottom"
                                                                 date={

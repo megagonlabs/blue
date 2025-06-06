@@ -8,6 +8,18 @@ export const useSessionStore = create((set, get) => ({
     filter: { group: "owner", keywords: "" },
     forms: {},
     progress: {},
+    inspection: {},
+    setInspectionFocusStream: (sessionId, focusStream) => {
+        set((state) => ({
+            inspection: {
+                ...state.inspection,
+                [sessionId]: {
+                    ..._.get(state.inspection, sessionId, {}),
+                    focusStream,
+                },
+            },
+        }));
+    },
     addNewSession: (session) => {
         const sessionId = _.get(session, "id", null);
         const { sessionIds } = get();
