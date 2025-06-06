@@ -151,9 +151,7 @@ export default function SessionMemberList({ sessionId }) {
                         }}
                     >
                         {_.isEmpty(searchResult) ? (
-                            <div style={{ padding: 10 }}>
-                                <NoResultsFound />
-                            </div>
+                            <NoResultsFound />
                         ) : (
                             <CardList bordered={false}>
                                 {searchResult.map((user) => (

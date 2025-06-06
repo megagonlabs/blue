@@ -5,19 +5,24 @@ import {
     ButtonGroup,
     ButtonVariant,
     Card,
+    Classes,
     Colors,
-    Divider,
+    InputGroup,
+    Menu,
+    MenuItem,
     NonIdealState,
+    Popover,
     Size,
     Tooltip,
 } from "@blueprintjs/core";
 import {
     faCircleDot,
     faFastForward,
+    faSearch,
     faWavePulse,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import _ from "lodash";
-import { memo, useCallback, useEffect, useMemo, useRef } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import AutoSizer from "react-virtualized-auto-sizer";
 import { VariableSizeList } from "react-window";
 import { useShallow } from "zustand/react/shallow";
@@ -27,6 +32,7 @@ import {
 } from "../constants";
 import { FAIcon } from "../FAIcon";
 import withAutoSizer from "../hocs/withAutoSizer";
+import NoResultsFound from "../nonidealstates/NoResultsFound";
 const TrackerCard = memo(({ data, index, style }) => {
     const { setRowHeight, rowHeights } = data;
     const cardRef = useRef();
@@ -126,6 +132,32 @@ function SystemStatusContainer({ width, height }) {
             }, 0);
         }
     }, [trackers, getRowHeight]);
+    const [keywords, setKeywords] = useState("");
+    const filteredTrackers = useMemo(
+        () =>
+            trackers.filter((tracker) =>
+                _.toLower(tracker).includes(_.toLower(keywords))
+            ),
+        [keywords, trackers]
+    );
+    const scrollToTracker = (tracker) => {
+        if (listRef.current) {
+            let topOffset = 0;
+            let targetIndex = 0;
+            for (let i = 0; i < _.size(trackers); i++) {
+                if (_.isEqual(trackers[i], tracker)) {
+                    targetIndex = i;
+                    break;
+                }
+            }
+            for (let i = 0; i < targetIndex; i++) {
+                topOffset += getRowHeight(i);
+            }
+            setTimeout(() => {
+                listRef.current.scrollTo(topOffset);
+            }, 0);
+        }
+    };
     return (
         <div
             ref={elementRef}
@@ -138,30 +170,65 @@ function SystemStatusContainer({ width, height }) {
             <div className="border-bottom" style={{ padding: 10 }}>
                 <ButtonGroup size={Size.LARGE} variant={ButtonVariant.MINIMAL}>
                     {isSystemStatusLive && (
-                        <>
-                            <Button
-                                className="pointer-events-none"
-                                icon={
-                                    <FAIcon
-                                        icon={faCircleDot}
-                                        className="fa-fade"
-                                        style={{
-                                            "--fa-animation-duration": "2s",
-                                            color: Colors.GREEN3,
-                                        }}
-                                    />
-                                }
-                            />
-                            <Divider />
-                        </>
+                        <Button
+                            className="pointer-events-none"
+                            icon={
+                                <FAIcon
+                                    icon={faCircleDot}
+                                    className="fa-fade"
+                                    style={{
+                                        "--fa-animation-duration": "2s",
+                                        color: Colors.GREEN3,
+                                    }}
+                                />
+                            }
+                        />
                     )}
-                    <Tooltip
+                    <Popover
                         {...POPPER_BOTTOM_WITH_MODIFIER_OVERFLOW_10}
-                        content="Jump"
                         boundary={elementRef.current}
+                        content={
+                            <div style={{ padding: 10, width: 400 }}>
+                                <InputGroup
+                                    value={keywords}
+                                    onValueChange={(value) =>
+                                        setKeywords(value)
+                                    }
+                                    leftIcon={<FAIcon icon={faSearch} />}
+                                    size={Size.LARGE}
+                                    style={{ marginBottom: 10 }}
+                                />
+                                {_.isEmpty(filteredTrackers) ? (
+                                    <NoResultsFound />
+                                ) : (
+                                    <Menu style={{ padding: 0 }}>
+                                        {filteredTrackers.map((tracker) => (
+                                            <MenuItem
+                                                className={
+                                                    Classes.TEXT_OVERFLOW_ELLIPSIS
+                                                }
+                                                onClick={() =>
+                                                    scrollToTracker(tracker)
+                                                }
+                                                text={tracker}
+                                            />
+                                        ))}
+                                    </Menu>
+                                )}
+                            </div>
+                        }
                     >
-                        <Button icon={<FAIcon icon={faFastForward} />} />
-                    </Tooltip>
+                        <Tooltip
+                            {...POPPER_BOTTOM_WITH_MODIFIER_OVERFLOW_10}
+                            content="Jump"
+                            boundary={elementRef.current}
+                        >
+                            <Button
+                                disabled={_.isEmpty(trackers)}
+                                icon={<FAIcon icon={faFastForward} />}
+                            />
+                        </Tooltip>
+                    </Popover>
                 </ButtonGroup>
             </div>
             <div
