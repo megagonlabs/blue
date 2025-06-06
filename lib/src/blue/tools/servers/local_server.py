@@ -14,9 +14,9 @@ from blue.tools.server import ToolServer
 
 
 ###############
-### RayServer
+### LocalServer
 #
-class RayServer(ToolServer):
+class LocalServer(ToolServer):
     def __init__(self, name, properties={}):
         super().__init__(name, properties=properties)
 
@@ -25,7 +25,7 @@ class RayServer(ToolServer):
         super()._initialize_properties()
 
         # server protocol 
-        self.properties['protocol'] = "ray"
+        self.properties['protocol'] = "local"
 
     ###### connection
     def _connect(self, **connection):

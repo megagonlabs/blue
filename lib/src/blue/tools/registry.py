@@ -9,8 +9,9 @@ from blue.utils import json_utils
 from blue.registry import Registry
 
 ###### Supported Tool Servers
-from blue.tools.servers import RayServer
-from blue.tools.servers import MCPServer
+from blue.toools.servers.local_server import LocalServer
+from blue.tools.servers.ray_server import RayServer
+from blue.tools.servers.mcp_server import MCPServer
 
 
 ###############
@@ -114,7 +115,9 @@ class ToolRegistry(Registry):
 
                 protocol = connection_properties["protocol"]
                 if protocol:
-                    if protocol == "ray":
+                    if protocol == "local":
+                        server_connection = LocalServer(server, properties=properties)
+                    elif protocol == "ray":
                         server_connection = RayServer(server, properties=properties)
                     elif protocol == "mcp":
                         server_connection = MCPServer(server, properties=properties)
