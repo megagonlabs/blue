@@ -9,7 +9,7 @@ from blue.utils import json_utils
 from blue.registry import Registry
 
 ###### Supported Tool Servers
-from blue.toools.servers.local_server import LocalServer
+from blue.tools.servers.local_server import LocalServer
 from blue.tools.servers.ray_server import RayServer
 from blue.tools.servers.mcp_server import MCPServer
 
