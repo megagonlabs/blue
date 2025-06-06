@@ -90,45 +90,29 @@ class LocalServer(ToolServer):
     ######### tool
     def fetch_tools(self):
         tools = ["add", "multiply"]
-
-        
-        tools.append(add_tool_entry)
-
-        p = {}
-        p = json_utils.merge_json(p, multiply_tool['properties'])
-        p = json_utils.merge_json(p, { "parameters": multiply_tool['parameters'] })
-        multiply_tool_entry = {
-            name = multiply_tool['name'],
-            description = multiply_tool['description'],
-            properties = {
-                "parameters": p
-            }
-        }
-        tools.append(multiply_tool_entry)
-
         return tools
 
     def fetch_tool_metadata(self, tool):
         metadata = {}
         if tool == "add":
             p = {}
-            p = json_utils.merge_json(p, add_tool['properties'])
-            p = json_utils.merge_json(p, { "parameters": add_tool['parameters'] })
+            p = json_utils.merge_json(p, add_tool.properties)
+            p = json_utils.merge_json(p, { "parameters": add_tool.parameters })
             metadata = {
-                "name": add_tool['name'],
-                "description": add_tool['description'],
-                "properties" = {
+                "name": add_tool.name,
+                "description": add_tool.description,
+                "properties": {
                     "parameters": p
                 }
             }
         elif tool == "multiply":
             p = {}
-            p = json_utils.merge_json(p, multiply_tool['properties'])
-            p = json_utils.merge_json(p, { "parameters": multiply_tool['parameters'] })
+            p = json_utils.merge_json(p, multiply_tool.properties)
+            p = json_utils.merge_json(p, { "parameters": multiply_tool.parameters })
             metadata = {
-                "name": multiply_tool['name'],
-                "description": multiply_tool['description'],
-                "properties" = {
+                "name": multiply_tool.name,
+                "description": multiply_tool.description,
+                "properties": {
                     "parameters": p
                 }
             }
@@ -136,25 +120,25 @@ class LocalServer(ToolServer):
 
    
     ######### execute tool
-def execute_tool(self, tool, args, kwargs):
-    if tool is None:
-        raise Exception("No tool matching...")
+    def execute_tool(self, tool, args, kwargs):
+        if tool is None:
+            raise Exception("No tool matching...")
 
-    result = []
+        result = []
 
-    if tool == add_tool['name']:
-        valid =  add_tool['validator'](kwargs)
-        if valid:
-            return add_tool['function'](**kwargs)
-        else:
-            return valid
-    elif tool == multiply_tool['name']:
-        valid =  multiply_tool['validator'](kwargs)
-        if valid:
-            return multiply_tool['function'](**kwargs)
-        else:
-            return valid
+        if tool == add_tool.name:
+            valid =  add_tool.validator(kwargs)
+            if valid:
+                return add_tool.function(**kwargs)
+            else:
+                return valid
+        elif tool == multiply_tool.name:
+            valid =  multiply_tool.validator(kwargs)
+            if valid:
+                return multiply_tool.function(**kwargs)
+            else:
+                return valid
 
-    return result
+        return result
 
     
