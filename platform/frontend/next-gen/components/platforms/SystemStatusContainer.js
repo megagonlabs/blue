@@ -7,9 +7,9 @@ import {
     Card,
     Colors,
     Divider,
-    H5,
     NonIdealState,
     Size,
+    Tooltip,
 } from "@blueprintjs/core";
 import {
     faCircleDot,
@@ -21,6 +21,10 @@ import { memo, useCallback, useEffect, useMemo, useRef } from "react";
 import AutoSizer from "react-virtualized-auto-sizer";
 import { VariableSizeList } from "react-window";
 import { useShallow } from "zustand/react/shallow";
+import {
+    EMPTY_ARRAY,
+    POPPER_BOTTOM_WITH_MODIFIER_OVERFLOW_10,
+} from "../constants";
 import { FAIcon } from "../FAIcon";
 import withAutoSizer from "../hocs/withAutoSizer";
 const TrackerCard = memo(({ data, index, style }) => {
@@ -33,7 +37,7 @@ const TrackerCard = memo(({ data, index, style }) => {
         }))
     );
     const tracker = trackers[index];
-    const contents = _.get(trackerData, [tracker, "data"], []);
+    const contents = _.get(trackerData, [tracker, "data"], EMPTY_ARRAY);
     useEffect(() => {
         if (cardRef.current) {
             const newHeight = cardRef.current.getBoundingClientRect().height;
@@ -52,7 +56,6 @@ const TrackerCard = memo(({ data, index, style }) => {
             }}
         >
             <Card ref={cardRef}>
-                <H5>{index}</H5>
                 {contents.map((element, index) => (
                     <div key={index}>{element}</div>
                 ))}
@@ -62,25 +65,22 @@ const TrackerCard = memo(({ data, index, style }) => {
 });
 function SystemStatusContainer({ width, height }) {
     const darkMode = useAppStore((state) => state.dark_mode);
-    const { trackers, isSystemStatusLive, addTracker } = useSystemStatusStore(
+    const { trackers, isSystemStatusLive } = useSystemStatusStore(
         useShallow((state) => ({
             trackers: state.trackers,
             isSystemStatusLive: state.live,
-            addTracker: state.addTracker,
         }))
     );
+    const elementRef = useRef(null);
+    const previousTrackersRef = useRef(trackers);
     const listRef = useRef(null);
     const rowHeights = useRef({});
     const firstVisibleIndex = useRef(0);
-    const previousTrackersRef = useRef(trackers);
+    const focusedTracker = useMemo(
+        () => previousTrackersRef.current[firstVisibleIndex.current],
+        [previousTrackersRef.current, firstVisibleIndex.current]
+    );
     const trackerCardOffset = useRef(0);
-    const focusedTracker = useMemo(() => {
-        if (!_.isEmpty(previousTrackersRef.current)) {
-            return previousTrackersRef.current[firstVisibleIndex.current];
-        } else {
-            return null;
-        }
-    }, [previousTrackersRef.current, firstVisibleIndex.current]);
     const setRowHeight = (index, size) => {
         // only update if the height is different to avoid unnecessary resets
         if (!_.isEqual(rowHeights.current[index], size)) {
@@ -100,26 +100,27 @@ function SystemStatusContainer({ width, height }) {
         [trackers]
     );
     const onScroll = ({ scrollOffset }) => {
-        let offset = 0;
+        let topOffset = 0;
         for (let i = 0; i < firstVisibleIndex.current; i++) {
-            offset += getRowHeight(i);
+            topOffset += getRowHeight(i);
         }
-        trackerCardOffset.current = scrollOffset - offset;
+        trackerCardOffset.current = scrollOffset - topOffset;
     };
     useEffect(() => {
         if (listRef.current) {
             listRef.current.resetAfterIndex(0);
             let topOffset = 0;
-            let newVisibleIndex = firstVisibleIndex.current;
+            let newFocusIndex = firstVisibleIndex.current;
             for (let i = 0; i < _.size(trackers); i++) {
                 if (_.isEqual(trackers[i], focusedTracker)) {
-                    newVisibleIndex = i;
+                    newFocusIndex = i;
+                    break;
                 }
             }
-            for (let i = 0; i < newVisibleIndex; i++) {
+            previousTrackersRef.current = trackers;
+            for (let i = 0; i < newFocusIndex; i++) {
                 topOffset += getRowHeight(i);
             }
-            previousTrackersRef.current = trackers;
             setTimeout(() => {
                 listRef.current.scrollTo(topOffset + trackerCardOffset.current);
             }, 0);
@@ -127,6 +128,7 @@ function SystemStatusContainer({ width, height }) {
     }, [trackers, getRowHeight]);
     return (
         <div
+            ref={elementRef}
             style={{
                 width,
                 height,
@@ -135,21 +137,31 @@ function SystemStatusContainer({ width, height }) {
         >
             <div className="border-bottom" style={{ padding: 10 }}>
                 <ButtonGroup size={Size.LARGE} variant={ButtonVariant.MINIMAL}>
-                    <Button
-                        className="pointer-events-none"
-                        icon={
-                            <FAIcon
-                                icon={faCircleDot}
-                                className="fa-fade"
-                                style={{
-                                    "--fa-animation-duration": "2s",
-                                    color: Colors.GREEN3,
-                                }}
+                    {isSystemStatusLive && (
+                        <>
+                            <Button
+                                className="pointer-events-none"
+                                icon={
+                                    <FAIcon
+                                        icon={faCircleDot}
+                                        className="fa-fade"
+                                        style={{
+                                            "--fa-animation-duration": "2s",
+                                            color: Colors.GREEN3,
+                                        }}
+                                    />
+                                }
                             />
-                        }
-                    />
-                    <Divider />
-                    <Button icon={<FAIcon icon={faFastForward} />} />
+                            <Divider />
+                        </>
+                    )}
+                    <Tooltip
+                        {...POPPER_BOTTOM_WITH_MODIFIER_OVERFLOW_10}
+                        content="Jump"
+                        boundary={elementRef.current}
+                    >
+                        <Button icon={<FAIcon icon={faFastForward} />} />
+                    </Tooltip>
                 </ButtonGroup>
             </div>
             <div

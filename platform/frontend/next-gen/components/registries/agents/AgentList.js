@@ -62,9 +62,6 @@ function AgentList({ width, height }) {
         });
     };
     const elementRef = useRef(null);
-    const popoverBoundary =
-        elementRef.current &&
-        elementRef.current.closest(".grid-container-boundary");
     return (
         <div ref={elementRef} style={{ width, height }}>
             {showFilter && (
@@ -177,7 +174,7 @@ function AgentList({ width, height }) {
                         rightElement={
                             <Tooltip
                                 {...POPPER_BOTTOM_WITH_MODIFIER_OVERFLOW_10}
-                                boundary={popoverBoundary}
+                                boundary={elementRef.current}
                                 content="Clear search"
                             >
                                 <Button

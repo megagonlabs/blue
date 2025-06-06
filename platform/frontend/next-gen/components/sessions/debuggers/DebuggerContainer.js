@@ -213,9 +213,6 @@ function DebuggerContainer({ width, height, sessionId }) {
     const { messages } = session;
     const darkMode = useAppStore((state) => state.dark_mode);
     const elementRef = useRef(null);
-    const popoverBoundary =
-        elementRef.current &&
-        elementRef.current.closest(".grid-container-boundary");
     const [focusStream, setFocusStream] = useState(null);
     useEffect(() => {
         const current = _.get(inspection, [sessionId, "focusStream"], null);
@@ -413,7 +410,7 @@ function DebuggerContainer({ width, height, sessionId }) {
                                                         <Tooltip
                                                             placement="bottom"
                                                             boundary={
-                                                                popoverBoundary
+                                                                elementRef.current
                                                             }
                                                             content={
                                                                 <div
@@ -462,7 +459,7 @@ function DebuggerContainer({ width, height, sessionId }) {
                                                         >
                                                             <Timestamp
                                                                 boundary={
-                                                                    popoverBoundary
+                                                                    elementRef.current
                                                                 }
                                                                 placement="bottom"
                                                                 date={

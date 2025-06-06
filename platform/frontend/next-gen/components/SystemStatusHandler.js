@@ -1,3 +1,4 @@
+import { useAuthStore } from "@/stores/auth-store";
 import { useSystemStatusStore } from "@/stores/system-status-store";
 import { Blockquote, Classes, H5, H6 } from "@blueprintjs/core";
 import _ from "lodash";
@@ -94,6 +95,7 @@ const trackerRenderer = (
     return { result, graphs: newGraphs, graphKeys };
 };
 export default function SystemStatusHandler({ children }) {
+    const user = useAuthStore((state) => state.user);
     const { setState, trackerData, addTracker, setTrackerData } =
         useSystemStatusStore(
             useShallow((state) => ({
@@ -108,6 +110,7 @@ export default function SystemStatusHandler({ children }) {
         trackerDataRef.current = trackerData;
     }, [trackerData]);
     useEffect(() => {
+        if (_.isNull(user)) return;
         // opening a connection to the server to begin receiving events from it
         const eventSource = new EventSource(
             `${NEXT_PUBLIC_REST_API_SERVER}/blue/platform/${NEXT_PUBLIC_PLATFORM_NAME}/status`,
@@ -162,6 +165,6 @@ export default function SystemStatusHandler({ children }) {
             eventSource.close();
             setState({ key: "live", value: false });
         };
-    }, []);
+    }, [user]);
     return children;
 }
