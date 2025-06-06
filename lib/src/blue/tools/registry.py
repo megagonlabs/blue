@@ -195,9 +195,18 @@ class ToolRegistry(Registry):
             metadata = server_connection.fetch_tool_metadata(tool)
 
             # update server tool properties
-            properties = {}
-            properties['metadata'] = metadata
             description = ""
             if 'description' in metadata:
                 description = metadata['description']
+                del metadata['description']
+            properties = {}
+            if 'properties' in metadata:
+                properties = metadata['properties']
+                del metadata['properties']
+
+            # add remaining as metadata
+            if 'name' in metadata:
+                del metadata['name']
+            properties['metadata'] = metadata
+           
             self.update_server_tool(server, tool, description=description, properties=properties, rebuild=rebuild)

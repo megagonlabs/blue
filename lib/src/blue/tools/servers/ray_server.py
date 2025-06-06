@@ -47,7 +47,7 @@ class RayServer(ToolServer):
 
     ######### tool
     def fetch_tools(self):
-        tools = [{}]
+        tools = []
         return tools
 
     def fetch_tool_metadata(self, tool):
@@ -55,7 +55,7 @@ class RayServer(ToolServer):
 
    
     ######### execute tool
-    def execute_tool(self, params, tool=None):
+    def execute_tool(self, tool, args, kwargs):
         if tool is None:
             raise Exception("No tool provided")
         

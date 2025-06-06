@@ -71,5 +71,5 @@ class ToolServer():
     def fetch_tool_metadata(self, tool):
         return {}
 
-    def execute_tool(self, params, tool=None):
+    def execute_tool(self, tool, args, kwargs):
         return [{}]
