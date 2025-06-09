@@ -18,13 +18,13 @@ export const usePlatformStore = create((set, get) => ({
     setServiceTableOrder: (order) => {
         set((state) => ({ services: { ...state.services, order } }));
     },
-    updateServiceTableSelected: ({ id, checked = false }) => {
+    updateServiceTableSelected: ({ serviceName, checked = false }) => {
         const { services } = get();
         let newSelected = _.cloneDeep(services.selected);
         if (checked) {
-            newSelected.add(id);
+            newSelected.add(serviceName);
         } else {
-            newSelected.delete(id);
+            newSelected.delete(serviceName);
         }
         set((state) => ({
             services: { ...state.services, selected: newSelected },
@@ -76,10 +76,10 @@ export const usePlatformStore = create((set, get) => ({
             configurations: { ...state.configurations, values: newValues },
         }));
     },
-    removeServiceFromList: ({ ids }) => {
+    removeServiceFromList: ({ serviceNames }) => {
         const { services } = get();
         let newList = _.cloneDeep(services.list).filter(
-            (e) => _.isSet(ids) && !ids.has(e.id)
+            (e) => _.isSet(serviceNames) && !serviceNames.has(e.service)
         );
         set((state) => ({ services: { ...state.services, list: newList } }));
     },

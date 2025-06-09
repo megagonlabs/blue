@@ -36,6 +36,7 @@ import { FAIcon } from "../FAIcon";
 import { showAxiosErrorToast } from "../helper";
 import withAutoSizer from "../hocs/withAutoSizer";
 import Timestamp from "../Timestamp";
+import { AppToaster } from "../toaster";
 import ServiceCheckbox from "./ServiceCheckbox";
 function PlatformServices({ width, height }) {
     const {
@@ -65,17 +66,17 @@ function PlatformServices({ width, height }) {
         let promises = [];
         const selectedServices = _.toArray(selected);
         for (let i = 0; i < _.size(selectedServices); i++) {
-            const id = selectedServices[i];
+            const serviceName = selectedServices[i];
             promises.push(
                 new Promise((resolve, reject) => {
                     axios
-                        .delete(`/containers/services/service/${id}}`)
+                        .delete(`/containers/services/service/${serviceName}}`)
                         .then(() => {
-                            resolve(id);
+                            resolve(serviceName);
                         })
                         .catch((error) => {
                             showAxiosErrorToast(error);
-                            reject(id);
+                            reject(serviceName);
                         });
                 })
             );
@@ -93,7 +94,19 @@ function PlatformServices({ width, height }) {
                         });
                     }
                 }
-                removeServiceFromList({ ids: updated });
+                const size = _.size(updated);
+                if (size > 0) {
+                    let message = `Stopped ${size} service${
+                        size > 1 ? "s" : ""
+                    }`;
+                    if (_.isEqual(size, 1)) {
+                        message = `Stopped ${_.first(
+                            _.toArray(updated)
+                        )} service`;
+                    }
+                    AppToaster.show({ message, intent: Intent.SUCCESS });
+                    removeServiceFromList({ ids: updated });
+                }
             })
             .finally(() => {
                 setDeleting(false);
@@ -108,7 +121,11 @@ function PlatformServices({ width, height }) {
                     cellRenderer: (rowIndex) => (
                         <Cell style={{ lineHeight: `${TABLE_CELL_HEIGHT}px` }}>
                             <ServiceCheckbox
-                                id={_.get(list, [rowIndex, "id"], null)}
+                                serviceName={_.get(
+                                    list,
+                                    [rowIndex, "service"],
+                                    null
+                                )}
                             />
                         </Cell>
                     ),
