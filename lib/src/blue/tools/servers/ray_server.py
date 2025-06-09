@@ -81,7 +81,7 @@ class RayServer(ToolServer):
         # init ray necessary
         host = c['host']
         port = c['port']
-        ray.init(address="ray://" + host + ":" + port)
+        ray.init(address="ray://" + host + ":" + str(port))
         return {}
 
     def _disconnect(self):
