@@ -40,6 +40,7 @@ import { ENTITY_TYPE_CONVERSION, ENTITY_TYPE_LOOKUP } from "./constants";
 import ExpandingBox from "./ExpandingBox";
 import { FAIcon } from "./FAIcon";
 import PlatformConfigurations from "./platforms/PlatformConfigurations";
+import PlatformServices from "./platforms/PlatformServices";
 import PlatformUsers from "./platforms/PlatformUsers";
 import SystemStatusContainer from "./platforms/SystemStatusContainer";
 import AgentList from "./registries/agents/AgentList";
@@ -110,6 +111,52 @@ export default function Blue({ children }) {
     const createNewSession = useSessionStore((state) => state.createNewSession);
     const userProfileError =
         !_.isEmpty(user) && _.isEmpty(_.get(user, "role", null));
+    const PLATFORM_SECTION_MENU_ITEMS = {
+        systemStatus: {
+            title: "System Status",
+            text: "System Status",
+            icon: faWavePulse,
+            content: <SystemStatusContainer />,
+            visible: permissions.canReadPlatformStatus,
+            labelElement: isSystemStatusLive && (
+                <FAIcon
+                    icon={faCircleDot}
+                    className="fa-fade"
+                    style={{
+                        "--fa-animation-duration": "2s",
+                        color: Colors.GREEN3,
+                    }}
+                />
+            ),
+        },
+        agents: {
+            title: "Platform Agents",
+            text: "Agents",
+            icon: faCircleA,
+            visible: permissions.canReadPlatformAgents,
+        },
+        services: {
+            title: "Platform Services",
+            text: "Services",
+            icon: faLayerGroup,
+            content: <PlatformServices />,
+            visible: permissions.canReadPlatformServices,
+        },
+        users: {
+            title: "Platform Users",
+            text: "Users",
+            icon: faUserGroup,
+            content: <PlatformUsers />,
+            visible: permissions.canWritePlatformUsers,
+        },
+        configurations: {
+            title: "Platform Configurations",
+            text: "Configurations",
+            content: <PlatformConfigurations />,
+            icon: faScrewdriverWrench,
+            visible: permissions.canWritePlatformSettings,
+        },
+    };
     if (_.isNull(user)) {
         return <Authentication />;
     }
@@ -347,116 +394,54 @@ export default function Blue({ children }) {
                                                     ]) && (
                                                         <>
                                                             <MenuDivider title="Platform" />
-                                                            {permissions.canReadPlatformStatus && (
-                                                                <MenuItem
-                                                                    onClick={() =>
-                                                                        addContainer(
-                                                                            {
-                                                                                title: "System Status",
-                                                                                content:
-                                                                                    (
-                                                                                        <SystemStatusContainer />
-                                                                                    ),
+                                                            {[
+                                                                "systemStatus",
+                                                                "agents",
+                                                                "services",
+                                                                "users",
+                                                                "configurations",
+                                                            ].map((key) => {
+                                                                const {
+                                                                    text,
+                                                                    title,
+                                                                    content,
+                                                                    visible,
+                                                                    icon,
+                                                                    labelElement,
+                                                                } =
+                                                                    PLATFORM_SECTION_MENU_ITEMS[
+                                                                        key
+                                                                    ];
+                                                                if (visible) {
+                                                                    return (
+                                                                        <MenuItem
+                                                                            text={
+                                                                                text
                                                                             }
-                                                                        )
-                                                                    }
-                                                                    text="System Status"
-                                                                    icon={
-                                                                        <FAIcon
+                                                                            labelElement={
+                                                                                labelElement
+                                                                            }
                                                                             icon={
-                                                                                faWavePulse
+                                                                                <FAIcon
+                                                                                    icon={
+                                                                                        icon
+                                                                                    }
+                                                                                />
                                                                             }
+                                                                            onClick={() => {
+                                                                                addContainer(
+                                                                                    {
+                                                                                        icon,
+                                                                                        title,
+                                                                                        content,
+                                                                                    }
+                                                                                );
+                                                                            }}
                                                                         />
-                                                                    }
-                                                                    labelElement={
-                                                                        isSystemStatusLive && (
-                                                                            <FAIcon
-                                                                                icon={
-                                                                                    faCircleDot
-                                                                                }
-                                                                                className="fa-fade"
-                                                                                style={{
-                                                                                    "--fa-animation-duration":
-                                                                                        "2s",
-                                                                                    color: Colors.GREEN3,
-                                                                                }}
-                                                                            />
-                                                                        )
-                                                                    }
-                                                                />
-                                                            )}
-                                                            {permissions.canReadPlatformAgents && (
-                                                                <MenuItem
-                                                                    text="Agents"
-                                                                    icon={
-                                                                        <FAIcon
-                                                                            icon={
-                                                                                faCircleA
-                                                                            }
-                                                                        />
-                                                                    }
-                                                                />
-                                                            )}
-                                                            {permissions.canReadPlatformServices && (
-                                                                <MenuItem
-                                                                    text="Services"
-                                                                    icon={
-                                                                        <FAIcon
-                                                                            icon={
-                                                                                faLayerGroup
-                                                                            }
-                                                                        />
-                                                                    }
-                                                                />
-                                                            )}
-                                                            {permissions.canWritePlatformUsers && (
-                                                                <MenuItem
-                                                                    onClick={() =>
-                                                                        addContainer(
-                                                                            {
-                                                                                icon: faUserGroup,
-                                                                                title: "Platform Users",
-                                                                                content:
-                                                                                    (
-                                                                                        <PlatformUsers />
-                                                                                    ),
-                                                                            }
-                                                                        )
-                                                                    }
-                                                                    text="Users"
-                                                                    icon={
-                                                                        <FAIcon
-                                                                            icon={
-                                                                                faUserGroup
-                                                                            }
-                                                                        />
-                                                                    }
-                                                                />
-                                                            )}
-                                                            {permissions.canWritePlatformSettings && (
-                                                                <MenuItem
-                                                                    onClick={() =>
-                                                                        addContainer(
-                                                                            {
-                                                                                icon: faScrewdriverWrench,
-                                                                                title: "Platform Configurations",
-                                                                                content:
-                                                                                    (
-                                                                                        <PlatformConfigurations />
-                                                                                    ),
-                                                                            }
-                                                                        )
-                                                                    }
-                                                                    text="Configurations"
-                                                                    icon={
-                                                                        <FAIcon
-                                                                            icon={
-                                                                                faScrewdriverWrench
-                                                                            }
-                                                                        />
-                                                                    }
-                                                                />
-                                                            )}
+                                                                    );
+                                                                }
+                                                                return null;
+                                                            })}
                                                         </>
                                                     )}
                                                 </Menu>
