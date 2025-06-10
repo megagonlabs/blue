@@ -1,4 +1,4 @@
-import { Colors } from "@blueprintjs/core";
+import { Colors, Intent } from "@blueprintjs/core";
 import {
     faArrowRightFromArc,
     faArrowRightToArc,
@@ -44,13 +44,15 @@ export const USER_ROLES_LOOKUP = {
         operator: { icon: faFunction },
     },
     DOCKER_CONTAINER_STATUS_LOOKUP = {
-        created: { style: { color: Colors.ORANGE3 } },
-        running: { style: { color: Colors.GREEN3 } },
-        paused: { style: { color: Colors.RED3 } },
-        restarting: { style: { color: Colors.ORANGE3 } },
-        exited: { style: { color: Colors.RED3 } },
-        removing: { style: { color: Colors.RED3 } },
-        dead: { style: { color: Colors.RED3 } },
+        created: { style: { color: Colors.ORANGE3 }, intent: Intent.WARNING },
+        running: { style: { color: Colors.GREEN3 }, intent: Intent.SUCCESS },
+        paused: { style: { color: Colors.RED3 }, intent: Intent.DANGER },
+        restarting: {
+            style: { color: Colors.ORANGE3, intent: Intent.WARNING },
+        },
+        exited: { style: { color: Colors.RED3 }, intent: Intent.DANGER },
+        removing: { style: { color: Colors.RED3, intent: Intent.DANGER } },
+        dead: { style: { color: Colors.RED3 }, intent: Intent.DANGER },
     },
     MIN_ALLOTMENT_PANE_SIZE = 400,
     MESSAGE_OVERFLOW_THRESHOLD = 200,

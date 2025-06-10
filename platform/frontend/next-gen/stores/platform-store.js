@@ -5,6 +5,7 @@ import { create } from "zustand";
 export const usePlatformStore = create((set, get) => ({
     setState: ({ key, value }) => set({ [key]: value }),
     users: { list: [], order: {}, loading: false, selected: new Set() },
+    services: { list: [], order: {}, loading: false, selected: new Set() },
     configurations: {
         values: {},
         loading: false,
@@ -13,6 +14,21 @@ export const usePlatformStore = create((set, get) => ({
     },
     setUserTableOrder: (order) => {
         set((state) => ({ users: { ...state.users, order } }));
+    },
+    setServiceTableOrder: (order) => {
+        set((state) => ({ services: { ...state.services, order } }));
+    },
+    updateServiceTableSelected: ({ serviceName, checked = false }) => {
+        const { services } = get();
+        let newSelected = _.cloneDeep(services.selected);
+        if (checked) {
+            newSelected.add(serviceName);
+        } else {
+            newSelected.delete(serviceName);
+        }
+        set((state) => ({
+            services: { ...state.services, selected: newSelected },
+        }));
     },
     updateUserTableSelected: ({ uid, checked = false }) => {
         const { users } = get();
@@ -59,6 +75,13 @@ export const usePlatformStore = create((set, get) => ({
         set((state) => ({
             configurations: { ...state.configurations, values: newValues },
         }));
+    },
+    removeServiceFromList: ({ serviceNames }) => {
+        const { services } = get();
+        let newList = _.cloneDeep(services.list).filter(
+            (e) => _.isSet(serviceNames) && !serviceNames.has(e.service)
+        );
+        set((state) => ({ services: { ...state.services, list: newList } }));
     },
     updateUserTableRole: ({ uids, role }) => {
         const { users } = get();
@@ -122,6 +145,19 @@ export const usePlatformStore = create((set, get) => ({
                     loading: false,
                     selected: new Set(),
                     list: _.get(response, "data.users", []),
+                },
+            }));
+        });
+    },
+    getServices: () => {
+        set((state) => ({ services: { ...state.services, loading: true } }));
+        axios.get("/containers/services").then((response) => {
+            set((state) => ({
+                services: {
+                    ...state.services,
+                    loading: false,
+                    selected: new Set(),
+                    list: _.get(response, "data.results", []),
                 },
             }));
         });
