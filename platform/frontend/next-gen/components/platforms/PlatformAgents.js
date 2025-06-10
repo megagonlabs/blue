@@ -4,6 +4,7 @@ import {
     ButtonGroup,
     ButtonVariant,
     Divider,
+    H6,
     Intent,
     NonIdealState,
     Size,
@@ -17,12 +18,13 @@ import {
     RowHeaderCell,
     Table2,
     TableLoadingOption,
-    Utils,
 } from "@blueprintjs/table";
 import {
-    faLayerGroup,
+    faArrowDownToLine,
+    faCircleA,
+    faRectangleTerminal,
     faRefresh,
-    faStop,
+    faTrash,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import axios from "axios";
 import _ from "lodash";
@@ -37,81 +39,21 @@ import { showAxiosErrorToast } from "../helper";
 import withAutoSizer from "../hocs/withAutoSizer";
 import Timestamp from "../Timestamp";
 import { AppToaster } from "../toaster";
-import ServiceCheckbox from "./ServiceCheckbox";
-function PlatformServices({ width, height }) {
-    const {
-        list,
-        loading,
-        order,
-        getServices,
-        selected,
-        setServiceTableOrder,
-        updateServiceTableSelected,
-        removeServiceFromList,
-    } = usePlatformStore(
-        useShallow((state) => ({
-            list: state.services.list,
-            getServices: state.getServices,
-            order: state.services.order,
-            loading: state.services.loading,
-            selected: state.services.selected,
-            setServiceTableOrder: state.setServiceTableOrder,
-            updateServiceTableSelected: state.updateServiceTableSelected,
-            removeServiceFromList: state.removeServiceFromList,
-        }))
-    );
+import AgentCheckbox from "./AgentCheckbox";
+function PlatformAgents({ width, height }) {
+    const { list, loading, order, selected, getAgents, setAgentTableOrder } =
+        usePlatformStore(
+            useShallow((state) => ({
+                list: state.agents.list,
+                getAgents: state.getAgents,
+                order: state.agents.order,
+                loading: state.agents.loading,
+                selected: state.agents.selected,
+                setAgentTableOrder: state.setAgentTableOrder,
+            }))
+        );
     const [tableKey, setTableKey] = useState(Date.now());
     const [deleting, setDeleting] = useState(false);
-    const handleStopService = () => {
-        let promises = [];
-        const selectedServices = _.toArray(selected);
-        for (let i = 0; i < _.size(selectedServices); i++) {
-            const serviceName = selectedServices[i];
-            promises.push(
-                new Promise((resolve, reject) => {
-                    axios
-                        .delete(`/containers/services/service/${serviceName}}`)
-                        .then(() => {
-                            resolve(serviceName);
-                        })
-                        .catch((error) => {
-                            showAxiosErrorToast(error);
-                            reject(serviceName);
-                        });
-                })
-            );
-        }
-        setDeleting(true);
-        Promise.allSettled(promises)
-            .then((results) => {
-                let stopped = new Set();
-                for (let i = 0; i < _.size(results); i++) {
-                    if (_.isEqual("fulfilled", results[i].status)) {
-                        stopped.add(results[i].value);
-                        updateServiceTableSelected({
-                            id: results[i].value,
-                            checked: false,
-                        });
-                    }
-                }
-                const size = _.size(stopped);
-                if (size > 0) {
-                    let message = `Stopped ${size} service${
-                        size > 1 ? "s" : ""
-                    }`;
-                    if (_.isEqual(size, 1)) {
-                        message = `Stopped ${_.first(
-                            _.toArray(stopped)
-                        )} service`;
-                    }
-                    AppToaster.show({ message, intent: Intent.SUCCESS });
-                    removeServiceFromList({ ids: stopped });
-                }
-            })
-            .finally(() => {
-                setDeleting(false);
-            });
-    };
     const columns = useMemo(() => {
         return _.sortBy(
             [
@@ -120,13 +62,35 @@ function PlatformServices({ width, height }) {
                     key: "checkbox",
                     cellRenderer: (rowIndex) => (
                         <Cell style={{ lineHeight: `${TABLE_CELL_HEIGHT}px` }}>
-                            <ServiceCheckbox
-                                serviceName={_.get(
+                            <AgentCheckbox
+                                agentName={_.get(
                                     list,
-                                    [rowIndex, "service"],
+                                    [rowIndex, "agent"],
                                     null
                                 )}
                             />
+                        </Cell>
+                    ),
+                },
+                {
+                    name: "Action",
+                    key: "action",
+                    cellRenderer: (rowIndex) => (
+                        <Cell style={{ lineHeight: `${TABLE_CELL_HEIGHT}px` }}>
+                            <ButtonGroup
+                                variant={ButtonVariant.MINIMAL}
+                                style={{ marginTop: 5 }}
+                            >
+                                <Tooltip content="Logs" placement="bottom">
+                                    <Button
+                                        icon={
+                                            <FAIcon
+                                                icon={faRectangleTerminal}
+                                            />
+                                        }
+                                    />
+                                </Tooltip>
+                            </ButtonGroup>
                         </Cell>
                     ),
                 },
@@ -190,8 +154,8 @@ function PlatformServices({ width, height }) {
                         );
                     },
                 },
-                { name: "Service", key: "service" },
-                { name: "Platform", key: "platform" },
+                { name: "Agent", key: "agent" },
+                { name: "Registry", key: "registry" },
             ],
             (column) => {
                 return _.get(order, column.key, Infinity);
@@ -210,20 +174,109 @@ function PlatformServices({ width, height }) {
         for (let i = 0; i < _.size(newColumns); i++) {
             _.set(newOrder, newColumns[i].key, i);
         }
-        setServiceTableOrder(newOrder);
+        setAgentTableOrder(newOrder);
     };
     useEffect(() => {
         setTableKey(Date.now());
     }, [columns]);
     useEffect(() => {
-        getServices();
+        getAgents();
     }, []);
+    const handlePullAgent = () => {
+        let promises = [];
+        const selectedAgents = _.toArray(selected);
+        for (let i = 0; i < _.size(selectedAgents); i++) {
+            const agentName = selectedAgents[i];
+            promises.push(
+                new Promise((resolve, reject) => {
+                    axios
+                        .put(`/containers/agents/agent/${agentName}`)
+                        .then(() => {
+                            resolve(agentName);
+                        })
+                        .catch((error) => {
+                            showAxiosErrorToast(error);
+                            reject(agentName);
+                        });
+                })
+            );
+        }
+        Promise.allSettled(promises).then((results) => {
+            let updated = new Set();
+            for (let i = 0; i < _.size(results); i++) {
+                if (_.isEqual("fulfilled", results[i].status)) {
+                    updated.add(results[i].value);
+                    updateAgentTableSelected({
+                        id: results[i].value,
+                        checked: false,
+                    });
+                }
+            }
+            const size = _.size(updated);
+            if (size > 0) {
+                let message = `Updated ${size} agent${size > 1 ? "s" : ""}`;
+                if (_.isEqual(size, 1)) {
+                    message = `Updated ${_.first(_.toArray(updated))} agent`;
+                }
+                AppToaster.show({ message, intent: Intent.SUCCESS });
+                removeServiceFromList({ ids: updated });
+            }
+        });
+    };
+    const handleDeleteAgent = () => {
+        let promises = [];
+        const selectedAgents = _.toArray(selected);
+        for (let i = 0; i < _.size(selectedAgents); i++) {
+            const agentName = selectedAgents[i];
+            promises.push(
+                new Promise((resolve, reject) => {
+                    axios
+                        .delete(`/containers/agents/agent/${agentName}`)
+                        .then(() => {
+                            resolve(agentName);
+                        })
+                        .catch((error) => {
+                            showAxiosErrorToast(error);
+                            reject(agentName);
+                        });
+                })
+            );
+        }
+        setDeleting(true);
+        Promise.allSettled(promises)
+            .then((results) => {
+                let deleted = new Set();
+                for (let i = 0; i < _.size(results); i++) {
+                    if (_.isEqual("fulfilled", results[i].status)) {
+                        deleted.add(results[i].value);
+                        updateAgentTableSelected({
+                            id: results[i].value,
+                            checked: false,
+                        });
+                    }
+                }
+                const size = _.size(deleted);
+                if (size > 0) {
+                    let message = `Deleted ${size} agent${size > 1 ? "s" : ""}`;
+                    if (_.isEqual(size, 1)) {
+                        message = `Stopped ${_.first(
+                            _.toArray(deleted)
+                        )} agent`;
+                    }
+                    AppToaster.show({ message, intent: Intent.SUCCESS });
+                    removeServiceFromList({ ids: deleted });
+                }
+            })
+            .finally(() => {
+                setDeleting(false);
+            });
+    };
     return (
         <div style={{ width, height, position: "relative" }}>
             {_.isEmpty(list) ? (
                 <NonIdealState
-                    title="No Service"
-                    icon={<FAIcon icon={faLayerGroup} size={50} />}
+                    title="No Agent"
+                    icon={<FAIcon icon={faCircleA} size={50} />}
                 />
             ) : (
                 <>
@@ -233,17 +286,35 @@ function PlatformServices({ width, height }) {
                             variant={ButtonVariant.MINIMAL}
                         >
                             <Button
-                                onClick={getServices}
+                                onClick={getAgents}
+                                loading={loading}
                                 icon={<FAIcon icon={faRefresh} />}
                             />
                             <Divider />
-                            <Tooltip content="Stop" placement="bottom">
+                            <H6
+                                style={{
+                                    lineHeight: "40px",
+                                    margin: "0px 10px 0px",
+                                }}
+                            >
+                                Docker
+                            </H6>
+                            <Tooltip content="Pull" placement="bottom">
                                 <Button
-                                    onClick={handleStopService}
-                                    loading={deleting}
+                                    onClick={handlePullAgent}
+                                    icon={<FAIcon icon={faArrowDownToLine} />}
+                                    disabled={_.isEmpty(selected) || deleting}
+                                    intent={Intent.PRIMARY}
+                                />
+                            </Tooltip>
+                            <Divider />
+                            <Tooltip content="Delete" placement="bottom">
+                                <Button
+                                    onClick={handleDeleteAgent}
+                                    icon={<FAIcon icon={faTrash} />}
                                     disabled={_.isEmpty(selected)}
+                                    loading={deleting}
                                     intent={Intent.DANGER}
-                                    icon={<FAIcon icon={faStop} />}
                                 />
                             </Tooltip>
                         </ButtonGroup>
@@ -319,4 +390,4 @@ function PlatformServices({ width, height }) {
         </div>
     );
 }
-export default withAutoSizer(PlatformServices);
+export default withAutoSizer(PlatformAgents);

@@ -39,6 +39,7 @@ import Authentication from "./Authentication";
 import { ENTITY_TYPE_CONVERSION, ENTITY_TYPE_LOOKUP } from "./constants";
 import ExpandingBox from "./ExpandingBox";
 import { FAIcon } from "./FAIcon";
+import PlatformAgents from "./platforms/PlatformAgents";
 import PlatformConfigurations from "./platforms/PlatformConfigurations";
 import PlatformServices from "./platforms/PlatformServices";
 import PlatformUsers from "./platforms/PlatformUsers";
@@ -133,6 +134,7 @@ export default function Blue({ children }) {
             title: "Platform Agents",
             text: "Agents",
             icon: faCircleA,
+            content: <PlatformAgents />,
             visible: permissions.canReadPlatformAgents,
         },
         services: {
