@@ -124,6 +124,13 @@ class ToolRegistry(Registry):
 
         return connection
 
+    def execute_tool(self, tool, server, args, kwargs):
+        connection = self.connect_server(server)
+        if connection:
+            return connection.execute_tool(tool, args, kwargs)
+        else:
+            return None
+        
     def sync_all(self, recursive=False):
         # TODO
         pass
