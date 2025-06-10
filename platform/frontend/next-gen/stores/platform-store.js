@@ -6,6 +6,7 @@ export const usePlatformStore = create((set, get) => ({
     setState: ({ key, value }) => set({ [key]: value }),
     users: { list: [], order: {}, loading: false, selected: new Set() },
     services: { list: [], order: {}, loading: false, selected: new Set() },
+    agents: { list: [], order: {}, loading: false, selected: new Set() },
     configurations: {
         values: {},
         loading: false,
@@ -17,6 +18,21 @@ export const usePlatformStore = create((set, get) => ({
     },
     setServiceTableOrder: (order) => {
         set((state) => ({ services: { ...state.services, order } }));
+    },
+    setAgentTableOrder: (order) => {
+        set((state) => ({ agents: { ...state.agents, order } }));
+    },
+    updateAgentTableSelected: ({ agentName, checked = false }) => {
+        const { agents } = get();
+        let newSelected = _.cloneDeep(agents.selected);
+        if (checked) {
+            newSelected.add(agentName);
+        } else {
+            newSelected.delete(agentName);
+        }
+        set((state) => ({
+            agents: { ...state.agents, selected: newSelected },
+        }));
     },
     updateServiceTableSelected: ({ serviceName, checked = false }) => {
         const { services } = get();
@@ -155,6 +171,19 @@ export const usePlatformStore = create((set, get) => ({
             set((state) => ({
                 services: {
                     ...state.services,
+                    loading: false,
+                    selected: new Set(),
+                    list: _.get(response, "data.results", []),
+                },
+            }));
+        });
+    },
+    getAgents: () => {
+        set((state) => ({ agents: { ...state.agents, loading: true } }));
+        axios.get("/containers/agents").then((response) => {
+            set((state) => ({
+                agents: {
+                    ...state.agents,
                     loading: false,
                     selected: new Set(),
                     list: _.get(response, "data.results", []),
