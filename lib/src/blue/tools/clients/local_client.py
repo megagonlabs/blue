@@ -9,7 +9,7 @@ import copy
 
 
 ###### Blue
-from blue.tools.server import ToolServer
+from blue.tools.client import ToolClient
 from blue.tools.tool import Tool
 from blue.utils import json_utils
 
@@ -57,9 +57,9 @@ multiply_tool = Tool(
 
 
 ###############
-### LocalServer
+### LocalToolClient
 #
-class LocalServer(ToolServer):
+class LocalToolClient(ToolClient):
     def __init__(self, name, properties={}):
         super().__init__(name, properties=properties)
 

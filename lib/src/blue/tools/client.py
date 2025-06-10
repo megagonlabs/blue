@@ -4,9 +4,9 @@ import logging
 import json
 
 ###############
-### ToolServer
+### ToolClient
 #
-class ToolServer():
+class ToolClient():
     def __init__(self, name, properties={}):
 
         self.name = name

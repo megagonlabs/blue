@@ -1,1 +1,2 @@
 ray[client]
+mcp[client]
