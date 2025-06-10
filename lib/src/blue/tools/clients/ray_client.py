@@ -9,7 +9,7 @@ import ray
 
 
 ###### Blue
-from blue.tools.server import ToolServer
+from blue.tools.client import ToolClient
 from blue.tools.tool import Tool
 from blue.utils import json_utils
 
@@ -59,9 +59,9 @@ multiply_tool = Tool(
 
 
 ###############
-### RayServer
+### RayToolClient
 #
-class RayServer(ToolServer):
+class RayToolClient(ToolClient):
     def __init__(self, name, properties={}):
         super().__init__(name, properties=properties)
 
@@ -81,7 +81,8 @@ class RayServer(ToolServer):
         # init ray necessary
         host = c['host']
         port = c['port']
-        ray.init(address="ray://" + host + ":" + str(port))
+        server_url = "ray://" + host + ":" + str(port)
+        ray.init(address=server_url)
         return {}
 
     def _disconnect(self):

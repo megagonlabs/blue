@@ -231,6 +231,13 @@ class DataRegistry(Registry):
 
         return source_connection
 
+    def execute_query(self, query, source, database=None, collection=None):
+        source_connection = self.connect_source(source)
+        if source_connection:
+            return source_connection.execute_query(query, database=database, collection=collection)
+        else:
+            return None
+
     def sync_all(self, recursive=False):
         # TODO
         pass

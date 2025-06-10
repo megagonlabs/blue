@@ -8,10 +8,10 @@ import json
 from blue.utils import json_utils
 from blue.registry import Registry
 
-###### Supported Tool Servers
-from blue.tools.servers.local_server import LocalServer
-from blue.tools.servers.ray_server import RayServer
-from blue.tools.servers.mcp_server import MCPServer
+###### Supported Tool Clients
+from blue.tools.clients.local_client import LocalToolClient
+from blue.tools.clients.ray_client import RayToolClient
+from blue.tools.clients.mcp_client import MCPToolClient
 
 
 ###############
@@ -105,7 +105,7 @@ class ToolRegistry(Registry):
         self.set_server_property(server, 'connection', connection, rebuild=rebuild)
 
     def connect_server(self, server):
-        server_connection = None
+        connection = None
 
         properties = self.get_server_properties(server)
 
@@ -116,23 +116,30 @@ class ToolRegistry(Registry):
                 protocol = connection_properties["protocol"]
                 if protocol:
                     if protocol == "local":
-                        server_connection = LocalServer(server, properties=properties)
+                        connection = LocalToolClient(server, properties=properties)
                     elif protocol == "ray":
-                        server_connection = RayServer(server, properties=properties)
+                        connection = RayToolClient(server, properties=properties)
                     elif protocol == "mcp":
-                        server_connection = MCPServer(server, properties=properties)
+                        connection = MCPToolClient(server, properties=properties)
 
-        return server_connection
+        return connection
 
+    def execute_tool(self, tool, server, args, kwargs):
+        connection = self.connect_server(server)
+        if connection:
+            return connection.execute_tool(tool, args, kwargs)
+        else:
+            return None
+        
     def sync_all(self, recursive=False):
         # TODO
         pass
 
     def sync_server(self, server, recursive=False, rebuild=False):
-        server_connection = self.connect_server(server)
-        if server_connection:
+        connection = self.connect_server(server)
+        if connection:
             # fetch server metadata
-            metadata = server_connection.fetch_metadata()
+            metadata = connection.fetch_metadata()
 
             # update server properties
             properties = {}
@@ -143,7 +150,7 @@ class ToolRegistry(Registry):
             self.update_server(server, description=description, properties=properties, rebuild=rebuild)
 
             # fetch tools
-            fetched_tools = server_connection.fetch_tools()
+            fetched_tools = connection.fetch_tools()
             fetched_tools_set = set(fetched_tools)
 
             # get existing tools
@@ -176,23 +183,23 @@ class ToolRegistry(Registry):
             ## recurse
             if recursive:
                 for tool in fetched_tools_set:
-                    self.sync_server_tool(server, tool, server_connection=server_connection, recursive=recursive, rebuild=rebuild)
+                    self.sync_server_tool(server, tool, connection=connection, recursive=recursive, rebuild=rebuild)
             else:
                 for tool in adds:
                     #  sync to update description, properties, schema
-                    self.sync_server_tool(server, tool, server_connection=server_connection, recursive=False, rebuild=rebuild)
+                    self.sync_server_tool(server, tool, connection=connection, recursive=False, rebuild=rebuild)
 
                 for tool in merges:
                     #  sync to update description, properties, schema
-                    self.sync_server_tool(server, tool, server_connection=server_connection, recursive=False, rebuild=rebuild)
+                    self.sync_server_tool(server, tool, connection=connection, recursive=False, rebuild=rebuild)
 
-    def sync_server_tool(self, server, tool, server_connection=None, recursive=False, rebuild=False):
-        if server_connection is None:
-            server_connection = self.connect_server(server)
+    def sync_server_tool(self, server, tool, connection=None, recursive=False, rebuild=False):
+        if connection is None:
+            connection = self.connect_server(server)
 
-        if server_connection:
+        if connection:
             # fetch tool metadata
-            metadata = server_connection.fetch_tool_metadata(tool)
+            metadata = connection.fetch_tool_metadata(tool)
 
             # update server tool properties
             description = ""
