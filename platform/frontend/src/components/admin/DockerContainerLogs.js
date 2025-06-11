@@ -4,15 +4,12 @@ import { Button, ButtonGroup, Card, Colors, Tooltip } from "@blueprintjs/core";
 import { faBan, faCircleDot } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import _ from "lodash";
 import { allEnv } from "next-runtime-env";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 const { NEXT_PUBLIC_REST_API_SERVER, NEXT_PUBLIC_PLATFORM_NAME } = allEnv();
 export default function DockerContainerLogs({ containerId }) {
     const [isLive, setIsLive] = useState(false);
     const [lines, setLines] = useState([]);
-    const linesRef = useRef(lines);
-    useEffect(() => {
-        linesRef.current = lines;
-    }, [lines]);
+
     useEffect(() => {
         if (_.isEmpty(containerId)) return;
         const eventSource = new EventSource(
@@ -30,33 +27,28 @@ export default function DockerContainerLogs({ containerId }) {
                 setIsLive(false);
                 eventSource.close();
             } else {
-                setLines(
-                    _.sortBy(
-                        [
-                            ...linesRef.current,
-                            {
-                                epoch,
-                                line: (
-                                    <div>
-                                        <span
-                                            style={{
-                                                fontWeight: 600,
-                                                backgroundColor:
-                                                    Colors.LIGHT_GRAY4,
-                                            }}
-                                        >
-                                            {new Date(
-                                                line.slice(0, 30)
-                                            ).toLocaleString()}
-                                        </span>
-                                        {line.substring(30)}
-                                    </div>
-                                ),
-                            },
-                        ],
-                        "epoch"
-                    )
-                );
+                setLines((prevLines) => {
+                    const newLineEntry = {
+                        epoch,
+                        line: (
+                            <div>
+                                <span
+                                    style={{
+                                        fontWeight: 600,
+                                        backgroundColor: Colors.LIGHT_GRAY4,
+                                    }}
+                                >
+                                    {new Date(
+                                        line.slice(0, 30)
+                                    ).toLocaleString()}
+                                </span>
+                                {line.substring(30)}
+                            </div>
+                        ),
+                    };
+                    // Ensure sorting is applied to the combination of previous and new lines
+                    return _.sortBy([...prevLines, newLineEntry], "epoch");
+                });
             }
         });
         return () => {
