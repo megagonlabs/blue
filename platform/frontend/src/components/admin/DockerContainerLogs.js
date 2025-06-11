@@ -46,8 +46,10 @@ export default function DockerContainerLogs({ containerId }) {
                             </div>
                         ),
                     };
-                    // Ensure sorting is applied to the combination of previous and new lines
-                    return _.sortBy([...prevLines, newLineEntry], "epoch");
+                    return _.uniqBy(
+                        _.sortBy([...prevLines, newLineEntry], "epoch"),
+                        "epoch"
+                    );
                 });
             }
         });
@@ -92,8 +94,8 @@ export default function DockerContainerLogs({ containerId }) {
                         padding: 5,
                     }}
                 >
-                    {lines.map(({ line }, index) => (
-                        <div key={index}>{line}</div>
+                    {lines.map(({ line, epoch }) => (
+                        <div key={epoch}>{line}</div>
                     ))}
                 </div>
             </Card>
