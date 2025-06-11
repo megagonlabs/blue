@@ -50,7 +50,7 @@ multiply_tool = Tool(
     parameters = {
         "numbers": { "type": "list[Union[int, str]", "required": True}           
     },
-    validator = lambda params: 'numbers' in params and type(numbers) == list and all([type(number) in [int, float] for number in numbers]),
+    validator = lambda params: 'numbers' in params and type(params['numbers']) == list and all([type(number) in [int, float] for number in params['numbers']]),
     explainer = lambda output, params: { "output": output, "params": params}
 )
 
