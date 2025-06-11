@@ -9,7 +9,6 @@ const { NEXT_PUBLIC_REST_API_SERVER, NEXT_PUBLIC_PLATFORM_NAME } = allEnv();
 export default function DockerContainerLogs({ containerId }) {
     const [isLive, setIsLive] = useState(false);
     const [lines, setLines] = useState([]);
-
     useEffect(() => {
         if (_.isEmpty(containerId)) return;
         const eventSource = new EventSource(
