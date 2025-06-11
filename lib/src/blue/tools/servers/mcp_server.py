@@ -45,6 +45,10 @@ class MCPToolServer(ToolServer):
         uvicorn.run(self.connection.streamable_http_app, host=self.properties['connection']['host'], port=self.properties['connection']['port'])
 
     ##### tools
+    # override
+    def initialize_tools(self):
+        pass 
+
     def add_tool(self, tool):
         self.connection.add_tool(tool.function, tool.name, tool.description)
         

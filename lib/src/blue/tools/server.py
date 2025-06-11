@@ -55,6 +55,9 @@ class ToolServer():
         # logging.info('Starting session {name}'.format(name=self.name))
         self._start_connection()
         
+        # initialize tools
+        self.initialize_tools()
+
         logging.info('Started server {name}'.format(name=self.name))
 
     def _stop(self):
@@ -67,6 +70,9 @@ class ToolServer():
         pass
 
     # tools
+    def initialize_tools(self):
+        pass 
+
     # override
     def add_tool(self, tool):
         pass 
