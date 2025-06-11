@@ -4,7 +4,7 @@ from fastapi import Depends, Request
 from fastapi.responses import StreamingResponse
 from redis import Redis
 from APIRouter import APIRouter
-from constant import END_OF_SSE_SIGNAL, account_id_header, acl_enforce
+from constant import END_OF_EVENT_SIGNAL, account_id_header, acl_enforce
 from settings import PROPERTIES
 from blue.connection import PooledConnectionFactory
 import asyncio
@@ -25,7 +25,7 @@ async def stream_data(request: Request):
         pubsub.psubscribe("*:TRACKER:PERF")
         while True:
             if should_stop.is_set():
-                data = {'epoch': time.time(), 'line': END_OF_SSE_SIGNAL}
+                data = {'epoch': time.time(), 'line': END_OF_EVENT_SIGNAL}
                 yield f"event: message\ndata: {json.dumps(data)}\n\n"
                 break
             message = pubsub.get_message()

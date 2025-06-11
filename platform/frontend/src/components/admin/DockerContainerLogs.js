@@ -1,4 +1,4 @@
-import { END_OF_SSE_SIGNAL } from "@/components/constant";
+import { END_OF_EVENT_SIGNAL } from "@/components/constant";
 import { faIcon } from "@/components/icon";
 import { Button, ButtonGroup, Card, Colors, Tooltip } from "@blueprintjs/core";
 import { faBan, faCircleDot } from "@fortawesome/sharp-duotone-solid-svg-icons";
@@ -22,7 +22,7 @@ export default function DockerContainerLogs({ containerId }) {
         });
         eventSource.addEventListener("message", (event) => {
             const { epoch, line } = JSON.parse(event.data);
-            if (_.isEqual(line, END_OF_SSE_SIGNAL)) {
+            if (_.isEqual(line, END_OF_EVENT_SIGNAL)) {
                 setIsLive(false);
                 eventSource.close();
             } else {
