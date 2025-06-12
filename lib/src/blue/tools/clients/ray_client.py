@@ -14,7 +14,7 @@ from blue.tools.tool import Tool
 from blue.utils import json_utils
 
 ###### Ray Tools
-from ray_tools import tools_dict
+from blue.tools.clients.ray_tools import tools_dict
 
 
 ###############

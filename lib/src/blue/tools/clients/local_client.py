@@ -12,7 +12,7 @@ from blue.tools.tool import Tool
 from blue.utils import json_utils
 
 ###### Local Tools
-from local_tools import tools_dict
+from blue.tools.clients.local_tools import tools_dict
 
 
 
