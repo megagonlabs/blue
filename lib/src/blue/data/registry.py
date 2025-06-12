@@ -13,6 +13,7 @@ from blue.data.sources.mongodb_source import MongoDBSource
 from blue.data.sources.neo4j_source import NEO4JSource
 from blue.data.sources.postgres_source import PostgresDBSource
 from blue.data.sources.mysql_source import MySQLDBSource
+from blue.data.sources.openai_source import OpenAISource
 
 ###############
 ### DataRegistry
@@ -228,15 +229,24 @@ class DataRegistry(Registry):
                         source_connection = PostgresDBSource(source, properties=properties)
                     elif protocol == "mysql":
                         source_connection = MySQLDBSource(source, properties=properties)
+                    elif protocol == "openai":
+                        source_connection = OpenAISource(source, properties=properties)
 
         return source_connection
 
-    def execute_query(self, query, source, database=None, collection=None):
+    def execute_query(self, query, source, database=None, collection=None, optional_properties={}):
+        """Execute a query against a data source. Currently separate for OpenAI and other sources.
+        """
+        # Connect to the source
         source_connection = self.connect_source(source)
         if source_connection:
-            return source_connection.execute_query(query, database=database, collection=collection)
-        else:
-            return None
+            return source_connection.execute_query(
+                query=query,
+                database=database,
+                collection=collection,
+                optional_properties=optional_properties
+            )
+        return None
 
     def sync_all(self, recursive=False):
         # TODO
