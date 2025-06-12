@@ -143,7 +143,7 @@ class MCPToolClient(ToolClient):
         
         await self._create_session()
 
-        result = []
+        result = None
         try:
             response = await self.session.call_tool(tool, kwargs)
         finally:
