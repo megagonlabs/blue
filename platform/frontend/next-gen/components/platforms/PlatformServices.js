@@ -25,6 +25,7 @@ import {
     faStop,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import axios from "axios";
+import classNames from "classnames";
 import _ from "lodash";
 import { useEffect, useMemo, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
@@ -220,102 +221,101 @@ function PlatformServices({ width, height }) {
     }, []);
     return (
         <div style={{ width, height, position: "relative" }}>
-            {_.isEmpty(list) ? (
-                <NonIdealState
-                    title="No Service"
-                    icon={<FAIcon icon={faLayerGroup} size={50} />}
-                />
-            ) : (
-                <>
-                    <div style={{ padding: 10 }}>
-                        <ButtonGroup
-                            size={Size.LARGE}
-                            variant={ButtonVariant.MINIMAL}
-                        >
-                            <Button
-                                onClick={getServices}
-                                icon={<FAIcon icon={faRefresh} />}
-                            />
-                            <Divider />
-                            <Tooltip content="Stop" placement="bottom">
-                                <Button
-                                    onClick={handleStopService}
-                                    loading={deleting}
-                                    disabled={_.isEmpty(selected)}
-                                    intent={Intent.DANGER}
-                                    icon={<FAIcon icon={faStop} />}
-                                />
-                            </Tooltip>
-                        </ButtonGroup>
-                    </div>
-                    <div style={{ width, height: height - 60 }}>
-                        <Table2
-                            key={tableKey}
-                            loadingOptions={
-                                loading
-                                    ? [
-                                          TableLoadingOption.CELLS,
-                                          TableLoadingOption.ROW_HEADERS,
-                                      ]
-                                    : []
-                            }
-                            onColumnsReordered={handleColumnsReordered}
-                            enableColumnReordering
-                            numFrozenColumns={1}
-                            numRows={_.size(list)}
-                            enableRowResizing={false}
-                            defaultRowHeight={TABLE_CELL_HEIGHT}
-                            rowHeaderCellRenderer={(rowIndex) => (
-                                <RowHeaderCell
-                                    name={
-                                        <div
-                                            style={{
-                                                textAlign: "center",
-                                                lineHeight: `${TABLE_CELL_HEIGHT}px`,
-                                            }}
-                                        >
-                                            {rowIndex + 1}
-                                        </div>
-                                    }
-                                />
-                            )}
-                        >
-                            {columns.map((column, index) => {
-                                const { name, key, cellRenderer } = column;
-                                const defaultCellRenderer = (rowIndex) => (
-                                    <Cell
+            <div
+                className={classNames({ "border-bottom": _.isEmpty(list) })}
+                style={{ padding: 10, height: 61 }}
+            >
+                <ButtonGroup size={Size.LARGE} variant={ButtonVariant.MINIMAL}>
+                    <Button
+                        onClick={getServices}
+                        loading={loading}
+                        icon={<FAIcon icon={faRefresh} />}
+                    />
+                    <Divider />
+                    <Tooltip content="Stop" placement="bottom">
+                        <Button
+                            onClick={handleStopService}
+                            loading={deleting}
+                            disabled={_.isEmpty(selected)}
+                            intent={Intent.DANGER}
+                            icon={<FAIcon icon={faStop} />}
+                        />
+                    </Tooltip>
+                </ButtonGroup>
+            </div>
+            <div style={{ width, height: height - 60 }}>
+                {_.isEmpty(list) ? (
+                    <NonIdealState
+                        title="No Service"
+                        icon={<FAIcon icon={faLayerGroup} size={50} />}
+                    />
+                ) : (
+                    <Table2
+                        key={tableKey}
+                        loadingOptions={
+                            loading
+                                ? [
+                                      TableLoadingOption.CELLS,
+                                      TableLoadingOption.ROW_HEADERS,
+                                  ]
+                                : []
+                        }
+                        onColumnsReordered={handleColumnsReordered}
+                        enableColumnReordering
+                        numFrozenColumns={1}
+                        numRows={_.size(list)}
+                        enableRowResizing={false}
+                        defaultRowHeight={TABLE_CELL_HEIGHT}
+                        rowHeaderCellRenderer={(rowIndex) => (
+                            <RowHeaderCell
+                                name={
+                                    <div
                                         style={{
+                                            textAlign: "center",
                                             lineHeight: `${TABLE_CELL_HEIGHT}px`,
                                         }}
                                     >
-                                        {_.get(list, [rowIndex, key], "-")}
-                                    </Cell>
-                                );
-                                const columnHeaderCellRenderer = () => (
-                                    <ColumnHeaderCell
-                                        name={name}
-                                        menuRenderer={null}
-                                    />
-                                );
-                                return (
-                                    <Column
-                                        key={index}
-                                        name={name}
-                                        cellRenderer={
-                                            _.isFunction(cellRenderer)
-                                                ? cellRenderer
-                                                : defaultCellRenderer
-                                        }
-                                        columnHeaderCellRenderer={
-                                            columnHeaderCellRenderer
-                                        }
-                                    />
-                                );
-                            })}
-                        </Table2>
-                    </div>
-                </>
-            )}
+                                        {rowIndex + 1}
+                                    </div>
+                                }
+                            />
+                        )}
+                    >
+                        {columns.map((column, index) => {
+                            const { name, key, cellRenderer } = column;
+                            const defaultCellRenderer = (rowIndex) => (
+                                <Cell
+                                    style={{
+                                        lineHeight: `${TABLE_CELL_HEIGHT}px`,
+                                    }}
+                                >
+                                    {_.get(list, [rowIndex, key], "-")}
+                                </Cell>
+                            );
+                            const columnHeaderCellRenderer = () => (
+                                <ColumnHeaderCell
+                                    name={name}
+                                    menuRenderer={null}
+                                />
+                            );
+                            return (
+                                <Column
+                                    key={index}
+                                    name={name}
+                                    cellRenderer={
+                                        _.isFunction(cellRenderer)
+                                            ? cellRenderer
+                                            : defaultCellRenderer
+                                    }
+                                    columnHeaderCellRenderer={
+                                        columnHeaderCellRenderer
+                                    }
+                                />
+                            );
+                        })}
+                    </Table2>
+                )}
+            </div>
         </div>
     );
 }

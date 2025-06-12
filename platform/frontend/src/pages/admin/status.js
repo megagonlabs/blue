@@ -2,7 +2,7 @@ import TrackerCard from "@/components/admin/TrackerCard";
 import List from "@/components/admin/trackers/List";
 import Series from "@/components/admin/trackers/Series";
 import Tile from "@/components/admin/trackers/Tile";
-import { END_OF_SSE_SIGNAL } from "@/components/constant";
+import { END_OF_EVENT_SIGNAL } from "@/components/constant";
 import { AppContext } from "@/components/contexts/app-context";
 import { faIcon } from "@/components/icon";
 import {
@@ -140,7 +140,7 @@ export default function Status() {
         // attaching a handler to receive message events
         eventSource.addEventListener("message", (event) => {
             const { data, channel, line } = JSON.parse(event.data);
-            if (_.isEqual(line, END_OF_SSE_SIGNAL)) {
+            if (_.isEqual(line, END_OF_EVENT_SIGNAL)) {
                 setIsLive(false);
                 eventSource.close();
             } else {

@@ -3,6 +3,7 @@ import {
     Button,
     ButtonGroup,
     ButtonVariant,
+    Colors,
     Divider,
     H6,
     Intent,
@@ -27,11 +28,13 @@ import {
     faTrash,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import axios from "axios";
+import classNames from "classnames";
 import _ from "lodash";
 import { useEffect, useMemo, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
 import {
     DOCKER_CONTAINER_STATUS_LOOKUP,
+    HEX_TRANSPARENCY,
     TABLE_CELL_HEIGHT,
 } from "../constants";
 import { FAIcon } from "../FAIcon";
@@ -40,6 +43,7 @@ import withAutoSizer from "../hocs/withAutoSizer";
 import Timestamp from "../Timestamp";
 import { AppToaster } from "../toaster";
 import AgentCheckbox from "./AgentCheckbox";
+import LogPane from "./LogPane";
 function PlatformAgents({ width, height }) {
     const { list, loading, order, selected, getAgents, setAgentTableOrder } =
         usePlatformStore(
@@ -54,6 +58,7 @@ function PlatformAgents({ width, height }) {
         );
     const [tableKey, setTableKey] = useState(Date.now());
     const [deleting, setDeleting] = useState(false);
+    const [containerId, setContainerId] = useState(null);
     const columns = useMemo(() => {
         return _.sortBy(
             [
@@ -83,6 +88,16 @@ function PlatformAgents({ width, height }) {
                             >
                                 <Tooltip content="Logs" placement="bottom">
                                     <Button
+                                        onClick={() => {
+                                            setShowLogs(true);
+                                            setContainerId(
+                                                _.get(
+                                                    list,
+                                                    [rowIndex, "id"],
+                                                    null
+                                                )
+                                            );
+                                        }}
                                         icon={
                                             <FAIcon
                                                 icon={faRectangleTerminal}
@@ -271,122 +286,140 @@ function PlatformAgents({ width, height }) {
                 setDeleting(false);
             });
     };
+    const [showLogs, setShowLogs] = useState(false);
     return (
         <div style={{ width, height, position: "relative" }}>
-            {_.isEmpty(list) ? (
-                <NonIdealState
-                    title="No Agent"
-                    icon={<FAIcon icon={faCircleA} size={50} />}
+            {showLogs && (
+                <div
+                    className="full-parent-dimension"
+                    onClick={() => {
+                        setShowLogs(false);
+                    }}
+                    style={{
+                        position: "absolute",
+                        zIndex: 10,
+                        backgroundColor: `${Colors.BLACK}${HEX_TRANSPARENCY[70]}`,
+                    }}
                 />
-            ) : (
-                <>
-                    <div style={{ padding: 10 }}>
-                        <ButtonGroup
-                            size={Size.LARGE}
-                            variant={ButtonVariant.MINIMAL}
-                        >
-                            <Button
-                                onClick={getAgents}
-                                loading={loading}
-                                icon={<FAIcon icon={faRefresh} />}
-                            />
-                            <Divider />
-                            <H6
-                                style={{
-                                    lineHeight: "40px",
-                                    margin: "0px 10px 0px",
-                                }}
-                            >
-                                Docker
-                            </H6>
-                            <Tooltip content="Pull" placement="bottom">
-                                <Button
-                                    onClick={handlePullAgent}
-                                    icon={<FAIcon icon={faArrowDownToLine} />}
-                                    disabled={_.isEmpty(selected) || deleting}
-                                    intent={Intent.PRIMARY}
-                                />
-                            </Tooltip>
-                            <Divider />
-                            <Tooltip content="Delete" placement="bottom">
-                                <Button
-                                    onClick={handleDeleteAgent}
-                                    icon={<FAIcon icon={faTrash} />}
-                                    disabled={_.isEmpty(selected)}
-                                    loading={deleting}
-                                    intent={Intent.DANGER}
-                                />
-                            </Tooltip>
-                        </ButtonGroup>
-                    </div>
-                    <div style={{ width, height: height - 60 }}>
-                        <Table2
-                            key={tableKey}
-                            loadingOptions={
-                                loading
-                                    ? [
-                                          TableLoadingOption.CELLS,
-                                          TableLoadingOption.ROW_HEADERS,
-                                      ]
-                                    : []
-                            }
-                            onColumnsReordered={handleColumnsReordered}
-                            enableColumnReordering
-                            numFrozenColumns={1}
-                            numRows={_.size(list)}
-                            enableRowResizing={false}
-                            defaultRowHeight={TABLE_CELL_HEIGHT}
-                            rowHeaderCellRenderer={(rowIndex) => (
-                                <RowHeaderCell
-                                    name={
-                                        <div
-                                            style={{
-                                                textAlign: "center",
-                                                lineHeight: `${TABLE_CELL_HEIGHT}px`,
-                                            }}
-                                        >
-                                            {rowIndex + 1}
-                                        </div>
-                                    }
-                                />
-                            )}
-                        >
-                            {columns.map((column, index) => {
-                                const { name, key, cellRenderer } = column;
-                                const defaultCellRenderer = (rowIndex) => (
-                                    <Cell
+            )}
+            <LogPane
+                show={showLogs}
+                setShow={setShowLogs}
+                containerId={containerId}
+                setContainerId={setContainerId}
+            />
+            <div
+                className={classNames({ "border-bottom": _.isEmpty(list) })}
+                style={{ padding: 10, height: 61 }}
+            >
+                <ButtonGroup size={Size.LARGE} variant={ButtonVariant.MINIMAL}>
+                    <Button
+                        onClick={getAgents}
+                        loading={loading}
+                        icon={<FAIcon icon={faRefresh} />}
+                    />
+                    <Divider />
+                    <H6
+                        style={{
+                            lineHeight: "40px",
+                            margin: "0px 10px 0px",
+                        }}
+                    >
+                        Docker
+                    </H6>
+                    <Tooltip content="Pull" placement="bottom">
+                        <Button
+                            onClick={handlePullAgent}
+                            icon={<FAIcon icon={faArrowDownToLine} />}
+                            disabled={_.isEmpty(selected) || deleting}
+                            intent={Intent.PRIMARY}
+                        />
+                    </Tooltip>
+                    <Divider />
+                    <Tooltip content="Delete" placement="bottom">
+                        <Button
+                            onClick={handleDeleteAgent}
+                            icon={<FAIcon icon={faTrash} />}
+                            disabled={_.isEmpty(selected)}
+                            loading={deleting}
+                            intent={Intent.DANGER}
+                        />
+                    </Tooltip>
+                </ButtonGroup>
+            </div>
+            <div style={{ width, height: height - 60 }}>
+                {_.isEmpty(list) ? (
+                    <NonIdealState
+                        title="No Agent"
+                        icon={<FAIcon icon={faCircleA} size={50} />}
+                    />
+                ) : (
+                    <Table2
+                        key={tableKey}
+                        loadingOptions={
+                            loading
+                                ? [
+                                      TableLoadingOption.CELLS,
+                                      TableLoadingOption.ROW_HEADERS,
+                                  ]
+                                : []
+                        }
+                        onColumnsReordered={handleColumnsReordered}
+                        enableColumnReordering
+                        numFrozenColumns={1}
+                        numRows={_.size(list)}
+                        enableRowResizing={false}
+                        defaultRowHeight={TABLE_CELL_HEIGHT}
+                        rowHeaderCellRenderer={(rowIndex) => (
+                            <RowHeaderCell
+                                name={
+                                    <div
                                         style={{
+                                            textAlign: "center",
                                             lineHeight: `${TABLE_CELL_HEIGHT}px`,
                                         }}
                                     >
-                                        {_.get(list, [rowIndex, key], "-")}
-                                    </Cell>
-                                );
-                                const columnHeaderCellRenderer = () => (
-                                    <ColumnHeaderCell
-                                        name={name}
-                                        menuRenderer={null}
-                                    />
-                                );
-                                return (
-                                    <Column
-                                        key={index}
-                                        name={name}
-                                        cellRenderer={
-                                            _.isFunction(cellRenderer)
-                                                ? cellRenderer
-                                                : defaultCellRenderer
-                                        }
-                                        columnHeaderCellRenderer={
-                                            columnHeaderCellRenderer
-                                        }
-                                    />
-                                );
-                            })}
-                        </Table2>
-                    </div>
-                </>
-            )}
+                                        {rowIndex + 1}
+                                    </div>
+                                }
+                            />
+                        )}
+                    >
+                        {columns.map((column, index) => {
+                            const { name, key, cellRenderer } = column;
+                            const defaultCellRenderer = (rowIndex) => (
+                                <Cell
+                                    style={{
+                                        lineHeight: `${TABLE_CELL_HEIGHT}px`,
+                                    }}
+                                >
+                                    {_.get(list, [rowIndex, key], "-")}
+                                </Cell>
+                            );
+                            const columnHeaderCellRenderer = () => (
+                                <ColumnHeaderCell
+                                    name={name}
+                                    menuRenderer={null}
+                                />
+                            );
+                            return (
+                                <Column
+                                    key={index}
+                                    name={name}
+                                    cellRenderer={
+                                        _.isFunction(cellRenderer)
+                                            ? cellRenderer
+                                            : defaultCellRenderer
+                                    }
+                                    columnHeaderCellRenderer={
+                                        columnHeaderCellRenderer
+                                    }
+                                />
+                            );
+                        })}
+                    </Table2>
+                )}
+            </div>
         </div>
     );
 }

@@ -11,7 +11,7 @@ import time
 import docker.errors
 from fastapi import Depends, Request
 import pydash
-from constant import END_OF_SSE_SIGNAL, PermissionDenied, account_id_header, acl_enforce
+from constant import END_OF_EVENT_SIGNAL, PermissionDenied, account_id_header, acl_enforce
 from server import should_stop
 
 
@@ -399,7 +399,7 @@ async def stream_log(container_id):
 
         while True:
             if should_stop.is_set():
-                data = {'epoch': time.time(), 'line': END_OF_SSE_SIGNAL}
+                data = {'epoch': time.time(), 'line': END_OF_EVENT_SIGNAL}
                 yield f"event: message\ndata: {json.dumps(data)}\n\n"
                 break
             if not queue.empty():
