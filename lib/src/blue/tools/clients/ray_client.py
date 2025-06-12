@@ -41,7 +41,12 @@ class RayToolClient(ToolClient):
         host = c['host']
         port = c['port']
         server_url = "ray://" + host + ":" + str(port)
-        ray.init(address=server_url)
+        
+        namespace = None 
+        if 'namespace' in c:
+            namespace = c['namespace']
+
+        ray.init(address=server_url, namespace=namespace)
         return {}
 
     def _disconnect(self):
