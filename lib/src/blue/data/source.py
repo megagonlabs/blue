@@ -87,6 +87,6 @@ class DataSource():
     def fetch_database_collection_schema(self, database, collection):
         return {}
 
-    def execute_query(self, query, database=None, collection=None):
+    def execute_query(self, query, database=None, collection=None, optional_properties={}):
         return [{}]
 

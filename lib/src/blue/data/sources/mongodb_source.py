@@ -100,7 +100,7 @@ class MongoDBSource(DataSource):
 
 
     ######### execute query
-    def execute_query(self, query, database=None, collection=None):
+    def execute_query(self, query, database=None, collection=None, optional_properties={}):
         if database is None:
             raise Exception("No database provided")
         
