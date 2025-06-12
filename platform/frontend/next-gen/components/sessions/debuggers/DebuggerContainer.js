@@ -14,15 +14,18 @@ import {
     Colors,
     HTMLTable,
     Intent,
+    Size,
     Tag,
     Tooltip,
     Tree,
 } from "@blueprintjs/core";
 import {
+    faCircleA,
     faFolder,
     faFolderOpen,
     faFolderTree,
     faList,
+    faMessages,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import { Allotment } from "allotment";
 import classNames from "classnames";
@@ -234,6 +237,7 @@ function DebuggerContainer({ width, height, sessionId }) {
         alignItems: "center",
     };
     const [viewType, setViewType] = useState("list");
+    const [visibleSection, setVisibleSection] = useState("messages");
     const [treeContents, setTreeContents] = useState([]);
     useEffect(() => {
         let streams = [];
@@ -298,9 +302,45 @@ function DebuggerContainer({ width, height, sessionId }) {
                 <Allotment.Pane minSize={MIN_ALLOTMENT_PANE_SIZE}>
                     <div
                         className="border-bottom"
-                        style={{ padding: 10, textAlign: "end" }}
+                        style={{
+                            padding: 10,
+                            display: "flex",
+                            justifyContent: "space-between",
+                        }}
                     >
-                        <ButtonGroup variant={ButtonVariant.MINIMAL}>
+                        <ButtonGroup
+                            size={Size.LARGE}
+                            variant={ButtonVariant.MINIMAL}
+                        >
+                            <Tooltip
+                                content="Messages"
+                                placement="bottom-start"
+                            >
+                                <Button
+                                    onClick={() => {
+                                        setVisibleSection("messages");
+                                    }}
+                                    active={_.isEqual(
+                                        visibleSection,
+                                        "messages"
+                                    )}
+                                    icon={<FAIcon icon={faMessages} />}
+                                />
+                            </Tooltip>
+                            <Tooltip content="Agents" placement="bottom">
+                                <Button
+                                    onClick={() => {
+                                        setVisibleSection("agents");
+                                    }}
+                                    active={_.isEqual(visibleSection, "agents")}
+                                    icon={<FAIcon icon={faCircleA} />}
+                                />
+                            </Tooltip>
+                        </ButtonGroup>
+                        <ButtonGroup
+                            size={Size.LARGE}
+                            variant={ButtonVariant.MINIMAL}
+                        >
                             <Tooltip content="List View" placement="bottom">
                                 <Button
                                     onClick={() => {
@@ -325,7 +365,7 @@ function DebuggerContainer({ width, height, sessionId }) {
                         className="full-parent-dimension"
                         style={{
                             overflowY: "auto",
-                            maxHeight: "calc(100% - 51px)",
+                            maxHeight: "calc(100% - 61px)",
                         }}
                     >
                         {_.isEqual(viewType, "list") ? (
