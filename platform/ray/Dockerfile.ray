@@ -1,0 +1,23 @@
+FROM --platform=$BUILDPLATFORM python:3.10.12
+ARG BLUE_BUILD_CACHE_ARG
+ARG BLUE_BUILD_LIB_ARG
+
+# Set workdir
+WORKDIR /app
+
+# Install ping
+RUN apt-get update
+RUN apt-get install iputils-ping -y
+
+# Update pip
+RUN pip install --upgrade pip
+
+# Build requirements first
+ADD src/requirements.ray /app/requirements.ray
+RUN pip install ${BLUE_BUILD_CACHE_ARG} -r requirements.ray
+
+# Environment variables
+ENV dashboard_host '0.0.0.0'
+ENV port '6380'
+
+CMD ["sh", "-c", "ray start --head  --dashboard-host ${dashboard_host} --port ${port} --block"]
