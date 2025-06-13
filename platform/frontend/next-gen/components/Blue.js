@@ -248,255 +248,271 @@ export default function Blue({ children }) {
                                         interactive
                                         className="full-parent-dimension border-radius-10"
                                         style={{
+                                            padding: darkMode ? 1 : 0,
                                             position: "relative",
-                                            overflow: isExpanded
-                                                ? "auto"
-                                                : "hidden",
+                                            overflow: "hidden",
                                         }}
                                     >
                                         <div
+                                            className="full-parent-dimension border-radius-10"
                                             style={{
-                                                position: "sticky",
-                                                top: 0,
-                                                left: 0,
-                                                zIndex: 1,
+                                                padding: 20,
+                                                overflow: isExpanded
+                                                    ? "auto"
+                                                    : "hidden",
                                             }}
                                         >
-                                            <Image
+                                            <div
                                                 style={{
                                                     position: "sticky",
                                                     top: 0,
                                                     left: 0,
                                                     zIndex: 1,
                                                 }}
-                                                width={25}
-                                                height={25}
-                                                src="/images/logo.png"
-                                                alt="Megagon Labs logo"
-                                            />
-                                            {isExpanded && (
+                                            >
+                                                <Image
+                                                    style={{
+                                                        position: "sticky",
+                                                        top: 0,
+                                                        left: 0,
+                                                        zIndex: 1,
+                                                    }}
+                                                    width={25}
+                                                    height={25}
+                                                    src="/images/logo.png"
+                                                    alt="Megagon Labs logo"
+                                                />
                                                 <div
                                                     className="full-parent-width"
                                                     style={{
                                                         background: darkMode
-                                                            ? "linear-gradient(to bottom, rgba(37,42,49,1) 0%, rgba(37,42,49,1) 45px, rgba(255,255,255,0) 99%, rgba(255,255,255,0) 100%)"
-                                                            : "linear-gradient(to bottom, rgba(255,255,255,1) 0%, rgba(255,255,255,1) 45px, rgba(255,255,255,0) 99%, rgba(255,255,255,0) 100%)",
-                                                        height: 65,
+                                                            ? "linear-gradient(to bottom, rgba(37,42,49,1) 0%, rgba(37,42,49,1) 65px, rgba(255,255,255,0) 99%, rgba(255,255,255,0) 100%)"
+                                                            : "linear-gradient(to bottom, rgba(255,255,255,1) 0%, rgba(255,255,255,1) 65px, rgba(255,255,255,0) 99%, rgba(255,255,255,0) 100%)",
+                                                        height: 85,
                                                         position: "absolute",
-                                                        top: 0,
-                                                        left: 0,
+                                                        borderTopLeftRadius: 10,
+                                                        borderTopRightRadius: 10,
+                                                        width: "calc(100% + 40px)",
+                                                        top: -20,
+                                                        left: -20,
                                                     }}
                                                 />
-                                            )}
-                                        </div>
-                                        {isExpanded && (
-                                            <div style={{ marginTop: 30 }}>
-                                                <Menu
-                                                    style={{
-                                                        padding: 0,
-                                                        backgroundColor:
-                                                            darkMode
-                                                                ? Colors.DARK_GRAY2
-                                                                : null,
-                                                    }}
-                                                    size={Size.LARGE}
-                                                >
-                                                    {_.some([
-                                                        permissions.canReadSessions,
-                                                        permissions.canWriteSessions,
-                                                    ]) && (
-                                                        <>
-                                                            <MenuDivider title="Sessions" />
-                                                            <MenuItem
-                                                                onClick={() =>
-                                                                    addContainer(
-                                                                        {
-                                                                            title: "Sessions",
-                                                                            content:
-                                                                                (
-                                                                                    <SessionList />
-                                                                                ),
-                                                                        }
-                                                                    )
-                                                                }
-                                                                text="All Sessions"
-                                                                icon={
-                                                                    <FAIcon
-                                                                        icon={
-                                                                            faInboxFull
-                                                                        }
-                                                                    />
-                                                                }
-                                                            />
-                                                            {permissions.canWriteSessions && (
-                                                                <MenuItem
-                                                                    intent={
-                                                                        Intent.PRIMARY
-                                                                    }
-                                                                    text="New Session"
-                                                                    onClick={() =>
-                                                                        createNewSession()
-                                                                    }
-                                                                    icon={
-                                                                        <FAIcon
-                                                                            icon={
-                                                                                faInboxOut
-                                                                            }
-                                                                        />
-                                                                    }
-                                                                />
-                                                            )}
-                                                        </>
-                                                    )}
-                                                    {_.some([
-                                                        permissions.canReadAgentRegistry,
-                                                        permissions.canReadDataRegistry,
-                                                        permissions.canReadOperatorRegistry,
-                                                        permissions.canReadModelRegistry,
-                                                        permissions.canReadToolRegistry,
-                                                    ]) && (
-                                                        <>
-                                                            <MenuDivider title="Registries" />
-                                                            {[
-                                                                "agent",
-                                                                "source",
-                                                                "operator",
-                                                                "model",
-                                                                "server",
-                                                            ].map((type) => {
-                                                                const {
-                                                                    title,
-                                                                    text,
-                                                                    content,
-                                                                    visible,
-                                                                } =
-                                                                    REGISTRY_MENU_ITEMS[
-                                                                        type
-                                                                    ];
-                                                                const { icon } =
-                                                                    ENTITY_TYPE_LOOKUP[
-                                                                        type
-                                                                    ];
-                                                                return (
-                                                                    visible && (
-                                                                        <MenuItem
-                                                                            onClick={() => {
-                                                                                addContainer(
-                                                                                    {
-                                                                                        icon,
-                                                                                        title,
-                                                                                        content,
-                                                                                    }
-                                                                                );
-                                                                            }}
-                                                                            text={
-                                                                                text
-                                                                            }
-                                                                            icon={
-                                                                                <FAIcon
-                                                                                    icon={
-                                                                                        icon
-                                                                                    }
-                                                                                />
-                                                                            }
-                                                                        />
-                                                                    )
-                                                                );
-                                                            })}
-                                                        </>
-                                                    )}
-                                                    {_.some([
-                                                        permissions.showFormDesigner,
-                                                    ]) && (
-                                                        <>
-                                                            <MenuDivider title="Tools" />
-                                                            {permissions.showFormDesigner && (
+                                            </div>
+                                            {isExpanded && (
+                                                <div style={{ marginTop: 30 }}>
+                                                    <Menu
+                                                        style={{
+                                                            padding: 0,
+                                                            backgroundColor:
+                                                                darkMode
+                                                                    ? Colors.DARK_GRAY2
+                                                                    : null,
+                                                        }}
+                                                        size={Size.LARGE}
+                                                    >
+                                                        {_.some([
+                                                            permissions.canReadSessions,
+                                                            permissions.canWriteSessions,
+                                                        ]) && (
+                                                            <>
+                                                                <MenuDivider title="Sessions" />
                                                                 <MenuItem
                                                                     onClick={() =>
                                                                         addContainer(
                                                                             {
-                                                                                title: "Form Designer",
+                                                                                title: "Sessions",
                                                                                 content:
                                                                                     (
-                                                                                        <FormDesigner />
+                                                                                        <SessionList />
                                                                                     ),
                                                                             }
                                                                         )
                                                                     }
-                                                                    text="Form Designer"
+                                                                    text="All Sessions"
                                                                     icon={
                                                                         <FAIcon
                                                                             icon={
-                                                                                faPencilRuler
+                                                                                faInboxFull
                                                                             }
                                                                         />
                                                                     }
                                                                 />
-                                                            )}
-                                                        </>
-                                                    )}
-                                                    {_.some([
-                                                        permissions.canReadPlatformStatus,
-                                                        permissions.canReadPlatformAgents,
-                                                        permissions.canReadPlatformServices,
-                                                        permissions.canWritePlatformUsers,
-                                                        permissions.canWritePlatformSettings,
-                                                    ]) && (
-                                                        <>
-                                                            <MenuDivider title="Platform" />
-                                                            {[
-                                                                "systemStatus",
-                                                                "agents",
-                                                                "services",
-                                                                "users",
-                                                                "configurations",
-                                                            ].map((key) => {
-                                                                const {
-                                                                    text,
-                                                                    title,
-                                                                    content,
-                                                                    visible,
-                                                                    icon,
-                                                                    labelElement,
-                                                                } =
-                                                                    PLATFORM_SECTION_MENU_ITEMS[
-                                                                        key
-                                                                    ];
-                                                                if (visible) {
-                                                                    return (
-                                                                        <MenuItem
-                                                                            text={
-                                                                                text
-                                                                            }
-                                                                            labelElement={
-                                                                                labelElement
-                                                                            }
-                                                                            icon={
-                                                                                <FAIcon
+                                                                {permissions.canWriteSessions && (
+                                                                    <MenuItem
+                                                                        intent={
+                                                                            Intent.PRIMARY
+                                                                        }
+                                                                        text="New Session"
+                                                                        onClick={() =>
+                                                                            createNewSession()
+                                                                        }
+                                                                        icon={
+                                                                            <FAIcon
+                                                                                icon={
+                                                                                    faInboxOut
+                                                                                }
+                                                                            />
+                                                                        }
+                                                                    />
+                                                                )}
+                                                            </>
+                                                        )}
+                                                        {_.some([
+                                                            permissions.canReadAgentRegistry,
+                                                            permissions.canReadDataRegistry,
+                                                            permissions.canReadOperatorRegistry,
+                                                            permissions.canReadModelRegistry,
+                                                            permissions.canReadToolRegistry,
+                                                        ]) && (
+                                                            <>
+                                                                <MenuDivider title="Registries" />
+                                                                {[
+                                                                    "agent",
+                                                                    "source",
+                                                                    "operator",
+                                                                    "model",
+                                                                    "server",
+                                                                ].map(
+                                                                    (type) => {
+                                                                        const {
+                                                                            title,
+                                                                            text,
+                                                                            content,
+                                                                            visible,
+                                                                        } =
+                                                                            REGISTRY_MENU_ITEMS[
+                                                                                type
+                                                                            ];
+                                                                        const {
+                                                                            icon,
+                                                                        } =
+                                                                            ENTITY_TYPE_LOOKUP[
+                                                                                type
+                                                                            ];
+                                                                        return (
+                                                                            visible && (
+                                                                                <MenuItem
+                                                                                    onClick={() => {
+                                                                                        addContainer(
+                                                                                            {
+                                                                                                icon,
+                                                                                                title,
+                                                                                                content,
+                                                                                            }
+                                                                                        );
+                                                                                    }}
+                                                                                    text={
+                                                                                        text
+                                                                                    }
                                                                                     icon={
-                                                                                        icon
+                                                                                        <FAIcon
+                                                                                            icon={
+                                                                                                icon
+                                                                                            }
+                                                                                        />
                                                                                     }
                                                                                 />
-                                                                            }
-                                                                            onClick={() => {
-                                                                                addContainer(
-                                                                                    {
-                                                                                        icon,
-                                                                                        title,
-                                                                                        content,
-                                                                                    }
-                                                                                );
-                                                                            }}
-                                                                        />
-                                                                    );
-                                                                }
-                                                                return null;
-                                                            })}
-                                                        </>
-                                                    )}
-                                                </Menu>
-                                            </div>
-                                        )}
+                                                                            )
+                                                                        );
+                                                                    }
+                                                                )}
+                                                            </>
+                                                        )}
+                                                        {_.some([
+                                                            permissions.showFormDesigner,
+                                                        ]) && (
+                                                            <>
+                                                                <MenuDivider title="Tools" />
+                                                                {permissions.showFormDesigner && (
+                                                                    <MenuItem
+                                                                        onClick={() =>
+                                                                            addContainer(
+                                                                                {
+                                                                                    title: "Form Designer",
+                                                                                    content:
+                                                                                        (
+                                                                                            <FormDesigner />
+                                                                                        ),
+                                                                                }
+                                                                            )
+                                                                        }
+                                                                        text="Form Designer"
+                                                                        icon={
+                                                                            <FAIcon
+                                                                                icon={
+                                                                                    faPencilRuler
+                                                                                }
+                                                                            />
+                                                                        }
+                                                                    />
+                                                                )}
+                                                            </>
+                                                        )}
+                                                        {_.some([
+                                                            permissions.canReadPlatformStatus,
+                                                            permissions.canReadPlatformAgents,
+                                                            permissions.canReadPlatformServices,
+                                                            permissions.canWritePlatformUsers,
+                                                            permissions.canWritePlatformSettings,
+                                                        ]) && (
+                                                            <>
+                                                                <MenuDivider title="Platform" />
+                                                                {[
+                                                                    "systemStatus",
+                                                                    "agents",
+                                                                    "services",
+                                                                    "users",
+                                                                    "configurations",
+                                                                ].map((key) => {
+                                                                    const {
+                                                                        text,
+                                                                        title,
+                                                                        content,
+                                                                        visible,
+                                                                        icon,
+                                                                        labelElement,
+                                                                    } =
+                                                                        PLATFORM_SECTION_MENU_ITEMS[
+                                                                            key
+                                                                        ];
+                                                                    if (
+                                                                        visible
+                                                                    ) {
+                                                                        return (
+                                                                            <MenuItem
+                                                                                text={
+                                                                                    text
+                                                                                }
+                                                                                labelElement={
+                                                                                    labelElement
+                                                                                }
+                                                                                icon={
+                                                                                    <FAIcon
+                                                                                        icon={
+                                                                                            icon
+                                                                                        }
+                                                                                    />
+                                                                                }
+                                                                                onClick={() => {
+                                                                                    addContainer(
+                                                                                        {
+                                                                                            icon,
+                                                                                            title,
+                                                                                            content,
+                                                                                        }
+                                                                                    );
+                                                                                }}
+                                                                            />
+                                                                        );
+                                                                    }
+                                                                    return null;
+                                                                })}
+                                                            </>
+                                                        )}
+                                                    </Menu>
+                                                </div>
+                                            )}
+                                        </div>
                                     </Card>
                                 )}
                             </ExpandingBox>
