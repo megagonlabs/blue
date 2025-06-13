@@ -109,7 +109,9 @@ class MCPToolClient(ToolClient):
 
                     # process tool schema
                     schema = t.inputSchema
-                    required = t.inputSchema['required']
+                    required = []
+                    if 'required' in t.inputSchema:
+                        required = t.inputSchema['required']
                     schema_properties = t.inputSchema['properties']
                     for p in schema_properties:
                         schema_property = schema_properties[p]
