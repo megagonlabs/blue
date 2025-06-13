@@ -274,18 +274,20 @@ export default function Blue({ children }) {
                                                 src="/images/logo.png"
                                                 alt="Megagon Labs logo"
                                             />
-                                            <div
-                                                className="full-parent-width"
-                                                style={{
-                                                    background: darkMode
-                                                        ? "linear-gradient(to bottom, rgba(37,42,49,1) 0%, rgba(37,42,49,1) 45px, rgba(255,255,255,0) 99%, rgba(255,255,255,0) 100%)"
-                                                        : "linear-gradient(to bottom, rgba(255,255,255,1) 0%, rgba(255,255,255,1) 45px, rgba(255,255,255,0) 99%, rgba(255,255,255,0) 100%)",
-                                                    height: 65,
-                                                    position: "absolute",
-                                                    top: 0,
-                                                    left: 0,
-                                                }}
-                                            />
+                                            {isExpanded && (
+                                                <div
+                                                    className="full-parent-width"
+                                                    style={{
+                                                        background: darkMode
+                                                            ? "linear-gradient(to bottom, rgba(37,42,49,1) 0%, rgba(37,42,49,1) 45px, rgba(255,255,255,0) 99%, rgba(255,255,255,0) 100%)"
+                                                            : "linear-gradient(to bottom, rgba(255,255,255,1) 0%, rgba(255,255,255,1) 45px, rgba(255,255,255,0) 99%, rgba(255,255,255,0) 100%)",
+                                                        height: 65,
+                                                        position: "absolute",
+                                                        top: 0,
+                                                        left: 0,
+                                                    }}
+                                                />
+                                            )}
                                         </div>
                                         {isExpanded && (
                                             <div style={{ marginTop: 30 }}>
