@@ -78,6 +78,7 @@ export default function NewEntity({ type, callback, parent, duplicateEntity }) {
             operator: NEXT_PUBLIC_OPERATOR_REGISTRY_NAME,
             model: NEXT_PUBLIC_MODEL_REGISTRY_NAME,
             server: NEXT_PUBLIC_TOOL_REGISTRY_NAME,
+            tool: NEXT_PUBLIC_TOOL_REGISTRY_NAME,
         };
         let url = `/registry/${REGISTRY_NAME_LOOKUP[calculatedType]}`;
         const convertedType = _.get(
@@ -87,6 +88,8 @@ export default function NewEntity({ type, callback, parent, duplicateEntity }) {
         );
         if (_.includes(["input", "output"], calculatedType)) {
             url += `/agent/${prefix}/${convertedType}/${fullName}`;
+        } else if (_.isEqual("tool", calculatedType)) {
+            url += `/tools/${prefix}/${convertedType}/${fullName}`;
         } else {
             url += `/${convertedType}/${fullName}`;
         }

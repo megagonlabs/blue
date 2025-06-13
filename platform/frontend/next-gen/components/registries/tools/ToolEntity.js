@@ -1,12 +1,8 @@
-import { FAIcon } from "@/components/FAIcon";
 import {
-    ENTITY_TYPE_CONVERSION,
-    ENTITY_TYPE_LOOKUP,
     HEX_TRANSPARENCY,
     MAIN_INFO_STYLES,
     REGISTRY_ENTITY_ICON_WRAPPER_STYLES,
 } from "@/components/constants";
-import { useContainerContext } from "@/components/contexts/ContainerContext";
 import {
     getEntityMainProperties,
     getUpdatePropertyPromises,
@@ -14,86 +10,52 @@ import {
     shallowDiff,
 } from "@/components/helper";
 import { useAppStore } from "@/stores/app-store";
-import { useGridStore } from "@/stores/grid-layout-store";
-import {
-    Button,
-    ButtonVariant,
-    Classes,
-    Colors,
-    EditableText,
-    EntityTitle,
-    H3,
-} from "@blueprintjs/core";
-import { faPlus } from "@fortawesome/sharp-duotone-solid-svg-icons";
+import { Classes, Colors } from "@blueprintjs/core";
 import axios from "axios";
 import classNames from "classnames";
 import _ from "lodash";
 import { allEnv } from "next-runtime-env";
 import { useEffect, useState } from "react";
-import { useShallow } from "zustand/react/shallow";
 import EntityActions from "../EntityActions";
-import EntityDisplayName from "../EntityDisplayName";
-import Leaves from "../Leaves";
-import MainPropertyBlock from "../MainPropertyBlock";
-import RegistryEntityContainer from "../RegistryEntityContainer";
 import RegistryEntityIcon from "../RegistryEntityIcon";
 import EntityDescription from "../attributes/EntityDescription";
 import EntityProperties from "../attributes/EntityProperties";
 const { NEXT_PUBLIC_TOOL_REGISTRY_NAME } = allEnv();
-export default function ServerEntity({
-    entity,
-    addCrumb,
-    backCrumb,
-    setShowNewEntity,
-    setNewEntityType,
-}) {
-    const { name, type } = entity;
-    const [server, setServer] = useState(null);
+export default function ToolEntity({ entity, backCrumb }) {
+    const { name, scope, type } = entity;
+    const [tool, setTool] = useState(null);
     const [isEditing, setIsEditing] = useState(false);
-    const [editedServer, setEditedServer] = useState(null);
+    const [editedTool, setEditedTool] = useState(null);
     const [mainProperties, setMainProperties] = useState({});
     const [loading, setLoading] = useState(false);
-    const { containerId } = useContainerContext();
-    const [template, setTemplate] = useState(null);
-    const { setContainerHeader, addContainer } = useGridStore(
-        useShallow((state) => ({
-            addContainer: state.addContainer,
-            setContainerHeader: state.setContainerHeader,
-        }))
-    );
     const updateMainProperties = ({ path, value }) => {
         let newProperties = _.cloneDeep(mainProperties);
         _.set(newProperties, path, value);
         setMainProperties(newProperties);
     };
-    const updateServer = ({ path, value }) => {
-        let newServer = _.cloneDeep(editedServer);
-        _.set(newServer, path, value);
-        setEditedServer(newServer);
+    const updateTool = ({ path, value }) => {
+        let newTool = _.cloneDeep(editedTool);
+        _.set(newTool, path, value);
+        setEditedTool(newTool);
     };
     const darkMode = useAppStore((state) => state.dark_mode);
     const displayName = _.get(mainProperties, "display_name", "");
-    const url = `/registry/${NEXT_PUBLIC_TOOL_REGISTRY_NAME}/${_.get(
-        ENTITY_TYPE_CONVERSION,
-        type,
-        type
-    )}/${name}`;
-    useEffect(() => {
-        setContainerHeader({
-            id: containerId,
-            title: <EntityDisplayName entity={server} />,
-            icon: _.get(ENTITY_TYPE_LOOKUP, [type, "icon"], null),
-        });
-    }, [server]);
+    const path = [scope.substring(1), type, name]
+        .filter((str) => !_.isEmpty(str))
+        .join("/");
+    const url = _.replace(
+        `/registry/${NEXT_PUBLIC_TOOL_REGISTRY_NAME}/${path}`,
+        "/server/",
+        "/tools/"
+    );
     useEffect(() => {
         setLoading(true);
         axios
             .get(url)
             .then((response) => {
                 const result = _.get(response, "data.result", null);
-                setServer(result);
-                setEditedServer(result);
-                setTemplate(result);
+                setTool(result);
+                setEditedTool(result);
                 setMainProperties(
                     getEntityMainProperties(_.get(result, "properties", {}))
                 );
@@ -103,26 +65,22 @@ export default function ServerEntity({
             });
     }, [entity]);
     const handleDiscard = () => {
-        setEditedServer(server);
-        setMainProperties(
-            getEntityMainProperties(_.get(server, "properties", {}))
-        );
+        setEditedTool(tool);
         setIsEditing(false);
     };
     const handleSave = () => {
         setLoading(true);
         axios
             .put(url, {
-                name: editedServer.name,
-                description: editedServer.description,
-                icon: editedServer.icon,
+                name: editedTool.name,
+                description: editedTool.description,
             })
             .then(() => {
                 const properties = {
-                    ...editedServer.properties,
+                    ...editedTool.properties,
                     ...mainProperties,
                 };
-                const diffs = shallowDiff(server.properties, properties);
+                const diffs = shallowDiff(tool.properties, properties);
                 const promises = getUpdatePropertyPromises({
                     axios,
                     url: `${url}/property`,
@@ -131,10 +89,9 @@ export default function ServerEntity({
                 });
                 settlePromises(promises, ({ error }) => {
                     if (!error) {
-                        const newServer = { ...editedServer, properties };
-                        setServer(newServer);
-                        setEditedServer(newServer);
-                        setTemplate(newServer);
+                        const newTool = { ...editedTool, properties };
+                        setTool(newTool);
+                        setEditedTool(newTool);
                         setMainProperties(getEntityMainProperties(properties));
                         setIsEditing(false);
                     }
@@ -149,13 +106,6 @@ export default function ServerEntity({
             backCrumb();
         });
     };
-    const onDuplicate = () => {
-        addContainer({
-            content: (
-                <RegistryEntityContainer entity={template} duplicate={true} />
-            ),
-        });
-    };
     return (
         <div>
             <div
@@ -168,7 +118,7 @@ export default function ServerEntity({
                     position: "relative",
                 }}
             >
-                {!_.isEmpty(server) && (
+                {!_.isEmpty(tool) && (
                     <div
                         className={loading ? Classes.SKELETON : null}
                         style={{ position: "absolute", right: 20 }}
@@ -177,11 +127,10 @@ export default function ServerEntity({
                             loading={loading}
                             handleSave={handleSave}
                             handleDiscard={handleDiscard}
-                            entity={server}
+                            entity={tool}
                             isEditing={isEditing}
                             setIsEditing={setIsEditing}
                             onDelete={onDelete}
-                            onDuplicate={onDuplicate}
                         />
                     </div>
                 )}
@@ -201,7 +150,7 @@ export default function ServerEntity({
                 >
                     <RegistryEntityIcon
                         type={type}
-                        content={_.get(editedServer, "icon", null)}
+                        content={_.get(editedTool, "icon", null)}
                     />
                 </div>
                 <div
@@ -218,83 +167,31 @@ export default function ServerEntity({
                         className={loading ? Classes.SKELETON : null}
                         style={MAIN_INFO_STYLES}
                     >
-                        <div>{_.get(editedServer, "type")}</div>
+                        <div>{_.get(editedTool, "type")}</div>
                         <div
                             className={Classes.TEXT_OVERFLOW_ELLIPSIS}
                             style={{ fontWeight: 600 }}
                         >
-                            {_.get(editedServer, "name")}
+                            {_.get(editedTool, "name")}
                         </div>
                     </div>
-                    <MainPropertyBlock loading={loading} label="Display name">
-                        {isEditing ? (
-                            <EditableText
-                                alwaysRenderInput
-                                value={displayName}
-                                onChange={(value) => {
-                                    updateMainProperties({
-                                        path: "display_name",
-                                        value,
-                                    });
-                                }}
-                            />
-                        ) : (
-                            <div className={Classes.TEXT_OVERFLOW_ELLIPSIS}>
-                                {!_.isEmpty(displayName) ? displayName : "-"}
-                            </div>
-                        )}
-                    </MainPropertyBlock>
                 </div>
             </div>
             <div style={{ marginTop: 20 }}>
                 <EntityDescription
                     isEditing={isEditing}
-                    updateEntity={updateServer}
-                    entity={editedServer}
+                    updateEntity={updateTool}
+                    entity={editedTool}
                     loading={loading}
                 />
             </div>
             <div style={{ marginTop: 20 }}>
                 <EntityProperties
                     isEditing={isEditing}
-                    updateEntity={updateServer}
-                    entity={editedServer}
+                    updateEntity={updateTool}
+                    entity={editedTool}
                     loading={loading}
                 />
-            </div>
-            <div style={{ marginTop: 20 }}>
-                <div style={{ marginBottom: 10 }}>
-                    <EntityTitle
-                        icon={
-                            <FAIcon
-                                icon={ENTITY_TYPE_LOOKUP["tool"].icon}
-                                size={25}
-                            />
-                        }
-                        heading={H3}
-                        title="Tools"
-                    />
-                </div>
-                <div className="responsive-grid-container">
-                    <Leaves
-                        loading={loading}
-                        addCrumb={addCrumb}
-                        list={_.values(_.get(server, "contents.tool", {}))}
-                    />
-                    {!isEditing && (
-                        <Button
-                            disabled={loading}
-                            variant={ButtonVariant.MINIMAL}
-                            icon={<FAIcon icon={faPlus} />}
-                            fill
-                            text="Add tool"
-                            onClick={() => {
-                                setShowNewEntity(true);
-                                setNewEntityType("tool");
-                            }}
-                        />
-                    )}
-                </div>
             </div>
         </div>
     );

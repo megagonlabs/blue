@@ -19,6 +19,7 @@ import ModelEntity from "./models/ModelEntity";
 import OperatorEntity from "./operators/OperatorEntity";
 import OutputEntity from "./outputs/OutputEntity";
 import ServerEntity from "./tools/ServerEntity";
+import ToolEntity from "./tools/ToolEntity";
 function RegistryEntityContainer({ width, height, entity, duplicate = false }) {
     const [breadcrumbs, setBreadcrumbs] = useState([]);
     const [duplicated, setDuplicated] = useState(false);
@@ -223,6 +224,17 @@ function RegistryEntityContainer({ width, height, entity, duplicate = false }) {
                                     entity={current}
                                     addCrumb={addCrumb}
                                     backCrumb={backCrumb}
+                                    setShowNewEntity={setShowNewEntity}
+                                    setNewEntityType={setNewEntityType}
+                                />
+                            )}
+                            {_.isEqual(type, "tool") && (
+                                <ToolEntity
+                                    entity={current}
+                                    addCrumb={addCrumb}
+                                    backCrumb={backCrumb}
+                                    setShowNewEntity={setShowNewEntity}
+                                    setNewEntityType={setNewEntityType}
                                 />
                             )}
                         </div>

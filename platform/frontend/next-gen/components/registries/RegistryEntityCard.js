@@ -35,7 +35,7 @@ export default function RegistryEntityCard({ entity }) {
     useEffect(() => {
         if (_.includes(["agent", "operator"], type)) {
             setExtra(_.toString(_.get(entity, "properties.image")));
-        } else if (_.isEqual("source", type)) {
+        } else if (_.includes(["source", "server"], type)) {
             let protocol = _.toString(
                 _.get(entity, "properties.connection.protocol")
             );

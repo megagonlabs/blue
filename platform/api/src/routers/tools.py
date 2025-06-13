@@ -220,6 +220,38 @@ def delete_server_tool(request: Request, server_name, tool_name):
     return JSONResponse(content={"message": "Success"})
 
 
+@router.get("/{server_name}/tool/{tool_name}/properties")
+def get_server_tool_properties(request: Request, server_name, tool_name):
+    acl_enforce(request.state.user['role'], 'tool_registry', 'read_all')
+    results = tool_registry.get_server_tool_properties(server_name, tool_name)
+    return JSONResponse(content={"results": results})
+
+
+@router.get("/{server_name}/tool/{tool_name}/property/{property_name}")
+def get_server_tool_property(request: Request, server_name, tool_name, property_name):
+    acl_enforce(request.state.user['role'], 'tool_registry', 'read_all')
+    result = tool_registry.get_server_tool_property(server_name, tool_name, property_name)
+    return JSONResponse(content={"result": result})
+
+
+@router.post("/{server_name}/tool/{tool_name}/property/{property_name}")
+def set_server_tool_property(request: Request, server_name, tool_name, property_name, property: JSONStructure):
+    server_db = tool_registry.get_server(server_name)
+    server_acl_enforce(request, server_db, write=True)
+    tool_registry.set_server_tool_property(server_name, tool_name, property_name, pydash.objects.get(property, [property_name], None), rebuild=True)
+    # save
+    tool_registry.dump("/blue_data/config/" + tool_registry_id + ".tools.json")
+    return JSONResponse(content={"message": "Success"})
+
+
+@router.delete("/{server_name}/tool/{tool_name}/property/{property_name}")
+def delete_server_tool_property(request: Request, server_name, tool_name, property_name):
+    server_db = tool_registry.get_server(server_name)
+    server_acl_enforce(request, server_db, write=True)
+    tool_registry.delete_server_tool_property(server_name, tool_name, property_name, rebuild=True)
+    # save
+    tool_registry.dump("/blue_data/config/" + tool_registry_id + ".tools.json")
+    return JSONResponse(content={"message": "Success"})
 
 
 ### sync entities
