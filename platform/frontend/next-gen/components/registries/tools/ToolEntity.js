@@ -49,6 +49,12 @@ export default function ToolEntity({ entity, backCrumb }) {
         "/server/",
         "/tools/"
     );
+    const onSynchronize = () => {
+        setLoading(true);
+        axios.put(`${url}/sync`).finally(() => {
+            setLoading(false);
+        });
+    };
     useEffect(() => {
         setLoading(true);
         axios
@@ -132,6 +138,7 @@ export default function ToolEntity({ entity, backCrumb }) {
                             isEditing={isEditing}
                             setIsEditing={setIsEditing}
                             onDelete={onDelete}
+                            onSynchronize={onSynchronize}
                         />
                     </div>
                 )}

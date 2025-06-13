@@ -78,17 +78,22 @@ export default function EntityActions({
             _.isEqual("operator", type) && permissions.canWriteOperatorRegistry;
         const duplicateModel =
             _.isEqual("model", type) && permissions.canWriteModelRegistry;
+        const duplicateServer =
+            _.isEqual("server", type) && permissions.canWriteToolRegistry;
         return (
             (duplicateAgent ||
                 duplicateData ||
                 duplicateOperator ||
-                duplicateModel) &&
+                duplicateModel ||
+                duplicateServer) &&
             _.isFunction(onDuplicate)
         );
     }, [permissions, onDuplicate]);
     const canSyncData =
-        _.includes(["source", "database", "collection"], type) &&
-        _.isFunction(onSynchronize);
+        _.includes(
+            ["source", "database", "collection", "server", "tool"],
+            type
+        ) && _.isFunction(onSynchronize);
     const canPullImage =
         _.isEqual(type, "agent") &&
         _.has(properties, "image") &&

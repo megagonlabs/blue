@@ -85,6 +85,12 @@ export default function ServerEntity({
             icon: _.get(ENTITY_TYPE_LOOKUP, [type, "icon"], null),
         });
     }, [server]);
+    const onSynchronize = () => {
+        setLoading(true);
+        axios.put(`${url}/sync`).finally(() => {
+            setLoading(false);
+        });
+    };
     useEffect(() => {
         setLoading(true);
         axios
@@ -181,6 +187,7 @@ export default function ServerEntity({
                             isEditing={isEditing}
                             setIsEditing={setIsEditing}
                             onDelete={onDelete}
+                            onSynchronize={onSynchronize}
                             onDuplicate={onDuplicate}
                         />
                     </div>
