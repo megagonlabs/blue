@@ -10,6 +10,7 @@ import {
     faFolders,
     faFunction,
     faServer,
+    faToolbox,
     faUsersViewfinder,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 export const USER_ROLES_LOOKUP = {
@@ -42,6 +43,7 @@ export const USER_ROLES_LOOKUP = {
         relation: { icon: faCircleNodes },
         model: { icon: faCube },
         operator: { icon: faFunction },
+        server: { icon: faToolbox },
     },
     DOCKER_CONTAINER_STATUS_LOOKUP = {
         created: { style: { color: Colors.ORANGE3 }, intent: Intent.WARNING },
@@ -74,7 +76,7 @@ export const USER_ROLES_LOOKUP = {
         "tags",
         "categories",
     ],
-    ENTITY_TYPE_CONVERSION = { source: "data" },
+    ENTITY_TYPE_CONVERSION = { source: "data", server: "tools" },
     REGISTRY_ENTITY_ICON_WRAPPER_STYLES = {
         height: 40,
         width: 40,

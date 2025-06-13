@@ -15,11 +15,11 @@ export default function FilterPane({ showFilter, setShowFilter, children }) {
         open: {
             x: 0,
             display: "block",
-            transition: { duration: 0.15 },
+            transition: { duration: 0.3 },
         },
         closed: {
             x: -200,
-            transition: { duration: 0.15 },
+            transition: { duration: 0.3 },
             display: "none",
         },
         initial: { x: -200, opacity: 1, display: "none" },

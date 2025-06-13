@@ -15,6 +15,7 @@ import {
     MenuItem,
     showContextMenu,
     Size,
+    Tooltip,
 } from "@blueprintjs/core";
 import {
     faBrowsers,
@@ -159,16 +160,23 @@ export default function SessionCard({ sessionId }) {
                     size={Size.LARGE}
                     variant={ButtonVariant.MINIMAL}
                 >
-                    <Button
-                        loading={loading}
-                        onClick={handlePinSession}
-                        icon={
-                            <FAIcon
-                                icon={pinned ? faThumbTackSlash : faThumbTack}
-                                size={pinned ? 20 : 16}
-                            />
-                        }
-                    />
+                    <Tooltip
+                        content={pinned ? "Unpin" : "Pin"}
+                        placement="left"
+                    >
+                        <Button
+                            loading={loading}
+                            onClick={handlePinSession}
+                            icon={
+                                <FAIcon
+                                    icon={
+                                        pinned ? faThumbTackSlash : faThumbTack
+                                    }
+                                    size={pinned ? 20 : 16}
+                                />
+                            }
+                        />
+                    </Tooltip>
                 </ButtonGroup>
             </div>
             <div style={{ position: "absolute", left: 20, top: 20 }}>
