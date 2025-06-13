@@ -9,6 +9,7 @@ import {
     faFile,
     faFolders,
     faFunction,
+    faScrewdriver,
     faServer,
     faToolbox,
     faUsersViewfinder,
@@ -44,6 +45,7 @@ export const USER_ROLES_LOOKUP = {
         model: { icon: faCube },
         operator: { icon: faFunction },
         server: { icon: faToolbox },
+        tool: { icon: faScrewdriver },
     },
     DOCKER_CONTAINER_STATUS_LOOKUP = {
         created: { style: { color: Colors.ORANGE3 }, intent: Intent.WARNING },

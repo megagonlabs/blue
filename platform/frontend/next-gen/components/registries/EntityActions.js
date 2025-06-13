@@ -59,6 +59,8 @@ export default function EntityActions({
             source: "data_registry",
             model: "model_registry",
             operator: "operator_registry",
+            server: "tool_registry",
+            tool: "tool_registry",
         };
         const writeAll = _.includes(
             _.get(user, ["permissions", TYPE_PERMISSION_KEY[type]], []),
