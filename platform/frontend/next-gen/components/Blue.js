@@ -36,7 +36,7 @@ import Image from "next/image";
 import { useShallow } from "zustand/react/shallow";
 import AccountPanel from "./AccountPanel";
 import Authentication from "./Authentication";
-import { ENTITY_TYPE_CONVERSION, ENTITY_TYPE_LOOKUP } from "./constants";
+import { ENTITY_TYPE_LOOKUP } from "./constants";
 import ExpandingBox from "./ExpandingBox";
 import { FAIcon } from "./FAIcon";
 import PlatformAgents from "./platforms/PlatformAgents";
@@ -48,18 +48,9 @@ import AgentList from "./registries/agents/AgentList";
 import SourceList from "./registries/data/SourceList";
 import ModelList from "./registries/models/ModelList";
 import OperatorList from "./registries/operators/OperatorList";
+import ToolList from "./registries/tools/ToolList";
 import SessionList from "./sessions/SessionList";
 import FormDesigner from "./tools/FormDesigner";
-const REGISTRY_MENU_ITEMS = {
-    agent: { title: "Agent Registry", text: "Agent", content: <AgentList /> },
-    source: { title: "Data Registry", text: "Data", content: <SourceList /> },
-    operator: {
-        title: "Operator Registry",
-        text: "Operator",
-        content: <OperatorList />,
-    },
-    model: { title: "Model Registry", text: "Model", content: <ModelList /> },
-};
 export default function Blue({ children }) {
     const {
         showOmnibar,
@@ -109,6 +100,38 @@ export default function Blue({ children }) {
             logout: state.logout,
         }))
     );
+    const REGISTRY_MENU_ITEMS = {
+        agent: {
+            title: "Agent Registry",
+            text: "Agent",
+            content: <AgentList />,
+            visible: permissions.canReadAgentRegistry,
+        },
+        source: {
+            title: "Data Registry",
+            text: "Data",
+            content: <SourceList />,
+            visible: permissions.canReadDataRegistry,
+        },
+        operator: {
+            title: "Operator Registry",
+            text: "Operator",
+            content: <OperatorList />,
+            visible: permissions.canReadOperatorRegistry,
+        },
+        model: {
+            title: "Model Registry",
+            text: "Model",
+            content: <ModelList />,
+            visible: permissions.canReadModelRegistry,
+        },
+        server: {
+            title: "Tool Registry",
+            text: "Tool",
+            content: <ToolList />,
+            visible: permissions.canReadToolRegistry,
+        },
+    };
     const createNewSession = useSessionStore((state) => state.createNewSession);
     const userProfileError =
         !_.isEmpty(user) && _.isEmpty(_.get(user, "role", null));
@@ -225,19 +248,47 @@ export default function Blue({ children }) {
                                         interactive
                                         className="full-parent-dimension border-radius-10"
                                         style={{
+                                            position: "relative",
                                             overflow: isExpanded
                                                 ? "auto"
                                                 : "hidden",
                                         }}
                                     >
-                                        <Image
-                                            width={25}
-                                            height={25}
-                                            src="/images/logo.png"
-                                            alt="Megagon Labs logo"
-                                        />
+                                        <div
+                                            style={{
+                                                position: "sticky",
+                                                top: 0,
+                                                left: 0,
+                                                zIndex: 1,
+                                            }}
+                                        >
+                                            <Image
+                                                style={{
+                                                    position: "sticky",
+                                                    top: 0,
+                                                    left: 0,
+                                                    zIndex: 1,
+                                                }}
+                                                width={25}
+                                                height={25}
+                                                src="/images/logo.png"
+                                                alt="Megagon Labs logo"
+                                            />
+                                            <div
+                                                className="full-parent-width"
+                                                style={{
+                                                    background: darkMode
+                                                        ? "linear-gradient(to bottom, rgba(37,42,49,1) 0%, rgba(37,42,49,1) 45px, rgba(255,255,255,0) 99%, rgba(255,255,255,0) 100%)"
+                                                        : "linear-gradient(to bottom, rgba(255,255,255,1) 0%, rgba(255,255,255,1) 45px, rgba(255,255,255,0) 99%, rgba(255,255,255,0) 100%)",
+                                                    height: 65,
+                                                    position: "absolute",
+                                                    top: 0,
+                                                    left: 0,
+                                                }}
+                                            />
+                                        </div>
                                         {isExpanded && (
-                                            <div style={{ marginTop: 20 }}>
+                                            <div style={{ marginTop: 30 }}>
                                                 <Menu
                                                     style={{
                                                         padding: 0,
@@ -300,6 +351,7 @@ export default function Blue({ children }) {
                                                         permissions.canReadDataRegistry,
                                                         permissions.canReadOperatorRegistry,
                                                         permissions.canReadModelRegistry,
+                                                        permissions.canReadToolRegistry,
                                                     ]) && (
                                                         <>
                                                             <MenuDivider title="Registries" />
@@ -308,11 +360,13 @@ export default function Blue({ children }) {
                                                                 "source",
                                                                 "operator",
                                                                 "model",
+                                                                "server",
                                                             ].map((type) => {
                                                                 const {
                                                                     title,
                                                                     text,
                                                                     content,
+                                                                    visible,
                                                                 } =
                                                                     REGISTRY_MENU_ITEMS[
                                                                         type
@@ -322,15 +376,7 @@ export default function Blue({ children }) {
                                                                         type
                                                                     ];
                                                                 return (
-                                                                    permissions[
-                                                                        `canRead${_.capitalize(
-                                                                            _.get(
-                                                                                ENTITY_TYPE_CONVERSION,
-                                                                                type,
-                                                                                type
-                                                                            )
-                                                                        )}Registry`
-                                                                    ] && (
+                                                                    visible && (
                                                                         <MenuItem
                                                                             onClick={() => {
                                                                                 addContainer(

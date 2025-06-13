@@ -99,6 +99,14 @@ export const useAuthStore = create((set, get) => ({
                         _.get(user, "permissions.model_registry", []),
                         ["write_all", "write_own"]
                     ),
+                    canReadToolRegistry: hasIntersection(
+                        _.get(user, "permissions.tool_registry", []),
+                        ["read_all", "read_own"]
+                    ),
+                    canWriteToolRegistry: hasIntersection(
+                        _.get(user, "permissions.tool_registry", []),
+                        ["write_all", "write_own"]
+                    ),
                     canWritePlatformUsers: hasIntersection(
                         _.get(user, "permissions.platform_users", []),
                         ["write_all"]

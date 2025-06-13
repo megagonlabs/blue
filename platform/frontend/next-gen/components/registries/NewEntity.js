@@ -34,6 +34,7 @@ const {
     NEXT_PUBLIC_DATA_REGISTRY_NAME,
     NEXT_PUBLIC_OPERATOR_REGISTRY_NAME,
     NEXT_PUBLIC_MODEL_REGISTRY_NAME,
+    NEXT_PUBLIC_TOOL_REGISTRY_NAME,
 } = allEnv();
 export default function NewEntity({ type, callback, parent, duplicateEntity }) {
     const [newEntity, setNewEntity] = useState({ type, description: "" });
@@ -76,6 +77,7 @@ export default function NewEntity({ type, callback, parent, duplicateEntity }) {
             source: NEXT_PUBLIC_DATA_REGISTRY_NAME,
             operator: NEXT_PUBLIC_OPERATOR_REGISTRY_NAME,
             model: NEXT_PUBLIC_MODEL_REGISTRY_NAME,
+            server: NEXT_PUBLIC_TOOL_REGISTRY_NAME,
         };
         let url = `/registry/${REGISTRY_NAME_LOOKUP[calculatedType]}`;
         const convertedType = _.get(

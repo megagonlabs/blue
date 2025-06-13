@@ -18,6 +18,7 @@ import InputEntity from "./inputs/InputEntity";
 import ModelEntity from "./models/ModelEntity";
 import OperatorEntity from "./operators/OperatorEntity";
 import OutputEntity from "./outputs/OutputEntity";
+import ServerEntity from "./tools/ServerEntity";
 function RegistryEntityContainer({ width, height, entity, duplicate = false }) {
     const [breadcrumbs, setBreadcrumbs] = useState([]);
     const [duplicated, setDuplicated] = useState(false);
@@ -215,6 +216,13 @@ function RegistryEntityContainer({ width, height, entity, duplicate = false }) {
                                     setIcon={setIcon}
                                     setShowIconEditor={setShowIconEditor}
                                     entity={current}
+                                />
+                            )}
+                            {_.isEqual(type, "server") && (
+                                <ServerEntity
+                                    entity={current}
+                                    addCrumb={addCrumb}
+                                    backCrumb={backCrumb}
                                 />
                             )}
                         </div>

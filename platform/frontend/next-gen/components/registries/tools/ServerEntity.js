@@ -1,0 +1,249 @@
+import {
+    ENTITY_TYPE_CONVERSION,
+    ENTITY_TYPE_LOOKUP,
+    HEX_TRANSPARENCY,
+    MAIN_INFO_STYLES,
+    REGISTRY_ENTITY_ICON_WRAPPER_STYLES,
+} from "@/components/constants";
+import { useContainerContext } from "@/components/contexts/ContainerContext";
+import {
+    getEntityMainProperties,
+    getUpdatePropertyPromises,
+    shallowDiff,
+} from "@/components/helper";
+import { useAppStore } from "@/stores/app-store";
+import { useGridStore } from "@/stores/grid-layout-store";
+import { Classes, Colors, EditableText } from "@blueprintjs/core";
+import axios from "axios";
+import classNames from "classnames";
+import _ from "lodash";
+import { allEnv } from "next-runtime-env";
+import { useEffect, useState } from "react";
+import { useShallow } from "zustand/react/shallow";
+import EntityActions from "../EntityActions";
+import EntityDisplayName from "../EntityDisplayName";
+import MainPropertyBlock from "../MainPropertyBlock";
+import RegistryEntityContainer from "../RegistryEntityContainer";
+import RegistryEntityIcon from "../RegistryEntityIcon";
+import EntityDescription from "../attributes/EntityDescription";
+import EntityProperties from "../attributes/EntityProperties";
+const { NEXT_PUBLIC_TOOL_REGISTRY_NAME } = allEnv();
+export default function ServerEntity({ entity, addCrumb, backCrumb }) {
+    const { name, type } = entity;
+    const [server, setServer] = useState(null);
+    const [isEditing, setIsEditing] = useState(false);
+    const [editedServer, setEditedServer] = useState(null);
+    const [mainProperties, setMainProperties] = useState({});
+    const [loading, setLoading] = useState(false);
+    const { containerId } = useContainerContext();
+    const [template, setTemplate] = useState(null);
+    const { setContainerHeader, addContainer } = useGridStore(
+        useShallow((state) => ({
+            addContainer: state.addContainer,
+            setContainerHeader: state.setContainerHeader,
+        }))
+    );
+    const updateMainProperties = ({ path, value }) => {
+        let newProperties = _.cloneDeep(mainProperties);
+        _.set(newProperties, path, value);
+        setMainProperties(newProperties);
+    };
+    const updateServer = ({ path, value }) => {
+        let newServer = _.cloneDeep(editedServer);
+        _.set(newServer, path, value);
+        setEditedServer(newServer);
+    };
+    const darkMode = useAppStore((state) => state.dark_mode);
+    const displayName = _.get(mainProperties, "display_name", "");
+    const url = `/registry/${NEXT_PUBLIC_TOOL_REGISTRY_NAME}/${_.get(
+        ENTITY_TYPE_CONVERSION,
+        type,
+        type
+    )}/${name}`;
+    useEffect(() => {
+        setContainerHeader({
+            id: containerId,
+            title: <EntityDisplayName entity={server} />,
+            icon: _.get(ENTITY_TYPE_LOOKUP, [type, "icon"], null),
+        });
+    }, [server]);
+    useEffect(() => {
+        setLoading(true);
+        axios
+            .get(url)
+            .then((response) => {
+                const result = _.get(response, "data.result", null);
+                setServer(result);
+                setEditedServer(result);
+                setTemplate(result);
+                setMainProperties(
+                    getEntityMainProperties(_.get(result, "properties", {}))
+                );
+            })
+            .finally(() => {
+                setLoading(false);
+            });
+    }, [entity]);
+    const handleDiscard = () => {
+        setEditedServer(server);
+        setMainProperties(
+            getEntityMainProperties(_.get(server, "properties", {}))
+        );
+        setIsEditing(false);
+    };
+    const handleSave = () => {
+        setLoading(true);
+        axios
+            .put(url, {
+                name: editedServer.name,
+                description: editedServer.description,
+                icon: editedServer.icon,
+            })
+            .then(() => {
+                const properties = {
+                    ...editedServer.properties,
+                    ...mainProperties,
+                };
+                const diffs = shallowDiff(server.properties, properties);
+                const promises = getUpdatePropertyPromises({
+                    axios,
+                    url: `${url}/property`,
+                    diffs,
+                    properties,
+                });
+                settlePromises(promises, ({ error }) => {
+                    if (!error) {
+                        const newServer = { ...editedServer, properties };
+                        setServer(newServer);
+                        setEditedServer(newServer);
+                        setTemplate(newServer);
+                        setMainProperties(getEntityMainProperties(properties));
+                        setIsEditing(false);
+                    }
+                    setLoading(false);
+                });
+            });
+    };
+    const onDelete = () => {
+        setLoading(true);
+        axios.delete(url).finally(() => {
+            setLoading(false);
+            backCrumb();
+        });
+    };
+    const onDuplicate = () => {
+        addContainer({
+            content: (
+                <RegistryEntityContainer entity={template} duplicate={true} />
+            ),
+        });
+    };
+    return (
+        <div>
+            <div
+                style={{
+                    backgroundColor: `${Colors.BLUE3}${
+                        HEX_TRANSPARENCY[darkMode ? 20 : 10]
+                    }`,
+                    borderRadius: 2,
+                    padding: 20,
+                    position: "relative",
+                }}
+            >
+                {!_.isEmpty(server) && (
+                    <div
+                        className={loading ? Classes.SKELETON : null}
+                        style={{ position: "absolute", right: 20 }}
+                    >
+                        <EntityActions
+                            loading={loading}
+                            handleSave={handleSave}
+                            handleDiscard={handleDiscard}
+                            entity={server}
+                            isEditing={isEditing}
+                            setIsEditing={setIsEditing}
+                            onDelete={onDelete}
+                            onDuplicate={onDuplicate}
+                        />
+                    </div>
+                )}
+                <div
+                    className={classNames(
+                        "padding-0",
+                        "overflow-hidden",
+                        "custom-card",
+                        { [Classes.SKELETON]: loading }
+                    )}
+                    style={{
+                        ...REGISTRY_ENTITY_ICON_WRAPPER_STYLES,
+                        position: "absolute",
+                        left: 20,
+                        top: 20,
+                    }}
+                >
+                    <RegistryEntityIcon
+                        type={type}
+                        content={_.get(editedServer, "icon", null)}
+                    />
+                </div>
+                <div
+                    style={{
+                        display: "flex",
+                        marginLeft: 60,
+                        columnGap: 40,
+                        rowGap: 20,
+                        flexWrap: "wrap",
+                        paddingRight: isEditing ? 150.96 : 60,
+                    }}
+                >
+                    <div
+                        className={loading ? Classes.SKELETON : null}
+                        style={MAIN_INFO_STYLES}
+                    >
+                        <div>{_.get(editedServer, "type")}</div>
+                        <div
+                            className={Classes.TEXT_OVERFLOW_ELLIPSIS}
+                            style={{ fontWeight: 600 }}
+                        >
+                            {_.get(editedServer, "name")}
+                        </div>
+                    </div>
+                    <MainPropertyBlock loading={loading} label="Display name">
+                        {isEditing ? (
+                            <EditableText
+                                alwaysRenderInput
+                                value={displayName}
+                                onChange={(value) => {
+                                    updateMainProperties({
+                                        path: "display_name",
+                                        value,
+                                    });
+                                }}
+                            />
+                        ) : (
+                            <div className={Classes.TEXT_OVERFLOW_ELLIPSIS}>
+                                {!_.isEmpty(displayName) ? displayName : "-"}
+                            </div>
+                        )}
+                    </MainPropertyBlock>
+                </div>
+            </div>
+            <div style={{ marginTop: 20 }}>
+                <EntityDescription
+                    isEditing={isEditing}
+                    updateEntity={updateServer}
+                    entity={editedServer}
+                    loading={loading}
+                />
+            </div>
+            <div style={{ marginTop: 20 }}>
+                <EntityProperties
+                    isEditing={isEditing}
+                    updateEntity={updateServer}
+                    entity={editedServer}
+                    loading={loading}
+                />
+            </div>
+        </div>
+    );
+}

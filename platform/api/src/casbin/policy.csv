@@ -17,6 +17,8 @@ p, administrator, model_registry, read_all
 p, administrator, model_registry, write_all
 p, administrator, operator_registry, read_all
 p, administrator, operator_registry, write_all
+p, administrator, tool_registry, read_all
+p, administrator, tool_registry, write_all
 p, administrator, form_designer, visible
 p, administrator, prompt_designer, visible
 
