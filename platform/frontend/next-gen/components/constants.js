@@ -9,10 +9,10 @@ import {
     faFile,
     faFolders,
     faFunction,
+    faPeopleGroup,
     faScrewdriver,
     faServer,
     faToolbox,
-    faUsersViewfinder,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 export const USER_ROLES_LOOKUP = {
         administrator: { text: "Administrator" },
@@ -34,7 +34,7 @@ export const USER_ROLES_LOOKUP = {
     ENTITY_TYPE_LOOKUP = {
         agent: { icon: faCircleA },
         data: { icon: faServer },
-        agent_group: { icon: faUsersViewfinder },
+        agent_group: { icon: faPeopleGroup },
         input: { icon: faArrowRightToArc },
         output: { icon: faArrowRightFromArc },
         source: { icon: faServer },

@@ -72,6 +72,7 @@ export default function NewEntity({ type, callback, parent, duplicateEntity }) {
         }
         const REGISTRY_NAME_LOOKUP = {
             agent: NEXT_PUBLIC_AGENT_REGISTRY_NAME,
+            agent_group: NEXT_PUBLIC_AGENT_REGISTRY_NAME,
             input: NEXT_PUBLIC_AGENT_REGISTRY_NAME,
             output: NEXT_PUBLIC_AGENT_REGISTRY_NAME,
             source: NEXT_PUBLIC_DATA_REGISTRY_NAME,
@@ -147,7 +148,12 @@ export default function NewEntity({ type, callback, parent, duplicateEntity }) {
     };
     return (
         <div>
-            <H3 style={{ marginBottom: 20 }}>Create {calculatedType}</H3>
+            <H3 style={{ marginBottom: 20 }}>
+                Create&nbsp;
+                {_.isEqual("agent_group", calculatedType)
+                    ? "demo"
+                    : calculatedType}
+            </H3>
             <div
                 style={{
                     backgroundColor: `${Colors.BLUE3}${
@@ -227,14 +233,16 @@ export default function NewEntity({ type, callback, parent, duplicateEntity }) {
                     loading={loading}
                 />
             </div>
-            <div style={{ marginTop: 20 }}>
-                <EntityProperties
-                    isEditing={true}
-                    updateEntity={updateEntity}
-                    entity={newEntity}
-                    loading={loading}
-                />
-            </div>
+            {!_.isEqual("agent_group", calculatedType) && (
+                <div style={{ marginTop: 20 }}>
+                    <EntityProperties
+                        isEditing={true}
+                        updateEntity={updateEntity}
+                        entity={newEntity}
+                        loading={loading}
+                    />
+                </div>
+            )}
         </div>
     );
 }
