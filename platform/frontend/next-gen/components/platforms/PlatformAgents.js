@@ -19,6 +19,7 @@ import {
     RowHeaderCell,
     Table2,
     TableLoadingOption,
+    Utils,
 } from "@blueprintjs/table";
 import {
     faArrowDownToLine,
@@ -45,17 +46,27 @@ import { AppToaster } from "../toaster";
 import AgentCheckbox from "./AgentCheckbox";
 import LogPane from "./LogPane";
 function PlatformAgents({ width, height }) {
-    const { list, loading, order, selected, getAgents, setAgentTableOrder } =
-        usePlatformStore(
-            useShallow((state) => ({
-                list: state.agents.list,
-                getAgents: state.getAgents,
-                order: state.agents.order,
-                loading: state.agents.loading,
-                selected: state.agents.selected,
-                setAgentTableOrder: state.setAgentTableOrder,
-            }))
-        );
+    const {
+        list,
+        loading,
+        order,
+        selected,
+        getAgents,
+        setAgentTableOrder,
+        updateAgentTableSelected,
+        removeServiceFromList,
+    } = usePlatformStore(
+        useShallow((state) => ({
+            list: state.agents.list,
+            getAgents: state.getAgents,
+            order: state.agents.order,
+            loading: state.agents.loading,
+            selected: state.agents.selected,
+            setAgentTableOrder: state.setAgentTableOrder,
+            updateAgentTableSelected: state.updateAgentTableSelected,
+            removeServiceFromList: state.removeServiceFromList,
+        }))
+    );
     const [tableKey, setTableKey] = useState(Date.now());
     const [deleting, setDeleting] = useState(false);
     const [containerId, setContainerId] = useState(null);

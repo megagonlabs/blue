@@ -207,6 +207,7 @@ export default function UserRoleConfiguration({
                 <CardList bordered={false}>
                     {_.toArray(selected).map((uid) => (
                         <Card
+                            key={uid}
                             style={{
                                 position: "relative",
                                 padding: "10px 0px",
@@ -252,6 +253,7 @@ export default function UserRoleConfiguration({
                     {["administrator", "developer", "member", "guest"].map(
                         (role) => (
                             <RadioCard
+                                key={role}
                                 inputProps={{ large: true }}
                                 compact
                                 checked={_.isEqual(selectedRole, role)}

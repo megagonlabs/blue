@@ -156,6 +156,7 @@ export default function SessionMemberList({ sessionId }) {
                             <CardList bordered={false}>
                                 {searchResult.map((user) => (
                                     <Card
+                                        key={user.uid}
                                         interactive
                                         style={{ position: "relative" }}
                                     >

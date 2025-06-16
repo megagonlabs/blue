@@ -12,6 +12,7 @@ import {
 } from "@blueprintjs/core";
 import { faBrowsers, faPen } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import classNames from "classnames";
+import _ from "lodash";
 import { useCallback, useMemo } from "react";
 import { FAIcon } from "../FAIcon";
 import { REGISTRY_ENTITY_ICON_WRAPPER_STYLES } from "../constants";

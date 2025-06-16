@@ -192,7 +192,6 @@ function parseRedisStreamKeysToTree(keys, previousTree = [], messageMap) {
                 } else if (!keys.some((key) => key.startsWith(node.id + ":"))) {
                     delete node.childNodes;
                     delete node.hasCaret;
-                    node.icon = node.icon;
                 }
             }
             return (
@@ -418,8 +417,9 @@ function DebuggerContainer({ width, height, sessionId }) {
                                             </tr>
                                         </thead>
                                         <tbody style={{ overflowY: "auto" }}>
-                                            {messages.map((message, index) => (
+                                            {messages.map((message) => (
                                                 <tr
+                                                    key={message.stream}
                                                     onClick={() => {
                                                         setFocusStream(
                                                             message.stream

@@ -24,17 +24,18 @@ import { forwardRef, useRef } from "react";
 import RGL, { WidthProvider } from "react-grid-layout";
 import { useShallow } from "zustand/react/shallow";
 const ReactGridLayout = WidthProvider(RGL);
-const CustomResizeHandle = forwardRef(
-    ({ handleAxis, className, ...props }, ref) => {
-        return (
-            <div
-                ref={ref}
-                className={`react-resizable-handle react-resizable-handle-${handleAxis} z-index-21`}
-                {...props}
-            />
-        );
-    }
-);
+const CustomResizeHandle = forwardRef(function CustomResizeHandle(
+    { handleAxis, ...props },
+    ref
+) {
+    return (
+        <div
+            {...props}
+            ref={ref}
+            className={`react-resizable-handle react-resizable-handle-${handleAxis} z-index-21`}
+        />
+    );
+});
 const WIDTH_ADJUSTMENT_BUTTONS = [
     { width: 5, tooltip: { content: "42%", placement: "bottom-start" } },
     { width: 6, tooltip: { content: "50%", placement: "bottom" } },
@@ -123,8 +124,9 @@ export default function Home() {
                                                     }
                                                 >
                                                     {WIDTH_ADJUSTMENT_BUTTONS.map(
-                                                        (spec) => (
+                                                        (spec, index) => (
                                                             <Tooltip
+                                                                key={index}
                                                                 {...spec.tooltip}
                                                             >
                                                                 <Button
@@ -172,7 +174,10 @@ export default function Home() {
                                         </div>
                                     }
                                 >
-                                    <Tooltip content="Resize">
+                                    <Tooltip
+                                        content="Resize"
+                                        placement="bottom"
+                                    >
                                         <Button
                                             intent={Intent.SUCCESS}
                                             icon={<FAIcon icon={faExpand} />}

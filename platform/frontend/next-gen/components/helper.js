@@ -1,8 +1,9 @@
-const {
-    faExclamation,
+import {
     faCopy,
+    faExclamation,
     faPenSwirl,
-} = require("@fortawesome/sharp-duotone-solid-svg-icons");
+} from "@fortawesome/sharp-duotone-solid-svg-icons";
+import _ from "lodash";
 const { AppToaster, ProgressToaster } = require("./toaster");
 const classNames = require("classnames");
 const { FAIcon } = require("./FAIcon");

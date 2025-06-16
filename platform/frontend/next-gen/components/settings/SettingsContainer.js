@@ -61,8 +61,9 @@ function SettingsContainer({ width, height }) {
                         alignText={Alignment.START}
                         variant={ButtonVariant.MINIMAL}
                     >
-                        {SECTIONS.map((section) => (
+                        {SECTIONS.map((section, index) => (
                             <Button
+                                key={index}
                                 icon={<FAIcon icon={section.icon} />}
                                 text={section.text}
                             />

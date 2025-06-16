@@ -442,7 +442,7 @@ export default function AuthenticationConfigurations() {
                     >
                         {_.isEmpty(domainsFiltered) && "-"}
                         {domainsFiltered.map((domain) => (
-                            <Tag size="large" minimal>
+                            <Tag size="large" minimal key={domain}>
                                 {domain}
                             </Tag>
                         ))}

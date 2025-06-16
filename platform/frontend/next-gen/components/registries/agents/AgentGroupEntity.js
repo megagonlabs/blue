@@ -5,24 +5,37 @@ import {
     REGISTRY_ENTITY_ICON_WRAPPER_STYLES,
 } from "@/components/constants";
 import { useContainerContext } from "@/components/contexts/ContainerContext";
+import { FAIcon } from "@/components/FAIcon";
 import {
     getEntityMainProperties,
     getUpdatePropertyPromises,
+    settlePromises,
     shallowDiff,
 } from "@/components/helper";
 import { useAppStore } from "@/stores/app-store";
 import { useGridStore } from "@/stores/grid-layout-store";
-import { Classes, Colors, EditableText } from "@blueprintjs/core";
+import {
+    Button,
+    ButtonVariant,
+    Classes,
+    Colors,
+    EditableText,
+    EntityTitle,
+    H3,
+} from "@blueprintjs/core";
+import { faFolderTree } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import axios from "axios";
 import classNames from "classnames";
 import _ from "lodash";
 import { allEnv } from "next-runtime-env";
 import { useEffect, useState } from "react";
+import EntityDescription from "../attributes/EntityDescription";
 import EntityActions from "../EntityActions";
 import EntityDisplayName from "../EntityDisplayName";
+import Leaves from "../Leaves";
 import MainPropertyBlock from "../MainPropertyBlock";
+import RegistryEntityContainer from "../RegistryEntityContainer";
 import RegistryEntityIcon from "../RegistryEntityIcon";
-import EntityDescription from "../attributes/EntityDescription";
 const { NEXT_PUBLIC_AGENT_REGISTRY_NAME } = allEnv();
 export default function AgentGroupEntity({
     entity,
@@ -32,7 +45,7 @@ export default function AgentGroupEntity({
     setIcon,
     backCrumb,
 }) {
-    const { name, type, scope } = entity;
+    const { name, type } = entity;
     const { containerId } = useContainerContext();
     const setContainerHeader = useGridStore(
         (state) => state.setContainerHeader
@@ -286,6 +299,37 @@ export default function AgentGroupEntity({
                         entity={editedAgentGroup}
                         loading={loading}
                     />
+                </div>
+            </div>
+            <div style={{ marginTop: 20 }}>
+                <div style={{ marginBottom: 10 }}>
+                    <EntityTitle
+                        icon={
+                            <FAIcon
+                                icon={ENTITY_TYPE_LOOKUP["agent"].icon}
+                                size={25}
+                            />
+                        }
+                        heading={H3}
+                        title="Agents"
+                    />
+                </div>
+                <div className="responsive-grid-container">
+                    <Leaves
+                        loading={loading}
+                        addCrumb={addCrumb}
+                        list={_.values(_.get(agentGroup, "contents.agent", {}))}
+                    />
+                    {!isEditing && (
+                        <Button
+                            disabled={loading}
+                            variant={ButtonVariant.MINIMAL}
+                            icon={<FAIcon icon={faFolderTree} />}
+                            fill
+                            text="Update agents"
+                            onClick={() => {}}
+                        />
+                    )}
                 </div>
             </div>
         </div>

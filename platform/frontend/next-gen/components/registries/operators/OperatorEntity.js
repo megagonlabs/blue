@@ -95,7 +95,7 @@ export default function OperatorEntity({
             getEntityMainProperties(_.get(operator, "properties", {}))
         );
         setIsEditing(false);
-        setIcon(_.get(source, "icon", null));
+        setIcon(_.get(operator, "icon", null));
     };
     const handleSave = () => {
         setLoading(true);

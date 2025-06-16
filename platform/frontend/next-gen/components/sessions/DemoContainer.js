@@ -11,6 +11,7 @@ import {
 } from "@blueprintjs/core";
 import { faPlus } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import axios from "axios";
+import _ from "lodash";
 import { allEnv } from "next-runtime-env";
 import { useEffect, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
@@ -37,7 +38,7 @@ function DemoContainer({ width, height }) {
             })
             .finally(() => setLoading(false));
     }, []);
-    const callback = (entity) => {
+    const callback = () => {
         setShowNewEntity(false);
     };
     return (

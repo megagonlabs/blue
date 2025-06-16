@@ -42,6 +42,7 @@ export default function Breadcrumbs({ crumbs, toCrumb }) {
                                 if (end) return null;
                                 return (
                                     <CompoundTag
+                                        key={index}
                                         {...TAG_PROPS}
                                         fill
                                         leftContent={type}

@@ -33,7 +33,7 @@ export default function MessageIcon({ metadata }) {
             style={REGISTRY_ENTITY_ICON_WRAPPER_STYLES}
         >
             <RegistryEntityIcon
-                content={_.get(agentMetadata, [agent.name, "icon"], null)}
+                content={_.get(agentMetadata, [createdBy, "icon"], null)}
             />
         </div>
     );
