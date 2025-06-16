@@ -251,16 +251,20 @@ export default function GroupAgentSelector({
     const constructAvailableAgentsTree = () => {
         setLoading(true);
         setLoadingAvailableAgentsTree(true);
-        axios.get(`/registry/${agentRegistryName}/agents`).then((response) => {
-            const result = _.get(response, "data.results", []);
-            let tree = [];
-            for (let i = 0; i < _.size(result); i++) {
-                tree.push(constructTree(result[i], "", "available"));
-            }
-            setAvailableAgentTreeNodes(tree);
-            setLoading(false);
-            setLoadingAvailableAgentsTree(false);
-        });
+        axios
+            .get(`/registry/${agentRegistryName}/agents`, {
+                params: { recursive: true },
+            })
+            .then((response) => {
+                const result = _.get(response, "data.results", []);
+                let tree = [];
+                for (let i = 0; i < _.size(result); i++) {
+                    tree.push(constructTree(result[i], "", "available"));
+                }
+                setAvailableAgentTreeNodes(tree);
+                setLoading(false);
+                setLoadingAvailableAgentsTree(false);
+            });
     };
     useEffect(() => {
         if (isOpen) constructAvailableAgentsTree();
