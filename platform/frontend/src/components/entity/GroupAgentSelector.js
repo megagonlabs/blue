@@ -243,7 +243,7 @@ export default function GroupAgentSelector({
     }, [addedAgents]);
     useEffect(() => {
         setAddedAgents(
-            _.values(_.get(entity, "contents", {})).filter((content) =>
+            _.values(_.get(entity, "contents.agent", {})).filter((content) =>
                 _.isEqual(_.get(content, "type", null), "agent")
             )
         );
