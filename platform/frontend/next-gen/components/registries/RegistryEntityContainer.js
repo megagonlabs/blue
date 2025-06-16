@@ -9,6 +9,7 @@ import withAutoSizer from "../hocs/withAutoSizer";
 import Breadcrumbs from "./Breadcrumbs";
 import NewEntity from "./NewEntity";
 import AgentEntity from "./agents/AgentEntity";
+import AgentGroupEntity from "./agents/AgentGroupEntity";
 import CollectionEntity from "./data/CollectionEntity";
 import DatabaseEntity from "./data/DatabaseEntity";
 import EntityEntity from "./data/EntityEntity";
@@ -154,6 +155,16 @@ function RegistryEntityContainer({ width, height, entity, duplicate = false }) {
                                 <AgentEntity
                                     setShowNewEntity={setShowNewEntity}
                                     setNewEntityType={setNewEntityType}
+                                    icon={icon}
+                                    setIcon={setIcon}
+                                    setShowIconEditor={setShowIconEditor}
+                                    addCrumb={addCrumb}
+                                    backCrumb={backCrumb}
+                                    entity={current}
+                                />
+                            )}
+                            {_.isEqual(type, "agent_group") && (
+                                <AgentGroupEntity
                                     icon={icon}
                                     setIcon={setIcon}
                                     setShowIconEditor={setShowIconEditor}

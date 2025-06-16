@@ -86,7 +86,7 @@ export default function Home() {
                         <div
                             className="border-bottom"
                             style={{
-                                padding: "10px 20px",
+                                padding: "0px 20px",
                                 display: "flex",
                                 alignItems: "center",
                                 gap: 10,
@@ -186,6 +186,7 @@ export default function Home() {
                                     width: "calc(100% - 79px)",
                                     fontWeight: 600,
                                     display: "flex",
+                                    height: 44,
                                     paddingRight: 79,
                                     alignItems: "center",
                                     justifyContent: "center",

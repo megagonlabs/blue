@@ -4,17 +4,19 @@ import {
     Card,
     Classes,
     hideContextMenu,
+    Intent,
     Menu,
     MenuItem,
     showContextMenu,
     Size,
 } from "@blueprintjs/core";
-import { faBrowsers } from "@fortawesome/sharp-duotone-solid-svg-icons";
+import { faBrowsers, faPen } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import classNames from "classnames";
 import { useCallback, useMemo } from "react";
 import { FAIcon } from "../FAIcon";
 import { REGISTRY_ENTITY_ICON_WRAPPER_STYLES } from "../constants";
 import EntityDisplayName from "../registries/EntityDisplayName";
+import RegistryEntityContainer from "../registries/RegistryEntityContainer";
 import RegistryEntityIcon from "../registries/RegistryEntityIcon";
 export default function DemoGroupCard({ agentGroup }) {
     const type = _.get(agentGroup, "type", null);
@@ -27,9 +29,17 @@ export default function DemoGroupCard({ agentGroup }) {
         () => (
             <Menu size={Size.LARGE} onClick={handleClose}>
                 <MenuItem
-                    icon={<FAIcon icon={faBrowsers} />}
-                    text="Open in new window"
-                    onClick={() => {}}
+                    intent={Intent.PRIMARY}
+                    icon={<FAIcon icon={faPen} />}
+                    onClick={() => {
+                        addContainer({
+                            content: (
+                                <RegistryEntityContainer entity={agentGroup} />
+                            ),
+                        });
+                    }}
+                    labelElement={<FAIcon icon={faBrowsers} />}
+                    text="Edit"
                 />
             </Menu>
         ),
