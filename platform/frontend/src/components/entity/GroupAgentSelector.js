@@ -51,7 +51,7 @@ export default function GroupAgentSelector({
     const { agentGroupSelection } = appState.agent;
     const [edited, setEdited] = useState(false);
     const constructTree = (agent, prevPath, type) => {
-        const contents = _.values(_.get(agent, "contents", {})).filter(
+        const contents = _.values(_.get(agent, "contents.agent", {})).filter(
                 (content) => _.isEqual(_.get(content, "type", null), "agent")
             ),
             path = `${prevPath}${_.isEmpty(prevPath) ? "" : "."}${agent.name}`;
@@ -251,20 +251,16 @@ export default function GroupAgentSelector({
     const constructAvailableAgentsTree = () => {
         setLoading(true);
         setLoadingAvailableAgentsTree(true);
-        axios
-            .get(`/registry/${agentRegistryName}/agents`, {
-                params: { recursive: true },
-            })
-            .then((response) => {
-                const result = _.get(response, "data.results", []);
-                let tree = [];
-                for (let i = 0; i < _.size(result); i++) {
-                    tree.push(constructTree(result[i], "", "available"));
-                }
-                setAvailableAgentTreeNodes(tree);
-                setLoading(false);
-                setLoadingAvailableAgentsTree(false);
-            });
+        axios.get(`/registry/${agentRegistryName}/agents`).then((response) => {
+            const result = _.get(response, "data.results", []);
+            let tree = [];
+            for (let i = 0; i < _.size(result); i++) {
+                tree.push(constructTree(result[i], "", "available"));
+            }
+            setAvailableAgentTreeNodes(tree);
+            setLoading(false);
+            setLoadingAvailableAgentsTree(false);
+        });
     };
     useEffect(() => {
         if (isOpen) constructAvailableAgentsTree();
