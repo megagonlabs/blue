@@ -98,7 +98,12 @@ Output:
         super()._initialize_properties()
 
         # source protocol 
+        ## if the platform only support protocal (the following line needs to be removed after github issue #945)
         self.properties['protocol'] = "openai"
+
+        ## if the platform support protocal + variant
+        # self.properties['protocol'] = "llm"
+        # self.properties['protocol_variant'] = "openai"
 
         # Initialize default properties
         for key in OpenAISource.PROPERTIES:
