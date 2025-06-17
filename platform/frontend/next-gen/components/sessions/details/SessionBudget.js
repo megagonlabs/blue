@@ -115,7 +115,7 @@ export default function SessionBudget({ sessionId }) {
                         resolve(true);
                     })
                     .catch((error) => {
-                        axiosErrorToast(error);
+                        showAxiosErrorToast(error);
                         reject(false);
                     });
             }),
@@ -129,7 +129,7 @@ export default function SessionBudget({ sessionId }) {
                         resolve(true);
                     })
                     .catch((error) => {
-                        axiosErrorToast(error);
+                        showAxiosErrorToast(error);
                         reject(false);
                     });
             }),

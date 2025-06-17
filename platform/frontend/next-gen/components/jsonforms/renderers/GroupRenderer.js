@@ -17,16 +17,11 @@ const GroupRenderer = ({
     return (
         <div
             className="custom-card"
-            collapseProps={{
-                defaultIsOpen: _.get(uischema, "props.defaultIsOpen", true),
-            }}
             style={convertCss({
                 ..._.get(uischema, "props.style", {}),
                 maxWidth: "100%",
                 overflow: "auto",
             })}
-            compact={_.get(uischema, "props.compact", false)}
-            collapsible={_.get(uischema, "props.collapsible", false)}
         >
             <div style={{ padding: "10px 20px 10px 10px" }}>
                 <Tag

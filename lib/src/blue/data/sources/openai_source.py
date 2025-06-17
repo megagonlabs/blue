@@ -60,7 +60,7 @@ Output:
         "openai.max_tokens": 4096,
         "openai.temperature": 0,
 
-        # io related properties
+        # io related properties (used by requestor operator)
         "input_json": "[{\"role\": \"user\"}]",
         "input_context": "$[0]",
         "input_context_field": "content",
@@ -70,7 +70,7 @@ Output:
 
         # service related properties
         "service.prefix": "openai",
-        # "api.service": "ws://localhost:8001",
+        # "api.service": "ws://localhost:8001", # the host might not be localhost if using service
 
         # output transformations
         "output_transformations": [
@@ -192,9 +192,10 @@ Output:
                     else:
                         return [parsed]
                 except json.JSONDecodeError:
-                    return [{"content": content}]
+                    return [{"error": f"Invalid JSON format in response {content}"}]
             else:
-                return [{"content": content}]
+                # currently we only support json output
+                return response
         except Exception as e:
             logging.error(f"Error parsing response: {str(e)}")
             return [{"error": str(e)}]
@@ -239,8 +240,9 @@ Output:
                 message = websocket.recv()
                 result = json.loads(message)
                 content = result['choices'][0]['message']['content']
-                logging.info("Received from service: {message}".format(message=message))
-                return content
+                parsed_content = self._parse_response(content)
+                logging.info(f"parsed_content: {parsed_content}")
+                return parsed_content
         except Exception as e:
             logging.error(f"Error executing OpenAI query: {str(e)}")
             return [{"error": str(e)}]

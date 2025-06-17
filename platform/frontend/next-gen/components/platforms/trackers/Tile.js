@@ -1,6 +1,7 @@
 import Timestamp from "@/components/Timestamp";
 import { useAppStore } from "@/stores/app-store";
 import { Card, Classes, Colors } from "@blueprintjs/core";
+import _ from "lodash";
 export default function Tile({ type, label, object }) {
     const darkMode = useAppStore((state) => state.dark_mode);
     const { value } = object;

@@ -120,8 +120,9 @@ function DocContainer({ width, height }) {
                         alignText={Alignment.START}
                         variant={ButtonVariant.MINIMAL}
                     >
-                        {DOC_MENU.map((element) => (
+                        {DOC_MENU.map((element, index) => (
                             <Tooltip
+                                key={index}
                                 content={element.label}
                                 placement={Position.RIGHT}
                             >

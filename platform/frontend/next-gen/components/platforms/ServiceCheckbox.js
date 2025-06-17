@@ -1,5 +1,6 @@
 import { usePlatformStore } from "@/stores/platform-store";
 import { Checkbox, Size } from "@blueprintjs/core";
+import _ from "lodash";
 import { useShallow } from "zustand/react/shallow";
 export default function ServiceCheckbox({ serviceName }) {
     const { updateServiceTableSelected, selected } = usePlatformStore(

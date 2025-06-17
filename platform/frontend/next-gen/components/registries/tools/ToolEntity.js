@@ -10,16 +10,17 @@ import {
     shallowDiff,
 } from "@/components/helper";
 import { useAppStore } from "@/stores/app-store";
-import { Classes, Colors } from "@blueprintjs/core";
+import { Classes, Colors, EditableText } from "@blueprintjs/core";
 import axios from "axios";
 import classNames from "classnames";
 import _ from "lodash";
 import { allEnv } from "next-runtime-env";
 import { useEffect, useState } from "react";
-import EntityActions from "../EntityActions";
-import RegistryEntityIcon from "../RegistryEntityIcon";
 import EntityDescription from "../attributes/EntityDescription";
 import EntityProperties from "../attributes/EntityProperties";
+import EntityActions from "../EntityActions";
+import MainPropertyBlock from "../MainPropertyBlock";
+import RegistryEntityIcon from "../RegistryEntityIcon";
 const { NEXT_PUBLIC_TOOL_REGISTRY_NAME } = allEnv();
 export default function ToolEntity({ entity, backCrumb }) {
     const { name, scope, type } = entity;
@@ -48,6 +49,12 @@ export default function ToolEntity({ entity, backCrumb }) {
         "/server/",
         "/tools/"
     );
+    const onSynchronize = () => {
+        setLoading(true);
+        axios.put(`${url}/sync`).finally(() => {
+            setLoading(false);
+        });
+    };
     useEffect(() => {
         setLoading(true);
         axios
@@ -131,6 +138,7 @@ export default function ToolEntity({ entity, backCrumb }) {
                             isEditing={isEditing}
                             setIsEditing={setIsEditing}
                             onDelete={onDelete}
+                            onSynchronize={onSynchronize}
                         />
                     </div>
                 )}
@@ -175,6 +183,24 @@ export default function ToolEntity({ entity, backCrumb }) {
                             {_.get(editedTool, "name")}
                         </div>
                     </div>
+                    <MainPropertyBlock loading={loading} label="Display name">
+                        {isEditing ? (
+                            <EditableText
+                                alwaysRenderInput
+                                value={displayName}
+                                onChange={(value) => {
+                                    updateMainProperties({
+                                        path: "display_name",
+                                        value,
+                                    });
+                                }}
+                            />
+                        ) : (
+                            <div className={Classes.TEXT_OVERFLOW_ELLIPSIS}>
+                                {!_.isEmpty(displayName) ? displayName : "-"}
+                            </div>
+                        )}
+                    </MainPropertyBlock>
                 </div>
             </div>
             <div style={{ marginTop: 20 }}>

@@ -18,6 +18,7 @@ import {
 } from "@blueprintjs/core";
 import { faPause } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import classNames from "classnames";
+import _ from "lodash";
 import { useState } from "react";
 import CopyDocJSONButton from "./CopyDocJSONButton";
 const docJson = {

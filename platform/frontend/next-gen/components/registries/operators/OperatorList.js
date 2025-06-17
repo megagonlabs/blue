@@ -26,7 +26,7 @@ import {
     faPlus,
     faSearch,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
-import { debounce } from "lodash";
+import _, { debounce } from "lodash";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
 import FilterPane from "../FilterPane";

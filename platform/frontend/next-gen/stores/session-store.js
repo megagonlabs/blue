@@ -1,7 +1,11 @@
+import SessionContainer from "@/components/sessions/SessionContainer";
+import SessionDisplayName from "@/components/sessions/SessionDisplayName";
 import { reorderWithEdge } from "@atlaskit/pragmatic-drag-and-drop-hitbox/util/reorder-with-edge";
+import { faMessages } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import axios from "axios";
 import _ from "lodash";
 import { create } from "zustand";
+import { useGridStore } from "./grid-layout-store";
 export const useSessionStore = create((set, get) => ({
     sessions: {},
     sessionIds: [],
@@ -60,7 +64,17 @@ export const useSessionStore = create((set, get) => ({
         if (!_.isEmpty(agentGroup)) {
             url += `/${agentGroup}`;
         }
-        axios.post(url).then((response) => {});
+        axios.post(url).then((response) => {
+            const sessionId = _.get(response, "data.result.id", null);
+            if (!_.isNull(sessionId)) {
+                const { addContainer } = useGridStore.getState();
+                addContainer({
+                    icon: faMessages,
+                    title: <SessionDisplayName sessionId={sessionId} />,
+                    content: <SessionContainer sessionId={sessionId} />,
+                });
+            }
+        });
     },
     getSessions: () => {
         const { filter, addNewSession } = get();

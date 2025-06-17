@@ -1,9 +1,15 @@
 import { useAuthStore } from "@/stores/auth-store";
 import axios from "axios";
 import _ from "lodash";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
+import { useShallow } from "zustand/react/shallow";
 export default function AuthErrorHandler({ children }) {
-    const clearUser = useAuthStore((state) => state.clearUser);
+    const { user, clearUser } = useAuthStore(
+        useShallow((state) => ({
+            user: state.user,
+            clearUser: state.clearUser,
+        }))
+    );
     useEffect(() => {
         const responseInterceptor = axios.interceptors.response.use(
             (response) => response,
@@ -18,5 +24,18 @@ export default function AuthErrorHandler({ children }) {
             axios.interceptors.response.eject(responseInterceptor);
         };
     }, [clearUser]);
+    const timeoutIdRef = useRef(null); // ref to store the timeoutId
+    useEffect(() => {
+        const checkSession = async () => {
+            axios.get("/accounts/profile").then(() => {
+                timeoutIdRef.current = setTimeout(checkSession, 2 * 60 * 1000);
+            });
+        };
+        checkSession();
+        return () => {
+            // clear the latest timeout using the ref
+            if (timeoutIdRef.current) clearTimeout(timeoutIdRef.current);
+        };
+    }, [user]);
     return children;
 }

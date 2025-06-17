@@ -49,8 +49,10 @@ import SourceList from "./registries/data/SourceList";
 import ModelList from "./registries/models/ModelList";
 import OperatorList from "./registries/operators/OperatorList";
 import ToolList from "./registries/tools/ToolList";
+import DemoContainer from "./sessions/DemoContainer";
 import SessionList from "./sessions/SessionList";
 import FormDesigner from "./tools/FormDesigner";
+const AGENT_GROUP_ICON = _.get(ENTITY_TYPE_LOOKUP, "agent_group.icon", null);
 export default function Blue({ children }) {
     const {
         showOmnibar,
@@ -365,6 +367,34 @@ export default function Blue({ children }) {
                                                             permissions.canReadToolRegistry,
                                                         ]) && (
                                                             <>
+                                                                {permissions.canReadAgentRegistry && (
+                                                                    <MenuItem
+                                                                        intent={
+                                                                            Intent.SUCCESS
+                                                                        }
+                                                                        icon={
+                                                                            <FAIcon
+                                                                                icon={
+                                                                                    AGENT_GROUP_ICON
+                                                                                }
+                                                                            />
+                                                                        }
+                                                                        text="Demos"
+                                                                        onClick={() => {
+                                                                            addContainer(
+                                                                                {
+                                                                                    icon: AGENT_GROUP_ICON,
+                                                                                    title: "Demos",
+                                                                                    content:
+                                                                                        (
+                                                                                            <DemoContainer />
+                                                                                        ),
+                                                                                    uid: `DemoContainer`,
+                                                                                }
+                                                                            );
+                                                                        }}
+                                                                    />
+                                                                )}
                                                                 <MenuDivider title="Registries" />
                                                                 {[
                                                                     "agent",
@@ -480,6 +510,9 @@ export default function Blue({ children }) {
                                                                     ) {
                                                                         return (
                                                                             <MenuItem
+                                                                                key={
+                                                                                    key
+                                                                                }
                                                                                 text={
                                                                                     text
                                                                                 }

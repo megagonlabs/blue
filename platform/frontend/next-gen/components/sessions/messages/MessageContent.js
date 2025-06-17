@@ -40,6 +40,7 @@ export default function MessageContent({
             if (isPreview) {
                 return (
                     <PreviewTag
+                        key={id}
                         contentType={contentType}
                         icon={faBracketsCurly}
                     />

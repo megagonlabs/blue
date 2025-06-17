@@ -14,6 +14,7 @@ import {
     faCog,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import classNames from "classnames";
+import _ from "lodash";
 import Image from "next/image";
 import { useShallow } from "zustand/react/shallow";
 import { FAIcon } from "./FAIcon";

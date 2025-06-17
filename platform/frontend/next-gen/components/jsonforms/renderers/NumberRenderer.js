@@ -3,6 +3,7 @@ import FormCell from "@/components/jsonforms/FormCell";
 import NumberInput from "@/components/jsonforms/NumberInput";
 import { isNumberControl, rankWith } from "@jsonforms/core";
 import { withJsonFormsControlProps } from "@jsonforms/react";
+import _ from "lodash";
 const NumberRenderer = ({
     uischema,
     handleChange,

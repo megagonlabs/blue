@@ -1,42 +1,38 @@
 import { FAIcon } from "@/components/FAIcon";
 import {
+    Button,
+    ButtonGroup,
+    ButtonVariant,
+    Classes,
+    H3,
+    Intent,
+    Popover,
+    Size,
+    Tag,
+    Tooltip,
+} from "@blueprintjs/core";
+import {
     faArrowDown,
     faArrowUp,
     faListOl,
     faPlus,
     faTrash,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
-import _ from "lodash";
-
-const {
-    H6,
-    Card,
-    Tooltip,
-    Button,
-    ButtonVariant,
-    Size,
-    Tag,
-    Intent,
-    ButtonGroup,
-    Popover,
-    Classes,
-    H5,
-    H3,
-} = require("@blueprintjs/core");
-const {
-    findUISchema,
+import {
     composePaths,
-    rankWith,
-    isObjectArrayWithNesting,
     createDefaultValue,
-} = require("@jsonforms/core");
-const {
+    findUISchema,
+    isObjectArrayWithNesting,
+    rankWith,
+} from "@jsonforms/core";
+import {
     JsonFormsDispatch,
-    withJsonFormsArrayControlProps,
     withArrayTranslationProps,
+    withJsonFormsArrayControlProps,
     withTranslateProps,
-} = require("@jsonforms/react");
-const { useMemo, useEffect } = require("react");
+} from "@jsonforms/react";
+import _ from "lodash";
+import { useEffect, useMemo } from "react";
 const ArrayRenderer = ({
     label,
     data,
@@ -83,6 +79,7 @@ const ArrayRenderer = ({
                     );
                     return (
                         <div
+                            key={index}
                             className="custom-card"
                             style={{ marginBottom: 10 }}
                         >

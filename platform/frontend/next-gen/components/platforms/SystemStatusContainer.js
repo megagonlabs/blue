@@ -33,7 +33,7 @@ import {
 import { FAIcon } from "../FAIcon";
 import withAutoSizer from "../hocs/withAutoSizer";
 import NoResultsFound from "../nonidealstates/NoResultsFound";
-const TrackerCard = memo(({ data, index, style }) => {
+const TrackerCard = memo(function TrackerCard({ data, index, style }) {
     const { setRowHeight, rowHeights } = data;
     const cardRef = useRef();
     const { trackers, trackerData } = useSystemStatusStore(
@@ -204,6 +204,7 @@ function SystemStatusContainer({ width, height }) {
                                     <Menu style={{ padding: 0 }}>
                                         {filteredTrackers.map((tracker) => (
                                             <MenuItem
+                                                key={tracker}
                                                 className={
                                                     Classes.TEXT_OVERFLOW_ELLIPSIS
                                                 }

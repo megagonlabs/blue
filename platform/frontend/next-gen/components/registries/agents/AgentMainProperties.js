@@ -78,6 +78,7 @@ function Categories({ properties, loading, isEditing, updateMainProperties }) {
                 {!isEditing && _.isEmpty(categories) && "-"}
                 {categories.map((category) => (
                     <Tag
+                        key={category}
                         size={Size.LARGE}
                         minimal
                         endIcon={
@@ -238,6 +239,7 @@ function InputListeners({
                             </div>
                             {["includes", "excludes"].map((type) => (
                                 <div
+                                    key={type}
                                     style={{
                                         display: "flex",
                                         gap: 10,

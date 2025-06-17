@@ -12,6 +12,7 @@ import {
     faIdCardClip,
     faInboxFull,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
+import _ from "lodash";
 import { useState } from "react";
 import { useContainerContext } from "../contexts/ContainerContext";
 import { FAIcon } from "../FAIcon";
@@ -51,6 +52,7 @@ function PlatformConfigurations({ width, height }) {
                     >
                         {SECTIONS.map((section, index) => (
                             <Button
+                                key={index}
                                 icon={<FAIcon icon={section.icon} />}
                                 text={section.text}
                                 onClick={() => {

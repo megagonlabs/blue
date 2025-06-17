@@ -1,12 +1,11 @@
-import { FAIcon } from "@/components/FAIcon";
 import {
-    ENTITY_TYPE_CONVERSION,
     ENTITY_TYPE_LOOKUP,
     HEX_TRANSPARENCY,
     MAIN_INFO_STYLES,
     REGISTRY_ENTITY_ICON_WRAPPER_STYLES,
 } from "@/components/constants";
 import { useContainerContext } from "@/components/contexts/ContainerContext";
+import { FAIcon } from "@/components/FAIcon";
 import {
     getEntityMainProperties,
     getUpdatePropertyPromises,
@@ -24,82 +23,70 @@ import {
     EntityTitle,
     H3,
 } from "@blueprintjs/core";
-import { faPlus } from "@fortawesome/sharp-duotone-solid-svg-icons";
+import { faFolderTree } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import axios from "axios";
 import classNames from "classnames";
 import _ from "lodash";
 import { allEnv } from "next-runtime-env";
 import { useEffect, useState } from "react";
-import { useShallow } from "zustand/react/shallow";
+import EntityDescription from "../attributes/EntityDescription";
 import EntityActions from "../EntityActions";
 import EntityDisplayName from "../EntityDisplayName";
 import Leaves from "../Leaves";
 import MainPropertyBlock from "../MainPropertyBlock";
 import RegistryEntityContainer from "../RegistryEntityContainer";
 import RegistryEntityIcon from "../RegistryEntityIcon";
-import EntityDescription from "../attributes/EntityDescription";
-import EntityProperties from "../attributes/EntityProperties";
-const { NEXT_PUBLIC_TOOL_REGISTRY_NAME } = allEnv();
-export default function ServerEntity({
+const { NEXT_PUBLIC_AGENT_REGISTRY_NAME } = allEnv();
+export default function AgentGroupEntity({
     entity,
     addCrumb,
+    setShowIconEditor,
+    icon,
+    setIcon,
     backCrumb,
-    setShowNewEntity,
-    setNewEntityType,
 }) {
     const { name, type } = entity;
-    const [server, setServer] = useState(null);
+    const { containerId } = useContainerContext();
+    const setContainerHeader = useGridStore(
+        (state) => state.setContainerHeader
+    );
+    const [agentGroup, setAgentGroup] = useState(null);
     const [isEditing, setIsEditing] = useState(false);
-    const [editedServer, setEditedServer] = useState(null);
+    const [editedAgentGroup, setEditedAgentGroup] = useState(null);
     const [mainProperties, setMainProperties] = useState({});
     const [loading, setLoading] = useState(false);
-    const { containerId } = useContainerContext();
     const [template, setTemplate] = useState(null);
-    const { setContainerHeader, addContainer } = useGridStore(
-        useShallow((state) => ({
-            addContainer: state.addContainer,
-            setContainerHeader: state.setContainerHeader,
-        }))
-    );
+    const addContainer = useGridStore((state) => state.addContainer);
     const updateMainProperties = ({ path, value }) => {
         let newProperties = _.cloneDeep(mainProperties);
         _.set(newProperties, path, value);
         setMainProperties(newProperties);
     };
-    const updateServer = ({ path, value }) => {
-        let newServer = _.cloneDeep(editedServer);
-        _.set(newServer, path, value);
-        setEditedServer(newServer);
+    const updateAgentGroup = ({ path, value }) => {
+        let newAgentGroup = _.cloneDeep(editedAgentGroup);
+        _.set(newAgentGroup, path, value);
+        setEditedAgentGroup(newAgentGroup);
     };
     const darkMode = useAppStore((state) => state.dark_mode);
     const displayName = _.get(mainProperties, "display_name", "");
-    const url = `/registry/${NEXT_PUBLIC_TOOL_REGISTRY_NAME}/${_.get(
-        ENTITY_TYPE_CONVERSION,
-        type,
-        type
-    )}/${name}`;
+    const url = `/registry/${NEXT_PUBLIC_AGENT_REGISTRY_NAME}/${type}/${name}`;
     useEffect(() => {
         setContainerHeader({
             id: containerId,
-            title: <EntityDisplayName entity={server} />,
+            title: <EntityDisplayName entity={agentGroup} />,
             icon: _.get(ENTITY_TYPE_LOOKUP, [type, "icon"], null),
         });
-    }, [server]);
-    const onSynchronize = () => {
-        setLoading(true);
-        axios.put(`${url}/sync`).finally(() => {
-            setLoading(false);
-        });
-    };
+    }, [agentGroup]);
     useEffect(() => {
         setLoading(true);
         axios
             .get(url)
             .then((response) => {
                 const result = _.get(response, "data.result", null);
-                setServer(result);
-                setEditedServer(result);
+                setAgentGroup(result);
+                setEditedAgentGroup(result);
                 setTemplate(result);
+                setIcon(_.get(result, "icon", null));
                 setMainProperties(
                     getEntityMainProperties(_.get(result, "properties", {}))
                 );
@@ -108,27 +95,67 @@ export default function ServerEntity({
                 setLoading(false);
             });
     }, [entity]);
+    useEffect(() => {
+        updateAgentGroup({ path: "icon", value: icon });
+    }, [icon]);
     const handleDiscard = () => {
-        setEditedServer(server);
+        setEditedAgentGroup(agentGroup);
         setMainProperties(
-            getEntityMainProperties(_.get(server, "properties", {}))
+            getEntityMainProperties(_.get(agentGroup, "properties", {}))
         );
         setIsEditing(false);
+        setIcon(_.get(agentGroup, "icon", null));
     };
     const handleSave = () => {
         setLoading(true);
         axios
             .put(url, {
-                name: editedServer.name,
-                description: editedServer.description,
-                icon: editedServer.icon,
+                name,
+                description: editedAgentGroup.description,
+                icon: editedAgentGroup.icon,
             })
             .then(() => {
+                let updated = _.cloneDeep(mainProperties);
+                if (_.has(mainProperties, "listens")) {
+                    let result = {};
+                    for (let i = 0; i < _.size(mainProperties.listens); i++) {
+                        const key = _.trim(mainProperties.listens[i].key);
+                        if (!_.isEmpty(key)) {
+                            _.set(result, mainProperties.listens[i].key, {
+                                includes: _.get(
+                                    mainProperties.listens,
+                                    [i, "includes"],
+                                    []
+                                ),
+                                excludes: _.get(
+                                    mainProperties.listens,
+                                    [i, "excludes"],
+                                    []
+                                ),
+                            });
+                        }
+                    }
+                    _.set(updated, "listens", result);
+                }
+                if (_.has(mainProperties, "tags")) {
+                    let result = {};
+                    for (let i = 0; i < _.size(mainProperties.tags); i++) {
+                        const key = _.trim(mainProperties.tags[i].key);
+                        if (!_.isEmpty(key)) {
+                            _.set(
+                                result,
+                                mainProperties.tags[i].key,
+                                _.get(mainProperties.tags, [i, "tags"], [])
+                            );
+                        }
+                    }
+                    _.set(updated, "tags", result);
+                }
                 const properties = {
-                    ...editedServer.properties,
-                    ...mainProperties,
+                    ...editedAgentGroup.properties,
+                    ...updated,
                 };
-                const diffs = shallowDiff(server.properties, properties);
+                const diffs = shallowDiff(agentGroup.properties, properties);
                 const promises = getUpdatePropertyPromises({
                     axios,
                     url: `${url}/property`,
@@ -137,10 +164,13 @@ export default function ServerEntity({
                 });
                 settlePromises(promises, ({ error }) => {
                     if (!error) {
-                        const newServer = { ...editedServer, properties };
-                        setServer(newServer);
-                        setEditedServer(newServer);
-                        setTemplate(newServer);
+                        const newAgentGroup = {
+                            ...editedAgentGroup,
+                            properties,
+                        };
+                        setEditedAgentGroup(newAgentGroup);
+                        setAgentGroup(newAgentGroup);
+                        setTemplate(newAgentGroup);
                         setMainProperties(getEntityMainProperties(properties));
                         setIsEditing(false);
                     }
@@ -174,7 +204,7 @@ export default function ServerEntity({
                     position: "relative",
                 }}
             >
-                {!_.isEmpty(server) && (
+                {!_.isEmpty(agentGroup) && (
                     <div
                         className={loading ? Classes.SKELETON : null}
                         style={{ position: "absolute", right: 20 }}
@@ -183,11 +213,10 @@ export default function ServerEntity({
                             loading={loading}
                             handleSave={handleSave}
                             handleDiscard={handleDiscard}
-                            entity={server}
+                            entity={agentGroup}
                             isEditing={isEditing}
                             setIsEditing={setIsEditing}
                             onDelete={onDelete}
-                            onSynchronize={onSynchronize}
                             onDuplicate={onDuplicate}
                         />
                     </div>
@@ -199,16 +228,25 @@ export default function ServerEntity({
                         "custom-card",
                         { [Classes.SKELETON]: loading }
                     )}
+                    onClick={() => {
+                        if (_.isFunction(setShowIconEditor)) {
+                            setShowIconEditor(isEditing);
+                        }
+                    }}
                     style={{
                         ...REGISTRY_ENTITY_ICON_WRAPPER_STYLES,
                         position: "absolute",
                         left: 20,
                         top: 20,
+                        cursor:
+                            isEditing && _.isFunction(setIcon)
+                                ? "pointer"
+                                : null,
                     }}
                 >
                     <RegistryEntityIcon
                         type={type}
-                        content={_.get(editedServer, "icon", null)}
+                        content={_.get(editedAgentGroup, "icon", null)}
                     />
                 </div>
                 <div
@@ -225,12 +263,12 @@ export default function ServerEntity({
                         className={loading ? Classes.SKELETON : null}
                         style={MAIN_INFO_STYLES}
                     >
-                        <div>{_.get(editedServer, "type")}</div>
+                        <div>{_.get(editedAgentGroup, "type")}</div>
                         <div
                             className={Classes.TEXT_OVERFLOW_ELLIPSIS}
                             style={{ fontWeight: 600 }}
                         >
-                            {_.get(editedServer, "name")}
+                            {_.get(editedAgentGroup, "name")}
                         </div>
                     </div>
                     <MainPropertyBlock loading={loading} label="Display name">
@@ -254,51 +292,42 @@ export default function ServerEntity({
                 </div>
             </div>
             <div style={{ marginTop: 20 }}>
-                <EntityDescription
-                    isEditing={isEditing}
-                    updateEntity={updateServer}
-                    entity={editedServer}
-                    loading={loading}
-                />
-            </div>
-            <div style={{ marginTop: 20 }}>
-                <EntityProperties
-                    isEditing={isEditing}
-                    updateEntity={updateServer}
-                    entity={editedServer}
-                    loading={loading}
-                />
+                <div style={{ marginTop: 20 }}>
+                    <EntityDescription
+                        isEditing={isEditing}
+                        updateEntity={updateAgentGroup}
+                        entity={editedAgentGroup}
+                        loading={loading}
+                    />
+                </div>
             </div>
             <div style={{ marginTop: 20 }}>
                 <div style={{ marginBottom: 10 }}>
                     <EntityTitle
                         icon={
                             <FAIcon
-                                icon={ENTITY_TYPE_LOOKUP["tool"].icon}
+                                icon={ENTITY_TYPE_LOOKUP["agent"].icon}
                                 size={25}
                             />
                         }
                         heading={H3}
-                        title="Tools"
+                        title="Agents"
                     />
                 </div>
                 <div className="responsive-grid-container">
                     <Leaves
                         loading={loading}
                         addCrumb={addCrumb}
-                        list={_.values(_.get(server, "contents.tool", {}))}
+                        list={_.values(_.get(agentGroup, "contents.agent", {}))}
                     />
                     {!isEditing && (
                         <Button
                             disabled={loading}
                             variant={ButtonVariant.MINIMAL}
-                            icon={<FAIcon icon={faPlus} />}
+                            icon={<FAIcon icon={faFolderTree} />}
                             fill
-                            text="Add tool"
-                            onClick={() => {
-                                setShowNewEntity(true);
-                                setNewEntityType("tool");
-                            }}
+                            text="Update agents"
+                            onClick={() => {}}
                         />
                     )}
                 </div>

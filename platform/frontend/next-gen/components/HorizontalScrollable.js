@@ -32,18 +32,6 @@ function HorizontalScrollable({ width, height, children, backgroundColor }) {
             };
         }
     }, [checkScroll]);
-    const handleScroll = (direction) => {
-        if (containerRef.current) {
-            const { scrollLeft } = containerRef.current;
-            const newScrollLeft = _.isEqual(direction, "left")
-                ? Math.max(scrollLeft - scrollStep, 0)
-                : scrollLeft + width / 2;
-            containerRef.current.scrollTo({
-                left: newScrollLeft,
-                behavior: "smooth",
-            });
-        }
-    };
     return (
         <div style={{ position: "relative", width, height }}>
             {showLeft && (

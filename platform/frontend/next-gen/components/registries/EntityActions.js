@@ -27,6 +27,7 @@ import axios from "axios";
 import _ from "lodash";
 import { useMemo } from "react";
 import { useShallow } from "zustand/react/shallow";
+import { ENTITY_TYPE_LOOKUP } from "../constants";
 import { FAIcon } from "../FAIcon";
 import { showAxiosErrorToast } from "../helper";
 import { AppToaster } from "../toaster";
@@ -51,19 +52,13 @@ export default function EntityActions({
     const own = _.isEqual(_.get(entity, "created_by", null), user.uid);
     const canEditEntity = useMemo(() => {
         // write_all
-        const TYPE_PERMISSION_KEY = {
-            agent: "agent_registry",
-            input: "agent_registry",
-            output: "agent_registry",
-            database: "data_registry",
-            source: "data_registry",
-            model: "model_registry",
-            operator: "operator_registry",
-            server: "tool_registry",
-            tool: "tool_registry",
-        };
+        const permissionKey = _.get(
+            ENTITY_TYPE_LOOKUP,
+            [type, "permissionKey"],
+            null
+        );
         const writeAll = _.includes(
-            _.get(user, ["permissions", TYPE_PERMISSION_KEY[type]], []),
+            _.get(user, ["permissions", permissionKey], []),
             "write_all"
         );
         return own || writeAll;
@@ -78,17 +73,22 @@ export default function EntityActions({
             _.isEqual("operator", type) && permissions.canWriteOperatorRegistry;
         const duplicateModel =
             _.isEqual("model", type) && permissions.canWriteModelRegistry;
+        const duplicateServer =
+            _.isEqual("server", type) && permissions.canWriteToolRegistry;
         return (
             (duplicateAgent ||
                 duplicateData ||
                 duplicateOperator ||
-                duplicateModel) &&
+                duplicateModel ||
+                duplicateServer) &&
             _.isFunction(onDuplicate)
         );
     }, [permissions, onDuplicate]);
     const canSyncData =
-        _.includes(["source", "database", "collection"], type) &&
-        _.isFunction(onSynchronize);
+        _.includes(
+            ["source", "database", "collection", "server", "tool"],
+            type
+        ) && _.isFunction(onSynchronize);
     const canPullImage =
         _.isEqual(type, "agent") &&
         _.has(properties, "image") &&

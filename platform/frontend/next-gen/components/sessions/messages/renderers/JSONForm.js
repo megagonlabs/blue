@@ -1,9 +1,12 @@
+import { HEX_TRANSPARENCY } from "@/components/constants";
 import { JSONFORMS_RENDERERS } from "@/components/jsonforms/renderers";
 import { useAppStore } from "@/stores/app-store";
 import { useSessionStore } from "@/stores/session-store";
 import { Colors, Size, Tag } from "@blueprintjs/core";
 import { JsonForms } from "@jsonforms/react";
 import { vanillaCells } from "@jsonforms/vanilla-renderers";
+import _ from "lodash";
+import { useEffect } from "react";
 import { useErrorBoundary } from "react-use-error-boundary";
 export default function JSONForm({ content, hasError }) {
     const forms = useSessionStore((state) => state.forms);

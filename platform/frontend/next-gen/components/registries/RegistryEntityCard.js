@@ -122,11 +122,15 @@ export default function RegistryEntityCard({ entity }) {
                 {_.isEqual(type, "agent") && (
                     <div
                         className={Classes.TEXT_DISABLED}
-                        style={_.get(
-                            DOCKER_CONTAINER_STATUS_LOOKUP,
-                            [containerStatus, "style"],
-                            null
-                        )}
+                        style={{
+                            display: "flex",
+                            alignItems: "center",
+                            ..._.get(
+                                DOCKER_CONTAINER_STATUS_LOOKUP,
+                                [containerStatus, "style"],
+                                {}
+                            ),
+                        }}
                     >
                         <FAIcon icon={faDocker} style={{ marginRight: 5 }} />
                         container:&nbsp;{containerStatus}

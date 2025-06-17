@@ -20,4 +20,5 @@ RUN rm -f /src/public/__ENV.js
 RUN rm -f /src/.env.development
 RUN rm -rf /src/components
 RUN rm -rf /src/pages
+RUN rm -rf /src/stores
 CMD ["sh", "-c", "./launch.sh"]
