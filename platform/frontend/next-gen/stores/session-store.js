@@ -13,6 +13,13 @@ export const useSessionStore = create((set, get) => ({
     forms: {},
     progress: {},
     inspection: {},
+    expandedMessages: {},
+    expandMessage: (sessionId, stream) => {
+        const { expandedMessages } = get();
+        let next = _.cloneDeep(expandedMessages);
+        _.set(next, [sessionId, stream], true);
+        set({ expandedMessages: next });
+    },
     setInspectionFocusStream: (sessionId, focusStream) => {
         set((state) => ({
             inspection: {

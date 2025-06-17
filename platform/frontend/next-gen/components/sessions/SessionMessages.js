@@ -56,23 +56,31 @@ const Row = ({ index, data, style }) => {
             getAgentMetadata: state.getAgentMetadata,
         }))
     );
-    const { streams, messages, addToWorkspace, setInspectionFocusStream } =
-        useSessionStore(
-            useShallow((state) => ({
-                streams: _.get(
-                    state,
-                    ["sessions", sessionId, "streams"],
-                    EMPTY_OBJECT
-                ),
-                messages: _.get(
-                    state,
-                    ["sessions", sessionId, "messages"],
-                    EMPTY_ARRAY
-                ),
-                addToWorkspace: state.addToWorkspace,
-                setInspectionFocusStream: state.setInspectionFocusStream,
-            }))
-        );
+    const {
+        streams,
+        messages,
+        addToWorkspace,
+        setInspectionFocusStream,
+        expandMessage,
+        expandedMessages,
+    } = useSessionStore(
+        useShallow((state) => ({
+            streams: _.get(
+                state,
+                ["sessions", sessionId, "streams"],
+                EMPTY_OBJECT
+            ),
+            messages: _.get(
+                state,
+                ["sessions", sessionId, "messages"],
+                EMPTY_ARRAY
+            ),
+            addToWorkspace: state.addToWorkspace,
+            setInspectionFocusStream: state.setInspectionFocusStream,
+            expandMessage: state.expandMessage,
+            expandedMessages: state.expandedMessages,
+        }))
+    );
     const filteredMessages = messages.filter((message) => {
         if (_.get(message, "metadata.ags.WORKSPACE_ONLY")) {
             return false;
@@ -204,7 +212,15 @@ const Row = ({ index, data, style }) => {
                     <div
                         ref={mergeRefs(rowRef, resizeRef)}
                         className="message-bubble-callout-content"
-                        style={{ maxHeight: MESSAGE_OVERFLOW_THRESHOLD }}
+                        style={{
+                            maxHeight: _.get(
+                                expandedMessages,
+                                [sessionId, stream],
+                                false
+                            )
+                                ? null
+                                : MESSAGE_OVERFLOW_THRESHOLD,
+                        }}
                     >
                         <MessageContent
                             contentType={contentType}
@@ -226,7 +242,14 @@ const Row = ({ index, data, style }) => {
                         )}
                     </div>
                     {isOverflow.current && (
-                        <Tag interactive minimal style={{ marginTop: 15 }}>
+                        <Tag
+                            onClick={() => {
+                                expandMessage(sessionId, stream);
+                            }}
+                            interactive
+                            minimal
+                            style={{ marginTop: 15 }}
+                        >
                             Show more
                         </Tag>
                     )}
