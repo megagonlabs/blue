@@ -51,7 +51,8 @@ class RequestorAgent(Agent, ServiceClient):
             #### call api to compute
             input_data = stream_data[0]
             logging.info(input_data)
-            output = self.execute_api_call(input_data, properties=properties)
+            session_data = self.session.get_all_data()
+            output = self.execute_api_call(input_data, properties=properties, additional_data=session_data)
             worker.write_data(output)
             worker.write_eos()
             

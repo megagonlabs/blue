@@ -151,7 +151,6 @@ Output:
         """Execute a natural language query against OpenAI service synchronously.
         """
         
-        merged_properties = json_utils.merge_json(self.properties, optional_properties)
         # Execute API Call
-        return self.execute_api_call(query, properties=merged_properties)
+        return self.execute_api_call(query, properties=self.properties, additional_data=optional_properties)
 

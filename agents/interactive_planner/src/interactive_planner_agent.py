@@ -519,7 +519,9 @@ class InteractivePlannerAgent(OpenAIAgent):
                 #### call api to compute, render interactive plan
                 input_data = stream_data[0]
                 logging.info(input_data)
-                interactive_plan = self.execute_api_call(stream_data)
+
+                session_data = self.session.get_all_data()
+                interactive_plan = self.execute_api_call(stream_data, additional_data=session_data)
 
                 # plan id and context 
                 plan_id = uuid_utils.create_uuid()

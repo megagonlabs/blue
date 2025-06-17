@@ -74,7 +74,8 @@ class OpenAIToolCallingAgent(OpenAIAgent):
         tool_server = tool_registry.connect_server(properties['tools']['server_name'])
         tool_schemas = self.convert_tool_schemas_to_openai_format(tool_server.list_tools())
 
-        input_object = self.create_message(input_data, properties=properties)
+        session_data = self.session.get_all_data()
+        input_object = self.create_message(input_data, properties=properties, additional_data=session_data)
         input_object["tools"] = tool_schemas
 
         num_calls = 0

@@ -77,20 +77,19 @@ class ServiceClient():
 
         return api_properties
     
-    def create_message(self, input_data, properties=None):
+    def create_message(self, input_data, properties=None, additional_data=None):
         # add properties to pass onto api
         message = self.extract_api_properties(properties=properties)
 
         properties = self.get_properties(properties=properties)
 
+        if additional_data is None:
+            additional_data = {}
         ## prepare input
         if 'input_template' in properties and properties['input_template'] is not None:
             input_template = properties['input_template']
             input_params = self.extract_input_params(input_data, properties=properties)
-            session_params = self.session.get_all_data()
-            if session_params is None:
-                session_params = {}
-            input_data = string_utils.safe_substitute(input_template, **properties, **input_params, **session_params, input=input_data)
+            input_data = string_utils.safe_substitute(input_template, **properties, **input_params, **additional_data, input=input_data)
 
         # set input text to message
         input_object = input_data
@@ -175,9 +174,9 @@ class ServiceClient():
                 
         return output_data
 
-    def execute_api_call(self, input, properties=None):
+    def execute_api_call(self, input, properties=None, additional_data=None):
         # create message from innput
-        message = self.create_message(input, properties=properties)
+        message = self.create_message(input, properties=properties, additional_data=additional_data)
         
         # serialize message, call service
         url = self.get_service_address(properties=properties)
