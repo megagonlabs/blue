@@ -20,14 +20,14 @@ from blue.data.schema import DataSchema
 class PostgresDBSource(DataSource):
     def __init__(self, name, properties={}):
         super().__init__(name, properties=properties)
-
+        
     ###### initialization
     def _initialize_properties(self):
         super()._initialize_properties()
 
         # source protocol 
         self.properties['protocol'] = "postgres"
-
+        
     ###### connection
     def _connect(self, **connection):
         c = copy.deepcopy(connection)
@@ -104,27 +104,102 @@ class PostgresDBSource(DataSource):
     def fetch_database_collection_metadata(self, database, collection):
         return {}
 
-    def fetch_database_collection_schema(self, database, collection):
+    
+    #def fetch_database_collection_schema(self, database, collection):
         # connect to specific database (not source directly)
-        db_connection = self._db_connect(database)
+        #db_connection = self._db_connect(database)
 
         # TODO: Do better ER extraction from tables, columns, exploiting column semantics, foreign keys, etc.
-        query = "SELECT table_name, column_name, data_type  from information_schema.columns WHERE table_schema = %s"
+        #query = "SELECT table_name, column_name, data_type  from information_schema.columns WHERE table_schema = %s"
+        #cursor = db_connection.cursor()
+        #cursor.execute(query, (collection,))
+        #data = cursor.fetchall()
+
+        #schema = DataSchema()
+
+        #for table_name, column_name, data_type in data:
+         #   if not schema.has_entity(table_name):
+          #      schema.add_entity(table_name)
+           # schema.add_entity_property(table_name, column_name, data_type)
+
+        # disconnect
+        #self._db_disconnect(db_connection)
+
+        #return schema.to_json()
+
+
+    def fetch_enum_types(self, db_connection):
+        query = """
+        SELECT
+          n.nspname AS schema,
+          t.typname AS type_name,
+          e.enumlabel AS enum_value
+        FROM
+          pg_type t
+        JOIN
+          pg_enum e ON t.oid = e.enumtypid
+        JOIN
+          pg_catalog.pg_namespace n ON n.oid = t.typnamespace
+        WHERE
+          n.nspname NOT IN ('pg_catalog', 'information_schema')
+        ORDER BY
+          t.typname, e.enumsortorder;
+        """
+        cursor = db_connection.cursor()
+        cursor.execute(query)
+        data = cursor.fetchall()
+
+        enum_types = {}  
+
+        for schema, type_name, enum_value in data:
+            if type_name not in enum_types:
+                enum_types[type_name] = []
+            enum_types[type_name].append(enum_value)
+
+        print("enum types are ")
+        print(enum_types)
+        return enum_types
+
+    def fetch_database_collection_schema(self, database, collection):
+        print("fetch database collection schema")
+        db_connection = self._db_connect(database)
+
+        # Step 1: Get column metadata
+        query = """
+        SELECT table_name, column_name, data_type, udt_name
+        FROM information_schema.columns
+        WHERE table_schema = %s
+        """
         cursor = db_connection.cursor()
         cursor.execute(query, (collection,))
         data = cursor.fetchall()
 
+        # Step 2: Get enum types in the database
+        enum_types = self.fetch_enum_types(db_connection)
+
+        # Step 3: Build schema
         schema = DataSchema()
 
-        for table_name, column_name, data_type in data:
+        for table_name, column_name, data_type, udt_name in data:
             if not schema.has_entity(table_name):
                 schema.add_entity(table_name)
-            schema.add_entity_property(table_name, column_name, data_type)
 
-        # disconnect
+            # Annotate enum types if applicable
+            if udt_name in enum_types:
+                schema.add_entity_property(table_name, column_name, {
+                    "type": data_type,
+                    "enum": enum_types[udt_name]
+                })
+            else:
+                schema.add_entity_property(table_name, column_name, data_type)
+
         self._db_disconnect(db_connection)
 
+        print("I fetched database collection schema - printing it now")
+        print(schema.to_json())
+
         return schema.to_json()
+
 
 
 

@@ -20,7 +20,10 @@ class NL2SQLAgent(OpenAIAgent):
 
     PROMPT = """
 Your task is to translate a natural language question into a SQL query based on a list of provided data sources.
-For each source you will be provided with a list of table schemas that specify the columns and their types.
+For each source you will be provided with a list of table schemas that specify the columns and their types. 
+For enum fields, do not use LOWER(), ILIKE, or other string functions.,
+Compare enum fields using exact equality (e.g., education_level = 'bachelor').,
+If the question uses terms like 'bachelors', map them to the correct enum value 'bachelor' before constructing the query.
 
 Here are the requirements:
 - The output should be a JSON object with the following fields
@@ -112,6 +115,7 @@ Output:
             self.properties[key] = NL2SQLAgent.PROPERTIES[key]
 
     def _start(self):
+        print("starting nl2sql agent")
         super()._start()
 
         # initialize registry
@@ -125,9 +129,11 @@ Output:
 
     def _init_registry(self):
         # create instance of data registry
+
         platform_id = self.properties["platform.name"]
         prefix = 'PLATFORM:' + platform_id
         self.registry = DataRegistry(id=self.properties['data_registry.name'], prefix=prefix, properties=self.properties)
+        print("inside init registry of NL2Q")
 
     def _init_source(self):
 
@@ -137,12 +143,21 @@ Output:
         self.selected_source_protocol = None
         self.selected_database = None
         self.selected_collection = None
+        
+        print("inside nl2q - init source")
 
         # select source, if set
         if "nl2q_source" in self.properties and self.properties["nl2q_source"]:
             self.selected_source = self.properties["nl2q_source"]
 
+            #print("Here is the selected source")
+            #print(self.selected_source)
+
             source_properties = self.registry.get_source_properties(self.selected_source)
+
+            #print("Here is the source properties")
+            #print(source_properties)
+
 
             if source_properties:
                 if 'connection' in source_properties:
@@ -166,11 +181,16 @@ Output:
             source_properties = self.registry.get_source_properties(self.selected_source)
             self.selected_source_protocol = source_properties['connection']['protocol']
 
+            print("selected database ")
+            print(self.selected_database)
+
     def _init_schemas(self):
 
             # preset schema if any selected
             self._set_schemas(self.schemas, source=self.selected_source, database=self.selected_database, collection=self.selected_collection)
-        
+            print("Inside NL2Q - init schemas - selected schemas")
+            print(self.schemas)    
+    
     def _set_schemas(self, schemas, source=None, database=None, collection=None):
         if source:
 
@@ -188,6 +208,16 @@ Output:
                     if entities:
                         key = f'/source/{source}/database/{database}/collection/{collection}'
                         schemas[key] = entities
+                        print("inside NL2Q - entities are")
+                        print(entities)
+
+                        print("---- Full schemas dictionary ----")
+                    for key, value in schemas.items():
+                        print(f"Key: {key}")
+                        print("Value:")
+                        print(value)
+                        print("-------------------------------")
+
                 else:
                     # get collections
                     collections = self.registry.get_source_database_collections(source=source, database=database)
@@ -212,7 +242,7 @@ Output:
 
             if source is None:
                 sources = []
-            # set scheas for each source
+            # set schemas for each source
             for source in sources:
                 self._set_schemas(schemas, source=source['name'])
 
@@ -288,14 +318,65 @@ Output:
 
         return schemas
 
+    #def _format_schema(self, schema):
+     #   res = []
+      #  for entity in schema:
+       #     print("I am inside NL2Q - format schema ")
+            
+        #    res.append({
+         #       'table_name': entity['name'],
+          #      'columns': ", ".join(list(entity['properties']['properties'].keys()))
+           # })
+            #print("table name ")
+            #print(entity['name'])
+            #print("table columns ")
+            #print(entity['properties']['properties'].keys())
+        #return res
+
     def _format_schema(self, schema):
         res = []
+
         for entity in schema:
+            print("I am inside NL2Q - format schema ")
+            
+            table_name = entity['name']
+            properties = entity['properties']['properties']
+
+            print("table name ")
+            print(table_name)
+            print("table properties ")
+            print(properties)
+
+            columns = []
+            for col_name, col_info in properties.items():
+                if isinstance(col_info, dict):
+                    col_entry = {"name": col_name, "type": col_info.get("type", "unknown")}
+                    if "enum" in col_info:
+                        col_entry["enum"] = col_info["enum"]
+                else:
+                    # col_info is a string like "varchar"
+                    col_entry = {"name": col_name, "type": col_info}
+                columns.append(col_entry)
+                #col_entry = {"name": col_name, "type": col_info.get("type", "unknown")}
+                #if "enum" in col_info:
+                 #   col_entry["enum"] = col_info["enum"]
+                #columns.append(col_entry)
+            
+            print("columns are ")
+            print(columns)
             res.append({
-                'table_name': entity['name'],
-                'columns': ", ".join(list(entity['properties']['properties'].keys()))
+                "table_name": table_name,
+                "columns": columns
             })
+            
+            print("table name:")
+            print(table_name)
+            print("table columns with types and enums:")
+            print(columns)
+
         return res
+
+    
 
     def extract_input_params(self, input_data, properties=None):
 
@@ -303,6 +384,13 @@ Output:
 
         # get properties, overriding with properties provided
         properties = self.get_properties(properties=properties)
+
+        print("question is ")
+        print(question)
+
+        print("Printing properties ")
+        print(properties)
+
 
         schemas = {}
 
@@ -332,6 +420,18 @@ Output:
 
         sources = json.dumps(sources, indent=2)
 
+        #print("I am creating params - ")
+        
+        #print("additional requirements is ")
+        #print(properties['nl2q_additional_requirements'])
+
+        #print("context is ")
+        #print(properties['nl2q_context'])
+
+        #print("sources is ")
+        #print(sources)
+
+
         params = {
             'sources': sources,
             'question': question,
@@ -355,6 +455,7 @@ Output:
         query = output['query']
         result = output['result']
         error = output['error']
+        count = output['count']
 
         # max results
         if "nl2q_output_max_results" in self.properties and self.properties['nl2q_output_max_results']:
@@ -368,7 +469,8 @@ Output:
                 'source': source,
                 'query': query,
                 'result': result,
-                'error': error
+                'error': error,
+                'count': count
             }
             return message
             
@@ -383,6 +485,8 @@ Output:
                 message = error
             if 'result' in output_filters:
                 message = result
+            if 'count' in output_filters:
+                message = count
         else:
             message = {}
             if 'question' in output_filters:
@@ -395,6 +499,8 @@ Output:
                 message['result'] = result
             if 'error' in output_filters:
                 message['error'] = error
+            if 'count' in output_filters:
+                message['count'] = count
         
         return message
 
@@ -404,10 +510,14 @@ Output:
         # get properties, overriding with properties provided
         properties = self.get_properties(properties=properties)
 
+
+        print(properties)
+
         if type(output_data) == str:
             output_data = json.loads(output_data)
 
         question, key, query, result, error = None, None, None, None, None
+        count = 0
 
         try:
             question = output_data['question']
@@ -423,6 +533,8 @@ Output:
             
             result = None
 
+            
+
             # execute query, if configured
             if "nl2q_execute" in self.properties and self.properties['nl2q_execute']:
                  # connect
@@ -435,10 +547,22 @@ Output:
                 logging.info("executing query: " + query)
                 result = source_connection.execute_query(query, database=database, collection=collection)
                 logging.info(result)
+
+                
+                if isinstance(result, dict) and 'result' in result and isinstance(result['result'], list):
+                    count = len(result['result'])
+                elif isinstance(result, list):
+                    count = len(result)
+                else:
+                    count = 0
+                print("Returning total results : COUNT #")
+                print(count)
                
 
         except Exception as e:
             error = str(e)
+
+       
 
         # output
         output = {
@@ -446,9 +570,11 @@ Output:
             'source': key,
             'query': query,
             'result': result,
-            'error': error
+            'error': error,
+            'count': count  
         }
         logging.info(output)
+        
         x = self._apply_filter(output)
         logging.info(str(x))
         return x
