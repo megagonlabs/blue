@@ -68,13 +68,13 @@ export default function EntityActions({
             _.includes(["agent", "agent_group"], type) &&
             permissions.canWriteAgentRegistry;
         const duplicateData =
-            _.isEqual("source", type) && permissions.canWriteDataRegistry;
+            _.isEqual(type, "source") && permissions.canWriteDataRegistry;
         const duplicateOperator =
-            _.isEqual("operator", type) && permissions.canWriteOperatorRegistry;
+            _.isEqual(type, "operator") && permissions.canWriteOperatorRegistry;
         const duplicateModel =
-            _.isEqual("model", type) && permissions.canWriteModelRegistry;
+            _.isEqual(type, "model") && permissions.canWriteModelRegistry;
         const duplicateServer =
-            _.isEqual("server", type) && permissions.canWriteToolRegistry;
+            _.isEqual(type, "server") && permissions.canWriteToolRegistry;
         return (
             (duplicateAgent ||
                 duplicateData ||

@@ -37,10 +37,10 @@ const CustomResizeHandle = forwardRef(function CustomResizeHandle(
     );
 });
 const WIDTH_ADJUSTMENT_BUTTONS = [
-    { width: 5, tooltip: { content: "42%", placement: "bottom-start" } },
-    { width: 6, tooltip: { content: "50%", placement: "bottom" } },
-    { width: 7, tooltip: { content: "58%", placement: "bottom" } },
-    { width: 12, tooltip: { content: "Full width", placement: "bottom-end" } },
+    { width: 5, text: "40" },
+    { width: 6, text: "50" },
+    { width: 7, text: "60" },
+    { width: 12, text: "100" },
 ];
 export default function Home() {
     const {
@@ -111,7 +111,7 @@ export default function Home() {
                                     modifiers={{
                                         offset: {
                                             enabled: true,
-                                            options: { offset: [15.5, 14] },
+                                            options: { offset: [31, 14] },
                                         },
                                     }}
                                     content={
@@ -124,28 +124,22 @@ export default function Home() {
                                                     }
                                                 >
                                                     {WIDTH_ADJUSTMENT_BUTTONS.map(
-                                                        (spec, index) => (
-                                                            <Tooltip
-                                                                key={index}
-                                                                {...spec.tooltip}
-                                                            >
-                                                                <Button
-                                                                    intent={
-                                                                        Intent.PRIMARY
-                                                                    }
-                                                                    onClick={() => {
-                                                                        resizeContainerWidth(
-                                                                            {
-                                                                                id: element.i,
-                                                                                width: spec.width,
-                                                                            }
-                                                                        );
-                                                                    }}
-                                                                    text={
-                                                                        spec.width
-                                                                    }
-                                                                />
-                                                            </Tooltip>
+                                                        (spec) => (
+                                                            <Button
+                                                                key={spec.text}
+                                                                intent={
+                                                                    Intent.PRIMARY
+                                                                }
+                                                                onClick={() => {
+                                                                    resizeContainerWidth(
+                                                                        {
+                                                                            id: element.i,
+                                                                            width: spec.width,
+                                                                        }
+                                                                    );
+                                                                }}
+                                                                text={spec.text}
+                                                            />
                                                         )
                                                     )}
                                                 </ButtonGroup>

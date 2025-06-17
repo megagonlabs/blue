@@ -230,7 +230,7 @@ function PlatformAgents({ width, height }) {
         Promise.allSettled(promises).then((results) => {
             let updated = new Set();
             for (let i = 0; i < _.size(results); i++) {
-                if (_.isEqual("fulfilled", results[i].status)) {
+                if (_.isEqual(results[i].status, "fulfilled")) {
                     updated.add(results[i].value);
                     updateAgentTableSelected({
                         id: results[i].value,
@@ -273,7 +273,7 @@ function PlatformAgents({ width, height }) {
             .then((results) => {
                 let deleted = new Set();
                 for (let i = 0; i < _.size(results); i++) {
-                    if (_.isEqual("fulfilled", results[i].status)) {
+                    if (_.isEqual(results[i].status, "fulfilled")) {
                         deleted.add(results[i].value);
                         updateAgentTableSelected({
                             id: results[i].value,

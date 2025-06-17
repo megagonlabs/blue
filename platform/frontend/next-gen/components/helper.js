@@ -63,6 +63,29 @@ function base64ToWebsafe(base64) {
     return base64.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
 module.exports = {
+    Queue: class Queue {
+        constructor() {
+            this.items = {};
+            this.front = 0;
+            this.back = 0;
+        }
+        enqueue(item) {
+            this.items[this.back] = item;
+            this.back++;
+        }
+        isEmpty() {
+            return _.isEmpty(this.items);
+        }
+        dequeue() {
+            const item = this.items[this.front];
+            delete this.items[this.front];
+            this.front++;
+            return item;
+        }
+        peek() {
+            return this.items[this.front];
+        }
+    },
     insertBetween: (list, element) => {
         let array = _.cloneDeep(list);
         for (let i = 1; i < _.size(array); i += 2) {

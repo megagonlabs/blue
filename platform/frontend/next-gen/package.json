@@ -24,6 +24,7 @@
         "@codemirror/view": "^6.23.0",
         "@fortawesome/fontawesome-svg-core": "^6.7.2",
         "@fortawesome/free-brands-svg-icons": "^6.7.2",
+        "@fortawesome/pro-solid-svg-icons": "^6.7.2",
         "@fortawesome/react-fontawesome": "^0.2.2",
         "@fortawesome/sharp-duotone-solid-svg-icons": "^6.7.2",
         "@jsonforms/core": "^3.5.1",

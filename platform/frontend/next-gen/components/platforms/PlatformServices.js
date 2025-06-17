@@ -87,7 +87,7 @@ function PlatformServices({ width, height }) {
             .then((results) => {
                 let stopped = new Set();
                 for (let i = 0; i < _.size(results); i++) {
-                    if (_.isEqual("fulfilled", results[i].status)) {
+                    if (_.isEqual(results[i].status, "fulfilled")) {
                         stopped.add(results[i].value);
                         updateServiceTableSelected({
                             id: results[i].value,

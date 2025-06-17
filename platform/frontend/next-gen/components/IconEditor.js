@@ -264,7 +264,7 @@ function IconPicker({ content, setNewContent }) {
                     }}
                 >
                     {COLOR_OPTIONS.map((code, index) => {
-                        const isWhite = _.isEqual("#FFFFFF", code);
+                        const isWhite = _.isEqual(code, "#FFFFFF");
                         return (
                             <div
                                 key={index}

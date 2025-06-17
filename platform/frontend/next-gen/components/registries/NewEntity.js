@@ -89,7 +89,7 @@ export default function NewEntity({ type, callback, parent, duplicateEntity }) {
         );
         if (_.includes(["input", "output"], calculatedType)) {
             url += `/agent/${prefix}/${convertedType}/${fullName}`;
-        } else if (_.isEqual("tool", calculatedType)) {
+        } else if (_.isEqual(calculatedType, "tool")) {
             url += `/tools/${prefix}/${convertedType}/${fullName}`;
         } else {
             url += `/${convertedType}/${fullName}`;
@@ -150,7 +150,7 @@ export default function NewEntity({ type, callback, parent, duplicateEntity }) {
         <div>
             <H3 style={{ marginBottom: 20 }}>
                 Create&nbsp;
-                {_.isEqual("agent_group", calculatedType)
+                {_.isEqual(calculatedType, "agent_group")
                     ? "demo"
                     : calculatedType}
             </H3>
@@ -233,7 +233,7 @@ export default function NewEntity({ type, callback, parent, duplicateEntity }) {
                     loading={loading}
                 />
             </div>
-            {!_.isEqual("agent_group", calculatedType) && (
+            {!_.isEqual(calculatedType, "agent_group") && (
                 <div style={{ marginTop: 20 }}>
                     <EntityProperties
                         isEditing={true}

@@ -2,7 +2,7 @@ import { useAppStore } from "@/stores/app-store";
 import { useGridStore } from "@/stores/grid-layout-store";
 import { Colors, Overlay2 } from "@blueprintjs/core";
 import _ from "lodash";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import IconEditor from "../IconEditor";
 import { useContainerContext } from "../contexts/ContainerContext";
 import withAutoSizer from "../hocs/withAutoSizer";
@@ -10,6 +10,7 @@ import Breadcrumbs from "./Breadcrumbs";
 import NewEntity from "./NewEntity";
 import AgentEntity from "./agents/AgentEntity";
 import AgentGroupEntity from "./agents/AgentGroupEntity";
+import AgentTree from "./agents/AgentTree";
 import CollectionEntity from "./data/CollectionEntity";
 import DatabaseEntity from "./data/DatabaseEntity";
 import EntityEntity from "./data/EntityEntity";
@@ -62,6 +63,7 @@ function RegistryEntityContainer({ width, height, entity, duplicate = false }) {
     const [showIconEditor, setShowIconEditor] = useState(false);
     const [showNewEntity, setShowNewEntity] = useState(false);
     const [newEntityType, setNewEntityType] = useState(null);
+    const breaker = useRef(true);
     const callback = (entity) => {
         setShowNewEntity(false);
         addCrumb(entity);
@@ -85,6 +87,9 @@ function RegistryEntityContainer({ width, height, entity, duplicate = false }) {
             <Overlay2
                 onClose={() => {
                     setShowNewEntity(false);
+                    if (_.isEqual(type, "agent_group")) {
+                        breaker.current = false;
+                    }
                 }}
                 isOpen={showNewEntity}
                 usePortal={false}
@@ -101,11 +106,15 @@ function RegistryEntityContainer({ width, height, entity, duplicate = false }) {
                         maxWidth: "calc(100% - 40px)",
                     }}
                 >
-                    <NewEntity
-                        callback={callback}
-                        parent={current}
-                        type={newEntityType}
-                    />
+                    {_.isEqual(type, "agent_group") ? (
+                        <AgentTree entity={entity} />
+                    ) : (
+                        <NewEntity
+                            callback={callback}
+                            parent={current}
+                            type={newEntityType}
+                        />
+                    )}
                 </div>
             </Overlay2>
             <Overlay2
@@ -171,6 +180,8 @@ function RegistryEntityContainer({ width, height, entity, duplicate = false }) {
                                     addCrumb={addCrumb}
                                     backCrumb={backCrumb}
                                     entity={current}
+                                    setShowAgentTree={setShowNewEntity}
+                                    breaker={breaker}
                                 />
                             )}
                             {_.isEqual(type, "input") && (

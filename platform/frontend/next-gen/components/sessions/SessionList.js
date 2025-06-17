@@ -58,7 +58,7 @@ function SessionList({ width, height }) {
                     "group_by",
                     filter.group,
                 ]);
-                return _.isEqual("all", filter.group) || group;
+                return _.isEqual(filter.group, "all") || group;
             })
             .filter((id) => {
                 if (_.includes(id, filter.keywords)) {

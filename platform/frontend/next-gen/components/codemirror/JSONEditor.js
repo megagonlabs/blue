@@ -131,7 +131,7 @@ export default function JSONEditor({
                 overwrite(jsonString);
             }
         } catch (error) {}
-    }, [jsonObject, breaker]);
+    }, [jsonObject]);
     useEffect(() => {
         let create = (view) => {
             const dom = document.createElement("div");

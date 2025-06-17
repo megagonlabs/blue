@@ -200,7 +200,7 @@ export default function AuthenticationConfigurations() {
             .then((results) => {
                 let removed = new Set();
                 for (let i = 0; i < _.size(results); i++) {
-                    if (_.isEqual("fulfilled", results[i].status)) {
+                    if (_.isEqual(results[i].status, "fulfilled")) {
                         removed.add(results[i].value);
                     }
                 }

@@ -180,7 +180,7 @@ export default function UserRoleConfiguration({
             .then((results) => {
                 let updated = new Set();
                 for (let i = 0; i < _.size(results); i++) {
-                    if (_.isEqual("fulfilled", results[i].status)) {
+                    if (_.isEqual(results[i].status, "fulfilled")) {
                         updated.add(results[i].value);
                         updateUserTableSelected({
                             uid: results[i].value,

@@ -44,6 +44,8 @@ export default function AgentGroupEntity({
     icon,
     setIcon,
     backCrumb,
+    setShowAgentTree,
+    breaker,
 }) {
     const { name, type } = entity;
     const { containerId } = useContainerContext();
@@ -93,8 +95,11 @@ export default function AgentGroupEntity({
             })
             .finally(() => {
                 setLoading(false);
+                if (!_.isNull(breaker)) {
+                    breaker.current = true;
+                }
             });
-    }, [entity]);
+    }, [entity, breaker.current]);
     useEffect(() => {
         updateAgentGroup({ path: "icon", value: icon });
     }, [icon]);
@@ -327,7 +332,9 @@ export default function AgentGroupEntity({
                             icon={<FAIcon icon={faFolderTree} />}
                             fill
                             text="Update agents"
-                            onClick={() => {}}
+                            onClick={() => {
+                                setShowAgentTree(true);
+                            }}
                         />
                     )}
                 </div>
