@@ -142,7 +142,7 @@ Output:
     def fetch_database_collection_schema(self, database, collection):
         return {}
     
-    def get_service_address(self):
+    def get_service_address(self, properties=None):
         service_address = f"ws://{self.host}:{self.port}"
         return service_address
     
