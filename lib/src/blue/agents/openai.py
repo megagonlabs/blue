@@ -23,7 +23,7 @@ class OpenAIAgent(RequestorAgent):
     def _initialize_properties(self):
         super()._initialize_properties()
 
-        self.properties['openai.service'] = "ws://localhost:8001"
+        self.properties['service_url'] = "ws://localhost:8001"
 
         self.properties['openai.api'] = 'ChatCompletion'
         self.properties['openai.model'] = "gpt-4o"
@@ -37,4 +37,4 @@ class OpenAIAgent(RequestorAgent):
         self.properties['openai.max_tokens'] = 300
 
         # prefix for service specific properties
-        self.properties['service.prefix'] = 'openai'
+        self.properties['service_prefix'] = 'openai'
