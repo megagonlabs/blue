@@ -98,7 +98,42 @@ class MCPToolClient(ToolClient):
         tools = []
         try:
             response = await self.session.list_tools()
-            tools = response.tools
+            for t in response.tools:
+                if detailed:
+                    tool = {}
+                    tool['name'] = t.name
+                    tool['description'] = t.description
+                    parameters = {}
+                    properties = { "parameters": parameters }
+                    tool['properties'] = properties
+
+                    # process tool schema
+                    schema = t.inputSchema
+                    required = []
+                    if 'required' in t.inputSchema:
+                        required = t.inputSchema['required']
+
+                    schema_properties = t.inputSchema['properties']
+                    for p in schema_properties:
+                        schema_property = schema_properties[p]
+                        parameter = {}
+                        parameter['type'] = schema_property['type']
+                        parameter['required'] = p in required
+                        if 'items' in schema_property:
+                            parameter['items'] = schema_property['items']
+                        parameters[p] = parameter
+
+                    if filter_tools:
+                        if type(filter_tools) == str:
+                            if t.name == filter_tools:
+                                tools.append(tool)
+                        elif type(filter_tools) == list:
+                            if t.name in filter_tools:
+                                tools.append(tool)
+                    else:
+                        tools.append(tool)
+                else:
+                    tools.append(t.name)
         finally:
             await self._release_session()
         return tools
