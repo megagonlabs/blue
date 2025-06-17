@@ -142,7 +142,7 @@ Output:
     def fetch_database_collection_schema(self, database, collection):
         return {}
     
-    def get_service_address(self):
+    def get_service_address(self, properties=None):
         service_address = f"ws://{self.host}:{self.port}"
         return service_address
     
@@ -151,7 +151,6 @@ Output:
         """Execute a natural language query against OpenAI service synchronously.
         """
         
-        merged_properties = json_utils.merge_json(self.properties, optional_properties)
         # Execute API Call
-        return self.execute_api_call(query, properties=merged_properties)
+        return self.execute_api_call(query, properties=self.properties, additional_data=optional_properties)
 

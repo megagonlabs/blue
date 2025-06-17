@@ -131,8 +131,10 @@ class SummarizerAgent(OpenAIAgent):
             # progress 
             worker.write_progress(progress_id=progress_id, label='Rephrasing doc...', value=self.current_step/self.num_steps)
             
+            session_data = self.session.get_all_data()
+
             #### call api to rephrase summary
-            worker.write_data(self.execute_api_call(summary, properties=properties))
+            worker.write_data(self.execute_api_call(summary, properties=properties, additional_data=session_data))
             worker.write_eos()
 
         else:
