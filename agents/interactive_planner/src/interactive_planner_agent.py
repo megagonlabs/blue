@@ -10,6 +10,7 @@ from blue.agents.openai import OpenAIAgent
 from blue.session import Session
 from blue.stream import ControlCode
 from blue.utils import string_utils, json_utils, uuid_utils
+from blue.utils.service_utils import ServiceClient
 
 # set log level
 logging.getLogger().setLevel(logging.INFO)
@@ -516,7 +517,9 @@ class InteractivePlannerAgent(OpenAIAgent):
                     stream_data = worker.get_data(stream)
 
                 #### call api to compute, render interactive plan
-                interactive_plan = self.handle_api_call(stream_data)
+                input_data = stream_data[0]
+                logging.info(input_data)
+                interactive_plan = self.execute_api_call(stream_data)
 
                 # plan id and context 
                 plan_id = uuid_utils.create_uuid()
