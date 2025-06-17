@@ -22,8 +22,7 @@ class NL2SQLAgent(OpenAIAgent):
 Your task is to translate a natural language question into a SQL query based on a list of provided data sources.
 For each source you will be provided with a list of table schemas that specify the columns and their types. 
 For enum fields, do not use LOWER(), ILIKE, or other string functions.,
-Compare enum fields using exact equality (e.g., education_level = 'bachelor').,
-If the question uses terms like 'bachelors', map them to the correct enum value 'bachelor' before constructing the query.
+Compare enum fields using exact equality.
 
 Here are the requirements:
 - The output should be a JSON object with the following fields
@@ -115,7 +114,6 @@ Output:
             self.properties[key] = NL2SQLAgent.PROPERTIES[key]
 
     def _start(self):
-        print("starting nl2sql agent")
         super()._start()
 
         # initialize registry
@@ -133,7 +131,7 @@ Output:
         platform_id = self.properties["platform.name"]
         prefix = 'PLATFORM:' + platform_id
         self.registry = DataRegistry(id=self.properties['data_registry.name'], prefix=prefix, properties=self.properties)
-        print("inside init registry of NL2Q")
+        
 
     def _init_source(self):
 
@@ -144,20 +142,11 @@ Output:
         self.selected_database = None
         self.selected_collection = None
         
-        print("inside nl2q - init source")
 
         # select source, if set
         if "nl2q_source" in self.properties and self.properties["nl2q_source"]:
             self.selected_source = self.properties["nl2q_source"]
-
-            #print("Here is the selected source")
-            #print(self.selected_source)
-
             source_properties = self.registry.get_source_properties(self.selected_source)
-
-            #print("Here is the source properties")
-            #print(source_properties)
-
 
             if source_properties:
                 if 'connection' in source_properties:
@@ -181,15 +170,13 @@ Output:
             source_properties = self.registry.get_source_properties(self.selected_source)
             self.selected_source_protocol = source_properties['connection']['protocol']
 
-            print("selected database ")
-            print(self.selected_database)
+        
 
     def _init_schemas(self):
 
             # preset schema if any selected
             self._set_schemas(self.schemas, source=self.selected_source, database=self.selected_database, collection=self.selected_collection)
-            print("Inside NL2Q - init schemas - selected schemas")
-            print(self.schemas)    
+            
     
     def _set_schemas(self, schemas, source=None, database=None, collection=None):
         if source:
@@ -208,16 +195,6 @@ Output:
                     if entities:
                         key = f'/source/{source}/database/{database}/collection/{collection}'
                         schemas[key] = entities
-                        print("inside NL2Q - entities are")
-                        print(entities)
-
-                        print("---- Full schemas dictionary ----")
-                    for key, value in schemas.items():
-                        print(f"Key: {key}")
-                        print("Value:")
-                        print(value)
-                        print("-------------------------------")
-
                 else:
                     # get collections
                     collections = self.registry.get_source_database_collections(source=source, database=database)
@@ -318,27 +295,11 @@ Output:
 
         return schemas
 
-    #def _format_schema(self, schema):
-     #   res = []
-      #  for entity in schema:
-       #     print("I am inside NL2Q - format schema ")
-            
-        #    res.append({
-         #       'table_name': entity['name'],
-          #      'columns': ", ".join(list(entity['properties']['properties'].keys()))
-           # })
-            #print("table name ")
-            #print(entity['name'])
-            #print("table columns ")
-            #print(entity['properties']['properties'].keys())
-        #return res
-
+    
     def _format_schema(self, schema):
         res = []
 
         for entity in schema:
-            print("I am inside NL2Q - format schema ")
-            
             table_name = entity['name']
             properties = entity['properties']['properties']
 
@@ -354,14 +315,9 @@ Output:
                     if "enum" in col_info:
                         col_entry["enum"] = col_info["enum"]
                 else:
-                    # col_info is a string like "varchar"
                     col_entry = {"name": col_name, "type": col_info}
                 columns.append(col_entry)
-                #col_entry = {"name": col_name, "type": col_info.get("type", "unknown")}
-                #if "enum" in col_info:
-                 #   col_entry["enum"] = col_info["enum"]
-                #columns.append(col_entry)
-            
+                
             print("columns are ")
             print(columns)
             res.append({
@@ -369,14 +325,7 @@ Output:
                 "columns": columns
             })
             
-            print("table name:")
-            print(table_name)
-            print("table columns with types and enums:")
-            print(columns)
-
         return res
-
-    
 
     def extract_input_params(self, input_data, properties=None):
 
@@ -384,13 +333,6 @@ Output:
 
         # get properties, overriding with properties provided
         properties = self.get_properties(properties=properties)
-
-        print("question is ")
-        print(question)
-
-        print("Printing properties ")
-        print(properties)
-
 
         schemas = {}
 
@@ -419,18 +361,6 @@ Output:
         } for key, schema in schemas.items()]
 
         sources = json.dumps(sources, indent=2)
-
-        #print("I am creating params - ")
-        
-        #print("additional requirements is ")
-        #print(properties['nl2q_additional_requirements'])
-
-        #print("context is ")
-        #print(properties['nl2q_context'])
-
-        #print("sources is ")
-        #print(sources)
-
 
         params = {
             'sources': sources,
@@ -563,7 +493,6 @@ Output:
             error = str(e)
 
        
-
         # output
         output = {
             'question': question,

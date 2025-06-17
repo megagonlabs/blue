@@ -105,29 +105,6 @@ class PostgresDBSource(DataSource):
         return {}
 
     
-    #def fetch_database_collection_schema(self, database, collection):
-        # connect to specific database (not source directly)
-        #db_connection = self._db_connect(database)
-
-        # TODO: Do better ER extraction from tables, columns, exploiting column semantics, foreign keys, etc.
-        #query = "SELECT table_name, column_name, data_type  from information_schema.columns WHERE table_schema = %s"
-        #cursor = db_connection.cursor()
-        #cursor.execute(query, (collection,))
-        #data = cursor.fetchall()
-
-        #schema = DataSchema()
-
-        #for table_name, column_name, data_type in data:
-         #   if not schema.has_entity(table_name):
-          #      schema.add_entity(table_name)
-           # schema.add_entity_property(table_name, column_name, data_type)
-
-        # disconnect
-        #self._db_disconnect(db_connection)
-
-        #return schema.to_json()
-
-
     def fetch_enum_types(self, db_connection):
         query = """
         SELECT
@@ -164,7 +141,6 @@ class PostgresDBSource(DataSource):
         print("fetch database collection schema")
         db_connection = self._db_connect(database)
 
-        # Step 1: Get column metadata
         query = """
         SELECT table_name, column_name, data_type, udt_name
         FROM information_schema.columns
@@ -174,17 +150,14 @@ class PostgresDBSource(DataSource):
         cursor.execute(query, (collection,))
         data = cursor.fetchall()
 
-        # Step 2: Get enum types in the database
         enum_types = self.fetch_enum_types(db_connection)
 
-        # Step 3: Build schema
         schema = DataSchema()
 
         for table_name, column_name, data_type, udt_name in data:
             if not schema.has_entity(table_name):
                 schema.add_entity(table_name)
 
-            # Annotate enum types if applicable
             if udt_name in enum_types:
                 schema.add_entity_property(table_name, column_name, {
                     "type": data_type,
@@ -195,7 +168,6 @@ class PostgresDBSource(DataSource):
 
         self._db_disconnect(db_connection)
 
-        print("I fetched database collection schema - printing it now")
         print(schema.to_json())
 
         return schema.to_json()
