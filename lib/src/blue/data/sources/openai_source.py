@@ -19,6 +19,8 @@ import requests
 ###### Blue
 from blue.data.source import DataSource
 from blue.data.schema import DataSchema
+from blue.utils import json_utils
+from blue.utils.service_utils import ServiceClient
 
 # set log level
 logging.getLogger().setLevel(logging.INFO)
@@ -27,7 +29,7 @@ logging.basicConfig(format="%(asctime)s [%(levelname)s] [%(process)d:%(threadNam
 ###############
 ### OpenAISource
 
-class OpenAISource(DataSource):
+class OpenAISource(DataSource, ServiceClient):
     PROMPT = """
 Your task is to process a natural language query and return the results in JSON format.
 The response should be a valid JSON array containing the requested information.
@@ -41,7 +43,7 @@ Here are the requirements:
 - The response should be well-formatted and easy to parse
 - Output the JSON directly. Do not generate explanation or other additional output.
 
-Query: ${query}
+Query: ${input}
 
 Attr_names:
 ${attr_names}
@@ -69,8 +71,7 @@ Output:
         "output_path": "$.choices[0].message.content",
 
         # service related properties
-        "service.prefix": "openai",
-        # "api.service": "ws://localhost:8001", # the host might not be localhost if using service
+        "service_prefix": "openai",
 
         # output transformations
         "output_transformations": [
@@ -108,7 +109,7 @@ Output:
         self.host = connection.get('host')
         self.port = connection.get('port')
         # logging.debug(f"OpenAI source connected to {self.host}:{self.port}")
-        return None
+        return {}
 
     def _disconnect(self):
         # OpenAI source doesn't require persistent connection
@@ -140,110 +141,17 @@ Output:
 
     def fetch_database_collection_schema(self, database, collection):
         return {}
-
-    ######### format prompt
-    def _format_prompt(self, query, context:str=None, attr_names:list=None):
-        """Format the prompt with the query and context.
-        Context is just a placeholder for additional information.
-        """
-        prompt = self.properties['input_template']
-        context_str = "\n".join(context) if context else ""
-        # attr_names is a list of strings
-        attr_names_str = "\n".join([f"- {name}" for name in attr_names]) if attr_names else ""
-        return prompt.format(query=query, context=context_str, attr_names=attr_names_str)
-
-    ######### apply transformations
-    def _apply_transformations(self, content:str):
-        """Apply output transformations to the content.
-        Transformations are applied in the order they are defined.
-        """
-        if not content:
-            return content
-
-        # strip
-        if self.properties.get('output_strip', True):
-            logging.info("output_strip")
-            content = content.strip()
-
-        # re transformations
-        if self.properties.get('output_transformations', []):
-            logging.info("output_transformations")
-            transformations = self.properties.get('output_transformations', [])
-            for transform in transformations:
-                if transform['transformation'] == 'replace':
-                    content = content.replace(transform['from'], transform['to'])
-                elif transform['transformation'] == 'sub':
-                    content = re.sub(transform['from'], transform['to'], content)
-        return content
-
-    def _parse_response(self, response:list):
-        """Parse and validate the response content.
-        """
-        try:
-            # Apply transformations
-            content = self._apply_transformations(response)
-            
-            # Parse JSON
-            if self.properties.get('output_cast') == 'json':
-                try:
-                    parsed = json.loads(content)
-                    if isinstance(parsed, list):
-                        return parsed
-                    else:
-                        return [parsed]
-                except json.JSONDecodeError:
-                    return [{"error": f"Invalid JSON format in response {content}"}]
-            else:
-                # currently we only support json output
-                return response
-        except Exception as e:
-            logging.error(f"Error parsing response: {str(e)}")
-            return [{"error": str(e)}]
     
     def get_service_address(self):
-        if 'api.service' in self.properties:
-            service_address = self.properties['api.service']
-        else:
-            service_address = f"ws://{self.host}:{self.port}"
+        service_address = f"ws://{self.host}:{self.port}"
         return service_address
     
     ######### execute query
     def execute_query(self, query, database=None, collection=None, optional_properties={}):
         """Execute a natural language query against OpenAI service synchronously.
         """
-        context = optional_properties.get('context', '')
-        attr_names = optional_properties.get('attr_names', [])
         
-        # Format the prompt with query and context
-        formatted_prompt = self._format_prompt(query, context, attr_names)
-        
-        # Prepare API payload
-        payload = {
-            "api": self.properties['openai.api'],
-            "model": self.properties['openai.model'],
-            "messages": [
-                {
-                    "role": "user",
-                    "content": formatted_prompt
-                }
-            ],
-            "max_tokens": self.properties['openai.max_tokens'],
-            "temperature": self.properties['openai.temperature'],
-            "stream": self.properties['openai.stream']
-        }
+        merged_properties = json_utils.merge_json(self.properties, optional_properties)
+        # Execute API Call
+        return self.execute_api_call(query, properties=merged_properties)
 
-        try:
-            with connect(self.get_service_address()) as websocket:
-                logging.info("Sending to service: {data}".format(data=payload))
-                payload_str = json.dumps(payload)
-                websocket.send(payload_str) 
-                message = websocket.recv()
-                result = json.loads(message)
-                content = result['choices'][0]['message']['content']
-                parsed_content = self._parse_response(content)
-                logging.info(f"parsed_content: {parsed_content}")
-                return parsed_content
-        except Exception as e:
-            logging.error(f"Error executing OpenAI query: {str(e)}")
-            return [{"error": str(e)}]
-        
