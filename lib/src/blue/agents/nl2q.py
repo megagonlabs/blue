@@ -20,7 +20,9 @@ class NL2SQLAgent(OpenAIAgent):
 
     PROMPT = """
 Your task is to translate a natural language question into a SQL query based on a list of provided data sources.
-For each source you will be provided with a list of table schemas that specify the columns and their types.
+For each source you will be provided with a list of table schemas that specify the columns and their types. 
+For enum fields, do not use LOWER(), ILIKE, or other string functions.
+Compare enum fields using exact equality.
 
 Here are the requirements:
 - The output should be a JSON object with the following fields
@@ -128,20 +130,19 @@ Output:
         platform_id = self.properties["platform.name"]
         prefix = 'PLATFORM:' + platform_id
         self.registry = DataRegistry(id=self.properties['data_registry.name'], prefix=prefix, properties=self.properties)
+        
 
     def _init_source(self):
-
         # initialiaze, optional settings
         self.schemas = {}
         self.selected_source = None
         self.selected_source_protocol = None
         self.selected_database = None
         self.selected_collection = None
-
+        
         # select source, if set
         if "nl2q_source" in self.properties and self.properties["nl2q_source"]:
             self.selected_source = self.properties["nl2q_source"]
-
             source_properties = self.registry.get_source_properties(self.selected_source)
 
             if source_properties:
@@ -166,14 +167,13 @@ Output:
             source_properties = self.registry.get_source_properties(self.selected_source)
             self.selected_source_protocol = source_properties['connection']['protocol']
 
+     
     def _init_schemas(self):
-
-            # preset schema if any selected
-            self._set_schemas(self.schemas, source=self.selected_source, database=self.selected_database, collection=self.selected_collection)
-        
+        # preset schema if any selected
+        self._set_schemas(self.schemas, source=self.selected_source, database=self.selected_database, collection=self.selected_collection)
+            
     def _set_schemas(self, schemas, source=None, database=None, collection=None):
         if source:
-
             source_properties = self.registry.get_source_properties(source)
             source_protocol = source_properties['connection']['protocol']
 
@@ -212,7 +212,7 @@ Output:
 
             if source is None:
                 sources = []
-            # set scheas for each source
+            # set schemas for each source
             for source in sources:
                 self._set_schemas(schemas, source=source['name'])
 
@@ -288,13 +288,29 @@ Output:
 
         return schemas
 
+    
     def _format_schema(self, schema):
         res = []
+
         for entity in schema:
+            table_name = entity['name']
+            properties = entity['properties']['properties']
+
+            columns = []
+            for col_name, col_info in properties.items():
+                if isinstance(col_info, dict):
+                    col_entry = {"name": col_name, "type": col_info.get("type", "unknown")}
+                    if "enum" in col_info:
+                        col_entry["enum"] = col_info["enum"]
+                else:
+                    col_entry = {"name": col_name, "type": col_info}
+                columns.append(col_entry)
+                
             res.append({
-                'table_name': entity['name'],
-                'columns': ", ".join(list(entity['properties']['properties'].keys()))
+                "table_name": table_name,
+                "columns": columns
             })
+            
         return res
 
     def extract_input_params(self, input_data, properties=None):
@@ -355,6 +371,7 @@ Output:
         query = output['query']
         result = output['result']
         error = output['error']
+        count = output['count']
 
         # max results
         if "nl2q_output_max_results" in self.properties and self.properties['nl2q_output_max_results']:
@@ -368,7 +385,8 @@ Output:
                 'source': source,
                 'query': query,
                 'result': result,
-                'error': error
+                'error': error,
+                'count': count
             }
             return message
             
@@ -383,6 +401,8 @@ Output:
                 message = error
             if 'result' in output_filters:
                 message = result
+            if 'count' in output_filters:
+                message = count
         else:
             message = {}
             if 'question' in output_filters:
@@ -395,12 +415,13 @@ Output:
                 message['result'] = result
             if 'error' in output_filters:
                 message['error'] = error
+            if 'count' in output_filters:
+                message['count'] = count
         
         return message
 
             
     def process_output(self, output_data, properties=None):
-
         # get properties, overriding with properties provided
         properties = self.get_properties(properties=properties)
 
@@ -408,6 +429,7 @@ Output:
             output_data = json.loads(output_data)
 
         question, key, query, result, error = None, None, None, None, None
+        count = 0
 
         try:
             question = output_data['question']
@@ -435,20 +457,24 @@ Output:
                 logging.info("executing query: " + query)
                 result = source_connection.execute_query(query, database=database, collection=collection)
                 logging.info(result)
-               
 
+                count = len(result) if isinstance(result, list) else 0
+    
         except Exception as e:
             error = str(e)
 
+       
         # output
         output = {
             'question': question,
             'source': key,
             'query': query,
             'result': result,
-            'error': error
+            'error': error,
+            'count': count  
         }
         logging.info(output)
+        
         x = self._apply_filter(output)
         logging.info(str(x))
         return x
