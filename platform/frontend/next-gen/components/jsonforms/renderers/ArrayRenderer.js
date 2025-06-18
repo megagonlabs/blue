@@ -1,4 +1,5 @@
 import { FAIcon } from "@/components/FAIcon";
+import { useSocketStore } from "@/stores/socket-store";
 import {
     Button,
     ButtonGroup,
@@ -59,7 +60,21 @@ const ArrayRenderer = ({
             rootSchema
         );
     }, [uischemas, schema, path, uischema, rootSchema]);
-    useEffect(() => {}, [data]);
+    const sendMessage = useSocketStore((state) => state.sendMessage);
+    useEffect(() => {
+        setTimeout(() => {
+            sendMessage(
+                JSON.stringify({
+                    type: "INTERACTIVE_EVENT_MESSAGE",
+                    stream_id: _.get(uischema, "props.streamId", null),
+                    path,
+                    form_id: _.get(uischema, "props.formId", null),
+                    value: data,
+                    timestamp: performance.timeOrigin + performance.now(),
+                })
+            );
+        }, 0);
+    }, [data]);
     return (
         <div>
             <H3 style={{ marginTop: 0, marginBottom: 10, lineHeight: "unset" }}>

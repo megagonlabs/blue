@@ -134,7 +134,7 @@ export default function SessionCard({ sessionId }) {
     return (
         <Card
             onContextMenu={handleContextMenu}
-            className="full-parent-dimension session-list-card"
+            className="full-parent-dimension session-list-card interactive-card-border"
             style={{ position: "relative", cursor: "context-menu" }}
         >
             <div

@@ -19,7 +19,6 @@ import {
     ButtonVariant,
     Classes,
     Colors,
-    EditableText,
     EntityTitle,
     H3,
 } from "@blueprintjs/core";
@@ -33,7 +32,6 @@ import EntityDescription from "../attributes/EntityDescription";
 import EntityActions from "../EntityActions";
 import EntityDisplayName from "../EntityDisplayName";
 import Leaves from "../Leaves";
-import MainPropertyBlock from "../MainPropertyBlock";
 import RegistryEntityContainer from "../RegistryEntityContainer";
 import RegistryEntityIcon from "../RegistryEntityIcon";
 const { NEXT_PUBLIC_AGENT_REGISTRY_NAME } = allEnv();
@@ -276,7 +274,7 @@ export default function AgentGroupEntity({
                             {_.get(editedAgentGroup, "name")}
                         </div>
                     </div>
-                    <MainPropertyBlock loading={loading} label="Display name">
+                    {/* <MainPropertyBlock loading={loading} label="Display name">
                         {isEditing ? (
                             <EditableText
                                 alwaysRenderInput
@@ -293,7 +291,7 @@ export default function AgentGroupEntity({
                                 {!_.isEmpty(displayName) ? displayName : "-"}
                             </div>
                         )}
-                    </MainPropertyBlock>
+                    </MainPropertyBlock> */}
                 </div>
             </div>
             <div style={{ marginTop: 20 }}>

@@ -1,15 +1,17 @@
 import { FAIcon } from "@/components/FAIcon";
 import { NonIdealState } from "@blueprintjs/core";
-import { faCompassDrafting } from "@fortawesome/sharp-duotone-solid-svg-icons";
+import { faFileCircleQuestion } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import { rankWith } from "@jsonforms/core";
 import { withJsonFormsCellProps } from "@jsonforms/react";
 const UnknownRenderer = ({ uischema }) => {
     return (
-        <NonIdealState
-            icon={<FAIcon icon={faCompassDrafting} size={50} />}
-            title="No applicable renderer found"
-            description={JSON.stringify(uischema)}
-        />
+        <div className="custom-card" style={{ padding: 20 }}>
+            <NonIdealState
+                icon={<FAIcon icon={faFileCircleQuestion} size={50} />}
+                title="No applicable renderer found"
+                description={JSON.stringify(uischema)}
+            />
+        </div>
     );
 };
 export default withJsonFormsCellProps(UnknownRenderer);

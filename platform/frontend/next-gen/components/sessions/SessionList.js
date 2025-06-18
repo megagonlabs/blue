@@ -22,6 +22,7 @@ import { motion } from "framer-motion";
 import _ from "lodash";
 import { useEffect, useMemo, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
+import { HEX_TRANSPARENCY } from "../constants";
 import { FAIcon } from "../FAIcon";
 import withAutoSizer from "../hocs/withAutoSizer";
 import SessionCard from "./SessionCard";
@@ -108,6 +109,20 @@ function SessionList({ width, height }) {
                 backgroundColor: darkMode ? Colors.BLACK : null,
             }}
         >
+            {showFilter && (
+                <div
+                    className="full-parent-dimension"
+                    onClick={() => {
+                        setShowFilter(false);
+                    }}
+                    style={{
+                        position: "absolute",
+                        zIndex: 1,
+                        maxHeight: "calc(100% - 45px)",
+                        backgroundColor: `${Colors.BLACK}${HEX_TRANSPARENCY[70]}`,
+                    }}
+                />
+            )}
             <div
                 className="full-parent-dimension"
                 style={{
