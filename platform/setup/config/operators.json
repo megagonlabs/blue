@@ -53,7 +53,7 @@
       "properties": {
         "openai.max_tokens": 4096,
         "openai.model": "gpt-4o",
-        "openai.service": "ws://blue_service_openai:8001",
+        "service_url": "ws://blue_service_openai:8001",
         "image": "megagonlabs/blue-operator-nl2cypher:latest"
       },
       "icon": null
@@ -66,7 +66,7 @@
       "created_by": "5WgRzdacRdOEvj8JBmCXFZSvWmH3",
       "properties": {
         "image": "megagonlabs/blue-operator-nl2sql:latest",
-        "openai.service": "ws://blue_service_openai:8001"
+        "service_url": "ws://blue_service_openai:8001"
       },
       "icon": null
     }

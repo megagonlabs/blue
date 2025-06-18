@@ -1,4 +1,4 @@
-FROM --platform=$BUILDPLATFORM python:3.9
+FROM --platform=$BUILDPLATFORM python:3.10.12
 ARG BLUE_BUILD_CACHE_ARG
 ARG BLUE_BUILD_LIB_ARG
 
@@ -17,6 +17,9 @@ RUN pip install --no-cache-dir --no-cache --extra-index-url https://download.pyt
 
 ADD src/requirements.requestor /app/requirements.requestor
 RUN pip install ${BLUE_BUILD_CACHE_ARG} -r requirements.requestor
+
+ADD src/requirements.tool /app/requirements.tool
+RUN pip install ${BLUE_BUILD_CACHE_ARG} -r requirements.tool
 
 ADD src/requirements.openai /app/requirements.openai
 RUN pip install ${BLUE_BUILD_CACHE_ARG} -r requirements.openai
