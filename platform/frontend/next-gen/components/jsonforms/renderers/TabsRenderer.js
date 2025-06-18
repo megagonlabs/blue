@@ -27,6 +27,7 @@ const TabsRenderer = ({
 }) => {
     const tabs = _.get(uischema, "tabs");
     const [activeTab, setActiveTab] = useState(_.isNumber(data) ? data : 0);
+    const sendMessage = useSocketStore((state) => state.sendMessage);
     if (_.size(tabs) != _.size(uischema.elements)) {
         return (
             <Callout intent={Intent.DANGER} icon={null}>
@@ -36,7 +37,6 @@ const TabsRenderer = ({
             </Callout>
         );
     }
-    const sendMessage = useSocketStore((state) => state.sendMessage);
     const handleTabChange = (tabIndex) => {
         if (!_.isEmpty(path)) {
             handleChange(path, tabIndex);
