@@ -133,12 +133,8 @@ class PostgresDBSource(DataSource):
                 enum_types[type_name] = []
             enum_types[type_name].append(enum_value)
 
-        print("enum types are ")
-        print(enum_types)
-        return enum_types
-
+        
     def fetch_database_collection_schema(self, database, collection):
-        print("fetch database collection schema")
         db_connection = self._db_connect(database)
 
         query = """
@@ -151,7 +147,6 @@ class PostgresDBSource(DataSource):
         data = cursor.fetchall()
 
         enum_types = self.fetch_enum_types(db_connection)
-
         schema = DataSchema()
 
         for table_name, column_name, data_type, udt_name in data:
@@ -168,12 +163,7 @@ class PostgresDBSource(DataSource):
 
         self._db_disconnect(db_connection)
 
-        print(schema.to_json())
-
         return schema.to_json()
-
-
-
 
     ######### execute query
     def execute_query(self, query, database=None, collection=None):

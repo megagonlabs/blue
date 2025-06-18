@@ -21,7 +21,7 @@ class NL2SQLAgent(OpenAIAgent):
     PROMPT = """
 Your task is to translate a natural language question into a SQL query based on a list of provided data sources.
 For each source you will be provided with a list of table schemas that specify the columns and their types. 
-For enum fields, do not use LOWER(), ILIKE, or other string functions.,
+For enum fields, do not use LOWER(), ILIKE, or other string functions.
 Compare enum fields using exact equality.
 
 Here are the requirements:
@@ -127,14 +127,12 @@ Output:
 
     def _init_registry(self):
         # create instance of data registry
-
         platform_id = self.properties["platform.name"]
         prefix = 'PLATFORM:' + platform_id
         self.registry = DataRegistry(id=self.properties['data_registry.name'], prefix=prefix, properties=self.properties)
         
 
     def _init_source(self):
-
         # initialiaze, optional settings
         self.schemas = {}
         self.selected_source = None
@@ -142,7 +140,6 @@ Output:
         self.selected_database = None
         self.selected_collection = None
         
-
         # select source, if set
         if "nl2q_source" in self.properties and self.properties["nl2q_source"]:
             self.selected_source = self.properties["nl2q_source"]
@@ -170,17 +167,13 @@ Output:
             source_properties = self.registry.get_source_properties(self.selected_source)
             self.selected_source_protocol = source_properties['connection']['protocol']
 
-        
-
+     
     def _init_schemas(self):
-
-            # preset schema if any selected
-            self._set_schemas(self.schemas, source=self.selected_source, database=self.selected_database, collection=self.selected_collection)
+        # preset schema if any selected
+        self._set_schemas(self.schemas, source=self.selected_source, database=self.selected_database, collection=self.selected_collection)
             
-    
     def _set_schemas(self, schemas, source=None, database=None, collection=None):
         if source:
-
             source_properties = self.registry.get_source_properties(source)
             source_protocol = source_properties['connection']['protocol']
 
@@ -303,11 +296,6 @@ Output:
             table_name = entity['name']
             properties = entity['properties']['properties']
 
-            print("table name ")
-            print(table_name)
-            print("table properties ")
-            print(properties)
-
             columns = []
             for col_name, col_info in properties.items():
                 if isinstance(col_info, dict):
@@ -318,8 +306,6 @@ Output:
                     col_entry = {"name": col_name, "type": col_info}
                 columns.append(col_entry)
                 
-            print("columns are ")
-            print(columns)
             res.append({
                 "table_name": table_name,
                 "columns": columns
@@ -436,12 +422,8 @@ Output:
 
             
     def process_output(self, output_data, properties=None):
-
         # get properties, overriding with properties provided
         properties = self.get_properties(properties=properties)
-
-
-        print(properties)
 
         if type(output_data) == str:
             output_data = json.loads(output_data)
@@ -463,8 +445,6 @@ Output:
             
             result = None
 
-            
-
             # execute query, if configured
             if "nl2q_execute" in self.properties and self.properties['nl2q_execute']:
                  # connect
@@ -478,17 +458,8 @@ Output:
                 result = source_connection.execute_query(query, database=database, collection=collection)
                 logging.info(result)
 
-                
-                if isinstance(result, dict) and 'result' in result and isinstance(result['result'], list):
-                    count = len(result['result'])
-                elif isinstance(result, list):
-                    count = len(result)
-                else:
-                    count = 0
-                print("Returning total results : COUNT #")
-                print(count)
-               
-
+                count = len(result) if isinstance(result, list) else 0
+    
         except Exception as e:
             error = str(e)
 
