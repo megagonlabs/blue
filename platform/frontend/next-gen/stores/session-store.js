@@ -20,6 +20,9 @@ export const useSessionStore = create((set, get) => ({
         _.set(next, [sessionId, stream], true);
         set({ expandedMessages: next });
     },
+    setFilterValue: ({ key, value }) => {
+        set((state) => ({ filter: { ...state.filter, [key]: value } }));
+    },
     setInspectionFocusStream: (sessionId, focusStream) => {
         set((state) => ({
             inspection: {

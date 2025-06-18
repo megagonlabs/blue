@@ -33,6 +33,14 @@
     background-color: var(--colors-dark-gray-2);
     border-radius: 2px;
 }
+.interactive-card-border:hover {
+    box-shadow: rgba(76, 144, 240, 0.2) 0px 0px 0px 3px,
+        rgb(76, 144, 240) 0px 0px 0px 1px;
+}
+.bp5-dark .interactive-card-border:hover {
+    box-shadow: rgba(138, 187, 255, 0.4) 0px 0px 0px 3px,
+        rgb(138, 187, 255) 0px 0px 0px 1px;
+}
 .responsive-grid-container {
     display: flex;
     flex-flow: wrap;

@@ -1,5 +1,6 @@
 import { useAppStore } from "@/stores/app-store";
 import { useGridStore } from "@/stores/grid-layout-store";
+import { useSessionStore } from "@/stores/session-store";
 import {
     Card,
     Classes,
@@ -10,7 +11,11 @@ import {
     showContextMenu,
     Size,
 } from "@blueprintjs/core";
-import { faBrowsers, faPen } from "@fortawesome/sharp-duotone-solid-svg-icons";
+import {
+    faBrowsers,
+    faHourglassStart,
+    faPen,
+} from "@fortawesome/sharp-duotone-solid-svg-icons";
 import classNames from "classnames";
 import _ from "lodash";
 import { useCallback, useMemo } from "react";
@@ -19,6 +24,7 @@ import { REGISTRY_ENTITY_ICON_WRAPPER_STYLES } from "../constants";
 import EntityDisplayName from "../registries/EntityDisplayName";
 import RegistryEntityContainer from "../registries/RegistryEntityContainer";
 import RegistryEntityIcon from "../registries/RegistryEntityIcon";
+import { AppToaster } from "../toaster";
 export default function DemoGroupCard({ agentGroup }) {
     const type = _.get(agentGroup, "type", null);
     const addContainer = useGridStore((state) => state.addContainer);
@@ -60,11 +66,24 @@ export default function DemoGroupCard({ agentGroup }) {
         },
         [handleClose, menu, darkMode]
     );
+    const createNewSession = useSessionStore((state) => state.createNewSession);
+    const launchAgentGroupSession = () => {
+        createNewSession(agentGroup.name);
+        AppToaster.show({
+            message: (
+                <div>
+                    Launching <EntityDisplayName entity={agentGroup} />
+                </div>
+            ),
+            icon: <FAIcon icon={faHourglassStart} />,
+        });
+    };
     return (
         <Card
-            className="full-parent-dimension"
+            className="full-parent-dimension interactive-card-border"
             style={{ position: "relative", cursor: "context-menu" }}
             onContextMenu={handleContextMenu}
+            onClick={launchAgentGroupSession}
         >
             <div
                 className="padding-0 overflow-hidden custom-card"

@@ -38,8 +38,9 @@ function DemoContainer({ width, height }) {
             })
             .finally(() => setLoading(false));
     }, []);
-    const callback = () => {
+    const callback = (entity) => {
         setShowNewEntity(false);
+        setAgentGroups([...agentGroups, entity]);
     };
     return (
         <div style={{ width, height }}>

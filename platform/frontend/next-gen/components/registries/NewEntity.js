@@ -134,6 +134,7 @@ export default function NewEntity({ type, callback, parent, duplicateEntity }) {
                             callback({
                                 name: fullName,
                                 type: calculatedType,
+                                description: newEntity.description,
                                 scope,
                             });
                             setLoading(false);
@@ -194,18 +195,27 @@ export default function NewEntity({ type, callback, parent, duplicateEntity }) {
                             }}
                         />
                     </MainPropertyBlock>
-                    <MainPropertyBlock loading={loading} label="Display name">
-                        <EditableText
-                            alwaysRenderInput
-                            value={_.get(mainProperties, "display_name", "")}
-                            onChange={(value) => {
-                                updateMainProperties({
-                                    path: "display_name",
-                                    value,
-                                });
-                            }}
-                        />
-                    </MainPropertyBlock>
+                    {!_.isEqual(calculatedType, "agent_group") && (
+                        <MainPropertyBlock
+                            loading={loading}
+                            label="Display name"
+                        >
+                            <EditableText
+                                alwaysRenderInput
+                                value={_.get(
+                                    mainProperties,
+                                    "display_name",
+                                    ""
+                                )}
+                                onChange={(value) => {
+                                    updateMainProperties({
+                                        path: "display_name",
+                                        value,
+                                    });
+                                }}
+                            />
+                        </MainPropertyBlock>
+                    )}
                     {_.isEqual(calculatedType, "agent") && (
                         <MainPropertyBlock
                             loading={loading}

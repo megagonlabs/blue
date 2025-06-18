@@ -1,4 +1,5 @@
 import { convertCss } from "@/components/helper";
+import { useSocketStore } from "@/stores/socket-store";
 import { Checkbox, Size, Switch } from "@blueprintjs/core";
 import { isBooleanControl, rankWith } from "@jsonforms/core";
 import { withJsonFormsControlProps } from "@jsonforms/react";
@@ -17,8 +18,21 @@ const BooleanRenderer = ({
     const labelElement = _.isString(label) ? (
         <label className={required ? "required" : null}>{label}</label>
     ) : null;
+    const sendMessage = useSocketStore((state) => state.sendMessage);
     const handleOnChange = (event) => {
         handleChange(path, event.target.checked);
+        setTimeout(() => {
+            sendMessage(
+                JSON.stringify({
+                    type: "INTERACTIVE_EVENT_MESSAGE",
+                    stream_id: _.get(uischema, "props.streamId", null),
+                    path,
+                    form_id: _.get(uischema, "props.formId", null),
+                    value: event.target.checked,
+                    timestamp: performance.timeOrigin + performance.now(),
+                })
+            );
+        }, 0);
     };
     if (_.get(uischema, "props.switch", false)) {
         return (

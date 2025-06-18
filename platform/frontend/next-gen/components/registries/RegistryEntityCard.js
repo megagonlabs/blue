@@ -86,7 +86,7 @@ export default function RegistryEntityCard({ entity }) {
     );
     return (
         <Card
-            className="full-parent-dimension"
+            className="full-parent-dimension interactive-card-border"
             style={{ position: "relative", cursor: "context-menu" }}
             onContextMenu={handleContextMenu}
         >

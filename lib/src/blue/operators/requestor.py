@@ -127,7 +127,17 @@ class RequestorOperator(Operator):
 
     def handle_api_call(self, stream_data, properties=None):
         # create message, copying API specific properties
-        input_data = " ".join(stream_data)
+                
+        if isinstance(stream_data, str):
+            input_data = stream_data
+        elif isinstance(stream_data, (list, tuple)):
+            input_data = "".join(str(item) for item in stream_data if item is not None)
+        elif stream_data is None:
+            logging.warning("Received None stream_data, using empty string")
+            input_data = ""
+        else:
+            input_data = str(stream_data)
+
         if not self.validate_input(input_data, properties=properties):
             return 
 

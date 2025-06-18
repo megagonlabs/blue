@@ -64,7 +64,6 @@ function HorizontalScrollable({ width, height, children, backgroundColor }) {
             </div>
             {showRight && (
                 <div
-                    className="full-parent-height"
                     style={{
                         width: 40,
                         position: "absolute",

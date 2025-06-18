@@ -298,7 +298,7 @@ export default function SessionMessages({
             icon: faBarcodeRead,
             title: <SessionDisplayName sessionId={sessionId} />,
             content: <DebuggerContainer sessionId={sessionId} />,
-            uid: `DebuggerContainer-${sessionId}`,
+            uniqueId: `DebuggerContainer-${sessionId}`,
         });
     };
     useEffect(() => {
