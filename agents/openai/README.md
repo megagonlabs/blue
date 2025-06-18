@@ -11,7 +11,7 @@ For the OpenAI agent you would also need to start a webservice that will proxy t
 $ cd services/openai
 $ ./deploy_service.sh --port_mapping 8001:8001 --service openai --image blue-service-openai 
 ```
-Make sure the `openai.service` property of the agent is set to `ws://blue_service_openai:8001` given above deployment of the OpenAI service.
+Make sure the `service_url` property of the agent is set to `ws://blue_service_openai:8001` given above deployment of the OpenAI service.
 
 To build the service:
 

@@ -75,7 +75,7 @@
       "output_path": "$.choices[0].message.content",
       "input_context": "$[0]",
       "openai.max_tokens": 300,
-      "openai.service": "ws://blue_service_openai:8001",
+      "service_url": "ws://blue_service_openai:8001",
       "tags": {
         "DEFAULT": [
           "AI"
@@ -222,7 +222,7 @@
     "created_by": null,
     "properties": {
       "image": "megagonlabs/blue-agent-nl2sql-private:latest",
-      "openai.service": "ws://blue_service_openai:8001",
+      "service_url": "ws://blue_service_openai:8001",
       "listens": {
         "DEFAULT": {
           "includes": [],
@@ -304,7 +304,7 @@
     "created_by": null,
     "properties": {
       "display_name": "NL-to-SQL Agent - Interactive",
-      "openai.service": "ws://blue_service_openai:8001",
+      "service_url": "ws://blue_service_openai:8001",
       "openai.model": "gpt-4o",
       "tags": {
         "DEFAULT": [
@@ -409,7 +409,7 @@
     "created_by": null,
     "properties": {
       "image": "megagonlabs/blue-agent-nl2cypher-private:latest",
-      "openai.service": "ws://blue_service_openai:8001",
+      "service_url": "ws://blue_service_openai:8001",
       "listens": {
         "DEFAULT": {
           "includes": [],
@@ -490,7 +490,7 @@
     "created_by": null,
     "properties": {
       "image": "megagonlabs/blue-agent-nl2mongoql-private:latest",
-      "openai.service": "ws://blue_service_openai:8001",
+      "service_url": "ws://blue_service_openai:8001",
       "listens": {
         "DEFAULT": {
           "includes": [],
@@ -589,7 +589,7 @@
       "input_context": "$[0]",
       "openai.model": "gpt-4o",
       "openai.api": "ChatCompletion",
-      "openai.service": "ws://blue_service_openai:8001",
+      "service_url": "ws://blue_service_openai:8001",
       "input_context_field": "content",
       "tracker.autostart": false,
       "tracker.output.indent": 3,
@@ -1037,7 +1037,7 @@
       "openai.top_p": 1,
       "schema": {},
       "openai.presence_penalty": 0,
-      "openai.service": "ws://blue_service_openai:8001",
+      "service_url": "ws://blue_service_openai:8001",
       "input_json": "[{\"role\":\"user\"}]",
       "entities": "query limit, job title, salary, location, skills, years of experiences, employment_type",
       "input_template": "You are an expert in information extraction. Please extract information from the provided input that fall under below list of possible arguments. If an argument has multiple values, please return a list. Respond in a JSON format and do not add any extra explanation. If there was no information return an empty JSON format.\nList of possible arguments include but not limited to: ${entities}.\nIf the provided input contains any arguments not included in the list above, please generate the appropriate argument and extract the corresponding information.\nInput: ${input}",
@@ -1088,7 +1088,7 @@
           "PROMPT"
         ]
       },
-      "openai.service": "ws://blue_service_openai:8001",
+      "service_url": "ws://blue_service_openai:8001",
       "output_path": "$.choices[0].text",
       "openai.api": "Completion",
       "output_template": "${output}",
@@ -1124,7 +1124,7 @@
       "openai.max_tokens": 300,
       "openai.presence_penalty": 0,
       "output_path": "$.choices[0].message.content",
-      "openai.service": "ws://blue_service_openai:8001",
+      "service_url": "ws://blue_service_openai:8001",
       "listens": {
         "DEFAULT": {
           "includes": [
@@ -1217,7 +1217,7 @@
           ]
         }
       },
-      "openai.service": "ws://blue_service_openai:8001",
+      "service_url": "ws://blue_service_openai:8001",
       "input_json": "[{\"role\": \"user\"}]",
       "openai.presence_penalty": 0,
       "input_context_field": "content",
@@ -1414,7 +1414,7 @@
         "schema": {},
         "input_context_field": "content",
         "input_json": "[{\"role\":\"user\"}]",
-        "openai.service": "ws://blue_service_openai:8001",
+        "service_url": "ws://blue_service_openai:8001",
         "input_template": "You are an expert in data visualization. Write a vegalite specification with the appropriate schema for the following query, return only the json specification of the visualization. Use the question to determine the right visualization type.\n Create a title for the chart.\n Create names for each axis of the visualization.\n Determine the size of the chart appropriately based on the amount of data and labels.\n Respond in a JSON format and do not add any extra explanation. \nIf there was no matching visualization return an empty JSON format.\nInput: ${input}",
         "openai.presence_penalty": 0,
         "output_strip": true,
