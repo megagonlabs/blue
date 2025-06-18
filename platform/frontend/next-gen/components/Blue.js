@@ -224,7 +224,7 @@ export default function Blue({ children }) {
                             <ExpandingBox
                                 initialWidth={65}
                                 initialHeight={65}
-                                expandedWidth={340}
+                                expandedWidth={370}
                                 expandedHeight={141.43}
                             >
                                 {(isExpanded) => (
@@ -251,7 +251,7 @@ export default function Blue({ children }) {
                                         interactive
                                         className="full-parent-dimension border-radius-10"
                                         style={{
-                                            padding: darkMode ? 1 : 0,
+                                            padding: 0,
                                             position: "relative",
                                             overflow: "hidden",
                                         }}
@@ -404,7 +404,7 @@ export default function Blue({ children }) {
                                                                                             (
                                                                                                 <DemoContainer />
                                                                                             ),
-                                                                                        uid: `DemoContainer`,
+                                                                                        uniqueId: `DemoContainer`,
                                                                                     }
                                                                                 );
                                                                             }}

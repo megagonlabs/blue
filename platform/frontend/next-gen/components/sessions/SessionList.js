@@ -4,7 +4,6 @@ import { useSessionStore } from "@/stores/session-store";
 import {
     Button,
     ButtonVariant,
-    Classes,
     Colors,
     ControlGroup,
     InputGroup,
@@ -18,38 +17,27 @@ import {
     faBarsFilter,
     faSearch,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
-import { motion } from "framer-motion";
 import _ from "lodash";
 import { useEffect, useMemo, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { HEX_TRANSPARENCY } from "../constants";
 import { FAIcon } from "../FAIcon";
 import withAutoSizer from "../hocs/withAutoSizer";
+import FilterPane from "../registries/FilterPane";
 import SessionCard from "./SessionCard";
 function SessionList({ width, height }) {
-    const variants = {
-        open: {
-            x: 0,
-            display: "block",
-            transition: { duration: 0.15 },
-        },
-        closed: {
-            x: -200,
-            transition: { duration: 0.15 },
-            display: "none",
-        },
-        initial: { x: -200, opacity: 1, display: "none" },
-    };
     const user = useAuthStore((state) => state.user);
     const darkMode = useAppStore((state) => state.dark_mode);
-    const { sessionIds, getSessions, sessions, filter } = useSessionStore(
-        useShallow((state) => ({
-            sessionIds: state.sessionIds,
-            getSessions: state.getSessions,
-            sessions: state.sessions,
-            filter: state.filter,
-        }))
-    );
+    const { sessionIds, getSessions, sessions, filter, setFilterValue } =
+        useSessionStore(
+            useShallow((state) => ({
+                sessionIds: state.sessionIds,
+                getSessions: state.getSessions,
+                sessions: state.sessions,
+                filter: state.filter,
+                setFilterValue: state.setFilterValue,
+            }))
+        );
     const allSessions = useMemo(() => {
         let result = sessionIds
             .filter((id) => {
@@ -131,35 +119,10 @@ function SessionList({ width, height }) {
                     overflowY: "auto",
                 }}
             >
-                <motion.div
-                    variants={variants}
-                    initial="initial"
-                    animate={showFilter ? "open" : "closed"}
-                    className="full-parent-height border-right border-raidus-20"
-                    style={{
-                        position: "fixed",
-                        maxHeight: "calc(100% - 45px)",
-                        top: 45,
-                        left: 0,
-                        zIndex: 1,
-                        padding: 20,
-                        width: 200,
-                        backgroundColor: darkMode
-                            ? Colors.DARK_GRAY2
-                            : Colors.WHITE,
-                        overflowY: "auto",
-                    }}
+                <FilterPane
+                    showFilter={showFilter}
+                    setShowFilter={setShowFilter}
                 >
-                    <div
-                        className={Classes.TEXT_LARGE}
-                        style={{
-                            lineHeight: "40px",
-                            fontWeight: 600,
-                            marginBottom: 20,
-                        }}
-                    >
-                        Filter
-                    </div>
                     <Button
                         style={{ position: "absolute", top: 20, right: 20 }}
                         icon={<FAIcon icon={faArrowLeft} />}
@@ -173,6 +136,12 @@ function SessionList({ width, height }) {
                         selectedValue={filter.group}
                         label="Group"
                         style={{ marginTop: 20 }}
+                        onChange={(event) => {
+                            setFilterValue({
+                                key: "group",
+                                value: event.currentTarget.value,
+                            });
+                        }}
                     >
                         <Radio size={Size.LARGE} label="All" value="all" />
                         <Radio size={Size.LARGE} label="My" value="owner" />
@@ -182,7 +151,7 @@ function SessionList({ width, height }) {
                             value="member"
                         />
                     </RadioGroup>
-                </motion.div>
+                </FilterPane>
                 <ControlGroup>
                     <Button
                         onClick={() => {

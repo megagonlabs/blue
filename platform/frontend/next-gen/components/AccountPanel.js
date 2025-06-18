@@ -2,22 +2,27 @@ import { useAuthStore } from "@/stores/auth-store";
 import { useGridStore } from "@/stores/grid-layout-store";
 import {
     Button,
+    ButtonGroup,
     ButtonVariant,
     Card,
     Classes,
     Intent,
     Size,
     Tag,
+    Tooltip,
 } from "@blueprintjs/core";
 import {
     faArrowRightFromBracket,
     faCog,
+    faGlasses,
+    faRadar,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import classNames from "classnames";
 import _ from "lodash";
 import Image from "next/image";
 import { useShallow } from "zustand/react/shallow";
 import { FAIcon } from "./FAIcon";
+import NerdStats from "./NerdStats";
 import { USER_ROLES_LOOKUP } from "./constants";
 import SettingsContainer from "./settings/SettingsContainer";
 export default function AccountPanel({ isExpanded }) {
@@ -80,26 +85,46 @@ export default function AccountPanel({ isExpanded }) {
                 </div>
                 <div
                     style={{
-                        width: 120,
+                        width: 150,
                         height: 101.43,
                         display: "flex",
                         flexDirection: "column",
                         justifyContent: "space-between",
                     }}
                 >
-                    <Button
-                        onClick={() =>
-                            addContainer({
-                                icon: faCog,
-                                title: "Account Settings",
-                                content: <SettingsContainer />,
-                            })
-                        }
-                        variant={ButtonVariant.OUTLINED}
-                        icon={<FAIcon icon={faCog} />}
-                        text="Settings"
-                        size={Size.LARGE}
-                    />
+                    <ButtonGroup fill>
+                        <Button
+                            onClick={() =>
+                                addContainer({
+                                    icon: faCog,
+                                    title: "Account Settings",
+                                    content: <SettingsContainer />,
+                                })
+                            }
+                            variant={ButtonVariant.OUTLINED}
+                            icon={<FAIcon icon={faCog} />}
+                            text="Settings"
+                            size={Size.LARGE}
+                        />
+                        <Tooltip
+                            placement="bottom-end"
+                            content="Stats. for nerds"
+                        >
+                            <Button
+                                onClick={() => {
+                                    addContainer({
+                                        icon: faGlasses,
+                                        title: "Stats.",
+                                        content: <NerdStats />,
+                                        uniqueId: "NerdStats",
+                                    });
+                                }}
+                                variant={ButtonVariant.MINIMAL}
+                                size={Size.LARGE}
+                                icon={<FAIcon icon={faRadar} />}
+                            />
+                        </Tooltip>
+                    </ButtonGroup>
                     <Button
                         intent={Intent.WARNING}
                         icon={<FAIcon icon={faArrowRightFromBracket} />}
