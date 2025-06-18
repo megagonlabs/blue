@@ -63,8 +63,17 @@ class OpenAIToolCallingAgent(OpenAIAgent):
 
     def execute_api_call(self, stream_data, properties=None):
         properties = self.get_properties(properties=properties)
+        
+        if isinstance(stream_data, str):
+            input_data = stream_data
+        elif isinstance(stream_data, (list, tuple)):
+            input_data = "".join(str(item) for item in stream_data if item is not None)
+        elif stream_data is None:
+            logging.warning("Received None stream_data, using empty string")
+            input_data = ""
+        else:
+            input_data = str(stream_data)
 
-        input_data = " ".join(stream_data)
         if not self.validate_input(input_data, properties=properties):
             return 
 
