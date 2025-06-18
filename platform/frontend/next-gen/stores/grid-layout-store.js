@@ -51,12 +51,15 @@ export const useGridStore = create((set, get) => ({
         }
         set({ layout });
     },
-    addContainer: ({ title, content, icon, uid = null }) => {
+    addContainer: ({ title, content, icon, uniqueId = null }) => {
         const id = uuidv4();
         const { layoutData } = get();
         let exist = false;
         for (let i = 0; i < _.size(layoutData); i++) {
-            if (!_.isNull(uid) && _.isEqual(uid, layoutData[i].uid)) {
+            if (
+                !_.isNull(uniqueId) &&
+                _.isEqual(uniqueId, layoutData[i].uniqueId)
+            ) {
                 exist = true;
             }
         }
@@ -70,7 +73,7 @@ export const useGridStore = create((set, get) => ({
                     { i: id, x: 0, y: 0, w: 12, h: 3, minW: 4, minH: 3 },
                     ...state.layout,
                 ],
-                layoutData: [...state.layoutData, { id, uid }],
+                layoutData: [...state.layoutData, { id, uniqueId }],
             }));
         }
     },

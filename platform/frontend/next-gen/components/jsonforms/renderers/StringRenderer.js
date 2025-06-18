@@ -1,5 +1,6 @@
 import { convertCss } from "@/components/helper";
 import FormCell from "@/components/jsonforms/FormCell";
+import { useSocketStore } from "@/stores/socket-store";
 import { InputGroup, Size, TextArea } from "@blueprintjs/core";
 import { isStringControl, rankWith } from "@jsonforms/core";
 import { withJsonFormsControlProps } from "@jsonforms/react";
@@ -23,8 +24,21 @@ const StringRenderer = ({
             {label}
         </label>
     ) : null;
+    const sendMessage = useSocketStore((state) => state.sendMessage);
     const handleOnChange = (event) => {
         handleChange(path, event.target.value);
+        setTimeout(() => {
+            sendMessage(
+                JSON.stringify({
+                    type: "INTERACTIVE_EVENT_MESSAGE",
+                    stream_id: _.get(uischema, "props.streamId", null),
+                    path,
+                    form_id: _.get(uischema, "props.formId", null),
+                    value: event.target.value,
+                    timestamp: performance.timeOrigin + performance.now(),
+                })
+            );
+        }, 0);
     };
     if (multiline) {
         return (

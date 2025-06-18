@@ -31,4 +31,4 @@ class OpenAIOperator(RequestorOperator):
         self.properties['openai.max_tokens'] = 50
 
         # prefix for service specific properties
-        self.properties['service.prefix'] = 'openai'
+        self.properties['service_prefix'] = 'openai'

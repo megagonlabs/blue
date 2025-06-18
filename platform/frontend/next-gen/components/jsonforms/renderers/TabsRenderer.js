@@ -1,3 +1,4 @@
+import { useSocketStore } from "@/stores/socket-store";
 import {
     Button,
     ButtonGroup,
@@ -26,6 +27,7 @@ const TabsRenderer = ({
 }) => {
     const tabs = _.get(uischema, "tabs");
     const [activeTab, setActiveTab] = useState(_.isNumber(data) ? data : 0);
+    const sendMessage = useSocketStore((state) => state.sendMessage);
     if (_.size(tabs) != _.size(uischema.elements)) {
         return (
             <Callout intent={Intent.DANGER} icon={null}>
@@ -39,6 +41,18 @@ const TabsRenderer = ({
         if (!_.isEmpty(path)) {
             handleChange(path, tabIndex);
         }
+        setTimeout(() => {
+            sendMessage(
+                JSON.stringify({
+                    type: "INTERACTIVE_EVENT_MESSAGE",
+                    stream_id: _.get(uischema, "props.streamId", null),
+                    path,
+                    form_id: _.get(uischema, "props.formId", null),
+                    value: tabIndex,
+                    timestamp: performance.timeOrigin + performance.now(),
+                })
+            );
+        }, 0);
     };
     const style = _.get(uischema, "props.style", {});
     const large = _.get(uischema, "props.large", false);

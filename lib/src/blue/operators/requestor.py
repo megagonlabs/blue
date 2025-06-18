@@ -35,8 +35,8 @@ class RequestorOperator(Operator):
 
     def get_prefix(self):
         prefix = self.name.lower()
-        if 'service.prefix' in self.properties:
-            prefix = self.properties['service.prefix']
+        if 'service_prefix' in self.properties:
+            prefix = self.properties['service_prefix']
         return prefix + '.'
 
 

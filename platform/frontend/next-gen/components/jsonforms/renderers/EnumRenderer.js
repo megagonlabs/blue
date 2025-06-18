@@ -1,5 +1,6 @@
 import { convertCss } from "@/components/helper";
 import FormCell from "@/components/jsonforms/FormCell";
+import { useSocketStore } from "@/stores/socket-store";
 import { HTMLSelect } from "@blueprintjs/core";
 import { isEnumControl, rankWith } from "@jsonforms/core";
 import { withJsonFormsControlProps } from "@jsonforms/react";
@@ -23,6 +24,7 @@ const EnumRenderer = ({
                 {label}
             </label>
         );
+    const sendMessage = useSocketStore((state) => sendMessage);
     return (
         <FormCell
             inline={_.get(uischema, "props.inline", false)}
@@ -52,6 +54,23 @@ const EnumRenderer = ({
                         value = null;
                     }
                     handleChange(path, value);
+                    setTimeout(() => {
+                        sendMessage(
+                            JSON.stringify({
+                                type: "INTERACTIVE_EVENT_MESSAGE",
+                                stream_id: _.get(
+                                    uischema,
+                                    "props.streamId",
+                                    null
+                                ),
+                                path,
+                                form_id: _.get(uischema, "props.formId", null),
+                                value,
+                                timestamp:
+                                    performance.timeOrigin + performance.now(),
+                            })
+                        );
+                    }, 0);
                 }}
             />
         </FormCell>
