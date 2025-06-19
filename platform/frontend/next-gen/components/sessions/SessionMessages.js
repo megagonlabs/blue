@@ -122,7 +122,7 @@ const Row = ({ index, data, style }) => {
             if (isOverflow.current) height += 35;
             setRowHeight(index, height);
         }
-    }, [rowRef]);
+    }, [rowRef, index, setRowHeight]);
     const streamData = _.get(streams, [stream, "data"], []);
     const contentType = _.get(filteredMessages, [index, "contentType"], null);
     const { ref: resizeRef } = useResizeDetector({ onResize: handleResize });
@@ -306,13 +306,13 @@ export default function SessionMessages({
             requestAnimationFrame(() => {
                 if (variableSizeListRef.current) {
                     variableSizeListRef.current.scrollToItem(
-                        filteredMessages.length,
+                        _.size(filteredMessages),
                         "end"
                     );
                 }
             });
         }, 0);
-    }, [variableSizeListRef]);
+    }, [variableSizeListRef, filteredMessages]);
     const elementRef = useRef(null);
     const popoverBoundary =
         elementRef.current &&

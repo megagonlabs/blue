@@ -85,11 +85,11 @@ function SessionList({ width, height }) {
                     : rightPinned - leftPinned;
             });
         return result;
-    }, [sessionIds, filter, sessions]);
+    }, [sessionIds, filter, sessions, user]);
     const [showFilter, setShowFilter] = useState(false);
     useEffect(() => {
         getSessions();
-    }, []);
+    }, [getSessions]);
     const createNewSession = useSessionStore((state) => state.createNewSession);
     return (
         <div

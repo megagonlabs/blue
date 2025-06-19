@@ -59,7 +59,7 @@ function SessionContainer({ width, height, sessionId }) {
         if (!_.has(sessions, sessionId)) {
             removeContainer(containerId);
         }
-    }, [sessions]);
+    }, [sessions, containerId, removeContainer]);
     const sendSessionMessage = () => {
         const trimmedUserMessage = _.trim(userMessage);
         if (_.isEmpty(trimmedUserMessage)) return;
@@ -86,7 +86,7 @@ function SessionContainer({ width, height, sessionId }) {
             setSkippable(true);
             setShowAddSessionAgent(true);
         }
-    }, [triggers]);
+    }, [triggers, sessionId]);
     return (
         <div style={{ width, height }}>
             <div
