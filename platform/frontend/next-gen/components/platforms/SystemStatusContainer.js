@@ -4,7 +4,6 @@ import {
     Button,
     ButtonGroup,
     ButtonVariant,
-    Card,
     Classes,
     Colors,
     InputGroup,
@@ -61,11 +60,11 @@ const TrackerCard = memo(function TrackerCard({ data, index, style }) {
                 paddingBottom: _.isEqual(index, _.size(trackers) - 1) ? 20 : 0,
             }}
         >
-            <Card ref={cardRef}>
+            <div ref={cardRef} className="custom-card" style={{ padding: 20 }}>
                 {contents.map((element, index) => (
                     <div key={index}>{element}</div>
                 ))}
-            </Card>
+            </div>
         </div>
     );
 });

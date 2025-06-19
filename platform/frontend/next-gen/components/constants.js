@@ -1,4 +1,5 @@
 import { Colors, Intent } from "@blueprintjs/core";
+import { faCheck } from "@fortawesome/pro-solid-svg-icons";
 import {
     faArrowRightFromArc,
     faArrowRightToArc,
@@ -14,6 +15,7 @@ import {
     faServer,
     faToolbox,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
+import { FAIcon } from "./FAIcon";
 export const USER_ROLES_LOOKUP = {
         administrator: { text: "Administrator" },
         member: { text: "Member" },
@@ -87,6 +89,7 @@ export const USER_ROLES_LOOKUP = {
         alignItems: "center",
         backgroundColor: Colors.WHITE,
     },
+    GREEN_CHECK = <FAIcon icon={faCheck} style={{ color: Colors.GREEN3 }} />,
     EMPTY_ARRAY = [],
     EMPTY_OBJECT = {},
     HEX_TRANSPARENCY = {

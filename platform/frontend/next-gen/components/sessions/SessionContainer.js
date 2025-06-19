@@ -23,13 +23,20 @@ import { useContainerContext } from "../contexts/ContainerContext";
 import { FAIcon } from "../FAIcon";
 import withAutoSizer from "../hocs/withAutoSizer";
 import { useRefDimensions } from "../hooks/useRefDimensions";
+import AddSessionAgent from "./AddSessionAgent";
 import SessionDetails from "./SessionDetails";
 import SessionMessages from "./SessionMessages";
 import Workspace from "./Workspace";
 function SessionContainer({ width, height, sessionId }) {
     const darkMode = useAppStore((state) => state.dark_mode);
     const [userMessage, setUserMessage] = useState("");
-    const sessions = useSessionStore((state) => state.sessions);
+    const { sessions, triggers, resetTrigger } = useSessionStore(
+        useShallow((state) => ({
+            sessions: state.sessions,
+            triggers: state.triggers,
+            resetTrigger: state.resetTrigger,
+        }))
+    );
     const sendMessage = useSocketStore((state) => state.sendMessage);
     const observeSession = useSocketStore((state) => state.observeSession);
     const details = _.get(sessions, [sessionId, "details"], {});
@@ -72,6 +79,14 @@ function SessionContainer({ width, height, sessionId }) {
     );
     const [showWorkspace, setShowWorkspace] = useState(defaultShowWorkspace);
     const [showDetails, setShowDetails] = useState(false);
+    const [showAddSessionAgent, setShowAddSessionAgent] = useState(false);
+    const [skippable, setSkippable] = useState(false);
+    useEffect(() => {
+        if (_.get(triggers, ["addSessionAgent", sessionId], false)) {
+            setSkippable(true);
+            setShowAddSessionAgent(true);
+        }
+    }, [triggers]);
     return (
         <div style={{ width, height }}>
             <div
@@ -82,6 +97,34 @@ function SessionContainer({ width, height, sessionId }) {
                     backgroundColor: darkMode ? Colors.BLACK : null,
                 }}
             >
+                <Overlay2
+                    onClose={() => {
+                        setShowAddSessionAgent(false);
+                        setSkippable(false);
+                        resetTrigger(["addSessionAgent", sessionId]);
+                    }}
+                    isOpen={showAddSessionAgent}
+                    usePortal={false}
+                    enforceFocus={false}
+                    transitionDuration={0}
+                >
+                    <div
+                        className="custom-card center-center"
+                        style={{
+                            width: 650,
+                            padding: 20,
+                            height: "calc(100% - 40px)",
+                            maxWidth: "calc(100% - 40px)",
+                        }}
+                    >
+                        <AddSessionAgent
+                            setShowAddSessionAgent={setShowAddSessionAgent}
+                            setSkippable={setSkippable}
+                            skippable={skippable}
+                            sessionId={sessionId}
+                        />
+                    </div>
+                </Overlay2>
                 <Overlay2
                     onClose={() => {
                         setShowDetails(false);
@@ -136,6 +179,9 @@ function SessionContainer({ width, height, sessionId }) {
                                 content={
                                     <Menu size={Size.LARGE}>
                                         <MenuItem
+                                            onClick={() => {
+                                                setShowAddSessionAgent(true);
+                                            }}
                                             icon={<FAIcon icon={faCircleA} />}
                                             text="Agents"
                                         />

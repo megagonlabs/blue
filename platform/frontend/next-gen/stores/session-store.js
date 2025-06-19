@@ -14,6 +14,13 @@ export const useSessionStore = create((set, get) => ({
     progress: {},
     inspection: {},
     expandedMessages: {},
+    triggers: {},
+    resetTrigger: (path) => {
+        const { triggers } = get();
+        let next = _.cloneDeep(triggers);
+        _.set(next, path, false);
+        set({ triggers: next });
+    },
     expandMessage: (sessionId, stream) => {
         const { expandedMessages } = get();
         let next = _.cloneDeep(expandedMessages);
@@ -83,6 +90,10 @@ export const useSessionStore = create((set, get) => ({
                     title: <SessionDisplayName sessionId={sessionId} />,
                     content: <SessionContainer sessionId={sessionId} />,
                 });
+                const { triggers } = get();
+                let next = _.cloneDeep(triggers);
+                _.set(next, ["addSessionAgent", sessionId], true);
+                set({ triggers: next });
             }
         });
     },

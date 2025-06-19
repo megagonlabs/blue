@@ -161,3 +161,6 @@ span.bp5-menu-item-icon {
 .bp5-dark .background-color-on-hover:hover {
     background-color: #404854 !important;
 }
+table.nerd-table td {
+    line-height: 40px;
+}
