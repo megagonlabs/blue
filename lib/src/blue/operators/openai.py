@@ -18,7 +18,7 @@ class OpenAIOperator(RequestorOperator):
     def _initialize_properties(self):
         super()._initialize_properties()
 
-        self.properties['openai.service'] = "ws://localhost:8003"
+        self.properties['service_url'] = "ws://localhost:8003"
 
         self.properties['openai.api'] = 'Completion'
         self.properties['openai.model'] = "text-davinci-003"
