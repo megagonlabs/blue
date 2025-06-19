@@ -1,6 +1,3 @@
-# observer 
-Observer Agent essentially consumes every stream in a session and outputs the contents into a readable format that can be used for demo and debugging purposes. To bring up an Observer agent, all you need is to pass the session to observe. For example:
-```
-$ cd agents/observer
-# python src/observer.py  --session <SESSION>
-```
+# NL2LLM Agent
+
+NL2LLM is an agent aims to fetch generic knowledge from LLM by natural language questions. The agent leverages the data registry to discover LLM data sources. It utilized the LLM data sources themselve to prompt LLMs for the information.
