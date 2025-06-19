@@ -131,7 +131,7 @@ function PlatformUsers({ width, height }) {
     };
     useEffect(() => {
         getUsers();
-    }, []);
+    }, [getUsers]);
     const [tableKey, setTableKey] = useState(Date.now());
     useEffect(() => {
         setTableKey(Date.now());

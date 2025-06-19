@@ -50,7 +50,7 @@ const TrackerCard = memo(function TrackerCard({ data, index, style }) {
                 setRowHeight(index, newHeight);
             }
         }
-    }, [index, setRowHeight, tracker]); // depend on 'tracker' instead of 'data' for more specific change detection
+    }, [index, setRowHeight, tracker, rowHeights]); // depend on 'tracker' instead of 'data' for more specific change detection
     return (
         <div
             style={{

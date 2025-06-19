@@ -17,7 +17,7 @@ export default function Authentication() {
         );
     useEffect(() => {
         fetchAccountProfile();
-    }, []);
+    }, [fetchAccountProfile]);
     return (
         <Container fluid>
             <Row style={{ height: "100vh" }} align="center">

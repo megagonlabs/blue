@@ -17,7 +17,7 @@ export default function JSONForm({ content, hasError }) {
     const [error] = useErrorBoundary();
     useEffect(() => {
         hasError.current = Boolean(error);
-    }, [error]);
+    }, [error, hasError]);
     return !error ? (
         <>
             <JsonForms

@@ -56,7 +56,7 @@ export default function Workspace({ sessionId }) {
                 });
             },
         });
-    }, [contents]);
+    }, [contents, reorderWorkspace]);
     if (_.isEmpty(contents)) {
         return (
             <NonIdealState

@@ -23,7 +23,7 @@ export default function MessageIcon({ metadata }) {
         } else {
             getAgentMetadata(createdBy);
         }
-    }, [createdBy]);
+    }, [createdBy, getAgentMetadata, getUserProfileById, id, isUser]);
     if (isUser) {
         return <UserAvatar userId={id} />;
     }
