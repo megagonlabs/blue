@@ -1,0 +1,24 @@
+FROM --platform=$BUILDPLATFORM python:3.10.12
+ARG BLUE_BUILD_CACHE_ARG
+ARG BLUE_BUILD_LIB_ARG
+
+# Set workdir
+WORKDIR /app
+
+# Build requirements first
+ADD src/requirements.core /app/requirements.core
+RUN pip install ${BLUE_BUILD_CACHE_ARG} ${BLUE_BUILD_LIB_ARG} -r requirements.core
+
+ADD src/requirements.agent /app/requirements.agent
+RUN pip install ${BLUE_BUILD_CACHE_ARG} -r requirements.agent
+
+ADD src/requirements.observer /app/requirements.observer
+RUN pip install ${BLUE_BUILD_CACHE_ARG} -r requirements.observer
+
+
+
+
+# Copy service files
+ADD /src /app/
+
+ENTRYPOINT ["python", "observer.py"]
