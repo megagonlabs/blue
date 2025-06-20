@@ -50,7 +50,7 @@ class OpenAIToolCallingAgent(OpenAIAgent):
         self.properties['tool_sources'] = ["calculator_mcp"]
         self.properties['tool_max_calling_depth'] = 5
         self.properties['tool_discovery'] = False
-        self.properties['tool_discovery_similarity_threshold'] = 1
+        self.properties['tool_discovery_similarity_threshold'] = 10
         self.properties['tools'] = None
 
     def convert_tool_schemas_to_openai_format(self, tool_schemas):
@@ -82,48 +82,24 @@ class OpenAIToolCallingAgent(OpenAIAgent):
         tools_to_server = {}
         
         if properties['tool_discovery']:
-            logging.info("Tool Discovery WIP, passing")
+            # Uses servers specified in properties if present, otherwise uses all servers in the registry.
+            if 'tool_sources' in properties and properties['tool_sources']:
+                servers = properties['tool_sources']
+            else:
+                servers = [s['name'] for s in tool_registry.get_servers()]
 
-            # search_results = tool_registry.search_records(user_input, approximate=True)
-            # logging.info("Search results no scope")
-            # logging.info(search_results)
-
-            # if 'tool_sources' in properties and properties['tool_sources']:
-            #     servers = properties['tool_sources']
-            # else:
-            #     servers = [s['name'] for s in tool_registry.get_servers()]
-            # for server_name in servers:
-            #     search_results = tool_registry.search_records(user_input, scope="/"+server_name, approximate=True)
-            #     logging.info("Search results, with scope")
-            #     logging.info(search_results)
-
-            #     tool_registry.sync_server(server_name)
-            #     search_results = tool_registry.search_records(user_input, scope="/"+server_name, approximate=True)
-            #     logging.info("Search results, with scope, with sync")
-            #     logging.info(search_results)
-
-            #     tool_registry.sync_server(server_name)
-            #     search_results = tool_registry.search_records(user_input, scope="/"+server_name, approximate=True, type="tool")
-            #     logging.info("Search results, with scope, with sync, with type")
-            #     logging.info(search_results)
-
-            # if 'tool_sources' in properties and properties['tool_sources']:
-            #     servers = properties['tool_sources']
-            # else:
-            #     servers = tool_registry.get_servers()
-
-            # search_results = tool_registry.search_records(user_input, approximate=True)
-            # if 'tool_sources' in properties and properties['tool_sources']:
-            #     search_results = [s for s in search_results if s['name'] in properties['tool_sources']]
-            
-            # tool_sources = []
-            # for s in search_results:
-            #     if 'tool_sources' in properties and properties['tool_sources']:
-            #         if s['name'] in properties['tool_sources']:
-            #             tool_sources.append(s['name'])
-            #     else:
-            #         if ('tool_discovery_similarity_threshold' in properties and )
-
+            #Retrieves all tools from servers that meet properties['tool_discovery_similarity_threshold']
+            for server_name in servers:
+                search_results = tool_registry.search_records(user_input, scope="/"+server_name, approximate=True, type="tool")
+                for res in search_results:
+                    if float(res['score']) <= float(properties['tool_discovery_similarity_threshold']):
+                        if res["name"] in tools_to_server:
+                            logging.info(f"Duplicate tool {res['name']} found in server {server_name}, disregarding.")
+                        else:
+                            schema = tool_registry.get_server_tool(server_name, res['name'])
+                            logging.info(schema)
+                            tool_schemas.append(schema)
+                            tools_to_server[res['name']] = server_name
 
         else:
             for server_name in properties['tool_sources']:
@@ -132,7 +108,7 @@ class OpenAIToolCallingAgent(OpenAIAgent):
 
                 for t in tool_server_tools:
                     if t["name"] in tools_to_server:
-                        logging.info(f"Duplicate tool {t["name"]} found in server {server_name}, disregarding.")
+                        logging.info(f"Duplicate tool {t['name']} found in server {server_name}, disregarding.")
                     else:
                         tool_schemas.append(t)
                         tools_to_server[t["name"]] = server_name
@@ -146,24 +122,17 @@ class OpenAIToolCallingAgent(OpenAIAgent):
     def execute_api_call(self, stream_data, properties=None, additional_data=None):
         if properties is None:
             properties = self.get_properties(properties=properties)
-        input_data = " ".join(stream_data)
+        input_data = "".join(stream_data)
         if not self.validate_input(input_data, properties=properties):
             return 
 
-        platform_id = properties["platform.name"]
-        prefix = 'PLATFORM:' + platform_id
+        prefix = 'PLATFORM:' + properties["platform.name"]
         tool_registry = ToolRegistry(id=properties['tool_registry.name'], prefix=prefix, properties=properties)
         tool_schemas, tools_to_server = self.get_tool_schemas(tool_registry, input_data, properties)        
 
         session_data = self.session.get_all_data()
         input_object = self.create_message(input_data, properties=properties, additional_data=session_data)
         input_object["tools"] = tool_schemas
-
-        logging.info("Is service still in input?============================")
-        logging.info("service" in input_object)
-
-        input_object.pop("service")
-
 
         num_calls = 0
         while True and num_calls < properties["tool_max_calling_depth"]:

@@ -118,6 +118,8 @@ class MCPToolClient(ToolClient):
                         parameter = {}
                         parameter['type'] = schema_property['type']
                         parameter['required'] = p in required
+                        if 'items' in schema_property:
+                            parameter['items'] = schema_property['items']
                         parameters[p] = parameter
 
                     if filter_tools:
