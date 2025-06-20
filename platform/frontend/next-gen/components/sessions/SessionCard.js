@@ -47,9 +47,12 @@ export default function SessionCard({ sessionId }) {
     const owner = _.get(details, "created_by");
     const description = _.get(details, "description", "");
     const addContainer = useGridStore((state) => state.addContainer);
+    const handleClose = useCallback(() => {
+        hideContextMenu();
+    }, []);
     const menu = useMemo(
         () => (
-            <Menu size={Size.LARGE} onClick={hideContextMenu}>
+            <Menu size={Size.LARGE} onClick={handleClose}>
                 <MenuItem
                     icon={<FAIcon icon={faBrowsers} />}
                     text="Open in new window"
@@ -63,7 +66,7 @@ export default function SessionCard({ sessionId }) {
                 />
             </Menu>
         ),
-        [sessionId]
+        [handleClose, sessionId, addContainer]
     );
     const handleContextMenu = useCallback(
         (event) => {
@@ -73,14 +76,14 @@ export default function SessionCard({ sessionId }) {
             showContextMenu({
                 isDarkTheme: darkMode,
                 content: menu,
-                onClose: hideContextMenu,
+                onClose: handleClose,
                 targetOffset: {
                     left: event.clientX,
                     top: event.clientY,
                 },
             });
         },
-        [darkMode, sessionId]
+        [handleClose, darkMode, menu]
     );
     const filteredMessages = messages.filter((message) => {
         if (_.get(message, "metadata.ags.WORKSPACE_ONLY")) {

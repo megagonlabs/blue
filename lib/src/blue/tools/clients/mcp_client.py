@@ -91,7 +91,7 @@ class MCPToolClient(ToolClient):
 
     def list_tools(self, filter_tools=None, detailed=True):
         return asyncio.run(self._list_tools(filter_tools=filter_tools, detailed=detailed))
-
+    
     async def _list_tools(self, filter_tools=None, detailed=True):
         await self._create_session()
 
@@ -112,15 +112,12 @@ class MCPToolClient(ToolClient):
                     required = []
                     if 'required' in t.inputSchema:
                         required = t.inputSchema['required']
-
                     schema_properties = t.inputSchema['properties']
                     for p in schema_properties:
                         schema_property = schema_properties[p]
                         parameter = {}
                         parameter['type'] = schema_property['type']
                         parameter['required'] = p in required
-                        if 'items' in schema_property:
-                            parameter['items'] = schema_property['items']
                         parameters[p] = parameter
 
                     if filter_tools:
@@ -137,7 +134,7 @@ class MCPToolClient(ToolClient):
         finally:
             await self._release_session()
         return tools
-
+    
     ######### execute tool
     def execute_tool(self, tool, args, kwargs):
         return asyncio.run(self._execute_tool(tool, args, kwargs))

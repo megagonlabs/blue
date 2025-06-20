@@ -5,6 +5,7 @@ const ExpandingBox = ({
     initialHeight,
     expandedWidth,
     expandedHeight,
+    transitionDuration = 150,
     children,
 }) => {
     const [isExpanded, setIsExpanded] = useState(false);
@@ -20,7 +21,7 @@ const ExpandingBox = ({
     const handleReset = () => {
         timeoutIdRef.current = setTimeout(() => {
             setIsExpanded(false);
-        }, 150);
+        }, transitionDuration);
         setWidth(initialWidth);
         setHeight(initialHeight);
     };

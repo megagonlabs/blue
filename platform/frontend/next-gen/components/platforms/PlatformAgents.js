@@ -207,7 +207,7 @@ function PlatformAgents({ width, height }) {
     }, [columns]);
     useEffect(() => {
         getAgents();
-    }, []);
+    }, [getAgents]);
     const handlePullAgent = () => {
         let promises = [];
         const selectedAgents = _.toArray(selected);

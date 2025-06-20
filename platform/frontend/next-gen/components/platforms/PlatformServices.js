@@ -218,7 +218,7 @@ function PlatformServices({ width, height }) {
     }, [columns]);
     useEffect(() => {
         getServices();
-    }, []);
+    }, [getServices]);
     return (
         <div style={{ width, height, position: "relative" }}>
             <div

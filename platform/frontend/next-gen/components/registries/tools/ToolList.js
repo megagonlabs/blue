@@ -50,11 +50,11 @@ function ToolList({ width, height }) {
     const addContainer = useGridStore((state) => state.addContainer);
     useEffect(() => {
         getTools();
-    }, []);
+    }, [getTools]);
     const debounced = useCallback(debounce(getTools, 800), [getTools]);
     useEffect(() => {
         debounced();
-    }, [filter]);
+    }, [filter, debounced]);
     const callback = (entity) => {
         setShowNewEntity(false);
         addContainer({

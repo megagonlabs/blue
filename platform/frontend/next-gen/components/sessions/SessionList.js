@@ -15,6 +15,7 @@ import {
 import {
     faArrowLeft,
     faBarsFilter,
+    faInboxArrowUp,
     faSearch,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import _ from "lodash";
@@ -84,11 +85,12 @@ function SessionList({ width, height }) {
                     : rightPinned - leftPinned;
             });
         return result;
-    }, [sessionIds, filter, sessions]);
+    }, [sessionIds, filter, sessions, user]);
     const [showFilter, setShowFilter] = useState(false);
     useEffect(() => {
         getSessions();
-    }, []);
+    }, [getSessions]);
+    const createNewSession = useSessionStore((state) => state.createNewSession);
     return (
         <div
             style={{
@@ -177,6 +179,17 @@ function SessionList({ width, height }) {
                             <SessionCard sessionId={session} />
                         </div>
                     ))}
+                    <Button
+                        intent={Intent.PRIMARY}
+                        onClick={() => {
+                            createNewSession();
+                        }}
+                        icon={<FAIcon icon={faInboxArrowUp} />}
+                        size={Size.LARGE}
+                        fill
+                        variant={ButtonVariant.MINIMAL}
+                        text="New session"
+                    />
                 </div>
             </div>
         </div>

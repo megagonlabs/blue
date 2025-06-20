@@ -23,7 +23,7 @@ export default function SessionData({ sessionId }) {
             .finally(() => {
                 setLoading(false);
             });
-    }, []);
+    }, [sessionId]);
     const onSave = (value) => {
         setLoading(true);
         const diffs = shallowDiff(data, value);

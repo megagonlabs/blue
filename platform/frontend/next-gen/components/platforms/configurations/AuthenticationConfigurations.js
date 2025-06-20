@@ -400,6 +400,7 @@ export default function AuthenticationConfigurations() {
                                 items={["developer", "member", "guest"]}
                             >
                                 <Button
+                                    variant={ButtonVariant.OUTLINED}
                                     icon={<FAIcon icon={faUser} />}
                                     text={_.get(
                                         USER_ROLES_LOOKUP,

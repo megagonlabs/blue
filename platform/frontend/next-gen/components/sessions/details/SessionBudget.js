@@ -88,7 +88,7 @@ export default function SessionBudget({ sessionId }) {
             .finally(() => {
                 setLoading(false);
             });
-    }, []);
+    }, [sessionId, setSessionDetails]);
     const handleSave = () => {
         if (costError || accuracyError || latencyError) return;
         setLoading(true);
