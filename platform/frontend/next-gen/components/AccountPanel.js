@@ -9,7 +9,6 @@ import {
     Intent,
     Size,
     Tag,
-    Tooltip,
 } from "@blueprintjs/core";
 import {
     faArrowRightFromBracket,
@@ -21,7 +20,7 @@ import _ from "lodash";
 import Image from "next/image";
 import { useShallow } from "zustand/react/shallow";
 import { FAIcon } from "./FAIcon";
-import NerdStats from "./NerdStats";
+import NerdStatsContainer from "./NerdStatsContainer";
 import { USER_ROLES_LOOKUP } from "./constants";
 import SettingsContainer from "./settings/SettingsContainer";
 export default function AccountPanel({ isExpanded }) {
@@ -98,6 +97,7 @@ export default function AccountPanel({ isExpanded }) {
                                     icon: faCog,
                                     title: "Account Settings",
                                     content: <SettingsContainer />,
+                                    uniqueId: "SettingsContainer",
                                 })
                             }
                             variant={ButtonVariant.OUTLINED}
@@ -105,24 +105,19 @@ export default function AccountPanel({ isExpanded }) {
                             text="Settings"
                             size={Size.LARGE}
                         />
-                        <Tooltip
-                            placement="bottom-end"
-                            content="Stats. for nerds"
-                        >
-                            <Button
-                                onClick={() => {
-                                    addContainer({
-                                        icon: faGlasses,
-                                        title: "Stats.",
-                                        content: <NerdStats />,
-                                        uniqueId: "NerdStats",
-                                    });
-                                }}
-                                variant={ButtonVariant.MINIMAL}
-                                size={Size.LARGE}
-                                icon={<FAIcon icon={faGlasses} />}
-                            />
-                        </Tooltip>
+                        <Button
+                            onClick={() => {
+                                addContainer({
+                                    icon: faGlasses,
+                                    title: "Stats. for Nerds",
+                                    content: <NerdStatsContainer />,
+                                    uniqueId: "NerdStatsContainer",
+                                });
+                            }}
+                            variant={ButtonVariant.MINIMAL}
+                            size={Size.LARGE}
+                            icon={<FAIcon icon={faGlasses} />}
+                        />
                     </ButtonGroup>
                     <Button
                         intent={Intent.WARNING}
