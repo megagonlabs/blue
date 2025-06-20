@@ -11,8 +11,8 @@ import {
     FormGroup,
     Intent,
     Popover,
+    PopoverInteractionKind,
     Size,
-    Tooltip,
 } from "@blueprintjs/core";
 import {
     faExpand,
@@ -108,6 +108,9 @@ export default function Home() {
                                 <Divider className="visibility-hidden" />
                                 <Popover
                                     placement="bottom"
+                                    interactionKind={
+                                        PopoverInteractionKind.HOVER
+                                    }
                                     modifiers={{
                                         offset: {
                                             enabled: true,
@@ -168,15 +171,10 @@ export default function Home() {
                                         </div>
                                     }
                                 >
-                                    <Tooltip
-                                        content="Resize"
-                                        placement="bottom"
-                                    >
-                                        <Button
-                                            intent={Intent.SUCCESS}
-                                            icon={<FAIcon icon={faExpand} />}
-                                        />
-                                    </Tooltip>
+                                    <Button
+                                        intent={Intent.SUCCESS}
+                                        icon={<FAIcon icon={faExpand} />}
+                                    />
                                 </Popover>
                             </ButtonGroup>
                             <div

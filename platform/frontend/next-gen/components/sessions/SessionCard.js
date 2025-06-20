@@ -221,6 +221,7 @@ export default function SessionCard({ sessionId }) {
                     }}
                 >
                     <MessageContent
+                        isPreview={true}
                         contentType={lastMessage.contentType}
                         streamData={lastMessage.streamData}
                     />
