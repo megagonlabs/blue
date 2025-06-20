@@ -50,7 +50,6 @@ function VerticalScrollable({
                 ref={containerRef}
                 style={{
                     overflowY: "auto",
-                    overflowX: "hidden",
                     scrollBehavior: "smooth",
                 }}
                 className="scrollbar-none full-parent-height"
