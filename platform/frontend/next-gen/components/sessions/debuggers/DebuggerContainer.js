@@ -33,6 +33,7 @@ import _ from "lodash";
 import { useEffect, useMemo, useRef, useState } from "react";
 import AutoSizer from "react-virtualized-auto-sizer";
 import { useShallow } from "zustand/react/shallow";
+import SessionAgents from "../details/SessionAgents";
 import MessageViewer from "./MessageViewer";
 const FOLDER_CLOSED_ICON = (
     <FAIcon icon={faFolder} style={{ marginRight: 7 }} />
@@ -288,6 +289,7 @@ function DebuggerContainer({ width, height, sessionId }) {
         });
         setTreeContents(contents);
     };
+    const callback = (agent) => {};
     return (
         <div
             ref={elementRef}
@@ -336,29 +338,31 @@ function DebuggerContainer({ width, height, sessionId }) {
                                 />
                             </Tooltip>
                         </ButtonGroup>
-                        <ButtonGroup
-                            size={Size.LARGE}
-                            variant={ButtonVariant.MINIMAL}
-                        >
-                            <Tooltip content="List View" placement="bottom">
-                                <Button
-                                    onClick={() => {
-                                        setViewType("list");
-                                    }}
-                                    active={_.isEqual(viewType, "list")}
-                                    icon={<FAIcon icon={faList} />}
-                                />
-                            </Tooltip>
-                            <Tooltip content="Tree View" placement="bottom">
-                                <Button
-                                    onClick={() => {
-                                        setViewType("tree");
-                                    }}
-                                    active={_.isEqual(viewType, "tree")}
-                                    icon={<FAIcon icon={faFolderTree} />}
-                                />
-                            </Tooltip>
-                        </ButtonGroup>
+                        {_.isEqual(visibleSection, "messages") && (
+                            <ButtonGroup
+                                size={Size.LARGE}
+                                variant={ButtonVariant.MINIMAL}
+                            >
+                                <Tooltip content="List View" placement="bottom">
+                                    <Button
+                                        onClick={() => {
+                                            setViewType("list");
+                                        }}
+                                        active={_.isEqual(viewType, "list")}
+                                        icon={<FAIcon icon={faList} />}
+                                    />
+                                </Tooltip>
+                                <Tooltip content="Tree View" placement="bottom">
+                                    <Button
+                                        onClick={() => {
+                                            setViewType("tree");
+                                        }}
+                                        active={_.isEqual(viewType, "tree")}
+                                        icon={<FAIcon icon={faFolderTree} />}
+                                    />
+                                </Tooltip>
+                            </ButtonGroup>
+                        )}
                     </div>
                     <div
                         className="full-parent-dimension"
@@ -367,161 +371,173 @@ function DebuggerContainer({ width, height, sessionId }) {
                             maxHeight: "calc(100% - 61px)",
                         }}
                     >
-                        {_.isEqual(viewType, "list") ? (
-                            <AutoSizer>
-                                {({ width: tableWidth }) => (
-                                    <HTMLTable
-                                        interactive
-                                        striped
-                                        style={{ width: tableWidth }}
-                                        className="table-header-sticky"
-                                    >
-                                        <thead
-                                            style={{
-                                                position: "sticky",
-                                                top: 0,
-                                                backgroundColor: darkMode
-                                                    ? Colors.BLACK
-                                                    : Colors.WHITE,
-                                                zIndex: 1,
-                                            }}
+                        {_.isEqual(visibleSection, "agents") && (
+                            <SessionAgents
+                                sessionId={sessionId}
+                                interactive={true}
+                                callback={callback}
+                            />
+                        )}
+                        {_.isEqual(visibleSection, "messages") &&
+                            (_.isEqual(viewType, "list") ? (
+                                <AutoSizer>
+                                    {({ width: tableWidth }) => (
+                                        <HTMLTable
+                                            interactive
+                                            striped
+                                            style={{ width: tableWidth }}
+                                            className="table-header-sticky"
                                         >
-                                            <tr>
-                                                <th className="border-bottom">
-                                                    <div
-                                                        style={{
-                                                            paddingLeft: 9,
-                                                        }}
-                                                    >
-                                                        Type
-                                                    </div>
-                                                </th>
-                                                <th className="border-bottom">
-                                                    Stream
-                                                </th>
-                                                <th
-                                                    className="border-bottom"
-                                                    style={{
-                                                        textAlign:
-                                                            Alignment.END,
-                                                    }}
-                                                >
-                                                    <div
-                                                        style={{
-                                                            paddingRight: 9,
-                                                        }}
-                                                    >
-                                                        Time
-                                                    </div>
-                                                </th>
-                                            </tr>
-                                        </thead>
-                                        <tbody style={{ overflowY: "auto" }}>
-                                            {messages.map((message) => (
-                                                <tr
-                                                    key={message.stream}
-                                                    onClick={() => {
-                                                        setFocusStream(
-                                                            message.stream
-                                                        );
-                                                    }}
-                                                >
-                                                    <td>
+                                            <thead
+                                                style={{
+                                                    position: "sticky",
+                                                    top: 0,
+                                                    backgroundColor: darkMode
+                                                        ? Colors.BLACK
+                                                        : Colors.WHITE,
+                                                    zIndex: 1,
+                                                }}
+                                            >
+                                                <tr>
+                                                    <th className="border-bottom">
                                                         <div
                                                             style={{
-                                                                ...CELL_CONTENT_STYLES,
-                                                                width: 80,
                                                                 paddingLeft: 9,
                                                             }}
                                                         >
-                                                            <Tag
-                                                                minimal
-                                                                intent={
-                                                                    Intent.PRIMARY
+                                                            Type
+                                                        </div>
+                                                    </th>
+                                                    <th className="border-bottom">
+                                                        Stream
+                                                    </th>
+                                                    <th
+                                                        className="border-bottom"
+                                                        style={{
+                                                            textAlign:
+                                                                Alignment.END,
+                                                        }}
+                                                    >
+                                                        <div
+                                                            style={{
+                                                                paddingRight: 9,
+                                                            }}
+                                                        >
+                                                            Time
+                                                        </div>
+                                                    </th>
+                                                </tr>
+                                            </thead>
+                                            <tbody
+                                                style={{ overflowY: "auto" }}
+                                            >
+                                                {messages.map((message) => (
+                                                    <tr
+                                                        key={message.stream}
+                                                        onClick={() => {
+                                                            setFocusStream(
+                                                                message.stream
+                                                            );
+                                                        }}
+                                                    >
+                                                        <td>
+                                                            <div
+                                                                style={{
+                                                                    ...CELL_CONTENT_STYLES,
+                                                                    width: 80,
+                                                                    paddingLeft: 9,
+                                                                }}
+                                                            >
+                                                                <Tag
+                                                                    minimal
+                                                                    intent={
+                                                                        Intent.PRIMARY
+                                                                    }
+                                                                >
+                                                                    {
+                                                                        message.contentType
+                                                                    }
+                                                                </Tag>
+                                                            </div>
+                                                        </td>
+                                                        <td>
+                                                            <Tooltip
+                                                                placement="bottom"
+                                                                boundary={
+                                                                    elementRef.current
+                                                                }
+                                                                content={
+                                                                    <div
+                                                                        style={{
+                                                                            width: 300,
+                                                                            wordBreak:
+                                                                                "break-all",
+                                                                        }}
+                                                                    >
+                                                                        {
+                                                                            message.stream
+                                                                        }
+                                                                    </div>
                                                                 }
                                                             >
-                                                                {
-                                                                    message.contentType
-                                                                }
-                                                            </Tag>
-                                                        </div>
-                                                    </td>
-                                                    <td>
-                                                        <Tooltip
-                                                            placement="bottom"
-                                                            boundary={
-                                                                elementRef.current
-                                                            }
-                                                            content={
                                                                 <div
+                                                                    className={classNames(
+                                                                        "full-parent-width",
+                                                                        Classes.TEXT_OVERFLOW_ELLIPSIS
+                                                                    )}
                                                                     style={{
-                                                                        width: 300,
-                                                                        wordBreak:
-                                                                            "break-all",
+                                                                        lineHeight:
+                                                                            "22px",
+                                                                        width: `${
+                                                                            tableWidth -
+                                                                            66 -
+                                                                            180
+                                                                        }px`,
                                                                     }}
                                                                 >
                                                                     {
                                                                         message.stream
                                                                     }
                                                                 </div>
-                                                            }
-                                                        >
+                                                            </Tooltip>
+                                                        </td>
+                                                        <td>
                                                             <div
-                                                                className={classNames(
-                                                                    "full-parent-width",
-                                                                    Classes.TEXT_OVERFLOW_ELLIPSIS
-                                                                )}
                                                                 style={{
-                                                                    lineHeight:
-                                                                        "22px",
-                                                                    width: `${
-                                                                        tableWidth -
-                                                                        66 -
-                                                                        180
-                                                                    }px`,
+                                                                    ...CELL_CONTENT_STYLES,
+                                                                    width: 100,
+                                                                    paddingRight: 9,
+                                                                    justifyContent:
+                                                                        "end",
+                                                                    textAlign:
+                                                                        Alignment.END,
                                                                 }}
                                                             >
-                                                                {message.stream}
+                                                                <Timestamp
+                                                                    boundary={
+                                                                        elementRef.current
+                                                                    }
+                                                                    placement="bottom"
+                                                                    date={
+                                                                        message.timestamp
+                                                                    }
+                                                                />
                                                             </div>
-                                                        </Tooltip>
-                                                    </td>
-                                                    <td>
-                                                        <div
-                                                            style={{
-                                                                ...CELL_CONTENT_STYLES,
-                                                                width: 100,
-                                                                paddingRight: 9,
-                                                                justifyContent:
-                                                                    "end",
-                                                                textAlign:
-                                                                    Alignment.END,
-                                                            }}
-                                                        >
-                                                            <Timestamp
-                                                                boundary={
-                                                                    elementRef.current
-                                                                }
-                                                                placement="bottom"
-                                                                date={
-                                                                    message.timestamp
-                                                                }
-                                                            />
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </HTMLTable>
-                                )}
-                            </AutoSizer>
-                        ) : (
-                            <Tree
-                                onNodeCollapse={onNodeCollapse}
-                                onNodeExpand={onNodeExpand}
-                                contents={treeContents}
-                                onNodeClick={onNodeClick}
-                            />
-                        )}
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </HTMLTable>
+                                    )}
+                                </AutoSizer>
+                            ) : (
+                                <Tree
+                                    onNodeCollapse={onNodeCollapse}
+                                    onNodeExpand={onNodeExpand}
+                                    contents={treeContents}
+                                    onNodeClick={onNodeClick}
+                                />
+                            ))}
                     </div>
                 </Allotment.Pane>
                 <Allotment.Pane minSize={MIN_ALLOTMENT_PANE_SIZE}>

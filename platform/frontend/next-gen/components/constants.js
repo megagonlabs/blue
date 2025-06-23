@@ -33,6 +33,7 @@ export const USER_ROLES_LOOKUP = {
         justifyContent: "space-between",
         maxWidth: "100%",
     },
+    IGNORED_AGENT_TYPES = ["USER", "OBSERVER"],
     ENTITY_TYPE_LOOKUP = {
         agent: { icon: faCircleA, permissionKey: "agent_registry" },
         data: { icon: faServer },

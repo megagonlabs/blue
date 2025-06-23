@@ -71,17 +71,13 @@ function VerticalScrollable({
                         width,
                         textAlign: Alignment.CENTER,
                         background: `linear-gradient(to top, ${backgroundColor} 0%, ${backgroundColor} 20px, transparent 99%, transparent 100%)`,
+                        display: "flex",
+                        justifyContent: "end",
+                        flexDirection: "column",
+                        alignItems: "center",
                     }}
                 >
-                    <FAIcon
-                        icon={faCaretDown}
-                        style={{
-                            position: "absolute",
-                            bottom: 0,
-                            left: "50%",
-                            transform: "translate(-16px, 0)",
-                        }}
-                    />
+                    <FAIcon icon={faCaretDown} />
                 </div>
             )}
         </div>
