@@ -33,6 +33,7 @@ import {
 import axios from "axios";
 import _ from "lodash";
 import Image from "next/image";
+import { useEffect } from "react";
 import { useShallow } from "zustand/react/shallow";
 import AccountPanel from "./AccountPanel";
 import Authentication from "./Authentication";
@@ -135,6 +136,17 @@ export default function Blue({ children }) {
             visible: permissions.canReadToolRegistry,
         },
     };
+    const addDemoContainer = () => {
+        addContainer({
+            icon: AGENT_GROUP_ICON,
+            title: "Demos",
+            content: <DemoContainer />,
+            uniqueId: `DemoContainer`,
+        });
+    };
+    useEffect(() => {
+        addDemoContainer();
+    });
     const createNewSession = useSessionStore((state) => state.createNewSession);
     const userProfileError =
         !_.isEmpty(user) && _.isEmpty(_.get(user, "role", null));
@@ -360,9 +372,9 @@ export default function Blue({ children }) {
                                                                                 Intent.PRIMARY
                                                                             }
                                                                             text="New Session"
-                                                                            onClick={() =>
-                                                                                createNewSession()
-                                                                            }
+                                                                            onClick={() => {
+                                                                                createNewSession();
+                                                                            }}
                                                                             icon={
                                                                                 <FAIcon
                                                                                     icon={
@@ -395,19 +407,9 @@ export default function Blue({ children }) {
                                                                                 />
                                                                             }
                                                                             text="Demos"
-                                                                            onClick={() => {
-                                                                                addContainer(
-                                                                                    {
-                                                                                        icon: AGENT_GROUP_ICON,
-                                                                                        title: "Demos",
-                                                                                        content:
-                                                                                            (
-                                                                                                <DemoContainer />
-                                                                                            ),
-                                                                                        uniqueId: `DemoContainer`,
-                                                                                    }
-                                                                                );
-                                                                            }}
+                                                                            onClick={
+                                                                                addDemoContainer
+                                                                            }
                                                                         />
                                                                     )}
                                                                     <MenuDivider title="Registries" />

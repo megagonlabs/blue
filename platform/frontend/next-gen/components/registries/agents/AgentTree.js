@@ -1,5 +1,7 @@
+import { GREEN_CHECK } from "@/components/constants";
 import { FAIcon } from "@/components/FAIcon";
 import {
+    constructAgentTree,
     insertBetween,
     settlePromises,
     showAxiosErrorToast,
@@ -9,14 +11,12 @@ import {
     ButtonVariant,
     Card,
     Classes,
-    Colors,
     ControlGroup,
     H3,
     Intent,
     Size,
     Tree,
 } from "@blueprintjs/core";
-import { faCheck } from "@fortawesome/pro-solid-svg-icons";
 import {
     faArrowLeft,
     faArrowRight,
@@ -34,37 +34,6 @@ const TREE_CARD_STYLE = {
     overflow: "auto",
 };
 const { NEXT_PUBLIC_AGENT_REGISTRY_NAME } = allEnv();
-const constructTree = (agent) => {
-    const derivedAgents = _.values(_.get(agent, "contents.agent", {}));
-    let node = {
-        id: agent.name,
-        icon: (
-            <RegistryEntityIcon
-                type={"agent"}
-                content={_.get(agent, "icon", null)}
-            />
-        ),
-        agent,
-        label: (
-            <div
-                className={Classes.TEXT_OVERFLOW_ELLIPSIS}
-                style={{ marginLeft: 7 }}
-            >
-                <EntityDisplayName entity={agent} />
-            </div>
-        ),
-        childNodes: [],
-        hasCaret: false,
-    };
-    for (let i = 0; i < _.size(derivedAgents); i++) {
-        node.childNodes.push(constructTree(derivedAgents[i]));
-    }
-    if (!_.isEmpty(node.childNodes)) {
-        _.set(node, "hasCaret", true);
-    }
-    return node;
-};
-const GREEN_CHECK = <FAIcon icon={faCheck} style={{ color: Colors.GREEN3 }} />;
 export default function AgentTree({ entity }) {
     const [agentGroup, setAgentGroup] = useState(null);
     const [available, setAvailable] = useState([]);
@@ -132,7 +101,7 @@ export default function AgentTree({ entity }) {
         const current = _.values(_.get(agentGroup, "contents.agent", {}));
         let tree = [];
         for (let i = 0; i < _.size(current); i++) {
-            tree.push(constructTree(current[i]));
+            tree.push(constructAgentTree(current[i]));
         }
         setAdded(tree);
     }, [agentGroup]);
@@ -152,7 +121,7 @@ export default function AgentTree({ entity }) {
                     const result = _.get(response, "data.results", []);
                     let tree = [];
                     for (let i = 0; i < _.size(result); i++) {
-                        tree.push(constructTree(result[i]));
+                        tree.push(constructAgentTree(result[i]));
                     }
                     setAvailable(tree);
                 }),

@@ -4,6 +4,8 @@ import {
     faPenSwirl,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import _ from "lodash";
+import EntityDisplayName from "./registries/EntityDisplayName";
+import RegistryEntityIcon from "./registries/RegistryEntityIcon";
 const { AppToaster, ProgressToaster } = require("./toaster");
 const classNames = require("classnames");
 const { FAIcon } = require("./FAIcon");
@@ -32,6 +34,36 @@ const renderProgress = (progress = 0, requestError = false) => {
             />
         ),
     };
+};
+const constructAgentTree = (agent) => {
+    const derivedAgents = _.values(_.get(agent, "contents.agent", {}));
+    let node = {
+        id: agent.name,
+        icon: (
+            <RegistryEntityIcon
+                type={"agent"}
+                content={_.get(agent, "icon", null)}
+            />
+        ),
+        agent,
+        label: (
+            <div
+                className={Classes.TEXT_OVERFLOW_ELLIPSIS}
+                style={{ marginLeft: 7 }}
+            >
+                <EntityDisplayName entity={agent} />
+            </div>
+        ),
+        childNodes: [],
+        hasCaret: false,
+    };
+    for (let i = 0; i < _.size(derivedAgents); i++) {
+        node.childNodes.push(constructAgentTree(derivedAgents[i]));
+    }
+    if (!_.isEmpty(node.childNodes)) {
+        _.set(node, "hasCaret", true);
+    }
+    return node;
 };
 const showAxiosErrorToast = (error) => {
     let message = "";
@@ -207,6 +239,7 @@ module.exports = {
         return promises;
     },
     showAxiosErrorToast,
+    constructAgentTree,
     convertCss: (style) => {
         try {
             return transform(_.entries(style));

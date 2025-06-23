@@ -50,7 +50,7 @@ export default function DemoGroupCard({ agentGroup }) {
                 />
             </Menu>
         ),
-        [handleClose, agentGroup]
+        [handleClose, agentGroup, addContainer]
     );
     const handleContextMenu = useCallback(
         (event) => {

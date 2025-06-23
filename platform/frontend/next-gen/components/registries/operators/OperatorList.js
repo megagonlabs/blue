@@ -51,11 +51,11 @@ function OperatorList({ width, height }) {
     const [showNewEntity, setShowNewEntity] = useState(false);
     useEffect(() => {
         getOperators();
-    }, []);
+    }, [getOperators]);
     const debounced = useCallback(debounce(getOperators, 800), [getOperators]);
     useEffect(() => {
         debounced();
-    }, [filter]);
+    }, [filter, debounced]);
     const callback = (entity) => {
         setShowNewEntity(false);
         addContainer({

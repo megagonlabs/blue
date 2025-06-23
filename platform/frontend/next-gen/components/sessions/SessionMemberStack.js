@@ -11,7 +11,7 @@ export default function SessionMemberStack({ sessionId, style }) {
         return _.entries(_.get(details, "members", {}))
             .filter((user) => user[1])
             .map((user) => user[0]);
-    }, [sessionId, details]);
+    }, [details]);
     const getUserProfileById = useDedupStore(
         (state) => state.getUserProfileById
     );
@@ -21,13 +21,13 @@ export default function SessionMemberStack({ sessionId, style }) {
         for (let i = 0; i < _.size(members); i++) {
             getUserProfileById(members[i]);
         }
-    }, [members]);
+    }, [members, owner, getUserProfileById]);
     const memberStackref = createRef();
     const { width } = useRefDimensions(memberStackref);
     const size = useMemo(() => {
         let result = _.floor((width + 5) / 45);
         return result - (result < _.size(members) ? 1 : 0);
-    }, [width]);
+    }, [width, members]);
     if (_.isEmpty(members)) {
         return null;
     }

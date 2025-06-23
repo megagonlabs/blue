@@ -84,7 +84,7 @@ export default function ServerEntity({
             title: <EntityDisplayName entity={server} />,
             icon: _.get(ENTITY_TYPE_LOOKUP, [type, "icon"], null),
         });
-    }, [server]);
+    }, [server, setContainerHeader, containerId]);
     const onSynchronize = () => {
         setLoading(true);
         axios.put(`${url}/sync`).finally(() => {
@@ -107,7 +107,7 @@ export default function ServerEntity({
             .finally(() => {
                 setLoading(false);
             });
-    }, [entity]);
+    }, [entity, url]);
     const handleDiscard = () => {
         setEditedServer(server);
         setMainProperties(

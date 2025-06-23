@@ -15,7 +15,6 @@ import {
     faArrowRightFromBracket,
     faCog,
     faGlasses,
-    faRadar,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import classNames from "classnames";
 import _ from "lodash";
@@ -121,7 +120,7 @@ export default function AccountPanel({ isExpanded }) {
                                 }}
                                 variant={ButtonVariant.MINIMAL}
                                 size={Size.LARGE}
-                                icon={<FAIcon icon={faRadar} />}
+                                icon={<FAIcon icon={faGlasses} />}
                             />
                         </Tooltip>
                     </ButtonGroup>

@@ -68,7 +68,7 @@ export default function RegistryEntityCard({ entity }) {
                 />
             </Menu>
         ),
-        [handleClose, entity]
+        [handleClose, entity, addContainer]
     );
     const handleContextMenu = useCallback(
         (event) => {

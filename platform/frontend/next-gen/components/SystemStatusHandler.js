@@ -165,6 +165,6 @@ export default function SystemStatusHandler({ children }) {
             eventSource.close();
             setState({ key: "live", value: false });
         };
-    }, [user]);
+    }, [user, addTracker, setState, setTrackerData]);
     return children;
 }

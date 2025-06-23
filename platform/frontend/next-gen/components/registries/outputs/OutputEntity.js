@@ -60,7 +60,7 @@ export default function OutputEntity({ entity, backCrumb }) {
             .finally(() => {
                 setLoading(false);
             });
-    }, [entity]);
+    }, [entity, url]);
     const handleDiscard = () => {
         setEditedOutput(output);
         setIsEditing(false);

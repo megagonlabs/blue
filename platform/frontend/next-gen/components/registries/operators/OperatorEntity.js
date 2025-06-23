@@ -68,7 +68,7 @@ export default function OperatorEntity({
             title: <EntityDisplayName entity={operator} />,
             icon: _.get(ENTITY_TYPE_LOOKUP, [type, "icon"], null),
         });
-    }, [operator]);
+    }, [operator, setContainerHeader, containerId]);
     useEffect(() => {
         setLoading(true);
         axios
@@ -85,10 +85,10 @@ export default function OperatorEntity({
             .finally(() => {
                 setLoading(false);
             });
-    }, [entity]);
+    }, [entity, url]);
     useEffect(() => {
         updateOperator({ path: "icon", value: icon });
-    }, [icon]);
+    }, [icon, updateOperator]);
     const handleDiscard = () => {
         setEditedOperator(operator);
         setMainProperties(

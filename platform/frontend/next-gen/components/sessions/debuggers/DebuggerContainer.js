@@ -250,7 +250,7 @@ function DebuggerContainer({ width, height, sessionId }) {
             parseRedisStreamKeysToTree(streams, treeContents, messageMap)
         );
     }, [messages]);
-    const onNodeClick = (node, nodePath, e) => {
+    const onNodeClick = (node, nodePath) => {
         let contents = _.cloneDeep(treeContents);
         const path = insertBetween(nodePath, "childNodes");
         let current = _.get(contents, path);
@@ -266,7 +266,7 @@ function DebuggerContainer({ width, height, sessionId }) {
             setFocusStream(node.id);
         }
     };
-    const onNodeExpand = (node, nodePath, e) => {
+    const onNodeExpand = (node, nodePath) => {
         let contents = _.cloneDeep(treeContents);
         const path = insertBetween(nodePath, "childNodes");
         let current = _.get(contents, path);
@@ -277,7 +277,7 @@ function DebuggerContainer({ width, height, sessionId }) {
         });
         setTreeContents(contents);
     };
-    const onNodeCollapse = (node, nodePath, e) => {
+    const onNodeCollapse = (node, nodePath) => {
         let contents = _.cloneDeep(treeContents);
         const path = insertBetween(nodePath, "childNodes");
         let current = _.get(contents, path);

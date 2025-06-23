@@ -24,7 +24,7 @@ const EnumRenderer = ({
                 {label}
             </label>
         );
-    const sendMessage = useSocketStore((state) => sendMessage);
+    const sendMessage = useSocketStore((state) => state.sendMessage);
     return (
         <FormCell
             inline={_.get(uischema, "props.inline", false)}
