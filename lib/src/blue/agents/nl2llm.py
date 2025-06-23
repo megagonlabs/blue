@@ -54,19 +54,25 @@ class NL2LLMAgent(Agent):
             self.properties[key] = NL2LLMAgent.PROPERTIES[key]
 
     def _start(self):
+        logging.info("NL2LLMAgent _start() called")
         super()._start()
 
         # initialize registry
+        logging.info("Initializing registry...")
         self._init_registry()
 
         # initialize source
+        logging.info("Initializing source...")
         self._init_source()
+        logging.info("NL2LLMAgent initialization complete")
 
     def _init_registry(self):
         # create instance of data registry
         platform_id = self.properties["platform.name"]
         prefix = 'PLATFORM:' + platform_id
+        logging.info(f"Creating DataRegistry with id={self.properties['data_registry.name']}, prefix={prefix}")
         self.registry = DataRegistry(id=self.properties['data_registry.name'], prefix=prefix, properties=self.properties)
+        logging.info("DataRegistry created successfully")
 
     def _init_source(self):
         """Initialize the source for the agent.
@@ -97,26 +103,25 @@ class NL2LLMAgent(Agent):
             ## discover llm sources
             scope = None
             sources = self._search_sources(scope=scope)
+            logging.info(f"Found sources: {sources}")
             # return only the first available source
             if sources:
                 self.selected_source = sources[0]
-                self.selected_source_protocol = self.registry.get_source_properties(self.selected_source)['connection']['protocol']
-                self.selected_source_protocol_variant = self.registry.get_source_properties(self.selected_source)['connection']['protocol_variant']
-    
-    # def _parse_data_scope(self, scope):
-    #     """Parse the scope of a data source.
-    #     """
-    #     source = None
-
-    #     if scope:
-    #         sa = scope.split("/")
-    #         if len(sa) > 2:
-    #             source = sa[2]
-    #             if source == '':
-    #                 source = None
-
-    #     return source
-    
+                source_properties = self.registry.get_source_properties(self.selected_source)
+                if source_properties and 'connection' in source_properties:
+                    self.selected_source_protocol = source_properties['connection']['protocol']
+                    self.selected_source_protocol_variant = source_properties['connection'].get('protocol_variant', None)
+                    logging.info(f"selected source: {self.selected_source}")
+                    logging.info(f"selected source protocol: {self.selected_source_protocol}")
+                    logging.info(f"selected source protocol variant: {self.selected_source_protocol_variant}")
+                else:
+                    logging.error(f"Source {self.selected_source} has no connection properties")
+            else:
+                logging.error("No sources found during discovery. Please check data registry configuration.")
+                # Set a default source for now
+                self.selected_source = "openai"
+                self.selected_source_protocol = "openai"
+                logging.info(f"Using default source: {self.selected_source}")
     
     def _search_sources(self, scope=None):
         """Search the data registry for sources that match the question.
@@ -153,7 +158,8 @@ class NL2LLMAgent(Agent):
         """Process incoming messages and execute LLM queries."""
         
         # get properties, overriding with properties provided
-        properties = self.get_properties(properties=properties)
+        if properties is None:
+            properties = self.properties
 
         # get input data
         input_data = message.getData()
@@ -172,8 +178,20 @@ class NL2LLMAgent(Agent):
         """
         
         # get properties, overriding with properties provided
-        properties = self.get_properties(properties=properties)
-
+        if properties is None:
+            properties = self.properties
+        
+        # check if source is selected
+        if self.selected_source is None:
+            error = "No source selected. Please check data registry configuration."
+            logging.error(error)
+            return self._apply_filter({
+                'question': question,
+                'source': None,
+                'result': None,
+                'error': error
+            }, properties=properties)
+        
         try:
             # connect to the source
             source_connection = self.registry.connect_source(self.selected_source)
@@ -214,7 +232,7 @@ class NL2LLMAgent(Agent):
             
             return filtered_result
 
-    def _apply_filter(self, output):
+    def _apply_filter(self, output, properties=None):
         """Apply output filters to the result.
         """
         output_filters = ['all']
