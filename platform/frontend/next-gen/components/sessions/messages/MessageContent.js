@@ -1,6 +1,6 @@
 import { FAIcon } from "@/components/FAIcon";
 import JSONViewer from "@/components/JSONViewer";
-import { Classes, Tag } from "@blueprintjs/core";
+import { Classes } from "@blueprintjs/core";
 import {
     faBracketsCurly,
     faPenLine,
@@ -9,9 +9,10 @@ import _ from "lodash";
 import JSONForm from "./renderers/JSONForm";
 const PreviewTag = ({ contentType, icon }) => {
     return (
-        <Tag minimal icon={<FAIcon icon={icon} />}>
-            {contentType}
-        </Tag>
+        <div>
+            <FAIcon icon={icon} />
+            &nbsp;{contentType}
+        </div>
     );
 };
 export default function MessageContent({

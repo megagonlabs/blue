@@ -43,7 +43,9 @@ const App = ({ Component, pageProps }) => {
         return (
             <AuthErrorHandler>
                 <Head>
-                    <title>Blue</title>
+                    <title>
+                        Blue&nbsp;&#91;{NEXT_PUBLIC_PLATFORM_NAME}&#93;
+                    </title>
                     <link rel="icon" href="/favicon.ico" />
                     <meta
                         name="viewport"

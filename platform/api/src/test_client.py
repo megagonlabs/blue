@@ -201,7 +201,27 @@ WORDS = (
     "maxime",
     "corrupti",
 )
-COMMON_WORDS = ("lorem", "ipsum", "dolor", "sit", "amet", "consectetur", "adipisicing", "elit", "sed", "do", "eiusmod", "tempor", "incididunt", "ut", "labore", "et", "dolore", "magna", "aliqua")
+COMMON_WORDS = (
+    "lorem",
+    "ipsum",
+    "dolor",
+    "sit",
+    "amet",
+    "consectetur",
+    "adipisicing",
+    "elit",
+    "sed",
+    "do",
+    "eiusmod",
+    "tempor",
+    "incididunt",
+    "ut",
+    "labore",
+    "et",
+    "dolore",
+    "magna",
+    "aliqua",
+)
 
 
 def sentence():
@@ -329,6 +349,7 @@ send_message(
 )
 send_eos(ws, session_id, connection_id, stream_id)
 time.sleep(2)
+# sys.exit()
 send_bos(ws, session_id, connection_id, stream_id, metadata={"tags": {"WORKSPACE": True}})
 json_form["code"] = 'UPDATE_FORM'
 json_form["args"]['uischema'] = {
@@ -359,7 +380,7 @@ send_message(
     },
 )
 send_eos(ws, session_id, connection_id, stream_id)
-# sys.exit()
+sys.exit()
 time.sleep(2)
 send_message(
     ws,
@@ -579,7 +600,13 @@ json_form = {
     "args": {
         "schema": {
             "type": "object",
-            "properties": {"name": {"type": "string"}, "current_title": {"type": "string"}, "desired_title": {"type": "string"}, "desired_location": {"type": "string"}, "skills": {"type": "string"}},
+            "properties": {
+                "name": {"type": "string"},
+                "current_title": {"type": "string"},
+                "desired_title": {"type": "string"},
+                "desired_location": {"type": "string"},
+                "skills": {"type": "string"},
+            },
         },
         "uischema": {
             "type": "VerticalLayout",

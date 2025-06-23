@@ -16,6 +16,7 @@ import {
     MenuItem,
     OverlaysProvider,
     Size,
+    Tag,
 } from "@blueprintjs/core";
 import { Omnibar } from "@blueprintjs/select";
 import {
@@ -31,7 +32,9 @@ import {
     faWavePulse,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import axios from "axios";
+import { motion } from "framer-motion";
 import _ from "lodash";
+import { allEnv } from "next-runtime-env";
 import Image from "next/image";
 import { useEffect } from "react";
 import { useShallow } from "zustand/react/shallow";
@@ -54,6 +57,7 @@ import DemoContainer from "./sessions/DemoContainer";
 import SessionList from "./sessions/SessionList";
 import FormDesigner from "./tools/FormDesigner";
 import VerticalScrollable from "./VerticalScrollable";
+const { NEXT_PUBLIC_PLATFORM_NAME } = allEnv();
 const AGENT_GROUP_ICON = _.get(ENTITY_TYPE_LOOKUP, "agent_group.icon", null);
 export default function Blue({ children }) {
     const {
@@ -253,6 +257,7 @@ export default function Blue({ children }) {
                             }}
                         >
                             <ExpandingBox
+                                transitionDuration={0}
                                 initialWidth={65}
                                 initialHeight={65}
                                 expandedWidth={250}
@@ -277,6 +282,40 @@ export default function Blue({ children }) {
                                                     : "hidden",
                                             }}
                                         >
+                                            {isExpanded && (
+                                                <motion.div
+                                                    initial="hidden"
+                                                    animate="visible"
+                                                    variants={{
+                                                        hidden: { opacity: 0 },
+                                                        visible: { opacity: 1 },
+                                                    }}
+                                                    exit="hidden"
+                                                    transition={{
+                                                        duration: 0.3,
+                                                        ease: "easeIn",
+                                                    }}
+                                                    style={{
+                                                        position: "absolute",
+                                                        right: 20,
+                                                        top: 20,
+                                                        zIndex: 2,
+                                                    }}
+                                                >
+                                                    <Tag
+                                                        style={{
+                                                            maxWidth: 120,
+                                                            lineHeight: "21px",
+                                                        }}
+                                                        intent={Intent.PRIMARY}
+                                                        minimal
+                                                    >
+                                                        {
+                                                            NEXT_PUBLIC_PLATFORM_NAME
+                                                        }
+                                                    </Tag>
+                                                </motion.div>
+                                            )}
                                             <VerticalScrollable
                                                 show={isExpanded}
                                                 transitionDuration={150}

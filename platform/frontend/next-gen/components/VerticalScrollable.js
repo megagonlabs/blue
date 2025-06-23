@@ -13,6 +13,7 @@ function VerticalScrollable({
     transitionDuration = 0,
 }) {
     const containerRef = useRef(null);
+    const timeoutIdRef = useRef(null);
     const [showBottom, setShowBottom] = useState(false);
     const checkScroll = useCallback(() => {
         if (containerRef.current) {
@@ -37,10 +38,11 @@ function VerticalScrollable({
     const [visible, setVisible] = useState(false);
     useEffect(() => {
         if (show) {
-            setTimeout(() => {
+            timeoutIdRef.current = setTimeout(() => {
                 setVisible(true);
             }, transitionDuration);
         } else {
+            clearTimeout(timeoutIdRef.current);
             setVisible(false);
         }
     }, [show]);
@@ -50,6 +52,7 @@ function VerticalScrollable({
                 ref={containerRef}
                 style={{
                     overflowY: "auto",
+                    overflowX: "hidden",
                     scrollBehavior: "smooth",
                 }}
                 className="scrollbar-none full-parent-height"
