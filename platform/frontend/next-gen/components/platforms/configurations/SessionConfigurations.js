@@ -93,15 +93,15 @@ export default function SessionConfigurations() {
                     subLabel={
                         <div>
                             Calculated based on&nbsp;
-                            <Code>created_date</Code>&nbsp;and&nbsp;
+                            <Code>created_date</Code> and&nbsp;
                             <Code>last_activity_date</Code>, sessions that are
                             outside of the expiration duration will be
                             automatically deleted &#40;
                             <Code>STREAM</Code>,&nbsp;
                             <Code>DATA</Code>
-                            &nbsp;and&nbsp;
-                            <Code>METADATA</Code> will be removed from each
-                            session&#41;. The default and minimum value is 3.
+                            &nbsp;and <Code>METADATA</Code> will be removed from
+                            each session&#41;. The default and minimum value is
+                            3.
                         </div>
                     }
                     label="Expiration duration"

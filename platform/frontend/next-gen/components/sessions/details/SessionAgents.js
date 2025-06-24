@@ -10,6 +10,7 @@ import { useSessionStore } from "@/stores/session-store";
 import { Card, CardList, Classes, NonIdealState } from "@blueprintjs/core";
 import { faScreenUsers } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import axios from "axios";
+import classNames from "classnames";
 import _ from "lodash";
 import { useEffect, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
@@ -106,6 +107,7 @@ export default function SessionAgents({
                                         display: "flex",
                                         flexDirection: "column",
                                         justifyContent: "space-between",
+                                        width: "calc(100% - 50px)",
                                     }}
                                 >
                                     <div>
@@ -115,7 +117,12 @@ export default function SessionAgents({
                                             agent.name
                                         )}
                                     </div>
-                                    <div className={Classes.TEXT_MUTED}>
+                                    <div
+                                        className={classNames(
+                                            Classes.TEXT_MUTED,
+                                            Classes.TEXT_OVERFLOW_ELLIPSIS
+                                        )}
+                                    >
                                         {agent.sid}
                                     </div>
                                 </div>

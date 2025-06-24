@@ -159,9 +159,9 @@ export default function SessionBudget({ sessionId }) {
         >
             <H3>Cost</H3>
             <Card style={{ marginBottom: 20, overflow: "hidden" }} compact>
-                <div style={{ display: "flex", gap: 15 }}>
+                <div style={{ display: "flex", gap: 15, flexWrap: "wrap" }}>
                     <FormGroup
-                        style={{ maxWidth: 200 }}
+                        style={{ maxWidth: "min(198.93px, 100%)" }}
                         label="Allocation"
                         className="full-parent-width margin-0"
                     >
@@ -177,6 +177,7 @@ export default function SessionBudget({ sessionId }) {
                         />
                     </FormGroup>
                     <FormGroup
+                        style={{ maxWidth: "min(198.93px, 100%)" }}
                         label="Used"
                         className="full-parent-width margin-0"
                     >
@@ -217,9 +218,9 @@ export default function SessionBudget({ sessionId }) {
             </Card>
             <H3>Accuracy</H3>
             <Card style={{ marginBottom: 20, overflow: "hidden" }} compact>
-                <div style={{ display: "flex", gap: 15 }}>
+                <div style={{ display: "flex", gap: 15, flexWrap: "wrap" }}>
                     <FormGroup
-                        style={{ maxWidth: 200 }}
+                        style={{ maxWidth: "min(198.93px, 100%)" }}
                         label="Target"
                         className="full-parent-width margin-0"
                     >
@@ -239,6 +240,7 @@ export default function SessionBudget({ sessionId }) {
                         />
                     </FormGroup>
                     <FormGroup
+                        style={{ maxWidth: "min(198.93px, 100%)" }}
                         label="Worst"
                         className="full-parent-width margin-0"
                     >
@@ -267,9 +269,9 @@ export default function SessionBudget({ sessionId }) {
             </Card>
             <H3>Latency</H3>
             <Card style={{ marginBottom: 20, overflow: "hidden" }} compact>
-                <div style={{ display: "flex", gap: 15 }}>
+                <div style={{ display: "flex", gap: 15, flexWrap: "wrap" }}>
                     <FormGroup
-                        style={{ maxWidth: 200 }}
+                        style={{ maxWidth: "min(198.93px, 100%)" }}
                         label="Objective"
                         className="full-parent-width margin-0"
                     >
@@ -284,6 +286,7 @@ export default function SessionBudget({ sessionId }) {
                         />
                     </FormGroup>
                     <FormGroup
+                        style={{ maxWidth: "min(198.93px, 100%)" }}
                         label="Slowest"
                         className="full-parent-width margin-0"
                     >

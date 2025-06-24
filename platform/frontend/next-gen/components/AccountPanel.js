@@ -68,8 +68,7 @@ export default function AccountPanel({ isExpanded }) {
                             Classes.TEXT_SMALL
                         )}
                     >
-                        Managed by&nbsp;
-                        {_.get(user, "email_domain", "-")}
+                        Managed by {_.get(user, "email_domain", "-")}
                     </div>
                     <div style={{ marginTop: 10 }}>
                         <Tag size={Size.LARGE} minimal intent={Intent.PRIMARY}>

@@ -39,10 +39,9 @@ export default function SessionSettings({ sessionId }) {
                 <div>
                     <div style={{ fontWeight: 600 }}>Delete this session</div>
                     <div>
-                        Once you delete this session, its&nbsp;
-                        <Code>STREAM</Code>,&nbsp;<Code>DATA</Code>
-                        &nbsp;and&nbsp;
-                        <Code>METADATA</Code>&nbsp;will be removed.
+                        Once you delete this session, its <Code>STREAM</Code>
+                        ,&nbsp;<Code>DATA</Code> and <Code>METADATA</Code> will
+                        be removed.
                     </div>
                     <div style={{ marginTop: 20 }}></div>
                     <Popover
