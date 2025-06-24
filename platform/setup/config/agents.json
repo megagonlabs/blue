@@ -1573,7 +1573,7 @@
     "name": "NL2LLM",
     "type": "agent",
     "scope": "/",
-    "description": "Answering natural language questions and generating results by uilizing LLM models' internal knowledge. Works with any data source that has 'llm' as their protocol. Returns output as a JSON with keys `question`, `source`, `result` and `error`.",
+    "description": "Answering natural language questions and generating results by utilizing LLM models' internal knowledge. Works with any data source that has 'llm' as their protocol. Returns output as a JSON with keys `question`, `source`, `result` and `error`.",
     "created_by": null,
     "properties": {
       "image": "megagonlabs/blue-agent-nl2llm-private:latest",
