@@ -22,7 +22,7 @@ class NL2LLMAgent(Agent):
 
     PROPERTIES = {
         # agent related properties
-        "nl2llm_source": None, 
+        "nl2llm_source": None,
         "nl2llm_discovery": True, # if True, will search for any source that has "llm" as their protocol in the data registry, if false, will just use the "openai" source
         "nl2llm_discovery_source_protocols": ["openai"], # list of protocols to search for, should be changed to ["llm"] after github issue #945 is resolved
         "nl2llm_context": [],
@@ -64,9 +64,11 @@ class NL2LLMAgent(Agent):
         # initialize source
         logging.info("Initializing source...")
         self._init_source()
+
         logging.info("NL2LLMAgent initialization complete")
 
     def _init_registry(self):
+        """Initialize the data registry."""
         # create instance of data registry
         platform_id = self.properties["platform.name"]
         prefix = 'PLATFORM:' + platform_id
@@ -80,6 +82,7 @@ class NL2LLMAgent(Agent):
         # initialize optional settings
         self.selected_source = None
         self.selected_source_protocol = None
+        self.selected_source_protocol_variant = None
 
         # select source, if set
         if "nl2llm_source" in self.properties and self.properties["nl2llm_source"]:
@@ -173,25 +176,61 @@ class NL2LLMAgent(Agent):
     def default_processor(self, message, input="DEFAULT", properties=None, worker=None):
         """Process incoming messages and execute LLM queries."""
         
-        # get properties, overriding with properties provided
-        properties = self.get_properties(properties=properties)
-
-        # get input data
-        input_data = message.getData()
+        if message.isEOS():
+            # get all data received from stream
+            stream_data = ""
+            if worker:
+                stream_data = worker.get_data('stream')
+            
+            # get properties, overriding with properties provided
+            properties = self.get_properties(properties=properties)
+            
+            # process the accumulated data
+            if stream_data and len(stream_data) > 0:
+                input_data = stream_data[0]
+                
+                # Only process if we have valid input data (not None, not empty)
+                if input_data and input_data.strip() != "":
+                    logging.info(f"Processing accumulated input: {input_data}")
+                    
+                    # process the query
+                    result = self.process_query(input_data, properties=properties)
+                    
+                    # write result to output stream
+                    if worker:
+                        worker.write_data(result)
+                else:
+                    logging.info(f"Skipping processing for empty/null input: {input_data}")
+            else:
+                logging.info("No data accumulated in stream, skipping processing")
+            
+            if worker:
+                worker.write_eos()
+            
+        elif message.isBOS():
+            # init stream to empty array
+            if worker:
+                worker.set_data('stream', [])
+            pass
+        elif message.isData():
+            # store data value
+            data = message.getData()
+            logging.info(f"Accumulating data: {data}")
+            
+            if worker:
+                worker.append_data('stream', str(data))
         
-        # process the query
-        result = self.process_query(input_data, properties=properties)
-        
-        # write result to output stream
-        if worker:
-            worker.write_data(result)
-        
-        return result
+        return None
 
     def process_query(self, question, properties=None):
         """Process a natural language query using the selected LLM source.
         """
         properties = self.get_properties(properties=properties)
+        
+        # Validate question - return None for empty/null questions
+        if question is None or question == "" or question.strip() == "":
+            logging.info(f"Skipping processing for empty/null question: {question}")
+            return None
         
         # check if source is selected
         if self.selected_source is None:
