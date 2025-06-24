@@ -154,12 +154,27 @@ class NL2LLMAgent(Agent):
         
         return sources
 
+    def get_properties(self, properties=None):
+        """Copied from RequestorAgent.get_properties()
+        """
+        merged_properties = {}
+
+        # copy agent properties
+        for p in self.properties:
+            merged_properties[p] = self.properties[p]
+
+        # override
+        if properties is not None:
+            for p in properties:
+                merged_properties[p] = properties[p]
+
+        return merged_properties
+    
     def default_processor(self, message, input="DEFAULT", properties=None, worker=None):
         """Process incoming messages and execute LLM queries."""
         
         # get properties, overriding with properties provided
-        if properties is None:
-            properties = self.properties
+        properties = self.get_properties(properties=properties)
 
         # get input data
         input_data = message.getData()
@@ -176,10 +191,7 @@ class NL2LLMAgent(Agent):
     def process_query(self, question, properties=None):
         """Process a natural language query using the selected LLM source.
         """
-        
-        # get properties, overriding with properties provided
-        if properties is None:
-            properties = self.properties
+        properties = self.get_properties(properties=properties)
         
         # check if source is selected
         if self.selected_source is None:
@@ -193,6 +205,10 @@ class NL2LLMAgent(Agent):
             }, properties=properties)
         
         try:
+            # initialize source if not already initialized
+            if self.selected_source is None:
+                self._init_source()
+
             # connect to the source
             source_connection = self.registry.connect_source(self.selected_source)
             
@@ -202,8 +218,10 @@ class NL2LLMAgent(Agent):
             
             result = source_connection.execute_query(
                 question,
-                context=properties.get('nl2llm_context', ""),
-                attr_names=properties.get('nl2llm_attr_names', [])
+                optional_properties={
+                    'context': properties.get('nl2llm_context', ""),
+                    'attr_names': properties.get('nl2llm_attr_names', [])
+                }
             )
             
             logging.info("result: " + str(result))
