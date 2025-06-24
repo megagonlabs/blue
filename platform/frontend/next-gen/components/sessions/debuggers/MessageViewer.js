@@ -134,7 +134,11 @@ export default function MessageViewer({ sessionId, message }) {
                                 </div>
                             </td>
                             <td>{data.label}</td>
-                            <td>{data.content}</td>
+                            <td>
+                                <div className="multiline-ellipsis-5">
+                                    {data.content}
+                                </div>
+                            </td>
                             <td>{data.dataType}</td>
                         </tr>
                     ))}
