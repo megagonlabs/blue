@@ -47,7 +47,9 @@ function AgentList({ width, height }) {
     const [showFilter, setShowFilter] = useState(false);
     const darkMode = useAppStore((state) => state.dark_mode);
     const [showNewEntity, setShowNewEntity] = useState(false);
-    const addContainer = useGridStore((state) => state.addContainer);
+    const { addContainer } = useGridStore(
+        useShallow((state) => ({ addContainer: state.addContainer }))
+    );
     useEffect(() => {
         getAgents();
     }, []);

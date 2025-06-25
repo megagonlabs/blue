@@ -182,7 +182,7 @@ function SessionList({ width, height }) {
                     <Button
                         intent={Intent.PRIMARY}
                         onClick={() => {
-                            createNewSession();
+                            createNewSession({});
                         }}
                         icon={<FAIcon icon={faInboxArrowUp} />}
                         size={Size.LARGE}

@@ -17,10 +17,12 @@ import { faBrowsers } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import classNames from "classnames";
 import _ from "lodash";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useShallow } from "zustand/react/shallow";
 import {
     DOCKER_CONTAINER_STATUS_LOOKUP,
     REGISTRY_ENTITY_ICON_WRAPPER_STYLES,
 } from "../constants";
+import { useGridContainerContext } from "../contexts/GridContainerContext";
 import { FAIcon } from "../FAIcon";
 import HorizontalScrollable from "../HorizontalScrollable";
 import EntityDisplayName from "./EntityDisplayName";
@@ -51,7 +53,12 @@ export default function RegistryEntityCard({ entity }) {
     const handleClose = useCallback(() => {
         hideContextMenu();
     }, []);
-    const addContainer = useGridStore((state) => state.addContainer);
+    const { addContainer, replaceContainer } = useGridStore(
+        useShallow((state) => ({
+            addContainer: state.addContainer,
+            replaceContainer: state.replaceContainer,
+        }))
+    );
     const menu = useMemo(
         () => (
             <Menu size={Size.LARGE} onClick={handleClose}>
@@ -70,6 +77,7 @@ export default function RegistryEntityCard({ entity }) {
         ),
         [handleClose, entity, addContainer]
     );
+    const { gridContainerId } = useGridContainerContext();
     const handleContextMenu = useCallback(
         (event) => {
             // ensure `preventDefault` is called just before `showContextMenu` and in the same event handler to prevent the
@@ -89,6 +97,12 @@ export default function RegistryEntityCard({ entity }) {
             className="full-parent-dimension interactive-card-border"
             style={{ position: "relative", cursor: "context-menu" }}
             onContextMenu={handleContextMenu}
+            onDoubleClick={() => {
+                replaceContainer({
+                    id: gridContainerId,
+                    content: <RegistryEntityContainer entity={entity} />,
+                });
+            }}
         >
             <div
                 className="padding-0 overflow-hidden custom-card"

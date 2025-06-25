@@ -5,7 +5,7 @@ import {
     MAIN_INFO_STYLES,
     REGISTRY_ENTITY_ICON_WRAPPER_STYLES,
 } from "@/components/constants";
-import { useContainerContext } from "@/components/contexts/ContainerContext";
+import { useGridContainerContext } from "@/components/contexts/GridContainerContext";
 import { FAIcon } from "@/components/FAIcon";
 import {
     getEntityMainProperties,
@@ -51,7 +51,7 @@ export default function SourceEntity({
     const [editedSource, setEditedSource] = useState(null);
     const [mainProperties, setMainProperties] = useState({});
     const [loading, setLoading] = useState(false);
-    const { containerId } = useContainerContext();
+    const { gridContainerId } = useGridContainerContext();
     const [template, setTemplate] = useState(null);
     const { setContainerHeader, addContainer } = useGridStore(
         useShallow((state) => ({
@@ -84,7 +84,7 @@ export default function SourceEntity({
     };
     useEffect(() => {
         setContainerHeader({
-            id: containerId,
+            id: gridContainerId,
             title: <EntityDisplayName entity={source} />,
             icon: _.get(ENTITY_TYPE_LOOKUP, [type, "icon"], null),
         });

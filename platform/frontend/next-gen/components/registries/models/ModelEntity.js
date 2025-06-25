@@ -4,7 +4,7 @@ import {
     MAIN_INFO_STYLES,
     REGISTRY_ENTITY_ICON_WRAPPER_STYLES,
 } from "@/components/constants";
-import { useContainerContext } from "@/components/contexts/ContainerContext";
+import { useGridContainerContext } from "@/components/contexts/GridContainerContext";
 import {
     getEntityMainProperties,
     getUpdatePropertyPromises,
@@ -40,7 +40,7 @@ export default function ModelEntity({
     const [editedModel, setEditedModel] = useState(null);
     const [mainProperties, setMainProperties] = useState({});
     const [loading, setLoading] = useState(false);
-    const { containerId } = useContainerContext();
+    const { gridContainerId } = useGridContainerContext();
     const [template, setTemplate] = useState(null);
     const { removeContainer, setContainerHeader, addContainer } = useGridStore(
         useShallow((state) => ({
@@ -64,7 +64,7 @@ export default function ModelEntity({
     const url = `/registry/${NEXT_PUBLIC_MODEL_REGISTRY_NAME}/${type}/${name}`;
     useEffect(() => {
         setContainerHeader({
-            id: containerId,
+            id: gridContainerId,
             title: <EntityDisplayName entity={model} />,
             icon: _.get(ENTITY_TYPE_LOOKUP, [type, "icon"], null),
         });
@@ -134,7 +134,7 @@ export default function ModelEntity({
         setLoading(true);
         axios.delete(url).finally(() => {
             setLoading(false);
-            removeContainer(containerId);
+            removeContainer(gridContainerId);
         });
     };
     const onDuplicate = () => {

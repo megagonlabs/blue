@@ -79,7 +79,11 @@ export const useSessionStore = create((set, get) => ({
         _.set(newSessions, [sessionId, "details"], details);
         set({ sessions: newSessions });
     },
-    createNewSession: (agentGroup = null) => {
+    createNewSession: ({
+        agentGroup = null,
+        replace = false,
+        gridContainerId = null,
+    }) => {
         let url = "/sessions/session";
         if (!_.isEmpty(agentGroup)) {
             url += `/${agentGroup}`;
@@ -87,12 +91,22 @@ export const useSessionStore = create((set, get) => ({
         axios.post(url).then((response) => {
             const sessionId = _.get(response, "data.result.id", null);
             if (!_.isNull(sessionId)) {
-                const { addContainer } = useGridStore.getState();
-                addContainer({
-                    icon: faMessages,
-                    title: <SessionDisplayName sessionId={sessionId} />,
-                    content: <SessionContainer sessionId={sessionId} />,
-                });
+                const { addContainer, replaceContainer } =
+                    useGridStore.getState();
+                if (replace && !_.isEmpty(gridContainerId)) {
+                    replaceContainer({
+                        id: gridContainerId,
+                        title: <SessionDisplayName sessionId={sessionId} />,
+                        content: <SessionContainer sessionId={sessionId} />,
+                        icon: faMessages,
+                    });
+                } else {
+                    addContainer({
+                        icon: faMessages,
+                        title: <SessionDisplayName sessionId={sessionId} />,
+                        content: <SessionContainer sessionId={sessionId} />,
+                    });
+                }
                 const { triggers } = get();
                 let next = _.cloneDeep(triggers);
                 _.set(next, ["addSessionAgent", sessionId], true);

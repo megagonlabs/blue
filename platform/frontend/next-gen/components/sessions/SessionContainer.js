@@ -19,7 +19,7 @@ import _ from "lodash";
 import { createRef, useEffect, useMemo, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { MIN_ALLOTMENT_PANE_SIZE } from "../constants";
-import { useContainerContext } from "../contexts/ContainerContext";
+import { useGridContainerContext } from "../contexts/GridContainerContext";
 import { FAIcon } from "../FAIcon";
 import withAutoSizer from "../hocs/withAutoSizer";
 import { useRefDimensions } from "../hooks/useRefDimensions";
@@ -41,7 +41,7 @@ function SessionContainer({ width, height, sessionId }) {
     const observeSession = useSocketStore((state) => state.observeSession);
     const details = _.get(sessions, [sessionId, "details"], {});
     const sessionName = _.get(details, "name", sessionId);
-    const { containerId } = useContainerContext();
+    const { gridContainerId } = useGridContainerContext();
     const removeContainer = useGridStore((state) => state.removeContainer);
     const displayName = useMemo(() => {
         if (_.isEqual(sessionId, sessionName)) {
@@ -57,9 +57,9 @@ function SessionContainer({ width, height, sessionId }) {
     }, []);
     useEffect(() => {
         if (!_.has(sessions, sessionId)) {
-            removeContainer(containerId);
+            removeContainer(gridContainerId);
         }
-    }, [sessions, containerId, removeContainer]);
+    }, [sessions, gridContainerId, removeContainer]);
     const sendSessionMessage = () => {
         const trimmedUserMessage = _.trim(userMessage);
         if (_.isEmpty(trimmedUserMessage)) return;

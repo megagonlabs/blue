@@ -1,4 +1,4 @@
-import { ContainerContextProvider } from "@/components/contexts/ContainerContext";
+import { GridContainerContextProvider } from "@/components/contexts/GridContainerContext";
 import { FAIcon } from "@/components/FAIcon";
 import { useGridStore } from "@/stores/grid-layout-store";
 import {
@@ -222,15 +222,15 @@ export default function Home() {
                             className="overflow-hidden"
                             style={{ height: "calc(100% - 45px)" }}
                         >
-                            <ContainerContextProvider
-                                value={{ containerId: element.i }}
+                            <GridContainerContextProvider
+                                value={{ gridContainerId: element.i }}
                             >
                                 {_.get(
                                     containers,
                                     [element.i, "content"],
                                     null
                                 )}
-                            </ContainerContextProvider>
+                            </GridContainerContextProvider>
                         </div>
                     </div>
                 ))}

@@ -14,7 +14,7 @@ import {
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import _ from "lodash";
 import { useState } from "react";
-import { useContainerContext } from "../contexts/ContainerContext";
+import { useGridContainerContext } from "../contexts/GridContainerContext";
 import { FAIcon } from "../FAIcon";
 import withAutoSizer from "../hocs/withAutoSizer";
 import AuthenticationConfigurations from "./configurations/AuthenticationConfigurations";
@@ -24,7 +24,7 @@ const SECTIONS = [
     { icon: faIdCardClip, text: "Authentication" },
 ];
 function PlatformConfigurations({ width, height }) {
-    const { containerId } = useContainerContext();
+    const { gridContainerId } = useGridContainerContext();
     const darkMode = useAppStore((state) => state.dark_mode);
     const getConfigurations = usePlatformStore(
         (state) => state.getConfigurations
@@ -58,7 +58,7 @@ function PlatformConfigurations({ width, height }) {
                                 onClick={() => {
                                     const element = _.first(
                                         document.querySelectorAll(
-                                            `.container-${containerId} .setting-container-section-${
+                                            `.container-${gridContainerId} .setting-container-section-${
                                                 index + 1
                                             }`
                                         )
@@ -76,7 +76,7 @@ function PlatformConfigurations({ width, height }) {
                     </ButtonGroup>
                 </div>
                 <div
-                    className={`full-parent-dimension container-${containerId}`}
+                    className={`full-parent-dimension container-${gridContainerId}`}
                     style={{
                         backgroundColor: darkMode ? Colors.BLACK : null,
                         padding: 20,

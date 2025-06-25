@@ -412,7 +412,9 @@ export default function Blue({ children }) {
                                                                             }
                                                                             text="New Session"
                                                                             onClick={() => {
-                                                                                createNewSession();
+                                                                                createNewSession(
+                                                                                    {}
+                                                                                );
                                                                             }}
                                                                             icon={
                                                                                 <FAIcon

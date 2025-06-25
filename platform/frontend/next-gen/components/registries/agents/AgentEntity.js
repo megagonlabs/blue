@@ -4,7 +4,7 @@ import {
     MAIN_INFO_STYLES,
     REGISTRY_ENTITY_ICON_WRAPPER_STYLES,
 } from "@/components/constants";
-import { useContainerContext } from "@/components/contexts/ContainerContext";
+import { useGridContainerContext } from "@/components/contexts/GridContainerContext";
 import { FAIcon } from "@/components/FAIcon";
 import {
     getEntityMainProperties,
@@ -53,7 +53,7 @@ export default function AgentEntity({
     backCrumb,
 }) {
     const { name, type, scope } = entity;
-    const { containerId } = useContainerContext();
+    const { gridContainerId } = useGridContainerContext();
     const setContainerHeader = useGridStore(
         (state) => state.setContainerHeader
     );
@@ -82,7 +82,7 @@ export default function AgentEntity({
     const url = `/registry/${NEXT_PUBLIC_AGENT_REGISTRY_NAME}/${type}/${name}`;
     useEffect(() => {
         setContainerHeader({
-            id: containerId,
+            id: gridContainerId,
             title: <EntityDisplayName entity={agent} />,
             icon: _.get(ENTITY_TYPE_LOOKUP, [type, "icon"], null),
         });
