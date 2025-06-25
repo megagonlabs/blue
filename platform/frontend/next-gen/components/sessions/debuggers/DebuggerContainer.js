@@ -1,6 +1,6 @@
 import { EMPTY_OBJECT, MIN_ALLOTMENT_PANE_SIZE } from "@/components/constants";
 import { FAIcon } from "@/components/FAIcon";
-import { insertBetween } from "@/components/helper";
+import { insertBetween, showAxiosErrorToast } from "@/components/helper";
 import withAutoSizer from "@/components/hocs/withAutoSizer";
 import Timestamp from "@/components/Timestamp";
 import { useAppStore } from "@/stores/app-store";
@@ -28,11 +28,13 @@ import {
     faMessages,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import { Allotment } from "allotment";
+import axios from "axios";
 import classNames from "classnames";
 import _ from "lodash";
 import { useEffect, useMemo, useRef, useState } from "react";
 import AutoSizer from "react-virtualized-auto-sizer";
 import { useShallow } from "zustand/react/shallow";
+import AgentLogs from "../../platforms/AgentLogs";
 import SessionAgents from "../details/SessionAgents";
 import MessageViewer from "./MessageViewer";
 const FOLDER_CLOSED_ICON = (
@@ -289,7 +291,17 @@ function DebuggerContainer({ width, height, sessionId }) {
         });
         setTreeContents(contents);
     };
-    const callback = (agent) => {};
+    const [containerId, setContainerId] = useState(null);
+    const callback = (agent) => {
+        axios
+            .get(`/containers/agents/agent/${agent.name}`)
+            .then((response) => {
+                setContainerId(_.get(response, "result.id", null));
+            })
+            .catch((error) => {
+                showAxiosErrorToast(error);
+            });
+    };
     return (
         <div
             ref={elementRef}
@@ -541,7 +553,14 @@ function DebuggerContainer({ width, height, sessionId }) {
                     </div>
                 </Allotment.Pane>
                 <Allotment.Pane minSize={MIN_ALLOTMENT_PANE_SIZE}>
-                    {_.isInteger(focusIndex) &&
+                    {_.isEqual(visibleSection, "agents") && (
+                        <AgentLogs
+                            containerId={containerId}
+                            setContainerId={setContainerId}
+                        />
+                    )}
+                    {_.isEqual(visibleSection, "messages") &&
+                        _.isInteger(focusIndex) &&
                         focusIndex >= 0 &&
                         focusIndex < _.size(messages) && (
                             <MessageViewer

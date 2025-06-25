@@ -147,6 +147,57 @@ def list_agent_containers(request: Request):
     return JSONResponse(content={"results": temp})
 
 
+@router.get('/agents/agent/{agent_name}')
+def get_agent_container(request: Request, agent_name):
+    agent = agent_registry.get_agent(agent_name)
+    container_acl_enforce(request, agent, write=True)
+    client = docker.from_env()
+    if PROPERTIES["platform.deploy.target"] == "localhost":
+        containers = client.containers.list()
+        for container in containers:
+            c = {}
+            c["id"] = container.attrs["Id"]
+            c["hostname"] = container.attrs["Config"]["Hostname"]
+            c["created_date"] = container.attrs["Created"]
+            c["image"] = container.attrs["Config"]["Image"]
+            c["status"] = container.attrs["State"]["Status"]
+            labels = container.attrs["Config"]["Labels"]
+            if 'blue.agent' in labels:
+                l = labels['blue.agent']
+                la = l.split(".")
+                c["agent"] = la[2]
+                c["registry"] = la[1]
+                c["platform"] = la[0]
+                if c["platform"] == platform_id and c['agent'] == agent_name:
+                    return JSONResponse(content={"result": c})
+    elif PROPERTIES["platform.deploy.target"] == "swarm":
+        services = client.services.list()
+        for service in services:
+            c = {}
+            c["id"] = service.attrs["ID"]
+            c["hostname"] = service.attrs["Spec"]["TaskTemplate"]["ContainerSpec"]["Hostname"]
+            c["created_date"] = service.attrs["CreatedAt"]
+            c["image"] = service.attrs["Spec"]["TaskTemplate"]["ContainerSpec"]["Image"]
+            tasks = service.tasks()
+            status = None
+            for task in tasks:
+                s = task["Status"]["State"]
+                status = s
+                if status == "running":
+                    break
+            c["status"] = status
+            labels = service.attrs["Spec"]["TaskTemplate"]["ContainerSpec"]["Labels"]
+            if 'blue.agent' in labels:
+                l = labels['blue.agent']
+                la = l.split(".")
+                c["agent"] = la[2]
+                c["registry"] = la[1]
+                c["platform"] = la[0]
+                if c["platform"] == platform_id and c['agent'] == agent_name:
+                    return JSONResponse(content={"result": c})
+    return JSONResponse(content={"message": f"No such container: {agent_name}"}, status_code=404)
+
+
 @router.post("/agents/agent/{agent_name}")
 # deploy an agent container with the name {agent_name} to the agent registry with the name
 def deploy_agent_container(request: Request, agent_name):
@@ -377,7 +428,7 @@ async def stream_log(container_id):
             instance = client.services.get(container_id)
     except docker.errors.NotFound:
         client.close()
-        return StreamingResponse(f"event: error\ndata: No such instance: {container_id}\n\n", media_type="text/event-stream")
+        return StreamingResponse(f"event: error\ndata: No such container: {container_id}\n\n", media_type="text/event-stream")
 
     async def generate():
         queue = asyncio.Queue()

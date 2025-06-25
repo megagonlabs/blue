@@ -83,7 +83,7 @@ export default function DemoGroupCard({ agentGroup }) {
             className="full-parent-dimension interactive-card-border"
             style={{ position: "relative", cursor: "context-menu" }}
             onContextMenu={handleContextMenu}
-            onClick={launchAgentGroupSession}
+            // onDoubleClick={launchAgentGroupSession}
         >
             <div
                 className="padding-0 overflow-hidden custom-card"

@@ -44,7 +44,7 @@ export default function SessionAgents({
                 const agents = _.get(response, "data.results", []).filter(
                     (agent) => {
                         const type = _.split(agent.sid, ":")[0];
-                        return !_.includes(IGNORED_AGENT_TYPES, type) || true;
+                        return !_.includes(IGNORED_AGENT_TYPES, type);
                     }
                 );
                 for (let i = 0; i < _.size(agents); i++) {
