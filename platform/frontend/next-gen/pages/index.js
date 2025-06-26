@@ -1,5 +1,6 @@
 import { GridContainerContextProvider } from "@/components/contexts/GridContainerContext";
 import { FAIcon } from "@/components/FAIcon";
+import { useAppStore } from "@/stores/app-store";
 import { useGridStore } from "@/stores/grid-layout-store";
 import {
     Button,
@@ -61,6 +62,11 @@ export default function Home() {
         }))
     );
     const gridRef = useRef();
+    const { windowsControlButtons } = useAppStore(
+        useShallow((state) => ({
+            windowsControlButtons: state.windows_control_buttons,
+        }))
+    );
     return (
         <div
             ref={gridRef}
@@ -89,12 +95,21 @@ export default function Home() {
                             style={{
                                 padding: "0px 20px",
                                 display: "flex",
+                                flexDirection: windowsControlButtons
+                                    ? "row-reverse"
+                                    : null,
                                 alignItems: "center",
                                 gap: 10,
                             }}
                         >
                             <ButtonGroup
-                                style={{ marginRight: 10 }}
+                                style={{
+                                    marginRight: windowsControlButtons ? 0 : 10,
+                                    marginLeft: windowsControlButtons ? 10 : 0,
+                                    flexDirection: windowsControlButtons
+                                        ? "row-reverse"
+                                        : null,
+                                }}
                                 variant={ButtonVariant.MINIMAL}
                                 size={Size.SMALL}
                             >
@@ -114,7 +129,15 @@ export default function Home() {
                                     modifiers={{
                                         offset: {
                                             enabled: true,
-                                            options: { offset: [31, 14] },
+                                            options: {
+                                                offset: [
+                                                    31 *
+                                                        (windowsControlButtons
+                                                            ? -1
+                                                            : 1),
+                                                    14,
+                                                ],
+                                            },
                                         },
                                     }}
                                     content={
@@ -184,7 +207,10 @@ export default function Home() {
                                     fontWeight: 600,
                                     display: "flex",
                                     height: 44,
-                                    paddingRight: 79,
+                                    paddingRight: windowsControlButtons
+                                        ? 0
+                                        : 79,
+                                    paddingLeft: windowsControlButtons ? 79 : 0,
                                     alignItems: "center",
                                     justifyContent: "center",
                                 }}

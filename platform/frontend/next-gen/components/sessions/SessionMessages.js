@@ -49,13 +49,19 @@ import SessionDisplayName from "./SessionDisplayName";
 import SessionMemberStack from "./SessionMemberStack";
 const Row = ({ index, data, style }) => {
     const { setRowHeight, sessionId, addInspectionContainer } = data;
-    const darkMode = useAppStore((state) => state.dark_mode);
+    const { darkMode, autoExpandMessage } = useAppStore(
+        useShallow((state) => ({
+            darkMode: state.dark_mode,
+            autoExpandMessage: state.expand_message,
+        }))
+    );
     const { getUserProfileById, getAgentMetadata } = useDedupStore(
         useShallow((state) => ({
             getUserProfileById: state.getUserProfileById,
             getAgentMetadata: state.getAgentMetadata,
         }))
     );
+
     const {
         streams,
         messages,
@@ -129,6 +135,11 @@ const Row = ({ index, data, style }) => {
     const complete = _.get(streams, [stream, "complete"], false);
     const hasError = useRef(false);
     const showActions = useRef(false);
+    useEffect(() => {
+        if (autoExpandMessage) {
+            expandMessage(sessionId, stream);
+        }
+    }, [autoExpandMessage]);
     return (
         <div
             key={index}

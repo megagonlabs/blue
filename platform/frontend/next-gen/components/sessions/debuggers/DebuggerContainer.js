@@ -440,9 +440,7 @@ function DebuggerContainer({ width, height, sessionId }) {
                                                     </th>
                                                 </tr>
                                             </thead>
-                                            <tbody
-                                                style={{ overflowY: "auto" }}
-                                            >
+                                            <tbody>
                                                 {messages.map((message) => (
                                                     <tr
                                                         key={message.stream}

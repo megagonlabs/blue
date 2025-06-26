@@ -150,7 +150,7 @@ export default function Blue({ children }) {
     };
     useEffect(() => {
         addDemoContainer();
-    });
+    }, []);
     const createNewSession = useSessionStore((state) => state.createNewSession);
     const userProfileError =
         !_.isEmpty(user) && _.isEmpty(_.get(user, "role", null));

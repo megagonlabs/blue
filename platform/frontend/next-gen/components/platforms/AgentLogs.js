@@ -9,6 +9,7 @@ import {
     ButtonGroup,
     ButtonVariant,
     Colors,
+    Intent,
     Size,
     Tag,
     Tooltip,
