@@ -48,6 +48,7 @@ export default function JSONForm({ content, hasError }) {
                             position: "absolute",
                             left: 0,
                             bottom: 0,
+                            zIndex: 1,
                             borderTopLeftRadius: 0,
                             borderTopRightRadius: 0,
                         }}

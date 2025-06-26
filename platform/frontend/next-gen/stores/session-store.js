@@ -14,7 +14,28 @@ export const useSessionStore = create((set, get) => ({
     progress: {},
     inspection: {},
     expandedMessages: {},
+    messageFilterTags: {},
     triggers: {},
+    toggleMessageFilterTag: (sessionId, tag) => {
+        const { messageFilterTags } = get();
+        let next = _.cloneDeep(messageFilterTags);
+        let current = _.get(messageFilterTags, sessionId, []);
+        if (!_.includes(current, tag)) {
+            current.push(tag);
+        } else {
+            current = _.pull(current, tag);
+        }
+        _.set(next, sessionId, current);
+        set({ messageFilterTags: next });
+    },
+    clearMessageFilterTags: (sessionId) => {
+        set((state) => ({
+            messageFilterTags: {
+                ...state.clearMessageFilterTags,
+                [sessionId]: [],
+            },
+        }));
+    },
     resetTrigger: (path) => {
         const { triggers } = get();
         let next = _.cloneDeep(triggers);

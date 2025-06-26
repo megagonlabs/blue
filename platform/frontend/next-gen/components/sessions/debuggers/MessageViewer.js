@@ -45,7 +45,7 @@ export default function MessageViewer({ sessionId, message }) {
                     marginBottom: 10,
                 }}
             >
-                <div style={{ maxWidth: 71, width: "fit-content" }}>
+                <div style={{ maxWidth: 110, width: "fit-content" }}>
                     <Tag size={Size.LARGE} minimal intent={Intent.PRIMARY}>
                         {message.contentType}
                     </Tag>
@@ -53,7 +53,7 @@ export default function MessageViewer({ sessionId, message }) {
                 <div
                     style={{
                         display: "flex",
-                        maxWidth: "calc(100% - 91px)",
+                        maxWidth: "calc(100% - 130px)",
                         gap: 10,
                     }}
                 >
@@ -84,21 +84,34 @@ export default function MessageViewer({ sessionId, message }) {
                     gap: 10,
                     alignItems: "center",
                     marginBottom: 15,
+                    flexWrap: "wrap",
                 }}
             >
-                <div className={Classes.TEXT_MUTED}>Time</div>
-                <Timestamp placement="bottom" date={message.timestamp} />
+                <div style={{ display: "inline-flex", gap: 10 }}>
+                    <div className={Classes.TEXT_MUTED}>Time</div>
+                    <Timestamp placement="bottom" date={message.timestamp} />
+                </div>
                 <Divider style={{ height: "10px" }} />
-                <div className={Classes.TEXT_MUTED}>Created By</div>
-                <MessageIcon metadata={message.metadata} />
+                <div
+                    style={{
+                        display: "inline-flex",
+                        gap: 10,
+                        alignItems: "center",
+                    }}
+                >
+                    <div className={Classes.TEXT_MUTED}>Created By</div>
+                    <MessageIcon metadata={message.metadata} />
+                </div>
                 <Divider style={{ height: "10px" }} />
-                <div className={Classes.TEXT_MUTED}>Tags</div>
-                <div style={{ display: "flex", gap: 5 }}>
-                    {tags.map((tag) => (
-                        <Tag key={tag} minimal>
-                            {tag}
-                        </Tag>
-                    ))}
+                <div style={{ display: "inline-flex", gap: 10 }}>
+                    <div className={Classes.TEXT_MUTED}>Tags</div>
+                    <div style={{ display: "flex", gap: 5 }}>
+                        {tags.map((tag) => (
+                            <Tag key={tag} minimal>
+                                {tag}
+                            </Tag>
+                        ))}
+                    </div>
                 </div>
             </div>
             <HTMLTable
@@ -136,7 +149,7 @@ export default function MessageViewer({ sessionId, message }) {
                             <td>{data.label}</td>
                             <td>
                                 <div className="multiline-ellipsis-5">
-                                    {data.content}
+                                    {JSON.stringify(data.content)}
                                 </div>
                             </td>
                             <td>{data.dataType}</td>

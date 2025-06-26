@@ -12,8 +12,8 @@ import {
     FormGroup,
     Intent,
     Popover,
-    PopoverInteractionKind,
     Size,
+    Tooltip,
 } from "@blueprintjs/core";
 import {
     faExpand,
@@ -123,9 +123,6 @@ export default function Home() {
                                 <Divider className="visibility-hidden" />
                                 <Popover
                                     placement="bottom"
-                                    interactionKind={
-                                        PopoverInteractionKind.HOVER
-                                    }
                                     modifiers={{
                                         offset: {
                                             enabled: true,
@@ -135,7 +132,7 @@ export default function Home() {
                                                         (windowsControlButtons
                                                             ? -1
                                                             : 1),
-                                                    14,
+                                                    11,
                                                 ],
                                             },
                                         },
@@ -194,10 +191,15 @@ export default function Home() {
                                         </div>
                                     }
                                 >
-                                    <Button
-                                        intent={Intent.SUCCESS}
-                                        icon={<FAIcon icon={faExpand} />}
-                                    />
+                                    <Tooltip
+                                        placement="bottom"
+                                        content="Resize"
+                                    >
+                                        <Button
+                                            intent={Intent.SUCCESS}
+                                            icon={<FAIcon icon={faExpand} />}
+                                        />
+                                    </Tooltip>
                                 </Popover>
                             </ButtonGroup>
                             <div
