@@ -23,7 +23,12 @@ import _ from "lodash";
 import { allEnv } from "next-runtime-env";
 import { useEffect, useRef, useState } from "react";
 const { NEXT_PUBLIC_REST_API_SERVER, NEXT_PUBLIC_PLATFORM_NAME } = allEnv();
-export default function AgentLogs({ containerId, setContainerId, setShow }) {
+export default function AgentLogs({
+    containerId,
+    setContainerId,
+    setShow,
+    leftBoundary = false,
+}) {
     const [isLive, setIsLive] = useState(false);
     const [logs, setLogs] = useState([]);
     useEffect(() => {
@@ -110,7 +115,7 @@ export default function AgentLogs({ containerId, setContainerId, setShow }) {
                     )}
                     <Tooltip
                         {...POPPER_BOTTOM_WITH_MODIFIER_OVERFLOW_10}
-                        boundary={elementRef.current}
+                        boundary={leftBoundary ? elementRef.current : null}
                         content="Clear logs"
                         placement="bottom"
                     >

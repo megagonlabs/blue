@@ -41,6 +41,7 @@ export default function LogPane({
             }}
         >
             <AgentLogs
+                leftBoundary={true}
                 containerId={containerId}
                 setContainerId={setContainerId}
                 setShow={setShow}

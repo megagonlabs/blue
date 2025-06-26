@@ -297,7 +297,7 @@ function PlatformAgents({ width, height }) {
                 setDeleting(false);
             });
     };
-    const [showLogs, setShowLogs] = useState(true);
+    const [showLogs, setShowLogs] = useState(false);
     return (
         <div style={{ width, height, position: "relative" }}>
             {showLogs && (
