@@ -7,6 +7,7 @@ import {
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import copy from "copy-to-clipboard";
 import { allEnv } from "next-runtime-env";
+import { useRef } from "react";
 import AutoSizer from "react-virtualized-auto-sizer";
 import { useShallow } from "zustand/react/shallow";
 import { FAIcon } from "./FAIcon";
@@ -21,8 +22,10 @@ function NerdStatsContainer({ width, height }) {
         }))
     );
     const darkMode = useAppStore((state) => state.dark_mode);
+    const elementRef = useRef(null);
     return (
         <div
+            ref={elementRef}
             style={{
                 width,
                 height,
@@ -59,7 +62,11 @@ function NerdStatsContainer({ width, height }) {
                                 <tr>
                                     <td>Version</td>
                                     <td>
-                                        <Tooltip content="Copy full SHA">
+                                        <Tooltip
+                                            boundary={elementRef.current}
+                                            placement="bottom"
+                                            content="Copy full SHA"
+                                        >
                                             <Tag
                                                 minimal
                                                 size={Size.LARGE}

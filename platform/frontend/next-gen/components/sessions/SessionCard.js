@@ -63,13 +63,13 @@ export default function SessionCard({ sessionId }) {
                 <MenuItem
                     icon={<FAIcon icon={faBrowsers} />}
                     text="Open in new window"
-                    onClick={() =>
+                    onClick={() => {
                         addContainer({
                             icon: faMessages,
                             title: <SessionDisplayName sessionId={sessionId} />,
                             content: <SessionContainer sessionId={sessionId} />,
-                        })
-                    }
+                        });
+                    }}
                 />
             </Menu>
         ),

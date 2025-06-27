@@ -67,6 +67,10 @@ export default function Home() {
             windowsControlButtons: state.windows_control_buttons,
         }))
     );
+    const expandWindow = (id) => {
+        resizeContainerFullHeight({ id, grid: gridRef });
+        resizeContainerWidth({ id, width: 12 });
+    };
     return (
         <div
             ref={gridRef}
@@ -203,6 +207,9 @@ export default function Home() {
                                 </Popover>
                             </ButtonGroup>
                             <div
+                                onDoubleClick={() => {
+                                    expandWindow(element.i);
+                                }}
                                 className="react-grid-drag-handle user-selection-none"
                                 style={{
                                     width: "calc(100% - 79px)",

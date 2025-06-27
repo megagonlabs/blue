@@ -59,10 +59,7 @@ export default function MessageViewer({ sessionId, message }) {
                 >
                     <div
                         className={Classes.TEXT_OVERFLOW_ELLIPSIS}
-                        style={{
-                            maxWidth: "calc(100% - 30px)",
-                            lineHeight: "30px",
-                        }}
+                        style={{ lineHeight: "30px" }}
                     >
                         {message.stream}
                     </div>
