@@ -5,7 +5,7 @@ The current implementation depends on manual mapping of string type representati
 from typing import Any, List, Dict, Union, Optional, Type
 from collections import deque
 from pydantic import BaseModel, ValidationError, create_model
-
+import logging
 
 def string_to_python_type(type_str: str) -> Any:
     """
@@ -148,6 +148,13 @@ def validate_parameter_type(value: Any, expected_type: str) -> bool:
         SingleFieldModel(value=value)
         return True
     except ValidationError:
+        # Validation failure: value doesn't match expected type
         return False
-    except Exception:
-        return True 
+    except (TypeError, ValueError, AttributeError) as e:
+        # Validation failure: invalid type specification or conversion issue
+        logging.warning(f"Invalid type specification '{expected_type}': {e}")
+        return False
+    except Exception as e:
+        # System failure: something is wrong with the validation system itself, how to handle this depends on the use case
+        logging.error(f"System error during parameter type validation: {e}")
+        raise RuntimeError(f"Parameter type validation system error: {e}") from e 
