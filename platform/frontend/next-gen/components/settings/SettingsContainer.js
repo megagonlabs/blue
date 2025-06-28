@@ -128,7 +128,7 @@ function SettingsContainer({ width, height }) {
                                     checked={windowsControlButtons}
                                     size={Size.LARGE}
                                     style={{ margin: "0px 0px 5px 0px" }}
-                                    label="Windows control buttons"
+                                    label="Windows style control buttons"
                                 />
                             </FormGroup>
                         </div>
