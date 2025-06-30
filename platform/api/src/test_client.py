@@ -303,8 +303,9 @@ def send_message(ws, session_id, connection_id, stream_id, message):
 
 session_id = input("session_id: ")
 connection_id = input("connection_id: ")
+STREAM_PREFIX = f"PLATFORM:default:SESSION:{session_id.replace('SESSION:', '')}:AGENT:TEST_CLIENT:Br4vCROn4C:OUTPUT:DEFAULT:<replace>:STREAM"
 for _ in range(1):
-    stream_id = f"local-test-client-{int(time.time() * 1000)}"
+    stream_id = STREAM_PREFIX.replace('<replace>', str(int(time.time() * 1000)))
     sentence_string = sentence()
     words_string = words(random.randint(4, 11))
     send_bos(ws, session_id, connection_id, stream_id)
@@ -312,7 +313,7 @@ for _ in range(1):
     send_eos(ws, session_id, connection_id, stream_id)
 time.sleep(2)
 # sys.exit()
-stream_id = f"local-test-client-{int(time.time() * 1000)}"
+stream_id = STREAM_PREFIX.replace('<replace>', str(int(time.time() * 1000)))
 send_bos(ws, session_id, connection_id, stream_id, metadata={"tags": {"WORKSPACE": True}})
 json_form = {
     "code": "CREATE_FORM",
@@ -396,7 +397,7 @@ time.sleep(1)
 send_eos(ws, session_id, connection_id, stream_id)
 # sys.exit()
 time.sleep(1)
-stream_id = f"local-test-client-{int(time.time() * 1000)}"
+stream_id = STREAM_PREFIX.replace('<replace>', str(int(time.time() * 1000)))
 json_form = {
     "code": "CREATE_FORM",
     "args": {
@@ -561,7 +562,7 @@ ws.send(
 )
 send_eos(ws, session_id, connection_id, stream_id)
 time.sleep(1)
-stream_id = f"local-test-client-{int(time.time() * 1000)}"
+stream_id = STREAM_PREFIX.replace('<replace>', str(int(time.time() * 1000)))
 send_bos(ws, session_id, connection_id, stream_id)
 send_message(
     ws,
@@ -594,7 +595,7 @@ send_message(
 )
 send_eos(ws, session_id, connection_id, stream_id)
 time.sleep(1)
-stream_id = f"local-test-client-{int(time.time() * 1000)}"
+stream_id = STREAM_PREFIX.replace('<replace>', str(int(time.time() * 1000)))
 json_form = {
     "code": "CREATE_FORM",
     "args": {
