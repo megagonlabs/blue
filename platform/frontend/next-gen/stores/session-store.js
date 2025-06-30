@@ -11,11 +11,7 @@ export const useSessionStore = create((set, get) => ({
     sessionIds: [],
     filter: { group: "owner", keywords: "" },
     forms: {},
-    progress: {
-        "SESSION:51bda1cf": {
-            1: { label: "test", value: 0.5 },
-        },
-    },
+    progress: {},
     inspection: {},
     expandedMessages: {},
     messageFilterTags: {},

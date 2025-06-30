@@ -58,8 +58,7 @@ function parseRedisStreamKeysToTree(keys, previousTree = [], messageMap) {
     }
     mapPreviousTree(previousTree);
     for (let i = 0; i < _.size(keys); i++) {
-        const key = keys[i];
-        const parts = key.split(":");
+        const parts = keys[i].split(":");
         let currentPath = "";
         let parentId = null;
         for (let j = 0; j < parts.length; j++) {
@@ -92,7 +91,7 @@ function parseRedisStreamKeysToTree(keys, previousTree = [], messageMap) {
                     newNodeMap[parentId] || previousNodeMap[parentId];
                 if (
                     parentNode &&
-                    !parentNode.childNodes.some((child) =>
+                    !_.some(parentNode.childNodes, (child) =>
                         _.isEqual(child.id, id)
                     )
                 ) {
@@ -101,7 +100,7 @@ function parseRedisStreamKeysToTree(keys, previousTree = [], messageMap) {
                     parentNode.icon = parentNode.icon || FOLDER_CLOSED_ICON;
                 }
             } else if (
-                !newTree.some((rootNode) => _.isEqual(rootNode.id, id))
+                !_.some(newTree, (rootNode) => _.isEqual(rootNode.id, id))
             ) {
                 newTree.push(existingNode);
             }
@@ -121,7 +120,7 @@ function parseRedisStreamKeysToTree(keys, previousTree = [], messageMap) {
                 newNodeMap[currentPath] || previousNodeMap[currentPath];
             if (
                 finalNode &&
-                !keys.some((k) => k.startsWith(currentPath + ":"))
+                !_.some(keys, (key) => key.startsWith(currentPath + ":"))
             ) {
                 delete finalNode.childNodes;
                 delete finalNode.hasCaret;
@@ -185,14 +184,16 @@ function parseRedisStreamKeysToTree(keys, previousTree = [], messageMap) {
             const isStillPresent =
                 allKeysProcessed.has(node.id) ||
                 (node.childNodes &&
-                    node.childNodes.some((child) =>
+                    _.some(node.childNodes, (child) =>
                         allKeysProcessed.has(child.id)
                     ));
             if (node.childNodes) {
                 node.childNodes = filterOutdatedNodes(node.childNodes);
                 if (node.childNodes.length > 0) {
                     node.hasCaret = true;
-                } else if (!keys.some((key) => key.startsWith(node.id + ":"))) {
+                } else if (
+                    !_.some(keys, (key) => key.startsWith(node.id + ":"))
+                ) {
                     delete node.childNodes;
                     delete node.hasCaret;
                 }
