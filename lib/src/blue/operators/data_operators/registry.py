@@ -8,6 +8,7 @@ from blue.tools.registry import ToolRegistry
 
 ###### Data Operator Clients
 from blue.operators.data_operators.clients.local_client import LocalDataOperatorClient
+from blue.operators.data_operators.clients.ray_client import RayDataOperatorClient
 
 ###############
 ### DataOperatorRegistry
@@ -63,7 +64,9 @@ class DataOperatorRegistry(ToolRegistry):
                 if protocol:
                     if protocol == "local":
                         connection = LocalDataOperatorClient(server, properties=properties)
-                    ## TODO: add other protocols
+                    elif protocol == "ray":
+                        connection = RayDataOperatorClient(server, properties=properties)
+                    # Add more protocols as needed
         return connection
 
     def execute_operator(self, operator, server, args, kwargs):
@@ -161,7 +164,7 @@ class DataOperatorRegistry(ToolRegistry):
             self.update_server_operator(server, operator, description=description, properties=properties, rebuild=rebuild)
 
     ######## Methods not similar to ToolRegistry
-    def register_local_data_operators(self, server_name="local", rebuild=False):
+    def register_local_data_operators(self, server_name="local", rebuild=True):
         properties = {
             "connection": {
                 "protocol": "local"

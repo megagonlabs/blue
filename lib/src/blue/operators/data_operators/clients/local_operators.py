@@ -92,7 +92,7 @@ def get_operators_info():
             "name": operator.name,
             "description": operator.description,
             "parameters": operator.parameters,
-            "type": operator.properties.get("type", "unknown")
+            "tool_type": operator.properties.get("tool_type", "unknown")
         }
     return info
 
