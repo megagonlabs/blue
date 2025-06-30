@@ -89,8 +89,10 @@ function parseRedisStreamKeysToTree(keys, previousTree = [], messageMap) {
             if (!_.isNull(parentId)) {
                 const parentNode =
                     newNodeMap[parentId] || previousNodeMap[parentId];
+                if (parentNode) {
+                    parentNode.childNodes = parentNode.childNodes || [];
+                }
                 if (
-                    parentNode &&
                     !_.some(parentNode.childNodes, (child) =>
                         _.isEqual(child.id, id)
                     )
