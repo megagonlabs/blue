@@ -8,44 +8,43 @@ import copy
 from blue.utils import json_utils
 
 ###### Local Operators
-from blue.operators.data_operators.clients.local_operators import operators_dict
+from blue.operators.data_operators.clients.local_operators import operators_dict, get_available_operators, get_operator, validate_operator_exists
 
 ###### Data Operator Client
 from blue.operators.data_operators.client import DataOperatorClient
 
 ###############
 ### LocalDataOperatorClient
-
+#
 class LocalDataOperatorClient(DataOperatorClient):
     def __init__(self, name="LocalDataOperatorClient", properties={}):
         super().__init__(name, properties=properties)
 
+    ###### initialization
     def _initialize_properties(self):
-        """Initialize client properties."""
         super()._initialize_properties()
-        
-        # Override protocol for local operators
+
+        # server protocol 
         self.properties['protocol'] = "local"
 
     ######### server
     def fetch_metadata(self):
-        """Fetch metadata for the local data operator server."""
         return {
             "name": self.name,
             "description": "Local data operators server",
             "protocol": "local",
-            "operators_count": len(operators_dict)
+            "operators_count": len(get_available_operators())
         }
 
     ######### operator
     def fetch_operators(self):
-        return list(operators_dict.keys())
+        return get_available_operators()
 
     def fetch_operator_metadata(self, operator):
         metadata = {}
 
-        if operator in operators_dict:
-            operator_obj = operators_dict[operator]
+        if validate_operator_exists(operator):
+            operator_obj = get_operator(operator)
             p = {}
             p = json_utils.merge_json(p, operator_obj.properties)
             p = json_utils.merge_json(p, {"parameters": operator_obj.parameters})
@@ -58,8 +57,8 @@ class LocalDataOperatorClient(DataOperatorClient):
             }
         return metadata
 
+    ######### execute operator
     def execute_operator(self, operator_name, args=None, kwargs=None):
-        """Execute a data operator with the given arguments."""
         if args is None:
             args = []
         if kwargs is None:
@@ -82,9 +81,9 @@ class LocalDataOperatorClient(DataOperatorClient):
             "explain": {}
         }
 
-        if operator_name in operators_dict:
+        if validate_operator_exists(operator_name):
             try:
-                operator_obj = operators_dict[operator_name]
+                operator_obj = get_operator(operator_name)
 
                 valid = operator_obj.validator(kwargs)
                 if valid:
