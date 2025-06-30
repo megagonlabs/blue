@@ -198,6 +198,7 @@ function SessionContainer({ width, height, sessionId }) {
                                 const e = sessionProgress[progressId];
                                 return (
                                     <Tag
+                                        key={progressId}
                                         onClick={() => {
                                             removeSessionProgress(
                                                 sessionId,
