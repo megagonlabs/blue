@@ -57,6 +57,8 @@ data_registry_id = PROPERTIES["data_registry.name"]
 model_registry_id = PROPERTIES["model_registry.name"]
 operator_registry_id = PROPERTIES["operator_registry.name"]
 tool_registry_id = PROPERTIES["tool_registry.name"]
+data_operator_registry_id = PROPERTIES["data_operator_registry.name"]
+
 PLATFORM_PREFIX = f'/blue/platform/{platform_id}'
 
 ####### Version
