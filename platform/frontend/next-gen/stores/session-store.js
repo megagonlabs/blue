@@ -11,11 +11,23 @@ export const useSessionStore = create((set, get) => ({
     sessionIds: [],
     filter: { group: "owner", keywords: "" },
     forms: {},
-    progress: {},
+    progress: {
+        "SESSION:51bda1cf": {
+            1: { label: "test", value: 0.5 },
+        },
+    },
     inspection: {},
     expandedMessages: {},
     messageFilterTags: {},
     triggers: {},
+    removeSessionProgress: (sessionId, progressId) => {
+        const { progress } = get();
+        let newProgress = _.cloneDeep(progress);
+        let next = _.get(newProgress, sessionId, {});
+        next = _.omit(next, progressId);
+        _.set(newProgress, sessionId, next);
+        set({ progress: newProgress });
+    },
     toggleMessageFilterTag: (sessionId, tag) => {
         const { messageFilterTags } = get();
         let next = _.cloneDeep(messageFilterTags);
