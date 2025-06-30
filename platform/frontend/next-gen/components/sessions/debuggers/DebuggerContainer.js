@@ -296,7 +296,7 @@ function DebuggerContainer({ width, height, sessionId }) {
         axios
             .get(`/containers/agents/agent/${agent.name}`)
             .then((response) => {
-                setContainerId(_.get(response, "result.id", null));
+                setContainerId(_.get(response, "data.result.id", null));
             })
             .catch((error) => {
                 showAxiosErrorToast(error);
