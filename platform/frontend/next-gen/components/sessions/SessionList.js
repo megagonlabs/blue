@@ -94,7 +94,7 @@ function SessionList({ width, height }) {
     const [showFilter, setShowFilter] = useState(false);
     useEffect(() => {
         getSessions();
-    }, [getSessions]);
+    }, [getSessions, filter.group]);
     const createNewSession = useSessionStore((state) => state.createNewSession);
     const elementRef = useRef(null);
     return (
