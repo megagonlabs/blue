@@ -16,6 +16,14 @@ export const useSessionStore = create((set, get) => ({
     expandedMessages: {},
     messageFilterTags: {},
     triggers: {},
+    removeSessionProgress: (sessionId, progressId) => {
+        const { progress } = get();
+        let newProgress = _.cloneDeep(progress);
+        let next = _.get(newProgress, sessionId, {});
+        next = _.omit(next, progressId);
+        _.set(newProgress, sessionId, next);
+        set({ progress: newProgress });
+    },
     toggleMessageFilterTag: (sessionId, tag) => {
         const { messageFilterTags } = get();
         let next = _.cloneDeep(messageFilterTags);

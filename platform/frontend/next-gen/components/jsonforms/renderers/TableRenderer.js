@@ -31,6 +31,7 @@ const TableRenderer = ({ cells, path, renderers, schema, uischema, data }) => {
     return (
         <div className="full-parent-width" style={{ overflow: "auto" }}>
             <HTMLTable
+                className="full-parent-width"
                 style={style}
                 compact={compact}
                 striped={striped}
