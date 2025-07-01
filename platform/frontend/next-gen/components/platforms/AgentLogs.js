@@ -15,9 +15,10 @@ import {
     Tooltip,
 } from "@blueprintjs/core";
 import {
-    faArrowRight,
+    faArrowDown,
     faBan,
     faCircleDot,
+    faXmarkLarge,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import _ from "lodash";
 import { allEnv } from "next-runtime-env";
@@ -31,6 +32,7 @@ export default function AgentLogs({
 }) {
     const [isLive, setIsLive] = useState(false);
     const [logs, setLogs] = useState([]);
+    const containerRef = useRef(null);
     useEffect(() => {
         if (_.isEmpty(containerId)) return;
         const eventSource = new EventSource(
@@ -128,10 +130,28 @@ export default function AgentLogs({
                             variant={ButtonVariant.MINIMAL}
                         />
                     </Tooltip>
+                    <Tooltip
+                        {...POPPER_BOTTOM_WITH_MODIFIER_OVERFLOW_10}
+                        boundary={leftBoundary ? elementRef.current : null}
+                        content="Scroll to bottom"
+                        placement="bottom"
+                    >
+                        <Button
+                            icon={<FAIcon icon={faArrowDown} />}
+                            size={Size.LARGE}
+                            onClick={() => {
+                                if (containerRef.current) {
+                                    containerRef.current.scrollTop =
+                                        containerRef.current.scrollHeight;
+                                }
+                            }}
+                            variant={ButtonVariant.MINIMAL}
+                        />
+                    </Tooltip>
                 </ButtonGroup>
                 {_.isFunction(setShow) && (
                     <Button
-                        icon={<FAIcon icon={faArrowRight} />}
+                        icon={<FAIcon icon={faXmarkLarge} />}
                         size={Size.LARGE}
                         variant={ButtonVariant.MINIMAL}
                         onClick={() => {
@@ -141,6 +161,7 @@ export default function AgentLogs({
                 )}
             </div>
             <div
+                ref={containerRef}
                 style={{
                     maxHeight: "calc(100% - 61px)",
                     overflowY: "auto",

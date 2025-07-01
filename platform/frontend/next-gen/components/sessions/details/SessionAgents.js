@@ -93,6 +93,7 @@ export default function SessionAgents({
                                     }}
                                 >
                                     <RegistryEntityIcon
+                                        type="agent"
                                         content={_.get(
                                             agentMetadata,
                                             [agent.name, "icon"],
