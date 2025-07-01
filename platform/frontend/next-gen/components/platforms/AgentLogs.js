@@ -35,6 +35,7 @@ export default function AgentLogs({
     const containerRef = useRef(null);
     useEffect(() => {
         if (_.isEmpty(containerId)) return;
+        setLogs([]);
         const eventSource = new EventSource(
             `${NEXT_PUBLIC_REST_API_SERVER}/blue/platform/${NEXT_PUBLIC_PLATFORM_NAME}/containers/agents/container/${containerId}`,
             { withCredentials: true }
