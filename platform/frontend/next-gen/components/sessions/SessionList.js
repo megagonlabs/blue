@@ -11,17 +11,22 @@ import {
     Radio,
     RadioGroup,
     Size,
+    Tooltip,
 } from "@blueprintjs/core";
 import {
     faArrowLeft,
     faBarsFilter,
+    faEraser,
     faInboxArrowUp,
     faSearch,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import _ from "lodash";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
-import { HEX_TRANSPARENCY } from "../constants";
+import {
+    HEX_TRANSPARENCY,
+    POPPER_BOTTOM_WITH_MODIFIER_OVERFLOW_10,
+} from "../constants";
 import { FAIcon } from "../FAIcon";
 import withAutoSizer from "../hocs/withAutoSizer";
 import FilterPane from "../registries/FilterPane";
@@ -91,8 +96,10 @@ function SessionList({ width, height }) {
         getSessions();
     }, [getSessions]);
     const createNewSession = useSessionStore((state) => state.createNewSession);
+    const elementRef = useRef(null);
     return (
         <div
+            ref={elementRef}
             style={{
                 width,
                 height,
@@ -168,6 +175,28 @@ function SessionList({ width, height }) {
                     <InputGroup
                         leftIcon={<FAIcon icon={faSearch} />}
                         size={Size.LARGE}
+                        rightElement={
+                            <Tooltip
+                                {...POPPER_BOTTOM_WITH_MODIFIER_OVERFLOW_10}
+                                content="Clear search"
+                                boundary={elementRef.current}
+                            >
+                                <Button
+                                    onClick={() => {
+                                        setFilterValue({
+                                            key: "keywords",
+                                            value: "",
+                                        });
+                                    }}
+                                    variant={ButtonVariant.MINIMAL}
+                                    icon={<FAIcon icon={faEraser} />}
+                                />
+                            </Tooltip>
+                        }
+                        value={_.get(filter, "keywords", "")}
+                        onValueChange={(value) => {
+                            setFilterValue({ key: "keywords", value });
+                        }}
                     />
                 </ControlGroup>
                 <div
