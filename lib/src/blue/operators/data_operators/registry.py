@@ -7,13 +7,12 @@ from blue.utils import json_utils
 from blue.tools.registry import ToolRegistry
 
 ###### Data Operator Clients
-from blue.operators.data_operators.clients.local_client import LocalDataOperatorClient
-from blue.operators.data_operators.clients.ray_client import RayDataOperatorClient
+from blue.operators.clients.ray_client import RayOperatorClient
 
 ###############
-### DataOperatorRegistry
+### OperatorRegistry
 
-class DataOperatorRegistry(ToolRegistry):
+class OperatorRegistry(ToolRegistry):
     def __init__(self, name="DATA_OPERATOR_REGISTRY", id=None, sid=None, cid=None, prefix=None, suffix=None, properties={}):
         super().__init__(name=name, id=id, sid=sid, cid=cid, prefix=prefix, suffix=suffix, properties=properties)
     ######### initialization, server, server description, server properties directly inherited from ToolRegistry
@@ -62,10 +61,8 @@ class DataOperatorRegistry(ToolRegistry):
                 connection_properties = properties["connection"]
                 protocol = connection_properties.get("protocol")
                 if protocol:
-                    if protocol == "local":
-                        connection = LocalDataOperatorClient(server, properties=properties)
-                    elif protocol == "ray":
-                        connection = RayDataOperatorClient(server, properties=properties)
+                    if protocol == "ray":
+                        connection = RayOperatorClient(server, properties=properties)
                     # Add more protocols as needed
         return connection
 

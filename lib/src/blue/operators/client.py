@@ -11,15 +11,15 @@ from blue.tools.client import ToolClient
 
 
 ###############
-### DataOperatorClient
+### OperatorClient
 
-class DataOperatorClient(ToolClient):
+class OperatorClient(ToolClient):
     """
-    Base client for data operators following the same pattern as ToolClient.
-    Handles validation, execution, and result formatting for data operators.
+    Base client for operators following the same pattern as ToolClient.
+    Handles validation, execution, and result formatting for operators.
     """
     
-    def __init__(self, name: str = "DataOperatorClient", properties: Dict[str, Any] = None):
+    def __init__(self, name: str = "OperatorClient", properties: Dict[str, Any] = None):
         super().__init__(name, properties=properties or {})
 
     ## _intialize, _start, _stop, _connect, _disconnect, _start_connection, _stop_connection, _initialize_properties, _update_properties inherited from ToolClient

@@ -8,17 +8,17 @@ import copy
 import ray
 
 ###### Blue
-from blue.operators.data_operators.client import DataOperatorClient
+from blue.operators.client import OperatorClient
 from blue.utils import json_utils
 
 ###### Ray Operators
-from blue.operators.data_operators.clients.ray_operators import operators_dict
+from blue.operators.clients.ray_operators import operators_dict
 
 ###############
-### RayDataOperatorClient
+### RayOperatorClient
 #
-class RayDataOperatorClient(DataOperatorClient):
-    def __init__(self, name="RayDataOperatorClient", properties={}):
+class RayOperatorClient(OperatorClient):
+    def __init__(self, name="RayOperatorClient", properties={}):
         super().__init__(name, properties=properties)
 
     ###### initialization

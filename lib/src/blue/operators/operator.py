@@ -22,12 +22,6 @@ class Operator(Tool):
     Inputs: always expects multiple data inputs as a list of data sources: [data_1, data_2, ...], where each data source is a JSON array of records, which represents a data source/group.
     Outputs: always returns a JSON array of records.
     Operator doesn't listen to any data stream, it only processes data when called.
-    
-    Key differences from Tool:
-    - Always expects input_data parameter (list of data sources)
-    - Always returns JSON array of records
-    - Has operator-specific properties and validation
-    - Can be identified by servers as an operator type
     """
 
     def __init__(self, name: str, description: str, properties: Dict[str, Any] = None, parameters: Dict[str, Any] = None, function: Callable = None, validator: Callable = None, explainer: Callable = None):

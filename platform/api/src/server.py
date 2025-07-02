@@ -89,9 +89,6 @@ operator_registry.load("/blue_data/config/" + operator_registry_id + ".operators
 tool_registry = ToolRegistry(id=tool_registry_id, prefix=prefix, properties=PROPERTIES)
 tool_registry.load("/blue_data/config/" + tool_registry_id + ".tools.json")
 
-data_operator_registry = DataOperatorRegistry(id=data_operator_registry_id, prefix=prefix, properties=PROPERTIES)
-data_operator_registry.load("/blue_data/config/" + data_operator_registry_id + ".data_operators.json")
-
 ###  Get API server address from properties to white list
 api_server = PROPERTIES["api.server"]
 api_server_port = PROPERTIES["api.server.port"]
