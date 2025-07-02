@@ -26,7 +26,7 @@ import EntityDisplayName from "../registries/EntityDisplayName";
 import RegistryEntityContainer from "../registries/RegistryEntityContainer";
 import RegistryEntityIcon from "../registries/RegistryEntityIcon";
 import { AppToaster } from "../toaster";
-export default function DemoGroupCard({ agentGroup }) {
+export default function AgentGroupCard({ agentGroup }) {
     const type = _.get(agentGroup, "type", null);
     const addContainer = useGridStore((state) => state.addContainer);
     const { gridContainerId } = useGridContainerContext();
