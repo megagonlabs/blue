@@ -41,6 +41,7 @@ class Operator(Tool):
             name: Name of the operator
             description: Description of what the operator does
             properties: Additional properties for the operator
+            function: Function to execute the operator
             parameters: Parameter definitions for the operator
             validator: Function to validate input parameters
             explainer: Function to explain output and potential errors
