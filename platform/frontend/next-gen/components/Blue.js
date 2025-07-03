@@ -408,6 +408,7 @@ export default function Blue({ children }) {
                                                                                         (
                                                                                             <SessionList />
                                                                                         ),
+                                                                                    icon: faInboxFull,
                                                                                 }
                                                                             )
                                                                         }
@@ -520,6 +521,7 @@ export default function Blue({ children }) {
                                                                                             (
                                                                                                 <FormDesigner />
                                                                                             ),
+                                                                                        icon: faPencilRuler,
                                                                                     }
                                                                                 )
                                                                             }

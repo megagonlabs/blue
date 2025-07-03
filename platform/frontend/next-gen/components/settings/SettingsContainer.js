@@ -18,7 +18,9 @@ import {
     faPaintRoller,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import axios from "axios";
+import _ from "lodash";
 import { useShallow } from "zustand/react/shallow";
+import { useGridContainerContext } from "../contexts/GridContainerContext";
 import { FAIcon } from "../FAIcon";
 import withAutoSizer from "../hocs/withAutoSizer";
 import { AppToaster } from "../toaster";
@@ -27,15 +29,24 @@ const SECTIONS = [
     { icon: faMessages, text: "Sessions & Messages" },
 ];
 function SettingsContainer({ width, height }) {
-    const { darkMode, showWorkspace, expandMessage, windowsControlButtons } =
-        useAppStore(
-            useShallow((state) => ({
-                darkMode: state.dark_mode,
-                showWorkspace: state.show_workspace,
-                expandMessage: state.expand_message,
-                windowsControlButtons: state.windows_control_buttons,
-            }))
-        );
+    const {
+        darkMode,
+        showWorkspace,
+        expandMessage,
+        windowsControlButtons,
+        detailedMessage,
+        fullWindowHeight,
+    } = useAppStore(
+        useShallow((state) => ({
+            darkMode: state.dark_mode,
+            showWorkspace: state.show_workspace,
+            expandMessage: state.expand_message,
+            detailedMessage: state.detailed_message,
+            windowsControlButtons: state.windows_control_buttons,
+            fullWindowHeight: state.full_window_height,
+        }))
+    );
+    const { gridContainerId } = useGridContainerContext();
     const setAppState = useAppStore((state) => state.setState);
     const saveSetting = ({ key, value }) => {
         setAppState({ key, value });
@@ -68,12 +79,27 @@ function SettingsContainer({ width, height }) {
                                 key={index}
                                 icon={<FAIcon icon={section.icon} />}
                                 text={section.text}
+                                onClick={() => {
+                                    const element = _.first(
+                                        document.querySelectorAll(
+                                            `.container-${gridContainerId} .setting-container-section-${
+                                                index + 1
+                                            }`
+                                        )
+                                    );
+                                    if (element) {
+                                        element.scrollIntoView({
+                                            block: "nearest",
+                                            inline: "nearest",
+                                        });
+                                    }
+                                }}
                             />
                         ))}
                     </ButtonGroup>
                 </div>
                 <div
-                    className="full-parent-dimension"
+                    className={`full-parent-dimension container-${gridContainerId}`}
                     style={{
                         backgroundColor: darkMode ? Colors.BLACK : null,
                         padding: 20,
@@ -81,7 +107,7 @@ function SettingsContainer({ width, height }) {
                         overflowX: "hidden",
                     }}
                 >
-                    <div className="setting-container-section-1">
+                    <div className="setting-container-section-1 scroll-margin-20">
                         <EntityTitle
                             icon={<FAIcon icon={faPaintRoller} size={20} />}
                             heading={H3}
@@ -116,7 +142,7 @@ function SettingsContainer({ width, height }) {
                             </FormGroup>
                             <FormGroup
                                 helperText="Relocate the window control buttons to the right side"
-                                className="margin-0"
+                                style={{ marginBottom: 10 }}
                             >
                                 <Switch
                                     onChange={(event) => {
@@ -131,10 +157,27 @@ function SettingsContainer({ width, height }) {
                                     label="Windows style control buttons"
                                 />
                             </FormGroup>
+                            <FormGroup
+                                helperText="New windows automatically expand to full height"
+                                className="margin-0"
+                            >
+                                <Switch
+                                    onChange={(event) => {
+                                        saveSetting({
+                                            key: "full_window_height",
+                                            value: event.target.checked,
+                                        });
+                                    }}
+                                    checked={fullWindowHeight}
+                                    size={Size.LARGE}
+                                    style={{ margin: "0px 0px 5px 0px" }}
+                                    label="Full window height"
+                                />
+                            </FormGroup>
                         </div>
                     </div>
                     <div
-                        className="setting-container-section-2"
+                        className="setting-container-section-2 scroll-margin-20"
                         style={{ marginTop: 20 }}
                     >
                         <EntityTitle
@@ -172,7 +215,7 @@ function SettingsContainer({ width, height }) {
                             <FormGroup
                                 helperText="Automatically expand session messages to
                                     show full content"
-                                className="margin-0"
+                                style={{ marginBottom: 10 }}
                             >
                                 <Switch
                                     onChange={(event) => {
@@ -184,7 +227,24 @@ function SettingsContainer({ width, height }) {
                                     checked={expandMessage}
                                     size={Size.LARGE}
                                     style={{ margin: "0px 0px 5px 0px" }}
-                                    label="Expand message"
+                                    label="Expand messages"
+                                />
+                            </FormGroup>
+                            <FormGroup
+                                helperText="Display message details like timestamp, sender icon, and name"
+                                className="margin-0"
+                            >
+                                <Switch
+                                    checked={detailedMessage}
+                                    onChange={(event) => {
+                                        saveSetting({
+                                            key: "detailed_message",
+                                            value: event.target.checked,
+                                        });
+                                    }}
+                                    size={Size.LARGE}
+                                    style={{ margin: "0px 0px 5px 0px" }}
+                                    label="Detailed messages"
                                 />
                             </FormGroup>
                         </div>

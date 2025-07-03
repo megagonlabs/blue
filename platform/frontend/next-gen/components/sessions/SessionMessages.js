@@ -51,10 +51,11 @@ import SessionDisplayName from "./SessionDisplayName";
 import SessionMemberStack from "./SessionMemberStack";
 const Row = ({ index, data, style }) => {
     const { setRowHeight, sessionId, addInspectionContainer } = data;
-    const { darkMode, autoExpandMessage } = useAppStore(
+    const { darkMode, autoExpandMessage, detailedMessage } = useAppStore(
         useShallow((state) => ({
             darkMode: state.dark_mode,
             autoExpandMessage: state.expand_message,
+            detailedMessage: state.detailed_message,
         }))
     );
     const { getUserProfileById, getAgentMetadata } = useDedupStore(

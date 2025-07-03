@@ -38,17 +38,20 @@ export const useGridStore = create((set, get) => ({
             ),
         }));
     },
-    resizeContainerFullHeight: ({ id, grid }) => {
+    resizeContainerHeight: ({ id, grid, ratio = 1 }) => {
         const { layout } = _.cloneDeep(get());
         try {
             const gridHeight = _.get(grid, "current.clientHeight", null);
-            const calculatedHeight = _.floor((gridHeight - 40 + 20) / 170);
-            if (_.isInteger(calculatedHeight)) {
-                for (let i = 0; i < _.size(layout); i++) {
-                    if (_.isEqual(_.get(layout, [i, "i"]), id)) {
-                        _.set(layout, [i, "h"], calculatedHeight);
-                        break;
-                    }
+            let calculatedHeight = _.ceil(
+                ((gridHeight - 40 + 20) / 170) * ratio
+            );
+            if (!_.isInteger(calculatedHeight)) {
+                calculatedHeight = 3;
+            }
+            for (let i = 0; i < _.size(layout); i++) {
+                if (_.isEqual(_.get(layout, [i, "i"]), id)) {
+                    _.set(layout, [i, "h"], calculatedHeight);
+                    break;
                 }
             }
         } catch (error) {}
