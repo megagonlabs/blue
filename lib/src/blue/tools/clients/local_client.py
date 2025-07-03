@@ -15,7 +15,6 @@ from blue.utils import json_utils
 from blue.tools.clients.local_tools import tools_dict
 
 
-
 ###############
 ### LocalToolClient
 #
@@ -27,7 +26,7 @@ class LocalToolClient(ToolClient):
     def _initialize_properties(self):
         super()._initialize_properties()
 
-        # server protocol 
+        # server protocol
         self.properties['protocol'] = "local"
 
     ###### connection
@@ -59,17 +58,10 @@ class LocalToolClient(ToolClient):
             tool_obj = tools_dict[tool]
             p = {}
             p = json_utils.merge_json(p, tool_obj.properties)
-            p = json_utils.merge_json(p, { "parameters": tool_obj.parameters })
-            metadata = {
-                "name": tool_obj.name,
-                "description": tool_obj.description,
-                "properties": {
-                    "parameters": p
-                }
-            }
+            p = json_utils.merge_json(p, {"parameters": tool_obj.parameters})
+            metadata = {"name": tool_obj.name, "description": tool_obj.description, "properties": {"parameters": p}}
         return metadata
 
-   
     ######### execute tool
     def execute_tool(self, tool, args, kwargs):
         if tool is None:
@@ -80,12 +72,10 @@ class LocalToolClient(ToolClient):
         if tool in tools_dict:
             tool_obj = tools_dict[tool]
 
-            valid =  tool_obj.validator(kwargs)
+            valid = tool_obj.validator(kwargs)
             if valid:
                 return tool_obj.function(**kwargs)
             else:
                 return valid
-       
-        return result
 
-    
+        return result

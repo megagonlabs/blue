@@ -11,7 +11,7 @@ from pydantic import BaseModel, ValidationError
 ###### Blue
 from blue.tools.tool import Tool
 from blue.utils import json_utils
-from blue.utils.py_type_utils import string_to_python_type, create_pydantic_model, validate_parameter_type
+from lib.src.blue.utils.type_utils import string_to_python_type, create_pydantic_model, validate_parameter_type
 
 ###############
 ### DataOperator
