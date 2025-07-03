@@ -40,16 +40,14 @@ class Operator(Tool):
         Args:
             name: Name of the operator
             description: Description of what the operator does
-            properties: Additional properties for the operator
+            properties: properties for the operator, should include a key "parameters" with parameter definitions
             function: Function to execute the operator
-            parameters: Parameter definitions for the operator
             validator: Function to validate input parameters
             explainer: Function to explain output and potential errors
         """
         self.name = name
         self.description = description
         self.properties = properties
-        self.parameters = parameters
         self.validator = validator
         self.explainer = explainer
 
@@ -58,8 +56,6 @@ class Operator(Tool):
             self.properties = {}
         if function is None:
             self.function = self._execute_operator_logic  # this is the function that each operator should override
-        if parameters is None:
-            self.parameters = {}
         if validator is None:
             self.validator = self._default_validator
         if explainer is None:
@@ -67,18 +63,7 @@ class Operator(Tool):
 
         self._initialize(properties=properties)
 
-        operator_properties = copy.deepcopy(self.properties)
-        operator_properties["tool_type"] = "operator"
-        operator_properties["category"] = "data_processing"
-
-        # Use the execute_operator method as the main function
-        super().__init__(name=name, description=description, properties=operator_properties, function=self.execute_operator, parameters=parameters, validator=validator, explainer=explainer)
-
-        # Ensure validator and explainer are set to defaults if not provided
-        if not hasattr(self, 'validator') or self.validator is None:
-            self.validator = self._default_validator
-        if not hasattr(self, 'explainer') or self.explainer is None:
-            self.explainer = self._default_explainer
+        super().__init__(name=name, description=description, properties=self.properties, function=self.execute_operator, parameters=parameters, validator=validator, explainer=explainer)
 
     def _initialize(self, properties=None):
         """Initialize the Operator following the same pattern as Agent."""
@@ -88,6 +73,9 @@ class Operator(Tool):
     def _initialize_properties(self):
         """Initialize default properties for operators."""
         self.properties = {}
+
+        # Tool type
+        self.properties["tool_type"] = "operator"
 
         # Operator identification properties
         self.properties["validate_input"] = True
@@ -102,6 +90,9 @@ class Operator(Tool):
         self.properties["error_handling"] = "skip"  # fail, log, skip
         self.properties["log_processing_stats"] = True
 
+        # Parameter definitions
+        self.properties["parameters"] = {}
+
     def _update_properties(self, properties=None):
         if properties is None:
             return
@@ -115,12 +106,10 @@ class Operator(Tool):
             properties = {}
         return json_utils.merge_json(self.properties, properties)
 
-    @classmethod
-    def validate_parameters(cls, params: Dict[str, Any], parameters: Dict[str, Any], properties: Dict[str, Any] = None) -> bool:
-        """Standalone parameter validation that can be called without creating an instance."""
-        if properties is None:
-            properties = {}
-        validation_error_handling = properties.get("validation_error_handling", "fail")
+    def validate_parameters(self, params: Dict[str, Any]) -> bool:
+        """Validate actual parameters (params) using the parameter definitions in properties."""
+        parameters = self.properties.get("parameters", {})
+        validation_error_handling = self.properties.get("validation_error_handling", "fail")
 
         # Validate required parameters
         for param_name, param_def in parameters.items():
@@ -155,11 +144,10 @@ class Operator(Tool):
     def _default_validator(self, params: Dict[str, Any]) -> bool:
         """Default validator for operator parameters."""
         try:
-            self.validate_parameters(params, self.parameters, self.properties)
+            return self.validate_parameters(params)
         except Exception as e:
             # validation error
             return False
-        return True
 
     def _default_explainer(self, output: Any, input_data: List[List[Dict[str, Any]]], params: Dict[str, Any]) -> Dict[str, Any]:
         """Default explainer for operator output."""
@@ -179,70 +167,68 @@ class Operator(Tool):
         }
         return explanation
 
-    def execute_operator(self, input_data: List[List[Dict[str, Any]]], parameters: Dict[str, Any] = {}, properties: Dict[str, Any] = {}) -> Dict[str, Any]:
+    def execute_operator(self, input_data: List[List[Dict[str, Any]]], params: Dict[str, Any] = {}) -> Dict[str, Any]:
         """
         Main entry point for operator execution.
         This method orchestrates the complete execution flow and returns a structured result.
         Args:
             input_data: List of data sources, each containing JSON array of records
-            parameters: Operator-specific parameters (excluding input_data)
-            properties: Additional properties to override default properties
+            params: Operator-specific parameter values (actual values, not definitions)
         Returns:
             Dictionary containing result, error, and explanation
         """
-        merged_properties = self.get_properties(properties)
         try:
             # Validate input_data
-            if merged_properties.get("validate_input", True) and not self._validate_input_data(input_data):
+            if self.properties.get("validate_input", True) and not self._validate_input_data(input_data):
                 return {
                     "operator": self.name,
                     "input_data": input_data,
-                    "parameters": parameters or {},
+                    "parameters": params or {},
                     "result": [],
                     "error": "Invalid input_data format",
                     "explain": {"error": "input_data must be a list of lists of dictionaries"},
                 }
 
             # Validate parameters
-            if not self.validator(parameters or {}):
+            if not self.validator(params or {}):
                 return {
                     "operator": self.name,
                     "input_data": input_data,
-                    "parameters": parameters or {},
+                    "parameters": params or {},
                     "result": [],
                     "error": "Parameter validation failed",
                     "explain": {"error": "Invalid parameters provided"},
                 }
 
             # Execute operator-specific logic
-            result = self._execute_operator_logic(input_data, parameters or {}, merged_properties)
+            result = self._execute_operator_logic(input_data, params or {}, self.properties)
 
             # Validate output data
-            if merged_properties.get("validate_output", True) and not self._validate_io_data(result):
+            if self.properties.get("validate_output", True) and not self._validate_io_data(result):
                 return {
                     "operator": self.name,
                     "input_data": input_data,
-                    "parameters": parameters or {},
+                    "parameters": params or {},
                     "result": result,
                     "error": "Invalid output data format",
                     "explain": {"error": "output_data must be a list of lists of dictionaries"},
                 }
 
             # Generate explanation
-            explanation = self.explainer(result, input_data, parameters or {})
-            return {"operator": self.name, "input_data": input_data, "parameters": parameters or {}, "result": result, "error": None, "explain": explanation}
+            explanation = self.explainer(result, input_data, params or {})
+            return {"operator": self.name, "input_data": input_data, "parameters": params or {}, "result": result, "error": None, "explain": explanation}
 
         except Exception as e:
-            error_handling = merged_properties.get("error_handling", "skip")
+            error_handling = self.properties.get("error_handling", "skip")
 
             if error_handling == "fail":
                 raise e
             elif error_handling == "log":
                 logging.error(f"Error in {self.name}, skipping: {str(e)}")
-                return {"operator": self.name, "input_data": input_data, "parameters": parameters or {}, "result": [], "error": str(e), "explain": {"error": f"Execution failed: {str(e)}"}}
+                return {"operator": self.name, "input_data": input_data, "parameters": params or {}, "result": [], "error": str(e), "explain": {"error": f"Execution failed: {str(e)}"}}
             else:  # skip
                 logging.info(f"Error in {self.name}, skipping: {str(e)}")
-                return {"operator": self.name, "input_data": input_data, "parameters": parameters or {}, "result": [], "error": str(e), "explain": {"error": f"Execution failed: {str(e)}"}}
+                return {"operator": self.name, "input_data": input_data, "parameters": params or {}, "result": [], "error": str(e), "explain": {"error": f"Execution failed: {str(e)}"}}
 
     def _validate_io_data(self, input_data: List[List[Dict[str, Any]]]) -> bool:
         """Validate input/output data format. It should be a list of lists of dictionaries."""
@@ -256,15 +242,15 @@ class Operator(Tool):
                     return False
         return True
 
-    def _execute_operator_logic(self, input_data: List[List[Dict[str, Any]]], parameters: Dict[str, Any], properties: Dict[str, Any]) -> List[Dict[str, Any]]:
+    def _execute_operator_logic(self, input_data: List[List[Dict[str, Any]]], params: Dict[str, Any], properties: Dict[str, Any]) -> List[Dict[str, Any]]:
         """
         Execute the actual operator-specific logic.
         This method contains the core logic for each operator type.
         Operators should override this method with their specific implementation.
         Args:
             input_data: List of datas, each containing JSON array of records
-            parameters: Operator-specific parameters
-            properties: Operator properties
+            params: Operator-specific parameter values
+            properties: Operator properties (including parameter definitions)
         Returns:
             List of datas, each containing JSON array of records
         """
