@@ -132,6 +132,8 @@ class PostgresDBSource(DataSource):
             if type_name not in enum_types:
                 enum_types[type_name] = []
             enum_types[type_name].append(enum_value)
+        
+        return enum_types
 
         
     def fetch_database_collection_schema(self, database, collection):
@@ -153,7 +155,7 @@ class PostgresDBSource(DataSource):
             if not schema.has_entity(table_name):
                 schema.add_entity(table_name)
 
-            if udt_name in enum_types:
+            if enum_types and udt_name in enum_types:
                 schema.add_entity_property(table_name, column_name, {
                     "type": data_type,
                     "enum": enum_types[udt_name]

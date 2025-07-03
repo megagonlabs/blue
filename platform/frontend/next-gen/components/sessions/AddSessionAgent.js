@@ -137,6 +137,9 @@ export default function AddSessionAgent({
             let newAvailable = _.cloneDeep(available);
             setAvailable(removeSecondaryLabel(newAvailable, added));
             setLoading(false);
+            if (!_.isEmpty(added)) {
+                setSkippable(false);
+            }
         });
     };
     return (

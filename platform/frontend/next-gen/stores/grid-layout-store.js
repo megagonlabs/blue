@@ -16,8 +16,21 @@ export const useGridStore = create((set, get) => ({
             },
         }));
     },
+    replaceContainer: ({ id, title, content, icon }) => {
+        set((state) => ({
+            containers: {
+                ...state.containers,
+                [id]: {
+                    ..._.get(state.containers, id, {}),
+                    title,
+                    content,
+                    icon,
+                },
+            },
+        }));
+    },
     removeContainer: (id) => {
-        const uid = set((state) => ({
+        set((state) => ({
             containers: _.omit(state.containers, [id]),
             layout: state.layout.filter((element) => !_.isEqual(element.i, id)),
             layoutData: state.layoutData.filter(

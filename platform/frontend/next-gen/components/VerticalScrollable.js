@@ -13,6 +13,7 @@ function VerticalScrollable({
     transitionDuration = 0,
 }) {
     const containerRef = useRef(null);
+    const timeoutIdRef = useRef(null);
     const [showBottom, setShowBottom] = useState(false);
     const checkScroll = useCallback(() => {
         if (containerRef.current) {
@@ -37,10 +38,11 @@ function VerticalScrollable({
     const [visible, setVisible] = useState(false);
     useEffect(() => {
         if (show) {
-            setTimeout(() => {
+            timeoutIdRef.current = setTimeout(() => {
                 setVisible(true);
             }, transitionDuration);
         } else {
+            clearTimeout(timeoutIdRef.current);
             setVisible(false);
         }
     }, [show]);
@@ -69,17 +71,13 @@ function VerticalScrollable({
                         width,
                         textAlign: Alignment.CENTER,
                         background: `linear-gradient(to top, ${backgroundColor} 0%, ${backgroundColor} 20px, transparent 99%, transparent 100%)`,
+                        display: "flex",
+                        justifyContent: "end",
+                        flexDirection: "column",
+                        alignItems: "center",
                     }}
                 >
-                    <FAIcon
-                        icon={faCaretDown}
-                        style={{
-                            position: "absolute",
-                            bottom: 0,
-                            left: "50%",
-                            transform: "translate(-16px, 0)",
-                        }}
-                    />
+                    <FAIcon icon={faCaretDown} />
                 </div>
             )}
         </div>

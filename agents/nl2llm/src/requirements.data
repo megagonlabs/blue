@@ -1,0 +1,6 @@
+mysql-connector-python==9.2.0
+neo4j==5.12.0
+psycopg2-binary==2.9.6
+pymongo==4.6.1
+pandas==2.2.3
+numpy==1.25.2

@@ -29,6 +29,7 @@ import _ from "lodash";
 import { useCallback, useMemo, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { FAIcon } from "../FAIcon";
+import { useGridContainerContext } from "../contexts/GridContainerContext";
 import { AppToaster } from "../toaster";
 import SessionContainer from "./SessionContainer";
 import SessionDisplayName from "./SessionDisplayName";
@@ -45,8 +46,14 @@ export default function SessionCard({ sessionId }) {
         }))
     );
     const owner = _.get(details, "created_by");
+    const { gridContainerId } = useGridContainerContext();
     const description = _.get(details, "description", "");
-    const addContainer = useGridStore((state) => state.addContainer);
+    const { addContainer, replaceContainer } = useGridStore(
+        useShallow((state) => ({
+            addContainer: state.addContainer,
+            replaceContainer: state.replaceContainer,
+        }))
+    );
     const handleClose = useCallback(() => {
         hideContextMenu();
     }, []);
@@ -56,13 +63,13 @@ export default function SessionCard({ sessionId }) {
                 <MenuItem
                     icon={<FAIcon icon={faBrowsers} />}
                     text="Open in new window"
-                    onClick={() =>
+                    onClick={() => {
                         addContainer({
                             icon: faMessages,
                             title: <SessionDisplayName sessionId={sessionId} />,
                             content: <SessionContainer sessionId={sessionId} />,
-                        })
-                    }
+                        });
+                    }}
                 />
             </Menu>
         ),
@@ -139,6 +146,14 @@ export default function SessionCard({ sessionId }) {
             onContextMenu={handleContextMenu}
             className="full-parent-dimension session-list-card interactive-card-border"
             style={{ position: "relative", cursor: "context-menu" }}
+            onDoubleClick={() => {
+                replaceContainer({
+                    id: gridContainerId,
+                    icon: faMessages,
+                    title: <SessionDisplayName sessionId={sessionId} />,
+                    content: <SessionContainer sessionId={sessionId} />,
+                });
+            }}
         >
             <div
                 className="full-parent-height session-card-actions"
@@ -221,6 +236,7 @@ export default function SessionCard({ sessionId }) {
                     }}
                 >
                     <MessageContent
+                        isPreview={true}
                         contentType={lastMessage.contentType}
                         streamData={lastMessage.streamData}
                     />

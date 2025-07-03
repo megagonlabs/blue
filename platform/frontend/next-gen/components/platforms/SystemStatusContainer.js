@@ -157,6 +157,9 @@ function SystemStatusContainer({ width, height }) {
             }, 0);
         }
     };
+    const popoverBoundary =
+        elementRef.current &&
+        elementRef.current.closest(".grid-container-boundary");
     return (
         <div
             ref={elementRef}
@@ -185,7 +188,7 @@ function SystemStatusContainer({ width, height }) {
                     )}
                     <Popover
                         {...POPPER_BOTTOM_WITH_MODIFIER_OVERFLOW_10}
-                        boundary={elementRef.current}
+                        boundary={popoverBoundary}
                         content={
                             <div style={{ padding: 10, width: 400 }}>
                                 <InputGroup
@@ -221,7 +224,7 @@ function SystemStatusContainer({ width, height }) {
                         <Tooltip
                             {...POPPER_BOTTOM_WITH_MODIFIER_OVERFLOW_10}
                             content="Jump"
-                            boundary={elementRef.current}
+                            boundary={popoverBoundary}
                         >
                             <Button
                                 disabled={_.isEmpty(trackers)}

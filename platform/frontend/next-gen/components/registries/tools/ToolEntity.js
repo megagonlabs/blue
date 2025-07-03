@@ -70,7 +70,7 @@ export default function ToolEntity({ entity, backCrumb }) {
             .finally(() => {
                 setLoading(false);
             });
-    }, [entity, tool]);
+    }, [entity, url]);
     const handleDiscard = () => {
         setEditedTool(tool);
         setIsEditing(false);

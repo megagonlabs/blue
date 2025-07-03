@@ -121,153 +121,132 @@ export default function SessionMemberList({ sessionId }) {
         elementRef.current &&
         elementRef.current.closest(".grid-container-boundary");
     return (
-        <div
-            ref={elementRef}
-            className="full-parent-dimension"
-            style={{ padding: 20, overflowY: "auto" }}
-        >
-            <Popover
-                modifiers={{
-                    offset: { enabled: true, options: { offset: [0, 10] } },
-                }}
-                autoFocus={false}
-                enforceFocus={false}
-                minimal
-                onInteraction={(state) => {
-                    setShowSearch(state);
-                }}
-                boundary={popoverBoundary}
-                className="full-parent-width"
-                matchTargetWidth
-                isOpen={showSearch}
-                content={
-                    <div
-                        style={{
-                            borderRadius: 2,
-                            padding: 10,
-                            backgroundColor: darkMode
-                                ? Colors.DARK_GRAY2
-                                : null,
-                        }}
-                    >
-                        {_.isEmpty(searchResult) ? (
-                            <NoResultsFound />
-                        ) : (
-                            <CardList bordered={false}>
-                                {searchResult.map((user) => (
-                                    <Card
-                                        key={user.uid}
-                                        interactive
-                                        style={{ position: "relative" }}
-                                    >
-                                        <div style={{ width: 40 }}>
-                                            <UserAvatar userId={user.uid} />
-                                        </div>
-                                        <div
-                                            style={{
-                                                height: 40,
-                                                marginLeft: 10,
-                                                display: "flex",
-                                                flexDirection: "column",
-                                                justifyContent: "space-between",
-                                            }}
-                                        >
-                                            <div>{user.name}</div>
-                                            <div className={Classes.TEXT_MUTED}>
-                                                {user.email}
-                                            </div>
-                                        </div>
-                                        <div
-                                            style={{
-                                                position: "absolute",
-                                                right: 20,
-                                            }}
-                                        >
-                                            {_.includes(members, user.uid) ||
-                                            _.isEqual(owner, user.uid) ? (
-                                                <FAIcon
-                                                    icon={faCheckCircle}
-                                                    size={20}
-                                                    style={{
-                                                        color: Colors.GREEN3,
-                                                    }}
-                                                />
-                                            ) : (
-                                                <Button
-                                                    size={Size.LARGE}
-                                                    intent={Intent.PRIMARY}
-                                                    onClick={() =>
-                                                        updateSessionMember(
-                                                            user.uid,
-                                                            "post"
-                                                        )
-                                                    }
-                                                    icon={
-                                                        <FAIcon
-                                                            icon={faUserPlus}
-                                                        />
-                                                    }
-                                                    variant={
-                                                        ButtonVariant.OUTLINED
-                                                    }
-                                                    text="Add"
-                                                />
-                                            )}
-                                        </div>
-                                    </Card>
-                                ))}
-                            </CardList>
-                        )}
-                    </div>
-                }
-            >
-                <InputGroup
-                    value={searchKeyword}
-                    onClick={(event) => {
-                        if (showSearch) {
-                            event.stopPropagation();
-                        }
+        <div ref={elementRef} className="full-parent-dimension">
+            <div className="border-bottom" style={{ padding: "20px 20px" }}>
+                <Popover
+                    modifiers={{
+                        offset: { enabled: true, options: { offset: [0, 10] } },
                     }}
-                    onValueChange={handleKeywordChange}
-                    leftIcon={<FAIcon icon={faSearch} />}
-                    size={Size.LARGE}
-                />
-            </Popover>
-            <CardList bordered={false} style={{ marginTop: 10 }}>
-                <Card interactive style={{ position: "relative" }}>
-                    <div style={{ width: 40 }}>
-                        <UserAvatar userId={owner} />
-                    </div>
-                    <div
-                        style={{
-                            height: 40,
-                            marginLeft: 10,
-                            display: "flex",
-                            flexDirection: "column",
-                            justifyContent: "space-between",
-                        }}
-                    >
-                        <div>{_.get(users, [owner, "name"], "-")}</div>
-                        <div className={Classes.TEXT_MUTED}>
-                            {_.get(users, [owner, "email"], "-")}
+                    autoFocus={false}
+                    enforceFocus={false}
+                    minimal
+                    onInteraction={(state) => {
+                        setShowSearch(state);
+                    }}
+                    boundary={popoverBoundary}
+                    className="full-parent-width"
+                    matchTargetWidth
+                    isOpen={showSearch}
+                    content={
+                        <div
+                            style={{
+                                borderRadius: 2,
+                                padding: 10,
+                                backgroundColor: darkMode
+                                    ? Colors.DARK_GRAY2
+                                    : null,
+                            }}
+                        >
+                            {_.isEmpty(searchResult) ? (
+                                <NoResultsFound />
+                            ) : (
+                                <CardList bordered={false}>
+                                    {searchResult.map((user) => (
+                                        <Card
+                                            key={user.uid}
+                                            interactive
+                                            style={{ position: "relative" }}
+                                        >
+                                            <div style={{ width: 40 }}>
+                                                <UserAvatar userId={user.uid} />
+                                            </div>
+                                            <div
+                                                style={{
+                                                    height: 40,
+                                                    marginLeft: 10,
+                                                    display: "flex",
+                                                    flexDirection: "column",
+                                                    justifyContent:
+                                                        "space-between",
+                                                }}
+                                            >
+                                                <div>{user.name}</div>
+                                                <div
+                                                    className={
+                                                        Classes.TEXT_MUTED
+                                                    }
+                                                >
+                                                    {user.email}
+                                                </div>
+                                            </div>
+                                            <div
+                                                style={{
+                                                    position: "absolute",
+                                                    right: 20,
+                                                }}
+                                            >
+                                                {_.includes(
+                                                    members,
+                                                    user.uid
+                                                ) ||
+                                                _.isEqual(owner, user.uid) ? (
+                                                    <FAIcon
+                                                        icon={faCheckCircle}
+                                                        size={20}
+                                                        style={{
+                                                            color: Colors.GREEN3,
+                                                        }}
+                                                    />
+                                                ) : (
+                                                    <Button
+                                                        size={Size.LARGE}
+                                                        intent={Intent.PRIMARY}
+                                                        onClick={() =>
+                                                            updateSessionMember(
+                                                                user.uid,
+                                                                "post"
+                                                            )
+                                                        }
+                                                        icon={
+                                                            <FAIcon
+                                                                icon={
+                                                                    faUserPlus
+                                                                }
+                                                            />
+                                                        }
+                                                        variant={
+                                                            ButtonVariant.OUTLINED
+                                                        }
+                                                        text="Add"
+                                                    />
+                                                )}
+                                            </div>
+                                        </Card>
+                                    ))}
+                                </CardList>
+                            )}
                         </div>
-                    </div>
-                    <Tag
-                        style={{ position: "absolute", right: 20 }}
+                    }
+                >
+                    <InputGroup
+                        value={searchKeyword}
+                        onClick={(event) => {
+                            if (showSearch) {
+                                event.stopPropagation();
+                            }
+                        }}
+                        onValueChange={handleKeywordChange}
+                        leftIcon={<FAIcon icon={faSearch} />}
                         size={Size.LARGE}
-                        minimal
-                        intent={Intent.PRIMARY}
-                    >
-                        Owner
-                    </Tag>
-                </Card>
-                {members.map((member) => (
-                    <Card
-                        interactive
-                        style={{ position: "relative" }}
-                        key={member}
-                    >
-                        <UserAvatar userId={member} />
+                    />
+                </Popover>
+            </div>
+            <div style={{ overflowY: "auto", height: "calc(100% - 81px)" }}>
+                <CardList bordered={false}>
+                    <Card interactive style={{ position: "relative" }}>
+                        <div style={{ width: 40 }}>
+                            <UserAvatar userId={owner} />
+                        </div>
                         <div
                             style={{
                                 height: 40,
@@ -277,24 +256,55 @@ export default function SessionMemberList({ sessionId }) {
                                 justifyContent: "space-between",
                             }}
                         >
-                            <div>{_.get(users, [member, "name"], "-")}</div>
+                            <div>{_.get(users, [owner, "name"], "-")}</div>
                             <div className={Classes.TEXT_MUTED}>
-                                {_.get(users, [member, "email"], "-")}
+                                {_.get(users, [owner, "email"], "-")}
                             </div>
                         </div>
-                        <Button
+                        <Tag
                             style={{ position: "absolute", right: 20 }}
-                            intent={Intent.DANGER}
                             size={Size.LARGE}
-                            onClick={() =>
-                                updateSessionMember(member, "delete")
-                            }
-                            icon={<FAIcon icon={faTrash} />}
-                            variant={ButtonVariant.MINIMAL}
-                        />
+                            minimal
+                            intent={Intent.PRIMARY}
+                        >
+                            Owner
+                        </Tag>
                     </Card>
-                ))}
-            </CardList>
+                    {members.map((member) => (
+                        <Card
+                            interactive
+                            style={{ position: "relative" }}
+                            key={member}
+                        >
+                            <UserAvatar userId={member} />
+                            <div
+                                style={{
+                                    height: 40,
+                                    marginLeft: 10,
+                                    display: "flex",
+                                    flexDirection: "column",
+                                    justifyContent: "space-between",
+                                }}
+                            >
+                                <div>{_.get(users, [member, "name"], "-")}</div>
+                                <div className={Classes.TEXT_MUTED}>
+                                    {_.get(users, [member, "email"], "-")}
+                                </div>
+                            </div>
+                            <Button
+                                style={{ position: "absolute", right: 20 }}
+                                intent={Intent.DANGER}
+                                size={Size.LARGE}
+                                onClick={() =>
+                                    updateSessionMember(member, "delete")
+                                }
+                                icon={<FAIcon icon={faTrash} />}
+                                variant={ButtonVariant.MINIMAL}
+                            />
+                        </Card>
+                    ))}
+                </CardList>
+            </div>
         </div>
     );
 }

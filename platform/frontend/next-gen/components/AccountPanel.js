@@ -1,30 +1,36 @@
+import { useAppStore } from "@/stores/app-store";
 import { useAuthStore } from "@/stores/auth-store";
 import { useGridStore } from "@/stores/grid-layout-store";
 import {
     Button,
-    ButtonGroup,
     ButtonVariant,
     Card,
     Classes,
+    hideContextMenu,
     Intent,
+    Menu,
+    MenuItem,
+    showContextMenu,
     Size,
     Tag,
-    Tooltip,
 } from "@blueprintjs/core";
 import {
     faArrowRightFromBracket,
+    faBarcode,
+    faBrowsers,
     faCog,
-    faGlasses,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import classNames from "classnames";
 import _ from "lodash";
 import Image from "next/image";
+import { useCallback, useMemo } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { FAIcon } from "./FAIcon";
-import NerdStats from "./NerdStats";
+import NerdStatsContainer from "./NerdStatsContainer";
 import { USER_ROLES_LOOKUP } from "./constants";
 import SettingsContainer from "./settings/SettingsContainer";
 export default function AccountPanel({ isExpanded }) {
+    const darkMode = useAppStore((state) => state.dark_mode);
     const { user, logout } = useAuthStore(
         useShallow((state) => ({
             user: state.user,
@@ -33,8 +39,49 @@ export default function AccountPanel({ isExpanded }) {
     );
     const userRole = _.get(user, "role", null);
     const addContainer = useGridStore((state) => state.addContainer);
+    const handleClose = useCallback(() => {
+        hideContextMenu();
+    }, []);
+    const menu = useMemo(
+        () => (
+            <Menu size={Size.LARGE} onClick={handleClose}>
+                <MenuItem
+                    icon={<FAIcon icon={faBarcode} />}
+                    labelElement={<FAIcon icon={faBrowsers} />}
+                    text="Stats. for nerds"
+                    onClick={() => {
+                        addContainer({
+                            icon: faBarcode,
+                            title: "Stats. for nerds",
+                            content: <NerdStatsContainer />,
+                            uniqueId: "NerdStatsContainer",
+                        });
+                    }}
+                />
+            </Menu>
+        ),
+        [handleClose, addContainer]
+    );
+    const handleContextMenu = useCallback(
+        (event) => {
+            // ensure `preventDefault` is called just before `showContextMenu` and in the same event handler to prevent the
+            // default browser context menu from hiding your custom context menu
+            event.preventDefault();
+            showContextMenu({
+                isDarkTheme: darkMode,
+                content: menu,
+                onClose: handleClose,
+                targetOffset: {
+                    left: event.clientX,
+                    top: event.clientY,
+                },
+            });
+        },
+        [handleClose, darkMode, menu]
+    );
     return (
         <Card
+            onContextMenu={handleContextMenu}
             interactive
             className={classNames(
                 "border-radius-10",
@@ -69,8 +116,7 @@ export default function AccountPanel({ isExpanded }) {
                             Classes.TEXT_SMALL
                         )}
                     >
-                        Managed by&nbsp;
-                        {_.get(user, "email_domain", "-")}
+                        Managed by {_.get(user, "email_domain", "-")}
                     </div>
                     <div style={{ marginTop: 10 }}>
                         <Tag size={Size.LARGE} minimal intent={Intent.PRIMARY}>
@@ -91,39 +137,20 @@ export default function AccountPanel({ isExpanded }) {
                         justifyContent: "space-between",
                     }}
                 >
-                    <ButtonGroup fill>
-                        <Button
-                            onClick={() =>
-                                addContainer({
-                                    icon: faCog,
-                                    title: "Account Settings",
-                                    content: <SettingsContainer />,
-                                })
-                            }
-                            variant={ButtonVariant.OUTLINED}
-                            icon={<FAIcon icon={faCog} />}
-                            text="Settings"
-                            size={Size.LARGE}
-                        />
-                        <Tooltip
-                            placement="bottom-end"
-                            content="Stats. for nerds"
-                        >
-                            <Button
-                                onClick={() => {
-                                    addContainer({
-                                        icon: faGlasses,
-                                        title: "Stats.",
-                                        content: <NerdStats />,
-                                        uniqueId: "NerdStats",
-                                    });
-                                }}
-                                variant={ButtonVariant.MINIMAL}
-                                size={Size.LARGE}
-                                icon={<FAIcon icon={faGlasses} />}
-                            />
-                        </Tooltip>
-                    </ButtonGroup>
+                    <Button
+                        onClick={() =>
+                            addContainer({
+                                icon: faCog,
+                                title: "Account Settings",
+                                content: <SettingsContainer />,
+                                uniqueId: "SettingsContainer",
+                            })
+                        }
+                        variant={ButtonVariant.OUTLINED}
+                        icon={<FAIcon icon={faCog} />}
+                        text="Settings"
+                        size={Size.LARGE}
+                    />
                     <Button
                         intent={Intent.WARNING}
                         icon={<FAIcon icon={faArrowRightFromBracket} />}

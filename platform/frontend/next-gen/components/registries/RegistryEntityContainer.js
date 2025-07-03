@@ -4,7 +4,7 @@ import { Colors, Overlay2 } from "@blueprintjs/core";
 import _ from "lodash";
 import { useEffect, useRef, useState } from "react";
 import IconEditor from "../IconEditor";
-import { useContainerContext } from "../contexts/ContainerContext";
+import { useGridContainerContext } from "../contexts/GridContainerContext";
 import withAutoSizer from "../hocs/withAutoSizer";
 import Breadcrumbs from "./Breadcrumbs";
 import NewEntity from "./NewEntity";
@@ -26,7 +26,7 @@ function RegistryEntityContainer({ width, height, entity, duplicate = false }) {
     const [breadcrumbs, setBreadcrumbs] = useState([]);
     const [duplicated, setDuplicated] = useState(false);
     const darkMode = useAppStore((state) => state.dark_mode);
-    const { containerId } = useContainerContext();
+    const { gridContainerId } = useGridContainerContext();
     const removeContainer = useGridStore((state) => state.removeContainer);
     useEffect(() => {
         let crumbs = [entity];
@@ -54,7 +54,7 @@ function RegistryEntityContainer({ width, height, entity, duplicate = false }) {
             const index = Math.max(0, _.size(breadcrumbs) - 1);
             setBreadcrumbs(normalizeCrumbs(_.slice(breadcrumbs, 0, index)));
         } else {
-            removeContainer(containerId);
+            removeContainer(gridContainerId);
         }
     };
     const current = _.last(breadcrumbs);

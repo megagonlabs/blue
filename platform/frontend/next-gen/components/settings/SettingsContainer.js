@@ -27,13 +27,15 @@ const SECTIONS = [
     { icon: faMessages, text: "Sessions & Messages" },
 ];
 function SettingsContainer({ width, height }) {
-    const { darkMode, showWorkspace, expandMessage } = useAppStore(
-        useShallow((state) => ({
-            darkMode: state.dark_mode,
-            showWorkspace: state.show_workspace,
-            expandMessage: state.expand_message,
-        }))
-    );
+    const { darkMode, showWorkspace, expandMessage, windowsControlButtons } =
+        useAppStore(
+            useShallow((state) => ({
+                darkMode: state.dark_mode,
+                showWorkspace: state.show_workspace,
+                expandMessage: state.expand_message,
+                windowsControlButtons: state.windows_control_buttons,
+            }))
+        );
     const setAppState = useAppStore((state) => state.setState);
     const saveSetting = ({ key, value }) => {
         setAppState({ key, value });
@@ -97,7 +99,7 @@ function SettingsContainer({ width, height }) {
                         >
                             <FormGroup
                                 helperText="Change the color scheme from light to dark"
-                                className="margin-0"
+                                style={{ marginBottom: 10 }}
                             >
                                 <Switch
                                     onChange={(event) => {
@@ -110,6 +112,23 @@ function SettingsContainer({ width, height }) {
                                     size={Size.LARGE}
                                     style={{ margin: "0px 0px 5px 0px" }}
                                     label="Dark mode"
+                                />
+                            </FormGroup>
+                            <FormGroup
+                                helperText="Relocate the window control buttons to the right side"
+                                className="margin-0"
+                            >
+                                <Switch
+                                    onChange={(event) => {
+                                        saveSetting({
+                                            key: "windows_control_buttons",
+                                            value: event.target.checked,
+                                        });
+                                    }}
+                                    checked={windowsControlButtons}
+                                    size={Size.LARGE}
+                                    style={{ margin: "0px 0px 5px 0px" }}
+                                    label="Windows style control buttons"
                                 />
                             </FormGroup>
                         </div>

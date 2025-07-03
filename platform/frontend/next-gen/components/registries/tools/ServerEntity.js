@@ -6,7 +6,7 @@ import {
     MAIN_INFO_STYLES,
     REGISTRY_ENTITY_ICON_WRAPPER_STYLES,
 } from "@/components/constants";
-import { useContainerContext } from "@/components/contexts/ContainerContext";
+import { useGridContainerContext } from "@/components/contexts/GridContainerContext";
 import {
     getEntityMainProperties,
     getUpdatePropertyPromises,
@@ -53,7 +53,7 @@ export default function ServerEntity({
     const [editedServer, setEditedServer] = useState(null);
     const [mainProperties, setMainProperties] = useState({});
     const [loading, setLoading] = useState(false);
-    const { containerId } = useContainerContext();
+    const { gridContainerId } = useGridContainerContext();
     const [template, setTemplate] = useState(null);
     const { setContainerHeader, addContainer } = useGridStore(
         useShallow((state) => ({
@@ -80,11 +80,11 @@ export default function ServerEntity({
     )}/${name}`;
     useEffect(() => {
         setContainerHeader({
-            id: containerId,
+            id: gridContainerId,
             title: <EntityDisplayName entity={server} />,
             icon: _.get(ENTITY_TYPE_LOOKUP, [type, "icon"], null),
         });
-    }, [server, setContainerHeader, containerId]);
+    }, [server, setContainerHeader, gridContainerId]);
     const onSynchronize = () => {
         setLoading(true);
         axios.put(`${url}/sync`).finally(() => {

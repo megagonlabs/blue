@@ -9,10 +9,6 @@ import websockets
 import asyncio
 import re
 
-
-###### Communication
-from websockets.sync.client import connect
-
 ###### Source specific libs
 import requests
 
@@ -35,11 +31,12 @@ Your task is to process a natural language query and return the results in JSON 
 The response should be a valid JSON array containing the requested information.
 
 Here are the requirements:
-- There might be optional context provided for domain knowledge. Use it to assist the query.
+- There might be optional context provided for domain knowledge. Use it to assist the query if provided and not empty.
 - There might be specificed attr_names, which are the attributes of the objects in the output.
 - The output should be a JSON array of objects. Each element is a JSON object with proper attribute value pairs.
 - Each object should contain the requested information in a structured format
-- When interpreting the query, use any additional context provided.
+- When interpreting the query, use additional context provided if provided and not empty.
+- Please try to return non-empty output. If the query is not clear, please use your best judgement to return a non-empty output.
 - The response should be well-formatted and easy to parse
 - Output the JSON directly. Do not generate explanation or other additional output.
 

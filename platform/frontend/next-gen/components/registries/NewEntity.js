@@ -152,7 +152,7 @@ export default function NewEntity({ type, callback, parent, duplicateEntity }) {
             <H3 style={{ marginBottom: 20 }}>
                 Create&nbsp;
                 {_.isEqual(calculatedType, "agent_group")
-                    ? "demo"
+                    ? "application"
                     : calculatedType}
             </H3>
             <div

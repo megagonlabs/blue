@@ -10,6 +10,7 @@ import {
     ButtonVariant,
     Callout,
     Colors,
+    Icon,
     Intent,
     Menu,
     MenuDivider,
@@ -39,6 +40,7 @@ import { useShallow } from "zustand/react/shallow";
 import {
     EMPTY_ARRAY,
     EMPTY_OBJECT,
+    GREEN_CHECK,
     MESSAGE_OVERFLOW_THRESHOLD,
     POPPER_BOTTOM_WITH_MODIFIER_OVERFLOW_10,
 } from "../constants";
@@ -49,13 +51,19 @@ import SessionDisplayName from "./SessionDisplayName";
 import SessionMemberStack from "./SessionMemberStack";
 const Row = ({ index, data, style }) => {
     const { setRowHeight, sessionId, addInspectionContainer } = data;
-    const darkMode = useAppStore((state) => state.dark_mode);
+    const { darkMode, autoExpandMessage } = useAppStore(
+        useShallow((state) => ({
+            darkMode: state.dark_mode,
+            autoExpandMessage: state.expand_message,
+        }))
+    );
     const { getUserProfileById, getAgentMetadata } = useDedupStore(
         useShallow((state) => ({
             getUserProfileById: state.getUserProfileById,
             getAgentMetadata: state.getAgentMetadata,
         }))
     );
+
     const {
         streams,
         messages,
@@ -63,6 +71,7 @@ const Row = ({ index, data, style }) => {
         setInspectionFocusStream,
         expandMessage,
         expandedMessages,
+        messageFilterTags,
     } = useSessionStore(
         useShallow((state) => ({
             streams: _.get(
@@ -75,17 +84,26 @@ const Row = ({ index, data, style }) => {
                 ["sessions", sessionId, "messages"],
                 EMPTY_ARRAY
             ),
+            messageFilterTags: state.messageFilterTags,
             addToWorkspace: state.addToWorkspace,
             setInspectionFocusStream: state.setInspectionFocusStream,
             expandMessage: state.expandMessage,
             expandedMessages: state.expandedMessages,
         }))
     );
+    const filterTags = _.get(messageFilterTags, sessionId, []);
     const filteredMessages = messages.filter((message) => {
         if (_.get(message, "metadata.ags.WORKSPACE_ONLY")) {
             return false;
         }
-        return true;
+        let include = false;
+        for (let i = 0; i < _.size(filterTags); i++) {
+            if (_.get(message, ["metadata", "tags", filterTags[i]])) {
+                include = true;
+                break;
+            }
+        }
+        return _.isEmpty(filterTags) || include;
     });
     const rowRef = useRef({});
     const user = useAuthStore((state) => state.user);
@@ -129,6 +147,11 @@ const Row = ({ index, data, style }) => {
     const complete = _.get(streams, [stream, "complete"], false);
     const hasError = useRef(false);
     const showActions = useRef(false);
+    useEffect(() => {
+        if (autoExpandMessage) {
+            expandMessage(sessionId, stream);
+        }
+    }, [autoExpandMessage]);
     return (
         <div
             key={index}
@@ -272,7 +295,13 @@ export default function SessionMessages({
             variableSizeListRef.current.resetAfterIndex(0);
         }
     }
-    const { messages, tags } = useSessionStore(
+    const {
+        messages,
+        tags,
+        messageFilterTags,
+        toggleMessageFilterTag,
+        clearMessageFilterTags,
+    } = useSessionStore(
         useShallow((state) => ({
             messages: _.get(
                 state,
@@ -280,13 +309,24 @@ export default function SessionMessages({
                 EMPTY_ARRAY
             ),
             tags: _.get(state, ["sessions", sessionId, "tags"], EMPTY_ARRAY),
+            messageFilterTags: state.messageFilterTags,
+            toggleMessageFilterTag: state.toggleMessageFilterTag,
+            clearMessageFilterTags: state.clearMessageFilterTags,
         }))
     );
+    const filterTags = _.get(messageFilterTags, sessionId, []);
     const filteredMessages = messages.filter((message) => {
         if (_.get(message, "metadata.ags.WORKSPACE_ONLY")) {
             return false;
         }
-        return true;
+        let include = false;
+        for (let i = 0; i < _.size(filterTags); i++) {
+            if (_.get(message, ["metadata", "tags", filterTags[i]])) {
+                include = true;
+                break;
+            }
+        }
+        return _.isEmpty(filterTags) || include;
     });
     function getRowHeight(index) {
         let height = 71;
@@ -355,15 +395,37 @@ export default function SessionMessages({
                         minimal
                         content={
                             <Menu size={Size.LARGE}>
-                                <MenuItem text="Clear all" />
+                                <MenuItem
+                                    text="Clear all"
+                                    onClick={() => {
+                                        clearMessageFilterTags(sessionId);
+                                    }}
+                                />
                                 {!_.isEmpty(tags) && (
                                     <>
                                         <MenuDivider title="By tag" />
                                         {tags.map((tag, index) => {
+                                            const selected = _.includes(
+                                                filterTags,
+                                                tag
+                                            );
                                             return (
                                                 <MenuItem
+                                                    icon={
+                                                        selected ? (
+                                                            GREEN_CHECK
+                                                        ) : (
+                                                            <Icon icon="blank" />
+                                                        )
+                                                    }
                                                     key={index}
                                                     text={tag}
+                                                    onClick={() => {
+                                                        toggleMessageFilterTag(
+                                                            sessionId,
+                                                            tag
+                                                        );
+                                                    }}
                                                     shouldDismissPopover={false}
                                                 />
                                             );
@@ -433,7 +495,7 @@ export default function SessionMessages({
                             </Tooltip>
                         </Popover>
                     </ButtonGroup>
-                    <div style={{ width: 100, height: 40 }}>
+                    <div style={{ width: 200, height: 40 }}>
                         <SessionMemberStack
                             style={{ justifyContent: "flex-end" }}
                             sessionId={sessionId}

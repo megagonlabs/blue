@@ -1,5 +1,6 @@
-import { ContainerContextProvider } from "@/components/contexts/ContainerContext";
+import { GridContainerContextProvider } from "@/components/contexts/GridContainerContext";
 import { FAIcon } from "@/components/FAIcon";
+import { useAppStore } from "@/stores/app-store";
 import { useGridStore } from "@/stores/grid-layout-store";
 import {
     Button,
@@ -61,6 +62,15 @@ export default function Home() {
         }))
     );
     const gridRef = useRef();
+    const { windowsControlButtons } = useAppStore(
+        useShallow((state) => ({
+            windowsControlButtons: state.windows_control_buttons,
+        }))
+    );
+    const expandWindow = (id) => {
+        resizeContainerFullHeight({ id, grid: gridRef });
+        resizeContainerWidth({ id, width: 12 });
+    };
     return (
         <div
             ref={gridRef}
@@ -89,12 +99,21 @@ export default function Home() {
                             style={{
                                 padding: "0px 20px",
                                 display: "flex",
+                                flexDirection: windowsControlButtons
+                                    ? "row-reverse"
+                                    : null,
                                 alignItems: "center",
                                 gap: 10,
                             }}
                         >
                             <ButtonGroup
-                                style={{ marginRight: 10 }}
+                                style={{
+                                    marginRight: windowsControlButtons ? 0 : 10,
+                                    marginLeft: windowsControlButtons ? 10 : 0,
+                                    flexDirection: windowsControlButtons
+                                        ? "row-reverse"
+                                        : null,
+                                }}
                                 variant={ButtonVariant.MINIMAL}
                                 size={Size.SMALL}
                             >
@@ -111,7 +130,15 @@ export default function Home() {
                                     modifiers={{
                                         offset: {
                                             enabled: true,
-                                            options: { offset: [31, 14] },
+                                            options: {
+                                                offset: [
+                                                    31 *
+                                                        (windowsControlButtons
+                                                            ? -1
+                                                            : 1),
+                                                    11,
+                                                ],
+                                            },
                                         },
                                     }}
                                     content={
@@ -169,8 +196,8 @@ export default function Home() {
                                     }
                                 >
                                     <Tooltip
-                                        content="Resize"
                                         placement="bottom"
+                                        content="Resize"
                                     >
                                         <Button
                                             intent={Intent.SUCCESS}
@@ -180,13 +207,19 @@ export default function Home() {
                                 </Popover>
                             </ButtonGroup>
                             <div
+                                onDoubleClick={() => {
+                                    expandWindow(element.i);
+                                }}
                                 className="react-grid-drag-handle user-selection-none"
                                 style={{
                                     width: "calc(100% - 79px)",
                                     fontWeight: 600,
                                     display: "flex",
                                     height: 44,
-                                    paddingRight: 79,
+                                    paddingRight: windowsControlButtons
+                                        ? 0
+                                        : 79,
+                                    paddingLeft: windowsControlButtons ? 79 : 0,
                                     alignItems: "center",
                                     justifyContent: "center",
                                 }}
@@ -224,15 +257,15 @@ export default function Home() {
                             className="overflow-hidden"
                             style={{ height: "calc(100% - 45px)" }}
                         >
-                            <ContainerContextProvider
-                                value={{ containerId: element.i }}
+                            <GridContainerContextProvider
+                                value={{ gridContainerId: element.i }}
                             >
                                 {_.get(
                                     containers,
                                     [element.i, "content"],
                                     null
                                 )}
-                            </ContainerContextProvider>
+                            </GridContainerContextProvider>
                         </div>
                     </div>
                 ))}

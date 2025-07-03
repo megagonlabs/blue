@@ -128,7 +128,7 @@ class Worker:
         agent=None,
         processor=None,
         session=None,
-        properties={},
+        properties=None,
         on_stop = None
     ):
 
@@ -160,14 +160,16 @@ class Worker:
         self.session = session
         self.agent = agent
 
+        if properties is None:
+            properties = {}
         self._initialize(properties=properties)
 
         self.input_stream = input_stream
+
         self.processor = processor
         if processor is not None:
-            self.processor = lambda *args, **kwargs,: processor(*args, **kwargs, worker=self)
+            self.processor = lambda *args, **kwargs: processor(*args, **kwargs, worker=self, properties=self.properties)
 
-        self.properties = properties
 
         self.producers = {}
         self.consumer = None
@@ -573,7 +575,7 @@ class Agent:
         suffix=None,
         session=None,
         processor=None,
-        properties={},
+        properties=None,
     ):
 
         self.name = name
@@ -599,13 +601,15 @@ class Agent:
             if self.suffix:
                 self.cid = self.cid + ":" + self.suffix
 
+        if properties is None:
+            properties = {}
         self._initialize(properties=properties)
 
         # override, if necessary
         if processor is not None:
-            self.processor = lambda *args, **kwargs: processor(*args, **kwargs, properties=self.properties)
+            self.processor = lambda *args, **kwargs: processor(*args, **kwargs)
         else:
-            self.processor = lambda *args, **kwargs: self.default_processor(*args, **kwargs, properties=self.properties)
+            self.processor = lambda *args, **kwargs: self.default_processor(*args, **kwargs)
 
         self.session = None
         if session:
@@ -676,25 +680,12 @@ class Agent:
         self.connection_factory = PooledConnectionFactory(properties=self.properties)
         self.connection = self.connection_factory.get_connection()
 
-    # # override kwargs
-    # def __override_kwargs(self, kwargs, properties=None):
-    #     if kwargs is None:
-    #         kwargs = {}
-    #     if properties:
-    #         if 'properties' in kwargs:
-    #             del kwargs['properties']
-    #         kwargs['properties'] = properties
-    #     return kwargs
-
     ###### worker
     # input_stream is data stream for input param, default 'DEFAULT'
     def create_worker(self, input_stream, input="DEFAULT", context=None, processor=None, properties=None):
         # listen
-        logging.info("Creating worker for stream {stream} for param {param}...".format(stream=input_stream, param=input))
-
         if processor == None:
             processor = lambda *args, **kwargs: self.processor(*args, **kwargs)
-            # processor = lambda *args, **kwargs: self.processor(*args, **self.__override_kwargs(kwargs, properties=properties))
 
         
         # set prefix if context provided
@@ -704,11 +695,14 @@ class Agent:
             # default agent's cid is prefix
             prefix = self.cid
 
-        # set properties
+        # override agent properties, if provided
         if properties is None:
-            properties = self.properties
+            properties = {}
+        
+        worker_properties = {}
+        worker_properties = json_utils.merge_json(worker_properties, self.properties)
+        worker_properties = json_utils.merge_json(worker_properties, properties)
 
-        logging.info(json.dumps(properties))
         worker = Worker(
             input_stream,
             input=input,
@@ -717,7 +711,7 @@ class Agent:
             agent=self,
             processor=processor,
             session=self.session,
-            properties=properties,
+            properties=worker_properties,
             on_stop=lambda sid: self.on_worker_stop_handler(sid)
         )
 
@@ -763,14 +757,11 @@ class Agent:
                 context = message.getAgentContext()
 
                 # get additional properties
-                properties_from_instruction = message.getAgentProperties()
-                worker_properties = {}
-                worker_properties = json_utils.merge_json(worker_properties, self.properties)
-                worker_properties = json_utils.merge_json(worker_properties, properties_from_instruction)
-
+                properties = message.getAgentProperties()
+                
                 input_params = message.getInputParams()
                 for input_param in input_params:
-                    self.create_worker(input_params[input_param], input=input_param, context=context, properties=worker_properties)
+                    self.create_worker(input_params[input_param], input=input_param, context=context, properties=properties)
 
     ###### session
     def join_session(self, session):

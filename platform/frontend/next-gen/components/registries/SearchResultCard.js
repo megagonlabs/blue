@@ -13,12 +13,20 @@ import { faBrowsers } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import classNames from "classnames";
 import _ from "lodash";
 import { useCallback, useMemo } from "react";
+import { useShallow } from "zustand/react/shallow";
 import { REGISTRY_ENTITY_ICON_WRAPPER_STYLES } from "../constants";
+import { useGridContainerContext } from "../contexts/GridContainerContext";
 import { FAIcon } from "../FAIcon";
 import RegistryEntityContainer from "./RegistryEntityContainer";
 import RegistryEntityIcon from "./RegistryEntityIcon";
 export default function SearchResultCard({ entity }) {
-    const addContainer = useGridStore((state) => state.addContainer);
+    const { addContainer, replaceContainer } = useGridStore(
+        useShallow((state) => ({
+            addContainer: state.addContainer,
+            replaceContainer: state.replaceContainer,
+        }))
+    );
+    const { gridContainerId } = useGridContainerContext();
     const darkMode = useAppStore((state) => state.dark_mode);
     const handleClose = useCallback(() => {
         hideContextMenu();
@@ -57,7 +65,13 @@ export default function SearchResultCard({ entity }) {
     );
     return (
         <Card
-            className="full-parent-dimension"
+            onDoubleClick={() => {
+                replaceContainer({
+                    id: gridContainerId,
+                    content: <RegistryEntityContainer entity={entity} />,
+                });
+            }}
+            className="full-parent-dimension interactive-card-border"
             style={{
                 padding: 20,
                 position: "relative",

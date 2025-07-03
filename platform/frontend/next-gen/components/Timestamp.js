@@ -7,7 +7,7 @@ export default function Timestamp({ date, placement = null, boundary = null }) {
             placement={placement}
             content={
                 <>
-                    {new Date(date).toLocaleDateString()}&nbsp;at&nbsp;
+                    {new Date(date).toLocaleDateString()} at&nbsp;
                     {new Date(date).toLocaleTimeString()}
                 </>
             }

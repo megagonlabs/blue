@@ -14,7 +14,36 @@ export const useSessionStore = create((set, get) => ({
     progress: {},
     inspection: {},
     expandedMessages: {},
+    messageFilterTags: {},
     triggers: {},
+    removeSessionProgress: (sessionId, progressId) => {
+        const { progress } = get();
+        let newProgress = _.cloneDeep(progress);
+        let next = _.get(newProgress, sessionId, {});
+        next = _.omit(next, progressId);
+        _.set(newProgress, sessionId, next);
+        set({ progress: newProgress });
+    },
+    toggleMessageFilterTag: (sessionId, tag) => {
+        const { messageFilterTags } = get();
+        let next = _.cloneDeep(messageFilterTags);
+        let current = _.get(messageFilterTags, sessionId, []);
+        if (!_.includes(current, tag)) {
+            current.push(tag);
+        } else {
+            current = _.pull(current, tag);
+        }
+        _.set(next, sessionId, current);
+        set({ messageFilterTags: next });
+    },
+    clearMessageFilterTags: (sessionId) => {
+        set((state) => ({
+            messageFilterTags: {
+                ...state.clearMessageFilterTags,
+                [sessionId]: [],
+            },
+        }));
+    },
     resetTrigger: (path) => {
         const { triggers } = get();
         let next = _.cloneDeep(triggers);
@@ -60,23 +89,30 @@ export const useSessionStore = create((set, get) => ({
         }));
     },
     removeSession: (sessionId) => {
-        const { sessions, sessionIds } = _.cloneDeep(get());
-        _.unset(sessions, sessionId);
-        _.pull(sessionIds, sessionId);
-        set({ sessions, sessionIds });
+        const { sessions, sessionIds } = get();
+        let newSessions = _.cloneDeep(sessions),
+            newSessionIds = _.cloneDeep(sessionIds);
+        _.unset(newSessions, sessionId);
+        _.pull(newSessionIds, sessionId);
+        set({ sessions: newSessions, sessionIds: newSessionIds });
     },
     setSessionDetails: ({ sessionId, fields }) => {
         // fields: list of objects
         // elements:  { path, value }
-        const { sessions } = _.cloneDeep(get());
-        let details = _.get(sessions, [sessionId, "details"], {});
+        const { sessions } = get();
+        let newSessions = _.cloneDeep(sessions);
+        let details = _.get(newSessions, [sessionId, "details"], {});
         for (let i = 0; i < _.size(fields); i++) {
             _.set(details, fields[i].path, fields[i].value);
         }
-        _.set(sessions, [sessionId, "details"], details);
-        set({ sessions });
+        _.set(newSessions, [sessionId, "details"], details);
+        set({ sessions: newSessions });
     },
-    createNewSession: (agentGroup = null) => {
+    createNewSession: ({
+        agentGroup = null,
+        replace = false,
+        gridContainerId = null,
+    }) => {
         let url = "/sessions/session";
         if (!_.isEmpty(agentGroup)) {
             url += `/${agentGroup}`;
@@ -84,12 +120,22 @@ export const useSessionStore = create((set, get) => ({
         axios.post(url).then((response) => {
             const sessionId = _.get(response, "data.result.id", null);
             if (!_.isNull(sessionId)) {
-                const { addContainer } = useGridStore.getState();
-                addContainer({
-                    icon: faMessages,
-                    title: <SessionDisplayName sessionId={sessionId} />,
-                    content: <SessionContainer sessionId={sessionId} />,
-                });
+                const { addContainer, replaceContainer } =
+                    useGridStore.getState();
+                if (replace && !_.isEmpty(gridContainerId)) {
+                    replaceContainer({
+                        id: gridContainerId,
+                        title: <SessionDisplayName sessionId={sessionId} />,
+                        content: <SessionContainer sessionId={sessionId} />,
+                        icon: faMessages,
+                    });
+                } else {
+                    addContainer({
+                        icon: faMessages,
+                        title: <SessionDisplayName sessionId={sessionId} />,
+                        content: <SessionContainer sessionId={sessionId} />,
+                    });
+                }
                 const { triggers } = get();
                 let next = _.cloneDeep(triggers);
                 _.set(next, ["addSessionAgent", sessionId], true);
@@ -104,16 +150,17 @@ export const useSessionStore = create((set, get) => ({
             _.get(filter, "group")
         );
         axios.get("/sessions", { params: { my_sessions } }).then((response) => {
-            const sessions = _.get(response, "data.results", []);
+            const results = _.get(response, "data.results", []);
             let responseSessionIds = [];
-            for (let i = 0; i < _.size(sessions); i++) {
-                const sessionId = _.get(sessions[i], "id", null);
+            for (let i = 0; i < _.size(results); i++) {
+                const sessionId = _.get(results[i], "id", null);
                 if (!_.isNull(sessionId)) {
                     responseSessionIds.push(sessionId);
                 }
-                addNewSession(sessions[i]);
+                addNewSession(results[i]);
             }
-            const { sessions: stateSessions, sessionIds } = _.cloneDeep(get());
+            const { sessions, sessionIds } = get();
+            let stateSessions = _.cloneDeep(sessions);
             const deletedSessionIds = _.difference(
                 sessionIds,
                 responseSessionIds
@@ -125,16 +172,18 @@ export const useSessionStore = create((set, get) => ({
         });
     },
     removeWorkspaceMessage: ({ sessionId, index }) => {
-        const { sessions } = _.cloneDeep(get());
-        let contents = _.get(sessions, [sessionId, "workspace"], []);
+        const { sessions } = get();
+        let newSessions = _.cloneDeep(sessions);
+        let contents = _.get(newSessions, [sessionId, "workspace"], []);
         _.pullAt(contents, [index]);
-        _.set(sessions, [sessionId, "workspace"], contents);
-        set({ sessions });
+        _.set(newSessions, [sessionId, "workspace"], contents);
+        set({ sessions: newSessions });
     },
     clearWorkspace: (sessionId) => {
-        const { sessions } = _.cloneDeep(get());
-        _.set(sessions, [sessionId, "workspace"], []);
-        set({ sessions });
+        const { sessions } = get();
+        let newSessions = _.cloneDeep(sessions);
+        _.set(newSessions, [sessionId, "workspace"], []);
+        set({ sessions: newSessions });
     },
     reorderWorkspace: ({
         sessionId,
@@ -142,10 +191,11 @@ export const useSessionStore = create((set, get) => ({
         indexOfTarget,
         closestEdgeOfTarget,
     }) => {
-        const { sessions } = _.cloneDeep(get());
-        let contents = _.get(sessions, [sessionId, "workspace"], []);
+        const { sessions } = get();
+        let newSessions = _.cloneDeep(sessions);
+        let contents = _.get(newSessions, [sessionId, "workspace"], []);
         _.set(
-            sessions,
+            newSessions,
             [sessionId, "workspace"],
             reorderWithEdge({
                 list: contents,
@@ -155,15 +205,21 @@ export const useSessionStore = create((set, get) => ({
                 axis: "vertical",
             })
         );
-        set({ sessions });
+        set({ sessions: newSessions });
     },
     addToWorkspace: ({ type, message, sessionId }) => {
-        const stream = _.get(message, "stream", null);
-        const { sessions } = _.cloneDeep(get());
-        let contents = _.get(sessions, [sessionId, "workspace"], []);
+        const { sessions } = get();
+        let newSessions = _.cloneDeep(sessions);
+        let contents = _.get(newSessions, [sessionId, "workspace"], []);
         contents.push({ type, message, sessionId });
-        _.set(sessions, [sessionId, "workspace"], contents);
-        set({ sessions });
+        _.set(newSessions, [sessionId, "workspace"], contents);
+        set({ sessions: newSessions });
+    },
+    setFormData: (formId, data) => {
+        const { forms } = get();
+        let newForms = _.cloneDeep(forms);
+        _.set(newForms, [formId, "content", "data"], data);
+        set({ forms: newForms });
     },
     addSessionMessage: (data) => {
         const messageLabel = _.get(data, "message.label", null);
@@ -177,8 +233,12 @@ export const useSessionStore = create((set, get) => ({
             stream,
         } = data;
         const tags = _.entries(_.get(data, "metadata.tags", {}));
-        const { sessions, forms, progress, sessionIds } = _.cloneDeep(get());
-        let sessionTags = _.get(sessions, [sessionId, "tags"], []);
+        const { sessions, forms, progress, sessionIds } = get();
+        let newSessions = _.cloneDeep(sessions),
+            newForms = _.cloneDeep(forms),
+            newProgress = _.cloneDeep(progress),
+            newSessionIds = _.cloneDeep(sessionIds);
+        let sessionTags = _.get(newSessions, [sessionId, "tags"], []);
         for (let i = 0; i < _.size(tags); i++) {
             const [tag, value] = tags[i];
             if (_.isEqual(tag, "WORKSPACE_ONLY")) continue;
@@ -186,14 +246,14 @@ export const useSessionStore = create((set, get) => ({
                 sessionTags.push(tag);
             }
         }
-        _.set(sessions, [sessionId, "tags"], _.uniq(sessionTags));
-        if (!_.includes(sessionIds, sessionId)) {
-            sessionIds.push(sessionId);
+        _.set(newSessions, [sessionId, "tags"], _.uniq(sessionTags));
+        if (!_.includes(newSessionIds, sessionId)) {
+            newSessionIds.push(sessionId);
         }
         if (_.isEqual(mode, "streaming")) {
-            let messages = _.get(sessions, [sessionId, "messages"], []);
+            let messages = _.get(newSessions, [sessionId, "messages"], []);
             let streamData = _.get(
-                sessions,
+                newSessions,
                 [sessionId, "streams", stream, "data"],
                 []
             );
@@ -205,7 +265,7 @@ export const useSessionStore = create((set, get) => ({
                 label: messageLabel,
             };
             const baseMessage = { stream, metadata, timestamp, order };
-            let workspace = _.get(sessions, [sessionId, "workspace"], []);
+            let workspace = _.get(newSessions, [sessionId, "workspace"], []);
             let considerWorkspace = false;
             if (_.isEqual(messageLabel, "CONTROL")) {
                 const messageContentsCode = _.get(
@@ -225,17 +285,21 @@ export const useSessionStore = create((set, get) => ({
                 ) {
                     considerWorkspace = true;
                     messages.push(baseMessage);
-                    let streams = _.get(sessions, [sessionId, "streams"], {});
+                    let streams = _.get(
+                        newSessions,
+                        [sessionId, "streams"],
+                        {}
+                    );
                     _.set(streams, stream, {
                         data: [],
                         contentType: null,
                         complete: false,
                     });
-                    _.set(sessions, [sessionId, "messages"], messages);
-                    _.set(sessions, [sessionId, "streams"], streams);
+                    _.set(newSessions, [sessionId, "messages"], messages);
+                    _.set(newSessions, [sessionId, "streams"], streams);
                 } else if (_.isEqual(messageContentsCode, "EOS")) {
                     _.set(
-                        sessions,
+                        newSessions,
                         [sessionId, "streams", stream, "complete"],
                         true
                     );
@@ -260,20 +324,23 @@ export const useSessionStore = create((set, get) => ({
                             break;
                         }
                     }
-                    streamData.push({ ...baseData, content: { formId } });
+                    streamData.push({
+                        ...baseData,
+                        content: { form_id: formId },
+                    });
                     // create or update forms
-                    _.set(forms, [formId, "content"], messageContentsArgs);
+                    _.set(newForms, [formId, "content"], messageContentsArgs);
                 } else if (_.isEqual(messageContentsCode, "CLOSE_FORM")) {
-                    _.set(forms, [formId, "closed"], true);
+                    _.set(newForms, [formId, "closed"], true);
                 } else if (_.isEqual(messageContentsCode, "PROGRESS")) {
                     const { progress_id: progressId, value } =
                         messageContentsArgs;
-                    let sessionProgress = _.get(progress, sessionId, {});
+                    let sessionProgress = _.get(newProgress, sessionId, {});
                     _.set(sessionProgress, progressId, messageContentsArgs);
                     if (_.isEqual(value, 1)) {
                         sessionProgress = _.omit(sessionProgress, progressId);
                     }
-                    _.set(progress, sessionId, sessionProgress);
+                    _.set(newProgress, sessionId, sessionProgress);
                 }
             } else if (_.isEqual(messageLabel, "DATA")) {
                 for (let i = _.size(messages) - 1; i >= 0; i--) {
@@ -294,7 +361,7 @@ export const useSessionStore = create((set, get) => ({
                     }
                 }
                 _.set(
-                    sessions,
+                    newSessions,
                     [sessionId, "streams", stream, "contentType"],
                     contentType
                 );
@@ -304,12 +371,12 @@ export const useSessionStore = create((set, get) => ({
                 });
             }
             _.set(
-                sessions,
+                newSessions,
                 [sessionId, "messages"],
                 _.sortBy(_.unionBy(messages, "stream"), ["timestamp", "order"])
             );
             _.set(
-                sessions,
+                newSessions,
                 [sessionId, "streams", stream, "data"],
                 _.sortBy(_.uniqBy(streamData, "id"), ["timestamp", "order"])
             );
@@ -324,8 +391,13 @@ export const useSessionStore = create((set, get) => ({
                     loading: true,
                 });
             }
-            _.set(sessions, [sessionId, "workspace"], workspace);
+            _.set(newSessions, [sessionId, "workspace"], workspace);
         }
-        set({ sessions, forms, progress, sessionIds });
+        set({
+            sessions: newSessions,
+            forms: newForms,
+            progress: newProgress,
+            sessionIds: newSessionIds,
+        });
     },
 }));

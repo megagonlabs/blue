@@ -4,7 +4,7 @@ import {
     MAIN_INFO_STYLES,
     REGISTRY_ENTITY_ICON_WRAPPER_STYLES,
 } from "@/components/constants";
-import { useContainerContext } from "@/components/contexts/ContainerContext";
+import { useGridContainerContext } from "@/components/contexts/GridContainerContext";
 import {
     getEntityMainProperties,
     getUpdatePropertyPromises,
@@ -40,7 +40,7 @@ export default function OperatorEntity({
     const [editedOperator, setEditedOperator] = useState(null);
     const [mainProperties, setMainProperties] = useState({});
     const [loading, setLoading] = useState(false);
-    const { containerId } = useContainerContext();
+    const { gridContainerId } = useGridContainerContext();
     const [template, setTemplate] = useState(null);
     const { removeContainer, setContainerHeader, addContainer } = useGridStore(
         useShallow((state) => ({
@@ -64,11 +64,11 @@ export default function OperatorEntity({
     const url = `/registry/${NEXT_PUBLIC_OPERATOR_REGISTRY_NAME}/${type}/${name}`;
     useEffect(() => {
         setContainerHeader({
-            id: containerId,
+            id: gridContainerId,
             title: <EntityDisplayName entity={operator} />,
             icon: _.get(ENTITY_TYPE_LOOKUP, [type, "icon"], null),
         });
-    }, [operator, setContainerHeader, containerId]);
+    }, [operator, setContainerHeader, gridContainerId]);
     useEffect(() => {
         setLoading(true);
         axios
@@ -134,7 +134,7 @@ export default function OperatorEntity({
         setLoading(true);
         axios.delete(url).finally(() => {
             setLoading(false);
-            removeContainer(containerId);
+            removeContainer(gridContainerId);
         });
     };
     const onDuplicate = () => {

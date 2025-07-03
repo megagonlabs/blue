@@ -18,9 +18,9 @@ import { useShallow } from "zustand/react/shallow";
 import { FAIcon } from "../FAIcon";
 import withAutoSizer from "../hocs/withAutoSizer";
 import NewEntity from "../registries/NewEntity";
-import DemoGroupCard from "./DemoGroupCard";
+import AgentGroupCard from "./AgentGroupCard";
 const { NEXT_PUBLIC_AGENT_REGISTRY_NAME } = allEnv();
-function DemoContainer({ width, height }) {
+function ApplicationContainer({ width, height }) {
     const darkMode = useAppStore((state) => state.dark_mode);
     const { user } = useAuthStore(
         useShallow((state) => ({ user: state.user }))
@@ -99,7 +99,7 @@ function DemoContainer({ width, height }) {
                 >
                     {agentGroups.map((agentGroup, index) => (
                         <div key={index} className="grid-item">
-                            <DemoGroupCard agentGroup={agentGroup} />
+                            <AgentGroupCard agentGroup={agentGroup} />
                         </div>
                     ))}
                     <Button
@@ -110,11 +110,11 @@ function DemoContainer({ width, height }) {
                         size={Size.LARGE}
                         fill
                         variant={ButtonVariant.MINIMAL}
-                        text="Add demo"
+                        text="Add application"
                     />
                 </div>
             </div>
         </div>
     );
 }
-export default withAutoSizer(DemoContainer);
+export default withAutoSizer(ApplicationContainer);

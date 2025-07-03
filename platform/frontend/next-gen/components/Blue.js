@@ -53,7 +53,7 @@ import SourceList from "./registries/data/SourceList";
 import ModelList from "./registries/models/ModelList";
 import OperatorList from "./registries/operators/OperatorList";
 import ToolList from "./registries/tools/ToolList";
-import DemoContainer from "./sessions/DemoContainer";
+import ApplicationContainer from "./sessions/ApplicationContainer";
 import SessionList from "./sessions/SessionList";
 import FormDesigner from "./tools/FormDesigner";
 import VerticalScrollable from "./VerticalScrollable";
@@ -140,17 +140,17 @@ export default function Blue({ children }) {
             visible: permissions.canReadToolRegistry,
         },
     };
-    const addDemoContainer = () => {
+    const addApplicationContainer = () => {
         addContainer({
             icon: AGENT_GROUP_ICON,
-            title: "Demos",
-            content: <DemoContainer />,
-            uniqueId: `DemoContainer`,
+            title: "Applications",
+            content: <ApplicationContainer />,
+            uniqueId: `ApplicationContainer`,
         });
     };
     useEffect(() => {
-        addDemoContainer();
-    });
+        addApplicationContainer();
+    }, []);
     const createNewSession = useSessionStore((state) => state.createNewSession);
     const userProfileError =
         !_.isEmpty(user) && _.isEmpty(_.get(user, "role", null));
@@ -342,7 +342,7 @@ export default function Blue({ children }) {
                                                         }}
                                                         width={25}
                                                         height={25}
-                                                        src="/images/logo.png"
+                                                        src="/images/logo.svg"
                                                         alt="Megagon Labs logo"
                                                     />
                                                     <div
@@ -378,6 +378,21 @@ export default function Blue({ children }) {
                                                             }}
                                                             size={Size.LARGE}
                                                         >
+                                                            {permissions.canReadAgentRegistry && (
+                                                                <MenuItem
+                                                                    icon={
+                                                                        <FAIcon
+                                                                            icon={
+                                                                                AGENT_GROUP_ICON
+                                                                            }
+                                                                        />
+                                                                    }
+                                                                    text="Applications"
+                                                                    onClick={
+                                                                        addApplicationContainer
+                                                                    }
+                                                                />
+                                                            )}
                                                             {_.some([
                                                                 permissions.canReadSessions,
                                                                 permissions.canWriteSessions,
@@ -412,7 +427,9 @@ export default function Blue({ children }) {
                                                                             }
                                                                             text="New Session"
                                                                             onClick={() => {
-                                                                                createNewSession();
+                                                                                createNewSession(
+                                                                                    {}
+                                                                                );
                                                                             }}
                                                                             icon={
                                                                                 <FAIcon
@@ -433,24 +450,6 @@ export default function Blue({ children }) {
                                                                 permissions.canReadToolRegistry,
                                                             ]) && (
                                                                 <>
-                                                                    {permissions.canReadAgentRegistry && (
-                                                                        <MenuItem
-                                                                            intent={
-                                                                                Intent.SUCCESS
-                                                                            }
-                                                                            icon={
-                                                                                <FAIcon
-                                                                                    icon={
-                                                                                        AGENT_GROUP_ICON
-                                                                                    }
-                                                                                />
-                                                                            }
-                                                                            text="Demos"
-                                                                            onClick={
-                                                                                addDemoContainer
-                                                                            }
-                                                                        />
-                                                                    )}
                                                                     <MenuDivider title="Registries" />
                                                                     {[
                                                                         "agent",

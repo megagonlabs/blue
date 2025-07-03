@@ -1,4 +1,7 @@
-import { REGISTRY_ENTITY_ICON_WRAPPER_STYLES } from "@/components/constants";
+import {
+    IGNORED_AGENT_TYPES,
+    REGISTRY_ENTITY_ICON_WRAPPER_STYLES,
+} from "@/components/constants";
 import { FAIcon } from "@/components/FAIcon";
 import RegistryEntityIcon from "@/components/registries/RegistryEntityIcon";
 import { useAgentStore } from "@/stores/agent-store";
@@ -7,13 +10,21 @@ import { useSessionStore } from "@/stores/session-store";
 import { Card, CardList, Classes, NonIdealState } from "@blueprintjs/core";
 import { faScreenUsers } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import axios from "axios";
+import classNames from "classnames";
 import _ from "lodash";
 import { useEffect, useState } from "react";
-const IGNORED_AGENT_TYPES = ["USER", "OBSERVER"];
-export default function SessionAgents({ sessionId }) {
-    const sessions = useSessionStore((state) => state.sessions);
-    const setSessionDetails = useSessionStore(
-        (state) => state.setSessionDetails
+import { useShallow } from "zustand/react/shallow";
+export default function SessionAgents({
+    sessionId,
+    interactive = false,
+    style = {},
+    callback = null,
+}) {
+    const { sessions, setSessionDetails } = useSessionStore(
+        useShallow((state) => ({
+            sessions: state.sessions,
+            setSessionDetails: state.setSessionDetails,
+        }))
     );
     const getAgentMetadata = useDedupStore((state) => state.getAgentMetadata);
     const agentMetadata = useAgentStore((state) => state.metadata);
@@ -49,23 +60,27 @@ export default function SessionAgents({ sessionId }) {
             });
     }, []);
     return (
-        <div className="full-parent-dimension" style={{ overflowY: "auto" }}>
+        <div
+            className="full-parent-dimension"
+            style={{ overflowY: "auto", ...style }}
+        >
             {_.isEmpty(agents) ? (
                 <NonIdealState
                     title="No Agent"
                     icon={<FAIcon icon={faScreenUsers} size={50} />}
                 />
             ) : (
-                <CardList bordered={false} style={{ padding: "10px 20px" }}>
+                <CardList bordered={false}>
                     {agents.map((agent, index) => {
-                        const displayName = _.get(
-                            agentMetadata,
-                            [agent.name, "displayName"],
-                            agent.name
-                        );
                         return (
                             <Card
+                                interactive={interactive}
                                 key={index}
+                                onClick={() => {
+                                    if (_.isFunction(callback)) {
+                                        callback(agent);
+                                    }
+                                }}
                                 style={{ position: "relative", height: 60 }}
                             >
                                 <div
@@ -73,11 +88,12 @@ export default function SessionAgents({ sessionId }) {
                                     style={{
                                         ...REGISTRY_ENTITY_ICON_WRAPPER_STYLES,
                                         position: "absolute",
-                                        left: 0,
+                                        left: 20,
                                         top: 10,
                                     }}
                                 >
                                     <RegistryEntityIcon
+                                        type="agent"
                                         content={_.get(
                                             agentMetadata,
                                             [agent.name, "icon"],
@@ -88,14 +104,26 @@ export default function SessionAgents({ sessionId }) {
                                 <div
                                     style={{
                                         height: 40,
-                                        marginLeft: 30,
+                                        marginLeft: 50,
                                         display: "flex",
                                         flexDirection: "column",
                                         justifyContent: "space-between",
+                                        width: "calc(100% - 50px)",
                                     }}
                                 >
-                                    <div>{displayName}</div>
-                                    <div className={Classes.TEXT_MUTED}>
+                                    <div>
+                                        {_.get(
+                                            agentMetadata,
+                                            [agent.name, "displayName"],
+                                            agent.name
+                                        )}
+                                    </div>
+                                    <div
+                                        className={classNames(
+                                            Classes.TEXT_MUTED,
+                                            Classes.TEXT_OVERFLOW_ELLIPSIS
+                                        )}
+                                    >
                                         {agent.sid}
                                     </div>
                                 </div>

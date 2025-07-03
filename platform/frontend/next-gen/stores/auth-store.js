@@ -141,7 +141,12 @@ export const useAuthStore = create((set, get) => ({
                     ),
                 };
                 const { setState } = useAppStore.getState();
-                const KEYS = ["dark_mode", "show_workspace", "expand_message"];
+                const KEYS = [
+                    "dark_mode",
+                    "show_workspace",
+                    "expand_message",
+                    "windows_control_buttons",
+                ];
                 for (let i = 0; i < _.size(KEYS); i++) {
                     setState({
                         key: KEYS[i],

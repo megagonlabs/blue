@@ -21,13 +21,15 @@ import _ from "lodash";
 import { useCallback, useMemo } from "react";
 import { FAIcon } from "../FAIcon";
 import { REGISTRY_ENTITY_ICON_WRAPPER_STYLES } from "../constants";
+import { useGridContainerContext } from "../contexts/GridContainerContext";
 import EntityDisplayName from "../registries/EntityDisplayName";
 import RegistryEntityContainer from "../registries/RegistryEntityContainer";
 import RegistryEntityIcon from "../registries/RegistryEntityIcon";
 import { AppToaster } from "../toaster";
-export default function DemoGroupCard({ agentGroup }) {
+export default function AgentGroupCard({ agentGroup }) {
     const type = _.get(agentGroup, "type", null);
     const addContainer = useGridStore((state) => state.addContainer);
+    const { gridContainerId } = useGridContainerContext();
     const darkMode = useAppStore((state) => state.dark_mode);
     const handleClose = useCallback(() => {
         hideContextMenu();
@@ -68,7 +70,11 @@ export default function DemoGroupCard({ agentGroup }) {
     );
     const createNewSession = useSessionStore((state) => state.createNewSession);
     const launchAgentGroupSession = () => {
-        createNewSession(agentGroup.name);
+        createNewSession({
+            agentGroup: agentGroup.name,
+            replace: true,
+            gridContainerId,
+        });
         AppToaster.show({
             message: (
                 <div>
@@ -83,7 +89,7 @@ export default function DemoGroupCard({ agentGroup }) {
             className="full-parent-dimension interactive-card-border"
             style={{ position: "relative", cursor: "context-menu" }}
             onContextMenu={handleContextMenu}
-            onClick={launchAgentGroupSession}
+            onDoubleClick={launchAgentGroupSession}
         >
             <div
                 className="padding-0 overflow-hidden custom-card"

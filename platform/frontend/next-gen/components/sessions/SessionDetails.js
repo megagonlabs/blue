@@ -88,7 +88,10 @@ export default function SessionDetails({ sessionId }) {
                     <SessionAbout sessionId={sessionId} />
                 )}
                 {_.isEqual(focusTab, "agents") && (
-                    <SessionAgents sessionId={sessionId} />
+                    <SessionAgents
+                        sessionId={sessionId}
+                        style={{ paddingTop: 10 }}
+                    />
                 )}
                 {_.isEqual(focusTab, "members") && (
                     <SessionMemberList sessionId={sessionId} />
