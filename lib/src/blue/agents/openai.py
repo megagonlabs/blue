@@ -46,8 +46,8 @@ class OpenAIToolCallingAgent(OpenAIAgent):
     def _initialize_properties(self):
         super()._initialize_properties()
 
-        self.properties['platform.name'] = "jackson" 
-        self.properties['tool_sources'] = ["calculator_mcp"]
+        self.properties['platform.name'] = "" 
+        self.properties['tool_sources'] = []
         self.properties['tool_max_calling_depth'] = 5
         self.properties['tool_discovery'] = False
         self.properties['tool_discovery_similarity_threshold'] = 10
@@ -56,25 +56,26 @@ class OpenAIToolCallingAgent(OpenAIAgent):
     def convert_tool_schemas_to_openai_format(self, tool_schemas):
         tools = []
         for t in tool_schemas:
-            current_tool = {"type": "function"}
-            current_tool["function"] = {
-                "name": t["name"],
-                "description": t["description"],
-                "parameters": {
-                    "type": "object",
-                    "properties": {},
-                    "required": []
+            if t:
+                current_tool = {"type": "function"}
+                current_tool["function"] = {
+                    "name": t["name"],
+                    "description": t["description"],
+                    "parameters": {
+                        "type": "object",
+                        "properties": {},
+                        "required": []
+                    }
                 }
-            }
-            for p, values in t['properties']['parameters'].items():
-                current_tool["function"]["parameters"]["properties"][p] = {
-                    "type": values["type"]
-                }
-                if "items" in values:
-                    current_tool["function"]["parameters"]["properties"][p]["items"] = values["items"]
-                if values["required"]:
-                    current_tool["function"]["parameters"]["required"].append(p)
-            tools.append(current_tool)
+                for p, values in t['properties']['parameters'].items():
+                    current_tool["function"]["parameters"]["properties"][p] = {
+                        "type": values["type"]
+                    }
+                    if "items" in values:
+                        current_tool["function"]["parameters"]["properties"][p]["items"] = values["items"]
+                    if values["required"]:
+                        current_tool["function"]["parameters"]["required"].append(p)
+                tools.append(current_tool)
         return tools
     
     def get_tool_schemas(self, tool_registry, user_input, properties):
@@ -97,7 +98,6 @@ class OpenAIToolCallingAgent(OpenAIAgent):
                             logging.info(f"Duplicate tool {res['name']} found in server {server_name}, disregarding.")
                         else:
                             schema = tool_registry.get_server_tool(server_name, res['name'])
-                            logging.info(schema)
                             tool_schemas.append(schema)
                             tools_to_server[res['name']] = server_name
 
@@ -106,14 +106,17 @@ class OpenAIToolCallingAgent(OpenAIAgent):
                 tool_registry.sync_server(server_name)
                 tool_server_tools = tool_registry.get_server_tools(server_name)
 
-                for t in tool_server_tools:
-                    if t["name"] in tools_to_server:
-                        logging.info(f"Duplicate tool {t['name']} found in server {server_name}, disregarding.")
-                    else:
-                        tool_schemas.append(t)
-                        tools_to_server[t["name"]] = server_name
-
-        tool_schemas = self.convert_tool_schemas_to_openai_format(tool_schemas)
+                if tool_server_tools:
+                    for t in tool_server_tools:
+                        if t["name"] in tools_to_server:
+                            logging.info(f"Duplicate tool {t['name']} found in server {server_name}, disregarding.")
+                        else:
+                            tool_schemas.append(t)
+                            tools_to_server[t["name"]] = server_name
+                else:
+                    logging.info(f"No tools found in server: {server_name}")
+        if tool_schemas:
+            tool_schemas = self.convert_tool_schemas_to_openai_format(tool_schemas)
         if 'tools' in properties and properties['tools'] and tool_schemas:
             tool_schemas = [t for t in tool_schemas if t['function']['name'] in properties['tools']]
 
@@ -136,8 +139,6 @@ class OpenAIToolCallingAgent(OpenAIAgent):
 
         num_calls = 0
         while True and num_calls < properties["tool_max_calling_depth"]:
-            logging.info("Input object")
-            logging.info(input_object)
             url = self.get_service_address(properties=properties)
             r = self.call_service(url, json.dumps(input_object))
             response = json.loads(r)
@@ -150,7 +151,7 @@ class OpenAIToolCallingAgent(OpenAIAgent):
                     args = json.loads(call["function"]["arguments"] or "{}")
 
                     result = tool_registry.execute_tool(fn, tools_to_server[fn], None, args)
-
+                    
                     input_object["messages"].append(
                         {
                             "role": "tool",
