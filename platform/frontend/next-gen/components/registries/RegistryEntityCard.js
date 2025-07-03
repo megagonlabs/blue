@@ -1,7 +1,6 @@
 import { useAppStore } from "@/stores/app-store";
 import { useGridStore } from "@/stores/grid-layout-store";
 import {
-    Card,
     Classes,
     Colors,
     hideContextMenu,
@@ -93,9 +92,17 @@ export default function RegistryEntityCard({ entity }) {
         [handleClose, menu, darkMode]
     );
     return (
-        <Card
+        <div
             className="full-parent-dimension interactive-card-border"
-            style={{ position: "relative", cursor: "context-menu" }}
+            style={{
+                position: "relative",
+                cursor: "context-menu",
+                padding: 20,
+                borderRadius: 2,
+                backgroundColor: darkMode
+                    ? Colors.DARK_GRAY1
+                    : Colors.LIGHT_GRAY5,
+            }}
             onContextMenu={handleContextMenu}
             onDoubleClick={() => {
                 replaceContainer({
@@ -186,6 +193,6 @@ export default function RegistryEntityCard({ entity }) {
                     {extra}
                 </Tag>
             )}
-        </Card>
+        </div>
     );
 }

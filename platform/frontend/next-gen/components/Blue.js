@@ -380,6 +380,9 @@ export default function Blue({ children }) {
                                                         >
                                                             {permissions.canReadAgentRegistry && (
                                                                 <MenuItem
+                                                                    intent={
+                                                                        Intent.SUCCESS
+                                                                    }
                                                                     icon={
                                                                         <FAIcon
                                                                             icon={

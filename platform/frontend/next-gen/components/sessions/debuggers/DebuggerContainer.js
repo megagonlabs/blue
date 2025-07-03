@@ -531,7 +531,7 @@ function DebuggerContainer({ width, height, sessionId }) {
                                                                         elementRef.current
                                                                     }
                                                                     placement="bottom"
-                                                                    date={
+                                                                    epoch={
                                                                         message.timestamp
                                                                     }
                                                                 />

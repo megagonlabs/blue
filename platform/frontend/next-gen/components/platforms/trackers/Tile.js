@@ -28,7 +28,7 @@ export default function Tile({ type, label, object }) {
                 }}
             >
                 {_.isEqual(type, "time") ? (
-                    <Timestamp date={value * 1000} />
+                    <Timestamp epoch={value * 1000} />
                 ) : (
                     value
                 )}
