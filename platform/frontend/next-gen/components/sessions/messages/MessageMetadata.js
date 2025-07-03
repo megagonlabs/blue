@@ -1,9 +1,10 @@
 import Timestamp from "@/components/Timestamp";
 import { useAgentStore } from "@/stores/agent-store";
+import { useAuthStore } from "@/stores/auth-store";
 import { useDedupStore } from "@/stores/dedup-store";
 import { Classes } from "@blueprintjs/core";
 import _ from "lodash";
-import { memo, useEffect } from "react";
+import { memo, useEffect, useMemo } from "react";
 import { useShallow } from "zustand/react/shallow";
 function MessageMetadata({ message }) {
     const agentMetadata = useAgentStore((state) => state.metadata);
@@ -24,15 +25,31 @@ function MessageMetadata({ message }) {
             getAgentMetadata(createdBy);
         }
     }, [createdBy, getAgentMetadata, getUserProfileById, id, isUser]);
+    const user = useAuthStore((state) => state.user);
+    const own = useMemo(() => {
+        return isUser && _.isEqual(user.uid, id);
+    }, [user]);
     return (
-        <div style={{ lineHeight: "20px", display: "flex", gap: 10 }}>
+        <div
+            style={{
+                lineHeight: "20px",
+                display: "flex",
+                gap: 10,
+                flexDirection: !own ? "row-reverse" : null,
+                justifyContent: !own ? "flex-end" : null,
+            }}
+        >
             <div className={Classes.TEXT_MUTED}>
                 <Timestamp placement="bottom" epoch={message.timestamp} />
             </div>
             <div>
                 {isUser
                     ? _.get(users, [id, "name"], id)
-                    : _.get(agentMetadata, [id, "displayName"], id)}
+                    : _.get(
+                          agentMetadata,
+                          [createdBy, "displayName"],
+                          createdBy
+                      )}
             </div>
         </div>
     );
