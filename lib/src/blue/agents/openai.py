@@ -11,7 +11,10 @@ import json
 
 # set log level
 logging.getLogger().setLevel(logging.INFO)
-logging.basicConfig(format="%(asctime)s [%(levelname)s] [%(process)d:%(threadName)s:%(thread)d](%(filename)s:%(lineno)d) %(name)s -  %(message)s", level=logging.ERROR, datefmt="%Y-%m-%d %H:%M:%S")
+logging.basicConfig(
+    format="%(asctime)s [%(levelname)s] [%(process)d:%(threadName)s:%(thread)d](%(filename)s:%(lineno)d) %(name)s -  %(message)s", level=logging.ERROR, datefmt="%Y-%m-%d %H:%M:%S"
+)
+
 
 #########################
 ### RequestorAgent.OpenAIAgent
@@ -22,6 +25,8 @@ class OpenAIAgent(RequestorAgent):
             kwargs['name'] = "OPENAI"
         super().__init__(**kwargs)
 
+        self.TOOL_SEPARATOR = "___"
+
     def _initialize_properties(self):
         super()._initialize_properties()
 
@@ -29,9 +34,9 @@ class OpenAIAgent(RequestorAgent):
 
         self.properties['openai.api'] = 'ChatCompletion'
         self.properties['openai.model'] = "gpt-4o"
-        self.properties['input_json'] = "[{\"role\": \"user\"}]" 
-        self.properties['input_context'] = "$[0]" 
-        self.properties['input_context_field'] = "content" 
+        self.properties['input_json'] = "[{\"role\": \"user\"}]"
+        self.properties['input_context'] = "$[0]"
+        self.properties['input_context_field'] = "content"
         self.properties['input_field'] = "messages"
         self.properties['input_template'] = "${input}"
         self.properties['output_path'] = '$.choices[0].message.content'
@@ -41,75 +46,162 @@ class OpenAIAgent(RequestorAgent):
         # prefix for service specific properties
         self.properties['service_prefix'] = 'openai'
 
+        # tool calling related
+        self.properties['tool_discovery'] = False
+        self.properties['tool_servers'] = []
+        self.properties['tools'] = []
+        self.properties['tool_discovery_similarity_threshold'] = 0.5
+        self.properties['tool_max_calling_depth'] = 5
 
-class OpenAIToolCallingAgent(OpenAIAgent):
+    def _start(self):
+        super()._start()
 
-    def convert_tool_schemas_to_openai_format(self, tool_schemas):
-        tools = []
-        for t in tool_schemas:
-            current_tool = {"type": "function"}
-            current_tool["function"] = {
-                "name": t.name,
-                "description": t.description,
-                "parameters": {
-                    "type": "object",
-                    "properties": t.inputSchema['properties'],
-                    "required": t.inputSchema['required']
-                }
-            }
-            tools.append(current_tool)
+        # initialize registry
+        self._init_registry()
 
-        return tools
+    def _init_registry(self):
+        # create instance of tool registry
+        platform_id = self.properties["platform.name"]
+        prefix = 'PLATFORM:' + platform_id
+        self.registry = ToolRegistry(id=self.properties['tool_registry.name'], prefix=prefix, properties=self.properties)
 
-    def execute_api_call(self, stream_data, properties=None):
-        properties = self.get_properties(properties=properties)
-        
-        if isinstance(stream_data, str):
-            input_data = stream_data
-        elif isinstance(stream_data, (list, tuple)):
-            input_data = "".join(str(item) for item in stream_data if item is not None)
-        elif stream_data is None:
-            logging.warning("Received None stream_data, using empty string")
-            input_data = ""
+    def convert_tool_schema_to_openai_format(self, tool_schema, server_name):
+        openai_schema = {"type": "function"}
+
+        tool_name = tool_schema["name"]
+        canonical_name = self._get_canonical(server_name, tool_name)
+        openai_schema["function"] = {"name": canonical_name, "description": tool_schema["description"], "parameters": {"type": "object", "properties": {}, "required": []}}
+
+        # iterate over all parameters
+        for p, values in tool_schema['properties']['parameters'].items():
+            openai_schema["function"]["parameters"]["properties"][p] = {"type": values["type"]}
+            if "items" in values:
+                openai_schema["function"]["parameters"]["properties"][p]["items"] = values["items"]
+            if values["required"]:
+                openai_schema["function"]["parameters"]["required"].append(p)
+
+        return openai_schema
+
+    def get_tool_schemas(self, user_input, properties):
+        # intialize
+        selected_servers = []
+        selected_tools = []
+
+        if 'tool_servers' in properties and properties['tool_servers']:
+            selected_servers = properties['tool_servers']
+
+        if 'tools' in properties and properties['tools']:
+            selected_tools = properties['tools']
+
+        tool_schemas = []
+
+        if len(selected_servers) == 0:
+            selected_servers = [server['name'] for server in self.registry.get_servers()]
+
+        for server_name in selected_servers:
+            if properties['tool_discovery']:
+
+                if "tool_discovery_similarity_threshold" in properties and properties["tool_discovery_similarity_threshold"]:
+                    similarity_threshold = self.properties["tool_discovery_similarity_threshold"]
+                else:
+                    similarity_threshold = 0.5
+
+                matched_tools = []
+                page = 0
+
+                # progressively get more pages within similarity threshold
+                while True:
+                    results = self.registry.search_records(user_input, scope="/server/" + server_name, approximate=True, type="tool", page=page, page_size=5, page_limit=10)
+
+                    if len(results) == 0:
+                        break
+                    for result in results:
+                        score = float(result['score'])
+                        if score < similarity_threshold:
+                            t = self.registry.get_server_tool(server_name, result['name'])
+                            matched_tools.append(t)
+                        else:
+                            break
+                    if score > similarity_threshold:
+                        break
+                    else:
+                        page = page + 1
+
+            else:
+                matched_tools = self.registry.get_server_tools(server_name)
+
+            if matched_tools:
+                for t in matched_tools:
+                    tool_name = t['name']
+                    selected = False
+
+                    # filter by selected tools, if there is one
+                    if len(selected_tools) > 0:
+                        if tool_name in selected_tools:
+                            selected = True
+                        if self._get_canonical(server_name, tool_name) in selected_tools:
+                            selected = True
+                    else:
+                        selected = True
+
+                    if selected:
+                        openai_schema = self.convert_tool_schema_to_openai_format(t, server_name)
+                        tool_schemas.append(openai_schema)
+
+        return tool_schemas
+
+    def _get_canonical(self, server_name, tool_name):
+        return server_name + self.TOOL_SEPARATOR + tool_name
+
+    def _extract_canonical(self, canonical_name):
+        cs = canonical_name.split(self.TOOL_SEPARATOR)
+        if len(cs) >= 2:
+            server_name = cs[0]
+            tool_name = self.TOOL_SEPARATOR.join(cs[1:])
+            return server_name, tool_name
         else:
-            input_data = str(stream_data)
+            return cs[0], None
 
+    def execute_api_call(self, stream_data, properties=None, additional_data=None):
+        if properties is None:
+            properties = self.get_properties(properties=properties)
+        input_data = "".join(stream_data)
         if not self.validate_input(input_data, properties=properties):
-            return 
+            return
 
-        prefix = 'PLATFORM:' + properties['tools']['registry_name']
-        id = properties['tools']['registry_id']
-        tool_registry = ToolRegistry(id=id, prefix=prefix, properties={"db.host":properties['tools']['db_host']})
-        tool_server = tool_registry.connect_server(properties['tools']['server_name'])
-        tool_schemas = self.convert_tool_schemas_to_openai_format(tool_server.list_tools())
+        canonical_tool_schemas = self.get_tool_schemas(input_data, properties)
 
         session_data = self.session.get_all_data()
         input_object = self.create_message(input_data, properties=properties, additional_data=session_data)
-        input_object["tools"] = tool_schemas
+        input_object["tools"] = canonical_tool_schemas
 
         num_calls = 0
-        while True and num_calls < self.properties['tools']["max_calling_depth"]:
-            r = self.call_service(json.dumps(input_object))
+        while True and num_calls < properties["tool_max_calling_depth"]:
+            url = self.get_service_address(properties=properties)
+            r = self.call_service(url, json.dumps(input_object))
             response = json.loads(r)
 
             response_message = response['choices'][0]['message']
             if 'tool_calls' in response_message and response_message['tool_calls']:
                 input_object["messages"].append({"role": "assistant", "content": None, "tool_calls": response_message['tool_calls']})
                 for call in response_message['tool_calls']:
-                    fn = call["function"]["name"]
+                    canonical_name = call["function"]["name"]
                     args = json.loads(call["function"]["arguments"] or "{}")
-                    result = tool_server.execute_tool(fn, None, args)
+
+                    # extract server and function from canonical
+                    server_name, function_name = self._extract_canonical(canonical_name)
+                    result = self.registry.execute_tool(function_name, server_name, None, args)
 
                     input_object["messages"].append(
                         {
                             "role": "tool",
                             "tool_call_id": call["id"],
-                            "name": call["function"]["name"],
+                            "name": canonical_name,
                             "content": json.dumps({"result": result}),
                         }
                     )
-            else:  
+            else:
                 input_object["messages"].append({"role": "assistant", "content": response_message["content"]})
                 return response_message["content"]
-            
+
             num_calls += 1

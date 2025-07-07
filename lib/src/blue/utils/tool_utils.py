@@ -1,0 +1,61 @@
+import typing
+import inspect
+from typing import List
+from typing import Dict
+
+from blue.utils import json_utils
+
+
+def annotation_to_type_str(annotation):
+    if type(annotation) == type:
+        if annotation == inspect._empty:
+            return "unknown"
+        else:
+            return annotation.__name__
+    else:
+        type_str = str(annotation)
+        type_str = type_str.replace("typing.", "")
+        return type_str
+
+
+def extract_signature(f, mcp_format=False):
+    signature = inspect.signature(f)
+    inspection = {}
+    inspection["parameters"] = {}
+    ps = signature.parameters.items()
+    for pi in ps:
+        k, p = pi
+        ki = {}
+        ki['type'] = annotation_to_type_str(p.annotation)
+        if mcp_format:
+            ki = json_utils.merge_json(ki, convert_type_string_to_mcp(ki['type']))
+        default = p.default
+        if default == inspect._empty:
+            default = None
+        if default:
+            ki['required'] = False
+            ki['default'] = default
+        else:
+            ki['required'] = True
+        inspection["parameters"][k] = ki
+    ri = signature.return_annotation
+    r = {}
+    if ri is not None:
+        r['type'] = annotation_to_type_str(ri)
+        if mcp_format:
+            r = json_utils.merge_json(r, convert_type_string_to_mcp(r['type']))
+    inspection["returns"] = r
+    return inspection
+
+
+def convert_type_string_to_mcp(type_str):
+    if type_str == "":
+        return {"type": "unknown"}
+    if type_str == "int" or type_str == "float":
+        return {"type": "number"}
+    elif type_str == "str":
+        return {"type": "string"}
+    elif type_str.find("List") == 0:
+        return {"type": "array", "items": convert_type_string_to_mcp(type_str[len("List") + 1 : -1])}
+    else:
+        return {"type": "unknown"}
