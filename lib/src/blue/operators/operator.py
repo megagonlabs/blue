@@ -31,7 +31,6 @@ class Operator(Tool):
         description: str,
         properties: Dict[str, Any] = None,
         function: Callable = None,
-        parameters: Dict[str, Any] = None,
         validator: Callable = None,
         explainer: Callable = None,
     ):
@@ -54,6 +53,8 @@ class Operator(Tool):
         # Initialize properties, parameters, validator, and explainer
         if properties is None:
             self.properties = {}
+        if "parameters" not in self.properties:
+            self.properties["parameters"] = {}
         if function is None:
             self.function = self._execute_operator_logic  # this is the function that each operator should override
         if validator is None:
@@ -201,7 +202,7 @@ class Operator(Tool):
                 }
 
             # Execute operator-specific logic
-            result = self._execute_operator_logic(input_data, params or {}, self.properties)
+            result = self._execute_operator_logic(input_data, params or {})
 
             # Validate output data
             if self.properties.get("validate_output", True) and not self._validate_io_data(result):
@@ -242,7 +243,7 @@ class Operator(Tool):
                     return False
         return True
 
-    def _execute_operator_logic(self, input_data: List[List[Dict[str, Any]]], params: Dict[str, Any], properties: Dict[str, Any]) -> List[Dict[str, Any]]:
+    def _execute_operator_logic(self, input_data: List[List[Dict[str, Any]]], params: Dict[str, Any]) -> List[List[Dict[str, Any]]]:
         """
         Execute the actual operator-specific logic.
         This method contains the core logic for each operator type.
@@ -250,7 +251,6 @@ class Operator(Tool):
         Args:
             input_data: List of datas, each containing JSON array of records
             params: Operator-specific parameter values
-            properties: Operator properties (including parameter definitions)
         Returns:
             List of datas, each containing JSON array of records
         """
