@@ -1077,7 +1077,7 @@
     "description": "Example OPENAI agent to illustrate tool user.",
     "created_by": null,
     "properties": {
-      "display_name": "OpenAI Agent - Tool Example",
+      "display_name": "OPENAI Interactive Agent with Tools",
       "listens": {
         "DEFAULT": {
           "includes": [
@@ -1098,7 +1098,7 @@
     "description": "Extends OPENAI agent for interactive use, by listening to the USER agent directly.",
     "created_by": null,
     "properties": {
-      "display_name": "OpenAI Agent - Interactive",
+      "display_name": "OPENAI Interactive Agent",
       "listens": {
         "DEFAULT": {
           "includes": [
