@@ -148,8 +148,8 @@ def list_agent_containers(request: Request):
 
 
 @router.get('/agents/agent/{agent_name}')
-def get_agent_container(request: Request, agent_name):
-    agent = agent_registry.get_agent(agent_name)
+def get_agent_container(request: Request, agent_name: str = ""):
+    agent = agent_registry.get_agent(agent_name.split('___')[0])
     container_acl_enforce(request, agent, write=True)
     client = docker.from_env()
     if PROPERTIES["platform.deploy.target"] == "localhost":
