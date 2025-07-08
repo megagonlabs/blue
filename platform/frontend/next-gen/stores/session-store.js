@@ -138,7 +138,11 @@ export const useSessionStore = create((set, get) => ({
                 }
                 const { triggers } = get();
                 let next = _.cloneDeep(triggers);
-                _.set(next, ["addSessionAgent", sessionId], true);
+                _.set(
+                    next,
+                    ["addSessionAgent", sessionId],
+                    _.isEmpty(agentGroup)
+                );
                 set({ triggers: next });
             }
         });
