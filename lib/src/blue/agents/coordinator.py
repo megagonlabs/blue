@@ -13,7 +13,9 @@ from blue.utils import uuid_utils
 
 # set log level
 logging.getLogger().setLevel(logging.INFO)
-logging.basicConfig(format="%(asctime)s [%(levelname)s] [%(process)d:%(threadName)s:%(thread)d](%(filename)s:%(lineno)d) %(name)s -  %(message)s", level=logging.ERROR, datefmt="%Y-%m-%d %H:%M:%S")
+logging.basicConfig(
+    format="%(asctime)s [%(levelname)s] [%(process)d:%(threadName)s:%(thread)d](%(filename)s:%(lineno)d) %(name)s -  %(message)s", level=logging.ERROR, datefmt="%Y-%m-%d %H:%M:%S"
+)
 
 
 ##########################
@@ -31,7 +33,6 @@ class CoordinatorAgent(Agent):
         # coordinator is not instructable
         self.properties['instructable'] = False
 
-
     def _initialize_properties(self):
         super()._initialize_properties()
 
@@ -41,6 +42,10 @@ class CoordinatorAgent(Agent):
         self.properties['listens'] = listeners
         default_listeners['includes'] = ['PLAN']
         default_listeners['excludes'] = []
+
+        default_tags = {}
+        default_tags["DEFAULT"] = ["INSTRUCTION"]
+        self.properties['tags'] = default_tags
 
     def _start(self):
         super()._start()
@@ -58,7 +63,7 @@ class CoordinatorAgent(Agent):
         # update status
         plan.set_status(Status.INITED)
 
-        # save plan 
+        # save plan
         plan.save()
 
         # process data instreams
@@ -68,14 +73,13 @@ class CoordinatorAgent(Agent):
             # plan existing streams for inputs/outputs processing
             plan.set_stream_status(stream, Status.PLANNED, save=True)
 
-            # process nodes with streams 
+            # process nodes with streams
             self.create_worker(stream, input=plan_id)
 
     def get_plan_progress(self, plan):
         num_connections = plan.count_nodes(filter_hasPrev=True)
         num_finished_streams = plan.count_streams(filter_status=[Status.FINISHED])
         return num_finished_streams / num_connections
-
 
     def session_listener(self, message):
         ### check if stream is in stream watch list
@@ -85,7 +89,7 @@ class CoordinatorAgent(Agent):
             # check if stream is part of a plan being tracked
             plan_ids = list(self.plans.keys())
             for plan_id in plan_ids:
-                plan  = self.plans[plan_id]
+                plan = self.plans[plan_id]
                 # check if there is a matching node for stream
                 node = plan.match_stream(stream)
                 if node:
@@ -106,7 +110,7 @@ class CoordinatorAgent(Agent):
         # to_agent_param = None
         # to_output = None
 
-        # if type(f) == tuple: 
+        # if type(f) == tuple:
         #     from_agent, from_agent_param = f
         # else:
         #     from_input = f
@@ -154,8 +158,8 @@ class CoordinatorAgent(Agent):
 
     # TODO: fetch data from stream
     def fetch_stream_data(self, input_stream):
-        # get input data 
-        input_data = None 
+        # get input data
+        input_data = None
 
         return input_data
 
@@ -164,8 +168,7 @@ class CoordinatorAgent(Agent):
         # return output stream
         output_stream = None
 
-        return output_stream 
-
+        return output_stream
 
     # node status progression
     # PLANNED, TRIGGERED, STARTED, FINISHED
@@ -183,10 +186,11 @@ class CoordinatorAgent(Agent):
                     plan = Plan.from_json(p)
                 except Exception:
                     logging.info("Error reading valid plan")
-                    
+
                 if plan:
                     # start plan
                     self.initialize_plan(plan, worker=worker)
+                    plan_id = plan.id
                     # status
                     worker.write_progress(progress_id=plan_id, label='Initialized', value=0.0)
 
@@ -196,7 +200,7 @@ class CoordinatorAgent(Agent):
 
             # process a plan
             plan_id = input
-            
+
             if plan_id in self.plans:
                 plan = self.plans[plan_id]
 
@@ -215,19 +219,19 @@ class CoordinatorAgent(Agent):
 
                     # check, update plan status
                     plan.check_status(save=True)
-            
-                ###  trigger next 
+
+                ###  trigger next
                 # identify node
                 if message.isBOS():
                     # determine stream output from the agent
-                    nodes = plan.get_nodes_by_stream(stream, node_type=[NodeType.AGENT_OUTPUT,NodeType.INPUT])
-       
+                    nodes = plan.get_nodes_by_stream(stream, node_type=[NodeType.AGENT_OUTPUT, NodeType.INPUT])
+
                     node = None
                     if len(nodes) == 1:
                         node = nodes[0]
-                    
+
                     if node is None:
-                        return 
+                        return
 
                     node_id = node['id']
 
@@ -237,7 +241,7 @@ class CoordinatorAgent(Agent):
                     from_agent = None
                     from_agent_param = None
 
-                    # if from an agent output capture 
+                    # if from an agent output capture
                     if plan.get_node_type(node_id) == NodeType.AGENT_OUTPUT:
                         from_agent_node = plan.get_parent_node(node_id)
                         from_agent = from_agent_node['name']
@@ -249,7 +253,7 @@ class CoordinatorAgent(Agent):
 
                     #### next
                     next_nodes = plan.get_next_nodes(node_id)
-    
+
                     for next_node in next_nodes:
                         next_node_id = next_node['id']
 
@@ -279,12 +283,12 @@ class CoordinatorAgent(Agent):
                         # transform data utilizing planner/optimizers, if necessary
                         budget = worker.session.get_budget()
 
-                        # override output stream if data is transformed 
+                        # override output stream if data is transformed
                         input_stream = self.transform_data(stream, budget, f, t)
 
                         # set next node stream
                         plan.set_node_stream(next_node_id, input_stream, save=True)
-                       
+
                         # write an EXECUTE_AGENT instruction
                         if input_stream:
                             # execute agent
@@ -292,7 +296,9 @@ class CoordinatorAgent(Agent):
                                 context = plan.get_scope() + ":PLAN:" + plan_id
                                 to_agent_properties = plan.get_node_properties(to_agent_id)
                                 # issue instruction
-                                worker.write_control(ControlCode.EXECUTE_AGENT, {"agent": to_agent, "context": context, "properties": to_agent_properties, "inputs": {to_agent_param: input_stream}})
+                                worker.write_control(
+                                    ControlCode.EXECUTE_AGENT, {"agent": to_agent, "context": context, "properties": to_agent_properties, "inputs": {to_agent_param: input_stream}}
+                                )
                                 # progress
                                 worker.write_progress(progress_id=plan_id, label='Executing: ' + to_agent, value=self.get_plan_progress(plan))
                             elif to_output:
@@ -300,7 +306,7 @@ class CoordinatorAgent(Agent):
                                 pass
 
                 elif message.isEOS():
-                    # set node values from finished stream 
+                    # set node values from finished stream
                     nodes = plan.get_nodes_by_stream(stream, node_type=NodeType.OUTPUT)
 
                     for node in nodes:
@@ -312,6 +318,5 @@ class CoordinatorAgent(Agent):
 
                     if plan_status == Status.FINISHED:
                         worker.write_progress(progress_id=plan_id, label='Finished', value=1.0)
-                    
 
         return None
