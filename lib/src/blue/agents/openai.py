@@ -164,7 +164,7 @@ class OpenAIAgent(RequestorAgent):
             return cs[0], None
 
     def execute_api_call(self, input, properties=None, additional_data=None):
-        if 'use_tools' in properties and properties['use_tool']:
+        if 'use_tools' in properties and properties['use_tools']:
             # create message from input
             message = self.create_message(input, properties=properties, additional_data=additional_data)
 
