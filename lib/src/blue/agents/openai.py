@@ -99,15 +99,14 @@ class OpenAIAgent(RequestorAgent):
         if len(selected_servers) == 0:
             selected_servers = [server['name'] for server in self.registry.get_servers()]
 
+        matched_tools = []
         for server_name in selected_servers:
             if properties['tool_discovery']:
-
                 if "tool_discovery_similarity_threshold" in properties and properties["tool_discovery_similarity_threshold"]:
                     similarity_threshold = self.properties["tool_discovery_similarity_threshold"]
                 else:
                     similarity_threshold = 0.5
 
-                matched_tools = []
                 page = 0
 
                 # progressively get more pages within similarity threshold
@@ -120,7 +119,8 @@ class OpenAIAgent(RequestorAgent):
                         score = float(result['score'])
                         if score < similarity_threshold:
                             t = self.registry.get_server_tool(server_name, result['name'])
-                            matched_tools.append(t)
+                            if t:
+                                matched_tools.append(t)
                         else:
                             break
                     if score > similarity_threshold:
@@ -129,8 +129,11 @@ class OpenAIAgent(RequestorAgent):
                         page = page + 1
 
             else:
-                matched_tools = self.registry.get_server_tools(server_name)
+                tools = self.registry.get_server_tools(server_name)
+                if tools:
+                    matched_tools.extend(tools)
 
+            logging.info(matched_tools)
             if matched_tools:
                 for t in matched_tools:
                     tool_name = t['name']
