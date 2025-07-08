@@ -1,5 +1,6 @@
 import { Colors } from "@blueprintjs/core";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faQuestion } from "@fortawesome/sharp-duotone-solid-svg-icons";
 import _ from "lodash";
 import Image from "next/image";
 import { FAIcon } from "../FAIcon";
@@ -15,7 +16,7 @@ export default function RegistryEntityIcon({ content, type }) {
         return (
             <FAIcon
                 size={20}
-                icon={_.get(ENTITY_TYPE_LOOKUP, [type, "icon"], null)}
+                icon={_.get(ENTITY_TYPE_LOOKUP, [type, "icon"], faQuestion)}
                 style={{ color: Colors.BLACK }}
             />
         );

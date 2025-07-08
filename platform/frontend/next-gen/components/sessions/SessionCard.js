@@ -93,7 +93,11 @@ export default function SessionCard({ sessionId }) {
         [handleClose, darkMode, menu]
     );
     const filteredMessages = messages.filter((message) => {
-        if (_.get(message, "metadata.ags.WORKSPACE_ONLY")) {
+        const stream = _.get(message, "stream", null);
+        if (
+            _.get(message, "metadata.ags.WORKSPACE_ONLY") ||
+            _.endsWith(stream, "PROGRESS:STREAM")
+        ) {
             return false;
         }
         return true;

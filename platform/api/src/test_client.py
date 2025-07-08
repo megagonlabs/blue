@@ -304,6 +304,23 @@ def send_message(ws, session_id, connection_id, stream_id, message):
 session_id = input("session_id: ")
 connection_id = input("connection_id: ")
 STREAM_PREFIX = f"PLATFORM:default:SESSION:{session_id.replace('SESSION:', '')}:AGENT:TEST_CLIENT:Br4vCROn4C:OUTPUT:DEFAULT:<replace>:STREAM"
+progress = {'progress_id': 'progress_id', 'label': 'label', 'value': 0.5}
+stream_id = STREAM_PREFIX.replace('<replace>', f'{str(int(time.time() * 1000))}:PROGRESS')
+send_bos(ws, session_id, connection_id, stream_id)
+send_message(
+    ws,
+    session_id,
+    connection_id,
+    stream_id,
+    message={
+        "label": "CONTROL",
+        "contents": {"code": "PROGRESS", "args": progress},
+        "content_type": 'JSON',
+    },
+)
+send_eos(ws, session_id, connection_id, stream_id)
+time.sleep(2)
+sys.exit()
 for _ in range(1):
     stream_id = STREAM_PREFIX.replace('<replace>', str(int(time.time() * 1000)))
     sentence_string = sentence()
@@ -381,7 +398,7 @@ send_message(
     },
 )
 send_eos(ws, session_id, connection_id, stream_id)
-sys.exit()
+# sys.exit()
 time.sleep(2)
 send_message(
     ws,

@@ -21,6 +21,7 @@ import {
 } from "@blueprintjs/core";
 import {
     faCircleA,
+    faDiagramSuccessor,
     faFolder,
     faFolderOpen,
     faFolderTree,
@@ -350,6 +351,18 @@ function DebuggerContainer({ width, height, sessionId }) {
                                     }}
                                     active={_.isEqual(visibleSection, "agents")}
                                     icon={<FAIcon icon={faCircleA} />}
+                                />
+                            </Tooltip>
+                            <Tooltip content="Stream flows" placement="bottom">
+                                <Button
+                                    onClick={() => {
+                                        setVisibleSection("stream_flows");
+                                    }}
+                                    active={_.isEqual(
+                                        visibleSection,
+                                        "stream_flows"
+                                    )}
+                                    icon={<FAIcon icon={faDiagramSuccessor} />}
                                 />
                             </Tooltip>
                         </ButtonGroup>
