@@ -9,6 +9,8 @@ from blue.agent import Agent
 from blue.plan import Plan, Status, NodeType
 from blue.stream import ControlCode
 from blue.utils import uuid_utils
+from blue.data.planner import DataPlanner
+from blue.data.pipeline import DataPipeline
 
 
 # set log level
@@ -103,30 +105,30 @@ class CoordinatorAgent(Agent):
         return super().session_listener(message)
 
     def transform_data(self, input_stream, budget, f, t):
-        # from_input = None
-        # from_agent = None
-        # from_agent_param = None
-        # to_agent = None
-        # to_agent_param = None
-        # to_output = None
+        from_input = None
+        from_agent = None
+        from_agent_param = None
+        to_agent = None
+        to_agent_param = None
+        to_output = None
 
-        # if type(f) == tuple:
-        #     from_agent, from_agent_param = f
-        # else:
-        #     from_input = f
+        if type(f) == tuple:
+            from_agent, from_agent_param = f
+        else:
+            from_input = f
 
-        # if type(t) == tuple:
-        #     to_agent, to_agent_param = t
-        # else:
-        #     to_output = t
+        if type(t) == tuple:
+            to_agent, to_agent_param = t
+        else:
+            to_output = t
 
-        # logging.info("TRANSFORM DATA:")
-        # logging.info(from_agent + "." + from_agent_param)
-        # logging.info(to_agent + "." + to_agent_param)
-        # logging.info("BUDGET:")
-        # logging.info(json.dumps(budget, indent=3))
+        logging.info("TRANSFORM DATA:")
+        logging.info(from_agent + "." + from_agent_param)
+        logging.info(to_agent + "." + to_agent_param)
+        logging.info("BUDGET:")
+        logging.info(json.dumps(budget, indent=3))
 
-        # context = {}
+        context = {}
         # TODO: get registry info on from_agent, from_agent_param
 
         # TODO: get registry info on to_agent, to_agent_param
@@ -134,20 +136,20 @@ class CoordinatorAgent(Agent):
         # TODO: TEMPORARY
 
         # fetch data from stream
-        # input_data = self.fetch_stream_data(input_stream)
+        input_data = self.fetch_stream_data(input_stream)
 
         # # TODO: call data planner, plan, optimize given budget
-        # pid = str(hex(uuid.uuid4().fields[0]))[2:]
-        # dp = DataPlanner(id=pid, properties=self.properties)
-        # plan = dp.plan(input_data, "TRANSFORM", context)
-        # plan = dp.optimize(plan, budget)
+        pid = uuid_utils.create_uuid()
+        dp = DataPlanner(id=pid, properties=self.properties)
+        plan = dp.plan(input_data, "TRANSFORM", context)
+        plan = dp.optimize(plan, budget)
 
         # # TODO: execute plan, update budget
-        # pipeline = DataPipeline(id=pid, properties=self.properties)
-        # output_data = pipeline.execute(plan, budget)
+        pipeline = DataPipeline(id=pid, properties=self.properties)
+        output_data = pipeline.execute(plan, budget)
 
         # # # persist data to stream
-        # output_stream = self.persist_stream_data(output_data)
+        output_stream = self.persist_stream_data(output_data)
 
         # # TODO: update session budget
 
