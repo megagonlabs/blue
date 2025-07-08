@@ -47,6 +47,7 @@ class OpenAIAgent(RequestorAgent):
         self.properties['service_prefix'] = 'openai'
 
         # tool calling related
+        self.properties['use_tools'] = False
         self.properties['tool_discovery'] = False
         self.properties['tool_servers'] = []
         self.properties['tools'] = []
@@ -162,46 +163,59 @@ class OpenAIAgent(RequestorAgent):
         else:
             return cs[0], None
 
-    def execute_api_call(self, stream_data, properties=None, additional_data=None):
-        if properties is None:
-            properties = self.get_properties(properties=properties)
-        input_data = "".join(stream_data)
-        if not self.validate_input(input_data, properties=properties):
-            return
+    def execute_api_call(self, input, properties=None, additional_data=None):
+        if 'use_tools' in properties and properties['use_tool']:
+            # create message from input
+            message = self.create_message(input, properties=properties, additional_data=additional_data)
 
-        canonical_tool_schemas = self.get_tool_schemas(input_data, properties)
+            # inject tool data into message
+            canonical_tool_schemas = self.get_tool_schemas(input, properties)
+            message["tools"] = canonical_tool_schemas
 
-        session_data = self.session.get_all_data()
-        input_object = self.create_message(input_data, properties=properties, additional_data=session_data)
-        input_object["tools"] = canonical_tool_schemas
+            # initial num calls
+            num_calls = 0
 
-        num_calls = 0
-        while True and num_calls < properties["tool_max_calling_depth"]:
-            url = self.get_service_address(properties=properties)
-            r = self.call_service(url, json.dumps(input_object))
-            response = json.loads(r)
+            # iteratively call until max depth
+            while True and num_calls < properties["tool_max_calling_depth"]:
+                # serialize message, call service
+                url = self.get_service_address(properties=properties)
+                m = json.dumps(message)
+                r = self.call_service(url, m)
 
-            response_message = response['choices'][0]['message']
-            if 'tool_calls' in response_message and response_message['tool_calls']:
-                input_object["messages"].append({"role": "assistant", "content": None, "tool_calls": response_message['tool_calls']})
-                for call in response_message['tool_calls']:
-                    canonical_name = call["function"]["name"]
-                    args = json.loads(call["function"]["arguments"] or "{}")
+                response = json.loads(r)
 
-                    # extract server and function from canonical
-                    server_name, function_name = self._extract_canonical(canonical_name)
-                    result = self.registry.execute_tool(function_name, server_name, None, args)
+                # check if response contains tool call, if so execute
+                response_message = response['choices'][0]['message']
+                if 'tool_calls' in response_message and response_message['tool_calls']:
+                    message["messages"].append({"role": "assistant", "content": None, "tool_calls": response_message['tool_calls']})
+                    for call in response_message['tool_calls']:
+                        canonical_name = call["function"]["name"]
+                        args = json.loads(call["function"]["arguments"] or "{}")
 
-                    input_object["messages"].append(
-                        {
-                            "role": "tool",
-                            "tool_call_id": call["id"],
-                            "name": canonical_name,
-                            "content": json.dumps({"result": result}),
-                        }
-                    )
-            else:
-                input_object["messages"].append({"role": "assistant", "content": response_message["content"]})
-                return response_message["content"]
+                        # extract server and function from canonical
+                        server_name, function_name = self._extract_canonical(canonical_name)
+                        # execute tool
+                        result = self.registry.execute_tool(function_name, server_name, None, args)
+                        # append result to message
+                        message["messages"].append(
+                            {
+                                "role": "tool",
+                                "tool_call_id": call["id"],
+                                "name": canonical_name,
+                                "content": json.dumps({"result": result}),
+                            }
+                        )
+                else:
+                    # create output from response
+                    output = self.create_output(response, properties=properties)
 
-            num_calls += 1
+                    # process output data
+                    output = self.process_output(output, properties=properties)
+
+                    return output
+
+                # go on, until max depth
+                num_calls += 1
+
+        else:
+            return super().execute_api_call(input, properties=properties, additional_data=additional_data)

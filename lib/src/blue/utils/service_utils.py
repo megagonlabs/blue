@@ -11,10 +11,11 @@ from websockets.sync.client import connect
 from blue.agent import Agent
 from blue.utils import string_utils, json_utils
 
+
 ##########################
 ### ServiceClient
 #
-class ServiceClient():
+class ServiceClient:
     def __init__(self, name, properties=None):
         self.name = name
 
@@ -33,8 +34,8 @@ class ServiceClient():
 
         # input / output processing properties
         self.properties['input_json'] = None
-        self.properties['input_context'] = None 
-        self.properties['input_context_field'] = None 
+        self.properties['input_context'] = None
+        self.properties['input_context_field'] = None
         self.properties['input_field'] = 'input'
         self.properties['output_path'] = 'output'
 
@@ -53,30 +54,29 @@ class ServiceClient():
         if properties is None:
             properties = {}
         return json_utils.merge_json(self.properties, properties)
-    
+
     def extract_input_params(self, input_data, properties=None):
         properties = self.get_properties(properties=properties)
 
         return {}
-    
+
     def extract_output_params(self, output_data, properties=None):
         properties = self.get_properties(properties=properties)
         return {}
-    
 
     def extract_api_properties(self, properties=None):
         properties = self.get_properties(properties=properties)
-        
+
         api_properties = {}
 
         # api properties have a prefix of name, e.g. openai.model
         for p in properties:
             if p.find(self.get_service_prefix()) == 0:
-                property = p[len(self.get_service_prefix())+1:]
+                property = p[len(self.get_service_prefix()) + 1 :]
                 api_properties[property] = properties[p]
 
         return api_properties
-    
+
     def create_message(self, input_data, properties=None, additional_data=None):
         # add properties to pass onto api
         message = self.extract_api_properties(properties=properties)
@@ -100,9 +100,9 @@ class ServiceClient():
                 input_object = json.loads(properties['input_json'])
             else:
                 input_object = copy.deepcopy(properties['input_json'])
-                
+
             # set input text in object
-            json_utils.json_query_set(input_object,properties['input_context_field'], input_data, context=properties['input_context'])
+            json_utils.json_query_set(input_object, properties['input_context_field'], input_data, context=properties['input_context'])
 
         message[properties['input_field']] = input_object
         return message
@@ -127,7 +127,7 @@ class ServiceClient():
         # get properties, overriding with properties provided
         properties = self.get_properties(properties=properties)
 
-        return True 
+        return True
 
     def process_output(self, output_data, properties=None):
         # get properties, overriding with properties provided
@@ -171,13 +171,12 @@ class ServiceClient():
                         ttore = re.compile(tfrom)
                         output_data = re.sub(tfromre, ttore, output_data)
 
-                
         return output_data
 
     def execute_api_call(self, input, properties=None, additional_data=None):
-        # create message from innput
+        # create message from input
         message = self.create_message(input, properties=properties, additional_data=additional_data)
-        
+
         # serialize message, call service
         url = self.get_service_address(properties=properties)
         m = json.dumps(message)
@@ -198,13 +197,13 @@ class ServiceClient():
         if 'service_prefix' in self.properties:
             service_prefix = self.properties['service_prefix']
         return service_prefix
-    
+
     def get_service_address(self, properties=None):
         properties = self.get_properties(properties=properties)
         if 'service_url' in properties:
             return properties['service_url']
         return None
-        
+
     def call_service(self, url, data):
         with connect(url) as websocket:
             websocket.send(data)
