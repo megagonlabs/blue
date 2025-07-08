@@ -146,6 +146,8 @@ export const useAuthStore = create((set, get) => ({
                     "show_workspace",
                     "expand_message",
                     "windows_control_buttons",
+                    "detailed_message",
+                    "full_window_height",
                 ];
                 for (let i = 0; i < _.size(KEYS); i++) {
                     setState({

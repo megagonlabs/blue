@@ -564,6 +564,81 @@
     "icon": null
   },
   {
+    "name": "NL2LLM",
+    "type": "agent",
+    "scope": "/",
+    "description": "Answering natural language questions and generating results by utilizing LLM models' internal knowledge. Works with any data source that has 'llm' as their protocol. Returns output as a JSON with keys `question`, `source`, `result` and `error`.",
+    "created_by": null,
+    "properties": {
+      "image": "megagonlabs/blue-agent-nl2llm-private:latest",
+      "nl2llm_source": null,
+      "nl2llm_discovery": true,
+      "nl2llm_discovery_source_protocols": ["openai"],
+      "nl2llm_context": [],
+      "nl2llm_attr_names": [],
+      "nl2llm_output_filters": ["all"],
+      "nl2llm_output_max_results": null,
+      "listens": {
+        "DEFAULT": {
+          "includes": [],
+          "excludes": []
+        }
+      },
+      "display_name": "NL-to-LLM Agent",
+      "system_agent": false,
+      "tracker.outputs": [
+        "log.INFO"
+      ],
+      "tags": {
+        "DEFAULT": [
+          "QUERY"
+        ]
+      },
+      "categories": [
+        "BASE"
+      ]
+    },
+    "icon": null
+  },
+  {
+    "name": "NL2LLM___INTERACTIVE",
+    "type": "agent",
+    "scope": "/agent/NL2LLM",
+    "description": "Extends NL2LLM for interactive use, including listening to the USER agent directly.",
+    "created_by": null,
+    "properties": {
+      "display_name": "NL-to-LLM Agent - Interactive",
+      "listens": {
+        "DEFAULT": {
+          "includes": [
+            "USER"
+          ],
+          "excludes": []
+        }
+      },
+      "tags": {
+        "DEFAULT": [
+          "QUERY"
+        ]
+      }
+    },
+    "icon": null
+  },
+  {
+    "name": "NL2LLM___RESULT_ONLY",
+    "type": "agent",
+    "scope": "/agent/NL2LLM",
+    "description": "Extends NL2LLM, returning only results.",
+    "created_by": null,
+    "properties": {
+      "display_name": "NL-to-LLM Agent - Result Only",
+      "nl2llm_output_filters": [
+        "result"
+      ]
+    },
+    "icon": null
+  },
+  {
     "name": "SUMMARIZER",
     "type": "agent",
     "scope": "/",
@@ -996,13 +1071,34 @@
     "icon": null
   },
   {
+    "name": "OPENAI___TOOL_EXAMPLE",
+    "type": "agent",
+    "scope": "/agent/OPENAI",
+    "description": "Example OPENAI agent to illustrate tool user.",
+    "created_by": null,
+    "properties": {
+      "display_name": "OPENAI Interactive Agent with Tools",
+      "listens": {
+        "DEFAULT": {
+          "includes": [
+            "USER"
+          ],
+          "excludes": []
+        }
+      },
+      "use_tools": true, 
+      "tool_discovery": true,
+      "icon": "aperture:#16A5A5"
+    }
+  },
+  {
     "name": "OPENAI___INTERACTIVE",
     "type": "agent",
     "scope": "/agent/OPENAI",
     "description": "Extends OPENAI agent for interactive use, by listening to the USER agent directly.",
     "created_by": null,
     "properties": {
-      "display_name": "OpenAI Agent - Interactive",
+      "display_name": "OPENAI Interactive Agent",
       "listens": {
         "DEFAULT": {
           "includes": [
@@ -1567,81 +1663,6 @@
     "description": "",
     "created_by": null,
     "properties": {},
-    "icon": null
-  },
-  {
-    "name": "NL2LLM",
-    "type": "agent",
-    "scope": "/",
-    "description": "Answering natural language questions and generating results by utilizing LLM models' internal knowledge. Works with any data source that has 'llm' as their protocol. Returns output as a JSON with keys `question`, `source`, `result` and `error`.",
-    "created_by": null,
-    "properties": {
-      "image": "megagonlabs/blue-agent-nl2llm-private:latest",
-      "nl2llm_source": null,
-      "nl2llm_discovery": true,
-      "nl2llm_discovery_source_protocols": ["openai"],
-      "nl2llm_context": [],
-      "nl2llm_attr_names": [],
-      "nl2llm_output_filters": ["all"],
-      "nl2llm_output_max_results": null,
-      "listens": {
-        "DEFAULT": {
-          "includes": [],
-          "excludes": []
-        }
-      },
-      "display_name": "NL-to-LLM Agent",
-      "system_agent": false,
-      "tracker.outputs": [
-        "log.INFO"
-      ],
-      "tags": {
-        "DEFAULT": [
-          "QUERY"
-        ]
-      },
-      "categories": [
-        "BASE"
-      ]
-    },
-    "icon": null
-  },
-  {
-    "name": "NL2LLM___INTERACTIVE",
-    "type": "agent",
-    "scope": "/agent/NL2LLM",
-    "description": "Extends NL2LLM for interactive use, including listening to the USER agent directly.",
-    "created_by": null,
-    "properties": {
-      "display_name": "NL-to-LLM Agent - Interactive",
-      "listens": {
-        "DEFAULT": {
-          "includes": [
-            "USER"
-          ],
-          "excludes": []
-        }
-      },
-      "tags": {
-        "DEFAULT": [
-          "QUERY"
-        ]
-      }
-    },
-    "icon": null
-  },
-  {
-    "name": "NL2LLM___RESULT_ONLY",
-    "type": "agent",
-    "scope": "/agent/NL2LLM",
-    "description": "Extends NL2LLM, returning only results.",
-    "created_by": null,
-    "properties": {
-      "display_name": "NL-to-LLM Agent - Result Only",
-      "nl2llm_output_filters": [
-        "result"
-      ]
-    },
     "icon": null
   }
 ]

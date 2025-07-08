@@ -23,10 +23,11 @@ export default function Leaves({ list, addCrumb, loading }) {
                         key={index}
                         style={{
                             cursor: "pointer",
-                            padding: 15,
+                            padding: 20,
                             backgroundColor: darkMode
                                 ? Colors.DARK_GRAY1
                                 : Colors.LIGHT_GRAY5,
+                            borderRadius: 2,
                         }}
                     >
                         <div

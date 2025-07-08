@@ -23,8 +23,8 @@ export default function Authentication() {
             <Row style={{ height: "100vh" }} align="center">
                 <Hidden xs sm>
                     <Col
-                        md={7}
-                        lg={5}
+                        md={8}
+                        lg={6}
                         className="full-parent-height"
                         style={{ padding: 20 }}
                     >
@@ -37,7 +37,7 @@ export default function Authentication() {
                             }}
                         >
                             <Link
-                                href="https://unsplash.com/photos/black-and-red-light-illustration-HakTxidk36I?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash"
+                                href="https://unsplash.com/photos/black-and-white-computer-keyboard-pfR18JNEMv8?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash"
                                 target="__blank"
                                 rel="noopener noreferrer"
                             >
@@ -51,20 +51,20 @@ export default function Authentication() {
                                         zIndex: 1,
                                         color: Colors.LIGHT_GRAY1,
                                     }}
-                                    text="Photo by Maximalfocus on Unsplash"
+                                    text="Photo by Vishnu Mohanan on Unsplash"
                                 />
                             </Link>
                             <Image
                                 className="border-radius-10"
                                 layout="fill"
                                 objectFit="cover"
-                                src="/images/maximalfocus-HakTxidk36I-unsplash.jpg"
+                                src="/images/vishnu-mohanan-pfR18JNEMv8-unsplash.jpg"
                                 alt=""
                             />
                         </div>
                     </Col>
                 </Hidden>
-                <Col xs={12} md={5} lg={7}>
+                <Col xs={12} md={4} lg={6}>
                     <div
                         className="full-parent-height"
                         style={{ textAlign: "center" }}

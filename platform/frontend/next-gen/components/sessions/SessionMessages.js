@@ -28,6 +28,7 @@ import {
     faBrowsers,
     faEllipsisH,
     faEllipsisV,
+    faEraser,
     faSidebar,
     faTableColumns,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
@@ -47,14 +48,17 @@ import {
 import { FAIcon } from "../FAIcon";
 import DebuggerContainer from "./debuggers/DebuggerContainer";
 import MessageContent from "./messages/MessageContent";
+import MessageIcon from "./messages/MessageIcon";
+import MessageMetadata from "./messages/MessageMetadata";
 import SessionDisplayName from "./SessionDisplayName";
 import SessionMemberStack from "./SessionMemberStack";
 const Row = ({ index, data, style }) => {
     const { setRowHeight, sessionId, addInspectionContainer } = data;
-    const { darkMode, autoExpandMessage } = useAppStore(
+    const { darkMode, autoExpandMessage, detailedMessage } = useAppStore(
         useShallow((state) => ({
             darkMode: state.dark_mode,
             autoExpandMessage: state.expand_message,
+            detailedMessage: state.detailed_message,
         }))
     );
     const { getUserProfileById, getAgentMetadata } = useDedupStore(
@@ -93,7 +97,11 @@ const Row = ({ index, data, style }) => {
     );
     const filterTags = _.get(messageFilterTags, sessionId, []);
     const filteredMessages = messages.filter((message) => {
-        if (_.get(message, "metadata.ags.WORKSPACE_ONLY")) {
+        const stream = _.get(message, "stream", null);
+        if (
+            _.get(message, "metadata.ags.WORKSPACE_ONLY") ||
+            _.endsWith(stream, "PROGRESS:STREAM")
+        ) {
             return false;
         }
         let include = false;
@@ -138,9 +146,10 @@ const Row = ({ index, data, style }) => {
                     ? MESSAGE_OVERFLOW_THRESHOLD
                     : rowRef.current.clientHeight);
             if (isOverflow.current) height += 35;
+            if (detailedMessage) height += 30;
             setRowHeight(index, height);
         }
-    }, [rowRef, index, setRowHeight]);
+    }, [rowRef, index, setRowHeight, expandMessage, detailedMessage]);
     const streamData = _.get(streams, [stream, "data"], []);
     const contentType = _.get(filteredMessages, [index, "contentType"], null);
     const { ref: resizeRef } = useResizeDetector({ onResize: handleResize });
@@ -185,8 +194,8 @@ const Row = ({ index, data, style }) => {
                     style={{
                         borderRadius: 2,
                         position: "absolute",
-                        right: 20,
-                        top: 10,
+                        right: detailedMessage ? 70 : 20,
+                        top: detailedMessage ? 40 : 10,
                         display: showActions.current ? null : "none",
                     }}
                 >
@@ -214,69 +223,81 @@ const Row = ({ index, data, style }) => {
                         </Tooltip>
                     </ButtonGroup>
                 </div>
-                <Callout
-                    intent={
-                        hasError.current
-                            ? Intent.DANGER
-                            : own
-                            ? Intent.PRIMARY
-                            : null
-                    }
-                    icon={null}
+                {detailedMessage && <MessageIcon metadata={message.metadata} />}
+                <div
                     style={{
-                        maxWidth: "100%",
-                        width: "fit-content",
-                        overflow: "hidden",
-                        borderRadius: own
-                            ? "15px 15px 2px 15px"
-                            : "15px 15px 15px 2px",
+                        display: "flex",
+                        gap: 10,
+                        width: `calc(100% - ${detailedMessage ? 50 : 0}px)`,
+                        flexDirection: "column",
+                        alignItems: own ? "flex-end" : null,
                     }}
                 >
-                    <div
-                        ref={mergeRefs(rowRef, resizeRef)}
-                        className="message-bubble-callout-content"
+                    {detailedMessage && <MessageMetadata message={message} />}
+                    <Callout
+                        intent={
+                            hasError.current
+                                ? Intent.DANGER
+                                : own
+                                ? Intent.PRIMARY
+                                : null
+                        }
+                        icon={null}
                         style={{
-                            maxHeight: _.get(
-                                expandedMessages,
-                                [sessionId, stream],
-                                false
-                            )
-                                ? null
-                                : MESSAGE_OVERFLOW_THRESHOLD,
+                            maxWidth: "100%",
+                            width: "fit-content",
+                            overflow: "hidden",
+                            borderRadius: own
+                                ? "15px 2px 15px 15px"
+                                : "2px 15px 15px 15px",
                         }}
                     >
-                        <MessageContent
-                            contentType={contentType}
-                            streamData={streamData}
-                            hasError={hasError}
-                        />
-                        {!complete && (
-                            <div style={{ marginTop: 10 }}>
-                                <Tag
-                                    minimal
-                                    icon={
-                                        <FAIcon
-                                            icon={faEllipsisH}
-                                            className="fa-fade"
-                                        />
-                                    }
-                                />
-                            </div>
-                        )}
-                    </div>
-                    {isOverflow.current && (
-                        <Tag
-                            onClick={() => {
-                                expandMessage(sessionId, stream);
+                        <div
+                            ref={mergeRefs(rowRef, resizeRef)}
+                            className="message-bubble-callout-content"
+                            style={{
+                                maxHeight: _.get(
+                                    expandedMessages,
+                                    [sessionId, stream],
+                                    false
+                                )
+                                    ? null
+                                    : MESSAGE_OVERFLOW_THRESHOLD,
                             }}
-                            interactive
-                            minimal
-                            style={{ marginTop: 15 }}
                         >
-                            Show more
-                        </Tag>
-                    )}
-                </Callout>
+                            <MessageContent
+                                contentType={contentType}
+                                streamData={streamData}
+                                hasError={hasError}
+                            />
+                            {!complete && (
+                                <div style={{ marginTop: 10 }}>
+                                    <Tag
+                                        minimal
+                                        icon={
+                                            <FAIcon
+                                                icon={faEllipsisH}
+                                                className="fa-fade"
+                                            />
+                                        }
+                                    />
+                                </div>
+                            )}
+                        </div>
+                        {isOverflow.current && (
+                            <Tag
+                                onClick={() => {
+                                    expandMessage(sessionId, stream);
+                                }}
+                                interactive
+                                minimal
+                                style={{ marginTop: 15 }}
+                            >
+                                Show more
+                            </Tag>
+                        )}
+                    </Callout>
+                </div>
             </div>
         </div>
     );
@@ -316,7 +337,11 @@ export default function SessionMessages({
     );
     const filterTags = _.get(messageFilterTags, sessionId, []);
     const filteredMessages = messages.filter((message) => {
-        if (_.get(message, "metadata.ags.WORKSPACE_ONLY")) {
+        const stream = _.get(message, "stream", null);
+        if (
+            _.get(message, "metadata.ags.WORKSPACE_ONLY") ||
+            _.endsWith(stream, "PROGRESS:STREAM")
+        ) {
             return false;
         }
         let include = false;
@@ -396,10 +421,11 @@ export default function SessionMessages({
                         content={
                             <Menu size={Size.LARGE}>
                                 <MenuItem
-                                    text="Clear all"
+                                    text="Deselect all"
                                     onClick={() => {
                                         clearMessageFilterTags(sessionId);
                                     }}
+                                    icon={<FAIcon icon={faEraser} />}
                                 />
                                 {!_.isEmpty(tags) && (
                                     <>

@@ -65,7 +65,6 @@ function PlatformConfigurations({ width, height }) {
                                     );
                                     if (element) {
                                         element.scrollIntoView({
-                                            behavior: "smooth",
                                             block: "nearest",
                                             inline: "nearest",
                                         });

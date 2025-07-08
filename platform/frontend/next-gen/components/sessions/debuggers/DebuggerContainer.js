@@ -21,6 +21,7 @@ import {
 } from "@blueprintjs/core";
 import {
     faCircleA,
+    faDiagramSuccessor,
     faFolder,
     faFolderOpen,
     faFolderTree,
@@ -352,6 +353,18 @@ function DebuggerContainer({ width, height, sessionId }) {
                                     icon={<FAIcon icon={faCircleA} />}
                                 />
                             </Tooltip>
+                            <Tooltip content="Stream flows" placement="bottom">
+                                <Button
+                                    onClick={() => {
+                                        setVisibleSection("stream_flows");
+                                    }}
+                                    active={_.isEqual(
+                                        visibleSection,
+                                        "stream_flows"
+                                    )}
+                                    icon={<FAIcon icon={faDiagramSuccessor} />}
+                                />
+                            </Tooltip>
                         </ButtonGroup>
                         {_.isEqual(visibleSection, "messages") && (
                             <ButtonGroup
@@ -531,7 +544,7 @@ function DebuggerContainer({ width, height, sessionId }) {
                                                                         elementRef.current
                                                                     }
                                                                     placement="bottom"
-                                                                    date={
+                                                                    epoch={
                                                                         message.timestamp
                                                                     }
                                                                 />

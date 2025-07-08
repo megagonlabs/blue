@@ -1,5 +1,6 @@
 import { GridContainerContextProvider } from "@/components/contexts/GridContainerContext";
 import { FAIcon } from "@/components/FAIcon";
+import GridContainerWrapper from "@/components/GridContainerWrapper";
 import { useAppStore } from "@/stores/app-store";
 import { useGridStore } from "@/stores/grid-layout-store";
 import {
@@ -50,7 +51,7 @@ export default function Home() {
         containers,
         removeContainer,
         resizeContainerWidth,
-        resizeContainerFullHeight,
+        resizeContainerHeight,
     } = useGridStore(
         useShallow((state) => ({
             layout: state.layout,
@@ -58,7 +59,7 @@ export default function Home() {
             containers: state.containers,
             removeContainer: state.removeContainer,
             resizeContainerWidth: state.resizeContainerWidth,
-            resizeContainerFullHeight: state.resizeContainerFullHeight,
+            resizeContainerHeight: state.resizeContainerHeight,
         }))
     );
     const gridRef = useRef();
@@ -68,7 +69,7 @@ export default function Home() {
         }))
     );
     const expandWindow = (id) => {
-        resizeContainerFullHeight({ id, grid: gridRef });
+        resizeContainerHeight({ id, grid: gridRef });
         resizeContainerWidth({ id, width: 12 });
     };
     return (
@@ -175,22 +176,46 @@ export default function Home() {
                                                 className="margin-0"
                                                 label="Height"
                                             >
-                                                <Button
+                                                <ButtonGroup
+                                                    fill
                                                     variant={
                                                         ButtonVariant.MINIMAL
                                                     }
-                                                    fill
-                                                    text="Full height"
-                                                    intent={Intent.PRIMARY}
-                                                    onClick={() => {
-                                                        resizeContainerFullHeight(
-                                                            {
-                                                                id: element.i,
-                                                                grid: gridRef,
-                                                            }
-                                                        );
-                                                    }}
-                                                />
+                                                >
+                                                    <Button
+                                                        variant={
+                                                            ButtonVariant.MINIMAL
+                                                        }
+                                                        fill
+                                                        text="Half"
+                                                        intent={Intent.PRIMARY}
+                                                        onClick={() => {
+                                                            resizeContainerHeight(
+                                                                {
+                                                                    id: element.i,
+                                                                    grid: gridRef,
+                                                                    ratio: 0.5,
+                                                                }
+                                                            );
+                                                        }}
+                                                    />
+                                                    <Button
+                                                        variant={
+                                                            ButtonVariant.MINIMAL
+                                                        }
+                                                        fill
+                                                        text="Full"
+                                                        intent={Intent.PRIMARY}
+                                                        onClick={() => {
+                                                            resizeContainerHeight(
+                                                                {
+                                                                    id: element.i,
+                                                                    grid: gridRef,
+                                                                }
+                                                            );
+                                                        }}
+                                                    />
+                                                </ButtonGroup>
                                             </FormGroup>
                                         </div>
                                     }
@@ -260,11 +285,13 @@ export default function Home() {
                             <GridContainerContextProvider
                                 value={{ gridContainerId: element.i }}
                             >
-                                {_.get(
-                                    containers,
-                                    [element.i, "content"],
-                                    null
-                                )}
+                                <GridContainerWrapper gridRef={gridRef}>
+                                    {_.get(
+                                        containers,
+                                        [element.i, "content"],
+                                        null
+                                    )}
+                                </GridContainerWrapper>
                             </GridContainerContextProvider>
                         </div>
                     </div>

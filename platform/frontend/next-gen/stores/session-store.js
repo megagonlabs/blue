@@ -138,7 +138,11 @@ export const useSessionStore = create((set, get) => ({
                 }
                 const { triggers } = get();
                 let next = _.cloneDeep(triggers);
-                _.set(next, ["addSessionAgent", sessionId], true);
+                _.set(
+                    next,
+                    ["addSessionAgent", sessionId],
+                    _.isEmpty(agentGroup)
+                );
                 set({ triggers: next });
             }
         });
@@ -280,8 +284,8 @@ export const useSessionStore = create((set, get) => ({
                 );
                 const formId = _.get(messageContentsArgs, "form_id", null);
                 if (
-                    _.isEqual(messageContentsCode, "BOS") &&
-                    !_.endsWith(stream, "PROGRESS:STREAM")
+                    _.isEqual(messageContentsCode, "BOS")
+                    // && !_.endsWith(stream, "PROGRESS:STREAM")
                 ) {
                     considerWorkspace = true;
                     messages.push(baseMessage);
@@ -304,8 +308,11 @@ export const useSessionStore = create((set, get) => ({
                         true
                     );
                 } else if (
-                    (_.includes(["CREATE_FORM", "UPDATE_FORM"]),
-                    messageContentsCode)
+                    _.includes([
+                        "CREATE_FORM",
+                        "UPDATE_FORM",
+                        messageContentsCode,
+                    ])
                 ) {
                     for (let i = _.size(messages) - 1; i >= 0; i--) {
                         if (_.isEqual(messages[i].stream, stream)) {
@@ -341,6 +348,16 @@ export const useSessionStore = create((set, get) => ({
                         sessionProgress = _.omit(sessionProgress, progressId);
                     }
                     _.set(newProgress, sessionId, sessionProgress);
+                    for (let i = _.size(messages) - 1; i >= 0; i--) {
+                        if (_.isEqual(messages[i].stream, stream)) {
+                            _.set(messages, [i, "contentType"], "PROGRESS");
+                            break;
+                        }
+                    }
+                    streamData.push({
+                        ...baseData,
+                        content: messageContentsArgs,
+                    });
                 }
             } else if (_.isEqual(messageLabel, "DATA")) {
                 for (let i = _.size(messages) - 1; i >= 0; i--) {

@@ -86,7 +86,7 @@ export default function MessageViewer({ sessionId, message }) {
             >
                 <div style={{ display: "inline-flex", gap: 10 }}>
                     <div className={Classes.TEXT_MUTED}>Time</div>
-                    <Timestamp placement="bottom" date={message.timestamp} />
+                    <Timestamp placement="bottom" epoch={message.timestamp} />
                 </div>
                 <Divider style={{ height: "10px" }} />
                 <div

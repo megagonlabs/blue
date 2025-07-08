@@ -380,6 +380,9 @@ export default function Blue({ children }) {
                                                         >
                                                             {permissions.canReadAgentRegistry && (
                                                                 <MenuItem
+                                                                    intent={
+                                                                        Intent.SUCCESS
+                                                                    }
                                                                     icon={
                                                                         <FAIcon
                                                                             icon={
@@ -408,6 +411,7 @@ export default function Blue({ children }) {
                                                                                         (
                                                                                             <SessionList />
                                                                                         ),
+                                                                                    icon: faInboxFull,
                                                                                 }
                                                                             )
                                                                         }
@@ -520,6 +524,7 @@ export default function Blue({ children }) {
                                                                                             (
                                                                                                 <FormDesigner />
                                                                                             ),
+                                                                                        icon: faPencilRuler,
                                                                                     }
                                                                                 )
                                                                             }

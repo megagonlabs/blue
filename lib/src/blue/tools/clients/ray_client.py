@@ -28,7 +28,7 @@ class RayToolClient(ToolClient):
     def _initialize_properties(self):
         super()._initialize_properties()
 
-        # server protocol 
+        # server protocol
         self.properties['protocol'] = "ray"
 
     ###### connection
@@ -41,8 +41,8 @@ class RayToolClient(ToolClient):
         host = c['host']
         port = c['port']
         server_url = "ray://" + host + ":" + str(port)
-        
-        namespace = None 
+
+        namespace = None
         if 'namespace' in c:
             namespace = c['namespace']
 
@@ -69,17 +69,10 @@ class RayToolClient(ToolClient):
             tool_obj = tools_dict[tool]
             p = {}
             p = json_utils.merge_json(p, tool_obj.properties)
-            p = json_utils.merge_json(p, { "parameters": tool_obj.parameters })
-            metadata = {
-                "name": tool_obj.name,
-                "description": tool_obj.description,
-                "properties": {
-                    "parameters": p
-                }
-            }
+            p = json_utils.merge_json(p, {"parameters": tool_obj.parameters})
+            metadata = {"name": tool_obj.name, "description": tool_obj.description, "properties": {"parameters": p}}
         return metadata
 
-   
     ######### execute tool
     def execute_tool(self, tool, args, kwargs):
         if tool is None:
@@ -90,9 +83,10 @@ class RayToolClient(ToolClient):
         if tool in tools_dict:
             tool_obj = tools_dict[tool]
 
-            valid =  tool_obj.validator(kwargs)
+            valid = tool_obj.validator(kwargs)
             if valid:
-                result_ref = tool_obj.function.remote(**kwargs)
+                remote_function = ray.remote(tool.function)
+                result_ref = remote_function.remote(**kwargs)
             else:
                 return valid
 
@@ -101,5 +95,3 @@ class RayToolClient(ToolClient):
             return result
         else:
             return None
-
-    

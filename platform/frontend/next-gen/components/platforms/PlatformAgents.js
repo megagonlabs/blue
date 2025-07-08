@@ -138,7 +138,7 @@ function PlatformAgents({ width, height }) {
                                 }}
                             >
                                 {!_.isEmpty(timestamp) ? (
-                                    <Timestamp date={new Date(timestamp)} />
+                                    <Timestamp epoch={timestamp} />
                                 ) : (
                                     "-"
                                 )}
