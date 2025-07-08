@@ -198,7 +198,10 @@ class OpenAIAgent(RequestorAgent):
                         # extract server and function from canonical
                         server_name, function_name = self._extract_canonical(canonical_name)
                         # execute tool
+                        logging.info("Executing tool: " + function_name)
+                        logging.info("Arguments: " + json.dumps(args))
                         result = self.registry.execute_tool(function_name, server_name, None, args)
+                        logging.info("Result: " + str(result))
                         # append result to message
                         message["messages"].append(
                             {
