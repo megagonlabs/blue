@@ -29,6 +29,11 @@ function MessageMetadata({ message }) {
     const own = useMemo(() => {
         return isUser && _.isEqual(user.uid, id);
     }, [user, id]);
+    const displayName = _.get(
+        agentMetadata,
+        [createdBy, "displayName"],
+        createdBy
+    );
     return (
         <div
             style={{
@@ -45,11 +50,9 @@ function MessageMetadata({ message }) {
             <div>
                 {isUser
                     ? _.get(users, [id, "name"], id)
-                    : _.get(
-                          agentMetadata,
-                          [createdBy, "displayName"],
-                          createdBy
-                      )}
+                    : !_.isEmpty(displayName)
+                    ? displayName
+                    : "-"}
             </div>
         </div>
     );

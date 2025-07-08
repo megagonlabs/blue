@@ -28,6 +28,7 @@ import {
     faBrowsers,
     faEllipsisH,
     faEllipsisV,
+    faEraser,
     faSidebar,
     faTableColumns,
 } from "@fortawesome/sharp-duotone-solid-svg-icons";
@@ -96,7 +97,11 @@ const Row = ({ index, data, style }) => {
     );
     const filterTags = _.get(messageFilterTags, sessionId, []);
     const filteredMessages = messages.filter((message) => {
-        if (_.get(message, "metadata.ags.WORKSPACE_ONLY")) {
+        const stream = _.get(message, "stream", null);
+        if (
+            _.get(message, "metadata.ags.WORKSPACE_ONLY") ||
+            _.endsWith(stream, "PROGRESS:STREAM")
+        ) {
             return false;
         }
         let include = false;
@@ -332,7 +337,11 @@ export default function SessionMessages({
     );
     const filterTags = _.get(messageFilterTags, sessionId, []);
     const filteredMessages = messages.filter((message) => {
-        if (_.get(message, "metadata.ags.WORKSPACE_ONLY")) {
+        const stream = _.get(message, "stream", null);
+        if (
+            _.get(message, "metadata.ags.WORKSPACE_ONLY") ||
+            _.endsWith(stream, "PROGRESS:STREAM")
+        ) {
             return false;
         }
         let include = false;
@@ -412,10 +421,11 @@ export default function SessionMessages({
                         content={
                             <Menu size={Size.LARGE}>
                                 <MenuItem
-                                    text="Clear all"
+                                    text="Deselect all"
                                     onClick={() => {
                                         clearMessageFilterTags(sessionId);
                                     }}
+                                    icon={<FAIcon icon={faEraser} />}
                                 />
                                 {!_.isEmpty(tags) && (
                                     <>
